@@ -1,21 +1,14 @@
-import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { ConfirmProvider } from "material-ui-confirm";
+import { PropsWithChildren } from "react";
 import { useTranslation } from "react-i18next";
-import { routeTree } from "routeTree.gen";
+import { BrowserRouter } from "react-router";
 
 import { HeadProvider } from "./HeadProvider";
 import { SnackbarProvider } from "./SnackbarProvider";
 import { ThemeProvider } from "./ThemeProvider";
 
-const router = createRouter({ routeTree, defaultViewTransition: true });
-// Register the router instance for type safety
-declare module "@tanstack/react-router" {
-  interface Register {
-    router: typeof router;
-  }
-}
-
-export function Providers() {
+export function Providers(props: PropsWithChildren) {
+  const { children } = props;
   const { t } = useTranslation();
 
   return (
@@ -32,7 +25,7 @@ export function Providers() {
           }}
         >
           <SnackbarProvider>
-            <RouterProvider router={router} />
+            <BrowserRouter>{children}</BrowserRouter>
           </SnackbarProvider>
         </ConfirmProvider>
       </HeadProvider>

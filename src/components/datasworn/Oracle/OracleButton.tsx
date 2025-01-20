@@ -1,6 +1,6 @@
 import { Button, ButtonProps } from "@mui/material";
 
-import { useRollOracleAndAddToLog } from "components/pages/games/hooks/useRollOracleAndAddToLog";
+import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";
 
 import { IOracleTableRoll } from "services/gameLog.service";
 

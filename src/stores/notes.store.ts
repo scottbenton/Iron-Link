@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
-import { useGamePermissions } from "components/pages/games/gamePageLayout/hooks/usePermissions";
+import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 

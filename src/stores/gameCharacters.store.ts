@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
-import { useCharacterIdOptional } from "components/pages/games/characterSheet/hooks/useCharacterId";
+import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
 
 import { InitiativeStatus } from "repositories/character.repository";
 import { ColorScheme } from "repositories/shared.types";

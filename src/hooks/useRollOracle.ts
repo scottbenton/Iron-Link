@@ -1,8 +1,8 @@
 import { Datasworn } from "@datasworn/core";
 import { useCallback } from "react";
 
-import { useCharacterIdOptional } from "components/pages/games/characterSheet/hooks/useCharacterId";
-import { useGameIdOptional } from "components/pages/games/gamePageLayout/hooks/useGameId";
+import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
+import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
 
 import { useUID } from "stores/auth.store";
 import { useDataswornTree } from "stores/dataswornTree.store";

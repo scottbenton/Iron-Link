@@ -16,7 +16,7 @@ import { ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { HideOnScroll } from "components/HideOnScroll";
-import { IconLink } from "components/LinkComponent";
+import { LinkComponent } from "components/LinkComponent";
 
 import { AppSettingsMenu, MenuAdditionComponent } from "./AppSettingsMenu";
 import { IronLinkLogo } from "./IronLinkLogo";
@@ -25,7 +25,7 @@ import { NavRouteConfig } from "./navRoutes";
 
 export interface NavBarProps {
   topLevelRoutes?: NavRouteConfig[] | undefined;
-  goBackTo?: { href: string; params?: Record<string, string> };
+  goBackTo?: string;
   pageTitle?: string;
   secondLevel?: ReactNode;
   menuAdditions?: {
@@ -84,13 +84,13 @@ export function NavBar(props: NavBarProps) {
               {goBackTo && (
                 <Tooltip title={t("nav.go-back-mobile", "Go Back")}>
                   <div>
-                    <IconLink
+                    <IconButton
+                      LinkComponent={LinkComponent}
                       color={"inherit"}
-                      to={goBackTo.href}
-                      params={goBackTo.params}
+                      href={goBackTo}
                     >
                       <BackIcon />
-                    </IconLink>
+                    </IconButton>
                   </div>
                 </Tooltip>
               )}

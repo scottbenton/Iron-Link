@@ -2,8 +2,8 @@ import { Datasworn } from "@datasworn/core";
 import { Box, Typography } from "@mui/material";
 import { useMemo } from "react";
 
-import { useCharacterIdOptional } from "components/pages/games/characterSheet/hooks/useCharacterId";
-import { useGameIdOptional } from "components/pages/games/gamePageLayout/hooks/useGameId";
+import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
+import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
 
 import { useAssetsStore } from "stores/assets.store";
 import { useUID } from "stores/auth.store";
