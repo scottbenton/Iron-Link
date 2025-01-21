@@ -2,20 +2,25 @@ import { supabase } from "lib/supabase.lib";
 
 import { FileFailedToUploadError, UnknownError } from "./errors/storageErrors";
 
-type BucketNames = "characters";
+type BucketNames = "characters" | "note_images";
 
 export class StorageRepository {
   public static async storeImage(
     bucket: BucketNames,
     path: string,
     image: File,
-  ): Promise<void> {
-    return new Promise<void>((res, reject) => {
+  ): Promise<string> {
+    return new Promise((resolve, reject) => {
       supabase.storage
         .from(bucket)
         .upload(`${path}/${image.name}`, image)
-        .then(() => {
-          res();
+        .then((response) => {
+          if (response.error) {
+            console.error(response.error);
+            reject(response.error);
+          } else {
+            resolve(this.getImageUrl(bucket, path, image.name));
+          }
         })
         .catch((e) => {
           console.error(e);
@@ -61,6 +66,10 @@ export class StorageRepository {
   ): string {
     return supabase.storage.from(bucket).getPublicUrl(`${path}/${filename}`)
       .data.publicUrl;
+  }
+
+  public static renameFile(file: File, newFileName: string): File {
+    return new File([file], newFileName, { type: file.type });
   }
 }
 

@@ -1,11 +1,37 @@
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
-import { Extensions } from "@tiptap/react";
+import Image from "@tiptap/extension-image";
+import { Extensions, ReactNodeViewRenderer } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { WebrtcProvider } from "y-webrtc";
 import * as Y from "yjs";
 
 import { getHueFromString, hslToHex } from "lib/getHueFromString";
+
+import { Alignment, TextWrapping } from "./RichImageNodeAttributes";
+import { RichImageNodeView } from "./RichImageNodeView";
+
+const ExtendedImageExtension = Image.extend({
+  addAttributes() {
+    return {
+      textWrapping: {
+        default: TextWrapping.BreakText,
+      },
+      src: {
+        default: undefined,
+      },
+      width: {
+        default: null,
+      },
+      alignment: {
+        default: Alignment.Left,
+      },
+    };
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(RichImageNodeView);
+  },
+});
 
 export const rtcExtensions = (params: {
   doc?: Y.Doc;
@@ -23,6 +49,7 @@ export const rtcExtensions = (params: {
     StarterKit.configure({
       history: false,
     }),
+    ExtendedImageExtension,
   ];
   if (doc && provider) {
     extensions.push(

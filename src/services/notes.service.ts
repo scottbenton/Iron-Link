@@ -5,6 +5,7 @@ import { GamePermission } from "stores/game.store";
 import { StorageError } from "repositories/errors/storageErrors";
 import { NoteDTO, NotesRepository } from "repositories/notes.repository";
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
+import { StorageRepository } from "repositories/storage.repository";
 
 export type INote = {
   title: string;
@@ -194,6 +195,16 @@ export class NotesService {
       readPermissions,
       editPermissions,
     };
+  }
+
+  public static async uploadNoteImage(
+    noteId: string,
+    image: File,
+  ): Promise<string> {
+    const time = new Date().getTime();
+    const newName = `${time}_${image.name}`;
+    const newFile = StorageRepository.renameFile(image, newName);
+    return StorageRepository.storeImage("note_images", noteId, newFile);
   }
 
   private static uint8ArrayToDatabase(arr: Uint8Array): string {
