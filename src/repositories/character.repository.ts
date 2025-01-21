@@ -175,7 +175,7 @@ export class CharacterRepository {
   public static async uploadCharacterImage(
     characterId: string,
     file: File,
-  ): Promise<void> {
+  ): Promise<string> {
     return StorageRepository.storeImage("characters", characterId, file);
   }
 

@@ -75,13 +75,13 @@ export const TextTypeDropdown: React.FC<TextTypeDropdownProps> = (props) => {
         hiddenLabel
         aria-label={"Text Type"}
         onChange={(evt) => setActiveTextType(evt.target.value as TEXT_TYPES)}
-        variant={"standard"}
+        variant={"outlined"}
         margin={"none"}
+        size="small"
         sx={[
-          { minWidth: "140px", width: "140px", mr: 1 },
+          { minWidth: "140px", width: "140px", mr: 1, ml: -0.5 },
           ...(Array.isArray(sx) ? sx : [sx]),
         ]}
-        // size={"small"}
       >
         {Object.keys(textLabels).map((key, index) => (
           <MenuItem key={index} value={key}>
