@@ -114,6 +114,7 @@ interface NotesStoreActions {
     contentString: string,
     isBeaconRequest?: boolean,
   ) => Promise<void>;
+  uploadNoteImage: (noteId: string, image: File) => Promise<string>;
 
   getFolderDescendants: (folderId: string) => {
     folders: Record<string, INoteFolder>;
@@ -264,6 +265,10 @@ export const useNotesStore = createWithEqualityFn<
         );
       }
       return NotesService.updateNoteContent(noteId, content, contentString);
+    },
+
+    uploadNoteImage: (noteId, image) => {
+      return NotesService.uploadNoteImage(noteId, image);
     },
 
     setOpenItem: (type, id) => {
