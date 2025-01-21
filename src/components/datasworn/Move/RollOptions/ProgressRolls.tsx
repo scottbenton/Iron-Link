@@ -2,7 +2,8 @@ import { Box, Button, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { ProgressTrack } from "components/datasworn/ProgressTrack";
-import { useRollCompleteProgressTrack } from "components/pages/games/hooks/useRollCompleteProgressTrack";
+
+import { useRollCompleteProgressTrack } from "pages/games/hooks/useRollCompleteProgressTrack";
 
 import { useTracksStore } from "stores/tracks.store";
 

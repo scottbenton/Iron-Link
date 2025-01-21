@@ -1,6 +1,11 @@
-import { ListItem, ListItemIcon, ListItemText } from "@mui/material";
+import {
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
 
-import { ListItemLink } from "components/LinkComponent";
+import { LinkComponent } from "components/LinkComponent";
 
 import { NavRouteConfig } from "./navRoutes";
 
@@ -9,12 +14,12 @@ export function NavBarListItem(props: NavRouteConfig) {
 
   return (
     <ListItem disablePadding>
-      <ListItemLink to={href}>
+      <ListItemButton LinkComponent={LinkComponent} href={href}>
         <ListItemIcon>
           <Logo />
         </ListItemIcon>
         <ListItemText primary={title} />
-      </ListItemLink>
+      </ListItemButton>
     </ListItem>
   );
 }

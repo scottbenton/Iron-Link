@@ -9,7 +9,7 @@ import { useGameCharacter } from "stores/gameCharacters.store.ts";
 import { IAsset } from "services/asset.service.ts";
 
 import { DEFAULT_MOMENTUM } from "../../../data/constants.ts";
-import { useRollStatAndAddToLog } from "../../pages/games/hooks/useRollStatAndAddToLog.ts";
+import { useRollStatAndAddToLog } from "../../../pages/games/hooks/useRollStatAndAddToLog.ts";
 import { ConditionMeter } from "../ConditonMeter";
 import { AssetControls } from "./AssetControls";
 import { AssetCheckboxField } from "./fields/AssetCheckboxField";

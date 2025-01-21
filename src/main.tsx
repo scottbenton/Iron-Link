@@ -1,5 +1,6 @@
 import "@fontsource-variable/inter";
 import "@fontsource/barlow-condensed/600.css";
+import { App } from "App";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
@@ -11,6 +12,8 @@ import "./App.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Providers />
+    <Providers>
+      <App />
+    </Providers>
   </StrictMode>,
 );

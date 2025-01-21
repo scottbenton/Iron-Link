@@ -2,8 +2,8 @@ import ClearIcon from "@mui/icons-material/Close";
 import { Box, Fab, Slide } from "@mui/material";
 import { TransitionGroup } from "react-transition-group";
 
-import { NormalRollActions } from "components/pages/games/characterSheet/components/GameLog/NormalRollActions";
-import { useGameIdOptional } from "components/pages/games/gamePageLayout/hooks/useGameId";
+import { NormalRollActions } from "pages/games/characterSheet/components/GameLog/NormalRollActions";
+import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
 
 import { useAppState } from "stores/appState.store";
 

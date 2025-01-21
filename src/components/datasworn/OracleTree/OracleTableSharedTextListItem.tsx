@@ -11,8 +11,8 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useGamePermissions } from "components/pages/games/gamePageLayout/hooks/usePermissions";
-import { useRollOracleAndAddToLog } from "components/pages/games/hooks/useRollOracleAndAddToLog";
+import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
+import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";
 
 import { useOpenDataswornDialog } from "stores/appState.store";
 import { GamePermission } from "stores/game.store";
