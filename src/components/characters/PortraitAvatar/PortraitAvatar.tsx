@@ -1,3 +1,5 @@
+import { SxProps, Theme } from "@mui/material";
+
 import {
   AvatarSizes,
   PortraitAvatarDisplay,
@@ -22,10 +24,10 @@ export interface PortraitAvatarProps {
     scale: number;
   };
   size?: AvatarSizes;
-  colorful?: boolean;
+  borderColor?: "folow-theme" | ColorScheme;
+  borderWidth?: number;
   rounded?: boolean;
-  darkBorder?: boolean;
-  colorSchemeBorder?: ColorScheme;
+  sx?: SxProps<Theme>;
 }
 
 export function PortraitAvatar(props: PortraitAvatarProps) {
@@ -33,11 +35,11 @@ export function PortraitAvatar(props: PortraitAvatarProps) {
     characterId,
     name,
     portraitSettings,
-    colorful,
     size,
-    darkBorder,
     rounded,
-    colorSchemeBorder,
+    borderColor,
+    borderWidth,
+    sx,
   } = props;
 
   const filename = portraitSettings?.filename;
@@ -47,15 +49,14 @@ export function PortraitAvatar(props: PortraitAvatarProps) {
   return (
     <PortraitAvatarDisplay
       size={size}
-      colorful={colorful}
       rounded={rounded}
-      darkBorder={darkBorder}
       portraitSettings={portraitSettings}
-      characterId={characterId}
       portraitUrl={portraitUrl}
       name={name}
       loading={!name}
-      colorSchemeBorder={colorSchemeBorder}
+      borderWidth={borderWidth}
+      borderColor={borderColor}
+      sx={sx}
     />
   );
 }

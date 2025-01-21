@@ -1,19 +1,24 @@
 import BackgroundIcon from "@mui/icons-material/Face";
-import { Box, Skeleton, Typography, TypographyVariant } from "@mui/material";
+import {
+  Box,
+  Skeleton,
+  SxProps,
+  Theme,
+  Typography,
+  TypographyVariant,
+} from "@mui/material";
 import { useState } from "react";
 
 import { themeConfig } from "providers/ThemeProvider/themes/themeConfig";
-
-import { getHueFromString } from "lib/getHueFromString";
 
 import { ColorScheme } from "repositories/shared.types";
 
 export type AvatarSizes = "small" | "medium" | "large" | "huge";
 
-const sizes: { [key in AvatarSizes]: number } = {
-  small: 48,
+export const AVATAR_SIZES: { [key in AvatarSizes]: number } = {
+  small: 44,
   medium: 60,
-  large: 80,
+  large: 88,
   huge: 200,
 };
 
@@ -26,9 +31,7 @@ const variants: { [key in AvatarSizes]: TypographyVariant } = {
 
 export interface PortraitAvatarDisplayProps {
   size?: AvatarSizes;
-  colorful?: boolean;
   rounded?: boolean;
-  darkBorder?: boolean;
 
   portraitSettings?: {
     position: {
@@ -37,25 +40,25 @@ export interface PortraitAvatarDisplayProps {
     };
     scale: number;
   };
-  characterId?: string;
   portraitUrl?: string;
   name?: string;
   loading?: boolean;
-  colorSchemeBorder?: ColorScheme;
+  borderWidth?: number;
+  borderColor?: "folow-theme" | ColorScheme;
+  sx?: SxProps<Theme>;
 }
 
 export function PortraitAvatarDisplay(props: PortraitAvatarDisplayProps) {
   const {
     size = "medium",
-    colorful,
+    borderColor = "follow-theme",
+    borderWidth = 2,
     rounded,
-    darkBorder,
     portraitSettings,
-    characterId,
     portraitUrl,
     name,
     loading,
-    colorSchemeBorder,
+    sx,
   } = props;
 
   const [isTaller, setIsTaller] = useState<boolean>(true);
@@ -69,52 +72,37 @@ export function PortraitAvatarDisplay(props: PortraitAvatarDisplayProps) {
 
   const scale = portraitSettings?.scale ?? 1;
 
-  const shouldShowColor = colorful && !portraitUrl;
-  const hue = getHueFromString(characterId);
-
-  const borderWidth = size === "huge" && darkBorder ? 12 : 2;
-
-  const colorSchemeBorderColor = colorSchemeBorder
-    ? themeConfig[colorSchemeBorder].primary.main
-    : undefined;
-
   return (
     <Box
-      width={sizes[size]}
-      height={sizes[size]}
+      width={AVATAR_SIZES[size]}
+      height={AVATAR_SIZES[size]}
       overflow={"hidden"}
-      sx={(theme) => ({
-        backgroundColor: shouldShowColor
-          ? `hsl(${hue}, 60%, 85%)`
-          : theme.palette.divider,
-        color: shouldShowColor
-          ? `hsl(${hue}, 80%, 20%)`
-          : theme.palette.grey[700],
-        display: portraitUrl ? "block" : "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderWidth,
-        borderStyle: "solid",
-        borderColor:
-          colorSchemeBorderColor ??
-          (shouldShowColor
-            ? `hsl(${hue}, 60%, 40%)`
-            : darkBorder
-              ? theme.palette.grey[700]
-              : theme.palette.divider),
-        borderRadius: rounded ? "100%" : `${theme.shape.borderRadius}px`,
-        "&>img": {
-          width: isTaller ? `${100 * scale}%` : "auto",
-          height: isTaller ? "auto" : `${100 * scale}%`,
-          position: "relative",
-          transform: `translate(calc(${marginLeft}% + ${
-            sizes[size] / 2
-          }px - ${borderWidth}px), calc(${marginTop}% + ${
-            sizes[size] / 2
-          }px - ${borderWidth}px))`,
-        },
-        flexShrink: 0,
-      })}
+      sx={[
+        (theme) => ({
+          backgroundColor: theme.palette.divider,
+          color: theme.palette.grey[700],
+          display: portraitUrl ? "block" : "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderWidth,
+          borderStyle: "solid",
+          borderColor:
+            borderColor === "follow-theme"
+              ? theme.palette.divider
+              : themeConfig[borderColor as ColorScheme].primary.main,
+          borderRadius: rounded ? "100%" : `${theme.shape.borderRadius}px`,
+          "&>img": {
+            width: isTaller ? `${100 * scale}%` : "auto",
+            height: isTaller ? "auto" : `${100 * scale}%`,
+            position: "relative",
+            transform: `translate(calc(${marginLeft}% + ${
+              AVATAR_SIZES[size] / 2
+            }px - ${borderWidth}px), calc(${marginTop}% + ${AVATAR_SIZES[size] / 2}px - ${borderWidth}px))`,
+          },
+          flexShrink: 0,
+        }),
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
     >
       {portraitUrl ? (
         <img
