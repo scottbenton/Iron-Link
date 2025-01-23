@@ -2,6 +2,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import ThemeIcon from "@mui/icons-material/Palette";
 import RulesetIcon from "@mui/icons-material/PlaylistAdd";
+import SecondScreenIcon from "@mui/icons-material/ScreenShare";
 import { ListItemIcon, ListItemText, MenuItem } from "@mui/material";
 import { ListSubheader } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
@@ -13,8 +14,11 @@ import { useSnackbar } from "providers/SnackbarProvider";
 
 import { pathConfig } from "pages/pathConfig";
 
+import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
+
 import { GamePermission, useGameStore } from "stores/game.store";
 import { useMenuState } from "stores/menuState";
+import { useSecondScreenStore } from "stores/secondScreen.store";
 
 import { useGameIdOptional } from "../../gamePageLayout/hooks/useGameId";
 import { useGamePermissions } from "../../gamePageLayout/hooks/usePermissions";
@@ -45,6 +49,20 @@ export function GameSettingsMenuItems(props: GameSettingsMenuItemsProps) {
   const { error } = useSnackbar();
 
   const navigate = useNavigate();
+
+  const isSecondScreenOn = useSecondScreenFeature();
+  const areAllCharactersVisible = useSecondScreenStore(
+    (store) => store.areAllCharactersVisible,
+  );
+  const setAreAllCharactersVisible = useSecondScreenStore(
+    (store) => store.setAreAllCharactersVisible,
+  );
+
+  const updateAreAllCharactersVisible = useCallback(() => {
+    if (gameId) {
+      setAreAllCharactersVisible(gameId, !areAllCharactersVisible);
+    }
+  }, [gameId, areAllCharactersVisible, setAreAllCharactersVisible]);
 
   const confirmDeleteGame = useCallback(() => {
     if (gameId) {
@@ -129,6 +147,26 @@ export function GameSettingsMenuItems(props: GameSettingsMenuItemsProps) {
           )}
         />
       </MenuItem>
+      {isSecondScreenOn && (
+        <MenuItem onClick={updateAreAllCharactersVisible}>
+          <ListItemIcon>
+            <SecondScreenIcon />
+          </ListItemIcon>
+          <ListItemText
+            primary={
+              areAllCharactersVisible
+                ? t(
+                    "game.overview-sidebar.hide-all-characters-second-screen",
+                    "Hide All Characters on Second Screen",
+                  )
+                : t(
+                    "game.overview-sidebar.show-all-characters-second-screen",
+                    "Show All Characters on Second Screen",
+                  )
+            }
+          />
+        </MenuItem>
+      )}
       <MenuItem onClick={confirmDeleteGame}>
         <ListItemIcon>
           <DeleteIcon />

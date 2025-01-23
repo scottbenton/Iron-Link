@@ -275,6 +275,38 @@ export type Database = {
           },
         ]
       }
+      game_second_screen_settings: {
+        Row: {
+          created_at: string
+          game_id: string
+          options: Json
+          show_all_characters_second_screen: boolean
+          type: Database["public"]["Enums"]["second_screen_options"] | null
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          options?: Json
+          show_all_characters_second_screen?: boolean
+          type?: Database["public"]["Enums"]["second_screen_options"] | null
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          options?: Json
+          show_all_characters_second_screen?: boolean
+          type?: Database["public"]["Enums"]["second_screen_options"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_second_screen_settings_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: true
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_tracks: {
         Row: {
           clock_oracle_key: Database["public"]["Enums"]["clock_oracle_key"]
@@ -554,6 +586,7 @@ export type Database = {
         | "extreme"
         | "epic"
       progress_track_type: "vow" | "journey" | "combat"
+      second_screen_options: "character" | "track" | "note_image"
       track_type: "progress_track" | "scene_challenge" | "clock"
     }
     CompositeTypes: {

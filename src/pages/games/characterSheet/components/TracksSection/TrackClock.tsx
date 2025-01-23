@@ -16,9 +16,13 @@ import { useTranslation } from "react-i18next";
 
 import { ClockCircle } from "components/datasworn/Clocks/ClockCircle";
 
+import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";
 
+import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
+
 import { useSetAnnouncement } from "stores/appState.store";
+import { useSecondScreenStore } from "stores/secondScreen.store";
 import { useTracksStore } from "stores/tracks.store";
 
 import { askTheOracleEnumMap } from "data/askTheOracle";
@@ -117,6 +121,17 @@ export function TrackClock(props: TrackClockProps) {
       })
       .catch(() => {});
   };
+
+  const gameId = useGameIdOptional();
+
+  const areSecondScreenSettingsActive = useSecondScreenFeature();
+  const updateSecondScreen = useSecondScreenStore(
+    (store) => store.updateSecondScreenSettings,
+  );
+  const isTrackOpenOnSecondScreen = useSecondScreenStore(
+    (store) =>
+      store.settings?.type === "track" && store.settings.trackId === clockId,
+  );
 
   return (
     <>
@@ -246,13 +261,18 @@ export function TrackClock(props: TrackClockProps) {
             }
           />
         </Card>
-        <Box>
+        <Box
+          display="flex"
+          flexDirection="column"
+          gap={1}
+          mt={1}
+          alignItems="flex-start"
+        >
           {canEdit && clock.status === TrackStatus.Active && (
             <Button
               variant={"outlined"}
               color={"inherit"}
               onClick={() => handleStatusChange(TrackStatus.Completed)}
-              sx={{ mt: 1 }}
               endIcon={<CheckIcon />}
             >
               {t(
@@ -266,7 +286,6 @@ export function TrackClock(props: TrackClockProps) {
               variant={"outlined"}
               color={"inherit"}
               onClick={() => handleStatusChange(TrackStatus.Active)}
-              sx={{ mt: 1 }}
             >
               {t(
                 "character.character-sidebar.tracks-clock-reopen-button",
@@ -275,11 +294,39 @@ export function TrackClock(props: TrackClockProps) {
             </Button>
           )}
           {canEdit && clock.status === TrackStatus.Completed && (
-            <Button color={"error"} sx={{ mt: 1 }} onClick={handleDeleteClick}>
+            <Button color={"error"} onClick={handleDeleteClick}>
               {t(
                 "character.character-sidebar.tracks-clock-delete-button",
                 "Delete Permanently",
               )}
+            </Button>
+          )}
+          {areSecondScreenSettingsActive && (
+            <Button
+              variant={"outlined"}
+              color={"inherit"}
+              onClick={() =>
+                gameId &&
+                updateSecondScreen(
+                  gameId,
+                  isTrackOpenOnSecondScreen
+                    ? null
+                    : {
+                        type: "track",
+                        trackId: clockId,
+                      },
+                ).catch(() => {})
+              }
+            >
+              {isTrackOpenOnSecondScreen
+                ? t(
+                    "character.character-sidebar.tracks-progress-track-close-second-screen",
+                    "Close on Second Screen",
+                  )
+                : t(
+                    "character.character-sidebar.tracks-progress-track-open-second-screen",
+                    "Open on Second Screen",
+                  )}
             </Button>
           )}
         </Box>

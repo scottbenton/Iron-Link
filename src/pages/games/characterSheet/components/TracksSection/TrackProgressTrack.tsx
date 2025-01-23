@@ -7,7 +7,12 @@ import { useTranslation } from "react-i18next";
 import { DebouncedClockCircle } from "components/datasworn/Clocks/DebouncedClockCircle";
 import { ProgressTrack } from "components/datasworn/ProgressTrack";
 
+import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
+
+import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
+
 import { useSetAnnouncement } from "stores/appState.store";
+import { useSecondScreenStore } from "stores/secondScreen.store";
 import { useTracksStore } from "stores/tracks.store";
 
 import {
@@ -40,6 +45,7 @@ const difficultySteps: Record<Difficulty, number> = {
 export function TrackProgressTrack(props: TrackProgressTrackProps) {
   const { trackId, track, canEdit } = props;
 
+  const gameId = useGameId();
   const isCharacterOwner = useIsOwnerOfCharacter();
 
   const { t } = useTranslation();
@@ -101,6 +107,15 @@ export function TrackProgressTrack(props: TrackProgressTrackProps) {
     updateTrackValue(trackId, value).catch(() => {});
   };
 
+  const areSecondScreenSettingsActive = useSecondScreenFeature();
+  const updateSecondScreen = useSecondScreenStore(
+    (store) => store.updateSecondScreenSettings,
+  );
+  const isTrackOpenOnSecondScreen = useSecondScreenStore(
+    (store) =>
+      store.settings?.type === "track" && store.settings.trackId === trackId,
+  );
+
   const updateClockFilledSegments = useTracksStore(
     (store) => store.updateClockFilledSegments,
   );
@@ -158,7 +173,13 @@ export function TrackProgressTrack(props: TrackProgressTrackProps) {
             sx={{ mt: 1 }}
           />
         )}
-        <Box>
+        <Box
+          display="flex"
+          flexDirection="column"
+          gap={1}
+          mt={1}
+          alignItems="flex-start"
+        >
           {canEdit &&
             isCharacterOwner &&
             track.status === TrackStatus.Active && (
@@ -179,7 +200,6 @@ export function TrackProgressTrack(props: TrackProgressTrackProps) {
               variant={"outlined"}
               color={"inherit"}
               onClick={() => handleStatusChange(TrackStatus.Completed)}
-              sx={{ mt: 1 }}
               endIcon={<CheckIcon />}
             >
               {t(
@@ -193,7 +213,6 @@ export function TrackProgressTrack(props: TrackProgressTrackProps) {
               variant={"outlined"}
               color={"inherit"}
               onClick={() => handleStatusChange(TrackStatus.Active)}
-              sx={{ mt: 1 }}
             >
               {t(
                 "character.character-sidebar.tracks-progress-track-reopen-button",
@@ -202,11 +221,38 @@ export function TrackProgressTrack(props: TrackProgressTrackProps) {
             </Button>
           )}
           {canEdit && track.status === TrackStatus.Completed && (
-            <Button color={"error"} sx={{ mt: 1 }} onClick={handleDeleteClick}>
+            <Button color={"error"} onClick={handleDeleteClick}>
               {t(
                 "character.character-sidebar.tracks-progress-track-delete-button",
                 "Delete Permanently",
               )}
+            </Button>
+          )}
+          {areSecondScreenSettingsActive && (
+            <Button
+              variant={"outlined"}
+              color={"inherit"}
+              onClick={() =>
+                updateSecondScreen(
+                  gameId,
+                  isTrackOpenOnSecondScreen
+                    ? null
+                    : {
+                        type: "track",
+                        trackId,
+                      },
+                ).catch(() => {})
+              }
+            >
+              {isTrackOpenOnSecondScreen
+                ? t(
+                    "character.character-sidebar.tracks-progress-track-close-second-screen",
+                    "Close on Second Screen",
+                  )
+                : t(
+                    "character.character-sidebar.tracks-progress-track-open-second-screen",
+                    "Open on Second Screen",
+                  )}
             </Button>
           )}
         </Box>
