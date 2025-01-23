@@ -15,12 +15,15 @@ import { useSyncGame } from "pages/games/gamePageLayout/hooks/useSyncGame";
 import { useSyncColorScheme } from "pages/games/hooks/useSyncColorScheme";
 
 import { useGameStore } from "stores/game.store";
+import { useSyncSecondScreenSettingsIfActive } from "stores/secondScreen.store";
 
 export default function GameLayout() {
   const { t } = useTranslation();
 
   useSyncGame();
   useSyncColorScheme();
+  useSyncSecondScreenSettingsIfActive();
+
   const characterId = useCharacterIdOptional();
 
   const hasGame = useGameStore((state) => !!state.game);

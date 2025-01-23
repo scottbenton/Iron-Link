@@ -1,3 +1,4 @@
+import AdvancedFeaturesIcon from "@mui/icons-material/Bolt";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -17,6 +18,8 @@ import { useTranslation } from "react-i18next";
 import { useSnackbar } from "providers/SnackbarProvider";
 
 import { AuthStatus, useAuthStatus, useAuthStore } from "stores/auth.store";
+
+import { AdvancedFeaturesDialog } from "./AdvancedFeaturesDialog";
 
 export type MenuAdditionComponent = ComponentType<{ closeMenu: () => void }>;
 
@@ -39,6 +42,8 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
   const { error } = useSnackbar();
   const signOut = useAuthStore((state) => state.signOut);
 
+  const [advancedFeaturesOpen, setAdvancedFeaturesOpen] = useState(false);
+
   return (
     <>
       <Tooltip title={t("iron-link.app-settings", "App Settings")}>
@@ -58,6 +63,17 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
         <ListSubheader>
           {t("iron-link.app-settings", "App Settings")}
         </ListSubheader>
+        <MenuItem
+          onClick={() => {
+            setAdvancedFeaturesOpen(true);
+            setOpen(false);
+          }}
+        >
+          <ListItemIcon>
+            <AdvancedFeaturesIcon />
+          </ListItemIcon>
+          {t("iron-link.advanced-features", "Advanced Features")}
+        </MenuItem>
         <MenuItem
           onClick={() => {
             setColorScheme(colorScheme === "light" ? "dark" : "light");
@@ -102,6 +118,10 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
       {menuDialogs?.map((Dialog, index) => (
         <Dialog closeMenu={closeMenu} key={index} />
       ))}
+      <AdvancedFeaturesDialog
+        open={advancedFeaturesOpen}
+        onClose={() => setAdvancedFeaturesOpen(false)}
+      />
     </>
   );
 }

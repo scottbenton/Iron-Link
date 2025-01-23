@@ -37,6 +37,10 @@ const GameCharacterCreatePage = lazy(
   () => import("./pages/games/addCharacter/AddCharacter"),
 );
 
+const GameSecondScreenPage = lazy(
+  () => import("./pages/games/secondScreenPage/SecondScreenPage"),
+);
+
 export function App() {
   useListenToAuth();
 
@@ -61,6 +65,10 @@ export function App() {
               <Route path="create" Component={GameCharacterCreatePage} />
             </Route>
           </Route>
+          <Route
+            Component={GameSecondScreenPage}
+            path="/games/:gameId/display"
+          />
         </Routes>
       </Suspense>
     </>
