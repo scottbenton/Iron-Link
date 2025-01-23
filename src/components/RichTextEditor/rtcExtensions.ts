@@ -26,6 +26,9 @@ const ExtendedImageExtension = Image.extend({
       alignment: {
         default: Alignment.Left,
       },
+      altText: {
+        default: undefined,
+      },
     };
   },
   addNodeView() {

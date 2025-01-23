@@ -1,12 +1,10 @@
-import OpenIcon from "@mui/icons-material/ChevronRight";
-import { Box, Button, Card, CardActionArea, Typography } from "@mui/material";
+import { Button, Typography } from "@mui/material";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useSnackbar } from "providers/SnackbarProvider";
 
 import { LinkComponent } from "components/LinkComponent";
-import { PortraitAvatar } from "components/characters/PortraitAvatar";
 
 import { pathConfig } from "pages/pathConfig";
 
@@ -14,25 +12,19 @@ import { GamePermission, useGameStore } from "stores/game.store";
 import { useGameCharactersStore } from "stores/gameCharacters.store";
 
 import { GameType } from "repositories/game.repository";
-import { ColorScheme } from "repositories/shared.types";
 
 import { GamePlayerRole } from "services/game.service";
 
 import { useGameId } from "../gamePageLayout/hooks/useGameId";
 import { useGamePermissions } from "../gamePageLayout/hooks/usePermissions";
+import { CharacterCard } from "./CharacterCard";
 import { UserCard } from "./UserCard";
 
 export function CharactersAndUsersTab() {
   const gameId = useGameId();
 
   const characters = useGameCharactersStore((state) =>
-    Object.values(state.characters).map((character) => ({
-      id: character.id,
-      name: character.name,
-      userId: character.uid,
-      portraitSettings: character.profileImage,
-      colorScheme: character.colorScheme,
-    })),
+    Object.values(state.characters),
   );
 
   const users = useGameStore((store) => store.gamePlayers ?? {});
@@ -60,32 +52,11 @@ export function CharactersAndUsersTab() {
         {t("game.overview.characters", "Characters")}
       </Typography>
       {characters.map((character) => (
-        <Card key={character.id} sx={{ mt: 1 }} variant="outlined">
-          <CardActionArea
-            LinkComponent={LinkComponent}
-            href={pathConfig.gameCharacter(gameId, character.id)}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              p: 1,
-              pr: 2,
-            }}
-          >
-            <Box display={"flex"} alignItems={"center"}>
-              <PortraitAvatar
-                characterId={character.id}
-                name={character.name}
-                portraitSettings={character.portraitSettings ?? undefined}
-                borderColor={character.colorScheme ?? ColorScheme.Default}
-              />
-              <Typography variant="h5" fontFamily="fontFamilyTitle" ml={2}>
-                {character.name}
-              </Typography>
-            </Box>
-            <OpenIcon sx={{ ml: 2 }} />
-          </CardActionArea>
-        </Card>
+        <CharacterCard
+          key={character.id}
+          gameId={gameId}
+          character={character}
+        />
       ))}
       {gamePermission !== GamePermission.Viewer && (
         <Button

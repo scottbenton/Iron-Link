@@ -37,7 +37,6 @@ export function TrackCompletionMoveButton(
       onClick={() =>
         rollCompleteProgressTrack(trackType, trackLabel, trackProgress, moveId)
       }
-      sx={{ mt: 1 }}
     >
       {t(
         "character.character-sidebar.tracks-progress-track-completion-roll",

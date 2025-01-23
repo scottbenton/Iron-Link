@@ -1,20 +1,36 @@
 import AlignCenter from "@mui/icons-material/FormatAlignCenter";
 import AlignLeft from "@mui/icons-material/FormatAlignLeft";
 import AlignRight from "@mui/icons-material/FormatAlignRight";
+import SecondScreenImage from "@mui/icons-material/PresentToAll";
+import AltTextIcon from "@mui/icons-material/TextSnippet";
 import BreakText from "@mui/icons-material/ViewDay";
 import WrapText from "@mui/icons-material/WrapText";
 import {
   Box,
+  Button,
   Card,
+  Dialog,
+  DialogActions,
+  DialogContent,
   Popper,
+  TextField,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { Resizable } from "re-resizable";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
+
+import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
+
+import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
+
+import { useSecondScreenStore } from "stores/secondScreen.store";
 
 import { Alignment, TextWrapping } from "./RichImageNodeAttributes";
 
@@ -26,6 +42,7 @@ export function RichImageNodeView(props: NodeViewProps) {
 
   const {
     src,
+    altText,
     textWrapping: rawTextWrapping,
     width,
     alignment: rawAlignment,
@@ -72,6 +89,36 @@ export function RichImageNodeView(props: NodeViewProps) {
   }
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+
+  const isSecondScreenFeatureActive = useSecondScreenFeature();
+  const updateSecondScreen = useSecondScreenStore(
+    (store) => store.updateSecondScreenSettings,
+  );
+  const isImageOpenOnSecondScreen = useSecondScreenStore(
+    (store) =>
+      store.settings?.type === "note_image" && store.settings.url === src,
+  );
+  const gameId = useGameIdOptional();
+
+  const openImageOnSecondScreen = useCallback(() => {
+    if (gameId) {
+      updateSecondScreen(
+        gameId,
+        isImageOpenOnSecondScreen
+          ? null
+          : {
+              type: "note_image",
+              url: src,
+              label: typeof altText === "string" ? altText : "",
+            },
+      );
+    }
+  }, [altText, src, gameId, updateSecondScreen, isImageOpenOnSecondScreen]);
+
+  const [altTextDialogOpen, setAltTextDialogOpen] = useState(false);
+  const [altTextName, setAltTextName] = useState(
+    typeof altText === "string" ? altText : "",
+  );
 
   if (isReadOnly) {
     return (
@@ -144,6 +191,8 @@ export function RichImageNodeView(props: NodeViewProps) {
             sx={{
               mt: -0.5,
               p: 0.5,
+              display: "flex",
+              alignItems: "center",
             }}
           >
             <ToggleButtonGroup
@@ -210,8 +259,79 @@ export function RichImageNodeView(props: NodeViewProps) {
                 </ToggleButton>
               </Tooltip>
             </ToggleButtonGroup>
+            <Tooltip
+              title={t("notes.image-node.alt-text", "Add or Change Alt Text")}
+            >
+              <ToggleButton
+                value="altTextDialog"
+                selected={altTextDialogOpen}
+                onClick={() => setAltTextDialogOpen(true)}
+                sx={{ ml: 1 }}
+                size={"small"}
+              >
+                <AltTextIcon />
+              </ToggleButton>
+            </Tooltip>
+            {isSecondScreenFeatureActive && (
+              <Tooltip
+                title={t(
+                  "notes.image-node.open-on-second-screen",
+                  "Open on Second Screen",
+                )}
+              >
+                <ToggleButton
+                  value="check"
+                  selected={isImageOpenOnSecondScreen}
+                  onClick={openImageOnSecondScreen}
+                  sx={{ ml: 1 }}
+                  size={"small"}
+                >
+                  <SecondScreenImage />
+                </ToggleButton>
+              </Tooltip>
+            )}
           </Card>
         </Popper>
+        <Dialog
+          open={altTextDialogOpen}
+          onClose={() => setAltTextDialogOpen(false)}
+        >
+          <DialogTitleWithCloseButton
+            onClose={() => setAltTextDialogOpen(false)}
+          >
+            {t("notes.image-node.alt-text", "Alt Text")}
+          </DialogTitleWithCloseButton>
+          <DialogContent>
+            <Typography color="textSecondary">
+              {t(
+                "notes.image-node.alt-text-description",
+                'Alt text is used for screen readers and search engines to better understand the content of your image. For example, "A burly woman with a longsword and tattoos", or "An androgynous scoundrel with a laser pistol"',
+              )}
+            </Typography>
+            <TextField
+              label={t("notes.image-node.alt-text", "Alt Text")}
+              value={altTextName}
+              onChange={(e) => setAltTextName(e.target.value)}
+              sx={{ mt: 2 }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setAltTextDialogOpen(false)} color="inherit">
+              {t("common.cancel", "Cancel")}
+            </Button>
+            <Button
+              onClick={() => {
+                setAltTextDialogOpen(false);
+                updateAttributes({
+                  altText: altTextName,
+                });
+              }}
+              color="primary"
+            >
+              {t("common.save", "Save")}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </NodeViewWrapper>
   );

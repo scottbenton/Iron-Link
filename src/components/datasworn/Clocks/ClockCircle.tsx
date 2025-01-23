@@ -3,11 +3,12 @@ import { PropsWithChildren } from "react";
 
 import { ClockSegment } from "./ClockSegment";
 
-export type ClockSize = "small" | "medium";
+export type ClockSize = "small" | "medium" | "large";
 
 const sizes: Record<ClockSize, number> = {
   small: 60,
   medium: 80,
+  large: 120,
 };
 
 export interface ClockCircleProps {
