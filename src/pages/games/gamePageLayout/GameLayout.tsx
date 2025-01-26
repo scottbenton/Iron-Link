@@ -17,12 +17,15 @@ import { useSyncColorScheme } from "pages/games/hooks/useSyncColorScheme";
 import { useGameStore } from "stores/game.store";
 import { useSyncSecondScreenSettingsIfActive } from "stores/secondScreen.store";
 
+import { useSyncOpenNoteItem } from "./hooks/useSyncOpenNoteItem";
+
 export default function GameLayout() {
   const { t } = useTranslation();
 
   useSyncGame();
   useSyncColorScheme();
   useSyncSecondScreenSettingsIfActive();
+  useSyncOpenNoteItem();
 
   const characterId = useCharacterIdOptional();
 
