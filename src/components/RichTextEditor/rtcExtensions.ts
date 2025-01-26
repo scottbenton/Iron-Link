@@ -1,6 +1,7 @@
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
 import Image from "@tiptap/extension-image";
+import Mention from "@tiptap/extension-mention";
 import { Extensions, ReactNodeViewRenderer } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { WebrtcProvider } from "y-webrtc";
@@ -8,8 +9,10 @@ import * as Y from "yjs";
 
 import { getHueFromString, hslToHex } from "lib/getHueFromString";
 
+import { NoteMention } from "./NoteMention";
 import { Alignment, TextWrapping } from "./RichImageNodeAttributes";
 import { RichImageNodeView } from "./RichImageNodeView";
+import { mentionSuggestionOptions } from "./otherNoteOptions";
 
 const ExtendedImageExtension = Image.extend({
   addAttributes() {
@@ -53,6 +56,13 @@ export const rtcExtensions = (params: {
       history: false,
     }),
     ExtendedImageExtension,
+    Mention.configure({
+      suggestion: mentionSuggestionOptions,
+    }).extend({
+      addNodeView() {
+        return ReactNodeViewRenderer(NoteMention);
+      },
+    }),
   ];
   if (doc && provider) {
     extensions.push(
