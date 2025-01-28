@@ -3,8 +3,6 @@ import { useEffect, useRef } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
-import { StorageError, UnknownError } from "repositories/errors/storageErrors";
-
 import { CharacterService, ICharacter } from "services/character.service";
 import { GameService, IGame } from "services/game.service";
 
@@ -24,7 +22,7 @@ interface UsersGamesState {
     Record<string, GameCharacterDisplayDetails>
   >;
   loading: boolean;
-  error?: StorageError;
+  error?: Error;
 }
 
 interface UsersGamesActions {
@@ -57,17 +55,17 @@ export const useUsersGames = createWithEqualityFn<
         );
 
         const portraitURLs = Object.fromEntries(
-        Object.entries(characterMap).map(([characterId, character]) => {
-          if (character.profileImage) {
-            const url =
-              CharacterService.getCharacterPortraitURL(
+          Object.entries(characterMap).map(([characterId, character]) => {
+            if (character.profileImage) {
+              const url = CharacterService.getCharacterPortraitURL(
                 characterId,
                 character.profileImage.filename,
               );
-            return [characterId, url];
-          }
-          return [characterId, undefined];
-        }))
+              return [characterId, url];
+            }
+            return [characterId, undefined];
+          }),
+        );
 
         set((state) => {
           const characterDisplayDetails: UsersGamesState["characterDisplayDetails"] =
@@ -92,7 +90,8 @@ export const useUsersGames = createWithEqualityFn<
         console.error(e);
         set((state) => {
           state.loading = false;
-          state.error = new UnknownError("Failed to load games");
+          state.error =
+            e instanceof Error ? e : new Error("Failed to load games");
         });
       }
     },

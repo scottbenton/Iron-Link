@@ -4,6 +4,11 @@ import { useTranslation } from "react-i18next";
 
 import { PageContent, PageHeader } from "components/Layout";
 
+import {
+  PageCategory,
+  useSendPageViewEvent,
+} from "hooks/useSendPageViewEvents";
+
 import { useUID } from "stores/auth.store";
 import { useCreateCharacterStore } from "stores/createCharacter.store";
 import { useCreateGameStore } from "stores/createGame.store";
@@ -14,6 +19,7 @@ import { getSteps } from "./steps";
 
 export default function CreateGamePage() {
   const { t } = useTranslation();
+  useSendPageViewEvent(PageCategory.GameCreate);
 
   const uid = useUID();
 

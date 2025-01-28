@@ -3,8 +3,6 @@ import { useConfirm } from "material-ui-confirm";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useSnackbar } from "providers/SnackbarProvider";
-
 import { useUID } from "stores/auth.store";
 import { GamePermission, useGameStore } from "stores/game.store";
 import { useGameCharactersStore } from "stores/gameCharacters.store";
@@ -67,14 +65,11 @@ export function UserCard(props: UserCardProps) {
     (store) => store.removePlayerFromGame,
   );
 
-  const { error } = useSnackbar();
   const confirm = useConfirm();
 
   const handleMakeGuide = useCallback(() => {
-    updateGamePlayerRole(gameId, uid, GamePlayerRole.Guide).catch(() => {
-      error(t("game.overview.error", "Failed to make user a guide"));
-    });
-  }, [updateGamePlayerRole, uid, gameId, error, t]);
+    updateGamePlayerRole(gameId, uid, GamePlayerRole.Guide).catch(() => {});
+  }, [updateGamePlayerRole, uid, gameId, t]);
 
   const handleKick = useCallback(() => {
     if (charactersByUser) {
@@ -94,14 +89,12 @@ export function UserCard(props: UserCardProps) {
       })
         .then(() => {
           removePlayerFromGame(gameId, uid, charactersByUser[uid] ?? []).catch(
-            () => {
-              error(t("game.overview.error", "Failed to kick user"));
-            },
+            () => {},
           );
         })
         .catch(() => {});
     }
-  }, [removePlayerFromGame, gameId, uid, charactersByUser, error, t, confirm]);
+  }, [removePlayerFromGame, gameId, uid, charactersByUser, t, confirm]);
 
   return (
     <Card sx={{ mt: 1 }} variant="outlined">

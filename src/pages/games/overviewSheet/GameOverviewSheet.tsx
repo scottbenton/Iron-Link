@@ -5,6 +5,10 @@ import { useTranslation } from "react-i18next";
 import { StyledTab, StyledTabs } from "components/StyledTabs";
 
 import { useIsMobile } from "hooks/useIsMobile";
+import {
+  PageCategory,
+  useSendPageViewEvent,
+} from "hooks/useSendPageViewEvents";
 
 import { AssetsSection } from "../characterSheet/components/AssetsSection";
 import { TracksSection } from "../characterSheet/components/TracksSection";
@@ -36,6 +40,7 @@ function tabPanelProps(tab: Tabs, value: Tabs) {
 
 export default function GameOverviewSheet() {
   const { t } = useTranslation();
+  useSendPageViewEvent(PageCategory.GameOverview);
 
   const isMobile = useIsMobile();
 

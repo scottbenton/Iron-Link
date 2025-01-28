@@ -52,14 +52,7 @@ export function GameRulesetChooserDialog(props: GameRulesetChooserDialogProps) {
           .then(() => {
             onClose();
           })
-          .catch(() => {
-            error(
-              t(
-                "game.overview-sidebar.change-ruleset-error",
-                "Failed to change ruleset",
-              ),
-            );
-          });
+          .catch(() => {});
       } else {
         error(
           t("game.overview-sidebar.no-ruleset-selected", "No ruleset selected"),

@@ -2,7 +2,11 @@ import { Tables, TablesUpdate } from "types/supabase-generated.type";
 
 import { supabase } from "lib/supabase.lib";
 
-import { convertUnknownErrorToStorageError } from "./errors/storageErrors";
+import {
+  ErrorNoun,
+  ErrorVerb,
+  getRepositoryError,
+} from "./errors/RepositoryErrors";
 
 export type UserDTO = Tables<"users">;
 type UpdateUserDTO = TablesUpdate<"users">;
@@ -20,9 +24,12 @@ export class UserRepository {
           if (response.error) {
             console.error(response.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to get user",
+                ErrorVerb.Read,
+                ErrorNoun.User,
+                false,
+                response.status,
               ),
             );
           } else {
@@ -46,9 +53,12 @@ export class UserRepository {
           if (response.error) {
             console.error(response.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to update user",
+                ErrorVerb.Update,
+                ErrorNoun.User,
+                false,
+                response.status,
               ),
             );
           } else {

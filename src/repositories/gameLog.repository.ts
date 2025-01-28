@@ -7,10 +7,11 @@ import {
 import { supabase } from "lib/supabase.lib";
 
 import {
-  StorageError,
-  UnknownError,
-  convertUnknownErrorToStorageError,
-} from "./errors/storageErrors";
+  ErrorNoun,
+  ErrorVerb,
+  RepositoryError,
+  getRepositoryError,
+} from "./errors/RepositoryErrors";
 import { RollResult } from "./shared.types";
 import { TrackTypes } from "./tracks.repository";
 
@@ -174,9 +175,12 @@ export class GameLogRepository {
         if (result.error) {
           console.error(result.error);
           reject(
-            convertUnknownErrorToStorageError(
+            getRepositoryError(
               result.error,
-              "Failed to get game logs",
+              ErrorVerb.Read,
+              ErrorNoun.GameLog,
+              true,
+              result.status,
             ),
           );
         } else {
@@ -191,7 +195,7 @@ export class GameLogRepository {
     isGuide: boolean,
     onLogChange: (newLog: GameLogDTO, added: boolean) => void,
     onLogDelete: (logId: string) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     const subscription = supabase
       .channel(`game_logs:game_id=eq.${gameId}`)
@@ -204,6 +208,18 @@ export class GameLogRepository {
           filter: `game_id=eq.${gameId}`,
         },
         (payload) => {
+          if (payload.errors) {
+            console.error(payload.errors);
+            onError(
+              getRepositoryError(
+                payload.errors,
+                ErrorVerb.Read,
+                ErrorNoun.GameLog,
+                true,
+              ),
+            );
+            return;
+          }
           if (
             payload.eventType === "INSERT" ||
             payload.eventType === "UPDATE"
@@ -216,7 +232,14 @@ export class GameLogRepository {
             onLogDelete(payload.old.id);
           } else {
             console.error("Unknown event type", payload.eventType);
-            onError(new UnknownError("Failed to get game log changes"));
+            onError(
+              getRepositoryError(
+                "Unknown event type",
+                ErrorVerb.Read,
+                ErrorNoun.GameLog,
+                true,
+              ),
+            );
           }
         },
       )
@@ -239,9 +262,12 @@ export class GameLogRepository {
           if (response.error) {
             console.error(response.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to create game log",
+                ErrorVerb.Create,
+                ErrorNoun.GameLog,
+                false,
+                response.status,
               ),
             );
           } else {
@@ -263,9 +289,12 @@ export class GameLogRepository {
           if (response.error) {
             console.error(response.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to update game log",
+                ErrorVerb.Update,
+                ErrorNoun.GameLog,
+                false,
+                response.status,
               ),
             );
           } else {
@@ -284,9 +313,12 @@ export class GameLogRepository {
           if (response.error) {
             console.error(response.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to delete game log",
+                ErrorVerb.Delete,
+                ErrorNoun.GameLog,
+                false,
+                response.status,
               ),
             );
           } else {

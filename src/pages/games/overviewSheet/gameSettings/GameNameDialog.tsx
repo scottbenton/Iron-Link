@@ -8,8 +8,6 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useSnackbar } from "providers/SnackbarProvider";
-
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 
 import { useGameStore } from "stores/game.store";
@@ -25,7 +23,6 @@ export function GameNameDialog(props: GameNameDialogProps) {
   const { open, onClose } = props;
 
   const { t } = useTranslation();
-  const { error } = useSnackbar();
 
   const gameId = useGameIdOptional();
   const gameName = useGameStore((store) => store.game?.name);
@@ -42,17 +39,10 @@ export function GameNameDialog(props: GameNameDialogProps) {
         .then(() => {
           onClose();
         })
-        .catch(() => {
-          error(
-            t(
-              "game.overview-sidebar.change-name-error",
-              "Failed to change game name",
-            ),
-          );
-        });
+        .catch(() => {});
       onClose();
     }
-  }, [newGameName, changeName, onClose, error, gameId, t]);
+  }, [newGameName, changeName, onClose, gameId]);
 
   return (
     <Dialog open={!!gameId && open} onClose={onClose}>
