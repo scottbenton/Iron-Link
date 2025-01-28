@@ -14,11 +14,16 @@ import { useTranslation } from "react-i18next";
 import { PageContent } from "components/Layout";
 
 import { useIsLocalEnvironment } from "hooks/useIsLocalEnvironment";
+import {
+  PageCategory,
+  useSendPageViewEvent,
+} from "hooks/useSendPageViewEvents";
 
 import { useAuthStore } from "stores/auth.store";
 
 export default function AuthPage() {
   const { t } = useTranslation();
+  useSendPageViewEvent(PageCategory.Auth);
 
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");

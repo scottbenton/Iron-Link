@@ -7,10 +7,11 @@ import {
 import { supabase } from "lib/supabase.lib";
 
 import {
-  StorageError,
-  UnknownError,
-  convertUnknownErrorToStorageError,
-} from "./errors/storageErrors";
+  ErrorNoun,
+  ErrorVerb,
+  RepositoryError,
+  getRepositoryError,
+} from "./errors/RepositoryErrors";
 import { StorageRepository } from "./storage.repository";
 
 export type StatsMap = Record<string, number>;
@@ -35,9 +36,12 @@ export class CharacterRepository {
           if (result.error) {
             console.error(result.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 result.error,
-                `Character with id ${characterId} could not be found`,
+                ErrorVerb.Read,
+                ErrorNoun.Character,
+                false,
+                result.status,
               ),
             );
           } else {
@@ -62,9 +66,12 @@ export class CharacterRepository {
           if (result.error) {
             console.error(result.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 result.error,
-                `Characters could not be found`,
+                ErrorVerb.Read,
+                ErrorNoun.Character,
+                true,
+                result.status,
               ),
             );
           } else {
@@ -84,7 +91,7 @@ export class CharacterRepository {
       changedCharacters: Record<string, CharacterDTO>,
       removedCharacterIds: string[],
     ) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     // Fetch initial state
     this.characters()
@@ -94,9 +101,12 @@ export class CharacterRepository {
         if (result.error) {
           console.error(result.error);
           onError(
-            convertUnknownErrorToStorageError(
+            getRepositoryError(
               result.error,
-              `Characters in game with id ${gameId} could not be loaded`,
+              ErrorVerb.Read,
+              ErrorNoun.Character,
+              true,
+              result.status,
             ),
           );
         } else {
@@ -122,7 +132,14 @@ export class CharacterRepository {
         (payload) => {
           if (payload.errors) {
             console.error(payload.errors);
-            onError(new UnknownError("Failed to get character changes"));
+            onError(
+              getRepositoryError(
+                payload.errors,
+                ErrorVerb.Read,
+                ErrorNoun.Character,
+                true,
+              ),
+            );
           }
           if (
             payload.eventType === "INSERT" ||
@@ -133,7 +150,14 @@ export class CharacterRepository {
             onUpdate({}, [payload.old.id]);
           } else {
             console.error("Unknown event type", payload.eventType);
-            onError(new UnknownError("Failed to get character changes"));
+            onError(
+              getRepositoryError(
+                "Unknown event type",
+                ErrorVerb.Read,
+                ErrorNoun.Character,
+                true,
+              ),
+            );
           }
         },
       )
@@ -156,9 +180,12 @@ export class CharacterRepository {
           if (result.error) {
             console.error(result.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 result.error,
-                `Failed to create character with name ${character.name}`,
+                ErrorVerb.Create,
+                ErrorNoun.Character,
+                false,
+                result.status,
               ),
             );
           } else {
@@ -198,9 +225,12 @@ export class CharacterRepository {
           if (result.error) {
             console.error(result.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 result.error,
-                `Failed to update character with id ${characterId}`,
+                ErrorVerb.Update,
+                ErrorNoun.Character,
+                false,
+                result.status,
               ),
             );
           } else {
@@ -219,9 +249,12 @@ export class CharacterRepository {
           if (result.error) {
             console.error(result.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 result.error,
-                `Failed to delete character with id ${characterId}`,
+                ErrorVerb.Delete,
+                ErrorNoun.Character,
+                false,
+                result.status,
               ),
             );
           } else {

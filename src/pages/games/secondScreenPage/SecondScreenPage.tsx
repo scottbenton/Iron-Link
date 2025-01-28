@@ -2,6 +2,11 @@ import { Box, Card, GlobalStyles, LinearProgress } from "@mui/material";
 import { AnimatePresence, motion } from "motion/react";
 
 import {
+  PageCategory,
+  useSendPageViewEvent,
+} from "hooks/useSendPageViewEvents";
+
+import {
   useSecondScreenStore,
   useSyncSecondScreenSettings,
 } from "stores/secondScreen.store";
@@ -47,6 +52,8 @@ const fadeVariants = {
 };
 
 export default function SecondScreenPage() {
+  useSendPageViewEvent(PageCategory.GameSecondScreen);
+
   useSyncGame();
   useSyncColorScheme();
   useSyncSecondScreenSettings();

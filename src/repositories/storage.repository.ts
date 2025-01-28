@@ -1,6 +1,10 @@
 import { supabase } from "lib/supabase.lib";
 
-import { FileFailedToUploadError, UnknownError } from "./errors/storageErrors";
+import {
+  ErrorNoun,
+  ErrorVerb,
+  getRepositoryError,
+} from "./errors/RepositoryErrors";
 
 type BucketNames = "characters" | "note_images";
 
@@ -17,25 +21,23 @@ export class StorageRepository {
         .then((response) => {
           if (response.error) {
             console.error(response.error);
-            reject(response.error);
+            reject(
+              getRepositoryError(
+                response.error,
+                ErrorVerb.Upload,
+                ErrorNoun.Image,
+                false,
+              ),
+            );
           } else {
             resolve(this.getImageUrl(bucket, path, image.name));
           }
         })
         .catch((e) => {
           console.error(e);
-          if (e instanceof Error) {
-            reject(
-              new FileFailedToUploadError(
-                `Failed to upload ${image.name}.`,
-                e.message,
-              ),
-            );
-          } else {
-            reject(
-              new FileFailedToUploadError(`Failed to upload ${image.name}.`),
-            );
-          }
+          reject(
+            getRepositoryError(e, ErrorVerb.Upload, ErrorNoun.Image, false),
+          );
         });
     });
   }
@@ -49,12 +51,26 @@ export class StorageRepository {
       supabase.storage
         .from(bucket)
         .remove([`${path}/${filename}`])
-        .then(() => {
-          res();
+        .then((result) => {
+          if (result.error) {
+            console.error(result.error);
+            reject(
+              getRepositoryError(
+                result.error,
+                ErrorVerb.Delete,
+                ErrorNoun.Image,
+                false,
+              ),
+            );
+          } else {
+            res();
+          }
         })
         .catch((e) => {
           console.error(e);
-          reject(new UnknownError(`Failed to delete ${filename}.`));
+          reject(
+            getRepositoryError(e, ErrorVerb.Delete, ErrorNoun.Image, false),
+          );
         });
     });
   }

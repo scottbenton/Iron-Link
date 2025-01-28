@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation } from "react-router";
 
+import { ErrorBoundary } from "components/ErrorBoundary";
 import { PageContent, PageHeader } from "components/Layout";
 import { EmptyState } from "components/Layout/EmptyState";
 
@@ -80,7 +81,9 @@ export default function GameLayout() {
           </PageHeader>
         )}
         <PageContent viewHeight={"min-full"} maxWidth={"md"}>
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </PageContent>
       </>
     );
@@ -110,7 +113,9 @@ export default function GameLayout() {
         viewHeight={isOnCharacterCreatePage ? "min-full" : "max-full"}
         maxWidth={isOnCharacterCreatePage ? "md" : undefined}
       >
-        <SidebarLayout currentOpenTab={openMobileTab} />
+        <ErrorBoundary>
+          <SidebarLayout currentOpenTab={openMobileTab} />
+        </ErrorBoundary>
       </PageContent>
     </>
   );

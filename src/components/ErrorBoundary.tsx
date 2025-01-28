@@ -1,17 +1,21 @@
-import { useEffect, useState } from "react";
-import { useRouteError } from "react-router";
-
-import { ErrorMessage } from "components/ErrorMessage";
+import React, { PropsWithChildren } from "react";
 
 import { AnalyticsService } from "services/analytics.service";
 
-export function ErrorRoute() {
-  const error = useRouteError();
-  const [errorMessage, setErrorMessage] = useState<string>();
+import { ErrorMessage } from "./ErrorMessage";
 
-  useEffect(() => {
-    let errorMessage: string | undefined = undefined;
+export class ErrorBoundary extends React.Component<
+  PropsWithChildren,
+  { hasError: boolean; errorMessage?: string }
+> {
+  constructor(props: PropsWithChildren) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: unknown) {
     let typedError: Error;
+    let errorMessage: string | undefined = undefined;
 
     if (typeof error === "string") {
       errorMessage = error;
@@ -37,11 +41,21 @@ export function ErrorRoute() {
       // This is due to a new version of the app being deployed, so we need to refresh the page
       window.location.reload();
     } else {
-      setErrorMessage(errorMessage);
-      console.error("Error Route Error: ", errorMessage, location.pathname);
       AnalyticsService.logError(typedError);
     }
-  }, [error]);
 
-  return <ErrorMessage message={errorMessage} />;
+    return { hasError: true, errorMessage };
+  }
+
+  componentDidCatch(error: unknown, errorInfo: unknown) {
+    console.error(error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <ErrorMessage message={this.state.errorMessage} />;
+    }
+
+    return this.props.children;
+  }
 }

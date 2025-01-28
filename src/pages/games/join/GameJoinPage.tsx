@@ -10,6 +10,11 @@ import { EmptyState } from "components/Layout/EmptyState";
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 import { pathConfig } from "pages/pathConfig";
 
+import {
+  PageCategory,
+  useSendPageViewEvent,
+} from "hooks/useSendPageViewEvents";
+
 import { useUID } from "stores/auth.store";
 
 import { GameType } from "repositories/game.repository";
@@ -18,6 +23,7 @@ import { GameService } from "services/game.service";
 
 export default function GameJoinPage() {
   const { t } = useTranslation();
+  useSendPageViewEvent(PageCategory.GameJoin);
 
   const gameId = useGameId();
   const uid = useUID();

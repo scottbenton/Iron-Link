@@ -9,10 +9,11 @@ import {
 import { supabase } from "lib/supabase.lib";
 
 import {
-  StorageError,
-  UnknownError,
-  convertUnknownErrorToStorageError,
-} from "./errors/storageErrors";
+  ErrorNoun,
+  ErrorVerb,
+  RepositoryError,
+  getRepositoryError,
+} from "./errors/RepositoryErrors";
 
 export type AssetDTO = Tables<"assets">;
 type InsertAssetDTO = TablesInsert<"assets">;
@@ -22,15 +23,18 @@ export class AssetRepository {
   public static assets = () => supabase.from("assets");
 
   public static async createAsset(assetDTO: InsertAssetDTO): Promise<string> {
-    const { data, error } = await this.assets()
+    const { data, error, status } = await this.assets()
       .insert(assetDTO)
       .select()
       .single();
     if (error) {
       console.error(error);
-      throw convertUnknownErrorToStorageError(
+      throw getRepositoryError(
         error,
-        "Asset could not be created",
+        ErrorVerb.Create,
+        ErrorNoun.Asset,
+        false,
+        status,
       );
     }
     return data.id;
@@ -43,7 +47,7 @@ export class AssetRepository {
       assets: Record<string, AssetDTO>,
       deletedAssetIds: string[],
     ) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     // Fetch the initial state
     this.assets()
@@ -55,9 +59,12 @@ export class AssetRepository {
         if (result.error) {
           console.error(result.error);
           onError(
-            convertUnknownErrorToStorageError(
+            getRepositoryError(
               result.error,
-              "Failed to get initial assets",
+              ErrorVerb.Read,
+              ErrorNoun.Asset,
+              true,
+              result.status,
             ),
           );
         } else {
@@ -74,14 +81,28 @@ export class AssetRepository {
     ) => void = (payload) => {
       if (payload.errors) {
         console.error(payload.errors);
-        onError(new UnknownError("Failed to get asset changes"));
+        onError(
+          getRepositoryError(
+            payload.errors,
+            ErrorVerb.Read,
+            ErrorNoun.Asset,
+            true,
+          ),
+        );
       }
       if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
         onAssets({ [payload.new.id]: payload.new }, []);
       } else if (payload.eventType === "DELETE" && payload.old.id) {
         onAssets({}, [payload.old.id]);
       } else {
-        onError(new UnknownError("Failed to get asset changes"));
+        onError(
+          getRepositoryError(
+            "Unknown event type",
+            ErrorVerb.Read,
+            ErrorNoun.Asset,
+            true,
+          ),
+        );
       }
     };
 
@@ -119,13 +140,16 @@ export class AssetRepository {
       this.assets()
         .delete()
         .eq("id", assetId)
-        .then(({ error }) => {
+        .then(({ error, status }) => {
           if (error) {
             console.error(error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 error,
-                "Failed to delete asset",
+                ErrorVerb.Delete,
+                ErrorNoun.Asset,
+                false,
+                status,
               ),
             );
           } else {
@@ -143,13 +167,16 @@ export class AssetRepository {
       this.assets()
         .update(assetDTO)
         .eq("id", assetId)
-        .then(({ error }) => {
+        .then(({ error, status }) => {
           if (error) {
             console.error(error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 error,
-                "Failed to update asset",
+                ErrorVerb.Update,
+                ErrorNoun.Asset,
+                false,
+                status,
               ),
             );
           } else {

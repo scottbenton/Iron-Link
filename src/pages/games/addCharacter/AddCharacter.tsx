@@ -7,6 +7,11 @@ import { GradientButton } from "components/GradientButton";
 
 import { pathConfig } from "pages/pathConfig";
 
+import {
+  PageCategory,
+  useSendPageViewEvent,
+} from "hooks/useSendPageViewEvents";
+
 import { useUID } from "stores/auth.store";
 import { useCreateCharacterStore } from "stores/createCharacter.store";
 
@@ -16,6 +21,7 @@ import { useGameId } from "../gamePageLayout/hooks/useGameId";
 export default function AddCharacter() {
   const gameId = useGameId();
   const { t } = useTranslation();
+  useSendPageViewEvent(PageCategory.GameCharacterCreate);
 
   const [error, setError] = useState<string | undefined>(undefined);
 

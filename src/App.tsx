@@ -48,27 +48,32 @@ export function App() {
     <>
       <Suspense fallback={<LinearProgress />}>
         <Routes>
-          <Route Component={BaseLayout} errorElement={<ErrorRoute />}>
-            <Route Component={DefaultLayout}>
-              <Route index Component={HomePage} />
-              <Route path="/games" Component={GameSelectPage} />
-              <Route path="/games/create" Component={GameCreatePage} />
-              <Route path="/games/:gameId/join" Component={GameJoinPage} />
-              <Route path="/worlds" Component={WorldSelectPage} />
-              <Route path="/homebrew" Component={HomebrewSelectPage} />
-              <Route path="/auth" Component={AuthPage} />
-              <Route path="*" Component={Page404} />
+          <Route ErrorBoundary={ErrorRoute}>
+            <Route Component={BaseLayout}>
+              <Route Component={DefaultLayout}>
+                <Route index Component={HomePage} />
+                <Route path="/games" Component={GameSelectPage} />
+                <Route path="/games/create" Component={GameCreatePage} />
+                <Route path="/games/:gameId/join" Component={GameJoinPage} />
+                <Route path="/worlds" Component={WorldSelectPage} />
+                <Route path="/homebrew" Component={HomebrewSelectPage} />
+                <Route path="/auth" Component={AuthPage} />
+                <Route path="*" Component={Page404} />
+              </Route>
+              <Route Component={GameLayout} path="/games/:gameId">
+                <Route index Component={GameOverviewPage} />
+                <Route
+                  path="c/:characterId"
+                  Component={GameCharacterSheetPage}
+                />
+                <Route path="create" Component={GameCharacterCreatePage} />
+              </Route>
             </Route>
-            <Route Component={GameLayout} path="/games/:gameId">
-              <Route index Component={GameOverviewPage} />
-              <Route path="c/:characterId" Component={GameCharacterSheetPage} />
-              <Route path="create" Component={GameCharacterCreatePage} />
-            </Route>
+            <Route
+              Component={GameSecondScreenPage}
+              path="/games/:gameId/display"
+            />
           </Route>
-          <Route
-            Component={GameSecondScreenPage}
-            path="/games/:gameId/display"
-          />
         </Routes>
       </Suspense>
     </>

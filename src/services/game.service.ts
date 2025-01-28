@@ -1,4 +1,4 @@
-import { StorageError } from "repositories/errors/storageErrors";
+import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import {
   ExpansionConfig,
   GameDTO,
@@ -114,7 +114,7 @@ export class GameService {
       gamePlayers: Record<string, IGamePlayer>,
       removed: string[],
     ) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     return GamePlayersRepository.listenToGamePlayers(
       gameId,

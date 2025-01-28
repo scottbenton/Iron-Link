@@ -10,8 +10,6 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useSnackbar } from "providers/SnackbarProvider";
-
 import { useUID } from "stores/auth.store";
 import { useUsersStore } from "stores/users.store";
 
@@ -25,7 +23,6 @@ export function UserNameDialog(props: UserNameDialogProps) {
   const uid = useUID();
 
   const { t } = useTranslation();
-  const { error } = useSnackbar();
 
   const [name, setName] = useState(initialName);
   useEffect(() => {
@@ -37,11 +34,9 @@ export function UserNameDialog(props: UserNameDialogProps) {
     if (uid && name.trim()) {
       handleNameChange(uid, name.trim())
         .then(() => {})
-        .catch((err) => {
-          error(err.message);
-        });
+        .catch(() => {});
     }
-  }, [name, handleNameChange, uid, error]);
+  }, [name, handleNameChange, uid]);
 
   return (
     <Dialog open={!!uid && open}>

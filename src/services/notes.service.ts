@@ -2,7 +2,7 @@ import { Buffer } from "buffer";
 
 import { GamePermission } from "stores/game.store";
 
-import { StorageError } from "repositories/errors/storageErrors";
+import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import { NoteDTO, NotesRepository } from "repositories/notes.repository";
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 import { StorageRepository } from "repositories/storage.repository";
@@ -33,7 +33,7 @@ export class NotesService {
       changedNotes: Record<string, INote>,
       removedNoteIds: string[],
     ) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     return NotesRepository.listenToNotes(
       uid,
@@ -115,7 +115,7 @@ export class NotesService {
   public static listenToNoteContent(
     noteId: string,
     onNoteContentChanged: (noteContent: INoteContent) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     return NotesRepository.listenToNoteContent(
       noteId,

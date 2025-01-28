@@ -6,12 +6,18 @@ import { GridLayout } from "components/Layout/GridLayout";
 
 import { pathConfig } from "pages/pathConfig";
 
+import {
+  PageCategory,
+  useSendPageViewEvent,
+} from "hooks/useSendPageViewEvents";
+
 import { useLoadUsersGames, useUsersGames } from "stores/users.games.store";
 
 import { GameCard } from "./GameCard";
 
 export default function GameSelectPage() {
   const { t } = useTranslation();
+  useSendPageViewEvent(PageCategory.GameSelect);
 
   useLoadUsersGames();
   const gameState = useUsersGames();

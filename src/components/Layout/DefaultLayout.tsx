@@ -1,5 +1,7 @@
 import { Outlet } from "react-router";
 
+import { ErrorBoundary } from "components/ErrorBoundary";
+
 import { AuthStatus, useAuthStatus } from "stores/auth.store";
 
 import { NavBar } from "./NavBar";
@@ -15,7 +17,9 @@ export function DefaultLayout() {
   return (
     <>
       <NavBar topLevelRoutes={navRoutes} />
-      <Outlet />
+      <ErrorBoundary>
+        <Outlet />
+      </ErrorBoundary>
     </>
   );
 }

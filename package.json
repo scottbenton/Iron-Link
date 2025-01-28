@@ -50,6 +50,7 @@
     "material-ui-confirm": "^3.0.16",
     "motion": "^11.17.0",
     "notistack": "^3.0.1",
+    "posthog-js": "^1.210.2",
     "re-resizable": "^6.10.3",
     "react": "^18.3.1",
     "react-avatar-editor": "^13.0.2",

@@ -9,9 +9,11 @@ import { GamePermission } from "stores/game.store";
 import { supabase } from "lib/supabase.lib";
 
 import {
-  StorageError,
-  convertUnknownErrorToStorageError,
-} from "./errors/storageErrors";
+  ErrorNoun,
+  ErrorVerb,
+  RepositoryError,
+  getRepositoryError,
+} from "./errors/RepositoryErrors";
 
 export type NoteFolderDTO = Tables<"note_folders">;
 type NoteFolderInsertDTO = TablesInsert<"note_folders">;
@@ -30,7 +32,7 @@ export class NoteFoldersRepository {
       changedNoteFolders: Record<string, NoteFolderDTO>,
       deletedNoteFolderIds: string[],
     ) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     // Fetch initial results
     const query = this.noteFolders().select().eq("game_id", gameId);
@@ -47,12 +49,15 @@ export class NoteFoldersRepository {
       );
     }
 
-    query.then(({ data, error }) => {
+    query.then(({ data, error, status }) => {
       if (error) {
         onError(
-          convertUnknownErrorToStorageError(
+          getRepositoryError(
             error,
-            `Error fetching note folders`,
+            ErrorVerb.Read,
+            ErrorNoun.NoteFolders,
+            true,
+            status,
           ),
         );
       } else {
@@ -82,9 +87,11 @@ export class NoteFoldersRepository {
         (payload) => {
           if (payload.errors) {
             onError(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 payload.errors,
-                `Error listening to note folders`,
+                ErrorVerb.Read,
+                ErrorNoun.NoteFolders,
+                true,
               ),
             );
           } else {
@@ -140,13 +147,16 @@ export class NoteFoldersRepository {
         .insert(noteFolder)
         .select()
         .single()
-        .then(({ data, error }) => {
+        .then(({ data, error, status }) => {
           if (error) {
             console.error(error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 error,
-                `Note folder could not be added`,
+                ErrorVerb.Create,
+                ErrorNoun.NoteFolders,
+                false,
+                status,
               ),
             );
           } else {
@@ -164,13 +174,16 @@ export class NoteFoldersRepository {
       this.noteFolders()
         .update(updatedNoteFolder)
         .eq("id", folderId)
-        .then(({ error }) => {
+        .then(({ error, status }) => {
           if (error) {
             console.error(error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 error,
-                `Note folder could not be updated`,
+                ErrorVerb.Update,
+                ErrorNoun.NoteFolders,
+                false,
+                status,
               ),
             );
           } else {
@@ -188,13 +201,16 @@ export class NoteFoldersRepository {
       this.noteFolders()
         .update(updatedNoteFolder)
         .in("id", folderIds)
-        .then(({ error }) => {
+        .then(({ error, status }) => {
           if (error) {
             console.error(error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 error,
-                `Note folders could not be updated`,
+                ErrorVerb.Update,
+                ErrorNoun.NoteFolders,
+                true,
+                status,
               ),
             );
           } else {
@@ -209,13 +225,16 @@ export class NoteFoldersRepository {
       this.noteFolders()
         .delete()
         .eq("id", folderId)
-        .then(({ error }) => {
+        .then(({ error, status }) => {
           if (error) {
             console.error(error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 error,
-                `Note folder could not be deleted`,
+                ErrorVerb.Delete,
+                ErrorNoun.NoteFolders,
+                false,
+                status,
               ),
             );
           } else {
