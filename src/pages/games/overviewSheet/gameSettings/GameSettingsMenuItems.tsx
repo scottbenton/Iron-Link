@@ -10,8 +10,6 @@ import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
-import { useSnackbar } from "providers/SnackbarProvider";
-
 import { pathConfig } from "pages/pathConfig";
 
 import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
@@ -46,7 +44,6 @@ export function GameSettingsMenuItems(props: GameSettingsMenuItemsProps) {
   const deleteGame = useGameStore((store) => store.deleteGame);
   const gameId = useGameIdOptional();
   const confirm = useConfirm();
-  const { error } = useSnackbar();
 
   const navigate = useNavigate();
 
@@ -83,20 +80,13 @@ export function GameSettingsMenuItems(props: GameSettingsMenuItemsProps) {
             .then(() => {
               navigate(pathConfig.gameSelect);
             })
-            .catch(() => {
-              error(
-                t(
-                  "game.overview-sidebar.delete-game-error",
-                  "Failed to delete game",
-                ),
-              );
-            });
+            .catch(() => {});
         })
         .catch(() => {
           closeMenu();
         });
     }
-  }, [confirm, gameId, deleteGame, t, error, closeMenu, navigate]);
+  }, [confirm, gameId, deleteGame, t, closeMenu, navigate]);
 
   if (!gameId || gamePermission !== GamePermission.Guide) {
     return null;

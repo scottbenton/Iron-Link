@@ -46,14 +46,7 @@ export function UploadImageButton(props: UploadImageButtonProps) {
             console.error(e);
           }
         })
-        .catch(() => {
-          error(
-            t(
-              "note.editor-toolbar.upload-image-failed",
-              "Failed to upload image.",
-            ),
-          );
-        });
+        .catch(() => {});
       // handle file upload
     }
   };
