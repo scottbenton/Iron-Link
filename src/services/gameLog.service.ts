@@ -1,4 +1,4 @@
-import { StorageError } from "repositories/errors/storageErrors";
+import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import { GameLogDTO, GameLogRepository } from "repositories/gameLog.repository";
 import { RollResult, RollType } from "repositories/shared.types";
 import { TrackTypes } from "repositories/tracks.repository";
@@ -95,7 +95,7 @@ export class GameLogService {
     isGuide: boolean,
     onChangedLog: (log: IGameLog, added: boolean) => void,
     onDeletedLog: (logId: string) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     return GameLogRepository.listenToGameLogs(
       gameId,

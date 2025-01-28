@@ -1,6 +1,6 @@
 import { Enums } from "types/supabase-generated.type";
 
-import { StorageError } from "repositories/errors/storageErrors";
+import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import {
   AskTheOracle,
   Difficulty,
@@ -48,7 +48,7 @@ export class TracksService {
       changedTracks: Record<string, ITrack>,
       deletedTrackIds: string[],
     ) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     return TracksRepository.listenToGameTracks(
       gameId,

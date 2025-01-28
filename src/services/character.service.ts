@@ -6,7 +6,7 @@ import {
   InitiativeStatus,
   StatsMap,
 } from "repositories/character.repository";
-import { StorageError } from "repositories/errors/storageErrors";
+import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import { ColorScheme, SpecialTrack } from "repositories/shared.types";
 
 export type ICharacter = {
@@ -125,7 +125,7 @@ export class CharacterService {
       changedCharacters: Record<string, ICharacter>,
       removedCharacterIds: string[],
     ) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     return CharacterRepository.listenToGameCharacters(
       gameId,

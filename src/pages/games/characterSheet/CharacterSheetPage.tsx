@@ -4,6 +4,11 @@ import { useTranslation } from "react-i18next";
 import { EmptyState } from "components/Layout/EmptyState";
 
 import {
+  PageCategory,
+  useSendPageViewEvent,
+} from "hooks/useSendPageViewEvents";
+
+import {
   useGameCharacter,
   useGameCharactersStore,
 } from "stores/gameCharacters.store";
@@ -11,6 +16,8 @@ import {
 import { CharacterSidebarContents } from "./components/CharacterSidebarContents";
 
 export default function CharacterSheetPage() {
+  useSendPageViewEvent(PageCategory.GameCharacterSheet);
+
   const hasCharacter = useGameCharacter((character) => !!character);
   const error = useGameCharactersStore((state) => state.error);
 

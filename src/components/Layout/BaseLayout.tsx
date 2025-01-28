@@ -1,6 +1,7 @@
 import { Box, LinearProgress } from "@mui/material";
 import { Outlet } from "react-router";
 
+import { ErrorBoundary } from "components/ErrorBoundary";
 import { RollSnackbarSection } from "components/characters/rolls/RollSnackbarSection";
 import { DataswornDialog } from "components/datasworn/DataswornDialog";
 
@@ -51,7 +52,9 @@ export function BaseLayout() {
           component={"main"}
           id={"main-content"}
         >
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </Box>
       </Box>
       <RollSnackbarSection />

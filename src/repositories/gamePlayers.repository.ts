@@ -3,9 +3,11 @@ import { Tables } from "types/supabase-generated.type";
 import { supabase } from "lib/supabase.lib";
 
 import {
-  StorageError,
-  convertUnknownErrorToStorageError,
-} from "./errors/storageErrors";
+  ErrorNoun,
+  ErrorVerb,
+  RepositoryError,
+  getRepositoryError,
+} from "./errors/RepositoryErrors";
 
 export type GamePlayerDTO = Tables<"game_players">;
 
@@ -18,7 +20,7 @@ export class GamePlayersRepository {
       changedPlayers: Record<string, GamePlayerDTO>,
       removedGamePlayerIds: string[],
     ) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     this.gamePlayers()
       .select()
@@ -27,9 +29,12 @@ export class GamePlayersRepository {
         if (response.error) {
           console.error(response.error);
           onError(
-            convertUnknownErrorToStorageError(
+            getRepositoryError(
               response.error,
-              "Failed to get game players",
+              ErrorVerb.Read,
+              ErrorNoun.GamePlayers,
+              true,
+              response.status,
             ),
           );
         } else {
@@ -56,9 +61,11 @@ export class GamePlayersRepository {
           if (payload.errors) {
             console.error(payload.errors);
             onError(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 payload.errors,
-                "Failed to listen to game players",
+                ErrorVerb.Read,
+                ErrorNoun.GamePlayers,
+                true,
               ),
             );
           }
@@ -93,9 +100,12 @@ export class GamePlayersRepository {
           if (response.error) {
             console.error(response.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to get game player info",
+                ErrorVerb.Read,
+                ErrorNoun.GamePlayers,
+                false,
+                response.status,
               ),
             );
           } else {
@@ -121,9 +131,12 @@ export class GamePlayersRepository {
           if (response.error) {
             console.error(response.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to add user to game",
+                ErrorVerb.Create,
+                ErrorNoun.GamePlayers,
+                false,
+                response.status,
               ),
             );
           } else {
@@ -147,9 +160,12 @@ export class GamePlayersRepository {
           if (response.error) {
             console.error(response.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to update user role",
+                ErrorVerb.Update,
+                ErrorNoun.GamePlayers,
+                false,
+                response.status,
               ),
             );
           } else {
@@ -171,9 +187,12 @@ export class GamePlayersRepository {
           if (response.error) {
             console.error(response.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to update user role",
+                ErrorVerb.Update,
+                ErrorNoun.GamePlayers,
+                true,
+                response.status,
               ),
             );
           } else {
@@ -196,9 +215,12 @@ export class GamePlayersRepository {
           if (response.error) {
             console.error(response.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to remove user from game",
+                ErrorVerb.Delete,
+                ErrorNoun.GamePlayers,
+                false,
+                response.status,
               ),
             );
           } else {

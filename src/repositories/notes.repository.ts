@@ -9,10 +9,11 @@ import { GamePermission } from "stores/game.store";
 import { SUPABASE_URL, supabase } from "lib/supabase.lib";
 
 import {
-  StorageError,
-  UnknownError,
-  convertUnknownErrorToStorageError,
-} from "./errors/storageErrors";
+  ErrorNoun,
+  ErrorVerb,
+  RepositoryError,
+  getRepositoryError,
+} from "./errors/RepositoryErrors";
 
 export type NoteDTO = Tables<"notes">;
 type NoteInsertDTO = TablesInsert<"notes">;
@@ -29,7 +30,7 @@ export class NotesRepository {
       changedNotes: Record<string, NoteDTO>,
       removedNoteIds: string[],
     ) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     const query = this.notes()
       .select(
@@ -63,9 +64,12 @@ export class NotesRepository {
       if (response.error) {
         console.error(response.error);
         onError(
-          convertUnknownErrorToStorageError(
+          getRepositoryError(
             response.error,
-            `Failed to listen to notes`,
+            ErrorVerb.Read,
+            ErrorNoun.Note,
+            true,
+            response.status,
           ),
         );
       } else {
@@ -94,9 +98,11 @@ export class NotesRepository {
         (payload) => {
           if (payload.errors) {
             onError(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 payload.errors,
-                `Error listening to notes`,
+                ErrorVerb.Read,
+                ErrorNoun.Note,
+                true,
               ),
             );
           } else {
@@ -156,18 +162,21 @@ export class NotesRepository {
   public static listenToNoteContent(
     noteId: string,
     onNoteContentChange: (note: NoteDTO) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     this.notes()
       .select()
       .eq("id", noteId)
-      .then(({ data, error }) => {
+      .then(({ data, error, status }) => {
         if (error) {
           console.error(error);
           onError(
-            convertUnknownErrorToStorageError(
+            getRepositoryError(
               error,
-              `Failed to listen to note content`,
+              ErrorVerb.Read,
+              ErrorNoun.Note,
+              false,
+              status,
             ),
           );
         } else {
@@ -188,9 +197,11 @@ export class NotesRepository {
         (payload) => {
           if (payload.errors) {
             onError(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 payload.errors,
-                `Error listening to note content`,
+                ErrorVerb.Read,
+                ErrorNoun.Note,
+                false,
               ),
             );
           } else if (
@@ -214,11 +225,17 @@ export class NotesRepository {
         .insert(note)
         .select()
         .single()
-        .then(({ data, error }) => {
+        .then(({ data, error, status }) => {
           if (error) {
             console.error(error);
             reject(
-              convertUnknownErrorToStorageError(error, `Failed to add note`),
+              getRepositoryError(
+                error,
+                ErrorVerb.Create,
+                ErrorNoun.Note,
+                false,
+                status,
+              ),
             );
           } else {
             resolve(data.id);
@@ -235,11 +252,17 @@ export class NotesRepository {
       this.notes()
         .update(updatedNote)
         .eq("id", noteId)
-        .then(({ error }) => {
+        .then(({ error, status }) => {
           if (error) {
             console.error(error);
             reject(
-              convertUnknownErrorToStorageError(error, `Failed to update note`),
+              getRepositoryError(
+                error,
+                ErrorVerb.Update,
+                ErrorNoun.Note,
+                false,
+                status,
+              ),
             );
           } else {
             resolve();
@@ -267,7 +290,15 @@ export class NotesRepository {
       }).then((res) => {
         if (!res.ok) {
           console.error(res);
-          reject(new UnknownError("Failed to save note beacon request"));
+          reject(
+            getRepositoryError(
+              res,
+              ErrorVerb.Update,
+              ErrorNoun.Note,
+              false,
+              res.status,
+            ),
+          );
         }
         resolve();
       });
@@ -282,13 +313,16 @@ export class NotesRepository {
       this.notes()
         .update(updatedNote)
         .in("id", noteIds)
-        .then(({ error }) => {
+        .then(({ error, status }) => {
           if (error) {
             console.error(error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 error,
-                `Notes could not be updated`,
+                ErrorVerb.Update,
+                ErrorNoun.Note,
+                true,
+                status,
               ),
             );
           } else {
@@ -308,7 +342,13 @@ export class NotesRepository {
           if (error) {
             console.error(error);
             reject(
-              convertUnknownErrorToStorageError(error, `Failed to delete note`),
+              getRepositoryError(
+                error,
+                ErrorVerb.Delete,
+                ErrorNoun.Note,
+                false,
+                result.status,
+              ),
             );
           } else {
             resolve();

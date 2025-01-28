@@ -3,11 +3,11 @@ import { Tables } from "types/supabase-generated.type";
 import { supabase } from "lib/supabase.lib";
 
 import {
-  NotFoundError,
-  StorageError,
-  UnknownError,
-  convertUnknownErrorToStorageError,
-} from "./errors/storageErrors";
+  ErrorNoun,
+  ErrorVerb,
+  RepositoryError,
+  getRepositoryError,
+} from "./errors/RepositoryErrors";
 import { ColorScheme } from "./shared.types";
 import { SpecialTrack } from "./shared.types";
 
@@ -55,9 +55,12 @@ export class GameRepository {
           if (response.error) {
             console.error(response.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to get game invite info",
+                ErrorVerb.Read,
+                ErrorNoun.Game,
+                false,
+                response.status,
               ),
             );
           } else {
@@ -68,15 +71,18 @@ export class GameRepository {
   }
 
   public static async getGame(gameId: string): Promise<GameDTO> {
-    const { data, error } = await this.games()
+    const { data, error, status } = await this.games()
       .select("*")
       .eq("id", gameId)
       .single();
 
     if (error) {
-      throw convertUnknownErrorToStorageError(
+      throw getRepositoryError(
         error,
-        `Failed to get game with id ${gameId}`,
+        ErrorVerb.Read,
+        ErrorNoun.Game,
+        false,
+        status,
       );
     }
 
@@ -86,7 +92,7 @@ export class GameRepository {
   public static listenToGame(
     gameId: string,
     onGame: (game: GameDTO) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     // Fetch the initial state
     this.getGame(gameId).then(onGame).catch(onError);
@@ -104,7 +110,14 @@ export class GameRepository {
         (payload) => {
           if (payload.errors) {
             console.error(payload.errors);
-            onError(new UnknownError("Failed to get game changes"));
+            onError(
+              getRepositoryError(
+                payload.errors,
+                ErrorVerb.Read,
+                ErrorNoun.Game,
+                false,
+              ),
+            );
           }
           if (
             payload.eventType === "INSERT" ||
@@ -112,7 +125,14 @@ export class GameRepository {
           ) {
             onGame(payload.new);
           } else {
-            onError(new NotFoundError(`Game with id ${gameId} was deleted`));
+            onError(
+              getRepositoryError(
+                "Unexpected event type",
+                ErrorVerb.Read,
+                ErrorNoun.Game,
+                false,
+              ),
+            );
           }
         },
       )
@@ -128,13 +148,16 @@ export class GameRepository {
       this.games()
         .select("*, game_players!inner(*)")
         .eq("game_players.user_id", userId)
-        .then(({ data, error }) => {
+        .then(({ data, error, status }) => {
           if (error) {
             console.error(error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 error,
-                `Failed to get games for user with id ${userId}`,
+                ErrorVerb.Read,
+                ErrorNoun.Game,
+                true,
+                status,
               ),
             );
           } else {
@@ -156,9 +179,12 @@ export class GameRepository {
           if (response.error) {
             console.error(response.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to update game",
+                ErrorVerb.Update,
+                ErrorNoun.Game,
+                false,
+                response.status,
               ),
             );
           } else {
@@ -176,9 +202,12 @@ export class GameRepository {
         .then((response) => {
           if (response.error) {
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to delete game",
+                ErrorVerb.Delete,
+                ErrorNoun.Game,
+                false,
+                response.status,
               ),
             );
           } else {
@@ -208,9 +237,12 @@ export class GameRepository {
           if (response.error || !response.data) {
             console.error(response.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 response.error,
-                "Failed to create new game",
+                ErrorVerb.Create,
+                ErrorNoun.Game,
+                false,
+                response.status,
               ),
             );
           } else {

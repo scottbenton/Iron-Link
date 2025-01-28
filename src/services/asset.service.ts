@@ -1,5 +1,5 @@
 import { AssetDTO, AssetRepository } from "repositories/asset.repository";
-import { StorageError } from "repositories/errors/storageErrors";
+import { RepositoryError } from "repositories/errors/RepositoryErrors";
 
 export type IAsset = {
   id: string;
@@ -34,7 +34,7 @@ export class AssetService {
       updatedAssets: Record<string, IAsset>,
       deletedAssetIds: string[],
     ) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ) {
     return AssetRepository.listenToAssets(
       gameId,

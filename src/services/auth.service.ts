@@ -1,11 +1,14 @@
 import { supabase } from "lib/supabase.lib";
 
+import { AnalyticsService } from "./analytics.service";
+
 export class AuthService {
   public static listenToAuthState(
     onUserFound: (userId: string, accessToken: string) => void,
     onUserNotFound: () => void,
   ): () => void {
     const result = supabase.auth.onAuthStateChange((_event, session) => {
+      AnalyticsService.setIdentity(session?.user.id ?? null);
       if (session) {
         onUserFound(session.user.id, session.access_token);
       } else {

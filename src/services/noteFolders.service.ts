@@ -1,6 +1,6 @@
 import { GamePermission } from "stores/game.store";
 
-import { StorageError } from "repositories/errors/storageErrors";
+import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import {
   NoteFolderDTO,
   NoteFoldersRepository,
@@ -32,7 +32,7 @@ export class NoteFoldersService {
       changedNoteFolders: Record<string, INoteFolder>,
       removedNoteFolderIds: string[],
     ) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     return NoteFoldersRepository.listenToNoteFolders(
       uid,

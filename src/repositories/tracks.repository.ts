@@ -7,10 +7,11 @@ import {
 import { supabase } from "lib/supabase.lib";
 
 import {
-  StorageError,
-  UnknownError,
-  convertUnknownErrorToStorageError,
-} from "./errors/storageErrors";
+  ErrorNoun,
+  ErrorVerb,
+  RepositoryError,
+  getRepositoryError,
+} from "./errors/RepositoryErrors";
 
 export type TrackDTO = Tables<"game_tracks">;
 type InsertTrackDTO = TablesInsert<"game_tracks">;
@@ -25,7 +26,7 @@ export class TracksRepository {
       changedTracks: Record<string, TrackDTO>,
       deletedTrackIds: string[],
     ) => void,
-    onError: (error: StorageError) => void,
+    onError: (error: RepositoryError) => void,
   ): () => void {
     this.tracks()
       .select()
@@ -34,9 +35,12 @@ export class TracksRepository {
         if (result.error) {
           console.error(result.error);
           onError(
-            convertUnknownErrorToStorageError(
+            getRepositoryError(
               result.error,
-              "Failed to get initial tracks",
+              ErrorVerb.Read,
+              ErrorNoun.Tracks,
+              true,
+              result.status,
             ),
           );
         } else {
@@ -61,7 +65,14 @@ export class TracksRepository {
         (payload) => {
           if (payload.errors) {
             console.error(payload.errors);
-            onError(new UnknownError("Failed to get track changes"));
+            onError(
+              getRepositoryError(
+                payload.errors,
+                ErrorVerb.Read,
+                ErrorNoun.Tracks,
+                true,
+              ),
+            );
           }
           if (
             payload.eventType === "INSERT" ||
@@ -90,9 +101,12 @@ export class TracksRepository {
           if (result.error) {
             console.error(result.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 result.error,
-                "Failed to get initial tracks",
+                ErrorVerb.Create,
+                ErrorNoun.Tracks,
+                false,
+                result.status,
               ),
             );
           } else {
@@ -114,9 +128,12 @@ export class TracksRepository {
           if (result.error) {
             console.error(result.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 result.error,
-                "Failed to update track",
+                ErrorVerb.Update,
+                ErrorNoun.Tracks,
+                false,
+                result.status,
               ),
             );
           } else {
@@ -135,9 +152,12 @@ export class TracksRepository {
           if (result.error) {
             console.error(result.error);
             reject(
-              convertUnknownErrorToStorageError(
+              getRepositoryError(
                 result.error,
-                "Failed to delete track",
+                ErrorVerb.Delete,
+                ErrorNoun.Tracks,
+                false,
+                result.status,
               ),
             );
           } else {
