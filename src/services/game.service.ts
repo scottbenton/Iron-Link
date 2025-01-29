@@ -113,12 +113,13 @@ export class GameService {
     onGamePlayers: (
       gamePlayers: Record<string, IGamePlayer>,
       removed: string[],
+      replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
     return GamePlayersRepository.listenToGamePlayers(
       gameId,
-      (gamePlayersDTO, removed) => {
+      (gamePlayersDTO, removed, replaceState) => {
         onGamePlayers(
           Object.fromEntries(
             Object.entries(gamePlayersDTO).map(([key, value]) => [
@@ -127,6 +128,7 @@ export class GameService {
             ]),
           ),
           removed,
+          replaceState,
         );
       },
       onError,

@@ -75,22 +75,31 @@ export const useGameLogStore = createWithEqualityFn<
       return GameLogService.listenToGameLogs(
         gameId,
         isGuide,
-        (changedLog, added) => {
-          set((state) => {
-            if (state.logs[changedLog.id] || added) {
-              state.logs[changedLog.id] = changedLog;
-            }
-            useAppState
-              .getState()
-              .updateRollIfPresent(changedLog.id, changedLog);
-          });
-        },
-        (deletedLogId) => {
+        (addedLogs, changedLogs, deletedLogIds, replaceState) => {
           set((state) => {
             state.loading = false;
             state.error = undefined;
-            if (state.logs[deletedLogId]) {
-              delete state.logs[deletedLogId];
+
+            if (replaceState) {
+              state.logs = addedLogs;
+              Object.entries(addedLogs).forEach(([id, log]) => {
+                useAppState.getState().updateRollIfPresent(id, log);
+              });
+            } else {
+              Object.entries(addedLogs).forEach(([id, log]) => {
+                state.logs[id] = log;
+                useAppState.getState().updateRollIfPresent(id, log);
+              });
+              Object.entries(changedLogs).forEach(([id, log]) => {
+                if (state.logs[id]) {
+                  state.logs[id] = log;
+                  useAppState.getState().updateRollIfPresent(id, log);
+                }
+                useAppState.getState().updateRollIfPresent(id, log);
+              });
+              deletedLogIds.forEach((id) => {
+                delete state.logs[id];
+              });
             }
           });
         },

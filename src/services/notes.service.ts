@@ -32,6 +32,7 @@ export class NotesService {
     onNoteChanges: (
       changedNotes: Record<string, INote>,
       removedNoteIds: string[],
+      replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
@@ -39,7 +40,7 @@ export class NotesService {
       uid,
       gameId,
       gamePermissions,
-      (changedNotes, removedNoteIds) => {
+      (changedNotes, removedNoteIds, replaceState) => {
         onNoteChanges(
           Object.fromEntries(
             Object.entries(changedNotes).map(([noteId, note]) => [
@@ -48,6 +49,7 @@ export class NotesService {
             ]),
           ),
           removedNoteIds,
+          replaceState,
         );
       },
       onError,

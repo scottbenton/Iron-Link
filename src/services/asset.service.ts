@@ -33,13 +33,14 @@ export class AssetService {
     onAssets: (
       updatedAssets: Record<string, IAsset>,
       deletedAssetIds: string[],
+      replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ) {
     return AssetRepository.listenToAssets(
       gameId,
       characterIds,
-      (assets, deletedAssetIds) => {
+      (assets, deletedAssetIds, replaceState) => {
         onAssets(
           Object.fromEntries(
             Object.entries(assets).map(([id, asset]) => [
@@ -48,6 +49,7 @@ export class AssetService {
             ]),
           ),
           deletedAssetIds,
+          replaceState,
         );
       },
       onError,

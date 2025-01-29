@@ -1,7 +1,10 @@
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+
 import { Tables } from "types/supabase-generated.type";
 
 import { supabase } from "lib/supabase.lib";
 
+import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
   ErrorVerb,
@@ -95,51 +98,48 @@ export class GameRepository {
     onError: (error: RepositoryError) => void,
   ): () => void {
     // Fetch the initial state
-    this.getGame(gameId).then(onGame).catch(onError);
+    const getInitialState = () => {
+      this.getGame(gameId).then(onGame).catch(onError);
+    };
 
-    const subscription = supabase
-      .channel(`games:game_id=${gameId}`)
-      .on<GameDTO>(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "games",
-          filter: `id=eq.${gameId}`,
-        },
-        (payload) => {
-          if (payload.errors) {
-            console.error(payload.errors);
-            onError(
-              getRepositoryError(
-                payload.errors,
-                ErrorVerb.Read,
-                ErrorNoun.Game,
-                false,
-              ),
-            );
-          }
-          if (
-            payload.eventType === "INSERT" ||
-            payload.eventType === "UPDATE"
-          ) {
-            onGame(payload.new);
-          } else {
-            onError(
-              getRepositoryError(
-                "Unexpected event type",
-                ErrorVerb.Read,
-                ErrorNoun.Game,
-                false,
-              ),
-            );
-          }
-        },
-      )
-      .subscribe();
+    const handlePayload = (
+      payload: RealtimePostgresChangesPayload<GameDTO>,
+    ) => {
+      if (payload.errors) {
+        console.error(payload.errors);
+        onError(
+          getRepositoryError(
+            payload.errors,
+            ErrorVerb.Read,
+            ErrorNoun.Game,
+            false,
+          ),
+        );
+      }
+      if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+        onGame(payload.new);
+      } else {
+        onError(
+          getRepositoryError(
+            "Unexpected event type",
+            ErrorVerb.Read,
+            ErrorNoun.Game,
+            false,
+          ),
+        );
+      }
+    };
+
+    const unsubscribe = createSubscription(
+      `games:id=eq.${gameId}`,
+      "games",
+      `id=eq.${gameId}`,
+      getInitialState,
+      handlePayload,
+    );
 
     return () => {
-      supabase.removeChannel(subscription);
+      unsubscribe();
     };
   }
 

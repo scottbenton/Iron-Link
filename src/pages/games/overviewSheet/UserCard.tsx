@@ -69,7 +69,11 @@ export function UserCard(props: UserCardProps) {
 
   const handleMakeGuide = useCallback(() => {
     updateGamePlayerRole(gameId, uid, GamePlayerRole.Guide).catch(() => {});
-  }, [updateGamePlayerRole, uid, gameId, t]);
+  }, [updateGamePlayerRole, uid, gameId]);
+
+  const handleReturnToPlayer = useCallback(() => {
+    updateGamePlayerRole(gameId, uid, GamePlayerRole.Player).catch(() => {});
+  }, [updateGamePlayerRole, uid, gameId]);
 
   const handleKick = useCallback(() => {
     if (charactersByUser) {
@@ -109,6 +113,11 @@ export function UserCard(props: UserCardProps) {
           (isUser && !areAnyPlayersGuides)) && (
           <Button color="inherit" onClick={handleMakeGuide}>
             {t("game.overview.makeGuide", "Make Guide")}
+          </Button>
+        )}
+        {isCurrentUserGuide && isUser && (
+          <Button color="inherit" onClick={handleReturnToPlayer}>
+            {t("game.overview.makePlayer", "Leave Guide Role")}
           </Button>
         )}
         {(isCurrentUserGuide || isUser) && (

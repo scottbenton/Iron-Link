@@ -31,6 +31,7 @@ export class NoteFoldersService {
     onNoteFolderChanges: (
       changedNoteFolders: Record<string, INoteFolder>,
       removedNoteFolderIds: string[],
+      replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
@@ -38,7 +39,7 @@ export class NoteFoldersService {
       uid,
       gameId,
       permissions,
-      (changedFolders, removedIds) =>
+      (changedFolders, removedIds, replaceState) =>
         onNoteFolderChanges(
           Object.fromEntries(
             Object.entries(changedFolders).map(([folderId, folder]) => [
@@ -47,6 +48,7 @@ export class NoteFoldersService {
             ]),
           ),
           removedIds,
+          replaceState,
         ),
       onError,
     );

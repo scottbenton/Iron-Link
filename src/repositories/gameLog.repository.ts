@@ -1,3 +1,5 @@
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+
 import {
   Tables,
   TablesInsert,
@@ -6,6 +8,7 @@ import {
 
 import { supabase } from "lib/supabase.lib";
 
+import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
   ErrorVerb,
@@ -193,60 +196,71 @@ export class GameLogRepository {
   public static listenToGameLogs(
     gameId: string,
     isGuide: boolean,
-    onLogChange: (newLog: GameLogDTO, added: boolean) => void,
-    onLogDelete: (logId: string) => void,
+
+    onLogs: (
+      addedLogs: Record<string, GameLogDTO>,
+      updatedLogs: Record<string, GameLogDTO>,
+      deletedLogIds: string[],
+      replaceState: boolean,
+    ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
-    const subscription = supabase
-      .channel(`game_logs:game_id=eq.${gameId}`)
-      .on<GameLogDTO>(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "game_logs",
-          filter: `game_id=eq.${gameId}`,
-        },
-        (payload) => {
-          if (payload.errors) {
-            console.error(payload.errors);
-            onError(
-              getRepositoryError(
-                payload.errors,
-                ErrorVerb.Read,
-                ErrorNoun.GameLog,
-                true,
-              ),
-            );
-            return;
-          }
-          if (
-            payload.eventType === "INSERT" ||
-            payload.eventType === "UPDATE"
-          ) {
-            if (payload.new.guides_only && !isGuide) {
-              return;
-            }
-            onLogChange(payload.new, payload.eventType === "INSERT");
-          } else if (payload.eventType === "DELETE" && payload.old.id) {
-            onLogDelete(payload.old.id);
-          } else {
-            console.error("Unknown event type", payload.eventType);
-            onError(
-              getRepositoryError(
-                "Unknown event type",
-                ErrorVerb.Read,
-                ErrorNoun.GameLog,
-                true,
-              ),
-            );
-          }
-        },
-      )
-      .subscribe();
+    /**
+     * TODO This should be filled in instead of calling the above getLastNLogsInGame
+     * That way we can get the initial state and then listen for changes, even after tab inactivity
+     */
+    const startInitialLoad = () => {};
+
+    const handlePayload = (
+      payload: RealtimePostgresChangesPayload<GameLogDTO>,
+    ) => {
+      if (payload.errors) {
+        console.error(payload.errors);
+        onError(
+          getRepositoryError(
+            payload.errors,
+            ErrorVerb.Read,
+            ErrorNoun.GameLog,
+            true,
+          ),
+        );
+        return;
+      }
+      if (payload.eventType === "INSERT") {
+        if (payload.new.guides_only && !isGuide) {
+          return;
+        }
+        onLogs({ [payload.new.id]: payload.new }, {}, [], false);
+      } else if (payload.eventType === "UPDATE") {
+        if (payload.new.guides_only && !isGuide) {
+          return;
+        }
+        onLogs({}, { [payload.new.id]: payload.new }, [], false);
+      } else if (payload.eventType === "DELETE" && payload.old.id) {
+        onLogs({}, {}, [payload.old.id], false);
+      } else {
+        console.error("Unknown event type", payload.eventType);
+        onError(
+          getRepositoryError(
+            "Unknown event type",
+            ErrorVerb.Read,
+            ErrorNoun.GameLog,
+            true,
+          ),
+        );
+      }
+    };
+
+    const unsubscribe = createSubscription(
+      `game_logs:game_id=eq.${gameId}`,
+      "game_logs",
+      `game_id=eq.${gameId}`,
+      startInitialLoad,
+      handlePayload,
+    );
 
     return () => {
-      supabase.removeChannel(subscription);
+      unsubscribe();
     };
   }
 
