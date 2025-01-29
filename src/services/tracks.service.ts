@@ -47,12 +47,13 @@ export class TracksService {
     onTrackChanges: (
       changedTracks: Record<string, ITrack>,
       deletedTrackIds: string[],
+      replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
     return TracksRepository.listenToGameTracks(
       gameId,
-      (changedTracks, deletedTrackIds) => {
+      (changedTracks, deletedTrackIds, replaceState) => {
         const convertedChangedTracks = Object.fromEntries(
           Object.entries(changedTracks).map(([trackId, trackDTO]) => [
             trackId,
@@ -60,7 +61,7 @@ export class TracksService {
           ]),
         );
 
-        onTrackChanges(convertedChangedTracks, deletedTrackIds);
+        onTrackChanges(convertedChangedTracks, deletedTrackIds, replaceState);
       },
       onError,
     );

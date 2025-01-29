@@ -93,16 +93,25 @@ export class GameLogService {
   public static listenToGameLogs(
     gameId: string,
     isGuide: boolean,
-    onChangedLog: (log: IGameLog, added: boolean) => void,
-    onDeletedLog: (logId: string) => void,
+    onLogs: (
+      newLogs: Record<string, IGameLog>,
+      changedLogs: Record<string, IGameLog>,
+      deletedLogIds: string[],
+      replaceState: boolean,
+    ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
     return GameLogRepository.listenToGameLogs(
       gameId,
       isGuide,
-      (changedLogDTO, added) =>
-        onChangedLog(this.convertGameLogDTOToGameLog(changedLogDTO), added),
-      (deletedLogId) => onDeletedLog(deletedLogId),
+      (newLogs, changedLogs, deletedLogIds, replaceState) => {
+        onLogs(
+          this.convertGameLogDTOMapToGameLogMap(newLogs),
+          this.convertGameLogDTOMapToGameLogMap(changedLogs),
+          deletedLogIds,
+          replaceState,
+        );
+      },
       onError,
     );
   }
@@ -119,6 +128,17 @@ export class GameLogService {
 
   public static async deleteGameLog(logId: string): Promise<void> {
     return GameLogRepository.deleteGameLog(logId);
+  }
+
+  private static convertGameLogDTOMapToGameLogMap(
+    dtoMap: Record<string, GameLogDTO>,
+  ): Record<string, IGameLog> {
+    return Object.fromEntries(
+      Object.entries(dtoMap).map(([id, dto]) => [
+        id,
+        this.convertGameLogDTOToGameLog(dto),
+      ]),
+    );
   }
 
   private static convertGameLogDTOToGameLog(dto: GameLogDTO): IGameLog {

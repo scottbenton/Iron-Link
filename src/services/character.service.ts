@@ -124,12 +124,13 @@ export class CharacterService {
     onCharacterChanges: (
       changedCharacters: Record<string, ICharacter>,
       removedCharacterIds: string[],
+      replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
     return CharacterRepository.listenToGameCharacters(
       gameId,
-      (changedCharacters, removedCharacterIds) => {
+      (changedCharacters, removedCharacterIds, replaceState) => {
         onCharacterChanges(
           Object.fromEntries(
             Object.entries(changedCharacters).map(
@@ -140,6 +141,7 @@ export class CharacterService {
             ),
           ),
           removedCharacterIds,
+          replaceState,
         );
       },
       onError,

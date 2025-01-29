@@ -55,14 +55,18 @@ export const useAssetsStore = createWithEqualityFn<
         return AssetService.listenToGameAssets(
           gameId,
           characterIds,
-          (changedAssets, deletedAssets) => {
+          (changedAssets, deletedAssets, replaceState) => {
             set((state) => {
-              Object.entries(changedAssets).forEach(([id, asset]) => {
-                state.assets[id] = asset;
-              });
-              deletedAssets.forEach((id) => {
-                delete state.assets[id];
-              });
+              if (replaceState) {
+                state.assets = changedAssets;
+              } else {
+                Object.entries(changedAssets).forEach(([id, asset]) => {
+                  state.assets[id] = asset;
+                });
+                deletedAssets.forEach((id) => {
+                  delete state.assets[id];
+                });
+              }
               state.error = null;
               state.loading = false;
             });

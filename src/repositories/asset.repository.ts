@@ -8,6 +8,7 @@ import {
 
 import { supabase } from "lib/supabase.lib";
 
+import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
   ErrorVerb,
@@ -46,35 +47,37 @@ export class AssetRepository {
     onAssets: (
       assets: Record<string, AssetDTO>,
       deletedAssetIds: string[],
+      replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
-    // Fetch the initial state
-    this.assets()
-      .select()
-      .or(
-        `game_id.eq.${gameId}, character_id.in.("${characterIds.join('","')}")`,
-      )
-      .then((result) => {
-        if (result.error) {
-          console.error(result.error);
-          onError(
-            getRepositoryError(
-              result.error,
-              ErrorVerb.Read,
-              ErrorNoun.Asset,
-              true,
-              result.status,
-            ),
-          );
-        } else {
-          const assets: Record<string, AssetDTO> = {};
-          result.data?.forEach((asset) => {
-            assets[asset.id] = asset;
-          });
-          onAssets(assets, []);
-        }
-      });
+    const loadInitialAssets = () => {
+      this.assets()
+        .select()
+        .or(
+          `game_id.eq.${gameId}, character_id.in.("${characterIds.join('","')}")`,
+        )
+        .then((result) => {
+          if (result.error) {
+            console.error(result.error);
+            onError(
+              getRepositoryError(
+                result.error,
+                ErrorVerb.Read,
+                ErrorNoun.Asset,
+                true,
+                result.status,
+              ),
+            );
+          } else {
+            const assets: Record<string, AssetDTO> = {};
+            result.data?.forEach((asset) => {
+              assets[asset.id] = asset;
+            });
+            onAssets(assets, [], true);
+          }
+        });
+    };
 
     const handlePayload: (
       payload: RealtimePostgresChangesPayload<AssetDTO>,
@@ -91,9 +94,9 @@ export class AssetRepository {
         );
       }
       if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
-        onAssets({ [payload.new.id]: payload.new }, []);
+        onAssets({ [payload.new.id]: payload.new }, [], false);
       } else if (payload.eventType === "DELETE" && payload.old.id) {
-        onAssets({}, [payload.old.id]);
+        onAssets({}, [payload.old.id], false);
       } else {
         onError(
           getRepositoryError(
@@ -106,32 +109,16 @@ export class AssetRepository {
       }
     };
 
-    const subscription = supabase
-      .channel(`assets:game_id=${gameId}`)
-      .on<AssetDTO>(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "assets",
-          filter: `game_id=eq.${gameId}`,
-        },
-        handlePayload,
-      )
-      .on<AssetDTO>(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "assets",
-          filter: `character_id=in.(${characterIds.join(",")})`,
-        },
-        handlePayload,
-      )
-      .subscribe();
+    const unsubscribe = createSubscription<AssetDTO>(
+      `assets:game_id=${gameId}`,
+      "assets",
+      [`game_id=eq.${gameId}`, `character_id=in.(${characterIds.join(",")})`],
+      loadInitialAssets,
+      handlePayload,
+    );
 
     return () => {
-      supabase.removeChannel(subscription);
+      unsubscribe();
     };
   }
 

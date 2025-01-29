@@ -151,12 +151,21 @@ export const useNotesStore = createWithEqualityFn<
         uid,
         gameId,
         gamePermissions,
-        (changedNoteFolders, deletedNoteFolderIds) => {
+        (changedNoteFolders, deletedNoteFolderIds, replaceState) => {
           set((store) => {
-            store.folderState.folders = {
-              ...store.folderState.folders,
-              ...changedNoteFolders,
-            };
+            if (replaceState) {
+              store.folderState.folders = changedNoteFolders;
+              store.folderState.permissions = {};
+            } else {
+              store.folderState.folders = {
+                ...store.folderState.folders,
+                ...changedNoteFolders,
+              };
+              deletedNoteFolderIds.forEach((folderId) => {
+                delete store.folderState.folders[folderId];
+                delete store.folderState.permissions[folderId];
+              });
+            }
             Object.entries(changedNoteFolders).forEach(([folderId, folder]) => {
               const permissions = getPermissions(
                 folder.editPermissions,
@@ -165,10 +174,6 @@ export const useNotesStore = createWithEqualityFn<
                 gamePermissions,
               );
               store.folderState.permissions[folderId] = permissions;
-            });
-            deletedNoteFolderIds.forEach((folderId) => {
-              delete store.folderState.folders[folderId];
-              delete store.folderState.permissions[folderId];
             });
             store.folderState.loading = false;
             store.folderState.error = undefined;
@@ -187,12 +192,21 @@ export const useNotesStore = createWithEqualityFn<
         uid,
         gameId,
         gamePermissions,
-        (changedNotes, removedNoteIds) => {
+        (changedNotes, removedNoteIds, replaceState) => {
           set((store) => {
-            store.noteState.notes = {
-              ...store.noteState.notes,
-              ...changedNotes,
-            };
+            if (replaceState) {
+              store.noteState.notes = changedNotes;
+              store.noteState.permissions = {};
+            } else {
+              store.noteState.notes = {
+                ...store.noteState.notes,
+                ...changedNotes,
+              };
+              removedNoteIds.forEach((noteId) => {
+                delete store.noteState.notes[noteId];
+                delete store.noteState.permissions[noteId];
+              });
+            }
 
             Object.entries(changedNotes).forEach(([noteId, note]) => {
               const permissions = getPermissions(
@@ -204,10 +218,6 @@ export const useNotesStore = createWithEqualityFn<
               store.noteState.permissions[noteId] = permissions;
             });
 
-            removedNoteIds.forEach((noteId) => {
-              delete store.noteState.notes[noteId];
-              delete store.noteState.permissions[noteId];
-            });
             store.noteState.loading = false;
             store.noteState.error = undefined;
           });
