@@ -95,17 +95,23 @@ export const useTracksStore = createWithEqualityFn<
     listenToTracks: (gameId: string) => {
       return TracksService.listenToGameTracks(
         gameId,
-        (changedTracks, deletedTrackIds) => {
+        (changedTracks, deletedTrackIds, replaceState) => {
           set((state) => {
             state.loading = false;
-            state.tracks = {
-              ...state.tracks,
-              ...changedTracks,
-            };
+            state.error = undefined;
 
-            deletedTrackIds.forEach((trackId) => {
-              delete state.tracks[trackId];
-            });
+            if (replaceState) {
+              state.tracks = changedTracks;
+            } else {
+              state.tracks = {
+                ...state.tracks,
+                ...changedTracks,
+              };
+
+              deletedTrackIds.forEach((trackId) => {
+                delete state.tracks[trackId];
+              });
+            }
           });
         },
         (error) => {

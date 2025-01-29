@@ -124,9 +124,9 @@ export const useGameStore = createWithEqualityFn<
 
       const gamePlayerUnsubscribe = GameService.listenToGamePlayers(
         gameId,
-        (gamePlayers, removedGamePlayerIds) => {
+        (gamePlayers, removedGamePlayerIds, replaceState) => {
           set((state) => {
-            if (!state.gamePlayers) {
+            if (replaceState) {
               state.gamePlayers = gamePlayers;
             } else {
               state.gamePlayers = {

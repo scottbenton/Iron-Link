@@ -91,17 +91,21 @@ export const useGameCharactersStore = createWithEqualityFn<
     listenToGameCharacters: (gameId: string) => {
       const unsubscribe = CharacterService.listenToGameCharacters(
         gameId,
-        (changedCharacters, removedCharacterIds) => {
+        (changedCharacters, removedCharacterIds, replaceState) => {
           set((store) => {
             store.loading = false;
             store.error = undefined;
 
-            Object.entries(changedCharacters).forEach(([id, character]) => {
-              store.characters[id] = character;
-            });
-            removedCharacterIds.forEach((id) => {
-              delete store.characters[id];
-            });
+            if (replaceState) {
+              store.characters = changedCharacters;
+            } else {
+              Object.entries(changedCharacters).forEach(([id, character]) => {
+                store.characters[id] = character;
+              });
+              removedCharacterIds.forEach((id) => {
+                delete store.characters[id];
+              });
+            }
           });
         },
         (error) => {

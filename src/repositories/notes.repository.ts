@@ -1,3 +1,5 @@
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+
 import {
   Tables,
   TablesInsert,
@@ -8,6 +10,7 @@ import { GamePermission } from "stores/game.store";
 
 import { SUPABASE_URL, supabase } from "lib/supabase.lib";
 
+import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
   ErrorVerb,
@@ -29,12 +32,14 @@ export class NotesRepository {
     onNoteChanges: (
       changedNotes: Record<string, NoteDTO>,
       removedNoteIds: string[],
+      replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
-    const query = this.notes()
-      .select(
-        `
+    const startInitialLoad = () => {
+      const query = this.notes()
+        .select(
+          `
         id,
         author_id,
         parent_folder_id,
@@ -45,117 +50,115 @@ export class NotesRepository {
         order,
         game_id
         `,
-      )
-      .eq("game_id", gameId);
+        )
+        .eq("game_id", gameId);
 
-    if (permissions === GamePermission.Viewer) {
-      query.eq("read_permissions", "public");
-    } else if (permissions === GamePermission.Player) {
-      query.or(
-        `read_permissions.eq."public",read_permissions.eq."all_players",and(read_permissions.eq."only_author",author_id.eq."${uid}"),and(read_permissions.eq."guides_and_author",author_id.eq."${uid}")`,
-      );
-    } else if (permissions === GamePermission.Guide) {
-      query.or(
-        `read_permissions.eq."public",read_permissions.eq."all_players",read_permissions.eq."only_guides",and(read_permissions.eq."only_author",author_id.eq."${uid}"),read_permissions.eq."guides_and_author"`,
-      );
-    }
+      if (permissions === GamePermission.Viewer) {
+        query.eq("read_permissions", "public");
+      } else if (permissions === GamePermission.Player) {
+        query.or(
+          `read_permissions.eq."public",read_permissions.eq."all_players",and(read_permissions.eq."only_author",author_id.eq."${uid}"),and(read_permissions.eq."guides_and_author",author_id.eq."${uid}")`,
+        );
+      } else if (permissions === GamePermission.Guide) {
+        query.or(
+          `read_permissions.eq."public",read_permissions.eq."all_players",read_permissions.eq."only_guides",and(read_permissions.eq."only_author",author_id.eq."${uid}"),read_permissions.eq."guides_and_author"`,
+        );
+      }
 
-    query.then((response) => {
-      if (response.error) {
-        console.error(response.error);
+      query.then((response) => {
+        if (response.error) {
+          console.error(response.error);
+          onError(
+            getRepositoryError(
+              response.error,
+              ErrorVerb.Read,
+              ErrorNoun.Note,
+              true,
+              response.status,
+            ),
+          );
+        } else {
+          onNoteChanges(
+            Object.fromEntries(
+              response.data.map((note) => [
+                note.id,
+                note as unknown as NoteDTO,
+              ]) ?? [],
+            ),
+            [],
+            true,
+          );
+        }
+      });
+    };
+    const handlePayload = (
+      payload: RealtimePostgresChangesPayload<NoteDTO>,
+    ) => {
+      if (payload.errors) {
         onError(
           getRepositoryError(
-            response.error,
+            payload.errors,
             ErrorVerb.Read,
             ErrorNoun.Note,
             true,
-            response.status,
           ),
         );
       } else {
-        onNoteChanges(
-          Object.fromEntries(
-            response.data.map((note) => [
-              note.id,
-              note as unknown as NoteDTO,
-            ]) ?? [],
-          ),
-          [],
-        );
-      }
-    });
-
-    const subscription = supabase
-      .channel(`notes:game_id=${gameId}`)
-      .on<NoteDTO>(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "notes",
-          filter: `game_id=eq.${gameId}`,
-        },
-        (payload) => {
-          if (payload.errors) {
-            onError(
-              getRepositoryError(
-                payload.errors,
-                ErrorVerb.Read,
-                ErrorNoun.Note,
-                true,
-              ),
+        if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+          if (
+            permissions === GamePermission.Viewer &&
+            payload.new.read_permissions === "public"
+          ) {
+            onNoteChanges(
+              {
+                [payload.new.id]: payload.new,
+              },
+              [],
+              false,
             );
-          } else {
-            if (
-              payload.eventType === "INSERT" ||
-              payload.eventType === "UPDATE"
-            ) {
-              if (
-                permissions === GamePermission.Viewer &&
-                payload.new.read_permissions === "public"
-              ) {
-                onNoteChanges(
-                  {
-                    [payload.new.id]: payload.new,
-                  },
-                  [],
-                );
-              } else if (
-                permissions === GamePermission.Player &&
-                (payload.new.read_permissions === "public" ||
-                  payload.new.read_permissions === "all_players" ||
-                  (payload.new.read_permissions === "only_author" &&
-                    payload.new.author_id === uid) ||
-                  (payload.new.read_permissions === "guides_and_author" &&
-                    payload.new.author_id === uid))
-              ) {
-                onNoteChanges(
-                  {
-                    [payload.new.id]: payload.new,
-                  },
-                  [],
-                );
-              } else if (
-                permissions === GamePermission.Guide &&
-                (payload.new.read_permissions === "public" ||
-                  payload.new.read_permissions === "all_players" ||
-                  payload.new.read_permissions === "only_guides" ||
-                  (payload.new.read_permissions === "only_author" &&
-                    payload.new.author_id === uid) ||
-                  payload.new.read_permissions === "guides_and_author")
-              ) {
-                onNoteChanges({ [payload.new.id]: payload.new }, []);
-              }
-            } else if (payload.eventType === "DELETE" && payload.old.id) {
-              onNoteChanges({}, [payload.old.id]);
-            }
+          } else if (
+            permissions === GamePermission.Player &&
+            (payload.new.read_permissions === "public" ||
+              payload.new.read_permissions === "all_players" ||
+              (payload.new.read_permissions === "only_author" &&
+                payload.new.author_id === uid) ||
+              (payload.new.read_permissions === "guides_and_author" &&
+                payload.new.author_id === uid))
+          ) {
+            onNoteChanges(
+              {
+                [payload.new.id]: payload.new,
+              },
+              [],
+              false,
+            );
+          } else if (
+            permissions === GamePermission.Guide &&
+            (payload.new.read_permissions === "public" ||
+              payload.new.read_permissions === "all_players" ||
+              payload.new.read_permissions === "only_guides" ||
+              (payload.new.read_permissions === "only_author" &&
+                payload.new.author_id === uid) ||
+              payload.new.read_permissions === "guides_and_author")
+          ) {
+            onNoteChanges({ [payload.new.id]: payload.new }, [], false);
           }
-        },
-      )
-      .subscribe();
+        } else if (payload.eventType === "DELETE" && payload.old.id) {
+          onNoteChanges({}, [payload.old.id], false);
+        }
+      }
+    };
+
+    const unsubscribe = createSubscription(
+      `notes:game_id=${gameId}`,
+      "notes",
+      `game_id=eq.${gameId}`,
+      startInitialLoad,
+      handlePayload,
+    );
 
     return () => {
-      supabase.removeChannel(subscription);
+      unsubscribe();
     };
   }
 
@@ -164,58 +167,57 @@ export class NotesRepository {
     onNoteContentChange: (note: NoteDTO) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
-    this.notes()
-      .select()
-      .eq("id", noteId)
-      .then(({ data, error, status }) => {
-        if (error) {
-          console.error(error);
-          onError(
-            getRepositoryError(
-              error,
-              ErrorVerb.Read,
-              ErrorNoun.Note,
-              false,
-              status,
-            ),
-          );
-        } else {
-          onNoteContentChange(data[0]);
-        }
-      });
-
-    const subscription = supabase
-      .channel(`notes:id=${noteId}`)
-      .on<NoteDTO>(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "notes",
-          filter: `id=eq.${noteId}`,
-        },
-        (payload) => {
-          if (payload.errors) {
+    const startInitialLoad = () => {
+      this.notes()
+        .select()
+        .eq("id", noteId)
+        .then(({ data, error, status }) => {
+          if (error) {
+            console.error(error);
             onError(
               getRepositoryError(
-                payload.errors,
+                error,
                 ErrorVerb.Read,
                 ErrorNoun.Note,
                 false,
+                status,
               ),
             );
-          } else if (
-            payload.eventType === "INSERT" ||
-            payload.eventType === "UPDATE"
-          ) {
-            onNoteContentChange(payload.new);
+          } else {
+            onNoteContentChange(data[0]);
           }
-        },
-      )
-      .subscribe();
+        });
+    };
+    const handlePayload = (
+      payload: RealtimePostgresChangesPayload<NoteDTO>,
+    ) => {
+      if (payload.errors) {
+        onError(
+          getRepositoryError(
+            payload.errors,
+            ErrorVerb.Read,
+            ErrorNoun.Note,
+            false,
+          ),
+        );
+      } else if (
+        payload.eventType === "INSERT" ||
+        payload.eventType === "UPDATE"
+      ) {
+        onNoteContentChange(payload.new);
+      }
+    };
+
+    const unsubscribe = createSubscription(
+      `notes:id=eq.${noteId},uid=eq.${noteId}`,
+      "notes",
+      `id=eq.${noteId}`,
+      startInitialLoad,
+      handlePayload,
+    );
 
     return () => {
-      supabase.removeChannel(subscription);
+      unsubscribe();
     };
   }
 

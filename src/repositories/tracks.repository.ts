@@ -1,3 +1,5 @@
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+
 import {
   Tables,
   TablesInsert,
@@ -6,6 +8,7 @@ import {
 
 import { supabase } from "lib/supabase.lib";
 
+import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
   ErrorVerb,
@@ -25,69 +28,66 @@ export class TracksRepository {
     onTrackChanges: (
       changedTracks: Record<string, TrackDTO>,
       deletedTrackIds: string[],
+      replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
-    this.tracks()
-      .select()
-      .eq("game_id", gameId)
-      .then((result) => {
-        if (result.error) {
-          console.error(result.error);
-          onError(
-            getRepositoryError(
-              result.error,
-              ErrorVerb.Read,
-              ErrorNoun.Tracks,
-              true,
-              result.status,
-            ),
-          );
-        } else {
-          const tracks: Record<string, TrackDTO> = {};
-          result.data?.forEach((track) => {
-            tracks[track.id] = track;
-          });
-          onTrackChanges(tracks, []);
-        }
-      });
-
-    const subscription = supabase
-      .channel(`game_tracks:game_id=eq.${gameId}`)
-      .on<TrackDTO>(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "game_tracks",
-          filter: `game_id=eq.${gameId}`,
-        },
-        (payload) => {
-          if (payload.errors) {
-            console.error(payload.errors);
+    const startInitialLoad = () => {
+      this.tracks()
+        .select()
+        .eq("game_id", gameId)
+        .then((result) => {
+          if (result.error) {
+            console.error(result.error);
             onError(
               getRepositoryError(
-                payload.errors,
+                result.error,
                 ErrorVerb.Read,
                 ErrorNoun.Tracks,
                 true,
+                result.status,
               ),
             );
+          } else {
+            const tracks: Record<string, TrackDTO> = {};
+            result.data?.forEach((track) => {
+              tracks[track.id] = track;
+            });
+            onTrackChanges(tracks, [], true);
           }
-          if (
-            payload.eventType === "INSERT" ||
-            payload.eventType === "UPDATE"
-          ) {
-            onTrackChanges({ [payload.new.id]: payload.new }, []);
-          } else if (payload.eventType === "DELETE" && payload.old.id) {
-            onTrackChanges({}, [payload.old.id]);
-          }
-        },
-      )
-      .subscribe();
+        });
+    };
 
+    const handlePayload = (
+      payload: RealtimePostgresChangesPayload<TrackDTO>,
+    ) => {
+      if (payload.errors) {
+        console.error(payload.errors);
+        onError(
+          getRepositoryError(
+            payload.errors,
+            ErrorVerb.Read,
+            ErrorNoun.Tracks,
+            true,
+          ),
+        );
+      }
+      if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+        onTrackChanges({ [payload.new.id]: payload.new }, [], false);
+      } else if (payload.eventType === "DELETE" && payload.old.id) {
+        onTrackChanges({}, [payload.old.id], false);
+      }
+    };
+
+    const unsubscribe = createSubscription(
+      `tracks:game_id=${gameId}`,
+      "game_tracks",
+      `game_id=eq.${gameId}`,
+      startInitialLoad,
+      handlePayload,
+    );
     return () => {
-      supabase.removeChannel(subscription);
+      unsubscribe();
     };
   }
 

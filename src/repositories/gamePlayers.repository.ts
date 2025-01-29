@@ -1,7 +1,10 @@
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+
 import { Tables } from "types/supabase-generated.type";
 
 import { supabase } from "lib/supabase.lib";
 
+import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
   ErrorVerb,
@@ -19,70 +22,68 @@ export class GamePlayersRepository {
     onGamePlayers: (
       changedPlayers: Record<string, GamePlayerDTO>,
       removedGamePlayerIds: string[],
+      replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
-    this.gamePlayers()
-      .select()
-      .eq("game_id", gameId)
-      .then((response) => {
-        if (response.error) {
-          console.error(response.error);
-          onError(
-            getRepositoryError(
-              response.error,
-              ErrorVerb.Read,
-              ErrorNoun.GamePlayers,
-              true,
-              response.status,
-            ),
-          );
-        } else {
-          onGamePlayers(
-            Object.fromEntries(
-              response.data.map((player) => [player.user_id, player]),
-            ),
-            [],
-          );
-        }
-      });
-
-    const subscription = supabase
-      .channel(`game_players:game_id=eq.${gameId}`)
-      .on<GamePlayerDTO>(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "game_players",
-          filter: `game_id=eq.${gameId}`,
-        },
-        (payload) => {
-          if (payload.errors) {
-            console.error(payload.errors);
+    const startInitialLoad = () => {
+      this.gamePlayers()
+        .select()
+        .eq("game_id", gameId)
+        .then((response) => {
+          if (response.error) {
+            console.error(response.error);
             onError(
               getRepositoryError(
-                payload.errors,
+                response.error,
                 ErrorVerb.Read,
                 ErrorNoun.GamePlayers,
                 true,
+                response.status,
               ),
             );
+          } else {
+            onGamePlayers(
+              Object.fromEntries(
+                response.data.map((player) => [player.user_id, player]),
+              ),
+              [],
+              true,
+            );
           }
-          if (
-            payload.eventType === "INSERT" ||
-            payload.eventType === "UPDATE"
-          ) {
-            onGamePlayers({ [payload.new.user_id]: payload.new }, []);
-          } else if (payload.eventType === "DELETE" && payload.old.user_id) {
-            onGamePlayers({}, [payload.old.user_id]);
-          }
-        },
-      )
-      .subscribe();
+        });
+    };
+    const handlePayload = (
+      payload: RealtimePostgresChangesPayload<GamePlayerDTO>,
+    ) => {
+      if (payload.errors) {
+        console.error(payload.errors);
+        onError(
+          getRepositoryError(
+            payload.errors,
+            ErrorVerb.Read,
+            ErrorNoun.GamePlayers,
+            true,
+          ),
+        );
+      }
+      if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+        onGamePlayers({ [payload.new.user_id]: payload.new }, [], false);
+      } else if (payload.eventType === "DELETE" && payload.old.user_id) {
+        onGamePlayers({}, [payload.old.user_id], false);
+      }
+    };
+
+    const unsubscribe = createSubscription(
+      `game_players:game_id=eq.${gameId}`,
+      "game_players",
+      `game_id=eq.${gameId}`,
+      startInitialLoad,
+      handlePayload,
+    );
 
     return () => {
-      supabase.removeChannel(subscription);
+      unsubscribe();
     };
   }
 

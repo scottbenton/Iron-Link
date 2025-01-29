@@ -1,3 +1,5 @@
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+
 import {
   Tables,
   TablesInsert,
@@ -6,6 +8,7 @@ import {
 
 import { supabase } from "lib/supabase.lib";
 
+import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
   ErrorVerb,
@@ -90,81 +93,76 @@ export class CharacterRepository {
     onUpdate: (
       changedCharacters: Record<string, CharacterDTO>,
       removedCharacterIds: string[],
+      replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
-    // Fetch initial state
-    this.characters()
-      .select()
-      .eq("game_id", gameId)
-      .then((result) => {
-        if (result.error) {
-          console.error(result.error);
-          onError(
-            getRepositoryError(
-              result.error,
-              ErrorVerb.Read,
-              ErrorNoun.Character,
-              true,
-              result.status,
-            ),
-          );
-        } else {
-          const characters: Record<string, CharacterDTO> = {};
-          result.data.forEach((character) => {
-            characters[character.id] = character;
-          });
-          onUpdate(characters, []);
-        }
-      });
-
-    // Listen for changes
-    const subscription = supabase
-      .channel(`characters:game_id=eq.${gameId}`)
-      .on<CharacterDTO>(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "characters",
-          filter: `game_id=eq.${gameId}`,
-        },
-        (payload) => {
-          if (payload.errors) {
-            console.error(payload.errors);
+    const startInitialLoad = () => {
+      this.characters()
+        .select()
+        .eq("game_id", gameId)
+        .then((result) => {
+          if (result.error) {
+            console.error(result.error);
             onError(
               getRepositoryError(
-                payload.errors,
+                result.error,
                 ErrorVerb.Read,
                 ErrorNoun.Character,
                 true,
+                result.status,
               ),
             );
-          }
-          if (
-            payload.eventType === "INSERT" ||
-            payload.eventType === "UPDATE"
-          ) {
-            onUpdate({ [payload.new.id]: payload.new }, []);
-          } else if (payload.eventType === "DELETE" && payload.old.id) {
-            onUpdate({}, [payload.old.id]);
           } else {
-            console.error("Unknown event type", payload.eventType);
-            onError(
-              getRepositoryError(
-                "Unknown event type",
-                ErrorVerb.Read,
-                ErrorNoun.Character,
-                true,
-              ),
-            );
+            const characters: Record<string, CharacterDTO> = {};
+            result.data.forEach((character) => {
+              characters[character.id] = character;
+            });
+            onUpdate(characters, [], true);
           }
-        },
-      )
-      .subscribe();
+        });
+    };
+    const handlePayload = (
+      payload: RealtimePostgresChangesPayload<CharacterDTO>,
+    ) => {
+      if (payload.errors) {
+        console.error(payload.errors);
+        onError(
+          getRepositoryError(
+            payload.errors,
+            ErrorVerb.Read,
+            ErrorNoun.Character,
+            true,
+          ),
+        );
+      }
+      if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+        onUpdate({ [payload.new.id]: payload.new }, [], false);
+      } else if (payload.eventType === "DELETE" && payload.old.id) {
+        onUpdate({}, [payload.old.id], false);
+      } else {
+        console.error("Unknown event type", payload.eventType);
+        onError(
+          getRepositoryError(
+            "Unknown event type",
+            ErrorVerb.Read,
+            ErrorNoun.Character,
+            true,
+          ),
+        );
+      }
+    };
+
+    const unsubscribe = createSubscription(
+      `characters:game_id=eq.${gameId}`,
+      "characters",
+      `game_id=eq.${gameId}`,
+      startInitialLoad,
+      handlePayload,
+    );
 
     return () => {
-      supabase.removeChannel(subscription);
+      unsubscribe();
     };
   }
 
