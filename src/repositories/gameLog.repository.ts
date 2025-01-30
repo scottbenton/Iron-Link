@@ -153,31 +153,33 @@ export interface ClockProgressionRollJSONData {
 export class GameLogRepository {
   private static gameLogs = () => supabase.from("game_logs");
 
-  public static getLastNLogsInGame(
+  public static listenToGameLogs(
     gameId: string,
     isGuide: boolean,
-    n: number,
-    beforeTime?: Date,
-  ): Promise<GameLogDTO[]> {
-    return new Promise((resolve, reject) => {
+    nLogs: number,
+    onLogs: (
+      addedLogs: Record<string, GameLogDTO>,
+      updatedLogs: Record<string, GameLogDTO>,
+      deletedLogIds: string[],
+      replaceState: boolean,
+    ) => void,
+    onError: (error: RepositoryError) => void,
+  ): () => void {
+    const startInitialLoad = () => {
       let query = this.gameLogs()
         .select()
         .eq("game_id", gameId)
         .order("created_at", { ascending: false })
-        .limit(n);
+        .limit(nLogs);
 
       if (!isGuide) {
         query = query.eq("guides_only", false);
       }
 
-      if (beforeTime) {
-        query = query.lt("created_at", beforeTime);
-      }
-
       query.then((result) => {
         if (result.error) {
           console.error(result.error);
-          reject(
+          onError(
             getRepositoryError(
               result.error,
               ErrorVerb.Read,
@@ -187,29 +189,13 @@ export class GameLogRepository {
             ),
           );
         } else {
-          resolve(result.data as unknown as GameLogDTO[]);
+          const logs = Object.fromEntries(
+            result.data.map((log) => [log.id, log as unknown as GameLogDTO]),
+          );
+          onLogs(logs, {}, [], true);
         }
       });
-    });
-  }
-
-  public static listenToGameLogs(
-    gameId: string,
-    isGuide: boolean,
-
-    onLogs: (
-      addedLogs: Record<string, GameLogDTO>,
-      updatedLogs: Record<string, GameLogDTO>,
-      deletedLogIds: string[],
-      replaceState: boolean,
-    ) => void,
-    onError: (error: RepositoryError) => void,
-  ): () => void {
-    /**
-     * TODO This should be filled in instead of calling the above getLastNLogsInGame
-     * That way we can get the initial state and then listen for changes, even after tab inactivity
-     */
-    const startInitialLoad = () => {};
+    };
 
     const handlePayload = (
       payload: RealtimePostgresChangesPayload<GameLogDTO>,

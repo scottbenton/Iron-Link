@@ -72,7 +72,12 @@ export function SidebarLayout(props: SidebarLayoutProps) {
               : `1px solid ${theme.palette.divider}`,
           })}
         >
-          <Box overflow="auto" height={"100%"}>
+          <Box
+            overflow="hidden"
+            height={"100%"}
+            display="flex"
+            flexDirection={"column"}
+          >
             <ReferenceSidebarContents />
           </Box>
         </SidebarTabPanel>
