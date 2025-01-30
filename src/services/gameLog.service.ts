@@ -75,24 +75,10 @@ export type IGameLog =
   | IClockProgressionRoll;
 
 export class GameLogService {
-  public static async getNGameLogs(
-    gameId: string,
-    isGuide: boolean,
-    n: number,
-    beforeTime?: Date,
-  ): Promise<IGameLog[]> {
-    const logs = await GameLogRepository.getLastNLogsInGame(
-      gameId,
-      isGuide,
-      n,
-      beforeTime,
-    );
-    return logs.map((log) => this.convertGameLogDTOToGameLog(log));
-  }
-
   public static listenToGameLogs(
     gameId: string,
     isGuide: boolean,
+    nLogs: number,
     onLogs: (
       newLogs: Record<string, IGameLog>,
       changedLogs: Record<string, IGameLog>,
@@ -104,6 +90,7 @@ export class GameLogService {
     return GameLogRepository.listenToGameLogs(
       gameId,
       isGuide,
+      nLogs,
       (newLogs, changedLogs, deletedLogIds, replaceState) => {
         onLogs(
           this.convertGameLogDTOMapToGameLogMap(newLogs),
