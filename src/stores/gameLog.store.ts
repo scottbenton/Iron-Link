@@ -17,14 +17,17 @@ interface GameLogStoreState {
   logs: Record<string, IGameLog>;
   loading: boolean;
   error?: string;
-  loadLogsBefore: Date | null;
+  totalLogsToLoad: number;
   hasHitEndOfList: boolean;
 }
 
 interface GameLogStoreActions {
-  listenToGameLogs: (gameId: string, isGuide: boolean) => () => void;
-  loadMoreLogsIfPresent: (gameId: string, isGuide: boolean) => void;
-
+  listenToGameLogs: (
+    gameId: string,
+    isGuide: boolean,
+    nLogs: number,
+  ) => () => void;
+  loadMoreLogsIfPresent: () => void;
   createLog: (logId: string, log: IGameLog) => Promise<string>;
   setGameLog: (logId: string, log: IGameLog) => Promise<string>;
   burnMomentumOnLog: (
@@ -38,8 +41,8 @@ interface GameLogStoreActions {
 
 const defaultGameLogStoreState: GameLogStoreState = {
   logs: {},
+  totalLogsToLoad: INITIAL_LOGS_TO_LOAD,
   loading: true,
-  loadLogsBefore: null,
   hasHitEndOfList: false,
 };
 
@@ -49,32 +52,11 @@ export const useGameLogStore = createWithEqualityFn<
   immer((set, getState) => ({
     ...defaultGameLogStoreState,
 
-    listenToGameLogs: (gameId, isGuide) => {
-      GameLogService.getNGameLogs(gameId, isGuide, INITIAL_LOGS_TO_LOAD)
-        .then((logs) => {
-          set((state) => {
-            state.loading = false;
-            state.error = undefined;
-            state.logs = logs.reduce(
-              (acc, log) => {
-                acc[log.id] = log;
-                return acc;
-              },
-              {} as Record<string, IGameLog>,
-            );
-            state.loadLogsBefore = logs[logs.length - 1]?.timestamp || null;
-          });
-        })
-        .catch(() => {
-          set((state) => {
-            state.loading = false;
-            state.error = "Failed to load logs";
-          });
-        });
-
+    listenToGameLogs: (gameId, isGuide, nLogs) => {
       return GameLogService.listenToGameLogs(
         gameId,
         isGuide,
+        nLogs,
         (addedLogs, changedLogs, deletedLogIds, replaceState) => {
           set((state) => {
             state.loading = false;
@@ -85,9 +67,12 @@ export const useGameLogStore = createWithEqualityFn<
               Object.entries(addedLogs).forEach(([id, log]) => {
                 useAppState.getState().updateRollIfPresent(id, log);
               });
+
+              state.hasHitEndOfList = Object.keys(addedLogs).length < nLogs;
             } else {
               Object.entries(addedLogs).forEach(([id, log]) => {
                 state.logs[id] = log;
+                state.totalLogsToLoad += 1;
                 useAppState.getState().updateRollIfPresent(id, log);
               });
               Object.entries(changedLogs).forEach(([id, log]) => {
@@ -98,7 +83,10 @@ export const useGameLogStore = createWithEqualityFn<
                 useAppState.getState().updateRollIfPresent(id, log);
               });
               deletedLogIds.forEach((id) => {
-                delete state.logs[id];
+                if (state.logs[id]) {
+                  state.totalLogsToLoad -= 1;
+                  delete state.logs[id];
+                }
               });
             }
           });
@@ -112,48 +100,17 @@ export const useGameLogStore = createWithEqualityFn<
       );
     },
 
-    loadMoreLogsIfPresent: (gameId, isGuide) => {
+    loadMoreLogsIfPresent: () => {
       const state = getState();
 
       const areLogsLoading = state.loading;
       const hasHitEndOfList = state.hasHitEndOfList;
-      const loadLogsBefore = state.loadLogsBefore;
 
-      if (!hasHitEndOfList && !areLogsLoading && loadLogsBefore) {
+      if (!hasHitEndOfList && !areLogsLoading) {
         set((store) => {
           store.loading = true;
+          store.totalLogsToLoad += LOAD_MORE_AMOUNT;
         });
-
-        GameLogService.getNGameLogs(
-          gameId,
-          isGuide,
-          LOAD_MORE_AMOUNT,
-          loadLogsBefore,
-        )
-          .then((logs) => {
-            set((store) => {
-              store.loading = false;
-              store.error = undefined;
-              store.logs = {
-                ...store.logs,
-                ...logs.reduce(
-                  (acc, log) => {
-                    acc[log.id] = log;
-                    return acc;
-                  },
-                  {} as Record<string, IGameLog>,
-                ),
-              };
-              store.loadLogsBefore = logs[logs.length - 1]?.timestamp || null;
-              store.hasHitEndOfList = logs.length < LOAD_MORE_AMOUNT;
-            });
-          })
-          .catch(() => {
-            set((store) => {
-              store.loading = false;
-              store.error = "Failed to load more logs";
-            });
-          });
       }
     },
     createLog: (logId, log) => {
@@ -191,12 +148,13 @@ export function useListenToGameLogs(gameId: string | undefined) {
   const isGuide = useGameStore(
     (state) => state.gamePermissions === GamePermission.Guide,
   );
+  const totalLogsToLoad = useGameLogStore((state) => state.totalLogsToLoad);
 
   useEffect(() => {
     if (gameId && !isGameLoading) {
-      return listenToLogs(gameId, isGuide);
+      return listenToLogs(gameId, isGuide, totalLogsToLoad);
     }
-  }, [listenToLogs, isGameLoading, isGuide, gameId]);
+  }, [listenToLogs, isGameLoading, isGuide, gameId, totalLogsToLoad]);
 
   useEffect(() => {
     return () => {

@@ -35,6 +35,7 @@ function tabPanelProps(tab: Tabs, value: Tabs, reversed?: boolean) {
       display: tab !== value ? "none" : "flex",
       flexDirection: reversed ? "column-reverse" : "column",
       overflow: "auto",
+      maxHeight: "100%",
       flexGrow: 1,
     },
   };
@@ -76,15 +77,20 @@ export function ReferenceSidebarContents() {
           {...tabProps(Tabs.GameLog)}
         />
       </StyledTabs>
+      {/* <Box flexGrow={1}> */}
       <Box {...tabPanelProps(Tabs.Moves, currentTab)}>
         <MoveTree />
       </Box>
       <Box {...tabPanelProps(Tabs.Oracles, currentTab)}>
         <OracleTree />
       </Box>
-      <Box {...tabPanelProps(Tabs.GameLog, currentTab, true)}>
+      <Box
+        {...tabPanelProps(Tabs.GameLog, currentTab, true)}
+        style={{ overflowAnchor: "none" }}
+      >
         <GameLog />
       </Box>
+      {/* </Box> */}
     </>
   );
 }

@@ -4,10 +4,6 @@ import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
 
-import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
-import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
-
-import { GamePermission } from "stores/game.store";
 import { useGameLogStore } from "stores/gameLog.store";
 
 import { GameLogEntry } from "./GameLogEntry";
@@ -17,15 +13,13 @@ export function GameLog() {
   const error = useGameLogStore((state) => state.error);
   const logs = useGameLogStore((state) => state.logs);
 
-  const gameId = useGameId();
-  const isGuide = useGamePermissions().gamePermission === GamePermission.Guide;
   const loadMoreLogs = useGameLogStore((state) => state.loadMoreLogsIfPresent);
 
   const { t } = useTranslation();
 
   const orderedLogs = useMemo(() => {
     return Object.entries(logs).sort(
-      ([, l1], [, l2]) => l1.timestamp.getTime() - l2.timestamp.getTime(),
+      ([, l1], [, l2]) => l2.timestamp.getTime() - l1.timestamp.getTime(),
     );
   }, [logs]);
 
@@ -39,7 +33,7 @@ export function GameLog() {
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              loadMoreLogs(gameId, isGuide);
+              loadMoreLogs();
             }
           });
         },
@@ -52,21 +46,22 @@ export function GameLog() {
         observer.disconnect();
       };
     }
-  }, [loadMoreLogs, gameId, isGuide]);
+  }, [loadMoreLogs]);
 
   return (
-    <Box flexGrow={1}>
-      {loading && <LinearProgress />}
+    <>
+      <Box flexShrink={0} height={"1px"} style={{ overflowAnchor: "auto" }} />
+      {orderedLogs.map(([logId, log]) => (
+        <GameLogEntry key={logId} logId={logId} log={log} />
+      ))}
       <div id={"load-more-logs"} />
+      {loading && <LinearProgress sx={{ flexShrink: 0 }} />}
       {error && !orderedLogs.length && (
         <EmptyState message={t("game.log.load-error", "Error loading logs")} />
       )}
       {orderedLogs.length === 0 && !loading && !error && (
         <EmptyState message={t("game.log.no-logs", "No logs yet")} />
       )}
-      {orderedLogs.map(([logId, log]) => (
-        <GameLogEntry key={logId} logId={logId} log={log} />
-      ))}
-    </Box>
+    </>
   );
 }
