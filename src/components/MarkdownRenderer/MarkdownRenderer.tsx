@@ -18,6 +18,8 @@ import { idMap } from "data/idMap";
 
 import { OracleTableRenderer } from "./OracleTableRenderer";
 
+const ignoredDataswornLinkTypes = ["atlas_entry"];
+
 export interface MarkdownRendererProps {
   inlineParagraph?: boolean;
   markdown: string;
@@ -208,7 +210,10 @@ export function MarkdownRenderer(props: MarkdownRendererProps) {
               // Empty - if item is undefined we will continue parsing
             }
 
-            if (item) {
+            if (
+              item &&
+              !ignoredDataswornLinkTypes.some((type) => href.includes(type))
+            ) {
               return (
                 <Link
                   component={"button"}

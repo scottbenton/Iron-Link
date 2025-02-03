@@ -24,7 +24,6 @@ export function TrackProgressRollSnackbar(
   const { t } = useTranslation();
 
   const move = useMove(roll.moveId ?? "");
-
   const resultLabel = getRollResultLabel(roll.result);
   return (
     <>

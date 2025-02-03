@@ -79,8 +79,9 @@ export function PortraitAvatarDisplay(props: PortraitAvatarDisplayProps) {
       overflow={"hidden"}
       sx={[
         (theme) => ({
-          backgroundColor: theme.palette.divider,
-          color: theme.palette.grey[700],
+          backgroundColor:
+            theme.palette.mode === "light" ? "grey.300" : "grey.700",
+          color: "text.primary",
           display: portraitUrl ? "block" : "flex",
           alignItems: "center",
           justifyContent: "center",
