@@ -34,37 +34,41 @@ export function createErrorSnackbar(message: string) {
   });
 }
 
+export function parseRepositoryErrorAndGetText(error: RepositoryError) {
+  const reason = getTranslatedReason(error.reason);
+  const noun = getTranslatedNoun(error.noun, error.plural);
+  const verb = getTranslatedVerb(error.verb);
+  let errorMessage: string;
+
+  if (reason) {
+    errorMessage = i18n.t(
+      "errors.parsed-error-message-with-reason",
+      "{{reason}}: Failed to {{verb}} {{noun}}",
+      {
+        reason,
+        verb,
+        noun,
+      },
+    );
+  } else {
+    errorMessage = i18n.t(
+      "errors.parsed-error-message",
+      "Failed to {{verb}} {{noun}}",
+      {
+        verb,
+        noun,
+      },
+    );
+  }
+  return errorMessage;
+}
+
 export function parseRepositoryErrorAndCreateSnackbar(error: unknown) {
   if (error instanceof Error) {
     AnalyticsService.logError(error);
   }
   if (error instanceof RepositoryError) {
-    const reason = getTranslatedReason(error.reason);
-    const noun = getTranslatedNoun(error.noun, error.plural);
-    const verb = getTranslatedVerb(error.verb);
-    let errorMessage: string;
-
-    if (reason) {
-      errorMessage = i18n.t(
-        "errors.parsed-error-message-with-reason",
-        "{{reason}}: Failed to {{verb}} {{noun}}",
-        {
-          reason,
-          verb,
-          noun,
-        },
-      );
-    } else {
-      errorMessage = i18n.t(
-        "errors.parsed-error-message",
-        "Failed to {{verb}} {{noun}}",
-        {
-          verb,
-          noun,
-        },
-      );
-    }
-    createErrorSnackbar(errorMessage);
+    createErrorSnackbar(parseRepositoryErrorAndGetText(error));
   } else {
     createErrorSnackbar(i18n.t("errors.generic", "An error occurred"));
   }

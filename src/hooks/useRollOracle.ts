@@ -72,6 +72,8 @@ export function rollOracle(
   let rolls: number | number[] | undefined = undefined;
   let matched = false;
 
+  let categoryName: string | undefined = undefined;
+
   if (oracle.oracle_type === "table_shared_rolls") {
     const tmpRolls: number[] = [];
     resultString = Object.values(oracle.contents ?? {})
@@ -88,6 +90,14 @@ export function rollOracle(
       .join("\n");
     rolls = tmpRolls;
   } else {
+    const oracleCollectionId = oracle._id
+      .replace("oracle_rollable", "oracle_collection")
+      .split("/")
+      .slice(0, -1)
+      .join("/");
+    const oracleCollection = getOracleCollection(oracleCollectionId, tree);
+    categoryName = oracleCollection?.name;
+
     const rollResult = rollOracleColumn(oracle);
 
     // We need to roll other tables
@@ -129,6 +139,7 @@ export function rollOracle(
       id: createId(),
       gameId: gameId,
       type: RollType.OracleTable,
+      oracleCategoryName: categoryName,
       rollLabel: oracle.name,
       timestamp: new Date(),
       characterId,

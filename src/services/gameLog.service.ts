@@ -75,6 +75,12 @@ export type IGameLog =
   | IClockProgressionRoll;
 
 export class GameLogService {
+  public static getGameLogFromID(logId: string): Promise<IGameLog> {
+    return GameLogRepository.getGameLogFromID(logId).then((dto) =>
+      this.convertGameLogDTOToGameLog(dto),
+    );
+  }
+
   public static listenToGameLogs(
     gameId: string,
     isGuide: boolean,
@@ -162,7 +168,7 @@ export class GameLogService {
           oracleCategoryName: dto.log_data.oracle_category_name ?? undefined,
           oracleId: dto.log_data.oracle_id,
           match: dto.log_data.match,
-          rollLabel: "Oracle Roll",
+          rollLabel: dto.log_data.label,
           timestamp: new Date(dto.created_at),
           characterId: dto.character_id,
           uid: dto.user_id,
@@ -179,7 +185,7 @@ export class GameLogService {
           result: dto.log_data.result,
           trackType: dto.log_data.track_type,
           moveId: dto.log_data.move_id,
-          rollLabel: "Track Progress Roll",
+          rollLabel: dto.log_data.label,
           timestamp: new Date(dto.created_at),
           characterId: dto.character_id,
           uid: dto.user_id,
@@ -196,7 +202,7 @@ export class GameLogService {
           result: dto.log_data.result,
           specialTrackKey: dto.log_data.special_track_key,
           moveId: dto.log_data.move_id,
-          rollLabel: "Special Track Roll",
+          rollLabel: dto.log_data.label,
           timestamp: new Date(dto.created_at),
           characterId: dto.character_id,
           uid: dto.user_id,
@@ -212,7 +218,7 @@ export class GameLogService {
           result: dto.log_data.result,
           oracleId: dto.log_data.oracle_id,
           match: dto.log_data.match,
-          rollLabel: "Clock Progression Roll",
+          rollLabel: dto.log_data.label,
           timestamp: new Date(dto.created_at),
           characterId: dto.character_id,
           uid: dto.user_id,
@@ -258,6 +264,7 @@ export class GameLogService {
             oracle_category_name: log.oracleCategoryName ?? null,
             oracle_id: log.oracleId,
             match: log.match,
+            label: log.rollLabel,
           },
           created_at: log.timestamp.toISOString(),
           character_id: log.characterId,
@@ -276,6 +283,7 @@ export class GameLogService {
             result: log.result,
             track_type: log.trackType,
             move_id: log.moveId,
+            label: log.rollLabel,
           },
           created_at: log.timestamp.toISOString(),
           character_id: log.characterId,
@@ -294,6 +302,7 @@ export class GameLogService {
             result: log.result,
             special_track_key: log.specialTrackKey,
             move_id: log.moveId,
+            label: log.rollLabel,
           },
           created_at: log.timestamp.toISOString(),
           character_id: log.characterId,
@@ -311,6 +320,7 @@ export class GameLogService {
             result: log.result,
             oracle_id: log.oracleId,
             match: log.match,
+            label: log.rollLabel,
           },
           created_at: log.timestamp.toISOString(),
           character_id: log.characterId,

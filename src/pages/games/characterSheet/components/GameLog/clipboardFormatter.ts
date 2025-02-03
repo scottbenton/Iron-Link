@@ -1,4 +1,5 @@
 import { Datasworn } from "@datasworn/core";
+import { capitalize } from "@mui/material";
 
 import { getMove } from "hooks/datasworn/useMove";
 
@@ -11,24 +12,13 @@ import {
   IClockProgressionRoll,
   IGameLog,
   IOracleTableRoll,
+  ISpecialTrackProgressRoll,
   IStatRoll,
   ITrackProgressRoll,
 } from "services/gameLog.service";
 
-export function formatQuote(contents: string) {
-  return `<blockquote>${contents}</blockquote>`;
-}
-
-export function formatBold(contents: string) {
-  return `<b>${contents}</b>`;
-}
-
-export function formatItalic(contents: string) {
-  return `<em>${contents}</em>`;
-}
-
-export function formatParagraph(contents: string) {
-  return `<p>${contents}</p>`;
+export function formatRich(logId: string) {
+  return `iron-link-logid:${logId}`;
 }
 
 export function convertRollToClipboard(
@@ -45,21 +35,21 @@ export function convertRollToClipboard(
       const move = roll.moveId ? getMove(roll.moveId, tree) : undefined;
       const statContents = extractStatRollContents(roll, move?.name);
       return {
-        rich: convertStatRollToClipboardRich(statContents),
+        rich: formatRich(roll.id),
         plain: convertStatRollToClipboardPlain(statContents),
       };
     }
     case RollType.OracleTable: {
       const oracleContents = extractOracleRollContents(roll);
       return {
-        rich: convertOracleRollToClipboardRich(oracleContents),
+        rich: formatRich(roll.id),
         plain: convertOracleRollToClipboardPlain(oracleContents),
       };
     }
     case RollType.TrackProgress: {
       const trackProgressContents = extractTrackProgressRollContents(roll);
       return {
-        rich: convertTrackProgressRollToClipboardRich(trackProgressContents),
+        rich: formatRich(roll.id),
         plain: convertTrackProgressRollToClipboardPlain(trackProgressContents),
       };
     }
@@ -68,11 +58,20 @@ export function convertRollToClipboard(
         extractClockProgressionRollContents(roll);
 
       return {
-        rich: convertClockProgressionRollToClipboardRich(
-          clockProgressionContents,
-        ),
+        rich: formatRich(roll.id),
         plain: convertClockProgressionRollToClipboardPlain(
           clockProgressionContents,
+        ),
+      };
+    }
+    case RollType.SpecialTrackProgress: {
+      const specialTrackProgressContents =
+        extractSpecialTrackProgressRollContents(roll);
+
+      return {
+        rich: formatRich(roll.id),
+        plain: convertTrackProgressRollToClipboardPlain(
+          specialTrackProgressContents,
         ),
       };
     }
@@ -113,21 +112,6 @@ export function extractStatRollContents(
   };
 }
 
-export function convertStatRollToClipboardRich(
-  contents: StatRollContents,
-): string {
-  const title = formatParagraph(contents.title);
-  const action = formatParagraph(
-    formatItalic("Action: ") + contents.actionContents,
-  );
-  const challenge = formatParagraph(
-    formatItalic("Challenge: ") + contents.challengeContents,
-  );
-  const result = formatBold(contents.result);
-
-  return formatQuote(title + action + challenge + result);
-}
-
 export function convertStatRollToClipboardPlain(contents: StatRollContents) {
   return `
 ${contents.title}
@@ -157,16 +141,6 @@ export function extractOracleRollContents(
     roll: rollSection,
     result,
   };
-}
-
-export function convertOracleRollToClipboardRich(
-  contents: OracleRollContents,
-): string {
-  const title = formatParagraph(contents.title);
-  const roll = formatParagraph(formatItalic("Roll: ") + contents.roll);
-  const result = formatBold(contents.result);
-
-  return formatQuote(title + roll + result);
 }
 
 export function convertOracleRollToClipboardPlain(
@@ -219,21 +193,6 @@ export function extractTrackProgressRollContents(
   };
 }
 
-export function convertTrackProgressRollToClipboardRich(
-  contents: TrackProgressRollContents,
-): string {
-  const title = formatParagraph(contents.title);
-  const progress = formatParagraph(
-    formatItalic("Progress: ") + contents.progress,
-  );
-  const challenge = formatParagraph(
-    formatItalic("Challenge: ") + contents.challenge,
-  );
-  const result = formatBold(contents.result);
-
-  return formatQuote(title + progress + challenge + result);
-}
-
 export function convertTrackProgressRollToClipboardPlain(
   contents: TrackProgressRollContents,
 ) {
@@ -265,16 +224,6 @@ export function extractClockProgressionRollContents(
   };
 }
 
-export function convertClockProgressionRollToClipboardRich(
-  contents: ClockProgressionRollContents,
-): string {
-  const title = formatParagraph(contents.title);
-  const roll = formatParagraph(formatItalic("Roll: ") + contents.roll);
-  const result = formatBold(contents.result);
-
-  return formatQuote(title + roll + result);
-}
-
 export function convertClockProgressionRollToClipboardPlain(
   contents: ClockProgressionRollContents,
 ) {
@@ -283,4 +232,27 @@ ${contents.title}
 Roll: ${contents.roll}
 ${contents.result}
     `;
+}
+
+interface SpecialTrackProgressRollContents {
+  title: string;
+  progress: string;
+  challenge: string;
+  result: string;
+}
+
+export function extractSpecialTrackProgressRollContents(
+  roll: ISpecialTrackProgressRoll,
+): SpecialTrackProgressRollContents {
+  const title = `${capitalize(roll.specialTrackKey)}: ${roll.rollLabel}`;
+  const progress = roll.trackProgress + "";
+  const challenge = `${roll.challenge1}, ${roll.challenge2}`;
+  const result = getRollResultLabel(roll.result).toLocaleUpperCase();
+
+  return {
+    title,
+    progress,
+    challenge,
+    result,
+  };
 }

@@ -22,6 +22,7 @@ interface GameLogStoreState {
 }
 
 interface GameLogStoreActions {
+  getGameLog: (logId: string) => Promise<IGameLog>;
   listenToGameLogs: (
     gameId: string,
     isGuide: boolean,
@@ -51,6 +52,10 @@ export const useGameLogStore = createWithEqualityFn<
 >()(
   immer((set, getState) => ({
     ...defaultGameLogStoreState,
+
+    getGameLog: (logId) => {
+      return GameLogService.getGameLogFromID(logId);
+    },
 
     listenToGameLogs: (gameId, isGuide, nLogs) => {
       return GameLogService.listenToGameLogs(
