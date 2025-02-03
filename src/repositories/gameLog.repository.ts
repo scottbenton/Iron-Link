@@ -122,6 +122,7 @@ export interface OracleRollJSONData {
   oracle_category_name: string | null;
   oracle_id: string;
   match: boolean;
+  label: string;
 }
 
 export interface TrackProgressRollJSONData {
@@ -131,6 +132,7 @@ export interface TrackProgressRollJSONData {
   result: RollResult;
   track_type: TrackTypes;
   move_id: string;
+  label: string;
 }
 
 export interface SpecialTrackRollJSONData {
@@ -140,6 +142,7 @@ export interface SpecialTrackRollJSONData {
   result: RollResult;
   special_track_key: string;
   move_id: string;
+  label: string;
 }
 
 export interface ClockProgressionRollJSONData {
@@ -148,10 +151,36 @@ export interface ClockProgressionRollJSONData {
   result: string;
   oracle_id: string;
   match: boolean;
+  label: string;
 }
 
 export class GameLogRepository {
   private static gameLogs = () => supabase.from("game_logs");
+
+  public static getGameLogFromID(logId: string): Promise<GameLogDTO> {
+    return new Promise((resolve, reject) => {
+      this.gameLogs()
+        .select()
+        .eq("id", logId)
+        .single()
+        .then((response) => {
+          if (response.error) {
+            console.error(response.error);
+            reject(
+              getRepositoryError(
+                response.error,
+                ErrorVerb.Read,
+                ErrorNoun.GameLog,
+                false,
+                response.status,
+              ),
+            );
+          } else {
+            resolve(response.data as unknown as GameLogDTO);
+          }
+        });
+    });
+  }
 
   public static listenToGameLogs(
     gameId: string,

@@ -63,6 +63,7 @@ export function useAutoSaveRtcEditor(params: {
           textValueRef.current = text;
         }
       },
+      enablePasteRules: true,
     },
     [docAndProvider, uid, displayName, readOnly],
   );

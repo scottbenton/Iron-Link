@@ -1,4 +1,4 @@
-import { Box, Button, Stack } from "@mui/material";
+import { Box, Button, Stack, capitalize } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { ProgressTrack } from "components/datasworn/ProgressTrack";
@@ -42,8 +42,10 @@ export function SpecialTracks(props: SpecialTracksProps) {
             onClick={() => {
               rollTrackProgress(
                 trackId,
-                specialTracks[trackId].label,
-                characterData.specialTracks?.[trackId]?.value ?? 0,
+                capitalize(specialTracks[trackId].label),
+                Math.floor(
+                  (characterData.specialTracks?.[trackId]?.value ?? 0) / 4,
+                ),
                 moveId,
               );
             }}

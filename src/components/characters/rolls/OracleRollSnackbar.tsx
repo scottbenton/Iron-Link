@@ -19,7 +19,7 @@ export function OracleRollSnackbar(props: OracleRollSnackbarProps) {
     <>
       <RollTitle
         overline={roll.oracleCategoryName}
-        title={roll.rollLabel}
+        title={oracle?.name ?? roll.rollLabel}
         isExpanded={isExpanded}
       />
       <RollContainer>

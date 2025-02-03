@@ -86,7 +86,16 @@ export function useRollCompleteSpecialTrack() {
 
       return result;
     },
-    [announce, addRollToScreen, characterId, uid, isCharacterOwner, t, addRoll],
+    [
+      gameId,
+      announce,
+      addRollToScreen,
+      characterId,
+      uid,
+      isCharacterOwner,
+      t,
+      addRoll,
+    ],
   );
 
   return rollSpecialTrack;
