@@ -91,7 +91,7 @@ export type Database = {
           color_scheme: string | null
           condition_meter_values: Json
           created_at: string
-          game_id: string | null
+          game_id: string
           id: string
           impact_values: Json
           initiative_status: Database["public"]["Enums"]["character_initiative_status"]
@@ -111,7 +111,7 @@ export type Database = {
           color_scheme?: string | null
           condition_meter_values?: Json
           created_at?: string
-          game_id?: string | null
+          game_id: string
           id?: string
           impact_values?: Json
           initiative_status?: Database["public"]["Enums"]["character_initiative_status"]
@@ -131,7 +131,7 @@ export type Database = {
           color_scheme?: string | null
           condition_meter_values?: Json
           created_at?: string
-          game_id?: string | null
+          game_id?: string
           id?: string
           impact_values?: Json
           initiative_status?: Database["public"]["Enums"]["character_initiative_status"]

@@ -341,10 +341,4 @@ export class CharacterService {
   public static async deleteCharacter(characterId: string): Promise<void> {
     return CharacterRepository.deleteCharacter(characterId);
   }
-
-  public static async removeCharacterFromGame(
-    characterId: string,
-  ): Promise<void> {
-    return CharacterRepository.updateCharacter(characterId, { game_id: null });
-  }
 }

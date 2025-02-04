@@ -195,7 +195,7 @@ export const useGameStore = createWithEqualityFn<
     removePlayerFromGame: (gameId, gamePlayerId, characterIds) => {
       const promises: Promise<void>[] = [];
       characterIds.forEach((characterId) => {
-        promises.push(CharacterService.removeCharacterFromGame(characterId));
+        promises.push(CharacterService.deleteCharacter(characterId));
       });
       promises.push(GameService.removePlayer(gameId, gamePlayerId));
 
