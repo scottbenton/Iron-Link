@@ -1,4 +1,4 @@
-import { Box, LinearProgress } from "@mui/material";
+import { GridLayout } from "components/Layout";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
@@ -39,23 +39,21 @@ export function TracksSection() {
   return (
     <>
       <TracksSectionHeader showCompletedTracks={showCompletedTracks} />
-      {areTracksLoading && <LinearProgress />}
-      <Box
-        display="flex"
-        flexDirection="column"
-        pt={2}
+      <GridLayout
         gap={4}
-        alignItems="flex-start"
-      >
-        {sortedTrackIds.map((trackId) => (
+        sx={{ mt: 2 }}
+        items={sortedTrackIds}
+        renderItem={(trackId: string) => (
           <TrackItem
             key={trackId}
             gameId={campaignId}
             canEdit={canEdit}
             trackId={trackId}
           />
-        ))}
-      </Box>
+        )}
+        minWidth={325}
+        loading={areTracksLoading}
+      />
     </>
   );
 }

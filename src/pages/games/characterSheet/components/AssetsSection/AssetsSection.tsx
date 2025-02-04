@@ -1,6 +1,8 @@
 import { Box } from "@mui/material";
 import { useMemo, useState } from "react";
 
+import { GridLayout } from "components/Layout";
+
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 
 import { useAssetsStore } from "stores/assets.store";
@@ -66,25 +68,19 @@ export function AssetsSection() {
         lastSharedAssetOrder={lastSharedAssetOrder}
         doesUserOwnCharacter={doesUserOwnCharacter}
       />
-      {sortedSharedAssets.map(([assetId, asset]) => (
-        <AssetsSectionCard
-          key={assetId}
-          doesUserOwnCharacter={doesUserOwnCharacter}
-          assetId={assetId}
-          assetDocument={asset}
-          showUnavailableAbilities={showAllAbilities}
-        />
-      ))}
-      {characterId &&
-        sortedCharacterAssets.map(([assetId, asset]) => (
+      <GridLayout
+        items={[...sortedSharedAssets, ...sortedCharacterAssets]}
+        renderItem={(item, index) => (
           <AssetsSectionCard
-            key={assetId}
+            key={index}
             doesUserOwnCharacter={doesUserOwnCharacter}
-            assetId={assetId}
-            assetDocument={asset}
+            assetId={item[0]}
+            assetDocument={item[1]}
             showUnavailableAbilities={showAllAbilities}
           />
-        ))}
+        )}
+        minWidth={300}
+      />
     </Box>
   );
 }

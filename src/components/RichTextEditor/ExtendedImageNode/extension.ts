@@ -5,6 +5,7 @@ import { Alignment, TextWrapping } from "./RichImageNodeAttributes";
 import { RichImageNodeView } from "./RichImageNodeView";
 
 export const ExtendedImageExtension = Image.extend({
+  draggable: false,
   addAttributes() {
     return {
       textWrapping: {
