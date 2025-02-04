@@ -1,10 +1,11 @@
-import { MenuItem, SxProps, TextField } from "@mui/material";
+import TextTypeIcon from "@mui/icons-material/FormatSize";
+import { IconButton, Menu, MenuItem, SxProps, Tooltip } from "@mui/material";
 import { Editor } from "@tiptap/react";
 import { TFunction } from "i18next";
-import React from "react";
+import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export interface TextTypeDropdownProps {
+export interface TextTypeMenuProps {
   editor: Editor;
   sx?: SxProps;
 }
@@ -29,18 +30,8 @@ function getTextLabels(t: TFunction) {
   };
 }
 
-export const TextTypeDropdown: React.FC<TextTypeDropdownProps> = (props) => {
+export const TextTypeMenu: React.FC<TextTypeMenuProps> = (props) => {
   const { editor, sx } = props;
-
-  const getActiveTextType = () => {
-    if (editor.isActive("heading", { level: 1 })) return TEXT_TYPES.heading1;
-    if (editor.isActive("heading", { level: 2 })) return TEXT_TYPES.heading2;
-    if (editor.isActive("heading", { level: 3 })) return TEXT_TYPES.heading3;
-    if (editor.isActive("heading", { level: 4 })) return TEXT_TYPES.heading4;
-    if (editor.isActive("heading", { level: 5 })) return TEXT_TYPES.heading5;
-
-    return TEXT_TYPES.paragraph;
-  };
 
   const setActiveTextType = (type: TEXT_TYPES) => {
     switch (type) {
@@ -67,28 +58,35 @@ export const TextTypeDropdown: React.FC<TextTypeDropdownProps> = (props) => {
   const { t } = useTranslation();
   const textLabels = getTextLabels(t);
 
+  const [open, setOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
   return (
     <>
-      <TextField
-        value={getActiveTextType()}
-        select
-        hiddenLabel
-        aria-label={"Text Type"}
-        onChange={(evt) => setActiveTextType(evt.target.value as TEXT_TYPES)}
-        variant={"outlined"}
-        margin={"none"}
-        size="small"
-        sx={[
-          { minWidth: "140px", width: "140px", ml: -0.5 },
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
+      <Tooltip
+        title={t("notes.text-type.change-text-type", "Change text type")}
+      >
+        <IconButton ref={buttonRef} onClick={() => setOpen(true)} sx={sx}>
+          <TextTypeIcon />
+        </IconButton>
+      </Tooltip>
+      <Menu
+        open={open}
+        onClose={() => setOpen(false)}
+        anchorEl={buttonRef.current}
       >
         {Object.keys(textLabels).map((key, index) => (
-          <MenuItem key={index} value={key}>
+          <MenuItem
+            key={index}
+            onClick={() => {
+              setActiveTextType(key as TEXT_TYPES);
+              setOpen(false);
+            }}
+          >
             {textLabels[key as keyof typeof textLabels]}
           </MenuItem>
         ))}
-      </TextField>
+      </Menu>
     </>
   );
 };

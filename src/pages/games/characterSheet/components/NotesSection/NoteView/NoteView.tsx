@@ -6,9 +6,12 @@ import { RtcRichTextEditor } from "components/RichTextEditor";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 
+import { useIsMobile } from "hooks/useIsMobile";
+
 import { useNotesStore } from "stores/notes.store";
 
 import { NoteToolbar } from "../Layout";
+import { MobileStickyNoteToolbar } from "./MobileStickyToolbar";
 import { NoteViewToolbar } from "./NoteViewToolbar";
 import { useNotePermission } from "./useNotePermission";
 
@@ -57,6 +60,8 @@ export function NoteView(props: NoteViewProps) {
     [updateNoteContent],
   );
 
+  const isMobile = useIsMobile();
+
   if (error) {
     return <EmptyState message={error} />;
   }
@@ -72,15 +77,26 @@ export function NoteView(props: NoteViewProps) {
         roomPrefix={`notes-${gameId}-`}
         documentPassword={gameId}
         Toolbar={({ editor }) => (
-          <NoteToolbar>
-            {notePermissions.canEdit ? (
-              <NoteViewToolbar
-                editor={editor}
-                openNoteId={openNoteId}
-                permissions={notePermissions}
-              />
-            ) : undefined}
-          </NoteToolbar>
+          <>
+            <NoteToolbar>
+              {isMobile ? undefined : (
+                <>
+                  {notePermissions.canEdit ? (
+                    <NoteViewToolbar
+                      editor={editor}
+                      openNoteId={openNoteId}
+                      permissions={notePermissions}
+                    />
+                  ) : undefined}
+                </>
+              )}
+            </NoteToolbar>
+            <MobileStickyNoteToolbar
+              editor={editor}
+              openNoteId={openNoteId}
+              permissions={notePermissions}
+            />
+          </>
         )}
         initialValue={noteContent?.content}
         onSave={loading || !notePermissions.canEdit ? undefined : handleSave}

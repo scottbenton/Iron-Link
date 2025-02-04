@@ -13,7 +13,6 @@ export const LogEntryNodeExtension = Node.create({
   selectable: true,
   atom: true,
 
-  priority: 10000,
   addAttributes() {
     return {
       logId: {

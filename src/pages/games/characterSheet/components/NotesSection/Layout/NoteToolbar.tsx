@@ -1,19 +1,13 @@
 import { Box } from "@mui/material";
 import { PropsWithChildren } from "react";
 
-import { useIsMobile } from "hooks/useIsMobile";
-
 import { NoteBreadcrumbs } from "./NoteBreadcrumbs";
 
 export function NoteToolbar(props: PropsWithChildren) {
   const { children } = props;
 
-  const isMobile = useIsMobile();
-
   return (
     <Box
-      position={isMobile ? "sticky" : undefined}
-      top={0}
       bgcolor="background.paper"
       zIndex={(theme) => theme.zIndex.appBar - 1}
       maxWidth={"100%"}

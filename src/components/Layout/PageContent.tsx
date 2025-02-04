@@ -28,7 +28,7 @@ export function PageContent(props: PageContentProps) {
       sx={[
         (theme) => ({
           bgcolor: "background.paper",
-          position: "relative",
+          // position: "relative",
           borderRadius: isPaper ? `${theme.shape.borderRadius}px` : 0,
           borderBottomLeftRadius: 0,
           borderBottomRightRadius: 0,
