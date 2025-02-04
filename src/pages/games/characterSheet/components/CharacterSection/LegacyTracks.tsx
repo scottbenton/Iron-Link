@@ -42,7 +42,7 @@ export function LegacyTracks() {
       >
         Legacy Tracks
       </Typography>
-      <Box display="flex" flexWrap="wrap" gap={1}>
+      <Box display="flex" flexWrap="wrap" gap={2}>
         {Object.entries(specialTrackRules).map(([key, specialTrack]) => (
           <Box key={key} display="flex" alignItems="center">
             <DebouncedProgressTrack
