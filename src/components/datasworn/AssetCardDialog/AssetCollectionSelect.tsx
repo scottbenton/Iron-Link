@@ -29,7 +29,7 @@ export function AssetCollectionSelect(props: AssetCollectionSelectProps) {
       value?: string;
     }[] = [];
 
-    Object.entries(rootAssetCollections).forEach(([_, ruleset], __, arr) => {
+    Object.entries(rootAssetCollections).forEach(([, ruleset], _, arr) => {
       if (arr.length > 1) {
         itemArr.push({
           label: ruleset.title,
