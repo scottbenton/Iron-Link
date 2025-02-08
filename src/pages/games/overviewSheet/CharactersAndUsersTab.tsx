@@ -1,8 +1,6 @@
 import { Button, Typography } from "@mui/material";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-
-import { useSnackbar } from "providers/SnackbarProvider";
 
 import { LinkComponent } from "components/LinkComponent";
 
@@ -18,6 +16,7 @@ import { GamePlayerRole } from "services/game.service";
 import { useGameId } from "../gamePageLayout/hooks/useGameId";
 import { useGamePermissions } from "../gamePageLayout/hooks/usePermissions";
 import { CharacterCard } from "./CharacterCard";
+import { GameInviteButton } from "./GameInviteButton";
 import { UserCard } from "./UserCard";
 
 export function CharactersAndUsersTab() {
@@ -37,14 +36,6 @@ export function CharactersAndUsersTab() {
       (user) => user.role === GamePlayerRole.Guide,
     );
   }, [users]);
-
-  const { success } = useSnackbar();
-  const handleCopy = useCallback(() => {
-    const inviteLink = location.origin + `/games/${gameId}/join`;
-    navigator.clipboard.writeText(inviteLink).then(() => {
-      success("Copied URL to clipboard");
-    });
-  }, [gameId, success]);
 
   return (
     <>
@@ -86,16 +77,7 @@ export function CharactersAndUsersTab() {
               areAnyPlayersGuides={areAnyPlayersGuides}
             />
           ))}
-          {gamePermission !== GamePermission.Viewer && (
-            <Button
-              variant="outlined"
-              color="inherit"
-              sx={{ mt: 1 }}
-              onClick={handleCopy}
-            >
-              {t("game.overview.invite", "Copy Invite Link")}
-            </Button>
-          )}
+          {gamePermission !== GamePermission.Viewer && <GameInviteButton />}
         </>
       )}
     </>

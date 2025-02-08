@@ -90,6 +90,7 @@ export function Editor(props: EditorProps) {
 
               py: editable || !outlined ? 2 : 0,
               pr: isMobile ? 0 : 2,
+              pb: isMobile ? 6 : undefined,
 
               mx: !outlined ? "auto" : undefined,
 

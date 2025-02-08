@@ -7,6 +7,7 @@ export enum ErrorNoun {
   Asset = "asset",
   Character = "character",
   Game = "game",
+  GameInviteKey = "game invite key",
   GameLog = "game log",
   GamePlayers = "game players",
   NoteFolders = "note folders",
