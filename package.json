@@ -17,7 +17,8 @@
     "supabase:stop": "supabase stop",
     "supabase:gen-types": "supabase gen types typescript --local > ./src/types/supabase-generated.type.ts",
     "supabase:create-db-script": "supabase db diff -f changes",
-    "supabase:create-empty-script": "supabase migration new changes"
+    "supabase:create-empty-script": "supabase migration new changes",
+    "supabase:serve-functions": "supabase functions serve"
   },
   "dependencies": {
     "@datasworn/core": "^0.1.0-0",

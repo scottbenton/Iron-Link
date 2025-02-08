@@ -6,6 +6,7 @@ import {
   GameType,
   RulesetConfig,
 } from "repositories/game.repository";
+import { GameInviteKeyRepository } from "repositories/gameInviteKey.repository";
 import {
   GamePlayerDTO,
   GamePlayersRepository,
@@ -62,36 +63,35 @@ export class GameService {
     return gameId;
   }
 
-  public static async getGameInviteInfo(
-    gameId: string,
-    userId: string,
-  ): Promise<{
-    name: string;
-    gameType: GameType;
-    isPlayer: boolean;
-  }> {
-    const isPlayerInGame =
-      await GamePlayersRepository.getGamePlayerEntryIfExists(gameId, userId);
-    if (isPlayerInGame) {
+  public static async getGameInviteKey(gameId: string): Promise<string> {
+    return GameInviteKeyRepository.getGameInviteKey(gameId);
+  }
+
+  public static async getGameInviteInfo(inviteKey: string): Promise<
+    | {
+        name: string;
+        gameType: GameType;
+      }
+    | { gameId: string }
+  > {
+    const result =
+      await GameInviteKeyRepository.getGameInfoFromInviteKey(inviteKey);
+
+    if ("gameId" in result) {
       return {
-        name: "",
-        gameType: GameType.Solo,
-        isPlayer: true,
+        gameId: result.gameId,
       };
     }
-    const result = await GameRepository.getGameInviteInfo(gameId);
-
     let gameType: GameType = GameType.Solo;
-    if (result.game_type === "co-op") {
+    if (result.gameType === "co-op") {
       gameType = GameType.Coop;
-    } else if (result.game_type === "guided") {
+    } else if (result.gameType === "guided") {
       gameType = GameType.Guided;
     }
 
     return {
-      name: result.name,
+      name: result.gameName,
       gameType,
-      isPlayer: false,
     };
   }
 
@@ -152,12 +152,13 @@ export class GameService {
   }
 
   public static async addPlayer(
-    gameId: string,
-    gameType: GameType,
+    inviteKey: string,
     playerId: string,
-  ): Promise<void> {
-    const role = this.getDefaultPlayerRoleForGameType(gameType);
-    await GamePlayersRepository.addPlayerToGame(gameId, playerId, role);
+  ): Promise<string> {
+    return GameInviteKeyRepository.addPlayerToGameFromInviteKey(
+      inviteKey,
+      playerId,
+    );
   }
 
   public static async removePlayer(

@@ -148,6 +148,10 @@ function getTranslatedNoun(noun: ErrorNoun, plural: boolean): string {
       return plural
         ? i18n.t("errors.images", "images")
         : i18n.t("errors.image", "image");
+    case ErrorNoun.GameInviteKey:
+      return plural
+        ? i18n.t("errors.gameInviteKeys", "game invite keys")
+        : i18n.t("errors.gameInviteKey", "game invite key");
     default:
       return "";
   }

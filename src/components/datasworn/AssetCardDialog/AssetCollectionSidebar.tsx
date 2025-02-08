@@ -14,7 +14,7 @@ export interface AssetCollectionSidebarProps {
   collectionMap: AssetCollectionMap;
   rootAssetCollections: RootAssetCollections;
   selectedCollectionId: string;
-  setSelectedCollectionId: (rulesetId: string, collectionId: string) => void;
+  setSelectedCollectionId: (collectionId: string) => void;
 }
 
 export function AssetCollectionSidebar(props: AssetCollectionSidebarProps) {
@@ -63,9 +63,7 @@ export function AssetCollectionSidebar(props: AssetCollectionSidebarProps) {
                 >
                   <ListItemButton
                     selected={collectionId === selectedCollectionId}
-                    onClick={() =>
-                      setSelectedCollectionId(rulesetKey, collectionId)
-                    }
+                    onClick={() => setSelectedCollectionId(collectionId)}
                   >
                     <ListItemText
                       primary={

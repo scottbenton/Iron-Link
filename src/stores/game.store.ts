@@ -53,6 +53,7 @@ interface GameStoreState {
 interface GameStoreActions {
   listenToGame: (gameId: string) => () => void;
   setPermissions: (permissions: GamePermission) => void;
+  getGameInviteKey: (gameId: string) => Promise<string>;
   updateGameName: (gameId: string, newName: string) => Promise<void>;
   updateConditionMeter: (
     gameId: string,
@@ -185,6 +186,10 @@ export const useGameStore = createWithEqualityFn<
     },
     deleteGame: (gameId) => {
       return GameService.deleteGame(gameId);
+    },
+
+    getGameInviteKey: (gameId) => {
+      return GameService.getGameInviteKey(gameId);
     },
     updateGamePlayerRole: (gameId, gamePlayerId, role) => {
       if (role === GamePlayerRole.Guide) {
