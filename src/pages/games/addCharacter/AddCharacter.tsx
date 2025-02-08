@@ -23,6 +23,7 @@ export default function AddCharacter() {
   const { t } = useTranslation();
   useSendPageViewEvent(PageCategory.GameCharacterCreate);
 
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
   const uid = useUID();
@@ -36,6 +37,8 @@ export default function AddCharacter() {
   const handleCreate = useCallback(() => {
     if (!uid) return;
 
+    setLoading(true);
+
     createCharacter(gameId, uid)
       .then((characterId) => {
         resetCharacter();
@@ -45,6 +48,7 @@ export default function AddCharacter() {
         setError(
           t("character.error-creating-character", "Error creating character"),
         );
+        setLoading(false);
       });
   }, [uid, t, navigate, gameId, createCharacter, resetCharacter]);
 
@@ -61,7 +65,7 @@ export default function AddCharacter() {
       )}
       <CreateCharacter />
       <Box mt={4} display="flex" justifyContent={"flex-end"}>
-        <GradientButton onClick={handleCreate}>
+        <GradientButton disabled={loading} onClick={handleCreate}>
           {t("character.add-character", "Add Character")}
         </GradientButton>
       </Box>
