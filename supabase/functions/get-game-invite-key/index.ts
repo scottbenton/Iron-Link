@@ -24,7 +24,10 @@ Deno.serve(async (req) => {
     const token = authHeader?.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     if (!data.user) {
-      return new Response("User not found", { status: 401 });
+      return new Response("User not found", {
+        status: 401,
+        headers: corsHeaders,
+      });
     }
 
     const userId = data.user.id;
@@ -38,7 +41,10 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!existingPlayerResponse.data) {
-      return new Response("Player not found in game", { status: 403 });
+      return new Response("Player not found in game", {
+        status: 403,
+        headers: corsHeaders,
+      });
     }
 
     const getGameInviteKeysResponse = await supabaseClient
@@ -58,14 +64,17 @@ Deno.serve(async (req) => {
         .single();
 
       if (insertResponse.error) {
-        return new Response("Failed to create invite key", { status: 500 });
+        return new Response("Failed to create invite key", {
+          status: 500,
+          headers: corsHeaders,
+        });
       }
 
       return new Response(
         JSON.stringify({ invite_key: insertResponse.data.url_key }),
         {
           status: 200,
-          headers: { "Content-Type": "application/json" },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
     }
@@ -73,12 +82,15 @@ Deno.serve(async (req) => {
       JSON.stringify({ invite_key: getGameInviteKeysResponse.data.url_key }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       },
     );
   } catch (error) {
     console.error(error);
-    return new Response("Failed to invalidate invite keys", { status: 500 });
+    return new Response("Failed to invalidate invite keys", {
+      status: 500,
+      headers: corsHeaders,
+    });
   }
 });
 

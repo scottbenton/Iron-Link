@@ -26,7 +26,10 @@ Deno.serve(async (req) => {
     const user = data.user;
 
     if (!user) {
-      return new Response("User not found", { status: 401 });
+      return new Response("User not found", {
+        status: 401,
+        headers: corsHeaders,
+      });
     }
 
     const gameInviteConfigResponse = await supabase
@@ -42,7 +45,10 @@ Deno.serve(async (req) => {
     const gameId = gameInviteConfigResponse.data.game_id;
     const isActive = gameInviteConfigResponse.data.is_active;
     if (!isActive) {
-      return new Response("Game invite is not active", { status: 404 });
+      return new Response("Game invite is not active", {
+        status: 404,
+        headers: corsHeaders,
+      });
     }
 
     const existingPlayerResponse = await supabase
@@ -54,7 +60,7 @@ Deno.serve(async (req) => {
     if (existingPlayerResponse.data) {
       return new Response(JSON.stringify({ gameId: gameId }), {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -68,7 +74,10 @@ Deno.serve(async (req) => {
     }
     const gameType = gameResponse.data.game_type;
     if (gameType === "solo") {
-      return new Response("Cannot add player to solo game", { status: 400 });
+      return new Response("Cannot add player to solo game", {
+        status: 400,
+        headers: corsHeaders,
+      });
     }
 
     return new Response(
@@ -78,12 +87,15 @@ Deno.serve(async (req) => {
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       },
     );
   } catch (err) {
     console.error(err, gameInviteKey);
-    return new Response("Failed to add player to game.", { status: 500 });
+    return new Response("Failed to add player to game.", {
+      status: 500,
+      headers: corsHeaders,
+    });
   }
 });
 
