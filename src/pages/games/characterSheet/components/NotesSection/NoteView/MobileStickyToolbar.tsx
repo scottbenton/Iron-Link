@@ -18,7 +18,7 @@ export interface MobileStickyNoteToolbarProps {
   permissions: NotePermissions;
 }
 
-const TOOLBAR_HEIGHT = 41;
+const MOBILE_STICKY_TOOLBAR_HEIGHT = 41;
 
 export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
   const { openNoteId, editor, permissions } = props;
@@ -83,7 +83,7 @@ export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
   return (
     <>
       <Box
-        height={TOOLBAR_HEIGHT}
+        height={MOBILE_STICKY_TOOLBAR_HEIGHT}
         bgcolor={(theme) =>
           theme.palette.mode === "light" ? "background.paper" : "grey.700"
         }

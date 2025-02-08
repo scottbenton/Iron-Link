@@ -1,13 +1,12 @@
 import { LinearProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 import { GradientButton } from "components/GradientButton";
 import { PageContent, PageHeader } from "components/Layout";
 import { EmptyState } from "components/Layout/EmptyState";
 
-import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 import { pathConfig } from "pages/pathConfig";
 
 import {
@@ -22,10 +21,10 @@ import { GameType } from "repositories/game.repository";
 import { GameService } from "services/game.service";
 
 export default function GameJoinPage() {
+  const inviteKey = useParams<{ inviteKey: string }>().inviteKey;
   const { t } = useTranslation();
   useSendPageViewEvent(PageCategory.GameJoin);
 
-  const gameId = useGameId();
   const uid = useUID();
 
   const navigate = useNavigate();
@@ -36,16 +35,17 @@ export default function GameJoinPage() {
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    if (gameId && uid) {
-      GameService.getGameInviteInfo(gameId, uid)
-        .then((game) => {
+    if (inviteKey && uid) {
+      GameService.getGameInviteInfo(inviteKey)
+        .then((gameInfo) => {
+          if ("gameId" in gameInfo) {
+            navigate(pathConfig.game(gameInfo.gameId));
+            return;
+          }
           setLoading(false);
           setError(undefined);
-          setGameName(game.name);
-          setGameType(game.gameType);
-          if (game.isPlayer) {
-            navigate(pathConfig.game(gameId));
-          }
+          setGameName(gameInfo.name);
+          setGameType(gameInfo.gameType);
         })
         .catch((err) => {
           console.error(err);
@@ -56,13 +56,13 @@ export default function GameJoinPage() {
       setLoading(false);
       setError(t("game.find-failure", "Could not find game"));
     }
-  }, [gameId, uid, t, navigate]);
+  }, [inviteKey, uid, t, navigate]);
 
   const addUser = () => {
-    if (gameId && uid && gameType) {
+    if (inviteKey && uid && gameType) {
       // Add user to campaign
-      GameService.addPlayer(gameId, gameType, uid)
-        .then(() => {
+      GameService.addPlayer(inviteKey, uid)
+        .then((gameId) => {
           navigate(pathConfig.game(gameId));
         })
         .catch(() => {

@@ -6,7 +6,7 @@ export const pathConfig = {
   gameCharacter: (gameId: string, characterId: string) =>
     `/games/${gameId}/c/${characterId}`,
   gameCharacterCreate: (gameId: string) => `/games/${gameId}/create`,
-  gameJoin: (gameId: string) => `/games/${gameId}/join`,
+  gameJoin: (inviteKey: string) => `/join/${inviteKey}`,
   worldSelect: "/worlds",
   world: (worldId: string) => `/worlds/${worldId}`,
   homebrewSelect: "/homebrew",

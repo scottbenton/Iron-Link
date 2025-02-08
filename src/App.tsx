@@ -22,7 +22,7 @@ const HomebrewSelectPage = lazy(
   () => import("./pages/homebrew/HomebrewSelectPage"),
 );
 const AuthPage = lazy(() => import("./pages/auth/AuthPage"));
-const GameJoinPage = lazy(() => import("./pages/games/join/GameJoinPage"));
+const GameJoinPage = lazy(() => import("./pages/gameJoin/GameJoinPage"));
 
 const GameLayout = lazy(
   () => import("./pages/games/gamePageLayout/GameLayout"),
@@ -54,7 +54,7 @@ export function App() {
                 <Route index Component={HomePage} />
                 <Route path="/games" Component={GameSelectPage} />
                 <Route path="/games/create" Component={GameCreatePage} />
-                <Route path="/games/:gameId/join" Component={GameJoinPage} />
+                <Route path="/join/:inviteKey" Component={GameJoinPage} />
                 <Route path="/worlds" Component={WorldSelectPage} />
                 <Route path="/homebrew" Component={HomebrewSelectPage} />
                 <Route path="/auth" Component={AuthPage} />

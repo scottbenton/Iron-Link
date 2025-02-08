@@ -163,6 +163,35 @@ export type Database = {
           },
         ]
       }
+      game_invite_keys: {
+        Row: {
+          created_at: string
+          game_id: string
+          is_active: boolean
+          url_key: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          is_active?: boolean
+          url_key?: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          is_active?: boolean
+          url_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_invite_keys_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: true
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_logs: {
         Row: {
           character_id: string | null
