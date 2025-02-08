@@ -1,5 +1,5 @@
 import { Box, Button } from "@mui/material";
-import { Dispatch, SetStateAction, useCallback } from "react";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
@@ -34,6 +34,8 @@ export function StepButtons(props: StepButtonsProps) {
     (store) => store.createCharacter,
   );
 
+  const [createLoading, setCreateLoading] = useState(false);
+
   const handleCreate = useCallback(() => {
     const { gameName, gameType } = useCreateGameStore.getState();
 
@@ -49,6 +51,7 @@ export function StepButtons(props: StepButtonsProps) {
       return;
     }
 
+    setCreateLoading(true);
     createGame(uid, finalGameName)
       .then((gameId) => {
         if (gameType === GameType.Solo) {
@@ -57,6 +60,7 @@ export function StepButtons(props: StepButtonsProps) {
               navigate(pathConfig.gameCharacter(gameId, characterId));
             })
             .catch(() => {
+              setCreateLoading(false);
               setError(
                 t(
                   "game.create.error-creating-character",
@@ -69,6 +73,7 @@ export function StepButtons(props: StepButtonsProps) {
         }
       })
       .catch((e) => {
+        setCreateLoading(false);
         console.error(e);
         setError(t("game.create.error-creating-game", "Error creating game"));
       });
@@ -92,7 +97,7 @@ export function StepButtons(props: StepButtonsProps) {
         {t("common.back", "Back")}
       </Button>
       {step === steps.length - 1 ? (
-        <GradientButton onClick={() => handleCreate()}>
+        <GradientButton disabled={createLoading} onClick={() => handleCreate()}>
           {steps[step]?.actionLabel ??
             t("game.create.start-game", "Start Game")}
         </GradientButton>

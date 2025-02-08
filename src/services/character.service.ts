@@ -184,7 +184,7 @@ export class CharacterService {
     });
     if (profileImage.image) {
       try {
-        CharacterRepository.uploadCharacterImage(
+        await CharacterRepository.uploadCharacterImage(
           characterId,
           profileImage.image,
         );
