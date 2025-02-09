@@ -18,11 +18,13 @@ import { useSyncColorScheme } from "pages/games/hooks/useSyncColorScheme";
 import { useGameStore } from "stores/game.store";
 import { useSyncSecondScreenSettingsIfActive } from "stores/secondScreen.store";
 
+import { useGameKeybinds } from "./hooks/useGameKeybinds";
 import { useSyncOpenNoteItem } from "./hooks/useSyncOpenNoteItem";
 
 export default function GameLayout() {
   const { t } = useTranslation();
 
+  useGameKeybinds();
   useSyncGame();
   useSyncColorScheme();
   useSyncSecondScreenSettingsIfActive();

@@ -8,7 +8,10 @@ import {
   getRepositoryError,
 } from "./errors/RepositoryErrors";
 
-export type UserDTO = Tables<"users">;
+export type UserDTO = Omit<
+  Tables<"users">,
+  "created_at" | "accessibility_settings"
+>;
 type UpdateUserDTO = TablesUpdate<"users">;
 
 export class UserRepository {
@@ -17,7 +20,7 @@ export class UserRepository {
   public static async getUser(userId: string): Promise<UserDTO> {
     return new Promise<UserDTO>((resolve, reject) => {
       this.users()
-        .select()
+        .select("id, display_name")
         .eq("id", userId)
         .single()
         .then((response) => {
