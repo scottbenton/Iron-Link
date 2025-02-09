@@ -125,6 +125,7 @@ export function CommonToolbarItems(props: CommonToolbarItemsProps) {
           <ToggleButton
             size={"small"}
             value={"quote"}
+            selected={editor.isActive("blockquote")}
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
             sx={sx}
           >

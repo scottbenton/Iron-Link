@@ -11,6 +11,7 @@ import { useUID } from "stores/auth.store";
 import { useGameCharactersStore } from "stores/gameCharacters.store";
 
 import { useGameId } from "../hooks/useGameId";
+import { GAME_TAB_ID } from "../hooks/useGameKeybinds";
 
 export function GameTabs() {
   const gameId = useGameId();
@@ -57,6 +58,7 @@ export function GameTabs() {
       scrollButtons="auto"
     >
       <Tab
+        id={GAME_TAB_ID}
         LinkComponent={LinkComponent}
         href={pathConfig.game(gameId)}
         value={"overview"}

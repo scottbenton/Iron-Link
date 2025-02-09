@@ -1,6 +1,8 @@
 import { Breadcrumbs, Link, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { NOTES_ID } from "pages/games/gamePageLayout/hooks/useGameKeybinds";
+
 import { useNotesStore } from "stores/notes.store";
 
 import { getItemName } from "../FolderView/getFolderName";
@@ -74,6 +76,7 @@ export function NoteBreadcrumbs() {
               <Typography key={index}>{item.name}</Typography>
             ) : (
               <Link
+                id={index === 0 ? NOTES_ID : undefined}
                 key={index}
                 component={"button"}
                 onClick={() =>

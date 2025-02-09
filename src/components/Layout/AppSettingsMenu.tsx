@@ -1,3 +1,4 @@
+import AccessibilityIcon from "@mui/icons-material/AccessibilityNew";
 import AdvancedFeaturesIcon from "@mui/icons-material/Bolt";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
@@ -19,6 +20,7 @@ import { useSnackbar } from "providers/SnackbarProvider";
 
 import { AuthStatus, useAuthStatus, useAuthStore } from "stores/auth.store";
 
+import { A11ySettingsDialog } from "./A11ySettingsDialog";
 import { AdvancedFeaturesDialog } from "./AdvancedFeaturesDialog";
 
 export type MenuAdditionComponent = ComponentType<{ closeMenu: () => void }>;
@@ -43,6 +45,8 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
   const signOut = useAuthStore((state) => state.signOut);
 
   const [advancedFeaturesOpen, setAdvancedFeaturesOpen] = useState(false);
+  const [accessibilitySettingsDialogOpen, setAccessibilitySettingsDialogOpen] =
+    useState(false);
 
   return (
     <>
@@ -65,17 +69,6 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
         </ListSubheader>
         <MenuItem
           onClick={() => {
-            setAdvancedFeaturesOpen(true);
-            setOpen(false);
-          }}
-        >
-          <ListItemIcon>
-            <AdvancedFeaturesIcon />
-          </ListItemIcon>
-          {t("iron-link.advanced-features", "Advanced Features")}
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
             setColorScheme(colorScheme === "light" ? "dark" : "light");
             setOpen(false);
           }}
@@ -86,6 +79,28 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
           {colorScheme === "light"
             ? t("iron-link.dark-mode", "Dark Mode")
             : t("iron-link.light-mode", "Light Mode")}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setAccessibilitySettingsDialogOpen(true);
+            setOpen(false);
+          }}
+        >
+          <ListItemIcon>
+            <AccessibilityIcon />
+          </ListItemIcon>
+          {t("iron-link.accessibility-settings", "Accessibility Settings")}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setAdvancedFeaturesOpen(true);
+            setOpen(false);
+          }}
+        >
+          <ListItemIcon>
+            <AdvancedFeaturesIcon />
+          </ListItemIcon>
+          {t("iron-link.advanced-features", "Advanced Features")}
         </MenuItem>
         {status === AuthStatus.Authenticated && (
           <MenuItem
@@ -121,6 +136,10 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
       <AdvancedFeaturesDialog
         open={advancedFeaturesOpen}
         onClose={() => setAdvancedFeaturesOpen(false)}
+      />
+      <A11ySettingsDialog
+        open={accessibilitySettingsDialogOpen}
+        onClose={() => setAccessibilitySettingsDialogOpen(false)}
       />
     </>
   );
