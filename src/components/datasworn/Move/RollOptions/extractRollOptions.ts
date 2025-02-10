@@ -150,7 +150,7 @@ function getEnhancementsFromAssets(
   > = {};
 
   Object.values(assetDocuments).forEach((assetDocument) => {
-    const asset = getAsset(assetDocument.id, tree);
+    const asset = getAsset(assetDocument.id);
     if (!asset) return;
 
     asset.abilities.forEach((ability, index) => {

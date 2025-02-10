@@ -16,18 +16,18 @@ function parseMoveCategory(
   moveMap: MoveMap,
 ) {
   Object.keys(category.contents).forEach((moveKey) => {
-    const oracle = category.contents[moveKey];
-    if (oracle.replaces) {
-      oracle.replaces.forEach((replacesKey) => {
+    const move = category.contents[moveKey];
+    if (move.replaces) {
+      move.replaces.forEach((replacesKey) => {
         const replacedItems = IdParser.getMatches(replacesKey as Primary, tree);
         replacedItems.forEach((value) => {
           if (value.type === "move") {
-            moveMap[value._id] = value;
+            moveMap[value._id] = move;
           }
         });
       });
     }
-    moveMap[oracle._id] = oracle;
+    moveMap[move._id] = move;
   });
 
   Object.values(category.collections).forEach((subCollection) => {

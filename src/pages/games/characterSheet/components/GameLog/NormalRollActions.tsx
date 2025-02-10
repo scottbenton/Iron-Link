@@ -17,7 +17,6 @@ import { useSnackbar } from "providers/SnackbarProvider";
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
 import { useUID } from "stores/auth.store";
-import { useDataswornTree } from "stores/dataswornTree.store";
 import { GamePermission } from "stores/game.store";
 import {
   useGameCharacter,
@@ -96,9 +95,8 @@ export function NormalRollActions(props: NormalRollActionsProps) {
 
   const { error, success } = useSnackbar();
 
-  const tree = useDataswornTree();
   const handleCopyRoll = () => {
-    const clipboardData = convertRollToClipboard(roll, tree);
+    const clipboardData = convertRollToClipboard(roll);
 
     if (clipboardData) {
       pasteRich(clipboardData.rich, clipboardData.plain)
