@@ -2,9 +2,10 @@ import { Datasworn, IdParser } from "@datasworn/core";
 import { Primary } from "@datasworn/core/dist/StringId";
 import { useMemo } from "react";
 
-import { getAsset } from "hooks/datasworn/useAsset";
-
-import { useDataswornTree } from "stores/dataswornTree.store";
+import {
+  useDataswornTree,
+  useDataswornTreeStore,
+} from "stores/dataswornTree.store";
 
 import { useActiveAssets } from "./useActiveAssets";
 
@@ -18,6 +19,7 @@ export function useActiveAssetMoveEnhancements(moveId: string): Enhancement[] {
   const { characterAssets, gameAssets } = useActiveAssets();
 
   const tree = useDataswornTree();
+  const assets = useDataswornTreeStore((store) => store.assets.assetMap);
 
   const activeAssetMoveEnhancements = useMemo(() => {
     const moveEnhancements: Enhancement[] = [];
@@ -25,7 +27,7 @@ export function useActiveAssetMoveEnhancements(moveId: string): Enhancement[] {
       ...characterAssets,
       ...gameAssets,
     }).forEach((assetDocument) => {
-      const asset = getAsset(assetDocument.id, tree);
+      const asset = assets[assetDocument.id];
       if (!asset) return;
 
       asset.abilities.forEach((ability, index) => {
@@ -41,7 +43,7 @@ export function useActiveAssetMoveEnhancements(moveId: string): Enhancement[] {
       });
     });
     return moveEnhancements;
-  }, [characterAssets, gameAssets, tree]);
+  }, [characterAssets, gameAssets, assets]);
 
   const moveEnhancements = useMemo(() => {
     return activeAssetMoveEnhancements.filter(({ enhancement }) => {

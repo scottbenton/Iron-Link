@@ -1,4 +1,3 @@
-import { Datasworn } from "@datasworn/core";
 import RollIcon from "@mui/icons-material/Casino";
 import {
   IconButton,
@@ -15,7 +14,6 @@ import { getOracleRollable } from "hooks/datasworn/useOracleRollable";
 import { useRollOracle } from "hooks/useRollOracle";
 
 import { useSetAnnouncement } from "stores/appState.store";
-import { useDataswornTree } from "stores/dataswornTree.store";
 
 import { IOracleTableRoll } from "services/gameLog.service";
 
@@ -38,11 +36,9 @@ export function OracleTextField(props: OracleTextFieldProps) {
   const { t } = useTranslation();
   const announce = useSetAnnouncement();
 
-  const tree = useDataswornTree();
-
   const doesOracleExist = useMemo(() => {
-    return checkIfAtLeastOneOracleExists(oracleId, oracleConfig, tree);
-  }, [oracleId, oracleConfig, tree]);
+    return checkIfAtLeastOneOracleExists(oracleId, oracleConfig);
+  }, [oracleId, oracleConfig]);
 
   const getOracleResult = useRollOracle();
 
@@ -82,23 +78,18 @@ export function OracleTextField(props: OracleTextFieldProps) {
 function checkIfAtLeastOneOracleExists(
   oracleId: string | undefined,
   oracleConfig: OracleTextFieldOracleConfig | undefined,
-  tree: Record<string, Datasworn.RulesPackage>,
 ): boolean {
   if (oracleId) {
-    const oracle =
-      getOracleRollable(oracleId, tree) ?? getOracleCollection(oracleId, tree);
+    const oracle = getOracleRollable(oracleId) ?? getOracleCollection(oracleId);
     return !!oracle;
   } else if (oracleConfig) {
     for (const tableId of oracleConfig.tableIds) {
       if (typeof tableId === "string") {
-        if (
-          getOracleRollable(tableId, tree) ||
-          getOracleCollection(tableId, tree)
-        ) {
+        if (getOracleRollable(tableId) || getOracleCollection(tableId)) {
           return true;
         }
       } else {
-        if (checkIfAtLeastOneOracleExists(undefined, tableId, tree)) {
+        if (checkIfAtLeastOneOracleExists(undefined, tableId)) {
           return true;
         }
       }

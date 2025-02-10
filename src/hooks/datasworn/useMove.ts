@@ -1,33 +1,11 @@
-import { Datasworn, IdParser } from "@datasworn/core";
-import { useEffect, useState } from "react";
+import { Datasworn } from "@datasworn/core";
 
-import { useDataswornTree } from "stores/dataswornTree.store";
+import { useDataswornTreeStore } from "stores/dataswornTree.store";
 
-export function getMove(
-  moveId: string,
-  tree: Record<string, Datasworn.RulesPackage>,
-): Datasworn.Move | undefined {
-  try {
-    IdParser.tree = tree;
-    const tmpMove = IdParser.get(moveId) as Datasworn.Move;
-    if (tmpMove.type === "move") {
-      return tmpMove;
-    }
-  } catch {
-    // Continue, just passing undefined instead
-  }
-  return undefined;
+export function getMove(moveId: string): Datasworn.Move | undefined {
+  return useDataswornTreeStore.getState().moves.moveMap[moveId];
 }
 
 export function useMove(moveId: string): Datasworn.Move | undefined {
-  const tree = useDataswornTree();
-  const [move, setMove] = useState<Datasworn.Move | undefined>(
-    getMove(moveId, tree),
-  );
-
-  useEffect(() => {
-    setMove(getMove(moveId, tree));
-  }, [moveId, tree]);
-
-  return move;
+  return useDataswornTreeStore((store) => store.moves.moveMap[moveId]);
 }

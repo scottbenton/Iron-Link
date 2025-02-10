@@ -5,7 +5,6 @@ import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useChar
 import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
 
 import { useUID } from "stores/auth.store";
-import { useDataswornTree } from "stores/dataswornTree.store";
 
 import { createId } from "lib/id.lib";
 import { rollDie } from "lib/rollDie";
@@ -18,7 +17,6 @@ import { getOracleCollection } from "./datasworn/useOracleCollection";
 import { getOracleRollable } from "./datasworn/useOracleRollable";
 
 export function useRollOracle() {
-  const tree = useDataswornTree();
   const gameId = useGameIdOptional();
   const uid = useUID();
   const characterId = useCharacterIdOptional();
@@ -27,13 +25,12 @@ export function useRollOracle() {
     (oracleId: string) =>
       rollOracle(
         oracleId,
-        tree,
         characterId ?? null,
         uid ?? "",
         gameId ?? "fake-game",
         false,
       ),
-    [tree, uid, characterId, gameId],
+    [uid, characterId, gameId],
   );
 
   return handleRollOracle;
@@ -41,14 +38,12 @@ export function useRollOracle() {
 
 export function rollOracle(
   oracleId: string,
-  tree: Record<string, Datasworn.RulesPackage>,
   characterId: string | null,
   uid: string,
   gameId: string,
   guidesOnly: boolean,
 ): IOracleTableRoll | undefined {
-  const oracle =
-    getOracleRollable(oracleId, tree) ?? getOracleCollection(oracleId, tree);
+  const oracle = getOracleRollable(oracleId) ?? getOracleCollection(oracleId);
   // We cannot roll across multiple tables like this
   if (!oracle) {
     console.error(`Could not find oracle with id ${oracleId}.`);
@@ -95,7 +90,7 @@ export function rollOracle(
       .split("/")
       .slice(0, -1)
       .join("/");
-    const oracleCollection = getOracleCollection(oracleCollectionId, tree);
+    const oracleCollection = getOracleCollection(oracleCollectionId);
     categoryName = oracleCollection?.name;
 
     const rollResult = rollOracleColumn(oracle);
@@ -112,7 +107,6 @@ export function rollOracle(
             for (let i = 0; i < oracleRoll.number_of_rolls; i++) {
               const subResult = rollOracle(
                 subRollId,
-                tree,
                 characterId,
                 uid,
                 gameId,

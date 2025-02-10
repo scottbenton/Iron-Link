@@ -1,4 +1,3 @@
-import { Datasworn } from "@datasworn/core";
 import { capitalize } from "@mui/material";
 
 import { getMove } from "hooks/datasworn/useMove";
@@ -21,10 +20,7 @@ export function formatRich(logId: string) {
   return `iron-link-logid:${logId}`;
 }
 
-export function convertRollToClipboard(
-  roll: IGameLog,
-  tree: Record<string, Datasworn.RulesPackage>,
-):
+export function convertRollToClipboard(roll: IGameLog):
   | {
       rich: string;
       plain: string;
@@ -32,7 +28,7 @@ export function convertRollToClipboard(
   | undefined {
   switch (roll.type) {
     case RollType.Stat: {
-      const move = roll.moveId ? getMove(roll.moveId, tree) : undefined;
+      const move = roll.moveId ? getMove(roll.moveId) : undefined;
       const statContents = extractStatRollContents(roll, move?.name);
       return {
         rich: formatRich(roll.id),
