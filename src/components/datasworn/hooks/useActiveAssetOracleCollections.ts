@@ -2,9 +2,10 @@ import { Datasworn } from "@datasworn/core";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { getAsset } from "hooks/datasworn/useAsset";
-
-import { useDataswornTree } from "stores/dataswornTree.store";
+import {
+  useDataswornTree,
+  useDataswornTreeStore,
+} from "stores/dataswornTree.store";
 import { getRulesetFromId } from "stores/dataswornTreeHelpers/getRulesetFromId";
 
 import { source } from "data/askTheOracle";
@@ -18,6 +19,7 @@ export function useActiveAssetOracleCollections(): Record<
   const { t } = useTranslation();
 
   const { characterAssets, gameAssets } = useActiveAssets();
+  const assetMap = useDataswornTreeStore((store) => store.assets.assetMap);
 
   const tree = useDataswornTree();
 
@@ -30,7 +32,7 @@ export function useActiveAssetOracleCollections(): Record<
       ...characterAssets,
       ...gameAssets,
     }).forEach((assetDocument) => {
-      const asset = getAsset(assetDocument.id, tree);
+      const asset = assetMap[assetDocument.dataswornAssetId];
       if (!asset) return;
 
       asset.abilities.forEach((ability, index) => {
@@ -50,7 +52,7 @@ export function useActiveAssetOracleCollections(): Record<
       });
     });
     return oracles;
-  }, [characterAssets, gameAssets, tree]);
+  }, [characterAssets, gameAssets, tree, assetMap]);
 
   const assetOracleCollections = useMemo(() => {
     if (Object.keys(activeAssetOracles).length === 0) return {};

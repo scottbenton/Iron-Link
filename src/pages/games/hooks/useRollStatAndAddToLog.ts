@@ -7,7 +7,6 @@ import { getMove } from "hooks/datasworn/useMove";
 
 import { useAddRollSnackbar, useSetAnnouncement } from "stores/appState.store";
 import { useUID } from "stores/auth.store";
-import { useDataswornTree } from "stores/dataswornTree.store";
 import { useGameLogStore } from "stores/gameLog.store";
 
 import { createId } from "lib/id.lib";
@@ -38,8 +37,6 @@ export function useRollStatAndAddToLog() {
   const characterId = useCharacterIdOptional();
   const gameId = useGameIdOptional();
 
-  const dataswornTree = useDataswornTree();
-
   const { t } = useTranslation();
 
   const announce = useSetAnnouncement();
@@ -59,7 +56,7 @@ export function useRollStatAndAddToLog() {
       if (gameId) {
         addLog(result.id, result).catch(() => {});
       }
-      announceRoll(result, config, dataswornTree, t, announce);
+      announceRoll(result, config, t, announce);
 
       if (!config.hideSnackbar) {
         addRollSnackbar(result.id, result);
@@ -67,16 +64,7 @@ export function useRollStatAndAddToLog() {
 
       return result;
     },
-    [
-      dataswornTree,
-      uid,
-      characterId,
-      gameId,
-      t,
-      announce,
-      addRollSnackbar,
-      addLog,
-    ],
+    [uid, characterId, gameId, t, announce, addRollSnackbar, addLog],
   );
 
   return rollStat;
@@ -139,14 +127,13 @@ function getStatRollResult(
 function announceRoll(
   roll: IStatRoll,
   rollConfig: StatRollConfig,
-  dataswornTree: Record<string, Datasworn.RulesPackage>,
   t: TFunction,
   announce: (announcement: string) => void,
 ) {
   let move: Datasworn.Move | undefined = undefined;
 
   if (roll.moveId) {
-    move = getMove(roll.moveId, dataswornTree);
+    move = getMove(roll.moveId);
   }
 
   let announcement: string;
