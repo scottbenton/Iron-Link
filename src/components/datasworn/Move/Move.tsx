@@ -35,7 +35,6 @@ export function Move(props: MoveProps) {
 
   return (
     <Box bgcolor="background.paper" sx={sx}>
-      <Typography variant={"h6"}>{move._id}</Typography>
       {!hideMoveName && <Typography variant={"h6"}>{move.name}</Typography>}
       <MoveRollOptions move={move} />
       <MarkdownRenderer markdown={move.text} />
