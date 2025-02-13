@@ -2,14 +2,12 @@ import { ListSubheader, MenuItem, TextField } from "@mui/material";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  AssetCollectionMap,
-  RootAssetCollections,
-} from "stores/dataswornTree.store";
+import { AssetCollectionMap } from "stores/dataswornTree.store";
+import { RootCollections } from "stores/dataswornTreeHelpers/parseCollectionsIntoMaps";
 
 export interface AssetCollectionSelectProps {
   collectionMap: AssetCollectionMap;
-  rootAssetCollections: RootAssetCollections;
+  rootAssetCollections: RootCollections;
   selectedCollectionId: string;
   setSelectedCollectionId: (collectionId: string) => void;
 }
@@ -35,7 +33,7 @@ export function AssetCollectionSelect(props: AssetCollectionSelectProps) {
           label: ruleset.title,
         });
       }
-      ruleset.rootAssets.forEach((collectionId) => {
+      ruleset.rootCollectionIds.forEach((collectionId) => {
         itemArr.push({
           label: collectionMap[collectionId]?.name,
           value: collectionId,

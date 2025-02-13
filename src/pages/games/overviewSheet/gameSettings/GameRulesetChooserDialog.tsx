@@ -9,7 +9,11 @@ import { RulesPackageSelector } from "components/datasworn/RulesPackageSelector"
 
 import { useGameStore } from "stores/game.store";
 
-import { ExpansionConfig, RulesetConfig } from "repositories/game.repository";
+import {
+  ExpansionConfig,
+  PlaysetConfig,
+  RulesetConfig,
+} from "repositories/game.repository";
 
 import { useGameIdOptional } from "../../gamePageLayout/hooks/useGameId";
 
@@ -27,12 +31,15 @@ export function GameRulesetChooserDialog(props: GameRulesetChooserDialogProps) {
 
   const initialRulesets = useGameStore((store) => store.game?.rulesets);
   const initialExpansions = useGameStore((store) => store.game?.expansions);
+  const initialPlayset = useGameStore((store) => store.game?.playset);
+
   const [rulesets, setRulesets] = useState<RulesetConfig>(
     initialRulesets ?? {},
   );
   const [expansions, setExpansions] = useState<ExpansionConfig>(
     initialExpansions ?? {},
   );
+  const [playset, setPlayset] = useState<PlaysetConfig>(initialPlayset ?? {});
 
   useEffect(() => {
     setRulesets(initialRulesets ?? {});
@@ -40,6 +47,9 @@ export function GameRulesetChooserDialog(props: GameRulesetChooserDialogProps) {
   useEffect(() => {
     setExpansions(initialExpansions ?? {});
   }, [initialExpansions]);
+  useEffect(() => {
+    setPlayset(initialPlayset ?? {});
+  }, [initialPlayset]);
 
   const updateRulesPackages = useGameStore(
     (store) => store.updateGameRulesPackages,
@@ -48,7 +58,7 @@ export function GameRulesetChooserDialog(props: GameRulesetChooserDialogProps) {
   const handleSave = useCallback(() => {
     if (gameId) {
       if (Object.values(rulesets).some((isActive) => isActive)) {
-        updateRulesPackages(gameId, rulesets, expansions)
+        updateRulesPackages(gameId, rulesets, expansions, playset)
           .then(() => {
             onClose();
           })
@@ -59,7 +69,16 @@ export function GameRulesetChooserDialog(props: GameRulesetChooserDialogProps) {
         );
       }
     }
-  }, [rulesets, expansions, onClose, error, t, gameId, updateRulesPackages]);
+  }, [
+    rulesets,
+    expansions,
+    playset,
+    onClose,
+    error,
+    t,
+    gameId,
+    updateRulesPackages,
+  ]);
 
   return (
     <Dialog open={open && !!gameId} onClose={onClose}>
@@ -82,6 +101,8 @@ export function GameRulesetChooserDialog(props: GameRulesetChooserDialogProps) {
               },
             }))
           }
+          activePlaysetConfig={playset}
+          onPlaysetChange={setPlayset}
         />
       </DialogContent>
       <DialogActions>

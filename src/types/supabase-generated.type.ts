@@ -401,6 +401,7 @@ export type Database = {
           game_type: Database["public"]["Enums"]["game_type"]
           id: string
           name: string
+          playset: Json
           rulesets: Json
           special_track_values: Json
         }
@@ -412,6 +413,7 @@ export type Database = {
           game_type: Database["public"]["Enums"]["game_type"]
           id?: string
           name: string
+          playset?: Json
           rulesets?: Json
           special_track_values?: Json
         }
@@ -423,6 +425,7 @@ export type Database = {
           game_type?: Database["public"]["Enums"]["game_type"]
           id?: string
           name?: string
+          playset?: Json
           rulesets?: Json
           special_track_values?: Json
         }

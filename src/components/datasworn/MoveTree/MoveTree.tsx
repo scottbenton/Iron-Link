@@ -25,8 +25,8 @@ export function MoveTree() {
     const visibleCollections: Record<string, CategoryVisibilityState> = {};
     const visibleOracles: Record<string, MoveVisibilityState> = {};
 
-    Object.values(rootMoveCategories).forEach(({ rootMoves }) => {
-      rootMoves.forEach((moveId) => {
+    Object.values(rootMoveCategories).forEach(({ rootCollectionIds }) => {
+      rootCollectionIds.forEach((moveId) => {
         getMoveCategoryVisibility(
           deferredSearchValue,
           moveId,
@@ -84,7 +84,7 @@ export function MoveTree() {
                 {ruleset.title}
               </ListSubheader>
             )}
-            {ruleset.rootMoves.map((categoryKey) => (
+            {ruleset.rootCollectionIds.map((categoryKey) => (
               <MoveCategoryListItem
                 key={categoryKey}
                 moveCategoryId={categoryKey}

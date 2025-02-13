@@ -8,11 +8,16 @@ import {
   defaultExpansions,
 } from "data/datasworn.packages";
 
-import { ExpansionConfig, RulesetConfig } from "repositories/game.repository";
+import {
+  ExpansionConfig,
+  PlaysetConfig,
+  RulesetConfig,
+} from "repositories/game.repository";
 
 export function useSyncActiveRulesPackages(
   rulesets: RulesetConfig,
   expansions: ExpansionConfig,
+  playset: PlaysetConfig,
 ) {
   const activeRulesPackages = useMemo(() => {
     const activePackages: Record<string, Datasworn.RulesPackage> = {};
@@ -33,5 +38,5 @@ export function useSyncActiveRulesPackages(
     return activePackages;
   }, [rulesets, expansions]);
 
-  useUpdateDataswornTree(activeRulesPackages);
+  useUpdateDataswornTree(activeRulesPackages, playset);
 }
