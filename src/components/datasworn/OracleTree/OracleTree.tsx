@@ -27,8 +27,8 @@ export function OracleTree() {
     const visibleCollections: Record<string, CollectionVisibilityState> = {};
     const visibleOracles: Record<string, OracleVisibilityState> = {};
 
-    Object.values(rootOracleCollections).forEach(({ rootOracles }) => {
-      rootOracles.forEach((oracleId) => {
+    Object.values(rootOracleCollections).forEach(({ rootCollectionIds }) => {
+      rootCollectionIds.forEach((oracleId) => {
         getOracleCollectionVisibility(
           deferredSearchValue,
           oracleId,
@@ -91,7 +91,7 @@ export function OracleTree() {
                 {ruleset.title}
               </ListSubheader>
             )}
-            {ruleset.rootOracles.map((collectionKey) => (
+            {ruleset.rootCollectionIds.map((collectionKey) => (
               <OracleCollectionListItem
                 key={collectionKey}
                 oracleCollectionId={collectionKey}

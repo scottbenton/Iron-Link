@@ -7,12 +7,12 @@ import {
   ListSubheader,
 } from "@mui/material";
 
-import { RootAssetCollections } from "stores/dataswornTree.store";
 import { AssetCollectionMap } from "stores/dataswornTree.store";
+import { RootCollections } from "stores/dataswornTreeHelpers/parseCollectionsIntoMaps";
 
 export interface AssetCollectionSidebarProps {
   collectionMap: AssetCollectionMap;
-  rootAssetCollections: RootAssetCollections;
+  rootAssetCollections: RootCollections;
   selectedCollectionId: string;
   setSelectedCollectionId: (collectionId: string) => void;
 }
@@ -41,7 +41,7 @@ export function AssetCollectionSidebar(props: AssetCollectionSidebarProps) {
                 {ruleset.title}
               </ListSubheader>
             )}
-            {ruleset.rootAssets.map((collectionId, index) => {
+            {ruleset.rootCollectionIds.map((collectionId, index) => {
               const collection = collectionMap[collectionId];
               if (!collection) {
                 return null;

@@ -9,11 +9,14 @@ import { useActiveAssetOracleCollections } from "components/datasworn/hooks/useA
 
 import { ironLinkAskTheOracleRulesPackage } from "data/askTheOracle";
 
-import { parseAssets } from "./dataswornTreeHelpers/assets";
+import { PlaysetConfig } from "repositories/game.repository";
+
 import { parseConditionMeterRules } from "./dataswornTreeHelpers/conditionMetersRules";
 import { parseImpactRules } from "./dataswornTreeHelpers/impactRules";
-import { parseMoves } from "./dataswornTreeHelpers/moves";
-import { parseOracles } from "./dataswornTreeHelpers/oracles";
+import {
+  RootCollections,
+  parseCollectionsIntoMaps,
+} from "./dataswornTreeHelpers/parseCollectionsIntoMaps";
 import { parseSpecialTrackRules } from "./dataswornTreeHelpers/specialTrackRules";
 import { parseStatRules } from "./dataswornTreeHelpers/statRules";
 
@@ -25,20 +28,11 @@ export type CollectionMap<T> = {
 };
 export type AssetCollectionMap = Record<string, Datasworn.AssetCollection>;
 export type AssetMap = Record<string, Datasworn.Asset>;
-export type RootAssetCollections = Record<
-  string,
-  { title: string; rootAssets: string[] }
->;
-export type RootMoveCategories = Record<
-  string,
-  { title: string; rootMoves: string[] }
->;
+export type RootAssetCollections = RootCollections;
+export type RootMoveCategories = RootCollections;
 export type MoveCategoryMap = Record<string, Datasworn.MoveCategory>;
 export type MoveMap = Record<string, Datasworn.Move>;
-export type RootOracleCollections = Record<
-  string,
-  { title: string; rootOracles: string[] }
->;
+export type RootOracleCollections = RootCollections;
 export type OracleCollectionMap = Record<string, Datasworn.OracleCollection>;
 export type OracleRollableMap = Record<string, Datasworn.OracleRollable>;
 
@@ -48,7 +42,7 @@ interface DataswornTreeStoreState {
   assets: {
     assetCollectionMap: AssetCollectionMap;
     assetMap: AssetMap;
-    rootAssetCollections: RootAssetCollections;
+    rootAssetCollections: RootCollections;
   };
   moves: {
     rootMoveCategories: RootMoveCategories;
@@ -71,7 +65,10 @@ interface DataswornTreeStoreState {
 }
 
 interface DataswornTreeStoreActions {
-  setActiveRules: (tree: Record<string, Datasworn.RulesPackage>) => void;
+  setActiveRules: (
+    tree: Record<string, Datasworn.RulesPackage>,
+    playset: PlaysetConfig,
+  ) => void;
 }
 
 export const useDataswornTreeStore = createWithEqualityFn<
@@ -104,7 +101,7 @@ export const useDataswornTreeStore = createWithEqualityFn<
     },
     specialTrackRules: {},
 
-    setActiveRules: (tree) => {
+    setActiveRules: (tree, playset) => {
       set((store) => {
         store.activeRules = {
           [ironLinkAskTheOracleRulesPackage._id]:
@@ -112,9 +109,47 @@ export const useDataswornTreeStore = createWithEqualityFn<
           ...JSON.parse(JSON.stringify(tree)),
         };
 
-        store.assets = parseAssets(store.activeRules);
-        store.moves = parseMoves(store.activeRules);
-        store.oracles = parseOracles(store.activeRules);
+        const assetMaps = parseCollectionsIntoMaps<Datasworn.AssetCollection>(
+          store.activeRules,
+          {
+            collectionExclusions: playset.excludes?.assetCategories ?? {},
+            itemExclusions: playset.excludes?.assets ?? {},
+          },
+          "asset_collection:*/*",
+        );
+        store.assets = {
+          assetCollectionMap: assetMaps.collectionMap,
+          assetMap: assetMaps.itemMap,
+          rootAssetCollections: assetMaps.rootCollections,
+        };
+
+        const moveMaps = parseCollectionsIntoMaps<Datasworn.MoveCategory>(
+          store.activeRules,
+          {
+            collectionExclusions: playset.excludes?.moveCategories ?? {},
+            itemExclusions: playset.excludes?.moves ?? {},
+          },
+          "move_category:*/*",
+        );
+        store.moves = {
+          moveCategoryMap: moveMaps.collectionMap,
+          moveMap: moveMaps.itemMap,
+          rootMoveCategories: moveMaps.rootCollections,
+        };
+
+        const oracleMaps = parseCollectionsIntoMaps<Datasworn.OracleCollection>(
+          store.activeRules,
+          {
+            collectionExclusions: playset.excludes?.oracleCategories ?? {},
+            itemExclusions: playset.excludes?.oracles ?? {},
+          },
+          "oracle_collection:*/*",
+        );
+        store.oracles = {
+          oracleCollectionMap: oracleMaps.collectionMap,
+          oracleRollableMap: oracleMaps.itemMap,
+          rootOracleCollections: oracleMaps.rootCollections,
+        };
 
         store.statRules = parseStatRules(store.activeRules);
         store.conditionMeterRules = parseConditionMeterRules(store.activeRules);
@@ -132,11 +167,12 @@ export function useDataswornTree() {
 
 export function useUpdateDataswornTree(
   tree: Record<string, Datasworn.RulesPackage>,
+  playset: PlaysetConfig,
 ) {
   const setTree = useSetDataswornTree();
   useEffect(() => {
-    setTree(tree);
-  }, [tree, setTree]);
+    setTree(tree, playset);
+  }, [tree, playset, setTree]);
 }
 
 export function useSetDataswornTree() {
@@ -177,8 +213,9 @@ export function useMoves() {
         ([rulesetId, assetMoveCategory]) => {
           rootMoveCategoriesWithAssetCategories[rulesetId] = {
             ...rootMoveCategoriesWithAssetCategories[rulesetId],
-            rootMoves: [
-              ...rootMoveCategoriesWithAssetCategories[rulesetId].rootMoves,
+            rootCollectionIds: [
+              ...rootMoveCategoriesWithAssetCategories[rulesetId]
+                .rootCollectionIds,
               assetMoveCategory._id,
             ],
           };
@@ -223,8 +260,9 @@ export function useOracles() {
       ([rulesetId, assetOracleCollection]) => {
         rootOracleCollectionsWithAssetCollections[rulesetId] = {
           ...rootOracleCollectionsWithAssetCollections[rulesetId],
-          rootOracles: [
-            ...rootOracleCollectionsWithAssetCollections[rulesetId].rootOracles,
+          rootCollectionIds: [
+            ...rootOracleCollectionsWithAssetCollections[rulesetId]
+              .rootCollectionIds,
             assetOracleCollection._id,
           ],
         };

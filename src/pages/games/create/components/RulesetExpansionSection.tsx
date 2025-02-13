@@ -12,6 +12,8 @@ export function RulesetExpansionSection() {
   const toggleRuleset = useCreateGameStore((store) => store.toggleRuleset);
   const expansions = useCreateGameStore((store) => store.expansions);
   const toggleExpansion = useCreateGameStore((store) => store.toggleExpansion);
+  const playset = useCreateGameStore((store) => store.playset);
+  const setPlayset = useCreateGameStore((store) => store.setPlayset);
 
   return (
     <>
@@ -25,6 +27,8 @@ export function RulesetExpansionSection() {
         activeExpansionConfig={expansions}
         onRulesetChange={toggleRuleset}
         onExpansionChange={toggleExpansion}
+        activePlaysetConfig={playset}
+        onPlaysetChange={setPlayset}
       />
     </>
   );

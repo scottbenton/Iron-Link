@@ -1,4 +1,4 @@
-![Iron Link](./readme_assets/IronLinkBanner.png)
+![Iron Link](./readme_assets/banner-main.png)
 
 Welcome! Iron Link will be an application for anyone playing the Tabletop RPGs [Ironsworn or Starforged](https://www.ironswornrpg.com/) to use.
 Featuring clean character sheets, campaigns with shared assets and tracks, and cloud sync across all your devices.
