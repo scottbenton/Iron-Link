@@ -5,6 +5,7 @@ import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useChar
 import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
 
 import { useUID } from "stores/auth.store";
+import { useDataswornTreeStore } from "stores/dataswornTree.store";
 
 import { createId } from "lib/id.lib";
 import { rollDie } from "lib/rollDie";
@@ -20,6 +21,9 @@ export function useRollOracle() {
   const gameId = useGameIdOptional();
   const uid = useUID();
   const characterId = useCharacterIdOptional();
+  const shouldRollCursedDieIfOracleSupports = useDataswornTreeStore(
+    (store) => store.autoRollCursedDie,
+  );
 
   const handleRollOracle = useCallback(
     (oracleId: string) =>
@@ -29,8 +33,9 @@ export function useRollOracle() {
         uid ?? "",
         gameId ?? "fake-game",
         false,
+        shouldRollCursedDieIfOracleSupports,
       ),
-    [uid, characterId, gameId],
+    [uid, characterId, gameId, shouldRollCursedDieIfOracleSupports],
   );
 
   return handleRollOracle;
@@ -42,6 +47,7 @@ export function rollOracle(
   uid: string,
   gameId: string,
   guidesOnly: boolean,
+  shouldRollCursedDieIfOracleSupports: boolean,
 ): IOracleTableRoll | undefined {
   const oracle = getOracleRollable(oracleId) ?? getOracleCollection(oracleId);
   // We cannot roll across multiple tables like this
@@ -49,6 +55,67 @@ export function rollOracle(
     console.error(`Could not find oracle with id ${oracleId}.`);
     return undefined;
   }
+
+  const isAlreadyCursedTable = !!oracle.tags?.sundered_isles?.cursed_version_of;
+
+  const cursedOracleTag = shouldRollCursedDieIfOracleSupports
+    ? oracle.tags?.sundered_isles?.cursed_by
+    : undefined;
+
+  const cursedOracleId =
+    typeof cursedOracleTag === "string" ? cursedOracleTag : undefined;
+
+  const cursedOracle = cursedOracleId
+    ? getOracleRollable(cursedOracleId)
+    : undefined;
+
+  const isCursedOracleAdditive =
+    cursedOracle?.tags?.sundered_isles?.curse_behavior === "add_result";
+
+  const shouldRollCursedDie =
+    shouldRollCursedDieIfOracleSupports && cursedOracleId && cursedOracle;
+
+  const cursedDieRoll = shouldRollCursedDie ? rollDie("1d10") : undefined;
+
+  const baseOracle =
+    cursedDieRoll === 10 && cursedOracle && !isCursedOracleAdditive
+      ? cursedOracle
+      : oracle;
+
+  const baseResult = getOracleResult(baseOracle);
+  const cursedDieResult =
+    cursedDieRoll === 10 && cursedOracle && isCursedOracleAdditive
+      ? getOracleResult(cursedOracle)
+      : undefined;
+
+  if (baseResult?.resultString && baseResult.rolls !== undefined) {
+    return {
+      id: createId(),
+      gameId: gameId,
+      type: RollType.OracleTable,
+      oracleCategoryName: baseResult.categoryName,
+      rollLabel: oracle.name,
+      timestamp: new Date(),
+      characterId,
+      uid,
+      guidesOnly,
+      roll: baseResult.rolls,
+      result: baseResult.resultString,
+      oracleId: oracle._id,
+      match: baseResult.matched,
+      cursedDieAdditiveResult: cursedDieResult?.resultString ?? null,
+      cursedDieRoll: cursedDieRoll ?? null,
+      wasCursed:
+        isAlreadyCursedTable || (cursedDieRoll === 10 && !!cursedOracle),
+    };
+  }
+
+  return undefined;
+}
+
+function getOracleResult(
+  oracle: Datasworn.OracleRollable | Datasworn.OracleCollection,
+) {
   if (oracle.oracle_type === "tables") {
     console.error("Oracle table collections cannot be rolled");
     return undefined;
@@ -62,7 +129,6 @@ export function rollOracle(
     );
     return undefined;
   }
-
   let resultString: string | undefined = undefined;
   let rolls: number | number[] | undefined = undefined;
   let matched = false;
@@ -102,18 +168,15 @@ export function rollOracle(
         const oracleRolls = rollResult.result.oracle_rolls;
         const results: string[] = [];
         oracleRolls.map((oracleRoll) => {
-          const subRollId = oracleRoll.oracle ?? oracleId;
+          const subRollId = oracleRoll.oracle ?? oracle._id;
           if (oracleRoll.auto) {
             for (let i = 0; i < oracleRoll.number_of_rolls; i++) {
-              const subResult = rollOracle(
-                subRollId,
-                characterId,
-                uid,
-                gameId,
-                guidesOnly,
-              );
-              if (subResult) {
-                results.push(subResult.result);
+              const subOracle = getOracleRollable(subRollId);
+              if (subOracle) {
+                const subResult = getOracleResult(subOracle);
+                if (subResult?.resultString) {
+                  results.push(subResult.resultString);
+                }
               }
             }
           }
@@ -128,25 +191,12 @@ export function rollOracle(
     }
   }
 
-  if (resultString && rolls !== undefined) {
-    return {
-      id: createId(),
-      gameId: gameId,
-      type: RollType.OracleTable,
-      oracleCategoryName: categoryName,
-      rollLabel: oracle.name,
-      timestamp: new Date(),
-      characterId,
-      uid,
-      guidesOnly,
-      roll: rolls,
-      result: resultString,
-      oracleId: oracle._id,
-      match: matched,
-    };
-  }
-
-  return undefined;
+  return {
+    rolls,
+    resultString,
+    matched,
+    categoryName,
+  };
 }
 
 function rollOracleColumn(column: Datasworn.OracleRollable):
