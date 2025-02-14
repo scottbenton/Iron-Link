@@ -144,9 +144,9 @@ export function RollValues(props: RollValuesProps) {
             justifyContent={"space-between"}
           >
             <SkullIcon
-              sx={{
-                color: "#86d560",
-              }}
+              sx={(theme) => ({
+                color: theme.palette.cursed.main,
+              })}
             />
             <Typography ml={1} color={"grey.200"}>
               {cursedResult}
