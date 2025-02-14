@@ -1,6 +1,12 @@
 import { Datasworn, IdParser } from "@datasworn/core";
 import { Primary } from "@datasworn/core/dist/StringId";
-import { Button, DialogActions, DialogContent } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  DialogActions,
+  DialogContent,
+} from "@mui/material";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -92,69 +98,77 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
   return (
     <>
       <DialogContent>
-        <PlaysetSection
-          label={t("playset-editor.assets", "Assets")}
-          rulesPackages={tree}
-          collectionKey="assets"
-          excludedCollections={excludedAssetCollections}
-          toggleExcludedCollection={(collectionId, isExcluded) => {
-            setExcludedAssetCollections((prev) => ({
-              ...prev,
-              [collectionId]: isExcluded,
-            }));
-          }}
-          excludedItems={excludedAssets}
-          toggleExcludedItem={(itemId, isExcluded) => {
-            setExcludedAssets((prev) => ({
-              ...prev,
-              [itemId]: isExcluded,
-            }));
-          }}
-          replacedCollections={replacedAssetCollections}
-          replacedItems={replacedAssets}
-        />
-        <PlaysetSection
-          label={t("playset-editor.moves", "Moves")}
-          rulesPackages={tree}
-          collectionKey="moves"
-          excludedCollections={excludedMoveCollections}
-          toggleExcludedCollection={(collectionId, isExcluded) => {
-            setExcludedMoveCollections((prev) => ({
-              ...prev,
-              [collectionId]: isExcluded,
-            }));
-          }}
-          excludedItems={excludedMoves}
-          toggleExcludedItem={(itemId, isExcluded) => {
-            setExcludedMoves((prev) => ({
-              ...prev,
-              [itemId]: isExcluded,
-            }));
-          }}
-          replacedCollections={replacedMoveCollections}
-          replacedItems={replacedMoves}
-        />
-        <PlaysetSection
-          label={t("playset-editor.oracles", "Oracles")}
-          rulesPackages={tree}
-          collectionKey="oracles"
-          excludedCollections={excludedOracleCollections}
-          toggleExcludedCollection={(collectionId, isExcluded) => {
-            setExcludedOracleCollections((prev) => ({
-              ...prev,
-              [collectionId]: isExcluded,
-            }));
-          }}
-          excludedItems={excludedOracles}
-          toggleExcludedItem={(itemId, isExcluded) => {
-            setExcludedOracles((prev) => ({
-              ...prev,
-              [itemId]: isExcluded,
-            }));
-          }}
-          replacedCollections={replacedOracleCollections}
-          replacedItems={replacedOracles}
-        />
+        <Alert severity="info" sx={{ mb: 1 }}>
+          {t(
+            "playset-editor.exclusions-info",
+            "Checked assets, moves, and oracles will be included in your game.",
+          )}
+        </Alert>
+        <Box>
+          <PlaysetSection
+            label={t("playset-editor.assets", "Assets")}
+            rulesPackages={tree}
+            collectionKey="assets"
+            excludedCollections={excludedAssetCollections}
+            toggleExcludedCollection={(collectionId, isExcluded) => {
+              setExcludedAssetCollections((prev) => ({
+                ...prev,
+                [collectionId]: isExcluded,
+              }));
+            }}
+            excludedItems={excludedAssets}
+            toggleExcludedItem={(itemId, isExcluded) => {
+              setExcludedAssets((prev) => ({
+                ...prev,
+                [itemId]: isExcluded,
+              }));
+            }}
+            replacedCollections={replacedAssetCollections}
+            replacedItems={replacedAssets}
+          />
+          <PlaysetSection
+            label={t("playset-editor.moves", "Moves")}
+            rulesPackages={tree}
+            collectionKey="moves"
+            excludedCollections={excludedMoveCollections}
+            toggleExcludedCollection={(collectionId, isExcluded) => {
+              setExcludedMoveCollections((prev) => ({
+                ...prev,
+                [collectionId]: isExcluded,
+              }));
+            }}
+            excludedItems={excludedMoves}
+            toggleExcludedItem={(itemId, isExcluded) => {
+              setExcludedMoves((prev) => ({
+                ...prev,
+                [itemId]: isExcluded,
+              }));
+            }}
+            replacedCollections={replacedMoveCollections}
+            replacedItems={replacedMoves}
+          />
+          <PlaysetSection
+            label={t("playset-editor.oracles", "Oracles")}
+            rulesPackages={tree}
+            collectionKey="oracles"
+            excludedCollections={excludedOracleCollections}
+            toggleExcludedCollection={(collectionId, isExcluded) => {
+              setExcludedOracleCollections((prev) => ({
+                ...prev,
+                [collectionId]: isExcluded,
+              }));
+            }}
+            excludedItems={excludedOracles}
+            toggleExcludedItem={(itemId, isExcluded) => {
+              setExcludedOracles((prev) => ({
+                ...prev,
+                [itemId]: isExcluded,
+              }));
+            }}
+            replacedCollections={replacedOracleCollections}
+            replacedItems={replacedOracles}
+          />
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button color="inherit" onClick={onClose}>
@@ -164,6 +178,14 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
           color="primary"
           variant="contained"
           onClick={() => {
+            console.debug({
+              assetCategories: excludedAssetCollections,
+              assets: excludedAssets,
+              moveCategories: excludedMoveCollections,
+              moves: excludedMoves,
+              oracleCategories: excludedOracleCollections,
+              oracles: excludedOracles,
+            });
             setPlayset({
               ...playset,
               excludes: {

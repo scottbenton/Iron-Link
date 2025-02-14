@@ -23,7 +23,6 @@ export enum GameType {
 export type RulesetConfig = Record<string, boolean>;
 export type ExpansionConfig = Record<string, Record<string, boolean>>;
 export type PlaysetConfig = {
-  name?: string;
   excludes?: {
     moves?: Record<string, boolean>;
     moveCategories?: Record<string, boolean>;
