@@ -145,7 +145,10 @@ export function RollValues(props: RollValuesProps) {
           >
             <SkullIcon
               sx={(theme) => ({
-                color: theme.palette.cursed.main,
+                color:
+                  cursedResult === 10
+                    ? theme.palette.cursed.main
+                    : theme.palette.grey[300],
               })}
             />
             <Typography ml={1} color={"grey.200"}>
