@@ -38,6 +38,7 @@ export type OracleRollableMap = Record<string, Datasworn.OracleRollable>;
 
 interface DataswornTreeStoreState {
   activeRules: Record<string, Datasworn.RulesPackage>;
+  autoRollCursedDie: boolean;
 
   assets: {
     assetCollectionMap: AssetCollectionMap;
@@ -76,6 +77,7 @@ export const useDataswornTreeStore = createWithEqualityFn<
 >()(
   immer((set) => ({
     activeRules: {},
+    autoRollCursedDie: true,
 
     assets: {
       assetCollectionMap: {},
@@ -108,6 +110,7 @@ export const useDataswornTreeStore = createWithEqualityFn<
             ironLinkAskTheOracleRulesPackage,
           ...JSON.parse(JSON.stringify(tree)),
         };
+        store.autoRollCursedDie = !playset.disableAutomaticCursedDieRolls;
 
         const assetMaps = parseCollectionsIntoMaps<Datasworn.AssetCollection>(
           store.activeRules,

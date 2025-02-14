@@ -23,6 +23,7 @@ export enum GameType {
 export type RulesetConfig = Record<string, boolean>;
 export type ExpansionConfig = Record<string, Record<string, boolean>>;
 export type PlaysetConfig = {
+  disableAutomaticCursedDieRolls?: boolean;
   excludes?: {
     moves?: Record<string, boolean>;
     moveCategories?: Record<string, boolean>;

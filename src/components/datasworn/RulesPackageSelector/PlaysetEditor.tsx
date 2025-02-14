@@ -4,8 +4,11 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   DialogActions,
   DialogContent,
+  FormControlLabel,
+  Typography,
 } from "@mui/material";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -34,6 +37,14 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
     };
     return tree;
   }, [rulesets, expansions]);
+  const showCursedDieOptions = useMemo(() => {
+    return Object.values(tree).some((rulesPackage) => {
+      console.debug(rulesPackage.rules?.tags);
+      return !!rulesPackage.rules?.tags?.cursed_version_of;
+    });
+  }, [tree]);
+  const [disableAutomaticCursedDieRolls, setDisableAutomaticCursedDieRolls] =
+    useState(playset.disableAutomaticCursedDieRolls ?? false);
 
   const [excludedAssetCollections, setExcludedAssetCollections] = useState(
     playset.excludes?.assetCategories ?? {},
@@ -98,13 +109,42 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
   return (
     <>
       <DialogContent>
-        <Alert severity="info" sx={{ mb: 1 }}>
+        <Alert severity="info">
           {t(
             "playset-editor.exclusions-info",
             "Checked assets, moves, and oracles will be included in your game.",
           )}
         </Alert>
-        <Box>
+
+        {showCursedDieOptions && (
+          <Box mt={1}>
+            <FormControlLabel
+              disableTypography
+              label={
+                <Box>
+                  <Typography>
+                    {t(
+                      "playset-editor.cursed-die",
+                      "Automatically Roll Cursed Die?",
+                    )}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    {t(
+                      "playset-editor.cursed-die-info",
+                      "If checked, the a cursed die will be rolled for oracles with a cursed alternative automatically.",
+                    )}
+                  </Typography>
+                </Box>
+              }
+              onChange={(_, checked) =>
+                setDisableAutomaticCursedDieRolls(!checked)
+              }
+              control={<Checkbox checked={!disableAutomaticCursedDieRolls} />}
+            />
+          </Box>
+        )}
+
+        <Box mt={1}>
           <PlaysetSection
             label={t("playset-editor.assets", "Assets")}
             rulesPackages={tree}
@@ -178,16 +218,9 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
           color="primary"
           variant="contained"
           onClick={() => {
-            console.debug({
-              assetCategories: excludedAssetCollections,
-              assets: excludedAssets,
-              moveCategories: excludedMoveCollections,
-              moves: excludedMoves,
-              oracleCategories: excludedOracleCollections,
-              oracles: excludedOracles,
-            });
             setPlayset({
               ...playset,
+              disableAutomaticCursedDieRolls,
               excludes: {
                 assetCategories: excludedAssetCollections,
                 assets: excludedAssets,

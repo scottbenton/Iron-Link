@@ -36,6 +36,9 @@ export interface IOracleTableRoll extends IBaseRoll {
   oracleCategoryName?: string;
   oracleId: string;
   match: boolean;
+  cursedDieRoll: number | null;
+  cursedDieAdditiveResult: string | null;
+  wasCursed: boolean | null;
 }
 
 export interface ITrackProgressRoll extends IBaseRoll {
@@ -173,6 +176,10 @@ export class GameLogService {
           characterId: dto.character_id,
           uid: dto.user_id,
           guidesOnly: dto.guides_only ?? false,
+          cursedDieAdditiveResult:
+            dto.log_data.cursed_die_additive_result ?? null,
+          cursedDieRoll: dto.log_data.cursed_die_roll ?? null,
+          wasCursed: dto.log_data.was_cursed ?? null,
         } satisfies IOracleTableRoll;
       case "track_progress_roll":
         return {
@@ -265,6 +272,9 @@ export class GameLogService {
             oracle_id: log.oracleId,
             match: log.match,
             label: log.rollLabel,
+            cursed_die_additive_result: log.cursedDieAdditiveResult,
+            cursed_die_roll: log.cursedDieRoll,
+            was_cursed: log.wasCursed,
           },
           created_at: log.timestamp.toISOString(),
           character_id: log.characterId,
