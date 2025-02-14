@@ -2,6 +2,7 @@ import { Box, Divider, Typography } from "@mui/material";
 
 import { D6Icon } from "assets/D6Icon";
 import { D10Icon } from "assets/D10Icon";
+import { SkullIcon } from "assets/SkullIcon";
 
 import { ProgressTrackTick } from "components/datasworn/ProgressTrack/ProgressTrackTick";
 
@@ -18,6 +19,7 @@ export interface RollValuesProps {
     title: string;
     value: string | number;
   };
+  cursedResult?: number;
   crossOutD6?: boolean;
   crossOutD6Value?: boolean;
   isExpanded: boolean;
@@ -31,6 +33,7 @@ export function RollValues(props: RollValuesProps) {
     crossOutD6Value,
     fixedResult,
     isExpanded,
+    cursedResult,
   } = props;
 
   if (!isExpanded) {
@@ -131,6 +134,22 @@ export function RollValues(props: RollValuesProps) {
             <D10Icon />
             <Typography ml={1} color={"grey.200"}>
               {Array.isArray(d10Results) ? d10Results.join(", ") : d10Results}
+            </Typography>
+          </Box>
+        )}
+        {cursedResult && (
+          <Box
+            display={"flex"}
+            alignItems={"center"}
+            justifyContent={"space-between"}
+          >
+            <SkullIcon
+              sx={{
+                color: "#86d560",
+              }}
+            />
+            <Typography ml={1} color={"grey.200"}>
+              {cursedResult}
             </Typography>
           </Box>
         )}

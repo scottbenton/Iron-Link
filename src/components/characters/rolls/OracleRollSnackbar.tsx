@@ -23,9 +23,14 @@ export function OracleRollSnackbar(props: OracleRollSnackbarProps) {
         isExpanded={isExpanded}
       />
       <RollContainer>
-        <RollValues d10Results={roll.roll} isExpanded={isExpanded} />
+        <RollValues
+          d10Results={roll.roll}
+          isExpanded={isExpanded}
+          cursedResult={roll.cursedDieRoll ?? undefined}
+        />
         <RollResult
           markdown={roll.result}
+          secondaryMarkdown={roll.cursedDieAdditiveResult ?? undefined}
           extras={
             roll.oracleId &&
             !!oracle?.match &&

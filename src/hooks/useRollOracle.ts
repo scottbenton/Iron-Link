@@ -56,7 +56,6 @@ export function rollOracle(
     return undefined;
   }
 
-  console.debug(oracle);
   const isAlreadyCursedTable = !!oracle.tags?.sundered_isles?.cursed_version_of;
 
   const cursedOracleTag = shouldRollCursedDieIfOracleSupports
@@ -84,11 +83,10 @@ export function rollOracle(
       : oracle;
 
   const baseResult = getOracleResult(baseOracle);
-  const cursedDieResult = getOracleResult(
+  const cursedDieResult =
     cursedDieRoll === 10 && cursedOracle && isCursedOracleAdditive
-      ? cursedOracle
-      : oracle,
-  );
+      ? getOracleResult(cursedOracle)
+      : undefined;
 
   if (baseResult?.resultString && baseResult.rolls !== undefined) {
     return {

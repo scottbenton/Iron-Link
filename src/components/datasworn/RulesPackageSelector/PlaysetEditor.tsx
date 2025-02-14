@@ -39,7 +39,6 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
   }, [rulesets, expansions]);
   const showCursedDieOptions = useMemo(() => {
     return Object.values(tree).some((rulesPackage) => {
-      console.debug(rulesPackage.rules?.tags);
       return !!rulesPackage.rules?.tags?.cursed_version_of;
     });
   }, [tree]);
