@@ -13,6 +13,7 @@ import { ListItemButtonWithSecondaryAction } from "./ListItemButtonWithSecondary
 import {
   OracleVisibilityState,
   VisibilitySettings,
+  isCursedOracle,
 } from "./getOracleCollectionVisiblity";
 
 export interface OracleListItemProps {
@@ -45,7 +46,10 @@ export function OracleListItem(props: OracleListItemProps) {
       OracleVisibilityState.Hidden;
   }
 
-  if (oracleVisibility === OracleVisibilityState.Hidden) {
+  if (
+    oracleVisibility === OracleVisibilityState.Hidden ||
+    isCursedOracle(oracle)
+  ) {
     return null;
   }
 

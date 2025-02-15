@@ -1,3 +1,5 @@
+import { Datasworn } from "@datasworn/core";
+
 import {
   OracleCollectionMap,
   OracleRollableMap,
@@ -51,7 +53,9 @@ export function getOracleCollectionVisibility(
     const orc = collection.contents[orcKey];
     const oracle = oracleRollableMap[orc._id];
     if (oracle) {
-      if (
+      if (isCursedOracle(oracle)) {
+        visibleOracles[oracle._id] = OracleVisibilityState.Hidden;
+      } else if (
         oracle &&
         oracle.name
           .toLocaleLowerCase()
@@ -84,4 +88,18 @@ export function getOracleCollectionVisibility(
   collectionVisibilityMap[collectionId] = collectionVisibility;
 
   return collectionVisibility !== CollectionVisibilityState.Hidden;
+}
+
+export function isCursedOracle(oracle: Datasworn.OracleRollable): boolean {
+  const cursedOracleAlternative =
+    oracle?.tags?.sundered_isles?.cursed_version_of;
+
+  const isCursedOracle =
+    Array.isArray(cursedOracleAlternative) &&
+    cursedOracleAlternative.length > 0;
+
+  if (isCursedOracle) {
+    console.debug(oracle.name, "is a cursed oracle");
+  }
+  return isCursedOracle;
 }
