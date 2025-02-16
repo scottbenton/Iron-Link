@@ -17,7 +17,13 @@ const starforged = {
   ...starforgedJson,
   title: "Starforged",
 } as unknown as Datasworn.Ruleset;
-const sunderedIsles = sunderedIslesJson as Datasworn.Expansion;
+let sunderedIsles = sunderedIslesJson as Datasworn.Expansion;
+sunderedIsles = JSON.parse(
+  JSON.stringify(sunderedIsles),
+) as Datasworn.Expansion;
+sunderedIsles.moves.exploration.enhances = [
+  "move_category:starforged/exploration",
+];
 
 export const ironswornId = ironswornJson._id;
 export const delveId = delveJson._id;

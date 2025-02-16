@@ -7,9 +7,9 @@ import { useState } from "react";
 
 import { Move } from "../Move";
 import {
-  MoveVisibilityState,
+  ItemVisibility,
   VisibilitySettings,
-} from "./getMoveCategoryVisibility";
+} from "../_helpers/getCollectionVisibility";
 
 export interface MoveListItemProps {
   move: Datasworn.Move;
@@ -28,15 +28,15 @@ export function MoveListItem(props: MoveListItemProps) {
     isFullCollectionVisible,
   } = props;
 
-  let moveVisibility = MoveVisibilityState.Visible;
+  let moveVisibility = ItemVisibility.Visible;
   if (isSearchActive && !isFullCollectionVisible) {
     moveVisibility =
-      visibilitySettings.visibleMoves[move._id] ?? MoveVisibilityState.Hidden;
+      visibilitySettings.itemVisibility[move._id] ?? ItemVisibility.Hidden;
   }
 
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (moveVisibility === MoveVisibilityState.Hidden) {
+  if (moveVisibility === ItemVisibility.Hidden) {
     return null;
   }
 

@@ -10,12 +10,12 @@ import {
 import { ListItemIcon } from "@mui/material";
 import { useState } from "react";
 
+import {
+  CollectionVisibility,
+  VisibilitySettings,
+} from "../_helpers/getCollectionVisibility";
 import { OracleListItem } from "./OracleListItem";
 import { OracleTableSharedTextListItem } from "./OracleTableSharedTextListItem";
-import {
-  CollectionVisibilityState,
-  VisibilitySettings,
-} from "./getOracleCollectionVisiblity";
 
 export interface OracleCollectionListItemProps {
   oracleCollectionId: string;
@@ -42,16 +42,16 @@ export function OracleCollectionListItem(props: OracleCollectionListItemProps) {
 
   const [isExpanded, setIsExpanded] = useState(false);
 
-  let collectionVisibilityState = CollectionVisibilityState.All;
+  let collectionVisibilityState = CollectionVisibility.All;
   if (isSearchActive && !isFullCollectionVisible) {
     collectionVisibilityState =
-      visibilitySettings.visibleCollections[oracleCollectionId] ??
-      CollectionVisibilityState.Hidden;
+      visibilitySettings.collectionVisibility[oracleCollectionId] ??
+      CollectionVisibility.Hidden;
   }
 
   if (
     !oracleCollection ||
-    collectionVisibilityState === CollectionVisibilityState.Hidden
+    collectionVisibilityState === CollectionVisibility.Hidden
   ) {
     return null;
   }
@@ -121,7 +121,7 @@ export function OracleCollectionListItem(props: OracleCollectionListItemProps) {
               visibilitySettings={visibilitySettings}
               isSearchActive={isSearchActive}
               isFullCollectionVisible={
-                collectionVisibilityState === CollectionVisibilityState.All
+                collectionVisibilityState === CollectionVisibility.All
               }
             />
           ))}
@@ -138,7 +138,7 @@ export function OracleCollectionListItem(props: OracleCollectionListItemProps) {
                   visibilitySettings={visibilitySettings}
                   isSearchActive={isSearchActive}
                   isFullCollectionVisible={
-                    collectionVisibilityState === CollectionVisibilityState.All
+                    collectionVisibilityState === CollectionVisibility.All
                   }
                 />
               ))}

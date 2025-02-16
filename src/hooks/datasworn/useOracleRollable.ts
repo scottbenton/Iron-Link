@@ -11,9 +11,11 @@ export function getOracleRollable(
 }
 
 export function useOracleRollable(
-  oracleRollableId: string,
+  oracleRollableId: string | undefined,
 ): Datasworn.OracleRollable | undefined {
-  return useDataswornTreeStore(
-    (store) => store.oracles.oracleRollableMap[oracleRollableId],
+  return useDataswornTreeStore((store) =>
+    oracleRollableId
+      ? store.oracles.oracleRollableMap[oracleRollableId]
+      : undefined,
   );
 }
