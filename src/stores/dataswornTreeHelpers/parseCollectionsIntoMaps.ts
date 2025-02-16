@@ -42,6 +42,7 @@ export function parseCollectionsIntoMaps<C extends Collections>(
   ) as Map<string, C>;
 
   const rootCollections: RootCollections = {};
+  const allRootCollections: C[] = [];
 
   const collectionMap: Record<string, C> = {};
   const itemMap: C["contents"] = {};
@@ -61,24 +62,25 @@ export function parseCollectionsIntoMaps<C extends Collections>(
       };
     }
 
+    allRootCollections.push(rootCollection);
+
     rootCollections[ruleset.id].rootCollectionIds.push(rootCollection._id);
   });
 
-  Object.values(rootCollections).forEach(({ rootCollectionIds }) => {
-    rootCollectionIds.forEach((rootCollectionId) => {
-      const collection = rootCollectionQueryResult.get(rootCollectionId);
-      if (collection) {
-        collectionMap[collection._id] = collection;
-        parseCollection(
-          collection,
-          tree,
-          playsetExclusions,
-          collectionMap,
-          itemMap,
-        );
-      }
-    });
+  allRootCollections.forEach((collection) => {
+    if (collection) {
+      collectionMap[collection._id] = collection;
+      parseCollection(
+        collection,
+        tree,
+        playsetExclusions,
+        collectionMap,
+        itemMap,
+      );
+    }
   });
+
+  console.debug(rootCollections);
 
   return {
     rootCollections,

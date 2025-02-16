@@ -5,13 +5,13 @@ import { useTranslation } from "react-i18next";
 
 import { useMoves } from "stores/dataswornTree.store";
 
-import { MoveCategoryListItem } from "./MoveCategoryListItem";
 import {
-  CategoryVisibilityState,
-  MoveVisibilityState,
+  CollectionVisibility,
+  ItemVisibility,
   VisibilitySettings,
-  getMoveCategoryVisibility,
-} from "./getMoveCategoryVisibility";
+  getCollectionVisibilities,
+} from "../_helpers/getCollectionVisibility";
+import { MoveCategoryListItem } from "./MoveCategoryListItem";
 
 export function MoveTree() {
   const { t } = useTranslation();
@@ -22,25 +22,23 @@ export function MoveTree() {
   const { rootMoveCategories, moveCategoryMap, moveMap } = useMoves();
 
   const visibilitySettings = useMemo(() => {
-    const visibleCollections: Record<string, CategoryVisibilityState> = {};
-    const visibleOracles: Record<string, MoveVisibilityState> = {};
+    const collectionVisibility: Record<string, CollectionVisibility> = {};
+    const itemVisibility: Record<string, ItemVisibility> = {};
 
     Object.values(rootMoveCategories).forEach(({ rootCollectionIds }) => {
-      rootCollectionIds.forEach((moveId) => {
-        getMoveCategoryVisibility(
-          deferredSearchValue,
-          moveId,
-          moveCategoryMap,
-          moveMap,
-          visibleCollections,
-          visibleOracles,
-        );
-      });
+      getCollectionVisibilities(
+        deferredSearchValue,
+        rootCollectionIds,
+        moveCategoryMap,
+        moveMap,
+        collectionVisibility,
+        itemVisibility,
+      );
     });
 
     return {
-      visibleCategories: visibleCollections,
-      visibleMoves: visibleOracles,
+      collectionVisibility,
+      itemVisibility,
     } as VisibilitySettings;
   }, [rootMoveCategories, moveCategoryMap, moveMap, deferredSearchValue]);
 

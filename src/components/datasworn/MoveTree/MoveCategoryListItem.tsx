@@ -11,11 +11,11 @@ import { useState } from "react";
 
 import { MoveCategoryMap, MoveMap } from "stores/dataswornTree.store";
 
-import { MoveListItem } from "./MoveListItem";
 import {
-  CategoryVisibilityState,
+  CollectionVisibility,
   VisibilitySettings,
-} from "./getMoveCategoryVisibility";
+} from "../_helpers/getCollectionVisibility";
+import { MoveListItem } from "./MoveListItem";
 
 export interface MoveCategoryListItemProps {
   moveCategoryId: string;
@@ -42,16 +42,16 @@ export function MoveCategoryListItem(props: MoveCategoryListItemProps) {
 
   const [isExpanded, setIsExpanded] = useState(false);
 
-  let categoryVisibilityState = CategoryVisibilityState.All;
+  let categoryVisibilityState = CollectionVisibility.All;
   if (isSearchActive && !isFullCategoryVisible) {
     categoryVisibilityState =
-      visibilitySettings.visibleCategories[moveCategoryId] ??
-      CategoryVisibilityState.Hidden;
+      visibilitySettings.collectionVisibility[moveCategoryId] ??
+      CollectionVisibility.Hidden;
   }
 
   if (
     !moveCategory ||
-    categoryVisibilityState === CategoryVisibilityState.Hidden
+    categoryVisibilityState === CollectionVisibility.Hidden
   ) {
     return null;
   }
@@ -108,7 +108,7 @@ export function MoveCategoryListItem(props: MoveCategoryListItemProps) {
               visibilitySettings={visibilitySettings}
               isSearchActive={isSearchActive}
               isFullCollectionVisible={
-                categoryVisibilityState === CategoryVisibilityState.All
+                categoryVisibilityState === CollectionVisibility.All
               }
             />
           ))}
@@ -122,7 +122,7 @@ export function MoveCategoryListItem(props: MoveCategoryListItemProps) {
               visibilitySettings={visibilitySettings}
               isSearchActive={isSearchActive}
               isFullCategoryVisible={
-                categoryVisibilityState === CategoryVisibilityState.All
+                categoryVisibilityState === CollectionVisibility.All
               }
             />
           ))}
