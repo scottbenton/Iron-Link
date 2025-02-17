@@ -1,6 +1,8 @@
 ![Changelog](./readme_assets/banner-changelog.png)
 
-## Beta 0.2.0
+## Beta 0.3.0
+
+## Beta 0.2.0 - The Playsets Update
 
 ### Features
 
