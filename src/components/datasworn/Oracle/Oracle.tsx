@@ -48,7 +48,6 @@ export function Oracle(props: OracleProps) {
     );
   }
 
-  console.debug(cursedOracle?.tags);
   return (
     <Box sx={sx} bgcolor="background.paper">
       {!hideOracleName && <Typography variant={"h6"}>{oracle.name}</Typography>}

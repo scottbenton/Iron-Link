@@ -20,7 +20,7 @@ import { OracleTableSharedTextListItem } from "./OracleTableSharedTextListItem";
 export interface OracleCollectionListItemProps {
   oracleCollectionId: string;
   oracleCollectionMap: Record<string, Datasworn.OracleCollection>;
-  oracleRollableMap: Record<string, Datasworn.OracleRollable>;
+  oracleRollableMap: Record<string, Datasworn.AnyOracleRollable>;
   disabled?: boolean;
   visibilitySettings: VisibilitySettings;
   isSearchActive: boolean;

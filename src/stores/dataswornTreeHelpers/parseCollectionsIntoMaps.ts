@@ -80,8 +80,6 @@ export function parseCollectionsIntoMaps<C extends Collections>(
     }
   });
 
-  console.debug(rootCollections);
-
   return {
     rootCollections,
     collectionMap,

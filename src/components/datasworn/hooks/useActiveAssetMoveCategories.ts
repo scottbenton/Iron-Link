@@ -29,7 +29,7 @@ export function useActiveAssetMoveCategories(): Record<
       ...characterAssets,
       ...gameAssets,
     }).forEach((assetDocument) => {
-      const asset = assetMap[assetDocument.id];
+      const asset = assetMap[assetDocument.dataswornAssetId];
       if (!asset) return;
 
       asset.abilities.forEach((ability, index) => {

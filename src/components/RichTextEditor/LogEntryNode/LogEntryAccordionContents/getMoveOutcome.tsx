@@ -3,7 +3,7 @@ import { Datasworn } from "@datasworn/core";
 import { RollResult as RollResultType } from "repositories/shared.types";
 
 export function getMoveOutcome(
-  move: Datasworn.Move | undefined,
+  move: Datasworn.AnyMove | undefined,
   result: RollResultType,
 ): Datasworn.MoveOutcome | undefined {
   const outcomes =

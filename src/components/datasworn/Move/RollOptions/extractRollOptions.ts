@@ -23,7 +23,7 @@ interface RollOptionGroup {
 }
 
 export function extractRollOptions(
-  move: Datasworn.Move,
+  move: Datasworn.AnyMove,
   gameAssets: Record<string, IAsset>,
   characterRollOptionStates: Record<string, CharacterRollOptionState>,
   characterAssets: Record<string, Record<string, IAsset>>,
@@ -150,7 +150,8 @@ function getEnhancementsFromAssets(
   > = {};
 
   Object.values(assetDocuments).forEach((assetDocument) => {
-    const asset = getAsset(assetDocument.id);
+    const asset = getAsset(assetDocument.dataswornAssetId);
+    console.debug("CHECKING ASSET", asset);
     if (!asset) return;
 
     asset.abilities.forEach((ability, index) => {
@@ -176,6 +177,7 @@ function getEnhancementsFromAssets(
                   enhancements: [],
                 };
               }
+              console.debug("ADDING ENHANCEMENT", moveEnhancement);
               activeAssetMoveEnhancements[ability._id].enhancements.push(
                 moveEnhancement,
               );
@@ -258,7 +260,7 @@ function extractActionRollOptionsFromEnhancement(
 }
 
 function extractValidActionRollOptions(
-  move: Datasworn.Move,
+  move: Datasworn.AnyMove,
   assets: Record<string, IAsset>,
   character: CharacterRollOptionState | undefined,
   tree: Record<string, Datasworn.RulesPackage>,
@@ -305,7 +307,7 @@ function canUseAssetControlRoll(
       for (const [, asset] of matches) {
         if (asset.type === "asset") {
           for (const assetDocument of Object.values(assets)) {
-            if (assetDocument.id === asset._id) {
+            if (assetDocument.dataswornAssetId === asset._id) {
               const control = asset.controls?.[option.control];
               if (control) {
                 return true;
@@ -319,7 +321,9 @@ function canUseAssetControlRoll(
   );
 }
 
-function getVisibleProgressTrack(move: Datasworn.Move): TrackTypes | undefined {
+function getVisibleProgressTrack(
+  move: Datasworn.AnyMove,
+): TrackTypes | undefined {
   if (move.roll_type === "progress_roll") {
     switch (move.tracks.category) {
       case "Vow":
@@ -341,7 +345,7 @@ function getVisibleProgressTrack(move: Datasworn.Move): TrackTypes | undefined {
   }
 }
 
-function getSpecialTrackConditions(move: Datasworn.Move): string[] {
+function getSpecialTrackConditions(move: Datasworn.AnyMove): string[] {
   if (move.roll_type === "special_track") {
     const specialTracks = new Set<string>();
     move.trigger.conditions.forEach((condition) => {

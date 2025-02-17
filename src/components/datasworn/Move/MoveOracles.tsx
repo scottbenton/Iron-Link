@@ -7,11 +7,12 @@ import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddT
 import { OracleTable } from "../Oracle/OracleTable";
 
 export interface MoveOraclesProps {
-  move: Datasworn.Move;
+  move: Datasworn.AnyMove;
 }
 export function MoveOracles(props: MoveOraclesProps) {
   const { move } = props;
-  const oracles = move.oracles;
+
+  const oracles = "oracles" in move ? move.oracles : undefined;
 
   const { t } = useTranslation();
   const rollOracle = useRollOracleAndAddToLog();

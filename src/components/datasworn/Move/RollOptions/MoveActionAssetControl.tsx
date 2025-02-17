@@ -56,7 +56,7 @@ export function MoveActionAssetControl(props: MoveActionAssetControlProps) {
           Object.entries({ ...characterAssets, ...gameAssets }).forEach(
             ([assetDocumentId, assetDocument]) => {
               const control = asset.controls?.[rollOption.control];
-              if (control && assetDocument.id === asset._id) {
+              if (control && assetDocument.dataswornAssetId === asset._id) {
                 const controlValue =
                   assetDocument.controlValues?.[rollOption.control];
                 const defaultControlValue = control.value;
