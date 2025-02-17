@@ -5,11 +5,12 @@ import { MarkdownRenderer } from "components/MarkdownRenderer";
 export interface RollResultProps {
   result?: string;
   markdown?: string;
+  secondaryMarkdown?: string;
   extras?: string[];
 }
 
 export function RollResult(props: RollResultProps) {
-  const { result, markdown, extras } = props;
+  const { result, markdown, secondaryMarkdown, extras } = props;
 
   return (
     <Box
@@ -31,6 +32,16 @@ export function RollResult(props: RollResultProps) {
       {markdown && (
         <Box maxWidth={"30ch"}>
           <MarkdownRenderer markdown={markdown} inheritColor disableLinks />
+        </Box>
+      )}
+      {secondaryMarkdown && (
+        <Box maxWidth={"30ch"}>
+          <MarkdownRenderer
+            markdown={secondaryMarkdown}
+            inheritColor
+            disableLinks
+            inlineParagraph
+          />
         </Box>
       )}
       {Array.isArray(extras) &&

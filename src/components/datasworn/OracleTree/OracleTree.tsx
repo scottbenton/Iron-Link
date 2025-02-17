@@ -5,14 +5,14 @@ import { useTranslation } from "react-i18next";
 
 import { useOracles } from "stores/dataswornTree.store";
 
+import {
+  CollectionVisibility,
+  ItemVisibility,
+  VisibilitySettings,
+  getCollectionVisibilities,
+} from "../_helpers/getCollectionVisibility";
 import { AskTheOracleButtons } from "./AskTheOracleButtons";
 import { OracleCollectionListItem } from "./OracleCollectionListItem";
-import {
-  CollectionVisibilityState,
-  OracleVisibilityState,
-  VisibilitySettings,
-  getOracleCollectionVisibility,
-} from "./getOracleCollectionVisiblity";
 
 export function OracleTree() {
   const { t } = useTranslation();
@@ -24,25 +24,23 @@ export function OracleTree() {
     useOracles();
 
   const visibilitySettings = useMemo(() => {
-    const visibleCollections: Record<string, CollectionVisibilityState> = {};
-    const visibleOracles: Record<string, OracleVisibilityState> = {};
+    const collectionVisibility: Record<string, CollectionVisibility> = {};
+    const itemVisibility: Record<string, ItemVisibility> = {};
 
-    Object.values(rootOracleCollections).forEach(({ rootOracles }) => {
-      rootOracles.forEach((oracleId) => {
-        getOracleCollectionVisibility(
-          deferredSearchValue,
-          oracleId,
-          oracleCollectionMap,
-          oracleRollableMap,
-          visibleCollections,
-          visibleOracles,
-        );
-      });
+    Object.values(rootOracleCollections).forEach(({ rootCollectionIds }) => {
+      getCollectionVisibilities(
+        deferredSearchValue,
+        rootCollectionIds,
+        oracleCollectionMap,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        oracleRollableMap as unknown as any,
+        collectionVisibility,
+        itemVisibility,
+      );
     });
-
     return {
-      visibleCollections,
-      visibleOracles,
+      collectionVisibility,
+      itemVisibility,
     } as VisibilitySettings;
   }, [
     rootOracleCollections,
@@ -91,7 +89,7 @@ export function OracleTree() {
                 {ruleset.title}
               </ListSubheader>
             )}
-            {ruleset.rootOracles.map((collectionKey) => (
+            {ruleset.rootCollectionIds.map((collectionKey) => (
               <OracleCollectionListItem
                 key={collectionKey}
                 oracleCollectionId={collectionKey}

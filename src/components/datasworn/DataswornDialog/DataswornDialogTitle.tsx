@@ -9,7 +9,9 @@ import { useAppState } from "stores/appState.store";
 export function DataswornDialogTitle(props: PropsWithChildren) {
   const { children } = props;
 
-  const previousIds = useAppState((state) => state.prevDataswornDialog);
+  const previousIds = useAppState(
+    (state) => state.dataswornDialogState.previousIds,
+  );
   const handleClose = useAppState((state) => state.closeDataswornDialog);
   const handleGoToPreviousItem = useAppState(
     (state) => state.prevDataswornDialog,

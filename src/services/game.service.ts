@@ -4,6 +4,7 @@ import {
   GameDTO,
   GameRepository,
   GameType,
+  PlaysetConfig,
   RulesetConfig,
 } from "repositories/game.repository";
 import { GameInviteKeyRepository } from "repositories/gameInviteKey.repository";
@@ -24,6 +25,7 @@ export type IGame = {
 
   rulesets: RulesetConfig;
   expansions: ExpansionConfig;
+  playset: PlaysetConfig;
 };
 
 export enum GamePlayerRole {
@@ -42,12 +44,14 @@ export class GameService {
     gameType: GameType,
     rulesets: Record<string, boolean>,
     expansions: Record<string, Record<string, boolean>>,
+    playset: PlaysetConfig,
   ): Promise<string> {
     const gameId = await GameRepository.createGame(
       gameName,
       gameType,
       rulesets,
       expansions,
+      playset,
     );
 
     let role: GamePlayerDTO["role"] = "player";
@@ -208,8 +212,9 @@ export class GameService {
     gameId: string,
     rulesets: RulesetConfig,
     expansions: ExpansionConfig,
+    playset: PlaysetConfig,
   ): Promise<void> {
-    await GameRepository.updateGame(gameId, { rulesets, expansions });
+    await GameRepository.updateGame(gameId, { rulesets, expansions, playset });
   }
 
   public static async updateColorScheme(
@@ -256,6 +261,7 @@ export class GameService {
       colorScheme,
       rulesets: gameDTO.rulesets as Record<string, boolean>,
       expansions: gameDTO.expansions as Record<string, Record<string, boolean>>,
+      playset: gameDTO.playset as PlaysetConfig,
     };
   }
 

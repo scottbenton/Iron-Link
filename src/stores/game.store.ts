@@ -12,6 +12,7 @@ import {
 import {
   ExpansionConfig,
   GameType,
+  PlaysetConfig,
   RulesetConfig,
 } from "repositories/game.repository";
 import { ColorScheme } from "repositories/shared.types";
@@ -69,6 +70,7 @@ interface GameStoreActions {
     gameId: string,
     rulesets: RulesetConfig,
     expansions: ExpansionConfig,
+    playset: PlaysetConfig,
   ) => Promise<void>;
 
   updateGamePlayerRole: (
@@ -181,8 +183,8 @@ export const useGameStore = createWithEqualityFn<
         colorScheme ?? ColorScheme.Default,
       );
     },
-    updateGameRulesPackages: (gameId, rulesets, expansions) => {
-      return GameService.updateRules(gameId, rulesets, expansions);
+    updateGameRulesPackages: (gameId, rulesets, expansions, playset) => {
+      return GameService.updateRules(gameId, rulesets, expansions, playset);
     },
     deleteGame: (gameId) => {
       return GameService.deleteGame(gameId);
@@ -220,9 +222,10 @@ export function useListenToGame(gameId: string | undefined) {
   const gamePlayers = useGameStore((store) => store.gamePlayers);
   const gameType = useGameStore((state) => state.game?.gameType);
 
-  const expansionsAndRulesets = useGameStore((store) => ({
+  const expansionsRulesetsAndPlayset = useGameStore((store) => ({
     expansions: store.game?.expansions ?? {},
     rulesets: store.game?.rulesets ?? {},
+    playset: store.game?.playset ?? {},
   }));
   const setDataswornTree = useSetDataswornTree();
 
@@ -261,20 +264,20 @@ export function useListenToGame(gameId: string | undefined) {
 
   useEffect(() => {
     const dataswornTree: Record<string, Datasworn.RulesPackage> = {};
-    Object.entries(expansionsAndRulesets.rulesets)
+    Object.entries(expansionsRulesetsAndPlayset.rulesets)
       .filter(([, value]) => value)
       .forEach(([key]) => {
         dataswornTree[key] = defaultBaseRulesets[key];
-        Object.entries(expansionsAndRulesets.expansions[key] ?? {})
+        Object.entries(expansionsRulesetsAndPlayset.expansions[key] ?? {})
           .filter(([, value]) => value)
           .forEach(([expansionId]) => {
             dataswornTree[expansionId] = defaultExpansions[key]?.[expansionId];
           });
       });
-    setDataswornTree(dataswornTree);
+    setDataswornTree(dataswornTree, expansionsRulesetsAndPlayset.playset);
 
     return () => {
-      setDataswornTree({});
+      setDataswornTree({}, {});
     };
-  }, [expansionsAndRulesets, setDataswornTree]);
+  }, [expansionsRulesetsAndPlayset, setDataswornTree]);
 }

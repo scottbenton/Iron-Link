@@ -22,6 +22,18 @@ export enum GameType {
 
 export type RulesetConfig = Record<string, boolean>;
 export type ExpansionConfig = Record<string, Record<string, boolean>>;
+export type PlaysetConfig = {
+  disableAutomaticCursedDieRolls?: boolean;
+  excludes?: {
+    moves?: Record<string, boolean>;
+    moveCategories?: Record<string, boolean>;
+    assets?: Record<string, boolean>;
+    assetCategories?: Record<string, boolean>;
+    oracles?: Record<string, boolean>;
+    oracleCategories?: Record<string, boolean>;
+    truths?: Record<string, boolean>;
+  };
+};
 
 export interface LegacyGameDTO {
   name: string;
@@ -222,6 +234,7 @@ export class GameRepository {
     gameType: GameDTO["game_type"],
     rulesets: Record<string, boolean>,
     expansions: Record<string, Record<string, boolean>>,
+    playset: PlaysetConfig,
   ): Promise<string> {
     return new Promise<string>((res, reject) => {
       this.games()
@@ -230,6 +243,7 @@ export class GameRepository {
           game_type: gameType,
           rulesets,
           expansions,
+          playset,
         })
         .select()
         .single()

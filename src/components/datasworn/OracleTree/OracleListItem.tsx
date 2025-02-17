@@ -9,11 +9,12 @@ import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddT
 import { useOpenDataswornDialog } from "stores/appState.store";
 import { GamePermission } from "stores/game.store";
 
-import { ListItemButtonWithSecondaryAction } from "./ListItemButtonWithSecondaryAction";
 import {
-  OracleVisibilityState,
+  CollectionVisibility,
+  ItemVisibility,
   VisibilitySettings,
-} from "./getOracleCollectionVisiblity";
+} from "../_helpers/getCollectionVisibility";
+import { ListItemButtonWithSecondaryAction } from "./ListItemButtonWithSecondaryAction";
 
 export interface OracleListItemProps {
   oracle: Datasworn.OracleRollable;
@@ -38,14 +39,14 @@ export function OracleListItem(props: OracleListItemProps) {
   const rollOracle = useRollOracleAndAddToLog();
   const isGuide = useGamePermissions().gamePermission === GamePermission.Guide;
 
-  let oracleVisibility = OracleVisibilityState.Visible;
+  let oracleVisibility = ItemVisibility.Visible;
   if (isSearchActive && !isFullCollectionVisible) {
     oracleVisibility =
-      visibilitySettings.visibleOracles[oracle._id] ??
-      OracleVisibilityState.Hidden;
+      visibilitySettings.itemVisibility[oracle._id] ??
+      CollectionVisibility.Hidden;
   }
 
-  if (oracleVisibility === OracleVisibilityState.Hidden) {
+  if (oracleVisibility === ItemVisibility.Hidden) {
     return null;
   }
 

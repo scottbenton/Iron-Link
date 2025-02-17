@@ -141,6 +141,12 @@ export function getTheme(colorScheme: ColorScheme): Theme {
         disabledBackground: grey[950] + "1f",
         focus: grey[950] + "1f",
       },
+      cursed: {
+        light: "#9ae600",
+        main: "#7ccf00",
+        dark: "#5ea500",
+        contrastText: "#000",
+      },
       ...themeConfig[colorScheme],
       ...sharedStatusColors,
     },

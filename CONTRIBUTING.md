@@ -1,4 +1,4 @@
-# Contributing
+![Contributing](./readme_assets/banner-contributing.png)
 
 Any development help on this project is more than welcome! New features should be developed in feature branches, and then will be merged into the `main` branch to deploy to production.
 

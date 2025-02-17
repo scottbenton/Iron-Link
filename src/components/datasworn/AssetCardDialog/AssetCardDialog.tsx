@@ -7,7 +7,8 @@ import { GridLayout } from "components/Layout";
 
 import { useIsMobile } from "hooks/useIsMobile";
 
-import { RootAssetCollections, useAssets } from "stores/dataswornTree.store";
+import { useAssets } from "stores/dataswornTree.store";
+import { RootCollections } from "stores/dataswornTreeHelpers/parseCollectionsIntoMaps";
 
 import { IAsset } from "services/asset.service";
 
@@ -114,12 +115,12 @@ export function AssetCardDialog(props: AssetCardDialogProps) {
   );
 }
 
-function getFirstAssetCollection(assetCollections: RootAssetCollections) {
+function getFirstAssetCollection(assetCollections: RootCollections) {
   const firstRuleset = Object.keys(assetCollections)[0];
 
   if (!firstRuleset) return "";
 
-  const firstCollection = assetCollections[firstRuleset].rootAssets[0];
+  const firstCollection = assetCollections[firstRuleset].rootCollectionIds[0];
 
   if (!firstCollection) return "";
 

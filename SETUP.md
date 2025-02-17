@@ -1,4 +1,4 @@
-# Setup
+![Setup](./readme_assets/banner-setup.png)
 
 ## Steps
 
@@ -22,7 +22,7 @@ Create a new file in the root of this repository, named `.env.local`. This file 
 Copy the following into your `.env.local` file
 
 ```
-VITE_SUPABASE_URL=http://localhost:54321 # Yours might be different, but this is the default 
+VITE_SUPABASE_URL=http://localhost:54321 # Yours might be different, but this is the default
 VITE_SUPABASE_ANON_KEY=RANDOM_KEY_HERE # This key will be spit out by the supabase CLI when starting it for the first time
 ```
 

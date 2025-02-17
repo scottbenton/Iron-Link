@@ -28,18 +28,20 @@ export function RollSnackbarSection() {
       alignItems={"flex-end"}
       sx={(theme) => ({
         transition: theme.transitions.create(["bottom", "transform"]),
+        pointerEvents: "none",
         "&>div": {
           display: "flex",
           flexDirection: "column",
           alignItems: "flex-end",
           justifyContent: "flex-end",
+          pointerEvents: "none",
         },
       })}
     >
       <TransitionGroup>
         {rolls.map(({ id, roll }, index, array) => (
-          <Slide direction={"left"} key={index}>
-            <Box mt={1}>
+          <Slide direction={"left"} key={id}>
+            <Box mt={1} sx={{ pointerEvents: "all" }}>
               <RollSnackbar
                 roll={roll}
                 rollId={id}
@@ -59,7 +61,7 @@ export function RollSnackbarSection() {
           size={"medium"}
           color={"primary"}
           onClick={() => clearRolls()}
-          sx={{ mt: 2 }}
+          sx={{ mt: 2, pointerEvents: "all" }}
         >
           Clear All
           <ClearIcon sx={{ ml: 1 }} />

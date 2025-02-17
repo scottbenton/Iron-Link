@@ -130,7 +130,7 @@ function announceRoll(
   t: TFunction,
   announce: (announcement: string) => void,
 ) {
-  let move: Datasworn.Move | undefined = undefined;
+  let move: Datasworn.Move | Datasworn.EmbeddedMove | undefined = undefined;
 
   if (roll.moveId) {
     move = getMove(roll.moveId);

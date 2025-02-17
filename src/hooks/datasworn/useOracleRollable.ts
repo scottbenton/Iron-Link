@@ -4,16 +4,18 @@ import { useDataswornTreeStore } from "stores/dataswornTree.store";
 
 export function getOracleRollable(
   oracleRollableId: string,
-): Datasworn.OracleRollable | undefined {
+): Datasworn.OracleRollable | Datasworn.EmbeddedOracleRollable | undefined {
   return useDataswornTreeStore.getState().oracles.oracleRollableMap[
     oracleRollableId
   ];
 }
 
 export function useOracleRollable(
-  oracleRollableId: string,
-): Datasworn.OracleRollable | undefined {
-  return useDataswornTreeStore(
-    (store) => store.oracles.oracleRollableMap[oracleRollableId],
+  oracleRollableId: string | undefined,
+): Datasworn.OracleRollable | Datasworn.EmbeddedOracleRollable | undefined {
+  return useDataswornTreeStore((store) =>
+    oracleRollableId
+      ? store.oracles.oracleRollableMap[oracleRollableId]
+      : undefined,
   );
 }

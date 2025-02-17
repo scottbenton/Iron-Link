@@ -123,6 +123,9 @@ export interface OracleRollJSONData {
   oracle_id: string;
   match: boolean;
   label: string;
+  was_cursed?: boolean | null;
+  cursed_die_roll?: number | null;
+  cursed_die_additive_result?: string | null;
 }
 
 export interface TrackProgressRollJSONData {
