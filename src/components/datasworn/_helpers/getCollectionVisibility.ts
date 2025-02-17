@@ -15,13 +15,21 @@ export interface VisibilitySettings {
   itemVisibility: Record<string, ItemVisibility>;
 }
 
+// Define a mapping type that links Collection types to their corresponding Item types
+type CollectionItemMap = {
+  [K in Datasworn.OracleCollection["type"]]: Datasworn.AnyOracleRollable;
+} & {
+  [K in Datasworn.MoveCategory["type"]]: Datasworn.AnyMove;
+};
+
 export function getCollectionVisibilities<
-  T extends Datasworn.OracleCollection | Datasworn.MoveCategory,
+  Collection extends Datasworn.OracleCollection | Datasworn.MoveCategory,
+  Item extends CollectionItemMap[Collection["type"]],
 >(
   searchValue: string,
   collectionIds: string[],
-  collectionMap: Record<string, T>,
-  itemMap: T["contents"],
+  collectionMap: Record<string, Collection>,
+  itemMap: Record<string, Item>,
   collectionVisibilityMap: Record<string, CollectionVisibility>,
   itemVisibilityMap: Record<string, ItemVisibility>,
 ): void {
@@ -41,16 +49,16 @@ export function getCollectionVisibilities<
 }
 
 export function getCollectionVisibility<
-  T extends Datasworn.OracleCollection | Datasworn.MoveCategory,
+  Collection extends Datasworn.OracleCollection | Datasworn.MoveCategory,
+  Item extends CollectionItemMap[Collection["type"]],
 >(
   searchValue: string,
-  collection: T,
-  collectionMap: Record<string, T>,
-  itemMap: T["contents"],
+  collection: Collection,
+  collectionMap: Record<string, Collection>,
+  itemMap: Record<string, Item>,
   collectionVisibilityMap: Record<string, CollectionVisibility>,
   itemVisibilityMap: Record<string, ItemVisibility>,
 ): boolean {
-  console.debug(collection);
   if (!searchValue.trim()) {
     collectionVisibilityMap[collection._id] = CollectionVisibility.All;
     return true;
@@ -67,18 +75,18 @@ export function getCollectionVisibility<
 
   let collectionVisibility = CollectionVisibility.Hidden;
   Object.values(collection.contents).forEach(({ _id }) => {
-    const oracle = itemMap[_id];
-    if (oracle) {
+    const item = itemMap[_id];
+    if (item) {
       if (
-        oracle &&
-        oracle.name
+        item &&
+        item.name
           .toLocaleLowerCase()
           .includes(searchValue.trim().toLocaleLowerCase())
       ) {
         collectionVisibility = CollectionVisibility.Some;
-        itemVisibilityMap[oracle._id] = ItemVisibility.Visible;
+        itemVisibilityMap[item._id] = ItemVisibility.Visible;
       } else {
-        itemVisibilityMap[oracle._id] = ItemVisibility.Hidden;
+        itemVisibilityMap[item._id] = ItemVisibility.Hidden;
       }
     }
   });

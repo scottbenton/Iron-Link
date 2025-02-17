@@ -31,10 +31,13 @@ export type AssetMap = Record<string, Datasworn.Asset>;
 export type RootAssetCollections = RootCollections;
 export type RootMoveCategories = RootCollections;
 export type MoveCategoryMap = Record<string, Datasworn.MoveCategory>;
-export type MoveMap = Record<string, Datasworn.Move>;
+export type MoveMap = Record<string, Datasworn.Move | Datasworn.EmbeddedMove>;
 export type RootOracleCollections = RootCollections;
 export type OracleCollectionMap = Record<string, Datasworn.OracleCollection>;
-export type OracleRollableMap = Record<string, Datasworn.OracleRollable>;
+export type OracleRollableMap = Record<
+  string,
+  Datasworn.OracleRollable | Datasworn.EmbeddedOracleRollable
+>;
 
 interface DataswornTreeStoreState {
   activeRules: Record<string, Datasworn.RulesPackage>;
@@ -153,6 +156,28 @@ export const useDataswornTreeStore = createWithEqualityFn<
           oracleRollableMap: oracleMaps.itemMap,
           rootOracleCollections: oracleMaps.rootCollections,
         };
+
+        Object.values(store.moves.moveMap).forEach((move) => {
+          if ("oracles" in move) {
+            Object.values(move.oracles ?? {}).forEach((oracle) => {
+              store.oracles.oracleRollableMap[oracle._id] = oracle;
+            });
+          }
+        });
+        Object.values(store.assets.assetMap).forEach((asset) => {
+          asset.abilities.forEach((ability) => {
+            if (ability.oracles) {
+              Object.values(ability.oracles).forEach((oracle) => {
+                store.oracles.oracleRollableMap[oracle._id] = oracle;
+              });
+            }
+            if (ability.moves) {
+              Object.values(ability.moves).forEach((move) => {
+                store.moves.moveMap[move._id] = move;
+              });
+            }
+          });
+        });
 
         store.statRules = parseStatRules(store.activeRules);
         store.conditionMeterRules = parseConditionMeterRules(store.activeRules);

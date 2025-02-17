@@ -25,7 +25,7 @@ import { SpecialTracks } from "./RollOptions/SpecialTracks";
 import { extractRollOptions } from "./RollOptions/extractRollOptions";
 
 export interface MoveRollOptions {
-  move: Datasworn.Move;
+  move: Datasworn.AnyMove;
 }
 
 export function MoveRollOptions(props: MoveRollOptions) {

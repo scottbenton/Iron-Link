@@ -114,7 +114,10 @@ export function rollOracle(
 }
 
 function getOracleResult(
-  oracle: Datasworn.OracleRollable | Datasworn.OracleCollection,
+  oracle:
+    | Datasworn.OracleRollable
+    | Datasworn.EmbeddedOracleRollable
+    | Datasworn.OracleCollection,
 ) {
   if (oracle.oracle_type === "tables") {
     console.error("Oracle table collections cannot be rolled");
@@ -199,7 +202,9 @@ function getOracleResult(
   };
 }
 
-function rollOracleColumn(column: Datasworn.OracleRollable):
+function rollOracleColumn(
+  column: Datasworn.OracleRollable | Datasworn.EmbeddedOracleRollable,
+):
   | {
       roll: number;
       result: Datasworn.OracleRollableRow;
