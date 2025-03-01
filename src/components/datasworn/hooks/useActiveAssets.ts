@@ -1,9 +1,8 @@
-import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
-import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
+import { useAssetsStore } from "@/stores/assets.store";
 
-import { useAssetsStore } from "stores/assets.store";
-
-import { filterObject } from "../../../lib/filterObject";
+import { filterObject } from "@/lib/filterObject";
+import { useGameIdOptional } from "@/hooks/useGameId";
+import { useCharacterIdOptional } from "@/hooks/useCharacterId";
 
 export function useActiveAssets() {
   const gameId = useGameIdOptional();
@@ -12,10 +11,10 @@ export function useActiveAssets() {
   const characterAssets = useAssetsStore((store) =>
     characterId
       ? filterObject(store.assets, (asset) => asset.characterId === characterId)
-      : {},
+      : {}
   );
   const gameAssets = useAssetsStore((store) =>
-    filterObject(store.assets, (asset) => asset.gameId === gameId),
+    filterObject(store.assets, (asset) => asset.gameId === gameId)
   );
 
   return { characterAssets, gameAssets };

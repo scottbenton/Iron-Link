@@ -1,5 +1,5 @@
-import { AssetDTO, AssetRepository } from "repositories/asset.repository";
-import { RepositoryError } from "repositories/errors/RepositoryErrors";
+import { AssetDTO, AssetRepository } from "@/repositories/asset.repository";
+import { RepositoryError } from "@/repositories/errors/RepositoryErrors";
 
 export type IAsset = {
   id: string;

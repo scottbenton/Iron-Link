@@ -1,21 +1,19 @@
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { supabase, SUPABASE_URL } from "@/lib/supabase.lib";
+import { GamePermission } from "@/stores/game.store";
 
 import {
   Tables,
   TablesInsert,
   TablesUpdate,
-} from "types/supabase-generated.type";
-
-import { GamePermission } from "stores/game.store";
-
-import { SUPABASE_URL, supabase } from "lib/supabase.lib";
+} from "@/types/supabase-generated.type";
 
 import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
   ErrorVerb,
-  RepositoryError,
   getRepositoryError,
+  RepositoryError,
 } from "./errors/RepositoryErrors";
 
 export type NoteDTO = Tables<"notes">;

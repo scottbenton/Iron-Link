@@ -1,11 +1,9 @@
 import deepEqual from "fast-deep-equal";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
-
-import { i18n } from "i18n/config";
-
-import { AssetService, IAsset } from "services/asset.service";
-import { CharacterService } from "services/character.service";
+import { i18n } from "@/lib/i18n";
+import { AssetService, IAsset } from "@/services/asset.service";
+import { CharacterService } from "@/services/character.service";
 
 export interface CharacterPortraitSettings {
   image: File | null;
@@ -97,10 +95,9 @@ export const useCreateCharacterStore = createWithEqualityFn<
         const orderedAssets = (
           shared ? state.gameAssets : state.characterAssets
         ).sort((a, b) => a.order - b.order);
-        const newAssetOrder =
-          orderedAssets.length > 0
-            ? orderedAssets[orderedAssets.length - 1].order + 1
-            : 0;
+        const newAssetOrder = orderedAssets.length > 0
+          ? orderedAssets[orderedAssets.length - 1].order + 1
+          : 0;
         const newAsset = { ...asset, order: newAssetOrder + 1 };
         if (shared) {
           state.gameAssets.push(newAsset);
@@ -181,14 +178,14 @@ export const useCreateCharacterStore = createWithEqualityFn<
           ...gameAsset,
           gameId,
           characterId: null,
-        }),
+        })
       );
       const characterAssetPromises = characterAssets.map((characterAsset) =>
         AssetService.createAsset({
           ...characterAsset,
           gameId: null,
           characterId,
-        }),
+        })
       );
 
       await Promise.all([...gameAssetPromises, ...characterAssetPromises]);

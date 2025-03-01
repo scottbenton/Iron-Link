@@ -1,4 +1,4 @@
-import { RepositoryError } from "repositories/errors/RepositoryErrors";
+import { RepositoryError } from "@/repositories/errors/RepositoryErrors";
 import {
   ExpansionConfig,
   GameDTO,
@@ -6,13 +6,13 @@ import {
   GameType,
   PlaysetConfig,
   RulesetConfig,
-} from "repositories/game.repository";
-import { GameInviteKeyRepository } from "repositories/gameInviteKey.repository";
+} from "@/repositories/game.repository";
+import { GameInviteKeyRepository } from "@/repositories/gameInviteKey.repository";
 import {
   GamePlayerDTO,
   GamePlayersRepository,
-} from "repositories/gamePlayers.repository";
-import { ColorScheme, SpecialTrack } from "repositories/shared.types";
+} from "@/repositories/gamePlayers.repository";
+import { ColorScheme, SpecialTrack } from "@/repositories/shared.types";
 
 export type IGame = {
   id: string;
@@ -73,13 +73,14 @@ export class GameService {
 
   public static async getGameInviteInfo(inviteKey: string): Promise<
     | {
-        name: string;
-        gameType: GameType;
-      }
+      name: string;
+      gameType: GameType;
+    }
     | { gameId: string }
   > {
-    const result =
-      await GameInviteKeyRepository.getGameInfoFromInviteKey(inviteKey);
+    const result = await GameInviteKeyRepository.getGameInfoFromInviteKey(
+      inviteKey,
+    );
 
     if ("gameId" in result) {
       return {
@@ -282,8 +283,9 @@ export class GameService {
   private static convertGamePlayerDTOToGamePlayer(
     dto: GamePlayerDTO,
   ): IGamePlayer {
-    const role: GamePlayerRole =
-      dto.role === "guide" ? GamePlayerRole.Guide : GamePlayerRole.Player;
+    const role: GamePlayerRole = dto.role === "guide"
+      ? GamePlayerRole.Guide
+      : GamePlayerRole.Player;
     return {
       role,
       created_at: dto.created_at,

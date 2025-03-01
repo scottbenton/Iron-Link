@@ -1,7 +1,7 @@
 import {
   GameSecondScreenDTO,
   SecondScreenRepository,
-} from "repositories/secondScreen.repository";
+} from "@/repositories/secondScreen.repository";
 
 interface ISecondScreenCharacterDisplay {
   type: "character";

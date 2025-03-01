@@ -3,28 +3,25 @@ import deepEqual from "fast-deep-equal";
 import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
-
 import {
   defaultBaseRulesets,
   defaultExpansions,
-} from "data/datasworn.packages";
-
+} from "@/data/datasworn.packages";
 import {
   ExpansionConfig,
   GameType,
   PlaysetConfig,
   RulesetConfig,
-} from "repositories/game.repository";
-import { ColorScheme } from "repositories/shared.types";
-
-import { IAsset } from "services/asset.service";
-import { CharacterService } from "services/character.service";
+} from "@/repositories/game.repository";
+import { ColorScheme } from "@/repositories/shared.types";
+import { IAsset } from "@/services/asset.service";
+import { CharacterService } from "@/services/character.service";
 import {
   GamePlayerRole,
   GameService,
   IGame,
   IGamePlayer,
-} from "services/game.service";
+} from "@/services/game.service";
 
 import { useUID } from "./auth.store";
 import { useSetDataswornTree } from "./dataswornTree.store";

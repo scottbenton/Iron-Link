@@ -1,89 +1,33 @@
-import {
-  Box,
-  Breakpoint,
-  Container,
-  Stack,
-  SxProps,
-  Theme,
-  Typography,
-} from "@mui/material";
-import React, { PropsWithChildren } from "react";
+import { LocalThemeProvider } from "@/providers/ThemeProvider";
+import { Theme } from "@/stores/appState.store";
+import { Box, Container, ContainerProps, Heading } from "@chakra-ui/react";
+import { ReactNode } from "react";
 
-export interface PageHeaderProps extends PropsWithChildren {
-  label?: string | React.ReactNode;
-  subLabel?: string | React.ReactNode;
-  actions?: React.ReactNode;
-  maxWidth?: false | Breakpoint;
-  disablePadding?: boolean;
-  sx?: SxProps<Theme>;
+export interface PageHeaderProps {
+  title: string;
+  action?: ReactNode;
 }
 
-export function PageHeader(props: PageHeaderProps) {
-  const {
-    label,
-    subLabel,
-    actions,
-    maxWidth = "xl",
-    disablePadding,
-    sx,
-    children,
-  } = props;
+export function PageHeader(props: PageHeaderProps & ContainerProps) {
+  const { title, action, ...containerProps } = props;
 
   return (
-    <Container
-      maxWidth={maxWidth}
-      sx={[
-        {
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          py: disablePadding ? 0 : 4,
-
-          bgcolor: "background.paper",
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-    >
-      {children ? (
-        <>{children}</>
-      ) : (
-        <>
-          <Box>
-            {label &&
-              (typeof label === "string" ? (
-                <Typography
-                  variant={"h4"}
-                  component={"h1"}
-                  textTransform={"uppercase"}
-                  fontFamily={(theme) => theme.typography.fontFamilyTitle}
-                >
-                  {label}
-                </Typography>
-              ) : (
-                label
-              ))}
-            {subLabel &&
-              (typeof subLabel === "string" ? (
-                <Typography
-                  variant={"h6"}
-                  component={"h2"}
-                  textTransform={"uppercase"}
-                  fontFamily={(theme) => theme.typography.fontFamilyTitle}
-                >
-                  {subLabel}
-                </Typography>
-              ) : (
-                subLabel
-              ))}
-          </Box>
-          {actions && (
-            <Stack direction={"row"} spacing={1} flexWrap={"wrap"}>
-              {actions}
-            </Stack>
-          )}
-        </>
-      )}
-    </Container>
+    <LocalThemeProvider theme={Theme.Dark}>
+      <Box pt={4} pb={24} mb={-20} bg="bg.panel">
+        <Container
+          maxW="breakpoint-2xl"
+          fluid
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          {...containerProps}
+        >
+          <Heading as="h1" size="3xl" textTransform="uppercase">
+            {title}
+          </Heading>
+          {action}
+        </Container>
+      </Box>
+    </LocalThemeProvider>
   );
 }

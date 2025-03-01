@@ -1,21 +1,13 @@
-import RollIcon from "@mui/icons-material/Casino";
-import {
-  IconButton,
-  InputAdornment,
-  TextField,
-  TextFieldProps,
-  Tooltip,
-} from "@mui/material";
-import { useCallback, useMemo } from "react";
-import { useTranslation } from "react-i18next";
-
-import { getOracleCollection } from "hooks/datasworn/useOracleCollection";
-import { getOracleRollable } from "hooks/datasworn/useOracleRollable";
-import { useRollOracle } from "hooks/useRollOracle";
-
-import { useSetAnnouncement } from "stores/appState.store";
-
-import { IOracleTableRoll } from "services/gameLog.service";
+import { Field, FieldProps } from "@/components/common/TextField";
+import { getOracleCollection } from "@/hooks/datasworn/useOracleCollection";
+import { getOracleRollable } from "@/hooks/datasworn/useOracleRollable";
+import { useDataswornTranslations } from "@/hooks/i18n/useDataswornTranslations";
+import { useRollOracle } from "@/hooks/useRollOracle";
+import { IOracleTableRoll } from "@/services/gameLog.service";
+import { useSetAnnouncement } from "@/stores/appState.store";
+import { Group, IconButton, Input, InputAddon } from "@chakra-ui/react";
+import { Dices } from "lucide-react";
+import { ChangeEvent, useCallback, useMemo } from "react";
 
 export type OracleTextFieldOracleConfig = {
   tableIds: (string | OracleTextFieldOracleConfig)[];
@@ -23,7 +15,7 @@ export type OracleTextFieldOracleConfig = {
   joinSeparator?: string;
 };
 
-export type OracleTextFieldProps = Omit<TextFieldProps, "onChange"> & {
+export type OracleTextFieldProps = FieldProps & {
   value?: string;
   oracleId?: string;
   oracleConfig?: OracleTextFieldOracleConfig;
@@ -31,9 +23,11 @@ export type OracleTextFieldProps = Omit<TextFieldProps, "onChange"> & {
 };
 
 export function OracleTextField(props: OracleTextFieldProps) {
-  const { oracleId, oracleConfig, onChange, label, ...textFieldProps } = props;
+  const { oracleId, oracleConfig, onChange, label, value, ...fieldProps } =
+    props;
 
-  const { t } = useTranslation();
+  const t = useDataswornTranslations();
+
   const announce = useSetAnnouncement();
 
   const doesOracleExist = useMemo(() => {
@@ -51,27 +45,36 @@ export function OracleTextField(props: OracleTextFieldProps) {
     announce(`Updated ${label} to ${value}`);
   }, [announce, label, oracleId, oracleConfig, getOracleResult, onChange]);
 
+  const handleChange = useCallback(
+    (evt: ChangeEvent<HTMLInputElement>) => {
+      onChange(evt.target.value);
+    },
+    [onChange],
+  );
+
   return (
-    <TextField
-      label={label}
-      fullWidth
-      {...textFieldProps}
-      onChange={(evt) => onChange(evt.currentTarget.value)}
-      InputProps={{
-        endAdornment: doesOracleExist ? (
-          <InputAdornment position={"end"}>
-            <Tooltip
-              title={t("datasworn.consult-the-oracle", "Consult the Oracle")}
-              enterDelay={500}
+    <Field label={label} {...fieldProps}>
+      <Group attached={doesOracleExist}>
+        <Input value={value} onChange={handleChange} />
+        {doesOracleExist && (
+          <InputAddon p={0}>
+            <IconButton
+              colorPalette="gray"
+              variant="subtle"
+              size="sm"
+              rounded="inherit"
+              aria-label={t(
+                "consult-the-oracle-text-field-button",
+                "Consult the Oracle",
+              )}
+              onClick={handleOracleRoll}
             >
-              <IconButton onClick={() => handleOracleRoll()}>
-                <RollIcon />
-              </IconButton>
-            </Tooltip>
-          </InputAdornment>
-        ) : undefined,
-      }}
-    />
+              <Dices />
+            </IconButton>
+          </InputAddon>
+        )}
+      </Group>
+    </Field>
   );
 }
 

@@ -2,15 +2,12 @@ import deepEqual from "fast-deep-equal";
 import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
-
-import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
-
-import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
-
+import { useSecondScreenFeature } from "@/hooks/advancedFeatures/useSecondScreenFeature";
 import {
   ISecondScreenDisplay,
   SecondScreenService,
-} from "services/secondScreen.service";
+} from "@/services/secondScreen.service";
+import { useGameId } from "@/hooks/useGameId";
 
 interface SecondScreenStoreState {
   settings: ISecondScreenDisplay;

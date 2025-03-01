@@ -1,4 +1,4 @@
-import { UserDTO, UserRepository } from "repositories/user.repository";
+import { UserDTO, UserRepository } from "@/repositories/user.repository";
 
 export interface IUser {
   id: string;

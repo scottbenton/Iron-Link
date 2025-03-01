@@ -2,8 +2,7 @@ import deepEqual from "fast-deep-equal";
 import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
-
-import { AuthService } from "services/auth.service";
+import { AuthService } from "@/services/auth.service";
 
 export enum AuthStatus {
   Loading,

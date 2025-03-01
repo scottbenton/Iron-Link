@@ -1,129 +1,63 @@
-import BackIcon from "@mui/icons-material/ChevronLeft";
-import HamburgerMenuIcon from "@mui/icons-material/Menu";
-import {
-  AppBar,
-  Box,
-  Drawer,
-  IconButton,
-  List,
-  Toolbar,
-  Tooltip,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
-import { ReactNode, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { IronLinkLogo } from "@/assets/IronLinkLogo";
+import { useLayoutTranslations } from "@/hooks/i18n/useLayoutTranslations";
+import { pageConfig } from "@/pages/pageConfig";
+import { LocalThemeProvider } from "@/providers/ThemeProvider/LocalThemeProvider";
+import { Theme } from "@/stores/appState.store";
+import { AuthStatus, useAuthStatus } from "@/stores/auth.store";
+import { Box, Button, Container } from "@chakra-ui/react";
+import { Link } from "wouter";
 
-import { HideOnScroll } from "components/HideOnScroll";
-import { LinkComponent } from "components/LinkComponent";
+import { NavDrawer } from "./NavDrawer";
+import { NavItems } from "./NavItems";
+import { SettingsMenu } from "./SettingsMenu";
 
-import { AppSettingsMenu, MenuAdditionComponent } from "./AppSettingsMenu";
-import { IronLinkLogo } from "./IronLinkLogo";
-import { NavBarListItem } from "./NavBarListItem";
-import { NavRouteConfig } from "./navRoutes";
+export function NavBar() {
+  const t = useLayoutTranslations();
 
-export interface NavBarProps {
-  topLevelRoutes?: NavRouteConfig[] | undefined;
-  goBackTo?: string;
-  pageTitle?: string;
-  secondLevel?: ReactNode;
-  menuAdditions?: {
-    menuItems?: MenuAdditionComponent[];
-    menuDialogs?: MenuAdditionComponent[];
-  };
-}
-
-export function NavBar(props: NavBarProps) {
-  const { topLevelRoutes, goBackTo, pageTitle, secondLevel, menuAdditions } =
-    props;
-
-  const { t } = useTranslation();
-  const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
-
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
-  if (!isMobile) {
+  const authStatus = useAuthStatus();
+  if (authStatus === AuthStatus.Loading) {
     return null;
   }
 
   return (
-    <>
-      <HideOnScroll>
-        <AppBar
-          elevation={0}
-          color={"default"}
-          sx={(theme) => ({
-            bgcolor: theme.palette.mode === "light" ? "grey.200" : "grey.950",
-            // bgcolor: "grey.950",
-            // color: "common.white",
-            display: "block",
-          })}
+    <LocalThemeProvider theme={Theme.Dark}>
+      <Container as="header" maxW="breakpoint-2xl" fluid>
+        <Box
+          display="flex"
+          alignItems="center"
+          borderColor="border"
+          borderBottomWidth={1}
+          py={2}
         >
-          <Toolbar
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Box display={"flex"} alignItems={"center"}>
-              {topLevelRoutes && (
-                <Tooltip
-                  title={t("nav.open-menu-mobile", "Open Navigation Menu")}
-                >
-                  <IconButton
-                    color={"inherit"}
-                    onClick={() => setIsNavMenuOpen(true)}
-                  >
-                    <HamburgerMenuIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-              {goBackTo && (
-                <Tooltip title={t("nav.go-back-mobile", "Go Back")}>
-                  <div>
-                    <IconButton
-                      LinkComponent={LinkComponent}
-                      color={"inherit"}
-                      href={goBackTo}
-                    >
-                      <BackIcon />
-                    </IconButton>
-                  </div>
-                </Tooltip>
-              )}
-              {pageTitle ? (
-                <Typography variant={"h6"} ml={2}>
-                  {pageTitle}
-                </Typography>
-              ) : (
-                <IronLinkLogo sx={{ width: 40, height: 40, ml: 2 }} />
-              )}
+          {authStatus === AuthStatus.Authenticated && (
+            <Box display={{ base: "flex", sm: "none" }}>
+              <NavDrawer />
             </Box>
-            <AppSettingsMenu
-              menuItems={menuAdditions?.menuItems}
-              menuDialogs={menuAdditions?.menuDialogs}
-            />
-          </Toolbar>
-          {secondLevel && <Toolbar>{secondLevel}</Toolbar>}
-        </AppBar>
-      </HideOnScroll>
-      <Drawer
-        open={topLevelRoutes && isNavMenuOpen}
-        onClose={() => setIsNavMenuOpen(false)}
-      >
-        <List>
-          {topLevelRoutes?.map((route, index) => (
-            <NavBarListItem key={index} {...route} />
-          ))}
-        </List>
-      </Drawer>
-
-      {/* These are here for spacing purposes */}
-      <Toolbar />
-      {secondLevel && <Toolbar />}
-    </>
+          )}
+          <IronLinkLogo />
+          <Box flexGrow={1}>
+            {authStatus === AuthStatus.Authenticated && (
+              <NavItems ml={4} display={{ base: "none", sm: "flex" }} />
+            )}
+          </Box>
+          {authStatus === AuthStatus.Authenticated ? (
+            <SettingsMenu colorPalette="gray" />
+          ) : (
+            <Box display="flex" gap={1}>
+              <Button variant="subtle" colorPalette="gray" asChild>
+                <Link href={pageConfig.auth}>
+                  {t("unauthenticated-button.login", "Login")}
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link href={pageConfig.auth}>
+                  {t("unauthenticated-button.get-started", "Get Started")}
+                </Link>
+              </Button>
+            </Box>
+          )}
+        </Box>
+      </Container>
+    </LocalThemeProvider>
   );
 }

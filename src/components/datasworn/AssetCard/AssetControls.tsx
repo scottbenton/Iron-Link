@@ -1,7 +1,6 @@
+import { IAsset } from "@/services/asset.service";
+import { Stack } from "@chakra-ui/react";
 import { Datasworn } from "@datasworn/core";
-import { Stack } from "@mui/material";
-
-import { IAsset } from "services/asset.service";
 
 import { AssetControl } from "./AssetControl";
 
@@ -27,7 +26,7 @@ export function AssetControls(props: AssetControlsProps) {
   }
 
   return (
-    <Stack direction="column" spacing={spacing} mt={spacing}>
+    <Stack gap={spacing} mt={spacing}>
       {Object.keys(controls)
         .sort((c1, c2) => {
           const control1 = controls[c1];

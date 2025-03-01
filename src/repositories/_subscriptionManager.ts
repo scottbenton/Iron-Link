@@ -1,6 +1,5 @@
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-
-import { supabase } from "lib/supabase.lib";
+import { supabase } from "@/lib/supabase.lib";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createSubscription<T extends { [key: string]: any }>(

@@ -1,81 +1,41 @@
-import { LinearProgress } from "@mui/material";
-import { Suspense, lazy } from "react";
-import { Route, Routes } from "react-router";
+import { lazy } from "react";
+import { Route, Switch } from "wouter";
 
-import { BaseLayout } from "components/Layout/BaseLayout";
-import { DefaultLayout } from "components/Layout/DefaultLayout";
+import { NavBar } from "./components/layout/NavBar";
+import { PageWrapper } from "./components/layout/PageWrapper";
+import { Toaster } from "./components/ui/toaster";
+import { pageConfig } from "./pages/pageConfig";
+import { useListenToAuth } from "./stores/auth.store";
 
-import { Page404 } from "pages/404Page/404Page";
-import { ErrorRoute } from "pages/ErrorRoute";
-
-import { useListenToAuth } from "stores/auth.store";
-
-const HomePage = lazy(() => import("./pages/home/HomePage"));
+const AuthPage = lazy(() => import("./pages/auth/AuthPage"));
 const GameSelectPage = lazy(
-  () => import("./pages/games/selectPage/GameSelectPage"),
+  () => import("./pages/games/select/GameSelectPage"),
 );
 const GameCreatePage = lazy(
-  () => import("./pages/games/create/CreateGamePage"),
-);
-const WorldSelectPage = lazy(() => import("./pages/worlds/WorldSelectPage"));
-const HomebrewSelectPage = lazy(
-  () => import("./pages/homebrew/HomebrewSelectPage"),
-);
-const AuthPage = lazy(() => import("./pages/auth/AuthPage"));
-const GameJoinPage = lazy(() => import("./pages/gameJoin/GameJoinPage"));
-
-const GameLayout = lazy(
-  () => import("./pages/games/gamePageLayout/GameLayout"),
-);
-const GameOverviewPage = lazy(
-  () => import("./pages/games/overviewSheet/GameOverviewSheet"),
-);
-const GameCharacterSheetPage = lazy(
-  () => import("./pages/games/characterSheet/CharacterSheetPage"),
-);
-const GameCharacterCreatePage = lazy(
-  () => import("./pages/games/addCharacter/AddCharacter"),
+  () => import("./pages/games/create/GameCreatePage"),
 );
 
-const GameSecondScreenPage = lazy(
-  () => import("./pages/games/secondScreenPage/SecondScreenPage"),
-);
-
-export function App() {
+function App() {
   useListenToAuth();
-
   return (
     <>
-      <Suspense fallback={<LinearProgress />}>
-        <Routes>
-          <Route ErrorBoundary={ErrorRoute}>
-            <Route Component={BaseLayout}>
-              <Route Component={DefaultLayout}>
-                <Route index Component={HomePage} />
-                <Route path="/games" Component={GameSelectPage} />
-                <Route path="/games/create" Component={GameCreatePage} />
-                <Route path="/join/:inviteKey" Component={GameJoinPage} />
-                <Route path="/worlds" Component={WorldSelectPage} />
-                <Route path="/homebrew" Component={HomebrewSelectPage} />
-                <Route path="/auth" Component={AuthPage} />
-                <Route path="*" Component={Page404} />
-              </Route>
-              <Route Component={GameLayout} path="/games/:gameId">
-                <Route index Component={GameOverviewPage} />
-                <Route
-                  path="c/:characterId"
-                  Component={GameCharacterSheetPage}
-                />
-                <Route path="create" Component={GameCharacterCreatePage} />
-              </Route>
-            </Route>
-            <Route
-              Component={GameSecondScreenPage}
-              path="/games/:gameId/display"
-            />
-          </Route>
-        </Routes>
-      </Suspense>
+      <NavBar />
+      <Switch>
+        <Route path={pageConfig.home}>Home</Route>
+        <Route path={pageConfig.auth}>
+          <PageWrapper lazy={AuthPage} />
+        </Route>
+        <Route path={pageConfig.gameSelect}>
+          <PageWrapper lazy={GameSelectPage} requiresAuth />
+        </Route>
+        <Route path={pageConfig.gameCreate}>
+          <PageWrapper lazy={GameCreatePage} requiresAuth />
+        </Route>
+        <Route>404</Route>
+      </Switch>
+      <Toaster />
     </>
   );
 }
+
+export default App;

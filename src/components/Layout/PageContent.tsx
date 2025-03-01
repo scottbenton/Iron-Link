@@ -1,58 +1,21 @@
-import { Breakpoint, Container, Paper, SxProps, Theme } from "@mui/material";
-import { PropsWithChildren } from "react";
+import { Container, ContainerProps } from "@chakra-ui/react";
 
-export interface PageContentProps extends PropsWithChildren {
-  isPaper?: boolean;
-  viewHeight?: "min-full" | "max-full";
-  hiddenHeader?: boolean;
-  maxWidth?: false | Breakpoint;
-  sx?: SxProps<Theme>;
-  disablePadding?: boolean;
+export interface PageContentProps extends ContainerProps {
+  disableGuttersOnMobile?: boolean;
 }
 
 export function PageContent(props: PageContentProps) {
-  const {
-    children,
-    isPaper,
-    viewHeight,
-    hiddenHeader,
-    maxWidth,
-    sx,
-    disablePadding,
-  } = props;
-
+  const { children, disableGuttersOnMobile, ...containerProps } = props;
   return (
     <Container
-      component={isPaper ? Paper : "div"}
-      maxWidth={maxWidth ?? "xl"}
-      sx={[
-        (theme) => ({
-          bgcolor: "background.paper",
-          // position: "relative",
-          borderRadius: isPaper ? `${theme.shape.borderRadius}px` : 0,
-          borderBottomLeftRadius: 0,
-          borderBottomRightRadius: 0,
-          flexGrow: 1,
-
-          pb: disablePadding ? 0 : 2,
-          display: "flex",
-          flexDirection: "column",
-        }),
-        viewHeight
-          ? (theme) => ({
-              [theme.breakpoints.up("md")]: {
-                display: "flex",
-                flexDirection: "column",
-                minHeight: "100vh",
-                maxHeight: viewHeight === "max-full" ? "100vh" : undefined,
-              },
-              mt: hiddenHeader ? -4 : 0,
-              borderRadius: hiddenHeader ? 0 : undefined,
-            })
-          : {},
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-      disableGutters={disablePadding}
+      as="main"
+      maxW="breakpoint-2xl"
+      fluid
+      flexGrow={1}
+      display="flex"
+      flexDir="column"
+      {...containerProps}
+      px={disableGuttersOnMobile ? { base: 0, sm: 4, md: 6, lg: 8 } : undefined}
     >
       {children}
     </Container>

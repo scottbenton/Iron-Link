@@ -1,16 +1,15 @@
 // Type
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase.lib";
 
-import { Tables, TablesUpdate } from "types/supabase-generated.type";
-
-import { supabase } from "lib/supabase.lib";
+import { Tables, TablesUpdate } from "@/types/supabase-generated.type";
 
 import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
   ErrorVerb,
-  RepositoryError,
   getRepositoryError,
+  RepositoryError,
 } from "./errors/RepositoryErrors";
 
 export type GameSecondScreenDTO = Tables<"game_second_screen_settings">;

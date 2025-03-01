@@ -1,5 +1,5 @@
+import { Box, Heading } from "@chakra-ui/react";
 import { Datasworn } from "@datasworn/core";
-import { Box, Typography } from "@mui/material";
 
 import { DebouncedClockCircle } from "../../Clocks/DebouncedClockCircle";
 
@@ -14,13 +14,9 @@ export function AssetClockField(props: AssetClockFieldProps) {
 
   return (
     <Box>
-      <Typography
-        variant={"subtitle1"}
-        fontFamily={(theme) => theme.typography.fontFamilyTitle}
-        color={"textSecondary"}
-      >
+      <Heading size="md" color={"fg.muted"}>
         {field.label}
-      </Typography>
+      </Heading>
 
       <DebouncedClockCircle
         value={value ?? 0}

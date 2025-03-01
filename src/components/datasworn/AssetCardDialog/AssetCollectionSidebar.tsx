@@ -1,14 +1,8 @@
-import {
-  Card,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-  ListSubheader,
-} from "@mui/material";
-
-import { AssetCollectionMap } from "stores/dataswornTree.store";
-import { RootCollections } from "stores/dataswornTreeHelpers/parseCollectionsIntoMaps";
+import { ListItem } from "@/components/common/ListItem";
+import { List } from "@/components/common/ListItem/List";
+import { AssetCollectionMap } from "@/stores/dataswornTree.store";
+import { RootCollections } from "@/stores/dataswornTreeHelpers/parseCollectionsIntoMaps";
+import { Card, Text } from "@chakra-ui/react";
 
 export interface AssetCollectionSidebarProps {
   collectionMap: AssetCollectionMap;
@@ -26,57 +20,34 @@ export function AssetCollectionSidebar(props: AssetCollectionSidebarProps) {
   } = props;
 
   return (
-    <Card variant={"outlined"} sx={{ bgcolor: "background.default" }}>
-      {Object.entries(rootAssetCollections).map(
-        ([rulesetKey, ruleset], _, arr) => (
-          <List key={rulesetKey}>
-            {arr.length > 1 && (
-              <ListSubheader
-                sx={(theme) => ({
-                  px: 2,
-                  fontFamily: theme.typography.fontFamilyTitle,
-                })}
-                key={rulesetKey}
-              >
-                {ruleset.title}
-              </ListSubheader>
-            )}
-            {ruleset.rootCollectionIds.map((collectionId, index) => {
-              const collection = collectionMap[collectionId];
-              if (!collection) {
-                return null;
-              }
-              return (
-                <ListItem
-                  disablePadding
-                  key={collectionId}
-                  sx={(theme) => ({
-                    bgcolor:
-                      theme.palette.mode === "light"
-                        ? index % 2 === 0
-                          ? "grey.100"
-                          : "grey.200"
-                        : index % 2 === 0
-                          ? "grey.900"
-                          : "grey.800",
-                  })}
-                >
-                  <ListItemButton
-                    selected={collectionId === selectedCollectionId}
+    <Card.Root variant="outline" size="sm" position="sticky" top={0}>
+      <Card.Body px={0}>
+        {Object.entries(rootAssetCollections).map(
+          ([rulesetKey, ruleset], _, arr) => (
+            <List key={rulesetKey}>
+              {arr.length > 1 && <Text>{ruleset.title}</Text>}
+              {ruleset.rootCollectionIds.map((collectionId) => {
+                const collection = collectionMap[collectionId];
+                if (!collection) {
+                  return null;
+                }
+                return (
+                  <ListItem
+                    key={collectionId}
                     onClick={() => setSelectedCollectionId(collectionId)}
-                  >
-                    <ListItemText
-                      primary={
-                        collectionMap[collectionId]?.name ?? collectionId
-                      }
-                    />
-                  </ListItemButton>
-                </ListItem>
-              );
-            })}
-          </List>
-        ),
-      )}
-    </Card>
+                    label={collectionMap[collectionId]?.name ?? collectionId}
+                    bg={
+                      selectedCollectionId === collectionId
+                        ? "bg.muted"
+                        : undefined
+                    }
+                  />
+                );
+              })}
+            </List>
+          ),
+        )}
+      </Card.Body>
+    </Card.Root>
   );
 }

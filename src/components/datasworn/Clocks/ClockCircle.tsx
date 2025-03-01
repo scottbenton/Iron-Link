@@ -1,5 +1,5 @@
-import { Box, ButtonBase, SxProps, Theme, useTheme } from "@mui/material";
-import { PropsWithChildren } from "react";
+import { useDataswornTranslations } from "@/hooks/i18n/useDataswornTranslations";
+import { Box, BoxProps } from "@chakra-ui/react";
 
 import { ClockSegment } from "./ClockSegment";
 
@@ -11,66 +11,43 @@ const sizes: Record<ClockSize, number> = {
   large: 120,
 };
 
-export interface ClockCircleProps {
+export interface ClockCircleProps extends Omit<BoxProps, "onClick"> {
   segments: number;
   value: number;
   onClick?: () => void;
   size?: ClockSize;
-  sx?: SxProps<Theme>;
 }
 
 export function ClockCircle(props: ClockCircleProps) {
-  const { segments, value, onClick, size = "medium", sx } = props;
-  const theme = useTheme();
+  const { segments, value, onClick, size = "medium", ...boxProps } = props;
 
-  const Wrapper = (
-    props: PropsWithChildren<{
-      onClick?: () => void;
-      sx: SxProps;
-    }>,
-  ) => {
-    const { children, onClick, sx } = props;
-    const ariaLabel = `Clock with ${segments} segments. ${value} filled.`;
-
-    if (onClick) {
-      return (
-        <ButtonBase sx={sx} onClick={onClick} aria-label={ariaLabel}>
-          {children}
-        </ButtonBase>
-      );
-    }
-    return (
-      <Box sx={sx} aria-label={ariaLabel}>
-        {children}
-      </Box>
-    );
-  };
+  const t = useDataswornTranslations();
 
   return (
-    <Wrapper
-      sx={[
-        {
-          borderRadius: 999,
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+    <Box
+      as={onClick ? "button" : "div"}
+      aria-label={t(
+        "clock-aria-label",
+        "Clock with {{segments}} segments. {{value}} filled.",
+        { segments, value },
+      )}
+      borderRadius="full"
       onClick={onClick}
+      color="fg.muted"
+      {...boxProps}
     >
-      <svg
-        width={sizes[size]}
-        height={sizes[size]}
-        viewBox="-2 -2 104 104"
-        stroke={theme.palette.grey[theme.palette.mode === "light" ? 700 : 500]}
-      >
-        {Array.from({ length: segments }).map((_, index) => (
-          <ClockSegment
-            key={index}
-            index={index}
-            segments={segments}
-            filled={value}
-          />
-        ))}
-      </svg>
-    </Wrapper>
+      <Box asChild stroke="gray.500">
+        <svg width={sizes[size]} height={sizes[size]} viewBox="-2 -2 104 104">
+          {Array.from({ length: segments }).map((_, index) => (
+            <ClockSegment
+              key={index}
+              index={index}
+              segments={segments}
+              filled={value}
+            />
+          ))}
+        </svg>
+      </Box>
+    </Box>
   );
 }

@@ -2,10 +2,8 @@ import deepEqual from "fast-deep-equal";
 import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
-
-import { RollResult, RollType } from "repositories/shared.types";
-
-import { GameLogService, IGameLog } from "services/gameLog.service";
+import { RollResult, RollType } from "@/repositories/shared.types";
+import { GameLogService, IGameLog } from "@/services/gameLog.service";
 
 import { useAppState } from "./appState.store";
 import { GamePermission, useGameStore } from "./game.store";

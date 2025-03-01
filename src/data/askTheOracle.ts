@@ -1,6 +1,5 @@
 import { Datasworn } from "@datasworn/core";
-
-import { AskTheOracle } from "repositories/tracks.repository";
+import { AskTheOracle } from "@/repositories/tracks.repository";
 
 export const source = {
   title: "Ironsworn: Starforged Rulebook",

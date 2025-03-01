@@ -1,14 +1,12 @@
 import { Datasworn } from "@datasworn/core";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-
+import { source } from "@/data/askTheOracle";
 import {
   useDataswornTree,
   useDataswornTreeStore,
-} from "stores/dataswornTree.store";
-import { getRulesetFromId } from "stores/dataswornTreeHelpers/getRulesetFromId";
-
-import { source } from "data/askTheOracle";
+} from "@/stores/dataswornTree.store";
+import { getRulesetFromId } from "@/stores/dataswornTreeHelpers/getRulesetFromId";
 
 import { useActiveAssets } from "./useActiveAssets";
 

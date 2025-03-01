@@ -1,11 +1,9 @@
 import { Buffer } from "buffer";
-
-import { GamePermission } from "stores/game.store";
-
-import { RepositoryError } from "repositories/errors/RepositoryErrors";
-import { NoteDTO, NotesRepository } from "repositories/notes.repository";
-import { EditPermissions, ReadPermissions } from "repositories/shared.types";
-import { StorageRepository } from "repositories/storage.repository";
+import { RepositoryError } from "@/repositories/errors/RepositoryErrors";
+import { NoteDTO, NotesRepository } from "@/repositories/notes.repository";
+import { EditPermissions, ReadPermissions } from "@/repositories/shared.types";
+import { StorageRepository } from "@/repositories/storage.repository";
+import { GamePermission } from "@/stores/game.store";
 
 export type INote = {
   title: string;
@@ -18,11 +16,10 @@ export type INote = {
   // Permission sets can be null - we query folders first.
   readPermissions: ReadPermissions;
   editPermissions: EditPermissions;
-};
 
-export interface INoteContent {
+  contentString: string;
   content: Uint8Array;
-}
+};
 
 export class NotesService {
   public static listenToGameNotes(
@@ -114,24 +111,6 @@ export class NotesService {
     return NotesRepository.deleteNote(noteId);
   }
 
-  public static listenToNoteContent(
-    noteId: string,
-    onNoteContentChanged: (noteContent: INoteContent) => void,
-    onError: (error: RepositoryError) => void,
-  ): () => void {
-    return NotesRepository.listenToNoteContent(
-      noteId,
-      (noteDTO) => {
-        onNoteContentChanged({
-          content: noteDTO.note_content_bytes
-            ? this.databaseToUint8Array(noteDTO.note_content_bytes)
-            : new Uint8Array(),
-        });
-      },
-      onError,
-    );
-  }
-
   public static async updateNoteContent(
     noteId: string,
     noteContent: Uint8Array,
@@ -196,6 +175,10 @@ export class NotesService {
       parentFolderId: note.parent_folder_id,
       readPermissions,
       editPermissions,
+      contentString: note.note_content_text ?? "",
+      content: note.note_content_bytes
+        ? this.databaseToUint8Array(note.note_content_bytes)
+        : new Uint8Array(),
     };
   }
 

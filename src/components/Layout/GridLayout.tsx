@@ -1,5 +1,6 @@
-import { Box, LinearProgress, SxProps, Theme } from "@mui/material";
+import { Box, BoxProps } from "@chakra-ui/react";
 
+import { ProgressBar } from "../common/ProgressBar";
 import { EmptyState } from "./EmptyState";
 
 export interface GridLayoutProps<T> {
@@ -10,11 +11,10 @@ export interface GridLayoutProps<T> {
   emptyStateAction?: React.ReactNode;
   emptyStateMessage?: string;
   minWidth: number;
-  sx?: SxProps<Theme>;
   gap?: number;
 }
 
-export function GridLayout<T>(props: GridLayoutProps<T>) {
+export function GridLayout<T>(props: GridLayoutProps<T> & BoxProps) {
   const {
     gap = 2,
     items,
@@ -24,15 +24,15 @@ export function GridLayout<T>(props: GridLayoutProps<T>) {
     emptyStateAction,
     emptyStateMessage,
     minWidth,
-    sx,
+    ...boxProps
   } = props;
 
   if (loading) {
-    return <LinearProgress />;
+    return <ProgressBar />;
   }
 
   if (error) {
-    return <EmptyState message={error} sx={{ mt: 4 }} />;
+    return <EmptyState message={error} mt={4} />;
   }
 
   if (items.length === 0) {
@@ -43,31 +43,29 @@ export function GridLayout<T>(props: GridLayoutProps<T>) {
       <EmptyState
         message={emptyStateMessage}
         action={emptyStateAction}
-        sx={{ mt: 4 }}
+        mt={4}
       />
     );
   }
 
   return (
-    <Box sx={{ containerType: "inline-size" }}>
+    <Box containerType="inline-size">
       <Box
-        sx={[
-          {
-            display: "grid",
-            gridTemplateColumns: `repeat(auto-fill, minmax(${minWidth}px, 1fr))`,
-            gap,
-            [`@container (max-width: ${minWidth}px)`]: {
-              gridTemplateColumns: "1fr",
-            },
+        display="grid"
+        gridTemplateColumns={`repeat(auto-fill, minmax(${minWidth}px, 1fr))`}
+        gap={gap}
+        css={{
+          [`@container (max-width: ${minWidth}px)`]: {
+            gridTemplateColumns: "1fr",
           },
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
+        }}
+        {...boxProps}
       >
         {items.map((item, index) => (
           <Box
             key={index}
             height={"100%"}
-            sx={{
+            css={{
               "&>": {
                 height: "100%",
               },

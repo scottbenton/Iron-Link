@@ -1,13 +1,16 @@
 // Rolls, announcements, datasworn dialog, themes
+import { ColorScheme } from "@/repositories/shared.types";
+import { IGameLog } from "@/services/gameLog.service";
 import deepEqual from "fast-deep-equal";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
-import { ColorScheme } from "repositories/shared.types";
-
-import { IGameLog } from "services/gameLog.service";
-
 export type VisibleRoll = { id?: string; roll: IGameLog };
+
+export enum Theme {
+  Light = "light",
+  Dark = "dark",
+}
 
 interface AppStateState {
   announcement: string | null;
@@ -19,6 +22,7 @@ interface AppStateState {
 
   visibleRolls: VisibleRoll[];
 
+  theme: Theme;
   colorScheme: ColorScheme;
 }
 
@@ -29,6 +33,7 @@ interface AppStateActions {
   closeDataswornDialog: () => void;
   prevDataswornDialog: () => void;
 
+  setTheme: (theme: Theme) => void;
   setColorScheme: (colorScheme: ColorScheme) => void;
 
   addRoll: (rollId: string | undefined, roll: IGameLog) => void;
@@ -47,7 +52,9 @@ export const useAppState = createWithEqualityFn<
       previousIds: [],
     },
     visibleRolls: [],
-    colorScheme: ColorScheme.Default,
+
+    theme: Theme.Light,
+    colorScheme: ColorScheme.Myriad,
 
     setAnnouncement: (announcement) => set({ announcement }),
 
@@ -75,6 +82,11 @@ export const useAppState = createWithEqualityFn<
           const newOpenId = state.dataswornDialogState.previousIds.pop();
           state.dataswornDialogState.openId = newOpenId;
         }
+      });
+    },
+    setTheme: (theme) => {
+      set((state) => {
+        state.theme = theme;
       });
     },
     setColorScheme: (colorScheme) => {

@@ -1,19 +1,18 @@
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase.lib";
 
 import {
   Tables,
   TablesInsert,
   TablesUpdate,
-} from "types/supabase-generated.type";
-
-import { supabase } from "lib/supabase.lib";
+} from "@/types/supabase-generated.type";
 
 import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
   ErrorVerb,
-  RepositoryError,
   getRepositoryError,
+  RepositoryError,
 } from "./errors/RepositoryErrors";
 
 export type AssetDTO = Tables<"assets">;
@@ -55,7 +54,9 @@ export class AssetRepository {
       this.assets()
         .select()
         .or(
-          `game_id.eq.${gameId}, character_id.in.("${characterIds.join('","')}")`,
+          `game_id.eq.${gameId}, character_id.in.("${
+            characterIds.join('","')
+          }")`,
         )
         .then((result) => {
           if (result.error) {

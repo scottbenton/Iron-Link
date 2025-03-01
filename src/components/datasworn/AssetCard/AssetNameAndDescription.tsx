@@ -1,7 +1,7 @@
-import GroupIcon from "@mui/icons-material/Group";
-import { Box, Tooltip, Typography } from "@mui/material";
-
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
+import { Tooltip } from "@/components/ui/tooltip";
+import { Box, Heading, Icon } from "@chakra-ui/react";
+import { GroupIcon } from "lucide-react";
 
 export interface AssetNameAndDescriptionProps {
   name: string;
@@ -20,20 +20,19 @@ export function AssetNameAndDescription(props: AssetNameAndDescriptionProps) {
         alignItems={"center"}
         justifyContent={"space-between"}
       >
-        <Typography
-          variant={"h5"}
-          fontFamily={(theme) => theme.typography.fontFamilyTitle}
-        >
+        <Heading as={"h3"} fontSize="2xl">
           {name}
-        </Typography>
+        </Heading>
         {shared && showSharedIcon && (
-          <Tooltip title={"Shared"}>
-            <GroupIcon color={"primary"} />
+          <Tooltip content={"Shared"}>
+            <Icon colorPalette="colorScheme">
+              <GroupIcon />
+            </Icon>
           </Tooltip>
         )}
       </Box>
       {description && (
-        <Box color={(theme) => theme.palette.text.secondary}>
+        <Box color="fg.muted">
           <MarkdownRenderer inheritColor markdown={description} />
         </Box>
       )}

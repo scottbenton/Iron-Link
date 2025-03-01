@@ -2,16 +2,13 @@ import equal from "fast-deep-equal";
 import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
-
-import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
-
-import { InitiativeStatus } from "repositories/character.repository";
-import { ColorScheme } from "repositories/shared.types";
-
-import { CharacterService, ICharacter } from "services/character.service";
+import { InitiativeStatus } from "@/repositories/character.repository";
+import { ColorScheme } from "@/repositories/shared.types";
+import { CharacterService, ICharacter } from "@/services/character.service";
 
 import { useUID } from "./auth.store";
 import { GamePermission, useGameStore } from "./game.store";
+import { useCharacterIdOptional } from "@/hooks/useCharacterId";
 
 export enum CharacterPermissionType {
   Owner = "owner",
@@ -131,8 +128,8 @@ export const useGameCharactersStore = createWithEqualityFn<
       return CharacterService.updateCharacterName(characterId, newName);
     },
     updateCharacterPortrait: (characterId, scale, position, newPortrait) => {
-      const existingPortraitFileName =
-        getState().characters[characterId]?.profileImage?.filename;
+      const existingPortraitFileName = getState().characters[characterId]
+        ?.profileImage?.filename;
       return CharacterService.updateCharacterPortrait(
         characterId,
         scale,
@@ -142,8 +139,8 @@ export const useGameCharactersStore = createWithEqualityFn<
       );
     },
     removeCharacterPortrait: (characterId: string) => {
-      const existingPortraitFileName =
-        getState().characters[characterId]?.profileImage?.filename;
+      const existingPortraitFileName = getState().characters[characterId]
+        ?.profileImage?.filename;
       if (!existingPortraitFileName) {
         return Promise.resolve();
       }
@@ -283,6 +280,6 @@ export function useGameCharacter<T>(
 ): T {
   const characterId = useCharacterIdOptional();
   return useGameCharactersStore((state) =>
-    selector(characterId ? state.characters[characterId] : undefined),
+    selector(characterId ? state.characters[characterId] : undefined)
   );
 }

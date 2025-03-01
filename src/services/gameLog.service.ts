@@ -1,7 +1,10 @@
-import { RepositoryError } from "repositories/errors/RepositoryErrors";
-import { GameLogDTO, GameLogRepository } from "repositories/gameLog.repository";
-import { RollResult, RollType } from "repositories/shared.types";
-import { TrackTypes } from "repositories/tracks.repository";
+import { RepositoryError } from "@/repositories/errors/RepositoryErrors";
+import {
+  GameLogDTO,
+  GameLogRepository,
+} from "@/repositories/gameLog.repository";
+import { RollResult, RollType } from "@/repositories/shared.types";
+import { TrackTypes } from "@/repositories/tracks.repository";
 
 export interface IBaseRoll {
   id: string;
@@ -80,7 +83,7 @@ export type IGameLog =
 export class GameLogService {
   public static getGameLogFromID(logId: string): Promise<IGameLog> {
     return GameLogRepository.getGameLogFromID(logId).then((dto) =>
-      this.convertGameLogDTOToGameLog(dto),
+      this.convertGameLogDTOToGameLog(dto)
     );
   }
 
@@ -176,8 +179,8 @@ export class GameLogService {
           characterId: dto.character_id,
           uid: dto.user_id,
           guidesOnly: dto.guides_only ?? false,
-          cursedDieAdditiveResult:
-            dto.log_data.cursed_die_additive_result ?? null,
+          cursedDieAdditiveResult: dto.log_data.cursed_die_additive_result ??
+            null,
           cursedDieRoll: dto.log_data.cursed_die_roll ?? null,
           wasCursed: dto.log_data.was_cursed ?? null,
         } satisfies IOracleTableRoll;

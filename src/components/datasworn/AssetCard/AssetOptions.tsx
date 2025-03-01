@@ -1,7 +1,6 @@
+import { IAsset } from "@/services/asset.service";
+import { Stack } from "@chakra-ui/react";
 import { Datasworn } from "@datasworn/core";
-import { Stack } from "@mui/material";
-
-import { IAsset } from "services/asset.service";
 
 import { AssetOption } from "./AssetOption";
 
@@ -23,7 +22,7 @@ export function AssetOptions(props: AssetOptionsProps) {
   }
 
   return (
-    <Stack spacing={1} mb={2}>
+    <Stack mt={2}>
       {Object.keys(options)
         .sort((o1, o2) => {
           const option1 = options[o1];

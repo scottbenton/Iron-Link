@@ -1,6 +1,5 @@
 import { Datasworn, IdParser } from "@datasworn/core";
-
-import { ironLinkAskTheOracleRulesPackage } from "data/askTheOracle";
+import { ironLinkAskTheOracleRulesPackage } from "@/data/askTheOracle";
 
 export function getRulesetFromId(
   id: string,
@@ -12,12 +11,14 @@ export function getRulesetFromId(
     const rulesPackage = tree[rulesPackageId];
     if (!rulesPackage) return undefined;
 
-    const rulesetId =
-      rulesPackage.type === "ruleset" ? rulesPackage._id : rulesPackage.ruleset;
+    const rulesetId = rulesPackage.type === "ruleset"
+      ? rulesPackage._id
+      : rulesPackage.ruleset;
     const ruleset = tree[rulesetId];
 
-    if (!ruleset || ruleset._id === ironLinkAskTheOracleRulesPackage._id)
+    if (!ruleset || ruleset._id === ironLinkAskTheOracleRulesPackage._id) {
       return undefined;
+    }
 
     return {
       id: ruleset._id,

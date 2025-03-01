@@ -1,5 +1,14 @@
+import {
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "@/components/ui/select";
+import { createListCollection } from "@chakra-ui/react";
 import { Datasworn } from "@datasworn/core";
-import { MenuItem, TextField, capitalize } from "@mui/material";
+import { useMemo } from "react";
 
 export interface AssetSelectValueFieldProps {
   field: Datasworn.SelectValueField;
@@ -11,22 +20,48 @@ export function AssetSelectValueField(props: AssetSelectValueFieldProps) {
   const { field, value, onChange } = props;
   const { label, value: defaultValue, choices } = field;
 
+  const { collection, items } = useMemo(() => {
+    const items: {
+      label: string;
+      value: string;
+    }[] = [];
+
+    Object.entries(choices).forEach(([choiceKey, choice]) => {
+      items.push({
+        label: choice.label,
+        value: choiceKey,
+      });
+    });
+
+    const collection = createListCollection({
+      items,
+    });
+
+    return {
+      collection,
+      items,
+    };
+  }, [choices]);
+
   return (
-    <TextField
-      select
-      label={capitalize(label)}
-      defaultValue={value ?? defaultValue ?? ""}
+    <SelectRoot
+      w="100%"
+      collection={collection}
+      value={[value ?? defaultValue ?? ""]}
+      onValueChange={(details) => onChange && onChange(details.value[0])}
       disabled={!onChange}
-      onChange={(evt) => onChange && onChange(evt.target.value)}
-      variant={"standard"}
-      sx={{ mt: 0.5 }}
-      fullWidth
     >
-      {Object.entries(choices).map(([choiceKey, choice]) => (
-        <MenuItem key={choiceKey} value={choiceKey}>
-          {capitalize(choice.label)}
-        </MenuItem>
-      ))}
-    </TextField>
+      <SelectLabel textTransform={"capitalize"}>{label}</SelectLabel>
+      <SelectTrigger>
+        <SelectValueText textTransform={"capitalize"} />
+      </SelectTrigger>
+      <SelectContent>
+        {items.map((item) => (
+          <SelectItem key={item.value} item={item} textTransform={"capitalize"}>
+            {item.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </SelectRoot>
   );
 }

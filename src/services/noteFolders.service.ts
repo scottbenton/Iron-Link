@@ -1,12 +1,11 @@
-import { GamePermission } from "stores/game.store";
-
-import { RepositoryError } from "repositories/errors/RepositoryErrors";
+import { RepositoryError } from "@/repositories/errors/RepositoryErrors";
 import {
   NoteFolderDTO,
   NoteFoldersRepository,
-} from "repositories/noteFolders.repository";
-import { NotesRepository } from "repositories/notes.repository";
-import { EditPermissions, ReadPermissions } from "repositories/shared.types";
+} from "@/repositories/noteFolders.repository";
+import { NotesRepository } from "@/repositories/notes.repository";
+import { EditPermissions, ReadPermissions } from "@/repositories/shared.types";
+import { GamePermission } from "@/stores/game.store";
 
 export type INoteFolder = {
   id: string;

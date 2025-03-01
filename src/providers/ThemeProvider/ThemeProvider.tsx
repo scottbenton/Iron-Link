@@ -1,20 +1,35 @@
-import { CssBaseline, ThemeProvider as MuiThemeProvider } from "@mui/material";
+import { Theme as ThemeEnum } from "@/stores/appState.store";
+import { useAppState } from "@/stores/appState.store";
+import {
+  ChakraProvider,
+  Theme,
+  createSystem,
+  defaultConfig,
+} from "@chakra-ui/react";
 import { PropsWithChildren } from "react";
 
-import { useAppState } from "stores/appState.store";
+import { colorPaletteMap, themeConfig } from "./config";
 
-import { getTheme } from "./themes/themeConfig";
+const system = createSystem(defaultConfig, themeConfig);
 
 export function ThemeProvider(props: PropsWithChildren) {
   const { children } = props;
 
+  const theme = useAppState((state) => state.theme);
   const colorScheme = useAppState((state) => state.colorScheme);
-  const theme = getTheme(colorScheme);
 
   return (
-    <MuiThemeProvider theme={theme}>
-      <CssBaseline enableColorScheme />
-      {children}
-    </MuiThemeProvider>
+    <ChakraProvider value={system}>
+      <Theme
+        appearance={theme === ThemeEnum.Light ? "light" : "dark"}
+        colorPalette={colorPaletteMap[colorScheme]}
+        minH="100lvh"
+        display="flex"
+        flexDirection="column"
+        bg="bg.muted"
+      >
+        {children}
+      </Theme>
+    </ChakraProvider>
   );
 }

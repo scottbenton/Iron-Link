@@ -1,9 +1,8 @@
+import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
+import { Checkbox } from "@/components/ui/checkbox";
+import { IAsset } from "@/services/asset.service";
+import { Box, Stack, Text } from "@chakra-ui/react";
 import { Datasworn } from "@datasworn/core";
-import { Box, Checkbox, Stack, Typography } from "@mui/material";
-
-import { MarkdownRenderer } from "components/MarkdownRenderer";
-
-import { IAsset } from "services/asset.service";
 
 export interface AssetAbilitiesProps {
   abilities: Datasworn.AssetAbility[];
@@ -34,7 +33,7 @@ export function AssetAbilities(props: AssetAbilitiesProps) {
     : abilitiesWithIndex;
 
   return (
-    <Stack spacing={1} flexGrow={1} sx={{ ml: -1, flexGrow: 1 }}>
+    <Stack gap={3} flexGrow={1} ml={-1} mt={2}>
       {filteredAbilities.map((ability) => (
         <Box display={"flex"} alignItems={"flex-start"} key={ability.index}>
           <Checkbox
@@ -44,17 +43,17 @@ export function AssetAbilities(props: AssetAbilitiesProps) {
               false
             }
             disabled={ability.enabled || !onAbilityToggle}
-            onChange={(evt) =>
+            onCheckedChange={(evt) =>
               onAbilityToggle &&
-              onAbilityToggle(ability.index, evt.target.checked)
+              onAbilityToggle(ability.index, evt.checked === true)
             }
-            sx={{ p: 0.5 }}
+            mt={1}
           />
-          <Box key={ability.index}>
+          <Box ml={2} key={ability.index}>
             {ability.name && (
-              <Typography display={"inline"} variant={"body2"}>
+              <Text display={"inline"} fontSize="sm">
                 <b>{ability.name}: </b>
-              </Typography>
+              </Text>
             )}
             <MarkdownRenderer markdown={ability.text} inlineParagraph />
           </Box>

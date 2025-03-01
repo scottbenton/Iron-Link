@@ -1,16 +1,16 @@
-import { Enums } from "types/supabase-generated.type";
-
-import { RepositoryError } from "repositories/errors/RepositoryErrors";
+import { RepositoryError } from "@/repositories/errors/RepositoryErrors";
 import {
   AskTheOracle,
   Difficulty,
   TrackDTO,
   TrackSectionProgressTracks,
   TrackSectionTracks,
+  TracksRepository,
   TrackStatus,
   TrackTypes,
-  TracksRepository,
-} from "repositories/tracks.repository";
+} from "@/repositories/tracks.repository";
+
+import { Enums } from "@/types/supabase-generated.type";
 
 export interface IBaseTrack {
   id: string;

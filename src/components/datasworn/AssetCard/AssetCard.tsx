@@ -1,9 +1,7 @@
+import { useAsset } from "@/hooks/datasworn/useAsset";
+import { IAsset } from "@/services/asset.service";
+import { Card, Text } from "@chakra-ui/react";
 import { Datasworn } from "@datasworn/core";
-import { Box, Card, Stack, SxProps, Theme, Typography } from "@mui/material";
-
-import { useAsset } from "hooks/datasworn/useAsset";
-
-import { IAsset } from "services/asset.service";
 
 import { AssetAbilities } from "./AssetAbilities";
 import { AssetControls } from "./AssetControls";
@@ -26,7 +24,6 @@ export interface AssetCardProps {
 
   hideUnavailableAbilities?: boolean;
   showSharedIcon?: boolean;
-  sx?: SxProps<Theme>;
 }
 
 export function AssetCard(props: AssetCardProps) {
@@ -40,33 +37,27 @@ export function AssetCard(props: AssetCardProps) {
     onAssetControlChange,
     showSharedIcon,
     hideUnavailableAbilities,
-    sx,
   } = props;
 
   const asset = useAsset(assetId);
 
   if (!asset) {
     return (
-      <Card
-        variant={"outlined"}
-        sx={[
-          {
-            width: "100%",
-            height: "100%",
-            borderColor: "error.main",
-          },
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
+      <Card.Root
+        variant={"outline"}
+        w={"100%"}
+        h={"100%"}
+        borderColor="border.error"
       >
         <AssetHeader
           id={assetId}
           category={"Error Loading Asset"}
           actions={headerActions}
         />
-        <Box px={2} pt={1} pb={2}>
-          <Typography>Asset with id "{assetId}" could not be found.</Typography>
-        </Box>
-      </Card>
+        <Card.Body px={2} pt={1} pb={2}>
+          <Text>Asset with id "{assetId}" could not be found.</Text>
+        </Card.Body>
+      </Card.Root>
     );
   }
 
@@ -104,27 +95,22 @@ export function AssetCard(props: AssetCardProps) {
   });
 
   return (
-    <Card
-      variant={"outlined"}
-      sx={[
-        {
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+    <Card.Root
+      variant={"outline"}
+      w="100%"
+      h="100%"
+      display="flex"
+      flexDir="column"
     >
       <AssetHeader
         id={asset._id}
         category={asset.category}
         actions={headerActions}
       />
-      <Box
-        px={2}
+      <Card.Body
+        px={4}
         pt={1}
-        pb={2}
+        pb={1}
         display="flex"
         flexDirection={"column"}
         flexGrow={1}
@@ -151,22 +137,19 @@ export function AssetCard(props: AssetCardProps) {
           assetDocument={assetDocument}
           onControlChange={onAssetControlChange}
         />
-      </Box>
+      </Card.Body>
       {actions && (
-        <Stack
-          direction={"row"}
-          spacing={1}
+        <Card.Footer
+          justifyContent="flex-end"
           mt={2}
-          justifyContent={"flex-end"}
-          bgcolor={(theme) =>
-            theme.palette.mode === "light" ? "grey.200" : "grey.800"
-          }
           px={1}
           py={1}
+          bg="bg.muted"
+          borderBottomRadius={"inherit"}
         >
           {actions}
-        </Stack>
+        </Card.Footer>
       )}
-    </Card>
+    </Card.Root>
   );
 }

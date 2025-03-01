@@ -1,4 +1,4 @@
-import { useTheme } from "@mui/material";
+import { Box } from "@chakra-ui/react";
 
 export interface ClockSegmentProps {
   index: number;
@@ -21,13 +21,16 @@ export function ClockSegment(props: ClockSegmentProps) {
   const endX = 50 + 50 * Math.sin((Math.PI * endAngle) / 180);
   const endY = 50 - 50 * Math.cos((Math.PI * endAngle) / 180);
 
-  const theme = useTheme();
-
   return (
-    <path
-      d={`M 50 50 L ${startX} ${startY} A 50 50 0 ${largeArcFlag} 1 ${endX} ${endY} z`}
-      strokeWidth={4}
-      fill={isFilled ? theme.palette.grey[300] : theme.palette.background.paper}
-    />
+    <Box
+      asChild
+      fill={isFilled ? "gray.300" : "bg.panel"}
+      _dark={{ fill: isFilled ? "gray.700" : "bg.panel" }}
+    >
+      <path
+        d={`M 50 50 L ${startX} ${startY} A 50 50 0 ${largeArcFlag} 1 ${endX} ${endY} z`}
+        strokeWidth={4}
+      />
+    </Box>
   );
 }

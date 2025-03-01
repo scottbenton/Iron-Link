@@ -1,6 +1,5 @@
+import { useDataswornTreeStore } from "@/stores/dataswornTree.store";
 import { Datasworn } from "@datasworn/core";
-
-import { useDataswornTreeStore } from "stores/dataswornTree.store";
 
 export function getAsset(assetId: string): Datasworn.Asset | undefined {
   return useDataswornTreeStore.getState().assets.assetMap[assetId];

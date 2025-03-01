@@ -1,9 +1,6 @@
-import {
-  ConditionMeter,
-  ConditionMeterProps,
-} from "components/datasworn/ConditonMeter/ConditionMeter";
+import { useDebouncedSync } from "@/hooks/useDebouncedSync";
 
-import { useDebouncedSync } from "hooks/useDebouncedSync";
+import { ConditionMeter, ConditionMeterProps } from "./ConditionMeter";
 
 export interface DebouncedConditionMeterProps
   extends Omit<ConditionMeterProps, "onChange" | "onActionClick"> {

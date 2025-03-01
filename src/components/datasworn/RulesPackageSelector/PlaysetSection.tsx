@@ -1,14 +1,15 @@
-import { Datasworn } from "@datasworn/core";
-import ExpandIcon from "@mui/icons-material/ExpandMore";
+import { List } from "@/components/common/ListItem/List";
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Typography,
-} from "@mui/material";
+  AccordionItem,
+  AccordionItemContent,
+  AccordionItemTrigger,
+} from "@/components/ui/accordion";
+import { Box, Text } from "@chakra-ui/react";
+import { Datasworn } from "@datasworn/core";
 
 import { CollectionPlayset } from "./CollectionPlayset";
+
+// import { CollectionPlayset } from "./CollectionPlayset";
 
 export interface PlaysetSectionProps {
   label: string;
@@ -36,33 +37,29 @@ export function PlaysetSection(props: PlaysetSectionProps) {
   } = props;
 
   return (
-    <Accordion variant={"outlined"}>
-      <AccordionSummary
-        expandIcon={<ExpandIcon />}
-        aria-controls={label + "-accordion-content"}
-        id={label + "-accordion-header"}
-      >
-        <Typography component="span">{label}</Typography>
-      </AccordionSummary>
-      <AccordionDetails>
+    <AccordionItem value={label}>
+      <AccordionItemTrigger cursor="pointer">{label}</AccordionItemTrigger>
+      <AccordionItemContent display="flex" flexDir="column" gap={4}>
         {Object.values(rulesPackages).map((pkg) => (
           <Box key={pkg._id}>
-            <Typography>{pkg.title}</Typography>
-            {Object.values(pkg[collectionKey]).map((collection) => (
-              <CollectionPlayset
-                key={collection._id}
-                collection={collection}
-                excludedCollections={excludedCollections}
-                toggleExcludedCollection={toggleExcludedCollection}
-                excludedItems={excludedItems}
-                toggleExcludedItem={toggleExcludedItem}
-                replacedCollections={replacedCollections}
-                replacedItems={replacedItems}
-              />
-            ))}
+            <Text>{pkg.title}</Text>
+            <List>
+              {Object.values(pkg[collectionKey]).map((collection) => (
+                <CollectionPlayset
+                  key={collection._id}
+                  collection={collection}
+                  excludedCollections={excludedCollections}
+                  toggleExcludedCollection={toggleExcludedCollection}
+                  excludedItems={excludedItems}
+                  toggleExcludedItem={toggleExcludedItem}
+                  replacedCollections={replacedCollections}
+                  replacedItems={replacedItems}
+                />
+              ))}
+            </List>
           </Box>
         ))}
-      </AccordionDetails>
-    </Accordion>
+      </AccordionItemContent>
+    </AccordionItem>
   );
 }

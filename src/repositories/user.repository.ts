@@ -1,6 +1,6 @@
-import { Tables, TablesUpdate } from "types/supabase-generated.type";
+import { supabase } from "@/lib/supabase.lib";
 
-import { supabase } from "lib/supabase.lib";
+import { Tables, TablesUpdate } from "@/types/supabase-generated.type";
 
 import {
   ErrorNoun,

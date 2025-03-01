@@ -1,7 +1,6 @@
 import { StorageApiError } from "@supabase/storage-js";
 import { isAuthError } from "@supabase/supabase-js";
-
-import { parseRepositoryErrorAndCreateSnackbar } from "providers/SnackbarProvider";
+// import { parseRepositoryErrorAndCreateSnackbar } from "@/providers/SnackbarProvider";
 
 export enum ErrorNoun {
   Asset = "asset",
@@ -99,7 +98,7 @@ export function getRepositoryError(
     message,
   );
 
-  parseRepositoryErrorAndCreateSnackbar(repositoryError);
+  // parseRepositoryErrorAndCreateSnackbar(repositoryError);
 
   return repositoryError;
 }

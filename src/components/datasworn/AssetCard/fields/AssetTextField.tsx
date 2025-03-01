@@ -1,5 +1,5 @@
+import { TextField } from "@/components/common/TextField";
 import { Datasworn } from "@datasworn/core";
-import { TextField, capitalize } from "@mui/material";
 
 export interface AssetTextFieldProps {
   field: Datasworn.TextField;
@@ -13,13 +13,19 @@ export function AssetTextField(props: AssetTextFieldProps) {
 
   return (
     <TextField
-      label={capitalize(label)}
+      w="100%"
+      label={label}
+      LabelProps={{ textTransform: "capitalize" }}
+      InputProps={{ w: "100%" }}
       defaultValue={value ?? defaultValue ?? ""}
       disabled={!onChange}
-      onChange={(evt) => onChange && onChange(evt.target.value)}
-      variant={"standard"}
-      sx={{ mt: 0.5 }}
-      fullWidth
+      onChange={onChange}
+      mt={1}
+      css={{
+        "& .chakra-group": {
+          w: "100%",
+        },
+      }}
     />
   );
 }

@@ -2,15 +2,13 @@ import deepEqual from "fast-deep-equal";
 import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
-
 import {
   AskTheOracle,
   Difficulty,
   TrackSectionProgressTracks,
   TrackStatus,
-} from "repositories/tracks.repository";
-
-import { ITrack, TracksService } from "services/tracks.service";
+} from "@/repositories/tracks.repository";
+import { ITrack, TracksService } from "@/services/tracks.service";
 
 interface TracksStoreState {
   tracks: Record<string, ITrack>;

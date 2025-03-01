@@ -2,8 +2,7 @@ import deepEqual from "fast-deep-equal";
 import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
-
-import { AssetService, IAsset } from "services/asset.service";
+import { AssetService, IAsset } from "@/services/asset.service";
 
 import { useGameCharactersStore } from "./gameCharacters.store";
 
@@ -147,7 +146,7 @@ export function useListenToGameAssets(gameId: string | undefined) {
   const reset = useAssetsStore((store) => store.reset);
 
   const characterIds = useGameCharactersStore((store) =>
-    Object.keys(store.characters),
+    Object.keys(store.characters)
   );
 
   useEffect(() => {

@@ -1,16 +1,14 @@
-import deepEqual from "fast-deep-equal";
-import { Dispatch, SetStateAction } from "react";
-import { immer } from "zustand/middleware/immer";
-import { createWithEqualityFn } from "zustand/traditional";
-
 import {
   ExpansionConfig,
   GameType,
   PlaysetConfig,
   RulesetConfig,
-} from "repositories/game.repository";
-
-import { GameService } from "services/game.service";
+} from "@/repositories/game.repository";
+import { GameService } from "@/services/game.service";
+import deepEqual from "fast-deep-equal";
+import { Dispatch, SetStateAction } from "react";
+import { immer } from "zustand/middleware/immer";
+import { createWithEqualityFn } from "zustand/traditional";
 
 export interface CreateGameState {
   gameName: string;
@@ -47,7 +45,7 @@ export const useCreateGameStore = createWithEqualityFn<
 >()(
   immer((set, getState) => ({
     ...defaultState,
-    createGame: (uid, name: string) => {
+    createGame: (uid, name) => {
       const { gameType, rulesets, expansions, playset } = getState();
       return GameService.createGame(
         uid,

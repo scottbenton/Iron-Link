@@ -1,10 +1,8 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-
-import { GamePermission, useGameStore } from "stores/game.store";
-
-import { i18n } from "i18n/config";
+import { i18n } from "@/lib/i18n";
+import { GamePermission, useGameStore } from "@/stores/game.store";
 
 interface AdvancedFeature {
   name: string;

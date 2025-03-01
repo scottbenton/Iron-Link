@@ -1,4 +1,4 @@
-import { supabase } from "lib/supabase.lib";
+import { supabase } from "@/lib/supabase.lib";
 
 import {
   ErrorNoun,

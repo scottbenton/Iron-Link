@@ -1,15 +1,14 @@
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase.lib";
 
-import { Tables } from "types/supabase-generated.type";
-
-import { supabase } from "lib/supabase.lib";
+import { Tables } from "@/types/supabase-generated.type";
 
 import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
   ErrorVerb,
-  RepositoryError,
   getRepositoryError,
+  RepositoryError,
 } from "./errors/RepositoryErrors";
 
 export type GamePlayerDTO = Tables<"game_players">;

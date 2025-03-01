@@ -1,13 +1,10 @@
+import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
+import { GridLayout } from "@/components/layout/GridLayout";
+import { IAsset } from "@/services/asset.service";
+import { AssetMap } from "@/stores/dataswornTree.store";
+import { Button } from "@chakra-ui/react";
 import { Datasworn } from "@datasworn/core";
-import { Box, Button } from "@mui/material";
 import { useTranslation } from "react-i18next";
-
-import { GridLayout } from "components/Layout";
-import { MarkdownRenderer } from "components/MarkdownRenderer";
-
-import { AssetMap } from "stores/dataswornTree.store";
-
-import { IAsset } from "services/asset.service";
 
 import { AssetCard } from "../AssetCard/AssetCard";
 
@@ -26,7 +23,7 @@ export function AssetList(props: AssetListProps) {
   const { t } = useTranslation();
 
   return (
-    <Box>
+    <div>
       {assetCollection.name}
       {assetCollection.description && (
         <MarkdownRenderer markdown={assetCollection.description} />
@@ -40,8 +37,8 @@ export function AssetList(props: AssetListProps) {
             assetId={assetId}
             actions={
               <Button
-                color={"inherit"}
-                variant="outlined"
+                colorPalette="gray"
+                variant="subtle"
                 onClick={() => {
                   selectAsset(
                     {
@@ -65,6 +62,6 @@ export function AssetList(props: AssetListProps) {
         )}
         minWidth={300}
       />
-    </Box>
+    </div>
   );
 }

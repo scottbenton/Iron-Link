@@ -1,19 +1,18 @@
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase.lib";
 
 import {
   Tables,
   TablesInsert,
   TablesUpdate,
-} from "types/supabase-generated.type";
-
-import { supabase } from "lib/supabase.lib";
+} from "@/types/supabase-generated.type";
 
 import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
   ErrorVerb,
-  RepositoryError,
   getRepositoryError,
+  RepositoryError,
 } from "./errors/RepositoryErrors";
 import { RollResult } from "./shared.types";
 import { TrackTypes } from "./tracks.repository";
@@ -63,13 +62,15 @@ type InsertSpecialTrackGameLogDTO = Omit<BaseInsertGameLogDTO, "log_data"> & {
   type: "special_track_progress_roll";
   log_data: SpecialTrackRollJSONData;
 };
-type InsertClockProgressionGameLogDTO = Omit<
-  BaseInsertGameLogDTO,
-  "log_data"
-> & {
-  type: "clock_progression_roll";
-  log_data: ClockProgressionRollJSONData;
-};
+type InsertClockProgressionGameLogDTO =
+  & Omit<
+    BaseInsertGameLogDTO,
+    "log_data"
+  >
+  & {
+    type: "clock_progression_roll";
+    log_data: ClockProgressionRollJSONData;
+  };
 type InsertGameLogDTO =
   | InsertStateGameLogDTO
   | InsertOracleGameLogDTO
@@ -90,17 +91,20 @@ type UpdateTrackProgressGameLogDTO = Omit<BaseUpdateGameLogDTO, "log_data"> & {
 type UpdateSpecialTrackGameLogDTO = Omit<BaseUpdateGameLogDTO, "log_data"> & {
   log_data?: SpecialTrackRollJSONData;
 };
-type UpdateClockProgressionGameLogDTO = Omit<
-  BaseUpdateGameLogDTO,
-  "log_data"
-> & {
-  log_data?: ClockProgressionRollJSONData;
-};
-type UpdateGameLogDTO = UpdateStatGameLogDTO &
-  UpdateOracleGameLogDTO &
-  UpdateTrackProgressGameLogDTO &
-  UpdateSpecialTrackGameLogDTO &
-  UpdateClockProgressionGameLogDTO;
+type UpdateClockProgressionGameLogDTO =
+  & Omit<
+    BaseUpdateGameLogDTO,
+    "log_data"
+  >
+  & {
+    log_data?: ClockProgressionRollJSONData;
+  };
+type UpdateGameLogDTO =
+  & UpdateStatGameLogDTO
+  & UpdateOracleGameLogDTO
+  & UpdateTrackProgressGameLogDTO
+  & UpdateSpecialTrackGameLogDTO
+  & UpdateClockProgressionGameLogDTO;
 
 export interface StatRollJSONData {
   label: string;

@@ -1,5 +1,5 @@
+import { Checkbox } from "@/components/ui/checkbox";
 import { Datasworn } from "@datasworn/core";
-import { Checkbox, FormControlLabel, capitalize } from "@mui/material";
 
 export interface AssetCheckboxFieldProps {
   field: Datasworn.AssetCheckboxField | Datasworn.AssetCardFlipField;
@@ -11,15 +11,15 @@ export function AssetCheckboxField(props: AssetCheckboxFieldProps) {
   const { field, value, onChange } = props;
 
   return (
-    <FormControlLabel
-      control={
-        <Checkbox
-          checked={value ?? field.value ?? false}
-          disabled={!onChange}
-          onChange={(_, checked) => onChange && onChange(checked)}
-        />
+    <Checkbox
+      checked={value ?? field.value ?? false}
+      disabled={!onChange}
+      onCheckedChange={(details) =>
+        onChange && onChange(details.checked === true)
       }
-      label={capitalize(field.label)}
-    />
+      textTransform={"capitalize"}
+    >
+      {field.label}
+    </Checkbox>
   );
 }

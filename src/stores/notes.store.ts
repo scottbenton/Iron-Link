@@ -2,22 +2,32 @@ import deepEqual from "fast-deep-equal";
 import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
-
-import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
-
-import { EditPermissions, ReadPermissions } from "repositories/shared.types";
-
-import { INoteFolder, NoteFoldersService } from "services/noteFolders.service";
-import { INote, INoteContent, NotesService } from "services/notes.service";
+import { EditPermissions, ReadPermissions } from "@/repositories/shared.types";
+import {
+  INoteFolder,
+  NoteFoldersService,
+} from "@/services/noteFolders.service";
+import { INote, NotesService } from "@/services/notes.service";
 
 import { useAuthStore, useUID } from "./auth.store";
 import { GamePermission } from "./game.store";
+import { useGamePermissions } from "@/hooks/usePermissions";
 
 interface Permissions {
   canEdit: boolean;
   canDelete: boolean;
   canChangePermissions: boolean;
 }
+
+export type OpenItem =
+  | {
+    type: "note";
+    noteId: string;
+  }
+  | {
+    type: "folder";
+    folderId: string;
+  };
 
 interface NotesStoreState {
   noteState: {
@@ -32,20 +42,8 @@ interface NotesStoreState {
     loading: boolean;
     error?: string;
   };
-  openItem?:
-    | {
-        type: "note";
-        noteId: string;
-        noteContent: {
-          data?: INoteContent;
-          loading: boolean;
-          error?: string;
-        };
-      }
-    | {
-        type: "folder";
-        folderId: string;
-      };
+  currentOpenItemIndex: number;
+  openItems: OpenItem[];
 }
 
 interface NotesStoreActions {
@@ -59,9 +57,15 @@ interface NotesStoreActions {
     gameId: string,
     gamePermissions: GamePermission,
   ) => () => void;
-  listenToActiveNoteContent: (noteId: string) => () => void;
 
-  setOpenItem: (type: "folder" | "note", id: string) => void;
+  addOpenItem: (
+    type: "folder" | "note",
+    id: string,
+    index?: number,
+    replace?: boolean,
+  ) => void;
+  closeOpenItem: (index: number) => void;
+  setCurrentOpenItemIndex: (index: number) => void;
 
   createFolder: (
     uid: string,
@@ -137,7 +141,8 @@ const defaultNotesState: NotesStoreState = {
     folders: {},
     error: undefined,
   },
-  openItem: undefined,
+  currentOpenItemIndex: 0,
+  openItems: [],
 };
 
 export const useNotesStore = createWithEqualityFn<
@@ -162,6 +167,14 @@ export const useNotesStore = createWithEqualityFn<
                 ...changedNoteFolders,
               };
               deletedNoteFolderIds.forEach((folderId) => {
+                store.openItems.forEach((item, index) => {
+                  if (item.type === "folder" && item.folderId === folderId) {
+                    store.openItems.splice(index, 1);
+                    if (store.currentOpenItemIndex >= index) {
+                      store.currentOpenItemIndex--;
+                    }
+                  }
+                });
                 delete store.folderState.folders[folderId];
                 delete store.folderState.permissions[folderId];
               });
@@ -203,6 +216,14 @@ export const useNotesStore = createWithEqualityFn<
                 ...changedNotes,
               };
               removedNoteIds.forEach((noteId) => {
+                store.openItems.forEach((item, index) => {
+                  if (item.type === "note" && item.noteId === noteId) {
+                    store.openItems.splice(index, 1);
+                    if (store.currentOpenItemIndex >= index) {
+                      store.currentOpenItemIndex--;
+                    }
+                  }
+                });
                 delete store.noteState.notes[noteId];
                 delete store.noteState.permissions[noteId];
               });
@@ -230,39 +251,6 @@ export const useNotesStore = createWithEqualityFn<
         },
       );
     },
-    listenToActiveNoteContent: (noteId) => {
-      return NotesService.listenToNoteContent(
-        noteId,
-        (noteContent) => {
-          set((store) => {
-            if (
-              store.openItem?.type === "note" &&
-              store.openItem.noteId === noteId
-            ) {
-              store.openItem.noteContent = {
-                data: noteContent,
-                loading: false,
-                error: undefined,
-              };
-            }
-          });
-        },
-        (error) => {
-          set((store) => {
-            if (
-              store.openItem?.type === "note" &&
-              store.openItem.noteId === noteId
-            ) {
-              store.openItem.noteContent = {
-                data: undefined,
-                loading: false,
-                error: error.message,
-              };
-            }
-          });
-        },
-      );
-    },
 
     updateNoteContent: (noteId, content, contentString, isBeaconRequest) => {
       const token = useAuthStore.getState().token;
@@ -281,34 +269,67 @@ export const useNotesStore = createWithEqualityFn<
       return NotesService.uploadNoteImage(noteId, image);
     },
 
-    setOpenItem: (type, id) => {
+    addOpenItem: (type, id, index, replace) => {
       set((store) => {
-        if (store.openItem?.type === type) {
-          if (
-            (store.openItem.type === "folder" &&
-              store.openItem.folderId === id) ||
-            (store.openItem.type === "note" && store.openItem.noteId === id)
-          ) {
-            return;
+        const foundIndex = store.openItems.findIndex((item) => {
+          if (item.type === type) {
+            if (
+              (item.type === "folder" && item.folderId === id) ||
+              (item.type === "note" && item.noteId === id)
+            ) {
+              return true;
+            }
           }
-        }
+        });
 
-        if (type === "folder") {
-          store.openItem = {
+        let indexToSwitchTo: number | undefined = undefined;
+        let itemToAdd: OpenItem | undefined = undefined;
+
+        if (foundIndex >= 0) {
+          indexToSwitchTo = foundIndex;
+        } else if (type === "folder") {
+          itemToAdd = {
             type: "folder",
             folderId: id,
           };
         } else {
-          store.openItem = {
+          itemToAdd = {
             type: "note",
             noteId: id,
-            noteContent: {
-              data: undefined,
-              loading: true,
-              error: undefined,
-            },
           };
         }
+
+        if (itemToAdd) {
+          if (index === undefined) {
+            indexToSwitchTo = store.openItems.push(itemToAdd) - 1;
+          } else if (replace) {
+            store.openItems[index] = itemToAdd;
+            indexToSwitchTo = index;
+          } else {
+            store.openItems.splice(index + 1, 0, itemToAdd);
+            indexToSwitchTo = index + 1;
+          }
+        }
+
+        if (indexToSwitchTo !== undefined) {
+          store.currentOpenItemIndex = indexToSwitchTo;
+        }
+      });
+    },
+    closeOpenItem: (index) => {
+      set((store) => {
+        store.openItems.splice(index, 1);
+        if (store.currentOpenItemIndex === index) {
+          store.currentOpenItemIndex = Math.min(
+            store.currentOpenItemIndex,
+            store.openItems.length - 1,
+          );
+        }
+      });
+    },
+    setCurrentOpenItemIndex: (index) => {
+      set((store) => {
+        store.currentOpenItemIndex = index;
       });
     },
 
@@ -450,14 +471,13 @@ export const useNotesStore = createWithEqualityFn<
       const notesInParentFolder = Object.values(state.noteState.notes).filter(
         (note) => note.parentFolderId === newParentFolderId,
       );
-      const order =
-        notesInParentFolder.length > 0
-          ? Math.max(
-              ...Object.values(state.noteState.notes)
-                .filter((note) => note.parentFolderId === newParentFolderId)
-                .map((note) => note.order),
-            ) + 1
-          : 1;
+      const order = notesInParentFolder.length > 0
+        ? Math.max(
+          ...Object.values(state.noteState.notes)
+            .filter((note) => note.parentFolderId === newParentFolderId)
+            .map((note) => note.order),
+        ) + 1
+        : 1;
 
       if (!note || !parentFolder) {
         return Promise.reject(new Error("Note or folder not found"));
@@ -559,13 +579,6 @@ export function useListenToGameNotes(gameId: string | undefined) {
     (store) => store.listenToGameNoteFolders,
   );
   const listenToNotes = useNotesStore((store) => store.listenToGameNotes);
-  const listenToNoteContents = useNotesStore(
-    (store) => store.listenToActiveNoteContent,
-  );
-
-  const activeNoteId = useNotesStore((store) =>
-    store.openItem?.type === "note" ? store.openItem.noteId : undefined,
-  );
 
   useEffect(() => {
     if (gameId && gamePermission) {
@@ -578,12 +591,6 @@ export function useListenToGameNotes(gameId: string | undefined) {
       return listenToNotes(uid, gameId, gamePermission);
     }
   }, [gameId, uid, gamePermission, listenToNotes, gameType]);
-
-  useEffect(() => {
-    if (activeNoteId) {
-      return listenToNoteContents(activeNoteId);
-    }
-  }, [activeNoteId, listenToNoteContents]);
 
   useEffect(() => {
     return () => {

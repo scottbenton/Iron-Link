@@ -1,15 +1,13 @@
+import { useRollStatAndAddToLog } from "@/hooks/useRollStatAndAddToLog.ts";
+import { IAsset } from "@/services/asset.service.ts";
+import { useGameCharacter } from "@/stores/gameCharacters.store.ts";
+import { Box } from "@chakra-ui/react";
 import { Datasworn } from "@datasworn/core";
-import RollIcon from "@mui/icons-material/Casino";
-import { Box } from "@mui/material";
+import { Dice6Icon } from "lucide-react";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useGameCharacter } from "stores/gameCharacters.store.ts";
-
-import { IAsset } from "services/asset.service.ts";
-
 import { DEFAULT_MOMENTUM } from "../../../data/constants.ts";
-import { useRollStatAndAddToLog } from "../../../pages/games/hooks/useRollStatAndAddToLog.ts";
 import { ConditionMeter } from "../ConditonMeter";
 import { AssetControls } from "./AssetControls";
 import { AssetCheckboxField } from "./fields/AssetCheckboxField";
@@ -87,7 +85,7 @@ export function AssetControl(props: AssetControlProps) {
     case "condition_meter": {
       const subControls = control.controls;
       return (
-        <Box display={"flex"} alignItems="flex-start" flexWrap="wrap" gap={2}>
+        <Box display={"flex"} alignItems="flex-start" gap={2}>
           <ConditionMeter
             label={control.label}
             defaultValue={control.value}
@@ -100,7 +98,7 @@ export function AssetControl(props: AssetControlProps) {
             action={
               onControlChange && control.rollable
                 ? {
-                    ActionIcon: RollIcon,
+                    ActionIcon: Dice6Icon,
                     actionLabel: t("datasworn.roll", "Roll"),
                   }
                 : undefined
@@ -109,7 +107,7 @@ export function AssetControl(props: AssetControlProps) {
           {subControls && (
             <Box mt={-1}>
               <AssetControls
-                spacing={0}
+                spacing={1}
                 controls={subControls}
                 assetDocument={assetDocument}
                 onControlChange={onControlChange}

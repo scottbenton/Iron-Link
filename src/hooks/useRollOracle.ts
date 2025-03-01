@@ -1,21 +1,16 @@
+import { createId } from "@/lib/id.lib";
+import { rollDie } from "@/lib/rollDie";
+import { RollType } from "@/repositories/shared.types";
+import { IOracleTableRoll } from "@/services/gameLog.service";
+import { useUID } from "@/stores/auth.store";
+import { useDataswornTreeStore } from "@/stores/dataswornTree.store";
 import { Datasworn } from "@datasworn/core";
 import { useCallback } from "react";
 
-import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
-import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
-
-import { useUID } from "stores/auth.store";
-import { useDataswornTreeStore } from "stores/dataswornTree.store";
-
-import { createId } from "lib/id.lib";
-import { rollDie } from "lib/rollDie";
-
-import { RollType } from "repositories/shared.types";
-
-import { IOracleTableRoll } from "services/gameLog.service";
-
 import { getOracleCollection } from "./datasworn/useOracleCollection";
 import { getOracleRollable } from "./datasworn/useOracleRollable";
+import { useCharacterIdOptional } from "./useCharacterId";
+import { useGameIdOptional } from "./useGameId";
 
 export function useRollOracle() {
   const gameId = useGameIdOptional();

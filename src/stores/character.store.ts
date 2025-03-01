@@ -2,8 +2,7 @@ import deepEqual from "fast-deep-equal";
 import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
-
-import { CharacterService } from "services/character.service";
+import { CharacterService } from "@/services/character.service";
 
 interface CharacterStoreState {
   portraits: Record<

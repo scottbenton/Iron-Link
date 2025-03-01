@@ -1,17 +1,13 @@
+import { Dialog } from "@/components/common/Dialog";
+import { useDataswornTranslations } from "@/hooks/i18n/useDataswornTranslations";
+import { PlaysetConfig } from "@/repositories/game.repository";
+import { Button } from "@chakra-ui/react";
 import { Datasworn } from "@datasworn/core";
-import { Dialog } from "@mui/material";
 import { Dispatch, SetStateAction } from "react";
-import { useTranslation } from "react-i18next";
-
-import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
-
-import { PlaysetConfig } from "repositories/game.repository";
 
 import { PlaysetEditor } from "./PlaysetEditor";
 
 export interface PlaysetDialogProps {
-  open: boolean;
-  onClose: () => void;
   playset: PlaysetConfig;
   setPlayset: Dispatch<SetStateAction<PlaysetConfig>>;
   rulesets: Record<string, Datasworn.Ruleset>;
@@ -19,21 +15,25 @@ export interface PlaysetDialogProps {
 }
 
 export function PlaysetDialog(props: PlaysetDialogProps) {
-  const { open, onClose, playset, setPlayset, rulesets, expansions } = props;
-  const { t } = useTranslation();
+  const { playset, setPlayset, rulesets, expansions } = props;
+  const t = useDataswornTranslations();
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitleWithCloseButton onClose={onClose}>
-        {t("game.playsets.edit-playset-title", "Edit Playset")}
-      </DialogTitleWithCloseButton>
-      <PlaysetEditor
-        playset={playset}
-        setPlayset={setPlayset}
-        rulesets={rulesets}
-        expansions={expansions}
-        onClose={onClose}
-      />
-    </Dialog>
+    <Dialog
+      trigger={
+        <Button mt={2} variant="outline" colorPalette="gray">
+          {t("playset.edit-button", "Edit Playset")}
+        </Button>
+      }
+      title={t("playsets.edit-playset-title", "Edit Playset")}
+      fullContent={
+        <PlaysetEditor
+          playset={playset}
+          setPlayset={setPlayset}
+          rulesets={rulesets}
+          expansions={expansions}
+        />
+      }
+    />
   );
 }

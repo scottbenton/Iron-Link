@@ -1,19 +1,18 @@
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase.lib";
 
 import {
   Tables,
   TablesInsert,
   TablesUpdate,
-} from "types/supabase-generated.type";
-
-import { supabase } from "lib/supabase.lib";
+} from "@/types/supabase-generated.type";
 
 import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
   ErrorVerb,
-  RepositoryError,
   getRepositoryError,
+  RepositoryError,
 } from "./errors/RepositoryErrors";
 import { StorageRepository } from "./storage.repository";
 

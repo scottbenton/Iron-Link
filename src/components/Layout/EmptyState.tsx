@@ -1,35 +1,28 @@
-import { Box, SxProps, Theme, Typography } from "@mui/material";
+import { Box, BoxProps, Heading, Text } from "@chakra-ui/react";
 
 export interface EmptyStateProps {
   title?: string;
   message: string | React.ReactNode;
   action?: React.ReactNode;
-  sx?: SxProps<Theme>;
 }
 
-export function EmptyState(props: EmptyStateProps) {
-  const { title, message, action, sx } = props;
+export function EmptyState(props: EmptyStateProps & BoxProps) {
+  const { title, message, action, ...boxProps } = props;
 
   return (
     <Box
       display={"flex"}
       alignItems={"center"}
       flexDirection={"column"}
-      sx={sx}
+      {...boxProps}
     >
       {title && (
-        <Typography color={"textPrimary"} textAlign={"center"} variant="h6">
+        <Heading color={"textPrimary"} textAlign={"center"} as="h2" size="lg">
           {title}
-        </Typography>
+        </Heading>
       )}
       {typeof message === "string" ? (
-        <Typography
-          color={"textSecondary"}
-          textAlign={"center"}
-          variant="body1"
-        >
-          {message}
-        </Typography>
+        <Text color="fg.subtle">{message}</Text>
       ) : (
         message
       )}

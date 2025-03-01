@@ -3,18 +3,17 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
-
-import { UserService } from "services/user.service";
+import { UserService } from "@/services/user.service";
 
 interface UserStoreState {
   users: Record<
     string,
     | {
-        loading: boolean;
-        user?: {
-          name: string | null;
-        };
-      }
+      loading: boolean;
+      user?: {
+        name: string | null;
+      };
+    }
     | undefined
   >;
 }

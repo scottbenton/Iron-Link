@@ -2,9 +2,8 @@ import deepEqual from "fast-deep-equal";
 import { useEffect, useRef } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
-
-import { CharacterService, ICharacter } from "services/character.service";
-import { GameService, IGame } from "services/game.service";
+import { CharacterService, ICharacter } from "@/services/character.service";
+import { GameService, IGame } from "@/services/game.service";
 
 import { useUID } from "./auth.store";
 
@@ -68,8 +67,8 @@ export const useUsersGames = createWithEqualityFn<
         );
 
         set((state) => {
-          const characterDisplayDetails: UsersGamesState["characterDisplayDetails"] =
-            {};
+          const characterDisplayDetails:
+            UsersGamesState["characterDisplayDetails"] = {};
 
           Object.entries(characterMap).forEach(([characterId, character]) => {
             if (character.gameId) {
@@ -90,8 +89,9 @@ export const useUsersGames = createWithEqualityFn<
         console.error(e);
         set((state) => {
           state.loading = false;
-          state.error =
-            e instanceof Error ? e : new Error("Failed to load games");
+          state.error = e instanceof Error
+            ? e
+            : new Error("Failed to load games");
         });
       }
     },

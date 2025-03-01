@@ -3,10 +3,8 @@ import delveJson from "@datasworn/ironsworn-classic-delve/json/delve.json";
 import ironswornJson from "@datasworn/ironsworn-classic/json/classic.json";
 import starforgedJson from "@datasworn/starforged/json/starforged.json";
 import sunderedIslesJson from "@datasworn/sundered-isles/json/sundered_isles.json";
-
-import { i18n } from "i18n/config";
-
-import { PlaysetConfig } from "repositories/game.repository";
+import { i18n } from "@/lib/i18n";
+import { PlaysetConfig } from "@/repositories/game.repository";
 
 const ironsworn = { ...ironswornJson, title: "Ironsworn" } as Datasworn.Ruleset;
 const delve = {

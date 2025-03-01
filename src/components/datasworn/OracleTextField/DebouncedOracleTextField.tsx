@@ -1,9 +1,6 @@
-import {
-  OracleTextField,
-  OracleTextFieldProps,
-} from "components/datasworn/OracleTextField/OracleTextField";
+import { useDebouncedSync } from "@/hooks/useDebouncedSync";
 
-import { useDebouncedSync } from "hooks/useDebouncedSync";
+import { OracleTextField, OracleTextFieldProps } from "./OracleTextField";
 
 export function DebouncedOracleTextField(props: OracleTextFieldProps) {
   const { value: nonDebouncedValue, onChange, ...textFieldProps } = props;

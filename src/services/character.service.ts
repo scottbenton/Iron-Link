@@ -1,13 +1,13 @@
-import { Enums, Json } from "types/supabase-generated.type";
-
 import {
   CharacterDTO,
   CharacterRepository,
   InitiativeStatus,
   StatsMap,
-} from "repositories/character.repository";
-import { RepositoryError } from "repositories/errors/RepositoryErrors";
-import { ColorScheme, SpecialTrack } from "repositories/shared.types";
+} from "@/repositories/character.repository";
+import { RepositoryError } from "@/repositories/errors/RepositoryErrors";
+import { ColorScheme, SpecialTrack } from "@/repositories/shared.types";
+
+import { Enums, Json } from "@/types/supabase-generated.type";
 
 export type ICharacter = {
   id: string;
@@ -95,13 +95,13 @@ export class CharacterService {
       colorScheme,
       profileImage: characterDTO.portrait_filename
         ? {
-            filename: characterDTO.portrait_filename,
-            position: {
-              x: characterDTO.portrait_position_x ?? 0,
-              y: characterDTO.portrait_position_y ?? 0,
-            },
-            scale: characterDTO.portrait_scale ?? 1,
-          }
+          filename: characterDTO.portrait_filename,
+          position: {
+            x: characterDTO.portrait_position_x ?? 0,
+            y: characterDTO.portrait_position_y ?? 0,
+          },
+          scale: characterDTO.portrait_scale ?? 1,
+        }
         : null,
     };
   }
@@ -109,8 +109,9 @@ export class CharacterService {
   public static async getCharactersInGames(
     gameIds: string[],
   ): Promise<Record<string, ICharacter>> {
-    const characterDTOs =
-      await CharacterRepository.getCharactersInGames(gameIds);
+    const characterDTOs = await CharacterRepository.getCharactersInGames(
+      gameIds,
+    );
     return Object.fromEntries(
       Object.entries(characterDTOs).map(([characterId, characterDTO]) => [
         characterId,
@@ -240,16 +241,16 @@ export class CharacterService {
         characterId,
         newPortrait
           ? {
-              portrait_filename: newPortrait.name,
-              portrait_position_x: position.x,
-              portrait_position_y: position.y,
-              portrait_scale: scale,
-            }
+            portrait_filename: newPortrait.name,
+            portrait_position_x: position.x,
+            portrait_position_y: position.y,
+            portrait_scale: scale,
+          }
           : {
-              portrait_position_x: position.x,
-              portrait_position_y: position.y,
-              portrait_scale: scale,
-            },
+            portrait_position_x: position.x,
+            portrait_position_y: position.y,
+            portrait_scale: scale,
+          },
       ),
     );
     await Promise.all(promises);

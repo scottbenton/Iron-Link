@@ -1,9 +1,17 @@
-import { ListSubheader, MenuItem, TextField } from "@mui/material";
-import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
-
-import { AssetCollectionMap } from "stores/dataswornTree.store";
-import { RootCollections } from "stores/dataswornTreeHelpers/parseCollectionsIntoMaps";
+import {
+  SelectContent,
+  SelectItem,
+  SelectItemGroup,
+  SelectLabel,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "@/components/ui/select";
+import { useCharacterCreateTranslations } from "@/hooks/i18n/useCharacterCreateTranslations";
+import { AssetCollectionMap } from "@/stores/dataswornTree.store";
+import { RootCollections } from "@/stores/dataswornTreeHelpers/parseCollectionsIntoMaps";
+import { createListCollection } from "@chakra-ui/react";
+import { Fragment, useMemo } from "react";
 
 export interface AssetCollectionSelectProps {
   collectionMap: AssetCollectionMap;
@@ -19,47 +27,72 @@ export function AssetCollectionSelect(props: AssetCollectionSelectProps) {
     selectedCollectionId,
     setSelectedCollectionId,
   } = props;
-  const { t } = useTranslation();
+  const t = useCharacterCreateTranslations();
 
-  const items = useMemo(() => {
-    const itemArr: {
-      label: string;
-      value?: string;
+  const { groupedItems, items } = useMemo(() => {
+    const groupedItems: {
+      groupLabel: string;
+      items: {
+        label: string;
+        value: string;
+      }[];
     }[] = [];
 
-    Object.entries(rootAssetCollections).forEach(([, ruleset], _, arr) => {
-      if (arr.length > 1) {
-        itemArr.push({
-          label: ruleset.title,
-        });
-      }
-      ruleset.rootCollectionIds.forEach((collectionId) => {
-        itemArr.push({
+    Object.values(rootAssetCollections).forEach((ruleset) => {
+      groupedItems.push({
+        groupLabel: ruleset.title,
+        items: ruleset.rootCollectionIds.map((collectionId) => ({
           label: collectionMap[collectionId]?.name,
           value: collectionId,
-        });
+        })),
       });
     });
-    return itemArr;
+
+    const items = createListCollection({
+      items: groupedItems.flatMap((group) => [
+        ...group.items.map((item) => ({
+          ...item,
+          group: group.groupLabel,
+        })),
+      ]),
+    });
+
+    return { groupedItems, items };
   }, [rootAssetCollections, collectionMap]);
 
   return (
-    <TextField
-      label={t("datasworn.asset-collection", "Asset Collection")}
-      fullWidth
-      select
-      value={selectedCollectionId}
-      onChange={(e) => setSelectedCollectionId(e.target.value)}
+    <SelectRoot
+      collection={items}
+      value={[selectedCollectionId]}
+      onValueChange={(details) => setSelectedCollectionId(details.value[0])}
     >
-      {items.map((item, idx) =>
-        item.value ? (
-          <MenuItem key={item.value} value={item.value}>
-            {item.label}
-          </MenuItem>
-        ) : (
-          <ListSubheader key={idx}>{item.label}</ListSubheader>
-        ),
-      )}
-    </TextField>
+      <SelectLabel>
+        {t("asset-collection-select-label", "Asset Collection")}
+      </SelectLabel>
+      <SelectTrigger>
+        <SelectValueText />
+      </SelectTrigger>
+      <SelectContent>
+        {groupedItems.map((group, idx, arr) =>
+          arr.length > 1 ? (
+            <Fragment key={idx}>
+              {group.items.map((item) => (
+                <SelectItem key={item.value} item={item}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </Fragment>
+          ) : (
+            <SelectItemGroup key={idx} label={group.groupLabel}>
+              {group.items.map((item) => (
+                <SelectItem key={item.value} item={item}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectItemGroup>
+          ),
+        )}
+      </SelectContent>
+    </SelectRoot>
   );
 }

@@ -1,28 +1,17 @@
-import { Datasworn } from "@datasworn/core";
-import SelectedIcon from "@mui/icons-material/CheckCircle";
-import InfoIcon from "@mui/icons-material/Info";
-import {
-  Box,
-  Button,
-  Checkbox,
-  Collapse,
-  FormControlLabel,
-  SxProps,
-  Theme,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import { Chip } from "@mui/material";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
-
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip } from "@/components/ui/tooltip";
 import {
   defaultBaseRulesets,
   defaultExpansions,
   defaultPlaysets,
-} from "data/datasworn.packages";
-
-import { PlaysetConfig } from "repositories/game.repository";
+} from "@/data/datasworn.packages";
+import { useDataswornTranslations } from "@/hooks/i18n/useDataswornTranslations";
+import { PlaysetConfig } from "@/repositories/game.repository";
+// import { PlaysetDialog } from "./PlaysetDialog";
+import { Box, BoxProps, Collapsible, Tag, Text } from "@chakra-ui/react";
+import { Datasworn } from "@datasworn/core";
+import { CheckIcon, InfoIcon } from "lucide-react";
+import { Dispatch, SetStateAction, useMemo } from "react";
 
 import { PlaysetDialog } from "./PlaysetDialog";
 
@@ -37,10 +26,11 @@ export interface RulesPackageSelectorProps {
   ) => void;
   activePlaysetConfig: PlaysetConfig;
   onPlaysetChange: Dispatch<SetStateAction<PlaysetConfig>>;
-  sx?: SxProps<Theme>;
 }
 
-export function RulesPackageSelector(props: RulesPackageSelectorProps) {
+export function RulesPackageSelector(
+  props: RulesPackageSelectorProps & BoxProps,
+) {
   const {
     activeRulesetConfig,
     onRulesetChange,
@@ -48,10 +38,10 @@ export function RulesPackageSelector(props: RulesPackageSelectorProps) {
     onExpansionChange,
     activePlaysetConfig,
     onPlaysetChange,
-    sx,
+    ...boxProps
   } = props;
 
-  const { t } = useTranslation();
+  const t = useDataswornTranslations();
 
   const rulesets = defaultBaseRulesets;
   const expansions = defaultExpansions;
@@ -77,83 +67,114 @@ export function RulesPackageSelector(props: RulesPackageSelectorProps) {
     return { activeRulesets, activeExpansions };
   }, [rulesets, activeRulesetConfig, expansions, activeExpansionConfig]);
 
-  const [isPlaysetDialogOpen, setIsPlaysetDialogOpen] = useState(false);
   const hasActiveRulesets = Object.values(activeRulesetConfig).some(
     (val) => val,
   );
 
   return (
-    <Box sx={sx}>
+    <Box
+      {...boxProps}
+      display="flex"
+      flexDirection="column"
+      gap={2}
+      alignItems={"flex-start"}
+    >
       {Object.entries(rulesets).map(([rulesetKey, ruleset]) => (
         <Box key={rulesetKey}>
-          <FormControlLabel
-            label={ruleset.title}
-            control={
-              <Checkbox checked={activeRulesetConfig[rulesetKey] ?? false} />
+          <Checkbox
+            checked={activeRulesetConfig[rulesetKey] ?? false}
+            onCheckedChange={(details) =>
+              onRulesetChange(rulesetKey, details.checked === true)
             }
-            onChange={(_, checked) => onRulesetChange(rulesetKey, checked)}
-          />
-          <Box ml={1} borderColor={"divider"} borderLeft={`1px dotted`} pl={2}>
+          >
+            {ruleset.title}
+          </Checkbox>
+          <Box
+            ml={2}
+            borderColor={"divider"}
+            borderLeft={`1px dotted`}
+            pl={4}
+            display="flex"
+            flexDirection="column"
+            gap={1}
+            py={2}
+            mt={1}
+          >
             {Object.entries(expansions[rulesetKey] || {}).map(
               ([expansionKey, expansion]) => (
                 <Box key={expansionKey}>
-                  <FormControlLabel
-                    key={expansionKey}
-                    label={expansion.title}
-                    control={
-                      <Checkbox
-                        checked={
-                          activeRulesetConfig[rulesetKey]
-                            ? (activeExpansionConfig[rulesetKey]?.[
-                                expansionKey
-                              ] ?? false)
-                            : false
-                        }
-                      />
+                  <Checkbox
+                    checked={
+                      activeRulesetConfig[rulesetKey]
+                        ? (activeExpansionConfig[rulesetKey]?.[expansionKey] ??
+                          false)
+                        : false
                     }
-                    onChange={(_, checked) =>
-                      onExpansionChange(rulesetKey, expansionKey, checked)
+                    onCheckedChange={(details) =>
+                      onExpansionChange(
+                        rulesetKey,
+                        expansionKey,
+                        details.checked === true,
+                      )
                     }
                     disabled={!activeRulesetConfig[rulesetKey]} // Disable if the ruleset is not active
-                  />
+                  >
+                    {expansion.title}
+                  </Checkbox>
                   {defaultPlaysets[expansion._id] && (
-                    <Collapse
-                      in={activeExpansionConfig[rulesetKey]?.[expansionKey]}
+                    <Collapsible.Root
+                      open={activeExpansionConfig[rulesetKey]?.[expansionKey]}
                     >
-                      <Box ml={4}>
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <Typography variant="body2">
-                            {t(
-                              "game.playset.default",
-                              "Apply a default playset (optional)",
-                            )}
-                          </Typography>
-                          <Tooltip title={defaultPlaysets[expansion._id].info}>
-                            <InfoIcon color="info" />
-                          </Tooltip>
-                        </Box>
+                      <Collapsible.Content>
+                        <Box ml={8}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Text fontSize="sm">
+                              {t(
+                                "game.playset.default",
+                                "Apply a default playset (optional)",
+                              )}
+                            </Text>
+                            <Tooltip
+                              content={defaultPlaysets[expansion._id].info}
+                            >
+                              <InfoIcon color="info" />
+                            </Tooltip>
+                          </Box>
 
-                        <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-                          {defaultPlaysets[expansion._id].playsets.map(
-                            (defaultPlayset, index) => (
-                              <Chip
-                                icon={
-                                  activePlaysetConfig ===
-                                  defaultPlayset.playset ? (
-                                    <SelectedIcon />
-                                  ) : undefined
-                                }
-                                key={index}
-                                label={defaultPlayset.label}
-                                onClick={() =>
-                                  onPlaysetChange(defaultPlayset.playset)
-                                }
-                              />
-                            ),
-                          )}
+                          <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
+                            {defaultPlaysets[expansion._id].playsets.map(
+                              (defaultPlayset, index) => (
+                                <Tag.Root
+                                  key={index}
+                                  rounded="full"
+                                  asChild
+                                  size="md"
+                                  py={1}
+                                  px={3}
+                                  cursor="pointer"
+                                >
+                                  <button
+                                    onClick={() =>
+                                      onPlaysetChange(defaultPlayset.playset)
+                                    }
+                                  >
+                                    {activePlaysetConfig ===
+                                    defaultPlayset.playset ? (
+                                      <Tag.StartElement>
+                                        <CheckIcon />
+                                      </Tag.StartElement>
+                                    ) : undefined}
+                                    <Tag.Label>
+                                      {defaultPlayset.label}
+                                    </Tag.Label>
+                                  </button>
+                                </Tag.Root>
+                              ),
+                            )}
+                          </Box>
                         </Box>
-                      </Box>
-                    </Collapse>
+                      </Collapsible.Content>
+                    </Collapsible.Root>
                   )}
                 </Box>
               ),
@@ -162,23 +183,13 @@ export function RulesPackageSelector(props: RulesPackageSelectorProps) {
         </Box>
       ))}
       {hasActiveRulesets && (
-        <Button
-          sx={{ mt: 2 }}
-          variant="outlined"
-          color="inherit"
-          onClick={() => setIsPlaysetDialogOpen(true)}
-        >
-          {t("game.playset.edit", "Edit Playset")}
-        </Button>
+        <PlaysetDialog
+          playset={activePlaysetConfig}
+          setPlayset={onPlaysetChange}
+          rulesets={activeRulesets}
+          expansions={activeExpansions}
+        />
       )}
-      <PlaysetDialog
-        open={isPlaysetDialogOpen}
-        onClose={() => setIsPlaysetDialogOpen(false)}
-        playset={activePlaysetConfig}
-        setPlayset={onPlaysetChange}
-        rulesets={activeRulesets}
-        expansions={activeExpansions}
-      />
     </Box>
   );
 }

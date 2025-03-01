@@ -1,19 +1,16 @@
+import { AccordionRoot } from "@/components/ui/accordion";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DialogActionTrigger,
+  DialogBody,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { useDataswornTranslations } from "@/hooks/i18n/useDataswornTranslations";
+import { PlaysetConfig } from "@/repositories/game.repository";
+import { Alert, Box, Button } from "@chakra-ui/react";
 import { Datasworn, IdParser } from "@datasworn/core";
 import { Primary } from "@datasworn/core/dist/StringId";
-import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  DialogActions,
-  DialogContent,
-  FormControlLabel,
-  Typography,
-} from "@mui/material";
 import { useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
-
-import { PlaysetConfig } from "repositories/game.repository";
 
 import { PlaysetSection } from "./PlaysetSection";
 
@@ -22,13 +19,12 @@ export interface PlaysetEditorProps {
   setPlayset: (playset: PlaysetConfig) => void;
   rulesets: Record<string, Datasworn.Ruleset>;
   expansions: Record<string, Datasworn.Expansion>;
-  onClose: () => void;
 }
 
 export function PlaysetEditor(props: PlaysetEditorProps) {
-  const { playset, setPlayset, rulesets, expansions, onClose } = props;
+  const { playset, setPlayset, rulesets, expansions } = props;
 
-  const { t } = useTranslation();
+  const t = useDataswornTranslations();
 
   const tree = useMemo(() => {
     const tree: Record<string, Datasworn.RulesPackage> = {
@@ -107,43 +103,41 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
 
   return (
     <>
-      <DialogContent>
-        <Alert severity="info">
-          {t(
-            "playset-editor.exclusions-info",
-            "Checked assets, moves, and oracles will be included in your game.",
-          )}
-        </Alert>
-
+      <DialogBody>
+        <Alert.Root status="info">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description>
+              {t(
+                "playset-editor.exclusions-info",
+                "Checked assets, moves, and oracles will be included in your game.",
+              )}
+            </Alert.Description>
+          </Alert.Content>
+        </Alert.Root>
         {showCursedDieOptions && (
-          <Box mt={1}>
-            <FormControlLabel
-              disableTypography
-              label={
-                <Box>
-                  <Typography>
-                    {t(
-                      "playset-editor.cursed-die",
-                      "Automatically Roll Cursed Die?",
-                    )}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {t(
-                      "playset-editor.cursed-die-info",
-                      "If checked, the a cursed die will be rolled for oracles with a cursed alternative automatically.",
-                    )}
-                  </Typography>
-                </Box>
-              }
-              onChange={(_, checked) =>
-                setDisableAutomaticCursedDieRolls(!checked)
-              }
-              control={<Checkbox checked={!disableAutomaticCursedDieRolls} />}
-            />
-          </Box>
+          <Checkbox
+            mt={4}
+            gap={4}
+            alignItems="flex-start"
+            checked={disableAutomaticCursedDieRolls}
+            onCheckedChange={(details) =>
+              setDisableAutomaticCursedDieRolls(details.checked === true)
+            }
+          >
+            <Box lineHeight="1">
+              {t("playset-editor.cursed-die", "Automatically Roll Cursed Die?")}
+            </Box>
+            <Box fontWeight="normal" color="fg.muted" mt="1">
+              {t(
+                "playset-editor.cursed-die-info",
+                "If checked, the a cursed die will be rolled for oracles with a cursed alternative automatically.",
+              )}
+            </Box>
+          </Checkbox>
         )}
 
-        <Box mt={1}>
+        <AccordionRoot multiple variant="enclosed" mt={4} unmountOnExit>
           <PlaysetSection
             label={t("playset-editor.assets", "Assets")}
             rulesPackages={tree}
@@ -207,34 +201,33 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
             replacedCollections={replacedOracleCollections}
             replacedItems={replacedOracles}
           />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button color="inherit" onClick={onClose}>
-          {t("common.cancel", "Cancel")}
-        </Button>
-        <Button
-          color="primary"
-          variant="contained"
-          onClick={() => {
-            setPlayset({
-              ...playset,
-              disableAutomaticCursedDieRolls,
-              excludes: {
-                assetCategories: excludedAssetCollections,
-                assets: excludedAssets,
-                moveCategories: excludedMoveCollections,
-                moves: excludedMoves,
-                oracleCategories: excludedOracleCollections,
-                oracles: excludedOracles,
-              },
-            });
-            onClose();
-          }}
-        >
-          {t("common.save", "Save")}
-        </Button>
-      </DialogActions>
+        </AccordionRoot>
+      </DialogBody>
+      <DialogFooter>
+        <DialogActionTrigger asChild>
+          <Button variant="subtle">{t("common.cancel", "Cancel")}</Button>
+        </DialogActionTrigger>
+        <DialogActionTrigger asChild>
+          <Button
+            onClick={() => {
+              setPlayset({
+                ...playset,
+                disableAutomaticCursedDieRolls,
+                excludes: {
+                  assetCategories: excludedAssetCollections,
+                  assets: excludedAssets,
+                  moveCategories: excludedMoveCollections,
+                  moves: excludedMoves,
+                  oracleCategories: excludedOracleCollections,
+                  oracles: excludedOracles,
+                },
+              });
+            }}
+          >
+            {t("common.save", "Save")}
+          </Button>
+        </DialogActionTrigger>
+      </DialogFooter>
     </>
   );
 }
