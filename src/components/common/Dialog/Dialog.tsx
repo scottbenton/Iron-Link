@@ -9,8 +9,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { DialogRootProps, Group } from "@chakra-ui/react";
-import { ReactNode } from "react";
+import { Theme, useAppState } from "@/stores/appState.store";
+import { DialogRootProps } from "@chakra-ui/react";
+import { ReactNode, useState } from "react";
+
+import { DialogContentRefContext } from "./DialogContentRefContext";
 
 export interface DialogProps {
   trigger?: ReactNode;
@@ -38,6 +41,12 @@ export function Dialog(props: DialogProps) {
     role,
     size,
   } = props;
+
+  const [dialogContentRef, setDialogContentRef] =
+    useState<HTMLDivElement | null>(null);
+
+  const theme = useAppState((state) => state.theme);
+
   return (
     <DialogRoot
       role={role}
@@ -46,11 +55,16 @@ export function Dialog(props: DialogProps) {
       lazyMount
       scrollBehavior={scrollOutside ? "outside" : "inside"}
       size={size}
+      placement={"center"}
     >
       <DialogBackdrop />
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent>
-        <DialogCloseTrigger />
+      <DialogContent
+        ref={setDialogContentRef}
+        appearance={theme === Theme.Light ? "light" : "dark"}
+        colorPalette={"brand"}
+      >
+        <DialogCloseTrigger colorPalette={"gray"} />
         <DialogHeader>
           {typeof title === "string" ? (
             <DialogTitle>{title}</DialogTitle>
@@ -61,14 +75,16 @@ export function Dialog(props: DialogProps) {
         {fullContent ? fullContent : null}
         {content && (
           <DialogBody position={scrollOutside ? undefined : "relative"}>
-            {content}
+            <DialogContentRefContext.Provider
+              value={{
+                ref: dialogContentRef ? { current: dialogContentRef } : null,
+              }}
+            >
+              {content}
+            </DialogContentRefContext.Provider>
           </DialogBody>
         )}
-        {actions && (
-          <DialogFooter>
-            <Group justifyContent={"flex-end"}>{actions}</Group>
-          </DialogFooter>
-        )}
+        {actions && <DialogFooter px={4}>{actions}</DialogFooter>}
       </DialogContent>
     </DialogRoot>
   );

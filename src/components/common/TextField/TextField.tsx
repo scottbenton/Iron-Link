@@ -13,13 +13,20 @@ export interface TextFieldProps extends Omit<FieldProps, "label" | "onChange"> {
   InputProps?: Omit<InputProps, "onChange">;
   startElement?: ReactNode;
   endElement?: ReactNode;
+  value: string;
   onChange?: (value: string) => void;
 }
 
 export const TextField = forwardRef<HTMLDivElement, TextFieldProps>(
   function TextField(props, ref) {
-    const { onChange, InputProps, startElement, endElement, ...fieldProps } =
-      props;
+    const {
+      value,
+      onChange,
+      InputProps,
+      startElement,
+      endElement,
+      ...fieldProps
+    } = props;
 
     const handleChange = useCallback(
       (evt: ChangeEvent<HTMLInputElement>) => {
@@ -35,8 +42,14 @@ export const TextField = forwardRef<HTMLDivElement, TextFieldProps>(
           flex="1"
           startElement={startElement}
           endElement={endElement}
+          w="100%"
         >
-          <Input onChange={handleChange} {...InputProps} />
+          <Input
+            onChange={handleChange}
+            w="100%"
+            value={value}
+            {...InputProps}
+          />
         </InputGroup>
       </Field>
     );

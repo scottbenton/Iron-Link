@@ -1,17 +1,16 @@
+import { LocalThemeProvider } from "@/providers/ThemeProvider";
 import { ColorScheme } from "@/repositories/shared.types";
 import { Box, BoxProps, Skeleton, Text } from "@chakra-ui/react";
 import { CircleUserIcon } from "lucide-react";
-import { useState } from "react";
+import { PropsWithChildren, useState } from "react";
 
-import { AVATAR_SIZES } from "./avatarEnums";
+import { AVATAR_SIZES, AvatarSizes } from "./avatarEnums";
 
-export type AvatarSizes = "small" | "medium" | "large" | "huge";
-
-const variants: { [key in AvatarSizes]: string } = {
+const fontVariants: Record<AvatarSizes, string> = {
   small: "lg",
   medium: "xl",
-  large: "2xl",
-  huge: "3xl",
+  large: "3xl",
+  huge: "6xl",
 };
 
 export interface PortraitAvatarDisplayProps {
@@ -36,7 +35,7 @@ export function PortraitAvatarDisplay(
 ) {
   const {
     size = "medium",
-    borderColor = "follow-theme",
+    borderColor,
     borderWidth = 2,
     portraitSettings,
     portraitUrl,
@@ -56,60 +55,70 @@ export function PortraitAvatarDisplay(
 
   const scale = portraitSettings?.scale ?? 1;
 
+  const Wrapper = ({ children }: PropsWithChildren) =>
+    borderColor && borderColor !== "follow-theme" ? (
+      <LocalThemeProvider colorScheme={borderColor}>
+        {children}
+      </LocalThemeProvider>
+    ) : (
+      <>{children}</>
+    );
+
   return (
-    <Box
-      width={AVATAR_SIZES[size]}
-      height={AVATAR_SIZES[size]}
-      overflow={"hidden"}
-      bg="bg.muted"
-      color="fg"
-      display={portraitUrl ? "block" : "flex"}
-      alignItems="center"
-      justifyContent="center"
-      borderWidth={borderWidth}
-      borderRadius={"sm"}
-      borderColor={
-        borderColor === "follow-theme" ? "border.emphasized" : "border.subtle"
-      }
-      css={{
-        "&>img": {
-          minWidth: isTaller ? `${100 * scale}%` : "auto",
-          minHeight: isTaller ? "auto" : `${100 * scale}%`,
-          position: "relative",
-          transform: `translate(calc(${marginLeft}% + ${
-            AVATAR_SIZES[size] / 2
-          }px - ${borderWidth}px), calc(${marginTop}% + ${AVATAR_SIZES[size] / 2}px - ${borderWidth}px))`,
-        },
-        flexShrink: 0,
-      }}
-      {...boxProps}
-    >
-      {portraitUrl ? (
-        <img
-          src={portraitUrl}
-          onLoad={(evt) => {
-            if (evt.currentTarget.width > evt.currentTarget.height) {
-              setIsTaller(false);
-            } else {
-              setIsTaller(true);
-            }
-          }}
-          alt={"Character Portrait"}
-        />
-      ) : !loading ? (
-        name ? (
-          <Text
-            fontSize={variants[size]}
-            fontWeight={size === "huge" ? 600 : undefined}
-          >
-            {name[0]}
-          </Text>
+    <Wrapper>
+      <Box
+        width={AVATAR_SIZES[size] + "px"}
+        height={AVATAR_SIZES[size] + "px"}
+        overflow={"hidden"}
+        bg="bg.muted"
+        color="fg"
+        display={portraitUrl ? "block" : "flex"}
+        alignItems="center"
+        justifyContent="center"
+        borderWidth={borderWidth}
+        borderRadius={"sm"}
+        colorPalette={!borderColor ? "gray" : "current"}
+        borderColor={borderColor ? "colorPalette.500" : "border"}
+        css={{
+          "&>img": {
+            minWidth: isTaller ? `${100 * scale}%` : "auto",
+            minHeight: isTaller ? "auto" : `${100 * scale}%`,
+            position: "relative",
+            transform: `translate(calc(${marginLeft}% + ${
+              AVATAR_SIZES[size] / 2
+            }px - ${borderWidth}px), calc(${marginTop}% + ${AVATAR_SIZES[size] / 2}px - ${borderWidth}px))`,
+          },
+          flexShrink: 0,
+        }}
+        {...boxProps}
+      >
+        {portraitUrl ? (
+          <img
+            src={portraitUrl}
+            onLoad={(evt) => {
+              if (evt.currentTarget.width > evt.currentTarget.height) {
+                setIsTaller(false);
+              } else {
+                setIsTaller(true);
+              }
+            }}
+            alt={"Character Portrait"}
+          />
+        ) : !loading ? (
+          name ? (
+            <Text
+              fontSize={fontVariants[size]}
+              fontWeight={size === "huge" ? 600 : undefined}
+            >
+              {name[0]}
+            </Text>
+          ) : (
+            <CircleUserIcon />
+          )
         ) : (
-          <CircleUserIcon />
-        )
-      ) : (
-        <Skeleton />
-      )}
-    </Box>
+          <Skeleton />
+        )}
+      </Box>
+    </Wrapper>
   );
 }

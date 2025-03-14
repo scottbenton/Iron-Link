@@ -1,5 +1,3 @@
-import { AvatarSizes } from "./PortraitAvatarDisplay";
-
 export const AVATAR_SIZES: {
   [key in AvatarSizes]: number;
 } = {
@@ -8,3 +6,4 @@ export const AVATAR_SIZES: {
   large: 88,
   huge: 200,
 };
+export type AvatarSizes = "small" | "medium" | "large" | "huge";

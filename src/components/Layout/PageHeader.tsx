@@ -4,28 +4,31 @@ import { Box, Container, ContainerProps, Heading } from "@chakra-ui/react";
 import { ReactNode } from "react";
 
 export interface PageHeaderProps {
-  title: string;
+  overline?: ReactNode;
+  title?: string;
   action?: ReactNode;
 }
 
 export function PageHeader(props: PageHeaderProps & ContainerProps) {
-  const { title, action, ...containerProps } = props;
+  const { overline, title, action, ...containerProps } = props;
 
   return (
     <LocalThemeProvider theme={Theme.Dark}>
-      <Box pt={4} pb={24} mb={-20} bg="bg.panel">
-        <Container
-          maxW="breakpoint-2xl"
-          fluid
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          {...containerProps}
-        >
-          <Heading as="h1" size="3xl" textTransform="uppercase">
-            {title}
-          </Heading>
-          {action}
+      <Box pt={4} pb={32} mb={-28} bg="bg.panel">
+        <Container maxW="breakpoint-2xl" fluid {...containerProps}>
+          {overline}
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            {title && (
+              <Heading as="h1" size="3xl" textTransform="uppercase">
+                {title}
+              </Heading>
+            )}
+            {action}
+          </Box>
         </Container>
       </Box>
     </LocalThemeProvider>

@@ -3,7 +3,7 @@ import { Theme as ThemeEnum, useAppState } from "@/stores/appState.store";
 import { Theme } from "@chakra-ui/react";
 import { PropsWithChildren } from "react";
 
-import { colorPaletteMap } from "./config";
+import { colorSchemeMap } from "./config";
 
 export interface LocalThemeProviderProps {
   theme?: ThemeEnum;
@@ -20,12 +20,13 @@ export function LocalThemeProvider(
   } = props;
 
   const theme = useAppState((state) => state.theme);
-  const colorScheme = useAppState((state) => state.colorScheme);
 
   return (
     <Theme
       appearance={(forcedTheme ?? theme) === ThemeEnum.Light ? "light" : "dark"}
-      colorPalette={colorPaletteMap[forcedColorScheme ?? colorScheme]}
+      colorPalette={
+        forcedColorScheme ? colorSchemeMap[forcedColorScheme] : "brand"
+      }
     >
       {children}
     </Theme>

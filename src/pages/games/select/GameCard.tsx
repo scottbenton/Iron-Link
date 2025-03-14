@@ -56,26 +56,31 @@ export function GameCard(props: GameCardProps) {
       transitionProperty="scale"
       transitionDuration={"fast"}
       transitionTimingFunction="ease-in-out"
+      h="full"
     >
-      <LinkBox>
-        <Card.Body display="flex" height="100%" p={2}>
-          <Box display="flex" alignItems="center">
-            <GameCharacterPortraits gameCharacterDetails={gameCharacters} />
-            <Box ml={4}>
-              <Heading as="div" textTransform="uppercase" size="2xl">
-                <LinkOverlay asChild>
-                  <Link to={pageConfig.game(gameId)}>{game.name}</Link>
-                </LinkOverlay>
-              </Heading>
-              <Heading
-                as="div"
-                color="fg.muted"
-                textTransform="uppercase"
-                size="md"
-              >
-                {rulesPackageString}
-              </Heading>
-            </Box>
+      <LinkBox asChild>
+        <Card.Body
+          display="flex"
+          flexDirection="row"
+          height="100%"
+          p={2}
+          alignItems="center"
+        >
+          <GameCharacterPortraits gameCharacterDetails={gameCharacters} />
+          <Box ml={4}>
+            <Heading as="div" textTransform="uppercase" size="2xl">
+              <LinkOverlay asChild>
+                <Link to={pageConfig.game(gameId)}>{game.name}</Link>
+              </LinkOverlay>
+            </Heading>
+            <Heading
+              as="div"
+              color="fg.muted"
+              textTransform="uppercase"
+              size="md"
+            >
+              {rulesPackageString}
+            </Heading>
           </Box>
         </Card.Body>
       </LinkBox>

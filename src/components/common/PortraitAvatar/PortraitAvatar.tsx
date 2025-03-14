@@ -5,7 +5,8 @@ import {
 } from "@/stores/character.store";
 import { BoxProps } from "@chakra-ui/react";
 
-import { AvatarSizes, PortraitAvatarDisplay } from "./PortraitAvatarDisplay";
+import { PortraitAvatarDisplay } from "./PortraitAvatarDisplay";
+import { AvatarSizes } from "./avatarEnums";
 
 export interface PortraitAvatarProps {
   characterId: string;

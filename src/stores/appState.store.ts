@@ -54,7 +54,7 @@ export const useAppState = createWithEqualityFn<
     visibleRolls: [],
 
     theme: Theme.Light,
-    colorScheme: ColorScheme.Myriad,
+    colorScheme: ColorScheme.Default,
 
     setAnnouncement: (announcement) => set({ announcement }),
 

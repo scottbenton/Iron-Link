@@ -4,6 +4,7 @@ import {
   CharacterPermissionType,
   useGameCharactersStore,
 } from "@/stores/gameCharacters.store";
+
 import { useCharacterIdOptional } from "./useCharacterId";
 
 export function useGamePermissions() {
@@ -24,4 +25,9 @@ export function useGamePermissions() {
       ? (permissionsByCharacter[characterId] ?? CharacterPermissionType.Viewer)
       : CharacterPermissionType.Viewer,
   };
+}
+
+export function useIsOwnerOfCharacter() {
+  const characterPermission = useGamePermissions().characterPermission;
+  return characterPermission === CharacterPermissionType.Owner;
 }

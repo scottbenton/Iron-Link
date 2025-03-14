@@ -109,8 +109,8 @@ export function AssetCard(props: AssetCardProps) {
       />
       <Card.Body
         px={4}
-        pt={1}
-        pb={1}
+        pt={2}
+        pb={4}
         display="flex"
         flexDirection={"column"}
         flexGrow={1}

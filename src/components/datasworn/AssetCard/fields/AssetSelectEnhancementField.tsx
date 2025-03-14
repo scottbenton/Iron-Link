@@ -84,7 +84,7 @@ export function AssetSelectEnhancementField(
       </SelectTrigger>
       <SelectContent>
         {groupedItems.map((group, idx, arr) =>
-          arr.length > 1 ? (
+          arr.length === 1 ? (
             <Fragment key={idx}>
               {group.items.map((item) => (
                 <SelectItem

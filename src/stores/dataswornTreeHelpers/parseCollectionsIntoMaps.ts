@@ -1,3 +1,4 @@
+import { ironLinkAskTheOracleRulesPackage } from "@/data/askTheOracle";
 import { CollectionId, Datasworn, IdParser } from "@datasworn/core";
 import { Primary } from "@datasworn/core/dist/StringId";
 
@@ -53,17 +54,18 @@ export function parseCollectionsIntoMaps<C extends Collections>(
     if (isCollectionExcluded) return;
 
     const ruleset = getRulesetFromId(rootCollection._id, tree);
+
     if (!ruleset) return;
 
+    allRootCollections.push(rootCollection);
+
+    if (ruleset.id === ironLinkAskTheOracleRulesPackage._id) return;
     if (!rootCollections[ruleset.id]) {
       rootCollections[ruleset.id] = {
         title: ruleset.title,
         rootCollectionIds: [],
       };
     }
-
-    allRootCollections.push(rootCollection);
-
     rootCollections[ruleset.id].rootCollectionIds.push(rootCollection._id);
   });
 

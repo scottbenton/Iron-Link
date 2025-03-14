@@ -54,8 +54,6 @@ export function NameSection() {
     });
   });
 
-  console.debug(uid, usersName);
-
   if (usersName.loading) {
     return <ProgressBar />;
   }

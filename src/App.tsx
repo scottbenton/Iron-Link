@@ -14,6 +14,7 @@ const GameSelectPage = lazy(
 const GameCreatePage = lazy(
   () => import("./pages/games/create/GameCreatePage"),
 );
+const GamePage = lazy(() => import("./pages/games/sheet/GamePage"));
 
 function App() {
   useListenToAuth();
@@ -30,6 +31,9 @@ function App() {
         </Route>
         <Route path={pageConfig.gameCreate}>
           <PageWrapper lazy={GameCreatePage} requiresAuth />
+        </Route>
+        <Route path={pageConfig.game(":gameId")} nest>
+          <PageWrapper lazy={GamePage} />
         </Route>
         <Route>404</Route>
       </Switch>

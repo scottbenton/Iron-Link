@@ -1,7 +1,7 @@
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Box, Heading, Icon } from "@chakra-ui/react";
-import { GroupIcon } from "lucide-react";
+import { Users2 } from "lucide-react";
 
 export interface AssetNameAndDescriptionProps {
   name: string;
@@ -25,8 +25,8 @@ export function AssetNameAndDescription(props: AssetNameAndDescriptionProps) {
         </Heading>
         {shared && showSharedIcon && (
           <Tooltip content={"Shared"}>
-            <Icon colorPalette="colorScheme">
-              <GroupIcon />
+            <Icon color="fg.muted">
+              <Users2 />
             </Icon>
           </Tooltip>
         )}

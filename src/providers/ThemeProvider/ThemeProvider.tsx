@@ -6,11 +6,9 @@ import {
   createSystem,
   defaultConfig,
 } from "@chakra-ui/react";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useMemo } from "react";
 
-import { colorPaletteMap, themeConfig } from "./config";
-
-const system = createSystem(defaultConfig, themeConfig);
+import { themeConfig } from "./config";
 
 export function ThemeProvider(props: PropsWithChildren) {
   const { children } = props;
@@ -18,15 +16,19 @@ export function ThemeProvider(props: PropsWithChildren) {
   const theme = useAppState((state) => state.theme);
   const colorScheme = useAppState((state) => state.colorScheme);
 
+  const system = useMemo(() => {
+    return createSystem(defaultConfig, themeConfig(colorScheme));
+  }, [colorScheme]);
+
   return (
     <ChakraProvider value={system}>
       <Theme
         appearance={theme === ThemeEnum.Light ? "light" : "dark"}
-        colorPalette={colorPaletteMap[colorScheme]}
-        minH="100lvh"
+        colorPalette={"brand"}
+        minH={"100vh"}
         display="flex"
         flexDirection="column"
-        bg="bg.muted"
+        bgColor={"bg.muted"}
       >
         {children}
       </Theme>

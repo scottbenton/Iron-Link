@@ -50,13 +50,13 @@ export function IronLinkLogo(props: BoxProps) {
           >
             <stop
               style={{
-                stopColor: "var(--chakra-colors-color-palette-200)",
+                stopColor: "var(--chakra-colors-brand-gradient-start-color)",
               }}
             />
             <stop
               offset="1"
               style={{
-                stopColor: "var(--chakra-colors-color-palette-600)",
+                stopColor: "var(--chakra-colors-brand-gradient-end-color)",
               }}
             />
           </linearGradient>
