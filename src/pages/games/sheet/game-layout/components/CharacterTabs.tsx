@@ -1,11 +1,14 @@
 import { useGameTranslations } from "@/hooks/i18n/useGameTranslations";
-import { useCharacterIdOptional } from "@/hooks/useCharacterId";
+import {
+  useCharacterIdOptional,
+  useSetCharacterId,
+} from "@/hooks/useCharacterId";
 import { useGamePermissions } from "@/hooks/usePermissions";
 import { GameType } from "@/repositories/game.repository";
 import { useUID } from "@/stores/auth.store";
 import { useGameCharactersStore } from "@/stores/gameCharacters.store";
 import { Box, Button, Tabs } from "@chakra-ui/react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 
 const overviewKey = "overview";
 
@@ -37,7 +40,7 @@ export function CharacterTabs() {
 
   const { gameType } = useGamePermissions();
 
-  const navigate = useLocation()[1];
+  const setCharacterId = useSetCharacterId();
 
   return (
     <Box
@@ -51,7 +54,7 @@ export function CharacterTabs() {
         lazyMount
         value={characterId || overviewKey}
         onValueChange={({ value }) => {
-          navigate(value === overviewKey ? "/" : `/c/${value}`);
+          setCharacterId(value === overviewKey ? null : value);
         }}
         overflow="auto"
         variant="subtle"

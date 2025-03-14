@@ -2,18 +2,16 @@ import {
   DialogBackdrop,
   DialogBody,
   DialogCloseTrigger,
-  DialogContent,
   DialogFooter,
   DialogHeader,
   DialogRoot,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Theme, useAppState } from "@/stores/appState.store";
 import { DialogRootProps } from "@chakra-ui/react";
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 
-import { DialogContentRefContext } from "./DialogContentRefContext";
+import { BrandedContent } from "./BrandedContent";
 
 export interface DialogProps {
   trigger?: ReactNode;
@@ -42,11 +40,6 @@ export function Dialog(props: DialogProps) {
     size,
   } = props;
 
-  const [dialogContentRef, setDialogContentRef] =
-    useState<HTMLDivElement | null>(null);
-
-  const theme = useAppState((state) => state.theme);
-
   return (
     <DialogRoot
       role={role}
@@ -59,11 +52,7 @@ export function Dialog(props: DialogProps) {
     >
       <DialogBackdrop />
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent
-        ref={setDialogContentRef}
-        appearance={theme === Theme.Light ? "light" : "dark"}
-        colorPalette={"brand"}
-      >
+      <BrandedContent>
         <DialogCloseTrigger colorPalette={"gray"} />
         <DialogHeader>
           {typeof title === "string" ? (
@@ -75,17 +64,11 @@ export function Dialog(props: DialogProps) {
         {fullContent ? fullContent : null}
         {content && (
           <DialogBody position={scrollOutside ? undefined : "relative"}>
-            <DialogContentRefContext.Provider
-              value={{
-                ref: dialogContentRef ? { current: dialogContentRef } : null,
-              }}
-            >
-              {content}
-            </DialogContentRefContext.Provider>
+            {content}
           </DialogBody>
         )}
         {actions && <DialogFooter px={4}>{actions}</DialogFooter>}
-      </DialogContent>
+      </BrandedContent>
     </DialogRoot>
   );
 }

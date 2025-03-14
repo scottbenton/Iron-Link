@@ -146,7 +146,6 @@ export function EditOrCreateClockDialog(props: EditOrCreateClockDialogProps) {
             onValueChange={(details) => setSegments(parseInt(details.value))}
             orientation={"vertical"}
             align="center"
-            colorPalette={"brand"}
           >
             <RadioCard.Label>
               {t("clock-dialog.segments-input", "Segments")}
@@ -189,7 +188,7 @@ export function EditOrCreateClockDialog(props: EditOrCreateClockDialogProps) {
           >
             Cancel
           </Button>
-          <Button colorPalette="brand" loading={loading} onClick={handleSubmit}>
+          <Button loading={loading} onClick={handleSubmit}>
             {initialClock
               ? t(
                   "character.character-sidebar.clock-dialog-save-clock-button",

@@ -20,13 +20,12 @@ export function LocalThemeProvider(
   } = props;
 
   const theme = useAppState((state) => state.theme);
+  const colorScheme = useAppState((state) => state.colorScheme);
 
   return (
     <Theme
       appearance={(forcedTheme ?? theme) === ThemeEnum.Light ? "light" : "dark"}
-      colorPalette={
-        forcedColorScheme ? colorSchemeMap[forcedColorScheme] : "brand"
-      }
+      colorPalette={colorSchemeMap[forcedColorScheme ?? colorScheme]}
     >
       {children}
     </Theme>

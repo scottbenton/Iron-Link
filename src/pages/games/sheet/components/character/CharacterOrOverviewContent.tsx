@@ -1,24 +1,24 @@
 import { useGameTranslations } from "@/hooks/i18n/useGameTranslations";
 import { Box, Tabs } from "@chakra-ui/react";
 
-import { OverviewTabs } from "../overview/overviewTabs.enum";
 import { AssetTabContents } from "../tabs/assets";
 import { TracksTabContents } from "../tabs/tracks";
+import { OverviewTab } from "./OverviewTab";
+import { OverviewTabContents } from "./OverviewTabContents";
+import { OverviewTabs } from "./overviewTabs.enum";
 
-export function CharacterOverviewContent() {
+export function CharacterOrOverviewContent() {
   const t = useGameTranslations();
 
   return (
     <Box p={4} pt={2}>
       <Tabs.Root
-        defaultValue={OverviewTabs.Characters}
+        defaultValue={OverviewTabs.Overview}
         variant="subtle"
         lazyMount
       >
         <Tabs.List colorPalette="gray" display="flex" justifyContent={"center"}>
-          <Tabs.Trigger value={OverviewTabs.Characters}>
-            {t("game-tabs-character-overview", "Overview")}
-          </Tabs.Trigger>
+          <OverviewTab />
           <Tabs.Trigger value={OverviewTabs.Assets}>
             {t("game-tabs-assets", "Assets")}
           </Tabs.Trigger>
@@ -26,8 +26,8 @@ export function CharacterOverviewContent() {
             {t("game-tabs-tracks", "Tracks")}
           </Tabs.Trigger>
         </Tabs.List>
-        <Tabs.Content value={OverviewTabs.Characters}>
-          <>Character</>
+        <Tabs.Content value={OverviewTabs.Overview}>
+          <OverviewTabContents />
         </Tabs.Content>
         <Tabs.Content value={OverviewTabs.Assets}>
           <AssetTabContents />

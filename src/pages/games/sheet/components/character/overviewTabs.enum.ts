@@ -1,5 +1,5 @@
 export enum OverviewTabs {
-  Characters = "characters",
+  Overview = "overview",
   Assets = "assets",
   Tracks = "tracks",
 }

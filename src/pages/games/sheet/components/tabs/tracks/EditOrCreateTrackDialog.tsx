@@ -223,11 +223,7 @@ export function EditOrCreateTrackDialog(props: EditOrCreateTrackDialogProps) {
           >
             {t("common.cancel", "Cancel")}
           </Button>
-          <Button
-            disabled={loading}
-            onClick={() => handleSubmit()}
-            colorPalette={"brand"}
-          >
+          <Button disabled={loading} onClick={() => handleSubmit()}>
             {initialTrack
               ? t("character.character-sidebar.edit-track-button", "Edit Track")
               : t("character.character-sidebar.add-track-button", "Add Track")}

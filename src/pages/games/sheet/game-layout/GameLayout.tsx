@@ -1,36 +1,25 @@
-import { PageContent } from "@/components/layout/PageContent";
-import { useCharacterIdOptional } from "@/hooks/useCharacterId";
 import { Box, Button } from "@chakra-ui/react";
 import { PropsWithChildren, useState } from "react";
 
+import { CharacterOrOverviewContent } from "../components/character/CharacterOrOverviewContent";
 import { HandleSoloGameRedirect } from "./HandleSoloGameRedirect";
+import { GamePageContentWithId } from "./components/GamePageContentWithId";
 import { GamePageHeader } from "./components/GamePageHeader";
 import { MobileOnlyTabPanel } from "./components/MobileOnlyTabPanel";
+import { SyncColorScheme } from "./components/SyncColorScheme";
 import { GameLayoutTabs } from "./gameLayoutTabs.enum";
-import { useSyncColorScheme } from "./hooks/useSyncColorScheme";
 
-export function GameLayout(props: PropsWithChildren) {
-  const { children } = props;
-
-  useSyncColorScheme();
-
+export function GameLayout() {
   const [tab, setTab] = useState(GameLayoutTabs.Outlet);
 
   const [count, setCount] = useState(0);
-  const characterId = useCharacterIdOptional();
 
   return (
     <>
       <HandleSoloGameRedirect />
+      <SyncColorScheme />
       <GamePageHeader />
-
-      <PageContent
-        id={
-          characterId
-            ? `character-tab-panel-${characterId}`
-            : "overview-tab-panel"
-        }
-      >
+      <GamePageContentWithId>
         <Box
           display="grid"
           gridTemplateColumns={{
@@ -56,7 +45,7 @@ export function GameLayout(props: PropsWithChildren) {
             currentOpenTab={tab}
             cardBodyProps={{ p: 0 }}
           >
-            {children}
+            <CharacterOrOverviewContent />
           </MobileOnlyTabPanel>
           <MobileOnlyTabPanel
             gridRow={{ base: 1, md: 2, xl: 1 }}
@@ -77,7 +66,7 @@ export function GameLayout(props: PropsWithChildren) {
             <Button onClick={() => setCount(count + 1)}>Increment</Button>
           </MobileOnlyTabPanel>
         </Box>
-      </PageContent>
+      </GamePageContentWithId>
     </>
   );
 }
