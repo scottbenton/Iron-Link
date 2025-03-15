@@ -13,7 +13,7 @@ export interface TextFieldProps extends Omit<FieldProps, "label" | "onChange"> {
   InputProps?: Omit<InputProps, "onChange">;
   startElement?: ReactNode;
   endElement?: ReactNode;
-  value: string;
+  value?: string;
   onChange?: (value: string) => void;
 }
 

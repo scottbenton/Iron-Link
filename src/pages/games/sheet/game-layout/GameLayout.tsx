@@ -18,7 +18,7 @@ export function GameLayout() {
     <>
       <HandleSoloGameRedirect />
       <SyncColorScheme />
-      <GamePageHeader />
+      <GamePageHeader tab={tab} setTab={setTab} />
       <GamePageContentWithId>
         <Box
           display="grid"

@@ -4,7 +4,6 @@ import { Route, Switch } from "wouter";
 import { NavBar } from "./components/layout/NavBar";
 import { PageWrapper } from "./components/layout/PageWrapper";
 import { Toaster } from "./components/ui/toaster";
-import { pageConfig } from "./pages/pageConfig";
 import { useListenToAuth } from "./stores/auth.store";
 
 const AuthPage = lazy(() => import("./pages/auth/AuthPage"));
@@ -20,22 +19,27 @@ function App() {
   useListenToAuth();
   return (
     <>
-      <NavBar />
       <Switch>
-        <Route path={pageConfig.home}>Home</Route>
-        <Route path={pageConfig.auth}>
-          <PageWrapper lazy={AuthPage} />
-        </Route>
-        <Route path={pageConfig.gameSelect}>
-          <PageWrapper lazy={GameSelectPage} requiresAuth />
-        </Route>
-        <Route path={pageConfig.gameCreate}>
+        <Route path={"/games/create"}>
+          <NavBar />
           <PageWrapper lazy={GameCreatePage} requiresAuth />
         </Route>
-        <Route path={pageConfig.game(":gameId")} nest>
+        <Route path={"/games/:gameId"} nest>
           <PageWrapper lazy={GamePage} />
         </Route>
-        <Route>404</Route>
+        <Route>
+          <NavBar />
+          <Switch>
+            <Route path={"/"}>Home</Route>
+            <Route path={"/auth"}>
+              <PageWrapper lazy={AuthPage} />
+            </Route>
+            <Route path={"/games"}>
+              <PageWrapper lazy={GameSelectPage} requiresAuth />
+            </Route>
+            <Route>404</Route>
+          </Switch>
+        </Route>
       </Switch>
       <Toaster />
     </>
