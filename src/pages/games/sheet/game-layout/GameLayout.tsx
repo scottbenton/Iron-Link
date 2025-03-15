@@ -1,5 +1,5 @@
 import { Box, Button } from "@chakra-ui/react";
-import { PropsWithChildren, useState } from "react";
+import { useState } from "react";
 
 import { CharacterOrOverviewContent } from "../components/character/CharacterOrOverviewContent";
 import { HandleSoloGameRedirect } from "./HandleSoloGameRedirect";

@@ -1,13 +1,14 @@
 import { Tooltip } from "@/components/ui/tooltip";
 import { useDataswornTranslations } from "@/hooks/i18n/useDataswornTranslations";
 import { Difficulty } from "@/repositories/tracks.repository";
-import { Box, BoxProps, IconButton } from "@chakra-ui/react";
+import { Box, BoxProps, ButtonProps, IconButton } from "@chakra-ui/react";
 import { Minus, Plus } from "lucide-react";
 import { Dispatch, SetStateAction, useCallback } from "react";
 
 export interface TrackProgressButtonsProps extends BoxProps {
   setValue: Dispatch<SetStateAction<number>>;
   difficulty: Difficulty;
+  variant?: ButtonProps["variant"];
 }
 
 const difficultyTickMap: Record<Difficulty, number> = {
@@ -19,7 +20,7 @@ const difficultyTickMap: Record<Difficulty, number> = {
 };
 
 export function TrackProgressButtons(props: TrackProgressButtonsProps) {
-  const { setValue, difficulty, ...boxProps } = props;
+  const { setValue, difficulty, variant = "subtle", ...boxProps } = props;
   const t = useDataswornTranslations();
 
   const handleChange = useCallback(
@@ -45,7 +46,7 @@ export function TrackProgressButtons(props: TrackProgressButtonsProps) {
     <Box colorPalette="gray" as="span" pt={1} {...boxProps}>
       <Tooltip content={t("track-decrement-button", "Decrement Progress")}>
         <IconButton
-          variant="subtle"
+          variant={variant}
           aria-label={t("track-decrement-button", "Decrement Progress")}
           onClick={handleDecrement}
         >
@@ -54,7 +55,7 @@ export function TrackProgressButtons(props: TrackProgressButtonsProps) {
       </Tooltip>
       <Tooltip content={t("track-increment-button", "Increment Progress")}>
         <IconButton
-          variant="subtle"
+          variant={variant}
           aria-label={t("track-increment-button", "Increment Progress")}
           onClick={handleIncrement}
         >

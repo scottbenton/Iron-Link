@@ -1,12 +1,35 @@
 import { useLayoutTranslations } from "@/hooks/i18n/useLayoutTranslations";
+import { colorSchemeMap } from "@/providers/ThemeProvider/config";
+import { ColorScheme } from "@/repositories/shared.types";
+import { useAppState } from "@/stores/appState.store";
 import { Box, BoxProps } from "@chakra-ui/react";
 import { useId } from "react";
 
-export function IronLinkLogo(props: BoxProps) {
+interface IronLinkLogoProps extends BoxProps {
+  forcedColorScheme?: ColorScheme;
+}
+
+export function IronLinkLogo(props: IronLinkLogoProps) {
+  const { forcedColorScheme, ...boxProps } = props;
   const id = useId();
   const t = useLayoutTranslations();
+
+  const colorScheme = useAppState(
+    (state) => forcedColorScheme ?? state.colorScheme,
+  );
+
+  const colorKey = colorSchemeMap[colorScheme];
+  const color1 =
+    colorScheme === ColorScheme.Default
+      ? `var(--chakra-colors-${colorKey}-500)`
+      : `var(--chakra-colors-${colorKey}-300)`;
+  const color2 =
+    colorScheme === ColorScheme.Default
+      ? `var(--chakra-colors-yellow-600)`
+      : `var(--chakra-colors-${colorKey}-700)`;
+
   return (
-    <Box asChild w={10} h={10} {...props}>
+    <Box asChild w={10} h={10} {...boxProps}>
       <svg
         aria-label={t("iron-link.title", "Iron Link")}
         viewBox="0 0 128 128"
@@ -50,13 +73,13 @@ export function IronLinkLogo(props: BoxProps) {
           >
             <stop
               style={{
-                stopColor: "var(--chakra-colors-brand-gradient-start-color)",
+                stopColor: color1,
               }}
             />
             <stop
               offset="1"
               style={{
-                stopColor: "var(--chakra-colors-brand-gradient-end-color)",
+                stopColor: color2,
               }}
             />
           </linearGradient>

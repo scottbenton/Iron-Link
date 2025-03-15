@@ -10,8 +10,8 @@ export function OverviewTab() {
   return (
     <Tabs.Trigger value={OverviewTabs.Overview}>
       {characterId
-        ? t("game-tabs-characters-and-users", "Characters")
-        : t("game-tabs-character-overview", "Overview")}
+        ? t("game-tabs-character-overview", "Overview")
+        : t("game-tabs-characters-and-users", "Characters")}
     </Tabs.Trigger>
   );
 }
