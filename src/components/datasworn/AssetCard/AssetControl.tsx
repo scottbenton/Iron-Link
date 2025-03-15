@@ -8,7 +8,7 @@ import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DEFAULT_MOMENTUM } from "../../../data/constants.ts";
-import { ConditionMeter } from "../ConditonMeter";
+import { DebouncedConditionMeter } from "../ConditonMeter";
 import { AssetControls } from "./AssetControls";
 import { AssetCheckboxField } from "./fields/AssetCheckboxField";
 import { AssetClockField } from "./fields/AssetClockField";
@@ -86,7 +86,7 @@ export function AssetControl(props: AssetControlProps) {
       const subControls = control.controls;
       return (
         <Box display={"flex"} alignItems="flex-start" gap={2}>
-          <ConditionMeter
+          <DebouncedConditionMeter
             label={control.label}
             defaultValue={control.value}
             min={control.min}

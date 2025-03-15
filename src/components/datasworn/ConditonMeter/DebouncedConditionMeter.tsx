@@ -5,7 +5,7 @@ import { ConditionMeter, ConditionMeterProps } from "./ConditionMeter";
 export interface DebouncedConditionMeterProps
   extends Omit<ConditionMeterProps, "onChange" | "onActionClick"> {
   onActionClick?: (setValue: (value: number) => void) => void;
-  onChange: (value: number) => void;
+  onChange?: (value: number) => void;
 }
 
 export function DebouncedConditionMeter(props: DebouncedConditionMeterProps) {
@@ -21,7 +21,7 @@ export function DebouncedConditionMeter(props: DebouncedConditionMeterProps) {
       {...conditionMeterProps}
       onActionClick={onActionClick ? () => onActionClick(setValue) : undefined}
       value={value}
-      onChange={setValue}
+      onChange={onChange ? setValue : undefined}
     />
   );
 }

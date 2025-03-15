@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { useCharacterCreateTranslations } from "@/hooks/i18n/useCharacterCreateTranslations";
 import { useGameId } from "@/hooks/useGameId";
 import { useGamePermissions } from "@/hooks/usePermissions";
+import { pageConfig } from "@/pages/pageConfig";
 import { useUID } from "@/stores/auth.store";
 import { useCreateCharacterStore } from "@/stores/createCharacter.store";
 import { GamePermission } from "@/stores/game.store";
@@ -36,7 +37,7 @@ export default function CreateCharacterPage() {
     createCharacter(gameId, uid)
       .then((characterId) => {
         resetCharacter();
-        navigate(`/c/${characterId}`);
+        navigate(pageConfig.gameCharacter(gameId, characterId));
       })
       .catch(() => {
         setError(t("error-creating-character", "Error creating character"));

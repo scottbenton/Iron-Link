@@ -60,16 +60,15 @@ export function CharacterTabs() {
         variant="subtle"
       >
         <Tabs.List>
-          {gameType !== GameType.Solo ||
-            (characters.length !== 1 && (
-              <Tabs.Trigger
-                value={overviewKey}
-                aria-controls="overview-tab-panel"
-                flexShrink={0}
-              >
-                {t("game-tabs-overview", "Overview")}
-              </Tabs.Trigger>
-            ))}
+          {(gameType !== GameType.Solo || characters.length !== 1) && (
+            <Tabs.Trigger
+              value={overviewKey}
+              aria-controls="overview-tab-panel"
+              flexShrink={0}
+            >
+              {t("game-tabs-overview", "Overview")}
+            </Tabs.Trigger>
+          )}
           {characters.map((character) => (
             <Tabs.Trigger
               key={character.id}

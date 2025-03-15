@@ -3,7 +3,6 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { useGameTranslations } from "@/hooks/i18n/useGameTranslations";
 import { useGamePermissions } from "@/hooks/usePermissions";
 import { useConfirm } from "@/providers/ConfirmProvider";
-import { IAsset } from "@/services/asset.service";
 import { useAssetsStore } from "@/stores/assets.store";
 import { GamePermission } from "@/stores/game.store";
 import { IconButton } from "@chakra-ui/react";
@@ -13,18 +12,14 @@ import React, { useCallback } from "react";
 export interface AssetsSectionCardProps {
   doesUserOwnCharacter: boolean;
   assetId: string;
-  assetDocument: IAsset;
   showUnavailableAbilities: boolean;
 }
 
 function AssetsSectionCardUnMemoized(props: AssetsSectionCardProps) {
-  const {
-    doesUserOwnCharacter,
-    assetId,
-    assetDocument,
-    showUnavailableAbilities,
-  } = props;
+  const { doesUserOwnCharacter, assetId, showUnavailableAbilities } = props;
   const t = useGameTranslations();
+
+  const assetDocument = useAssetsStore((store) => store.assets[assetId]);
 
   const isGamePlayer =
     useGamePermissions().gamePermission !== GamePermission.Viewer;

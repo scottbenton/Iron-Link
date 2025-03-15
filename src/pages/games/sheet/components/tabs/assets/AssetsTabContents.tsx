@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useGameTranslations } from "@/hooks/i18n/useGameTranslations";
 import { useCharacterIdOptional } from "@/hooks/useCharacterId";
 import { useGameId } from "@/hooks/useGameId";
+import { useIsOwnerOfCharacter } from "@/hooks/usePermissions";
 import { IAsset } from "@/services/asset.service";
 import { useAssetsStore } from "@/stores/assets.store";
 import { Bleed, Box, Button, Heading, Stack } from "@chakra-ui/react";
@@ -19,17 +20,37 @@ export function AssetTabContents() {
   const [showAllAbilities, setShowAllAbilities] = useState(false);
   const [assetCardDialogOpen, setAssetCardDialogOpen] = useState(false);
 
-  const sharedAssets = useAssetsStore((store) => {
-    return Object.entries(store.assets)
+  const { sharedAssets, lastSharedAssetOrder } = useAssetsStore((store) => {
+    const sortedAssetIds: string[] = [];
+    let lastSharedAssetOrder = 0;
+
+    Object.entries(store.assets)
       .filter(([, asset]) => asset.characterId === null)
-      .sort(([, a1], [, a2]) => a1.order - a2.order);
+      .sort(([, a1], [, a2]) => a1.order - a2.order)
+      .forEach(([assetId, asset]) => {
+        sortedAssetIds.push(assetId);
+        lastSharedAssetOrder = asset.order;
+      });
+
+    return { sharedAssets: sortedAssetIds, lastSharedAssetOrder };
   });
 
-  const currentCharacterAssets = useAssetsStore((store) => {
-    return Object.entries(store.assets)
-      .filter(([, asset]) => asset.characterId === characterId)
-      .sort(([, a1], [, a2]) => a1.order - a2.order);
-  });
+  const { characterAssets, lastCharacterAssetOrder } = useAssetsStore(
+    (store) => {
+      const sortedAssetIds: string[] = [];
+      let lastCharacterAssetOrder = 0;
+
+      Object.entries(store.assets)
+        .filter(([, asset]) => asset.characterId !== null)
+        .sort(([, a1], [, a2]) => a1.order - a2.order)
+        .forEach(([assetId, asset]) => {
+          sortedAssetIds.push(assetId);
+          lastCharacterAssetOrder = asset.order;
+        });
+
+      return { characterAssets: sortedAssetIds, lastCharacterAssetOrder };
+    },
+  );
 
   const createAsset = useAssetsStore((store) => store.addAsset);
   const handleAssetCreate = useCallback(
@@ -38,15 +59,8 @@ export function AssetTabContents() {
       shared: boolean,
     ) => {
       if (!characterId) return;
-      const sharedAssetOrder =
-        sharedAssets.length > 0
-          ? sharedAssets[sharedAssets.length - 1][1].order + 1
-          : 0;
-      const characterAssetOrder =
-        currentCharacterAssets.length > 0
-          ? currentCharacterAssets[currentCharacterAssets.length - 1][1].order +
-            1
-          : 0;
+      const sharedAssetOrder = lastSharedAssetOrder + 1;
+      const characterAssetOrder = lastCharacterAssetOrder + 1;
       setAssetCardDialogOpen(false);
       createAsset({
         ...asset,
@@ -55,8 +69,16 @@ export function AssetTabContents() {
         characterId: shared ? null : characterId,
       }).catch((e) => console.error(e));
     },
-    [sharedAssets, currentCharacterAssets, createAsset, gameId, characterId],
+    [
+      lastCharacterAssetOrder,
+      lastSharedAssetOrder,
+      createAsset,
+      gameId,
+      characterId,
+    ],
   );
+
+  const isOwnerOfCharacter = useIsOwnerOfCharacter();
 
   return (
     <>
@@ -92,17 +114,12 @@ export function AssetTabContents() {
         <Stack mt={4}>
           {characterId && (
             <GridLayout
-              items={currentCharacterAssets}
-              renderItem={([assetId, asset]) => (
+              items={characterAssets}
+              renderItem={(assetId) => (
                 <AssetsSectionCard
                   key={assetId}
-                  doesUserOwnCharacter={
-                    asset.characterId
-                      ? asset.characterId === characterId
-                      : false
-                  }
+                  doesUserOwnCharacter={isOwnerOfCharacter}
                   assetId={assetId}
-                  assetDocument={asset}
                   showUnavailableAbilities={showAllAbilities}
                 />
               )}
@@ -114,16 +131,11 @@ export function AssetTabContents() {
               <Heading>{t("shared-asset-heading", "Shared Assets")}</Heading>
               <GridLayout
                 items={sharedAssets}
-                renderItem={([assetId, asset]) => (
+                renderItem={(assetId) => (
                   <AssetsSectionCard
                     key={assetId}
-                    doesUserOwnCharacter={
-                      asset.characterId
-                        ? asset.characterId === characterId
-                        : false
-                    }
+                    doesUserOwnCharacter={isOwnerOfCharacter}
                     assetId={assetId}
-                    assetDocument={asset}
                     showUnavailableAbilities={showAllAbilities}
                   />
                 )}

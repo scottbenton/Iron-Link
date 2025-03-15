@@ -1,5 +1,7 @@
 import { TextField } from "@/components/common/TextField";
+import { useDebouncedSync } from "@/hooks/useDebouncedSync";
 import { Datasworn } from "@datasworn/core";
+import { useCallback } from "react";
 
 export interface AssetTextFieldProps {
   field: Datasworn.TextField;
@@ -8,8 +10,18 @@ export interface AssetTextFieldProps {
 }
 
 export function AssetTextField(props: AssetTextFieldProps) {
-  const { field, value, onChange } = props;
+  const { field, value: dbValue, onChange } = props;
   const { label, value: defaultValue } = field;
+
+  const [value, setValue] = useDebouncedSync(
+    useCallback(
+      (val: string) => {
+        onChange?.(val);
+      },
+      [onChange],
+    ),
+    dbValue ?? defaultValue ?? "",
+  );
 
   return (
     <TextField
@@ -17,9 +29,9 @@ export function AssetTextField(props: AssetTextFieldProps) {
       label={label}
       LabelProps={{ textTransform: "capitalize" }}
       InputProps={{ w: "100%" }}
-      defaultValue={value ?? defaultValue ?? ""}
+      value={value}
       disabled={!onChange}
-      onChange={onChange}
+      onChange={setValue}
       mt={1}
       css={{
         "& .chakra-group": {

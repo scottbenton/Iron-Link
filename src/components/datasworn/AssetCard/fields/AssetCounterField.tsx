@@ -1,6 +1,6 @@
 import { Datasworn } from "@datasworn/core";
 
-import { ConditionMeter } from "../../ConditonMeter";
+import { DebouncedConditionMeter } from "../../ConditonMeter";
 
 export interface AssetCounterFieldProps {
   value?: number;
@@ -14,7 +14,7 @@ export function AssetCounterField(props: AssetCounterFieldProps) {
 
   return (
     <div>
-      <ConditionMeter
+      <DebouncedConditionMeter
         label={label}
         value={value}
         defaultValue={defaultValue}
