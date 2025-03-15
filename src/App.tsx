@@ -13,6 +13,7 @@ const GameSelectPage = lazy(
 const GameCreatePage = lazy(
   () => import("./pages/games/create/GameCreatePage"),
 );
+const GameJoinPage = lazy(() => import("./pages/games/join/GameJoinPage"));
 const GamePage = lazy(() => import("./pages/games/sheet/GamePage"));
 
 function App() {
@@ -36,6 +37,9 @@ function App() {
             </Route>
             <Route path={"/games"}>
               <PageWrapper lazy={GameSelectPage} requiresAuth />
+            </Route>
+            <Route path={"/join/:inviteKey"}>
+              <PageWrapper lazy={GameJoinPage} requiresAuth />
             </Route>
             <Route>404</Route>
           </Switch>
