@@ -40,6 +40,9 @@ export function InnerStatButton(props: InnerStatButtonProps) {
               "&:hover": {
                 "& .gradient-box": {
                   p: borderSize,
+                  "&::before": {
+                    opacity: 1,
+                  },
                 },
                 "& .inner-box": {
                   px: normalPx - borderSize,
@@ -59,6 +62,12 @@ export function InnerStatButton(props: InnerStatButtonProps) {
         transitionTimingFunction="linear"
         p={0}
         borderRadius="sm"
+        _before={{
+          transitionProperty: "opacity",
+          transitionDuration: "fast",
+          transitionTimingFunction: "linear",
+          opacity: 0,
+        }}
       >
         <Box
           className="inner-box"

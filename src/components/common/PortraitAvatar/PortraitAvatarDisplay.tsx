@@ -96,18 +96,11 @@ export function PortraitAvatarDisplay(
           <img
             src={portraitUrl}
             onLoad={(evt) => {
-              console.debug(evt);
-              console.debug(
-                evt.currentTarget.naturalWidth,
-                evt.currentTarget.naturalHeight,
-              );
               if (
                 evt.currentTarget.naturalWidth > evt.currentTarget.naturalHeight
               ) {
-                console.debug("SEETING IS TALLER TO FALSE");
                 setIsTaller(false);
               } else {
-                console.debug("SEETING IS TALLER TO TRUE");
                 setIsTaller(true);
               }
             }}

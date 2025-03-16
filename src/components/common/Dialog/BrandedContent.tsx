@@ -16,8 +16,9 @@ export function BrandedContent(props: PropsWithChildren) {
   return (
     <DialogContent
       ref={setDialogContentRef}
-      appearance={theme === Theme.Light ? "light" : "dark"}
       colorPalette={colorSchemeMap[colorScheme]}
+      className={theme === Theme.Light ? "light" : "dark"}
+      asChild
     >
       <DialogContentRefContext.Provider
         value={{
