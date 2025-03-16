@@ -81,8 +81,8 @@ export function PortraitAvatarDisplay(
         borderColor={borderColor ? "colorPalette.500" : "border"}
         css={{
           "&>img": {
-            minWidth: isTaller ? `${100 * scale}%` : "auto",
-            minHeight: isTaller ? "auto" : `${100 * scale}%`,
+            maxW: isTaller ? `${100 * scale}%` : "10000vh",
+            maxH: isTaller ? "10000vh" : `${100 * scale}%`,
             position: "relative",
             transform: `translate(calc(${marginLeft}% + ${
               AVATAR_SIZES[size] / 2
@@ -96,13 +96,21 @@ export function PortraitAvatarDisplay(
           <img
             src={portraitUrl}
             onLoad={(evt) => {
-              if (evt.currentTarget.width > evt.currentTarget.height) {
+              console.debug(evt);
+              console.debug(
+                evt.currentTarget.naturalWidth,
+                evt.currentTarget.naturalHeight,
+              );
+              if (
+                evt.currentTarget.naturalWidth > evt.currentTarget.naturalHeight
+              ) {
+                console.debug("SEETING IS TALLER TO FALSE");
                 setIsTaller(false);
               } else {
+                console.debug("SEETING IS TALLER TO TRUE");
                 setIsTaller(true);
               }
             }}
-            alt={"Character Portrait"}
           />
         ) : !loading ? (
           name ? (

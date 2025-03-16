@@ -2,6 +2,10 @@ import { useCallback, useContext, useEffect, useId } from "react";
 
 import { ConfirmContext, ConfirmParams } from "./ConfirmContext";
 
+export type ConfirmFunction = (
+  params: ConfirmParams,
+) => Promise<{ confirmed: boolean }>;
+
 export function useConfirm() {
   const id = useId();
   const { confirm: confirmBase, close } = useContext(ConfirmContext);

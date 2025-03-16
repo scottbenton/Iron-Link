@@ -8,16 +8,24 @@ import {
 import { useLayoutTranslations } from "@/hooks/i18n/useLayoutTranslations";
 import { Theme, useAppState } from "@/stores/appState.store";
 import { useAuthStore } from "@/stores/auth.store";
-import { Icon, IconButton, IconButtonProps } from "@chakra-ui/react";
+import {
+  Icon,
+  IconButton,
+  IconButtonProps,
+  MenuItemGroupLabel,
+} from "@chakra-ui/react";
 import { BoltIcon, LogOutIcon, MoonIcon, SunIcon, ZapIcon } from "lucide-react";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 
 import { AdvancedFeaturesDialog } from "./AdvancedFeaturesDialog";
 
-export type SettingsMenuProps = IconButtonProps & {};
+export type SettingsMenuProps = IconButtonProps & {
+  groups?: ReactNode;
+  dialogs?: ReactNode;
+};
 
 export function SettingsMenu(props: SettingsMenuProps) {
-  const { ...iconButtonProps } = props;
+  const { groups, dialogs, ...iconButtonProps } = props;
 
   const t = useLayoutTranslations();
 
@@ -42,7 +50,11 @@ export function SettingsMenu(props: SettingsMenuProps) {
           </IconButton>
         </MenuTrigger>
         <MenuContent>
+          {groups}
           <MenuItemGroup>
+            <MenuItemGroupLabel>
+              {t("app-settings-menu-title", "App Settings")}
+            </MenuItemGroupLabel>
             <MenuItem
               cursor="pointer"
               value="theme-toggle"
@@ -88,6 +100,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
         open={advancedFeaturesDialogOpen}
         onClose={() => setAdvancedFeaturesDialogOpen(false)}
       />
+      {dialogs}
     </>
   );
 }

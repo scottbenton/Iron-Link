@@ -5,11 +5,17 @@ import {
   useSetCharacterId,
 } from "@/hooks/useCharacterId";
 import { pageConfig } from "@/pages/pageConfig";
+import { useConfirm } from "@/providers/ConfirmProvider";
 import { useGameStore } from "@/stores/game.store";
 import { useGameCharacter } from "@/stores/gameCharacters.store";
 import { IconButton } from "@chakra-ui/react";
 import { ChevronLeft } from "lucide-react";
 import { Link } from "wouter";
+
+import { CharacterSettingsMenuDialogs } from "./components/settings/CharacterSettingsMenuDialogs";
+import { CharacterSettingsMenuItems } from "./components/settings/CharacterSettingsMenuItems";
+import { GameSettingsMenuDialogs } from "./components/settings/GameSettingsMenuDialogs";
+import { GameSettingsMenuItems } from "./components/settings/GameSettingsMenuItems";
 
 export function GameNavBar() {
   const t = useLayoutTranslations();
@@ -18,6 +24,8 @@ export function GameNavBar() {
   const characterName = useGameCharacter((character) => character?.name ?? "");
   const characterId = useCharacterIdOptional();
   const setCharacterId = useSetCharacterId();
+
+  const confirm = useConfirm();
 
   return (
     <NavBar
@@ -45,6 +53,20 @@ export function GameNavBar() {
           </IconButton>
         )
       }
+      settings={{
+        menuItems: (
+          <>
+            <CharacterSettingsMenuItems confirm={confirm} />
+            <GameSettingsMenuItems confirm={confirm} />
+          </>
+        ),
+        dialogs: (
+          <>
+            <CharacterSettingsMenuDialogs />
+            <GameSettingsMenuDialogs />
+          </>
+        ),
+      }}
     />
   );
 }
