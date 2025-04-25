@@ -5,6 +5,7 @@ import {
 import { useGamePermissions } from "@/hooks/usePermissions";
 import { GameType } from "@/repositories/game.repository";
 import { useGameCharactersStore } from "@/stores/gameCharacters.store";
+import { useEffect } from "react";
 
 export function HandleSoloGameRedirect() {
   const { gameType } = useGamePermissions();
@@ -15,8 +16,20 @@ export function HandleSoloGameRedirect() {
   const characterId = useCharacterIdOptional();
   const setCharacterId = useSetCharacterId();
 
-  if (gameType === GameType.Solo && characters.length === 1 && !characterId) {
-    setCharacterId(characters[0].id);
-  }
+  const hasOneCharacter = characters.length === 1;
+  const initialCharacterId = characters[0]?.id;
+
+  useEffect(() => {
+    if (gameType === GameType.Solo && hasOneCharacter && initialCharacterId) {
+      setCharacterId(initialCharacterId);
+    }
+  }, [
+    initialCharacterId,
+    hasOneCharacter,
+    characterId,
+    gameType,
+    setCharacterId,
+  ]);
+
   return null;
 }

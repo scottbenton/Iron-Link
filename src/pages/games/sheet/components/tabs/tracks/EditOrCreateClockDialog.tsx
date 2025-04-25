@@ -143,7 +143,9 @@ export function EditOrCreateClockDialog(props: EditOrCreateClockDialogProps) {
           />
           <RadioCard.Root
             value={segments + ""}
-            onValueChange={(details) => setSegments(parseInt(details.value))}
+            onValueChange={(details) =>
+              setSegments(parseInt(details.value ?? "0"))
+            }
             orientation={"vertical"}
             align="center"
           >
