@@ -2,6 +2,7 @@ import { Box, Button } from "@chakra-ui/react";
 import { useState } from "react";
 
 import { CharacterOrOverviewContent } from "../components/character/CharacterOrOverviewContent";
+import { ReferenceContent } from "../components/reference/ReferenceContent";
 import { HandleSoloGameRedirect } from "./HandleSoloGameRedirect";
 import { GamePageContentWithId } from "./components/GamePageContentWithId";
 import { GamePageHeader } from "./components/GamePageHeader";
@@ -52,8 +53,9 @@ export function GameLayout() {
             gridColumn={{ base: 1, xl: 3 }}
             tab={GameLayoutTabs.Reference}
             currentOpenTab={tab}
+            cardBodyProps={{ p: 0 }}
           >
-            Reference Sidebar
+            <ReferenceContent />
           </MobileOnlyTabPanel>
           <MobileOnlyTabPanel
             gridRow={{ base: 1, md: "1 / span 2", xl: 1 }}

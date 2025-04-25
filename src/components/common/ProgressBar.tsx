@@ -1,11 +1,11 @@
 import { useListenToAuth } from "@/stores/auth.store";
-import { Progress } from "@chakra-ui/react";
+import { Progress, ProgressRootProps } from "@chakra-ui/react";
 
-export function ProgressBar() {
+export function ProgressBar(props: ProgressRootProps) {
   useListenToAuth();
 
   return (
-    <Progress.Root value={null} variant="subtle" size="xs">
+    <Progress.Root value={null} variant="subtle" size="xs" {...props}>
       <Progress.Track>
         <Progress.Range />
       </Progress.Track>
