@@ -53,7 +53,7 @@ export function OTPSection(props: OTPSectionProps) {
           <Alert.Description>
             In a local environment, emails are sent to fake inboxes. You can
             check the inbox for {email} to get the OTP{" "}
-            <Link href={`http://localhost:54324/m/${email}`} target="_blank">
+            <Link href={`http://localhost:54324`} target="_blank">
               here
             </Link>
             .

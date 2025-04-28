@@ -14,7 +14,7 @@ const fontVariants: Record<AvatarSizes, string> = {
 };
 
 export interface PortraitAvatarDisplayProps {
-  size?: AvatarSizes;
+  size?: AvatarSizes | number;
 
   portraitSettings?: {
     position: {
@@ -64,11 +64,13 @@ export function PortraitAvatarDisplay(
       <>{children}</>
     );
 
+  const sizePx = typeof size === "number" ? size : AVATAR_SIZES[size];
+
   return (
     <Wrapper>
       <Box
-        width={AVATAR_SIZES[size] + "px"}
-        height={AVATAR_SIZES[size] + "px"}
+        width={`${sizePx}px`}
+        height={`${sizePx}px`}
         overflow={"hidden"}
         bg="bg.muted"
         color="fg"
@@ -85,8 +87,8 @@ export function PortraitAvatarDisplay(
             maxH: isTaller ? "10000vh" : `${100 * scale}%`,
             position: "relative",
             transform: `translate(calc(${marginLeft}% + ${
-              AVATAR_SIZES[size] / 2
-            }px - ${borderWidth}px), calc(${marginTop}% + ${AVATAR_SIZES[size] / 2}px - ${borderWidth}px))`,
+              sizePx / 2
+            }px - ${borderWidth}px), calc(${marginTop}% + ${sizePx / 2}px - ${borderWidth}px))`,
           },
           flexShrink: 0,
         }}
@@ -108,7 +110,7 @@ export function PortraitAvatarDisplay(
         ) : !loading ? (
           name ? (
             <Text
-              fontSize={fontVariants[size]}
+              fontSize={typeof size === "number" ? "lg" : fontVariants[size]}
               fontWeight={size === "huge" ? 600 : undefined}
             >
               {name[0]}

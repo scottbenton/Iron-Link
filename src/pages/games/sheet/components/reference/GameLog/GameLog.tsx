@@ -2,7 +2,7 @@ import { ProgressBar } from "@/components/common/ProgressBar";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { useGameTranslations } from "@/hooks/i18n/useGameTranslations";
 import { useGameLogStore } from "@/stores/gameLog.store";
-import { Box } from "@chakra-ui/react";
+import { Box, Timeline } from "@chakra-ui/react";
 import { useEffect } from "react";
 
 import { LogEntry } from "./LogEntry";
@@ -46,23 +46,20 @@ export function GameLog() {
 
   return (
     <>
-      <Box flexShrink={0} h={"1px"} style={{ overflowAnchor: "auto" }} />
-      {orderedLogIds.map((logId, index, logs) => (
-        <LogEntry
-          logId={logId}
-          priorLogId={index > 0 ? logs[index - 1] : undefined}
-          key={logId}
-        />
-      ))}
-
+      <Box flexShrink={0} h={"1px"} overflowAnchor={"auto"} />
       <div id={"load-more-logs"} />
-      {loading && <ProgressBar flexShrink={0} />}
-      {error && !orderedLogIds.length && (
-        <EmptyState message={t("game.log.load-error", "Error loading logs")} />
-      )}
+      <Timeline.Root variant="subtle" size="xl">
+        {orderedLogIds.map((logId) => (
+          <LogEntry logId={logId} fromTime={new Date()} key={logId} />
+        ))}
+      </Timeline.Root>
       {orderedLogIds.length === 0 && !loading && !error && (
         <EmptyState message={t("game.log.no-logs", "No logs yet")} />
       )}
+      {error && !orderedLogIds.length && (
+        <EmptyState message={t("game.log.load-error", "Error loading logs")} />
+      )}
+      {loading && <ProgressBar flexShrink={0} />}
     </>
   );
 }

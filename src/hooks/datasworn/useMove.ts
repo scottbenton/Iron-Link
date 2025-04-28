@@ -8,7 +8,9 @@ export function getMove(
 }
 
 export function useMove(
-  moveId: string,
+  moveId: string | undefined,
 ): Datasworn.Move | Datasworn.EmbeddedMove | undefined {
-  return useDataswornTreeStore((store) => store.moves.moveMap[moveId]);
+  return useDataswornTreeStore((store) =>
+    moveId ? store.moves.moveMap[moveId] : undefined,
+  );
 }

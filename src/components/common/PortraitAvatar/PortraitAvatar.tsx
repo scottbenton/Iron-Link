@@ -19,7 +19,7 @@ export interface PortraitAvatarProps {
     };
     scale: number;
   };
-  size?: AvatarSizes;
+  size?: AvatarSizes | number;
   borderColor?: "follow-theme" | ColorScheme;
   borderWidth?: number;
 }

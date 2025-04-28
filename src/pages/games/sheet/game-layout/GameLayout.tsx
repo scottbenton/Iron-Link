@@ -53,7 +53,8 @@ export function GameLayout() {
             gridColumn={{ base: 1, xl: 3 }}
             tab={GameLayoutTabs.Reference}
             currentOpenTab={tab}
-            cardBodyProps={{ p: 0 }}
+            cardBodyProps={{ p: 0, h: "100%" }}
+            overflow="hidden"
           >
             <ReferenceContent />
           </MobileOnlyTabPanel>

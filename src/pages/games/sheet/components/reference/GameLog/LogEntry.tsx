@@ -1,41 +1,33 @@
+import { PortraitAvatar } from "@/components/common/PortraitAvatar";
+import { GameLogCard } from "@/components/datasworn/GameLog/GameLogCard";
 import { useGameTranslations } from "@/hooks/i18n/useGameTranslations";
-import { useUID } from "@/stores/auth.store";
 import { useGameCharactersStore } from "@/stores/gameCharacters.store";
 import { useGameLogStore } from "@/stores/gameLog.store";
 import { useUserName } from "@/stores/users.store";
-import { Box, Text } from "@chakra-ui/react";
+import { Span, Timeline } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { memo } from "react";
-
-import { LogEntryTimestamp } from "./LogEntryTimestamp";
 
 dayjs.extend(relativeTime);
 
 export interface LogEntryProps {
   logId: string;
-  priorLogId?: string;
+  fromTime: Date;
 }
 
 export const LogEntry = memo(
   function LogEntryUnmemoized(props: LogEntryProps) {
-    const { logId, priorLogId } = props;
+    const { logId, fromTime } = props;
     const log = useGameLogStore((store) => store.logs[logId]);
-    const priorLogTime = useGameLogStore((store) =>
-      priorLogId ? store.logs[priorLogId].timestamp : undefined,
-    );
 
     const t = useGameTranslations();
-
-    const uid = useUID();
 
     const logCharacterId = log.characterId;
     const logCharacterName = useGameCharactersStore((state) =>
       logCharacterId ? state.characters[logCharacterId].name : undefined,
     );
     const logCreatorName = useUserName(log.uid);
-
-    const isYourEntry = log.uid === uid;
 
     let rollerName = "";
     if (logCharacterName === undefined) {
@@ -46,26 +38,39 @@ export const LogEntry = memo(
       rollerName = logCharacterName;
     }
 
+    const portraitSettings = useGameCharactersStore((state) =>
+      log.characterId ? state.characters[log.characterId].profileImage : null,
+    );
+
     if (!log) {
       return null;
     }
 
     return (
-      <Box
-        p={2}
-        display={"flex"}
-        flexDirection={"column"}
-        alignItems={isYourEntry ? "flex-end" : "flex-start"}
-      >
-        <Text>{rollerName}</Text>
-        <div>{log.result}</div>
-        <Text color={"fg.muted"} fontSize="sm">
-          <LogEntryTimestamp timestamp={log.timestamp} />
-        </Text>
-      </Box>
+      <Timeline.Item key={logId}>
+        <Timeline.Connector>
+          <Timeline.Separator />
+          <Timeline.Indicator>
+            <PortraitAvatar
+              size={32}
+              rounded={"full"}
+              name={rollerName}
+              characterId={log.characterId ?? ""}
+              portraitSettings={portraitSettings ?? undefined}
+            />
+          </Timeline.Indicator>
+        </Timeline.Connector>
+        <Timeline.Content>
+          <Timeline.Title>
+            <Span fontWeight="bold">{rollerName}</Span>
+            {dayjs(log.timestamp).from(fromTime)}
+          </Timeline.Title>
+          <GameLogCard log={log} />
+        </Timeline.Content>
+      </Timeline.Item>
     );
   },
   (prev, next) => {
-    return prev.logId === next.logId && prev.priorLogId === next.priorLogId;
+    return prev.logId === next.logId && prev.fromTime === next.fromTime;
   },
 );
