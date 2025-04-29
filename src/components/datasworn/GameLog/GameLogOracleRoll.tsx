@@ -1,6 +1,7 @@
 import { useOracleRollable } from "@/hooks/datasworn/useOracleRollable";
 import { IOracleTableRoll } from "@/services/gameLog.service";
 import { Card } from "@chakra-ui/react";
+import { ReactNode } from "react";
 
 import { GameLogHeader } from "./GameLogHeader";
 import { GameLogRollResult } from "./GameLogRollResult";
@@ -8,10 +9,11 @@ import { GameLogRollValues } from "./GameLogRollValues";
 
 export interface GameLogOracleRollProps {
   roll: IOracleTableRoll;
+  actions?: ReactNode;
 }
 
 export function GameLogOracleRoll(props: GameLogOracleRollProps) {
-  const { roll } = props;
+  const { roll, actions } = props;
 
   const oracle = useOracleRollable(roll.oracleId);
 
@@ -20,6 +22,7 @@ export function GameLogOracleRoll(props: GameLogOracleRollProps) {
       <GameLogHeader
         overline={roll.oracleCategoryName}
         title={oracle?.name ?? roll.rollLabel}
+        actions={actions}
       />
       <Card.Body display="flex" flexDirection="row">
         <GameLogRollValues

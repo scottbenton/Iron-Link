@@ -3,6 +3,7 @@ import { useMove } from "@/hooks/datasworn/useMove";
 import { useDataswornTranslations } from "@/hooks/i18n/useDataswornTranslations";
 import { IStatRoll } from "@/services/gameLog.service";
 import { CardBody } from "@chakra-ui/react";
+import { ReactNode } from "react";
 
 import { GameLogHeader } from "./GameLogHeader";
 import { GameLogRollResult } from "./GameLogRollResult";
@@ -10,10 +11,11 @@ import { GameLogRollValues } from "./GameLogRollValues";
 
 export interface GameLogStatRollProps {
   roll: IStatRoll;
+  actions?: ReactNode;
 }
 
 export function GameLogStatRoll(props: GameLogStatRollProps) {
-  const { roll } = props;
+  const { roll, actions } = props;
 
   const t = useDataswornTranslations();
 
@@ -25,6 +27,7 @@ export function GameLogStatRoll(props: GameLogStatRollProps) {
       <GameLogHeader
         title={move ? move.name : roll.rollLabel}
         overline={move ? roll.rollLabel : undefined}
+        actions={actions}
       />
       <CardBody display="flex" flexDirection="row">
         <GameLogRollValues

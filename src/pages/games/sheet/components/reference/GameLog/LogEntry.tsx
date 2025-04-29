@@ -1,5 +1,6 @@
 import { PortraitAvatar } from "@/components/common/PortraitAvatar";
 import { GameLogCard } from "@/components/datasworn/GameLog/GameLogCard";
+import { NormalRollActions } from "@/components/datasworn/GameLog/NormalRollActions";
 import { useGameTranslations } from "@/hooks/i18n/useGameTranslations";
 import { useGameCharactersStore } from "@/stores/gameCharacters.store";
 import { useGameLogStore } from "@/stores/gameLog.store";
@@ -65,7 +66,11 @@ export const LogEntry = memo(
             <Span fontWeight="bold">{rollerName}</Span>
             {dayjs(log.timestamp).from(fromTime)}
           </Timeline.Title>
-          <GameLogCard log={log} />
+          <GameLogCard
+            ml={-4}
+            log={log}
+            actions={<NormalRollActions roll={log} />}
+          />
         </Timeline.Content>
       </Timeline.Item>
     );

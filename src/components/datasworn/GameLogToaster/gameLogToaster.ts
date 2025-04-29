@@ -9,6 +9,7 @@ export const gameLogToaster = createToaster({
 
 export function createGameLogToast(log: IGameLog) {
   return gameLogToaster.create({
+    id: log.id,
     meta: {
       id: log.id,
       log: log,

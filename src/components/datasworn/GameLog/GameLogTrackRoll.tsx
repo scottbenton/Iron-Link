@@ -6,6 +6,7 @@ import {
   ITrackProgressRoll,
 } from "@/services/gameLog.service";
 import { Card } from "@chakra-ui/react";
+import { ReactNode } from "react";
 
 import { GameLogHeader } from "./GameLogHeader";
 import { GameLogRollResult } from "./GameLogRollResult";
@@ -13,10 +14,11 @@ import { GameLogRollValues } from "./GameLogRollValues";
 
 export interface GameLogTrackRollProps {
   roll: ITrackProgressRoll | ISpecialTrackProgressRoll;
+  actions?: ReactNode;
 }
 
 export function GameLogTrackRoll(props: GameLogTrackRollProps) {
-  const { roll } = props;
+  const { roll, actions } = props;
   const t = useDataswornTranslations();
 
   const move = useMove(roll.moveId);
@@ -26,6 +28,7 @@ export function GameLogTrackRoll(props: GameLogTrackRollProps) {
       <GameLogHeader
         title={move ? move.name : roll.rollLabel}
         overline={move ? roll.rollLabel : undefined}
+        actions={actions}
       />
       <Card.Body display="flex" flexDirection="row">
         <GameLogRollValues
