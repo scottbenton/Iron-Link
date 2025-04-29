@@ -9,11 +9,8 @@ export interface OracleTableRendererProps {
   oracle: Datasworn.OracleCollection | Datasworn.OracleRollable;
 }
 
-export function OracleTableRenderer(props: OracleTableRendererProps) {
-  const { oracle } = props;
-
+export function OracleTableRenderer() {
   // Todo - Implement rendering logic based on oracle type
-  console.debug(oracle);
   // if (
   //   oracle.oracle_type === "table_text" ||
   //   oracle.oracle_type === "table_text2" ||

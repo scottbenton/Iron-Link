@@ -33,8 +33,6 @@ export function ListItem(props: ListItemProps) {
     }
   }, []);
 
-  console.debug(label, secondaryActionWidth);
-
   return (
     <Box as="li" position="relative" display="flex" {...boxProps}>
       <Box

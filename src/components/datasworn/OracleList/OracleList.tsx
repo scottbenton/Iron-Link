@@ -77,6 +77,7 @@ export function OracleList() {
             {arr.length > 1 && <ListSubheader>{ruleset.title}</ListSubheader>}
             {ruleset.rootCollectionIds.map((categoryKey) => (
               <OracleCollectionListItem
+                key={categoryKey}
                 oracleCollectionId={categoryKey}
                 oracleCollectionMap={oracleCollectionMap}
                 oracleRollableMap={oracleRollableMap}

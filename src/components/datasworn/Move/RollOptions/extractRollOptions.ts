@@ -148,7 +148,6 @@ function getEnhancementsFromAssets(
 
   Object.values(assetDocuments).forEach((assetDocument) => {
     const asset = getAsset(assetDocument.dataswornAssetId);
-    console.debug("CHECKING ASSET", asset);
     if (!asset) return;
 
     asset.abilities.forEach((ability, index) => {

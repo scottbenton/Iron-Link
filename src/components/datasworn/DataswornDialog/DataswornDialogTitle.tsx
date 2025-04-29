@@ -1,5 +1,6 @@
+import { DialogHeader } from "@/components/common/Dialog/DialogHeader";
 import { useAppState } from "@/stores/appState.store";
-import { Dialog, IconButton } from "@chakra-ui/react";
+import { IconButton } from "@chakra-ui/react";
 import { ChevronLeftIcon } from "lucide-react";
 import { PropsWithChildren } from "react";
 
@@ -14,14 +15,9 @@ export function DataswornDialogTitle(props: PropsWithChildren) {
   );
 
   return (
-    <Dialog.Header>
-      <Dialog.Title
-        display="flex"
-        alignItems={"center"}
-        justifyContent={"space-between"}
-      >
-        {children}
-        {previousIds.length > 0 ? (
+    <DialogHeader
+      actions={
+        previousIds.length > 0 ? (
           <IconButton
             variant="ghost"
             colorPalette={"gray"}
@@ -29,8 +25,10 @@ export function DataswornDialogTitle(props: PropsWithChildren) {
           >
             <ChevronLeftIcon />
           </IconButton>
-        ) : undefined}
-      </Dialog.Title>
-    </Dialog.Header>
+        ) : undefined
+      }
+    >
+      {children}
+    </DialogHeader>
   );
 }

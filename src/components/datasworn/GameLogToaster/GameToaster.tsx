@@ -11,7 +11,6 @@ export function GameToaster() {
           <>
             {toast.meta?.id && toast.meta.log && (
               <Toast.Root
-                asChild
                 width={{ md: "sm" }}
                 display="flex"
                 p={0}

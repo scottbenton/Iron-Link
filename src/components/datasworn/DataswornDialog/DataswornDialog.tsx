@@ -1,5 +1,4 @@
 import { BrandedContent } from "@/components/common/Dialog/BrandedContent";
-import { DialogCloseTrigger } from "@/components/ui/dialog";
 import { useAppState } from "@/stores/appState.store";
 import { Dialog } from "@chakra-ui/react";
 
@@ -20,7 +19,6 @@ export function DataswornDialog() {
     >
       <Dialog.Backdrop />
       <BrandedContent>
-        <DialogCloseTrigger colorPalette={"gray"} />
         <DataswornDialogContent id={openId ?? ""} onClose={handleClose} />
       </BrandedContent>
     </Dialog.Root>

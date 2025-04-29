@@ -1,23 +1,22 @@
 import {
   DialogBackdrop,
   DialogBody,
-  DialogCloseTrigger,
   DialogFooter,
-  DialogHeader,
   DialogRoot,
-  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DialogRootProps } from "@chakra-ui/react";
 import { ReactNode } from "react";
 
 import { BrandedContent } from "./BrandedContent";
+import { DialogHeader } from "./DialogHeader";
 
 export interface DialogProps {
   trigger?: ReactNode;
   title: ReactNode;
   content?: ReactNode;
   fullContent?: ReactNode;
+  headerActions?: ReactNode;
   actions?: ReactNode;
   open?: boolean;
   onClose?: () => void;
@@ -30,6 +29,7 @@ export function Dialog(props: DialogProps) {
   const {
     trigger,
     title,
+    headerActions,
     content,
     fullContent,
     actions,
@@ -53,14 +53,7 @@ export function Dialog(props: DialogProps) {
       <DialogBackdrop />
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <BrandedContent>
-        <DialogCloseTrigger colorPalette={"gray"} />
-        <DialogHeader>
-          {typeof title === "string" ? (
-            <DialogTitle>{title}</DialogTitle>
-          ) : (
-            title
-          )}
-        </DialogHeader>
+        <DialogHeader actions={headerActions}>{title}</DialogHeader>
         {fullContent ? fullContent : null}
         {content && (
           <DialogBody position={scrollOutside ? undefined : "relative"}>

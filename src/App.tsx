@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { Route, Switch } from "wouter";
 
+import { LiveRegion } from "./components/common/LiveRegion";
 import { GameToaster } from "./components/datasworn/GameLogToaster";
 import { NavBar } from "./components/layout/NavBar";
 import { PageWrapper } from "./components/layout/PageWrapper";
@@ -21,6 +22,7 @@ function App() {
   useListenToAuth();
   return (
     <>
+      <LiveRegion />
       <Switch>
         <Route path={"/games/create"}>
           <NavBar />
