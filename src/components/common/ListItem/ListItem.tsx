@@ -1,7 +1,7 @@
-import { Box, BoxProps } from "@chakra-ui/react";
-import { ReactNode } from "react";
+import { Box, BoxProps, Text } from "@chakra-ui/react";
+import { ReactNode, useCallback, useState } from "react";
 
-export interface ListItemProps extends BoxProps {
+export interface ListItemProps extends Omit<BoxProps, "children"> {
   onClick?: () => void;
   label: string;
   description?: string;
@@ -25,6 +25,16 @@ export function ListItem(props: ListItemProps) {
 
   const Child = onClick ? "button" : "div";
 
+  const [secondaryActionWidth, setSecondaryActionWidth] = useState(0);
+  const secondaryActionRef = useCallback((node: HTMLDivElement) => {
+    if (node !== null) {
+      const { width } = node.getBoundingClientRect();
+      setSecondaryActionWidth(width);
+    }
+  }, []);
+
+  console.debug(label, secondaryActionWidth);
+
   return (
     <Box as="li" position="relative" display="flex" {...boxProps}>
       <Box
@@ -32,11 +42,13 @@ export function ListItem(props: ListItemProps) {
         display="flex"
         alignItems="center"
         pl={icon ? 3 : 4}
-        pr={4}
+        pr={16 + secondaryActionWidth + "px"}
         py={3}
         flexGrow={1}
         colorPalette="blackAlpha"
-        borderRadius="sm"
+        transition="backgrounds"
+        transitionDuration="faster"
+        transitionTimingFunction="ease-in-out"
         css={
           onClick
             ? {
@@ -52,20 +64,23 @@ export function ListItem(props: ListItemProps) {
           {icon}
           <Box
             display="flex"
+            flexGrow={1}
             flexDirection="column"
             alignItems="flex-start"
             gap={1}
             ml={icon ? 2 : 0}
+            textAlign={"left"}
           >
-            <Box id={id} lineHeight={1}>
+            <Text id={id} lineHeight={1}>
               {label}
-            </Box>
+            </Text>
             {description && <Box color="fg.muted">{description}</Box>}
           </Box>
         </Child>
       </Box>
       {secondaryAction && (
         <Box
+          ref={secondaryActionRef}
           position="absolute"
           top={0}
           right={4}

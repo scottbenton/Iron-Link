@@ -23,7 +23,7 @@ export interface SelectProps
 
 export const Select = forwardRef<HTMLDivElement, SelectProps>(
   function Select(props, ref) {
-    const { value, label, options, onChange } = props;
+    const { value, label, options, onChange, ...rootProps } = props;
     const portalRef = useDialogPortalRef();
 
     const { collection, items } = useMemo(() => {
@@ -68,8 +68,9 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
         collection={collection}
         value={[value ?? ""]}
         onValueChange={(details) => onChange && onChange(details.value[0])}
+        {...rootProps}
       >
-        <SelectLabel>{label}</SelectLabel>
+        {label && <SelectLabel>{label}</SelectLabel>}
         <SelectTrigger>
           <SelectValueText textTransform={"capitalize"} />
         </SelectTrigger>

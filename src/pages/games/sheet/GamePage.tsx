@@ -1,3 +1,4 @@
+import { DataswornDialog } from "@/components/datasworn/DataswornDialog";
 import { NavBar } from "@/components/layout/NavBar";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { useLayoutTranslations } from "@/hooks/i18n/useLayoutTranslations";
@@ -44,6 +45,7 @@ export default function GamePage() {
 
         <Route>404</Route>
       </Switch>
+      <DataswornDialog />
     </GameLoadWrapper>
   );
 }

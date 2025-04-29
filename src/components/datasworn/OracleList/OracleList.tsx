@@ -1,7 +1,7 @@
 import { List, ListSubheader } from "@/components/common/ListItem";
 import { InputGroup } from "@/components/ui/input-group";
 import { useDataswornTranslations } from "@/hooks/i18n/useDataswornTranslations";
-import { useMoves } from "@/stores/dataswornTree.store";
+import { useOracles } from "@/stores/dataswornTree.store";
 import { Box, Icon, Input } from "@chakra-ui/react";
 import { SearchIcon } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
@@ -12,38 +12,47 @@ import {
   VisibilitySettings,
   getCollectionVisibilities,
 } from "../getCollectionVisibility";
-import { MoveCategoryListItem } from "./MoveCategoryListItem";
+import { AskTheOracleButtons } from "./AskTheOracleButtons";
+import { OracleCollectionListItem } from "./OracleCollectionListItem";
 
-export function MoveList() {
+export function OracleList() {
   const t = useDataswornTranslations();
 
   const [searchValue, setSearchValue] = useState("");
   const deferredSearchValue = useDeferredValue(searchValue);
-  const { rootMoveCategories, moveCategoryMap, moveMap } = useMoves();
+
+  const { rootOracleCollections, oracleCollectionMap, oracleRollableMap } =
+    useOracles();
 
   const visibilitySettings = useMemo(() => {
     const collectionVisibility: Record<string, CollectionVisibility> = {};
     const itemVisibility: Record<string, ItemVisibility> = {};
 
-    Object.values(rootMoveCategories).forEach(({ rootCollectionIds }) => {
+    Object.values(rootOracleCollections).forEach(({ rootCollectionIds }) => {
       getCollectionVisibilities(
         deferredSearchValue,
         rootCollectionIds,
-        moveCategoryMap,
-        moveMap,
+        oracleCollectionMap,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        oracleRollableMap as unknown as any,
         collectionVisibility,
         itemVisibility,
       );
     });
-
     return {
       collectionVisibility,
       itemVisibility,
     } as VisibilitySettings;
-  }, [rootMoveCategories, moveCategoryMap, moveMap, deferredSearchValue]);
+  }, [
+    rootOracleCollections,
+    oracleCollectionMap,
+    oracleRollableMap,
+    deferredSearchValue,
+  ]);
 
   return (
     <Box>
+      <AskTheOracleButtons />
       <InputGroup
         startElement={
           <Icon asChild size="sm">
@@ -57,23 +66,22 @@ export function MoveList() {
           borderRadius="none"
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
-          aria-label={t("filter-moves", "Filter Moves")}
-          placeholder={t("filter-moves", "Filter Moves")}
+          aria-label={t("filter-oracles", "Filter Oracles")}
+          placeholder={t("filter-oracles", "Filter Oracles")}
           color={"primary"}
         />
       </InputGroup>
-      {Object.entries(rootMoveCategories).map(
+      {Object.entries(rootOracleCollections).map(
         ([rulesetKey, ruleset], _, arr) => (
           <List key={rulesetKey}>
             {arr.length > 1 && <ListSubheader>{ruleset.title}</ListSubheader>}
             {ruleset.rootCollectionIds.map((categoryKey) => (
-              <MoveCategoryListItem
-                key={categoryKey}
-                moveCategoryId={categoryKey}
-                moveCategoryMap={moveCategoryMap}
-                moveMap={moveMap}
+              <OracleCollectionListItem
+                oracleCollectionId={categoryKey}
+                oracleCollectionMap={oracleCollectionMap}
+                oracleRollableMap={oracleRollableMap}
                 visibilitySettings={visibilitySettings}
-                isSearchActive={!!deferredSearchValue.trim()}
+                isSearchActive={!!deferredSearchValue}
               />
             ))}
           </List>

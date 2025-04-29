@@ -1,5 +1,5 @@
-import { Datasworn } from "@datasworn/core";
 import { AskTheOracle } from "@/repositories/tracks.repository";
+import { Datasworn } from "@datasworn/core";
 
 export const source = {
   title: "Ironsworn: Starforged Rulebook",
@@ -16,7 +16,7 @@ export const source = {
 
 export const askTheOracleCollection: Datasworn.OracleCollection = {
   _id: "oracle_collection:ironlink/ask_the_oracle",
-  name: "Ask the Oracle (internal Iron Link Edition)",
+  name: "Ask the Oracle",
   _source: source,
   oracle_type: "tables",
   type: "oracle_collection",
