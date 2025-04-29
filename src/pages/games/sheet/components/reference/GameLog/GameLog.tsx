@@ -20,15 +20,15 @@ export function GameLog() {
 
   const loadMoreLogs = useGameLogStore((state) => state.loadMoreLogsIfPresent);
   useEffect(() => {
-    const tabPanel = document.getElementById("tabpanel-game-log");
     const loadMoreLogsElement = document.getElementById("load-more-logs");
 
     // use intersection observer to load more logs
-    if (tabPanel && loadMoreLogsElement) {
+    if (loadMoreLogsElement) {
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
+              console.debug("LOADING MORE LOGS");
               loadMoreLogs();
             }
           });
@@ -47,7 +47,6 @@ export function GameLog() {
   return (
     <>
       <Box flexShrink={0} h={"1px"} overflowAnchor={"auto"} />
-      <div id={"load-more-logs"} />
       <Timeline.Root variant="subtle" size="xl">
         {orderedLogIds.map((logId) => (
           <LogEntry logId={logId} fromTime={new Date()} key={logId} />
@@ -59,6 +58,7 @@ export function GameLog() {
       {error && !orderedLogIds.length && (
         <EmptyState message={t("game.log.load-error", "Error loading logs")} />
       )}
+      <Box flexShrink={0} h={"1px"} id="load-more-logs" />
       {loading && <ProgressBar flexShrink={0} />}
     </>
   );

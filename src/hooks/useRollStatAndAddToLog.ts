@@ -1,12 +1,10 @@
+import { createGameLogToast } from "@/components/datasworn/GameLogToaster";
 import { getMove } from "@/hooks/datasworn/useMove";
 import { createId } from "@/lib/id.lib";
 import { RollType } from "@/repositories/shared.types";
 import { RollResult } from "@/repositories/shared.types";
 import { IStatRoll } from "@/services/gameLog.service";
-import {
-  useAddRollSnackbar,
-  useSetAnnouncement,
-} from "@/stores/appState.store";
+import { useSetAnnouncement } from "@/stores/appState.store";
 import { useUID } from "@/stores/auth.store";
 import { useGameLogStore } from "@/stores/gameLog.store";
 import { Datasworn } from "@datasworn/core";
@@ -38,7 +36,6 @@ export function useRollStatAndAddToLog() {
   const t = useDataswornTranslations();
 
   const announce = useSetAnnouncement();
-  const addRollSnackbar = useAddRollSnackbar();
 
   const addLog = useGameLogStore((store) => store.createLog);
 
@@ -57,12 +54,12 @@ export function useRollStatAndAddToLog() {
       announceRoll(result, config, t, announce);
 
       if (!config.hideSnackbar) {
-        addRollSnackbar(result.id, result);
+        createGameLogToast(result);
       }
 
       return result;
     },
-    [uid, characterId, gameId, t, announce, addRollSnackbar, addLog],
+    [uid, characterId, gameId, t, announce, addLog],
   );
 
   return rollStat;

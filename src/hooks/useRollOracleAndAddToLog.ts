@@ -1,6 +1,6 @@
+import { createGameLogToast } from "@/components/datasworn/GameLogToaster";
 import { toaster } from "@/components/ui/toaster";
 import { IOracleTableRoll } from "@/services/gameLog.service";
-import { useAddRollSnackbar } from "@/stores/appState.store";
 import { useUID } from "@/stores/auth.store";
 import { useGameCharacter } from "@/stores/gameCharacters.store";
 import { useGameLogStore } from "@/stores/gameLog.store";
@@ -17,8 +17,6 @@ export function useRollOracleAndAddToLog() {
   const gameId = useGameIdOptional();
 
   const characterOwner = useGameCharacter((character) => character?.uid);
-
-  const addRollSnackbar = useAddRollSnackbar();
 
   const t = useDataswornTranslations();
 
@@ -46,13 +44,13 @@ export function useRollOracleAndAddToLog() {
               () => {},
             );
           }
-          addRollSnackbar(resultWithAdditions.id, resultWithAdditions);
+          createGameLogToast(resultWithAdditions);
           return {
             id: resultWithAdditions.id,
             result: resultWithAdditions,
           };
         }
-        addRollSnackbar(undefined, resultWithAdditions);
+        createGameLogToast(resultWithAdditions);
         return {
           id: undefined,
           result: resultWithAdditions,
@@ -70,16 +68,7 @@ export function useRollOracleAndAddToLog() {
         result: undefined,
       };
     },
-    [
-      uid,
-      characterId,
-      gameId,
-      rollOracle,
-      t,
-      addRollSnackbar,
-      characterOwner,
-      addRoll,
-    ],
+    [uid, characterId, gameId, rollOracle, t, characterOwner, addRoll],
   );
 
   return handleRollOracle;

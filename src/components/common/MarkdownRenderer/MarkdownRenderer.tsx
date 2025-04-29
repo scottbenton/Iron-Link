@@ -180,7 +180,11 @@ export function MarkdownRenderer(props: MarkdownRendererProps) {
               );
             } else {
               // TODO - add error styling
-              return <Text color="fg.error">{linkProps.children}</Text>;
+              return (
+                <Text as="span" color="fg.error">
+                  {linkProps.children}
+                </Text>
+              );
             }
           }
 

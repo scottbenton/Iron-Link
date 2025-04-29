@@ -1,11 +1,10 @@
+import { RollResult, RollType } from "@/repositories/shared.types";
+import { GameLogService, IGameLog } from "@/services/gameLog.service";
 import deepEqual from "fast-deep-equal";
 import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
-import { RollResult, RollType } from "@/repositories/shared.types";
-import { GameLogService, IGameLog } from "@/services/gameLog.service";
 
-import { useAppState } from "./appState.store";
 import { GamePermission, useGameStore } from "./game.store";
 
 const INITIAL_LOGS_TO_LOAD = 20;
@@ -67,23 +66,16 @@ export const useGameLogStore = createWithEqualityFn<
 
             if (replaceState) {
               state.logs = addedLogs;
-              Object.entries(addedLogs).forEach(([id, log]) => {
-                useAppState.getState().updateRollIfPresent(id, log);
-              });
-
               state.hasHitEndOfList = Object.keys(addedLogs).length < nLogs;
             } else {
               Object.entries(addedLogs).forEach(([id, log]) => {
                 state.logs[id] = log;
                 state.totalLogsToLoad += 1;
-                useAppState.getState().updateRollIfPresent(id, log);
               });
               Object.entries(changedLogs).forEach(([id, log]) => {
                 if (state.logs[id]) {
                   state.logs[id] = log;
-                  useAppState.getState().updateRollIfPresent(id, log);
                 }
-                useAppState.getState().updateRollIfPresent(id, log);
               });
               deletedLogIds.forEach((id) => {
                 if (state.logs[id]) {

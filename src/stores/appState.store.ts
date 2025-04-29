@@ -35,11 +35,6 @@ interface AppStateActions {
 
   setTheme: (theme: Theme) => void;
   setColorScheme: (colorScheme: ColorScheme) => void;
-
-  addRoll: (rollId: string | undefined, roll: IGameLog) => void;
-  updateRollIfPresent: (rollId: string, roll: IGameLog) => void;
-  clearRoll: (index: number) => void;
-  clearAllRolls: () => void;
 }
 
 export const useAppState = createWithEqualityFn<
@@ -94,34 +89,6 @@ export const useAppState = createWithEqualityFn<
         state.colorScheme = colorScheme;
       });
     },
-    addRoll: (rollId, roll) => {
-      set((state) => {
-        state.visibleRolls.push({ id: rollId, roll });
-        if (state.visibleRolls.length > 3) {
-          state.visibleRolls.splice(0, 1);
-        }
-      });
-    },
-    clearRoll: (index) => {
-      set((state) => {
-        state.visibleRolls.splice(index, 1);
-      });
-    },
-    clearAllRolls: () => {
-      set((state) => {
-        state.visibleRolls = [];
-      });
-    },
-    updateRollIfPresent: (rollId, roll) => {
-      set((state) => {
-        const rollIndex = state.visibleRolls.findIndex(
-          ({ id }) => id === rollId,
-        );
-        if (rollIndex >= 0) {
-          state.visibleRolls[rollIndex].roll = roll;
-        }
-      });
-    },
   })),
   deepEqual,
 );
@@ -140,8 +107,4 @@ export function useOpenDataswornDialog() {
 
 export function useSetColorScheme() {
   return useAppState((state) => state.setColorScheme);
-}
-
-export function useAddRollSnackbar() {
-  return useAppState((state) => state.addRoll);
 }

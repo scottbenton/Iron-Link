@@ -1,13 +1,11 @@
+import { createGameLogToast } from "@/components/datasworn/GameLogToaster";
 import { getRollResultLabel } from "@/data/rollResultLabel";
 import { createId } from "@/lib/id.lib";
 import { getTrackTypeLabel } from "@/pages/games/sheet/components/tabs/tracks/common";
 import { RollResult, RollType } from "@/repositories/shared.types";
 import { TrackTypes } from "@/repositories/tracks.repository";
 import { ITrackProgressRoll } from "@/services/gameLog.service";
-import {
-  useAddRollSnackbar,
-  useSetAnnouncement,
-} from "@/stores/appState.store";
+import { useSetAnnouncement } from "@/stores/appState.store";
 import { useUID } from "@/stores/auth.store";
 import { useGameLogStore } from "@/stores/gameLog.store";
 import { useCallback } from "react";
@@ -28,7 +26,6 @@ export function useRollCompleteProgressTrack() {
   const isCharacterOwner = useIsOwnerOfCharacter();
 
   const addRoll = useGameLogStore((store) => store.createLog);
-  const addRollToScreen = useAddRollSnackbar();
   const announce = useSetAnnouncement();
 
   const rollProgressTrack = useCallback(
@@ -66,7 +63,7 @@ export function useRollCompleteProgressTrack() {
         moveId,
       };
 
-      addRollToScreen(trackProgressRoll.id, trackProgressRoll);
+      createGameLogToast(trackProgressRoll);
       if (uid) {
         addRoll(trackProgressRoll.id, trackProgressRoll).catch(() => {});
       }
@@ -88,16 +85,7 @@ export function useRollCompleteProgressTrack() {
 
       return result;
     },
-    [
-      announce,
-      addRollToScreen,
-      gameId,
-      characterId,
-      uid,
-      isCharacterOwner,
-      t,
-      addRoll,
-    ],
+    [announce, gameId, characterId, uid, isCharacterOwner, t, addRoll],
   );
 
   return rollProgressTrack;

@@ -25,12 +25,14 @@ export function MobileOnlyTabPanel<T>(props: MobileOnlyTabPanelProps<T>) {
       id={`tabpanel-${tab}`}
       aria-labelledby={isSmallScreen ? `tab-${tab}` : undefined}
       flexDir={"column"}
-      overflow="auto"
+      overflow="hidden"
       flexGrow={1}
       borderBottomRadius={{ base: 0, md: "md" }}
       {...cardRootProps}
     >
-      <CardBody {...cardBodyProps}>{children}</CardBody>
+      <CardBody overflow={"auto"} {...cardBodyProps}>
+        {children}
+      </CardBody>
     </CardRoot>
   );
 }

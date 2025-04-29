@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { Route, Switch } from "wouter";
 
+import { GameToaster } from "./components/datasworn/GameLogToaster";
 import { NavBar } from "./components/layout/NavBar";
 import { PageWrapper } from "./components/layout/PageWrapper";
 import { Toaster } from "./components/ui/toaster";
@@ -46,6 +47,7 @@ function App() {
         </Route>
       </Switch>
       <Toaster />
+      <GameToaster />
     </>
   );
 }
