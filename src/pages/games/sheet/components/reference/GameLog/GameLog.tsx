@@ -28,7 +28,6 @@ export function GameLog() {
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              console.debug("LOADING MORE LOGS");
               loadMoreLogs();
             }
           });

@@ -173,7 +173,6 @@ function getEnhancementsFromAssets(
                   enhancements: [],
                 };
               }
-              console.debug("ADDING ENHANCEMENT", moveEnhancement);
               activeAssetMoveEnhancements[ability._id].enhancements.push(
                 moveEnhancement,
               );

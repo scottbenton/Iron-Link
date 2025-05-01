@@ -65,6 +65,7 @@ export function ReferenceContent() {
           px={4}
           pb={4}
           flexGrow={1}
+          maxH={{ base: "90vh", sm: undefined }}
           overflow={"auto"}
           display="flex"
           flexDirection="column-reverse"

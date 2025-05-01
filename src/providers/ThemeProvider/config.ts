@@ -34,11 +34,11 @@ export const themeConfig = defineConfig({
     },
     semanticTokens: {
       radii: {
-        xs: { value: "4px" },
-        sm: { value: "8px" },
-        md: { value: "12px" },
-        lg: { value: "16px" },
-        xl: { value: "20px" },
+        xs: { value: "0px" },
+        sm: { value: "4px" },
+        md: { value: "8px" },
+        lg: { value: "12px" },
+        xl: { value: "16px" },
       },
     },
   },

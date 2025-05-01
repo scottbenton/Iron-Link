@@ -1,7 +1,8 @@
-import { Box, Button } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
 import { useState } from "react";
 
 import { CharacterOrOverviewContent } from "../components/character/CharacterOrOverviewContent";
+import { NotesSection } from "../components/notes/NotesSection";
 import { ReferenceContent } from "../components/reference/ReferenceContent";
 import { HandleSoloGameRedirect } from "./HandleSoloGameRedirect";
 import { GamePageContentWithId } from "./components/GamePageContentWithId";
@@ -12,8 +13,6 @@ import { GameLayoutTabs } from "./gameLayoutTabs.enum";
 
 export function GameLayout() {
   const [tab, setTab] = useState(GameLayoutTabs.Outlet);
-
-  const [count, setCount] = useState(0);
 
   return (
     <>
@@ -63,10 +62,9 @@ export function GameLayout() {
             gridColumn={{ base: 1, md: 2 }}
             tab={GameLayoutTabs.Notes}
             currentOpenTab={tab}
+            cardBodyProps={{ px: 0, py: 0 }}
           >
-            Notes
-            {count}
-            <Button onClick={() => setCount(count + 1)}>Increment</Button>
+            <NotesSection />
           </MobileOnlyTabPanel>
         </Box>
       </GamePageContentWithId>

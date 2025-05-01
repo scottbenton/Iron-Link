@@ -23,6 +23,7 @@
     "@datasworn/ironsworn-classic-delve": "^0.1.0-0",
     "@datasworn/starforged": "^0.1.0-0",
     "@datasworn/sundered-isles": "^0.1.0-0",
+    "@dnd-kit/sortable": "^10.0.0",
     "@emotion/react": "^11.14.0",
     "@fontsource-variable/figtree": "^5.2.6",
     "@fontsource/barlow-condensed": "^5.2.5",

@@ -1,17 +1,18 @@
-import deepEqual from "fast-deep-equal";
-import { useEffect } from "react";
-import { immer } from "zustand/middleware/immer";
-import { createWithEqualityFn } from "zustand/traditional";
+import { useGamePermissions } from "@/hooks/usePermissions";
+import { createId } from "@/lib/id.lib";
 import { EditPermissions, ReadPermissions } from "@/repositories/shared.types";
 import {
   INoteFolder,
   NoteFoldersService,
 } from "@/services/noteFolders.service";
 import { INote, NotesService } from "@/services/notes.service";
+import deepEqual from "fast-deep-equal";
+import { useEffect } from "react";
+import { immer } from "zustand/middleware/immer";
+import { createWithEqualityFn } from "zustand/traditional";
 
 import { useAuthStore, useUID } from "./auth.store";
 import { GamePermission } from "./game.store";
-import { useGamePermissions } from "@/hooks/usePermissions";
 
 interface Permissions {
   canEdit: boolean;
@@ -19,15 +20,11 @@ interface Permissions {
   canChangePermissions: boolean;
 }
 
-export type OpenItem =
-  | {
-    type: "note";
-    noteId: string;
-  }
-  | {
-    type: "folder";
-    folderId: string;
-  };
+export type OpenItem = {
+  type: "folder" | "note";
+  id: string;
+  tabId: string;
+};
 
 interface NotesStoreState {
   noteState: {
@@ -42,7 +39,7 @@ interface NotesStoreState {
     loading: boolean;
     error?: string;
   };
-  currentOpenItemIndex: number;
+  currentOpenItem: OpenItem | undefined;
   openItems: OpenItem[];
 }
 
@@ -63,9 +60,10 @@ interface NotesStoreActions {
     id: string,
     index?: number,
     replace?: boolean,
+    allowDuplicates?: boolean,
   ) => void;
   closeOpenItem: (index: number) => void;
-  setCurrentOpenItemIndex: (index: number) => void;
+  setCurrentOpenItem: (currentOpenItem: OpenItem) => void;
 
   createFolder: (
     uid: string,
@@ -141,7 +139,7 @@ const defaultNotesState: NotesStoreState = {
     folders: {},
     error: undefined,
   },
-  currentOpenItemIndex: 0,
+  currentOpenItem: undefined,
   openItems: [],
 };
 
@@ -168,10 +166,12 @@ export const useNotesStore = createWithEqualityFn<
               };
               deletedNoteFolderIds.forEach((folderId) => {
                 store.openItems.forEach((item, index) => {
-                  if (item.type === "folder" && item.folderId === folderId) {
+                  if (item.type === "folder" && item.id === folderId) {
                     store.openItems.splice(index, 1);
-                    if (store.currentOpenItemIndex >= index) {
-                      store.currentOpenItemIndex--;
+                    if (store.openItems.length > index) {
+                      store.currentOpenItem = store.openItems[index];
+                    } else if (store.openItems.length > 0) {
+                      store.currentOpenItem = undefined;
                     }
                   }
                 });
@@ -217,10 +217,12 @@ export const useNotesStore = createWithEqualityFn<
               };
               removedNoteIds.forEach((noteId) => {
                 store.openItems.forEach((item, index) => {
-                  if (item.type === "note" && item.noteId === noteId) {
+                  if (item.type === "note" && item.id === noteId) {
                     store.openItems.splice(index, 1);
-                    if (store.currentOpenItemIndex >= index) {
-                      store.currentOpenItemIndex--;
+                    if (store.openItems.length > index) {
+                      store.currentOpenItem = store.openItems[index];
+                    } else if (store.openItems.length > 0) {
+                      store.currentOpenItem = undefined;
                     }
                   }
                 });
@@ -269,67 +271,65 @@ export const useNotesStore = createWithEqualityFn<
       return NotesService.uploadNoteImage(noteId, image);
     },
 
-    addOpenItem: (type, id, index, replace) => {
+    addOpenItem: (type, id, index, replace, allowDuplicates) => {
+      console.debug(type, id);
       set((store) => {
-        const foundIndex = store.openItems.findIndex((item) => {
-          if (item.type === type) {
-            if (
-              (item.type === "folder" && item.folderId === id) ||
-              (item.type === "note" && item.noteId === id)
-            ) {
-              return true;
-            }
-          }
-        });
+        const foundIndex = !allowDuplicates
+          ? store.openItems.findIndex((item) => {
+              return item.type === type && item.id === id;
+            })
+          : -1;
 
-        let indexToSwitchTo: number | undefined = undefined;
+        let itemToSwitchTo: OpenItem | undefined = undefined;
         let itemToAdd: OpenItem | undefined = undefined;
 
         if (foundIndex >= 0) {
-          indexToSwitchTo = foundIndex;
+          itemToSwitchTo = store.openItems[foundIndex];
         } else if (type === "folder") {
           itemToAdd = {
             type: "folder",
-            folderId: id,
+            id: id,
+            tabId: createId(),
           };
         } else {
           itemToAdd = {
             type: "note",
-            noteId: id,
+            id: id,
+            tabId: createId(),
           };
         }
 
         if (itemToAdd) {
           if (index === undefined) {
-            indexToSwitchTo = store.openItems.push(itemToAdd) - 1;
+            store.openItems.push(itemToAdd);
+            itemToSwitchTo = itemToAdd;
           } else if (replace) {
             store.openItems[index] = itemToAdd;
-            indexToSwitchTo = index;
+            itemToSwitchTo = itemToAdd;
           } else {
             store.openItems.splice(index + 1, 0, itemToAdd);
-            indexToSwitchTo = index + 1;
+            itemToSwitchTo = itemToAdd;
           }
         }
 
-        if (indexToSwitchTo !== undefined) {
-          store.currentOpenItemIndex = indexToSwitchTo;
+        if (itemToSwitchTo !== undefined) {
+          store.currentOpenItem = itemToSwitchTo;
         }
       });
     },
     closeOpenItem: (index) => {
       set((store) => {
-        store.openItems.splice(index, 1);
-        if (store.currentOpenItemIndex === index) {
-          store.currentOpenItemIndex = Math.min(
-            store.currentOpenItemIndex,
-            store.openItems.length - 1,
-          );
+        const removedItem = store.openItems.splice(index, 1);
+
+        if (store.currentOpenItem?.tabId === removedItem[0].tabId) {
+          store.currentOpenItem =
+            store.openItems[Math.min(index, store.openItems.length - 1)];
         }
       });
     },
-    setCurrentOpenItemIndex: (index) => {
+    setCurrentOpenItem: (item: OpenItem) => {
       set((store) => {
-        store.currentOpenItemIndex = index;
+        store.currentOpenItem = item;
       });
     },
 
@@ -471,13 +471,14 @@ export const useNotesStore = createWithEqualityFn<
       const notesInParentFolder = Object.values(state.noteState.notes).filter(
         (note) => note.parentFolderId === newParentFolderId,
       );
-      const order = notesInParentFolder.length > 0
-        ? Math.max(
-          ...Object.values(state.noteState.notes)
-            .filter((note) => note.parentFolderId === newParentFolderId)
-            .map((note) => note.order),
-        ) + 1
-        : 1;
+      const order =
+        notesInParentFolder.length > 0
+          ? Math.max(
+              ...Object.values(state.noteState.notes)
+                .filter((note) => note.parentFolderId === newParentFolderId)
+                .map((note) => note.order),
+            ) + 1
+          : 1;
 
       if (!note || !parentFolder) {
         return Promise.reject(new Error("Note or folder not found"));
