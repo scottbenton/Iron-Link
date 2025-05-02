@@ -126,7 +126,7 @@ export function getTheme(colorScheme: ColorScheme): Theme {
       grey: grey,
       background: {
         paper: "#fff",
-        default: grey[200],
+        default: grey[100],
       },
       text: {
         primary: grey[800],

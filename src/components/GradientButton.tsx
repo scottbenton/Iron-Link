@@ -17,7 +17,7 @@ export function GradientButton(props: GradientButtonProps) {
   return (
     <ButtonBase
       LinkComponent={href ? LinkComponent : undefined}
-      href={href ?? ""}
+      href={href as string} // typecasting to string, even though it can be undefined
       focusRipple
       disabled={disabled}
       type={type}

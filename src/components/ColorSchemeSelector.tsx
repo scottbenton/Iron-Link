@@ -2,7 +2,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import {
   Box,
   ButtonBase,
-  Grid2,
+  Grid,
   ThemeProvider,
   Typography,
 } from "@mui/material";
@@ -23,7 +23,7 @@ export function ColorSchemeSelector(props: ColorSchemeSelectorProps) {
   const { selectedColorScheme, onChange } = props;
 
   return (
-    <Grid2 container spacing={1}>
+    <Grid container spacing={1}>
       {Object.values(ColorScheme).map((scheme) => (
         <ThemedBox
           key={scheme}
@@ -32,7 +32,7 @@ export function ColorSchemeSelector(props: ColorSchemeSelectorProps) {
           onClick={() => onChange(scheme)}
         />
       ))}
-    </Grid2>
+    </Grid>
   );
 }
 
@@ -47,7 +47,7 @@ export function ThemedBox(props: {
   const theme = getTheme(colorScheme);
 
   return (
-    <Grid2 size={{ xs: 12, sm: 6 }}>
+    <Grid size={{ xs: 12, sm: 6 }}>
       <ThemeProvider theme={theme}>
         <ButtonBase
           focusRipple
@@ -85,6 +85,6 @@ export function ThemedBox(props: {
           </Typography>
         </ButtonBase>
       </ThemeProvider>
-    </Grid2>
+    </Grid>
   );
 }
