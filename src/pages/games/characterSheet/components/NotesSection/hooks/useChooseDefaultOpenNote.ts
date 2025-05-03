@@ -12,7 +12,7 @@ import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 
 export function useChooseDefaultOpenNote() {
   const isSomethingOpen = useNotesStore(
-    (store) => store.openItem !== undefined,
+    (store) => store.noteTabOrder.length > 0,
   );
   const folderState = useNotesStore((store) => store.folderState);
 
@@ -22,7 +22,7 @@ export function useChooseDefaultOpenNote() {
   const { gamePermission, gameType } = useGamePermissions();
 
   const addFolder = useNotesStore((store) => store.createFolder);
-  const setOpenItem = useNotesStore((store) => store.setOpenItem);
+  const openTab = useNotesStore((store) => store.openItemTab);
 
   const hasCreatedUserFolder = useRef(false);
 
@@ -57,10 +57,14 @@ export function useChooseDefaultOpenNote() {
       } else if (uid && gamePermission !== null) {
         const userFolder = getPlayerNotesFolder(uid, folderState.folders);
         if (userFolder) {
-          setOpenItem("folder", userFolder.id);
+          openTab({
+            type: "folder",
+            id: userFolder.id,
+            disallowDuplicates: true,
+          });
           return;
         }
       }
     }
-  }, [isSomethingOpen, folderState, gamePermission, uid, setOpenItem]);
+  }, [isSomethingOpen, folderState, gamePermission, uid, openTab]);
 }

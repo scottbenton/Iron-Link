@@ -119,9 +119,7 @@ export function SidebarLayout(props: SidebarLayoutProps) {
               bgcolor="grey.400"
               height={"100%"}
               px={4}
-              sx={{
-                cursor: "ns-resize",
-              }}
+              sx={{ cursor: "ns-resize" }}
             />
           </Box>
         )}
@@ -156,10 +154,8 @@ export function SidebarLayout(props: SidebarLayoutProps) {
           sx={{
             overflow: !isSmallScreen ? "hidden" : "initial",
             flexGrow: 1,
-            mt: 1,
             gridRow: isMediumScreen ? "1 / span 3" : "1",
             gridColumn: isSmallScreen ? "1" : "2",
-            px: 2,
             maxWidth: "100vw",
           }}
         >

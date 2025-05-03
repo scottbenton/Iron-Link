@@ -1,9 +1,11 @@
 import deepEqual from "fast-deep-equal";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
+
+import { createId } from "lib/id.lib";
 
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 
@@ -19,6 +21,7 @@ interface Permissions {
   canChangePermissions: boolean;
 }
 
+export type IOpenNoteItem = { type: "note" | "folder"; itemId: string };
 interface NotesStoreState {
   noteState: {
     notes: Record<string, INote>;
@@ -32,20 +35,14 @@ interface NotesStoreState {
     loading: boolean;
     error?: string;
   };
-  openItem?:
-    | {
-        type: "note";
-        noteId: string;
-        noteContent: {
-          data?: INoteContent;
-          loading: boolean;
-          error?: string;
-        };
-      }
-    | {
-        type: "folder";
-        folderId: string;
-      };
+  noteContentState: Record<
+    string,
+    { loading: boolean; content?: INoteContent; error?: string }
+  >;
+
+  noteTabItems: Record<string, IOpenNoteItem>;
+  noteTabOrder: string[];
+  openTabItemId: string | null;
 }
 
 interface NotesStoreActions {
@@ -59,9 +56,7 @@ interface NotesStoreActions {
     gameId: string,
     gamePermissions: GamePermission,
   ) => () => void;
-  listenToActiveNoteContent: (noteId: string) => () => void;
-
-  setOpenItem: (type: "folder" | "note", id: string) => void;
+  listenToNoteContent: (noteId: string) => () => void;
 
   createFolder: (
     uid: string,
@@ -122,22 +117,31 @@ interface NotesStoreActions {
   };
 
   reset: () => void;
+
+  switchToTab: (tabId: string) => void;
+  openItemTab: (params: {
+    type: "note" | "folder";
+    id: string;
+    replacedTabId?: string;
+    openInBackground?: boolean;
+    disallowDuplicates?: boolean;
+  }) => void;
+  closeTab: (tabId: string) => void;
+  closeTabsMatching: (type: "note" | "folder", id: string) => void;
 }
 
 const defaultNotesState: NotesStoreState = {
-  noteState: {
-    loading: true,
-    notes: {},
-    permissions: {},
-    error: undefined,
-  },
+  noteState: { loading: true, notes: {}, permissions: {}, error: undefined },
   folderState: {
     loading: true,
     permissions: {},
     folders: {},
     error: undefined,
   },
-  openItem: undefined,
+  noteContentState: {},
+  noteTabItems: {},
+  noteTabOrder: [],
+  openTabItemId: null,
 };
 
 export const useNotesStore = createWithEqualityFn<
@@ -230,35 +234,35 @@ export const useNotesStore = createWithEqualityFn<
         },
       );
     },
-    listenToActiveNoteContent: (noteId) => {
+    listenToNoteContent: (noteId) => {
+      const noteContent = getState().noteContentState[noteId];
+      if (!noteContent) {
+        set((store) => {
+          store.noteContentState[noteId] = {
+            loading: true,
+            content: undefined,
+            error: undefined,
+          };
+        });
+      }
       return NotesService.listenToNoteContent(
         noteId,
         (noteContent) => {
           set((store) => {
-            if (
-              store.openItem?.type === "note" &&
-              store.openItem.noteId === noteId
-            ) {
-              store.openItem.noteContent = {
-                data: noteContent,
-                loading: false,
-                error: undefined,
-              };
-            }
+            store.noteContentState[noteId] = {
+              content: noteContent,
+              loading: false,
+              error: undefined,
+            };
           });
         },
         (error) => {
           set((store) => {
-            if (
-              store.openItem?.type === "note" &&
-              store.openItem.noteId === noteId
-            ) {
-              store.openItem.noteContent = {
-                data: undefined,
-                loading: false,
-                error: error.message,
-              };
-            }
+            store.noteContentState[noteId] = {
+              content: undefined,
+              loading: false,
+              error: error.message,
+            };
           });
         },
       );
@@ -279,37 +283,6 @@ export const useNotesStore = createWithEqualityFn<
 
     uploadNoteImage: (noteId, image) => {
       return NotesService.uploadNoteImage(noteId, image);
-    },
-
-    setOpenItem: (type, id) => {
-      set((store) => {
-        if (store.openItem?.type === type) {
-          if (
-            (store.openItem.type === "folder" &&
-              store.openItem.folderId === id) ||
-            (store.openItem.type === "note" && store.openItem.noteId === id)
-          ) {
-            return;
-          }
-        }
-
-        if (type === "folder") {
-          store.openItem = {
-            type: "folder",
-            folderId: id,
-          };
-        } else {
-          store.openItem = {
-            type: "note",
-            noteId: id,
-            noteContent: {
-              data: undefined,
-              loading: true,
-              error: undefined,
-            },
-          };
-        }
-      });
     },
 
     createFolder: (
@@ -537,14 +510,77 @@ export const useNotesStore = createWithEqualityFn<
         }
       });
 
-      return {
-        folders,
-        notes,
-      };
+      return { folders, notes };
     },
 
     reset: () => {
       set((store) => ({ ...store, ...defaultNotesState }));
+    },
+
+    openItemTab: ({
+      type,
+      id,
+      replacedTabId,
+      openInBackground,
+      disallowDuplicates,
+    }) => {
+      set((store) => {
+        const tabId = replacedTabId ?? createId();
+        const tabItem: IOpenNoteItem = { type, itemId: id };
+
+        if (
+          disallowDuplicates &&
+          Object.values(store.noteTabItems).some(
+            (item) => item.type === type && item.itemId === id,
+          )
+        ) {
+          return;
+        }
+
+        if (!replacedTabId) {
+          store.noteTabOrder.push(tabId);
+        }
+        if (!openInBackground) {
+          store.openTabItemId = tabId;
+        }
+
+        store.noteTabItems[tabId] = tabItem;
+      });
+    },
+
+    switchToTab: (tabId) => {
+      set((store) => {
+        store.openTabItemId = tabId;
+      });
+    },
+
+    closeTab: (tabId) => {
+      set((store) => {
+        // Remove the tab from the order
+        const tabIndex = store.noteTabOrder.indexOf(tabId);
+        if (tabIndex !== -1) {
+          store.noteTabOrder.splice(tabIndex, 1);
+        }
+        // Remove the tab from the map
+        delete store.noteTabItems[tabId];
+        // If the tab is the open tab, choose the next tab in the array if it exists, the previous one if it doesn't, and null if all else fails.
+        if (store.openTabItemId === tabId) {
+          store.openTabItemId =
+            store.noteTabOrder[tabIndex] ??
+            store.noteTabOrder[tabIndex - 1] ??
+            null;
+        }
+      });
+    },
+
+    closeTabsMatching: (type, id) => {
+      set((store) => {
+        Object.entries(store.noteTabItems)
+          .filter(([, item]) => item.type === type && item.itemId === id)
+          .forEach(([tabId]) => {
+            store.closeTab(tabId);
+          });
+      });
     },
   })),
   deepEqual,
@@ -560,12 +596,19 @@ export function useListenToGameNotes(gameId: string | undefined) {
   );
   const listenToNotes = useNotesStore((store) => store.listenToGameNotes);
   const listenToNoteContents = useNotesStore(
-    (store) => store.listenToActiveNoteContent,
+    (store) => store.listenToNoteContent,
   );
 
-  const activeNoteId = useNotesStore((store) =>
-    store.openItem?.type === "note" ? store.openItem.noteId : undefined,
+  const openNoteItems = useNotesStore((store) =>
+    Array.from(
+      new Set(
+        Object.values(store.noteTabItems)
+          .filter((item) => item.type === "note")
+          .map((item) => item.itemId),
+      ),
+    ),
   );
+  const noteItemContentListeners = useRef<Map<string, () => void>>(new Map());
 
   useEffect(() => {
     if (gameId && gamePermission) {
@@ -580,10 +623,30 @@ export function useListenToGameNotes(gameId: string | undefined) {
   }, [gameId, uid, gamePermission, listenToNotes, gameType]);
 
   useEffect(() => {
-    if (activeNoteId) {
-      return listenToNoteContents(activeNoteId);
-    }
-  }, [activeNoteId, listenToNoteContents]);
+    // Loop through all open note items and create listeners for their content if they don't exist yet
+    openNoteItems.forEach((noteId) => {
+      if (!noteItemContentListeners.current.has(noteId)) {
+        const listener = listenToNoteContents(noteId);
+        noteItemContentListeners.current.set(noteId, listener);
+      }
+    });
+    // Loop through all listeners and remove them if the note is not open anymore
+    noteItemContentListeners.current.forEach((listener, noteId) => {
+      if (!openNoteItems.includes(noteId)) {
+        listener();
+        noteItemContentListeners.current.delete(noteId);
+      }
+    });
+  }, [openNoteItems, listenToNoteContents]);
+
+  useEffect(() => {
+    return () => {
+      noteItemContentListeners.current.forEach((listener) => {
+        listener();
+      });
+      noteItemContentListeners.current.clear();
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -608,11 +671,7 @@ function getPermissions(
   gamePermission: GamePermission,
 ): Permissions {
   if (!uid || gamePermission === GamePermission.Viewer) {
-    return {
-      canEdit: false,
-      canDelete: false,
-      canChangePermissions: false,
-    };
+    return { canEdit: false, canDelete: false, canChangePermissions: false };
   }
 
   const isUserGuide = gamePermission === GamePermission.Guide;
@@ -650,9 +709,5 @@ function getPermissions(
     };
   }
 
-  return {
-    canEdit: false,
-    canDelete: false,
-    canChangePermissions: false,
-  };
+  return { canEdit: false, canDelete: false, canChangePermissions: false };
 }
