@@ -8,6 +8,7 @@ import { DefaultLayout } from "components/Layout/DefaultLayout";
 import { Page404 } from "pages/404Page/404Page";
 import { ErrorRoute } from "pages/ErrorRoute";
 
+import { useCheckAdminStatus } from "stores/admin.store";
 import { useListenToAuth } from "stores/auth.store";
 
 const HomePage = lazy(() => import("./pages/home/HomePage"));
@@ -43,6 +44,7 @@ const GameSecondScreenPage = lazy(
 
 export function App() {
   useListenToAuth();
+  useCheckAdminStatus();
 
   return (
     <>

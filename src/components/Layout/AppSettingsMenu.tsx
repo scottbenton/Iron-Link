@@ -3,6 +3,7 @@ import AdvancedFeaturesIcon from "@mui/icons-material/Bolt";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import LogoutIcon from "@mui/icons-material/Logout";
+import AdminIcon from "@mui/icons-material/Security";
 import SettingsIcon from "@mui/icons-material/Settings";
 import {
   IconButton,
@@ -18,9 +19,11 @@ import { useTranslation } from "react-i18next";
 
 import { useSnackbar } from "providers/SnackbarProvider";
 
+import { useAdminStore } from "stores/admin.store";
 import { AuthStatus, useAuthStatus, useAuthStore } from "stores/auth.store";
 
 import { A11ySettingsDialog } from "./A11ySettingsDialog";
+import { AdminDialog } from "./AdminDialog";
 import { AdvancedFeaturesDialog } from "./AdvancedFeaturesDialog";
 
 export type MenuAdditionComponent = ComponentType<{ closeMenu: () => void }>;
@@ -47,6 +50,9 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
   const [advancedFeaturesOpen, setAdvancedFeaturesOpen] = useState(false);
   const [accessibilitySettingsDialogOpen, setAccessibilitySettingsDialogOpen] =
     useState(false);
+  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
+
+  const isAdmin = useAdminStore((state) => state.isAdmin);
 
   return (
     <>
@@ -67,6 +73,19 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
         <ListSubheader>
           {t("iron-link.app-settings", "App Settings")}
         </ListSubheader>
+        {isAdmin && (
+          <MenuItem
+            onClick={() => {
+              setAdminDialogOpen(true);
+              setOpen(false);
+            }}
+          >
+            <ListItemIcon>
+              <AdminIcon />
+            </ListItemIcon>
+            {t("iron-link.admin-settings", "Admin Settings")}
+          </MenuItem>
+        )}
         <MenuItem
           onClick={() => {
             setColorScheme(colorScheme === "light" ? "dark" : "light");
@@ -141,6 +160,12 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
         open={accessibilitySettingsDialogOpen}
         onClose={() => setAccessibilitySettingsDialogOpen(false)}
       />
+      {isAdmin && (
+        <AdminDialog
+          open={adminDialogOpen}
+          onClose={() => setAdminDialogOpen(false)}
+        />
+      )}
     </>
   );
 }
