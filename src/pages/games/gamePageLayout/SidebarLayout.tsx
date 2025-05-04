@@ -86,14 +86,17 @@ export function SidebarLayout(props: SidebarLayoutProps) {
           tab={MobileTabs.Outlet}
           currentOpenTab={currentOpenTab}
           isInTabView={isSmallScreen}
-          sx={(theme) => ({
+          sx={{
             bgcolor: isSmallScreen ? undefined : "background.default",
             gridRow: "1",
             gridColumn: "1",
-            border: isSmallScreen
-              ? undefined
-              : `1px solid ${theme.palette.divider}`,
-          })}
+            borderStyle: "solid",
+            borderTopWidth: 0,
+            borderRightWidth: 1,
+            borderLeftWidth: 1,
+            borderBottomWidth: isMediumScreen ? 1 : 0,
+            borderColor: "divider",
+          }}
         >
           <Box
             overflow="auto"
@@ -128,14 +131,17 @@ export function SidebarLayout(props: SidebarLayoutProps) {
           tab={MobileTabs.Reference}
           currentOpenTab={currentOpenTab}
           isInTabView={isSmallScreen}
-          sx={(theme) => ({
+          sx={{
             bgcolor: isSmallScreen ? undefined : "background.default",
             gridRow: isMediumScreen ? "3" : "1",
             gridColumn: isLargeScreen ? "3" : "1",
-            border: isSmallScreen
-              ? undefined
-              : `1px solid ${theme.palette.divider}`,
-          })}
+            borderStyle: "solid",
+            borderBottomWidth: 0,
+            borderRightWidth: 1,
+            borderLeftWidth: 1,
+            borderTopWidth: isMediumScreen ? 1 : 0,
+            borderColor: "divider",
+          }}
         >
           <Box
             overflow="hidden"

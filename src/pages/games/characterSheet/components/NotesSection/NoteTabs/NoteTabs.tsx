@@ -1,8 +1,10 @@
+import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import { Box, IconButton, Tab, Tabs } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { useNotesStore } from "stores/notes.store";
+import { useUID } from "stores/auth.store";
+import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
 
 import { FolderView, FolderViewToolbar } from "../FolderView";
 import { getItemName } from "../FolderView/getFolderName";
@@ -40,6 +42,12 @@ export function NoteTabs() {
   const activeTab = useNotesStore((store) => store.openTabId);
   const setActiveTab = useNotesStore((store) => store.switchToTab);
   const closeTab = useNotesStore((store) => store.closeTab);
+  const openNewTab = useNotesStore((store) => store.openItemTab);
+
+  const uid = useUID();
+  const defaultTab = useNotesStore((store) =>
+    uid ? getPlayerNotesFolder(uid, store.folderState.folders) : null,
+  );
 
   return (
     <Box>
@@ -48,13 +56,37 @@ export function NoteTabs() {
         // borderBottom={1}
         borderColor="divider"
         flexGrow={1}
+        display="flex"
       >
+        {defaultTab && (
+          <Box pl={1} display="flex" alignItems="center">
+            <IconButton
+              size="small"
+              onClick={() =>
+                openNewTab({
+                  type: "folder",
+                  id: defaultTab.id,
+                  openInBackground: false,
+                  replaceCurrent: false,
+                })
+              }
+              sx={{ mr: 1 }}
+            >
+              <AddIcon />
+            </IconButton>
+          </Box>
+        )}
         <Tabs
           value={activeTab ?? null}
           onChange={(_, newValue) => setActiveTab(newValue)}
-          sx={{ minHeight: 0 }}
+          sx={{
+            minHeight: 0,
+            "& .MuiTabs-scroller.MuiTabs-hideScrollbar.MuiTabs-scrollableX": {
+              scrollbarWidth: "thin",
+            },
+          }}
           variant="scrollable"
-          scrollButtons="auto"
+          scrollButtons={false}
         >
           {tabOrder.map((tabId) => (
             <Tab
