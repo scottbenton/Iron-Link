@@ -24,7 +24,7 @@ export function NoteToolbarActionsMenu(props: NoteToolbarActionsMenuProps) {
   const { openNoteId, permissions } = props;
   const { t } = useTranslation();
 
-  const setOpenNote = useNotesStore((store) => store.setOpenItem);
+  const setOpenNote = useNotesStore((store) => store.openItemTab);
   const note = useNotesStore((store) => {
     return store.noteState.notes[openNoteId];
   });
@@ -54,7 +54,7 @@ export function NoteToolbarActionsMenu(props: NoteToolbarActionsMenuProps) {
       confirmationText: t("common.delete", "Delete"),
     })
       .then(() => {
-        setOpenNote("folder", parentFolderId);
+        setOpenNote({ type: "folder", id: parentFolderId });
         deleteNote(openNoteId).catch(() => {});
       })
       .catch(() => {});

@@ -166,10 +166,7 @@ export default function AuthPage() {
                   <Typography>
                     In a local environment, emails are sent to fake inboxes. You
                     can check the inbox for {email} to get the OTP{" "}
-                    <a
-                      target="_blank"
-                      href={`http://localhost:54324/m/${email}`}
-                    >
+                    <a target="_blank" href={`http://localhost:54324`}>
                       here
                     </a>
                     .

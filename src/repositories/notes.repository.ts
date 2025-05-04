@@ -162,19 +162,16 @@ export class NotesRepository {
     };
   }
 
-  public static listenToNoteContent(
-    noteId: string,
-    onNoteContentChange: (note: NoteDTO) => void,
-    onError: (error: RepositoryError) => void,
-  ): () => void {
-    const startInitialLoad = () => {
+  public static getNoteContent(noteId: string): Promise<NoteDTO> {
+    return new Promise((resolve, reject) => {
       this.notes()
-        .select()
+        .select("note_content_bytes")
         .eq("id", noteId)
+        .single()
         .then(({ data, error, status }) => {
           if (error) {
             console.error(error);
-            onError(
+            reject(
               getRepositoryError(
                 error,
                 ErrorVerb.Read,
@@ -184,41 +181,10 @@ export class NotesRepository {
               ),
             );
           } else {
-            onNoteContentChange(data[0]);
+            resolve(data as NoteDTO);
           }
         });
-    };
-    const handlePayload = (
-      payload: RealtimePostgresChangesPayload<NoteDTO>,
-    ) => {
-      if (payload.errors) {
-        onError(
-          getRepositoryError(
-            payload.errors,
-            ErrorVerb.Read,
-            ErrorNoun.Note,
-            false,
-          ),
-        );
-      } else if (
-        payload.eventType === "INSERT" ||
-        payload.eventType === "UPDATE"
-      ) {
-        onNoteContentChange(payload.new);
-      }
-    };
-
-    const unsubscribe = createSubscription(
-      `notes:id=eq.${noteId},uid=eq.${noteId}`,
-      "notes",
-      `id=eq.${noteId}`,
-      startInitialLoad,
-      handlePayload,
-    );
-
-    return () => {
-      unsubscribe();
-    };
+    });
   }
 
   public static addNote(note: NoteInsertDTO): Promise<string> {

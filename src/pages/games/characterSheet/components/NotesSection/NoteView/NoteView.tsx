@@ -1,5 +1,4 @@
-import { LinearProgress } from "@mui/material";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { EmptyState } from "components/Layout/EmptyState";
 import { RtcRichTextEditor } from "components/RichTextEditor";
@@ -25,21 +24,33 @@ export function NoteView(props: NoteViewProps) {
   const gameId = useGameId();
   const updateNoteContent = useNotesStore((store) => store.updateNoteContent);
 
-  const { noteContent, loading, error } = useNotesStore((store) => {
-    if (!store.openItem || store.openItem.type === "folder") {
-      return {
-        noteContent: undefined,
-        loading: false,
-        error: "No note open",
-      };
-    } else {
-      return {
-        noteContent: store.openItem.noteContent.data,
-        loading: store.openItem.noteContent.loading,
-        error: store.openItem.noteContent.error,
-      };
-    }
-  });
+  const [noteContent, setNoteContent] = useState<Uint8Array | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const getNoteContent = useNotesStore((store) => store.getNoteContent);
+  useEffect(() => {
+    let isMounted = true;
+
+    setLoading(true);
+    setError(null);
+    getNoteContent(openNoteId)
+      .then((noteContent) => {
+        if (isMounted) {
+          setNoteContent(noteContent.content);
+          setLoading(false);
+        }
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setError(error);
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [openNoteId, getNoteContent]);
 
   const notePermissions = useNotePermission(openNoteId);
 
@@ -66,8 +77,8 @@ export function NoteView(props: NoteViewProps) {
     return <EmptyState message={error} />;
   }
 
-  if (!noteContent) {
-    return <LinearProgress />;
+  if (!noteContent || loading) {
+    return <></>;
   }
 
   return (
@@ -98,7 +109,7 @@ export function NoteView(props: NoteViewProps) {
             />
           </>
         )}
-        initialValue={noteContent?.content}
+        initialValue={noteContent}
         onSave={loading || !notePermissions.canEdit ? undefined : handleSave}
       />
     </>

@@ -4,8 +4,10 @@ import { useSearchParams } from "react-router";
 import { useNotesStore } from "stores/notes.store";
 
 export function useSyncOpenNoteItem() {
-  const openItem = useNotesStore((store) => store.openItem);
-  const setOpenItem = useNotesStore((store) => store.setOpenItem);
+  const openItem = useNotesStore((store) =>
+    store.openTabId ? store.noteTabItems[store.openTabId] : null,
+  );
+  const setOpenItem = useNotesStore((store) => store.openItemTab);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -15,7 +17,7 @@ export function useSyncOpenNoteItem() {
       const { type } = openItem;
       setSearchParams({
         "note-type": type,
-        "note-id": type === "note" ? openItem.noteId : openItem.folderId,
+        "note-id": openItem.itemId,
       });
     } else {
       setSearchParams({});
@@ -28,7 +30,10 @@ export function useSyncOpenNoteItem() {
     const openItemId = searchParams.get("note-id");
 
     if (openItemType && openItemId) {
-      setOpenItem(openItemType as "folder" | "note", openItemId);
+      setOpenItem({
+        type: openItemType === "folder" ? "folder" : "note",
+        id: openItemId,
+      });
     }
   }, [searchParams, setOpenItem]);
 }

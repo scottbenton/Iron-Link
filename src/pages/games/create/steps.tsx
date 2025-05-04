@@ -1,4 +1,5 @@
 import { TFunction } from "i18next";
+import { ReactElement } from "react";
 
 import { CreateGameState } from "stores/createGame.store";
 
@@ -11,7 +12,7 @@ import { RulesetExpansionSection } from "./components/RulesetExpansionSection";
 
 export interface StepConfig {
   label: string;
-  component: JSX.Element;
+  component: ReactElement;
   actionLabel?: string;
   checkStepForErrors?: (state: CreateGameState) => string | undefined;
 }

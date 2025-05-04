@@ -103,8 +103,6 @@ export function FolderView(props: FolderViewProps) {
     setLocalSortedNodes(sortedNoteIds);
   }, [sortedNoteIds]);
 
-  const setOpenItem = useNotesStore((state) => state.setOpenItem);
-
   const updateNoteOrder = useNotesStore((state) => state.updateNoteOrder);
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -181,7 +179,6 @@ export function FolderView(props: FolderViewProps) {
               key={subFolderId}
               folderId={subFolderId}
               folder={subFolder}
-              openFolder={setOpenItem}
             />
           )}
         />

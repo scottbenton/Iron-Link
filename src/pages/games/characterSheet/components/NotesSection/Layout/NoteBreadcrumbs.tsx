@@ -17,7 +17,7 @@ interface BreadcrumbItem {
 export function NoteBreadcrumbs() {
   const { t } = useTranslation();
 
-  const setOpenItem = useNotesStore((store) => store.setOpenItem);
+  const setOpenItem = useNotesStore((store) => store.openItemTab);
 
   const rootPlayerFolderId = useNotesStore(
     (store) =>
@@ -27,38 +27,40 @@ export function NoteBreadcrumbs() {
   );
 
   const breadcrumbItems: BreadcrumbItem[] = useNotesStore((store) => {
-    let item = store.openItem;
+    let item = store.openTabId
+      ? store.noteTabItems[store.openTabId]
+      : undefined;
 
     const breadcrumbs: BreadcrumbItem[] = [];
 
     while (item) {
       breadcrumbs.push({
         type: item.type,
-        id: item.type === "folder" ? item.folderId : item.noteId,
+        id: item.itemId,
         name:
           item.type === "folder"
             ? getItemName({
-                name: store.folderState.folders[item.folderId]?.name,
+                name: store.folderState.folders[item.itemId]?.name,
                 isRootPlayerFolder:
-                  store.folderState.folders[item.folderId]
-                    ?.isRootPlayerFolder ?? false,
+                  store.folderState.folders[item.itemId]?.isRootPlayerFolder ??
+                  false,
                 t,
               })
-            : store.noteState.notes[item.noteId]?.title,
+            : store.noteState.notes[item.itemId]?.title,
       });
 
       const parentFolderId =
         item.type === "folder"
-          ? store.folderState.folders[item.folderId]?.parentFolderId
-          : store.noteState.notes[item.noteId]?.parentFolderId;
+          ? store.folderState.folders[item.itemId]?.parentFolderId
+          : store.noteState.notes[item.itemId]?.parentFolderId;
       const parentFolder = parentFolderId
         ? store.folderState.folders[parentFolderId]
         : undefined;
 
       if (parentFolderId && !parentFolder && rootPlayerFolderId) {
-        item = { type: "folder", folderId: rootPlayerFolderId };
+        item = { type: "folder", itemId: rootPlayerFolderId };
       } else if (parentFolderId && parentFolder) {
-        item = { type: "folder", folderId: parentFolderId };
+        item = { type: "folder", itemId: parentFolderId };
       } else {
         item = undefined;
       }
@@ -79,11 +81,28 @@ export function NoteBreadcrumbs() {
                 id={index === 0 ? NOTES_ID : undefined}
                 key={index}
                 component={"button"}
-                onClick={() =>
-                  item.type === "folder"
-                    ? setOpenItem("folder", item.id)
-                    : setOpenItem("note", item.id)
+                onClick={(event) =>
+                  setOpenItem({
+                    type: item.type,
+                    id: item.id,
+                    openInBackground: event.ctrlKey || event.metaKey,
+                    replaceCurrent: !(event.ctrlKey || event.metaKey),
+                  })
                 }
+                onAuxClick={() =>
+                  setOpenItem({
+                    type: item.type,
+                    id: item.id,
+                    openInBackground: true,
+                    replaceCurrent: false,
+                  })
+                }
+                onMouseDown={(event) => {
+                  if (event.button === 1) {
+                    event.preventDefault();
+                    return false;
+                  }
+                }}
                 sx={{ display: "flex" }}
                 color="textPrimary"
               >

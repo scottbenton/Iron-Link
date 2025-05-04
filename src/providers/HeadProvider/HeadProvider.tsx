@@ -1,5 +1,4 @@
 import { PropsWithChildren } from "react";
-import { Helmet, HelmetProvider } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 
 import { useSyncFavIconWithColorScheme } from "./useSyncFavIconWithColorScheme";
@@ -16,8 +15,8 @@ export function HeadProvider(props: PropsWithChildren) {
   useSyncFavIconWithColorScheme();
 
   return (
-    <HelmetProvider>
-      <Helmet>
+    <>
+      <>
         <title>{appName}</title>
         <meta property="og:site_name" content={appName} />
         <meta property="og:title" content={appName} />
@@ -46,8 +45,8 @@ export function HeadProvider(props: PropsWithChildren) {
           property="twitter:image"
           content={getPublicAssetPath("opengraph-default.png")}
         /> */}
-      </Helmet>
+      </>
       {children}
-    </HelmetProvider>
+    </>
   );
 }
