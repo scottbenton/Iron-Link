@@ -15,6 +15,7 @@
     "extract:i18n": "i18next 'src/**/*.{ts,tsx}' [-oc]",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
+    "supabase:reset-db": "supabase db reset",
     "supabase:gen-types": "supabase gen types typescript --local > ./src/types/supabase-generated.type.ts",
     "supabase:create-db-script": "supabase db diff -f changes",
     "supabase:create-empty-script": "supabase migration new changes",

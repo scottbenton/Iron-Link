@@ -48,6 +48,9 @@ export function NoteTabs() {
   const defaultTab = useNotesStore((store) =>
     uid ? getPlayerNotesFolder(uid, store.folderState.folders) : null,
   );
+  const rootPlayerFolder = useNotesStore((store) =>
+    uid ? getPlayerNotesFolder(uid, store.folderState.folders) : undefined,
+  );
 
   return (
     <Box>
@@ -161,7 +164,9 @@ export function NoteTabs() {
                     <FolderViewToolbar folderId={tabItem.itemId} />
                     <OpenItemWrapper sx={{ mx: -1, flexGrow: 1 }}>
                       <FolderView folderId={tabItem.itemId} />
-                      {/* {isRootPlayerFolder && <FolderView folderId={undefined} />} */}
+                      {rootPlayerFolder?.id === tabItem.itemId && (
+                        <FolderView folderId={undefined} />
+                      )}
                     </OpenItemWrapper>
                   </>
                 ) : (
