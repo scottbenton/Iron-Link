@@ -1,5 +1,5 @@
 import { LinearProgress } from "@mui/material";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { EmptyState } from "components/Layout/EmptyState";
 import { RtcRichTextEditor } from "components/RichTextEditor";
@@ -25,13 +25,33 @@ export function NoteView(props: NoteViewProps) {
   const gameId = useGameId();
   const updateNoteContent = useNotesStore((store) => store.updateNoteContent);
 
-  const { content, loading, error } = useNotesStore((store) => {
-    return (
-      store.noteContentState[openNoteId] ?? {
-        loading: true,
-      }
-    );
-  });
+  const [noteContent, setNoteContent] = useState<Uint8Array | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const getNoteContent = useNotesStore((store) => store.getNoteContent);
+  useEffect(() => {
+    let isMounted = true;
+
+    setLoading(true);
+    setError(null);
+    getNoteContent(openNoteId)
+      .then((noteContent) => {
+        if (isMounted) {
+          setNoteContent(noteContent.content);
+          setLoading(false);
+        }
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setError(error);
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [openNoteId, getNoteContent]);
 
   const notePermissions = useNotePermission(openNoteId);
 
@@ -58,7 +78,7 @@ export function NoteView(props: NoteViewProps) {
     return <EmptyState message={error} />;
   }
 
-  if (!content || loading) {
+  if (!noteContent || loading) {
     return <LinearProgress />;
   }
 
@@ -90,7 +110,7 @@ export function NoteView(props: NoteViewProps) {
             />
           </>
         )}
-        initialValue={content}
+        initialValue={noteContent}
         onSave={loading || !notePermissions.canEdit ? undefined : handleSave}
       />
     </>

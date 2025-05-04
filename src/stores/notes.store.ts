@@ -1,5 +1,5 @@
 import deepEqual from "fast-deep-equal";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
@@ -10,7 +10,7 @@ import { createId } from "lib/id.lib";
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 
 import { INoteFolder, NoteFoldersService } from "services/noteFolders.service";
-import { INote, NotesService } from "services/notes.service";
+import { INote, INoteContent, NotesService } from "services/notes.service";
 
 import { useAuthStore, useUID } from "./auth.store";
 import { GamePermission } from "./game.store";
@@ -35,10 +35,6 @@ interface NotesStoreState {
     loading: boolean;
     error?: string;
   };
-  noteContentState: Record<
-    string,
-    { loading: boolean; content?: Uint8Array; error?: string }
-  >;
 
   noteTabItems: Record<string, IOpenNoteItem>;
   noteTabOrder: string[];
@@ -56,7 +52,7 @@ interface NotesStoreActions {
     gameId: string,
     gamePermissions: GamePermission,
   ) => () => void;
-  listenToNoteContent: (noteId: string) => () => void;
+  getNoteContent: (noteId: string) => Promise<INoteContent>;
 
   createFolder: (
     uid: string,
@@ -138,7 +134,6 @@ const defaultNotesState: NotesStoreState = {
     folders: {},
     error: undefined,
   },
-  noteContentState: {},
   noteTabItems: {},
   noteTabOrder: [],
   openTabId: null,
@@ -234,38 +229,9 @@ export const useNotesStore = createWithEqualityFn<
         },
       );
     },
-    listenToNoteContent: (noteId) => {
-      const noteContent = getState().noteContentState[noteId];
-      if (!noteContent) {
-        set((store) => {
-          store.noteContentState[noteId] = {
-            loading: true,
-            content: undefined,
-            error: undefined,
-          };
-        });
-      }
-      return NotesService.listenToNoteContent(
-        noteId,
-        (noteContent) => {
-          set((store) => {
-            store.noteContentState[noteId] = {
-              content: noteContent.content,
-              loading: false,
-              error: undefined,
-            };
-          });
-        },
-        (error) => {
-          set((store) => {
-            store.noteContentState[noteId] = {
-              content: undefined,
-              loading: false,
-              error: error.message,
-            };
-          });
-        },
-      );
+
+    getNoteContent: (noteId) => {
+      return NotesService.getNoteContent(noteId);
     },
 
     updateNoteContent: (noteId, content, contentString, isBeaconRequest) => {
@@ -598,20 +564,6 @@ export function useListenToGameNotes(gameId: string | undefined) {
     (store) => store.listenToGameNoteFolders,
   );
   const listenToNotes = useNotesStore((store) => store.listenToGameNotes);
-  const listenToNoteContents = useNotesStore(
-    (store) => store.listenToNoteContent,
-  );
-
-  const openNoteItems = useNotesStore((store) =>
-    Array.from(
-      new Set(
-        Object.values(store.noteTabItems)
-          .filter((item) => item.type === "note")
-          .map((item) => item.itemId),
-      ),
-    ),
-  );
-  const noteItemContentListeners = useRef<Map<string, () => void>>(new Map());
 
   useEffect(() => {
     if (gameId && gamePermission) {
@@ -624,32 +576,6 @@ export function useListenToGameNotes(gameId: string | undefined) {
       return listenToNotes(uid, gameId, gamePermission);
     }
   }, [gameId, uid, gamePermission, listenToNotes, gameType]);
-
-  useEffect(() => {
-    // Loop through all open note items and create listeners for their content if they don't exist yet
-    openNoteItems.forEach((noteId) => {
-      if (!noteItemContentListeners.current.has(noteId)) {
-        const listener = listenToNoteContents(noteId);
-        noteItemContentListeners.current.set(noteId, listener);
-      }
-    });
-    // Loop through all listeners and remove them if the note is not open anymore
-    noteItemContentListeners.current.forEach((listener, noteId) => {
-      if (!openNoteItems.includes(noteId)) {
-        listener();
-        noteItemContentListeners.current.delete(noteId);
-      }
-    });
-  }, [openNoteItems, listenToNoteContents]);
-
-  useEffect(() => {
-    return () => {
-      noteItemContentListeners.current.forEach((listener) => {
-        listener();
-      });
-      noteItemContentListeners.current.clear();
-    };
-  }, []);
 
   useEffect(() => {
     return () => {

@@ -114,22 +114,14 @@ export class NotesService {
     return NotesRepository.deleteNote(noteId);
   }
 
-  public static listenToNoteContent(
-    noteId: string,
-    onNoteContentChanged: (noteContent: INoteContent) => void,
-    onError: (error: RepositoryError) => void,
-  ): () => void {
-    return NotesRepository.listenToNoteContent(
-      noteId,
-      (noteDTO) => {
-        onNoteContentChanged({
-          content: noteDTO.note_content_bytes
-            ? this.databaseToUint8Array(noteDTO.note_content_bytes)
-            : new Uint8Array(),
-        });
-      },
-      onError,
-    );
+  public static getNoteContent(noteId: string): Promise<INoteContent> {
+    return NotesRepository.getNoteContent(noteId).then((noteDTO) => {
+      return {
+        content: noteDTO.note_content_bytes
+          ? this.databaseToUint8Array(noteDTO.note_content_bytes)
+          : new Uint8Array(),
+      };
+    });
   }
 
   public static async updateNoteContent(
