@@ -39,26 +39,23 @@ export const mentionSuggestionOptions: MentionOptions["suggestion"] = {
   // of whatever sort you like (including potentially additional data beyond
   // just an ID and a label). It need not be async but is written that way for
   // the sake of example.
-  items: async ({ query }): Promise<MentionSuggestion[]> => {
-    return new Promise((resolve) => {
-      const noteStore = useNotesStore.getState();
-      resolve(
-        Object.entries(noteStore.noteState.notes)
-          .map(([noteId, note]) => ({
-            mentionLabel: note.title,
-            id: noteId,
-          }))
-          .filter(
-            (item) =>
-              !(
-                noteStore.openItem?.type === "note" &&
-                noteStore.openItem.noteId === item.id
-              ) &&
-              item.mentionLabel.toLowerCase().startsWith(query.toLowerCase()),
-          )
-          .slice(0, 5),
-      );
-    });
+  items: ({ query }): MentionSuggestion[] => {
+    const noteStore = useNotesStore.getState();
+    const openItem = noteStore.openTabId
+      ? noteStore.noteTabItems[noteStore.openTabId]
+      : null;
+
+    return Object.entries(noteStore.noteState.notes)
+      .map(([noteId, note]) => ({
+        mentionLabel: note.title,
+        id: noteId,
+      }))
+      .filter(
+        (item) =>
+          !(openItem?.type === "note" && openItem.itemId === item.id) &&
+          item.mentionLabel.toLowerCase().startsWith(query.toLowerCase()),
+      )
+      .slice(0, 5);
   },
 
   render: () => {

@@ -25,20 +25,12 @@ export function NoteView(props: NoteViewProps) {
   const gameId = useGameId();
   const updateNoteContent = useNotesStore((store) => store.updateNoteContent);
 
-  const { noteContent, loading, error } = useNotesStore((store) => {
-    if (!store.openItem || store.openItem.type === "folder") {
-      return {
-        noteContent: undefined,
-        loading: false,
-        error: "No note open",
-      };
-    } else {
-      return {
-        noteContent: store.openItem.noteContent.data,
-        loading: store.openItem.noteContent.loading,
-        error: store.openItem.noteContent.error,
-      };
-    }
+  const { content, loading, error } = useNotesStore((store) => {
+    return (
+      store.noteContentState[openNoteId] ?? {
+        loading: true,
+      }
+    );
   });
 
   const notePermissions = useNotePermission(openNoteId);
@@ -66,7 +58,7 @@ export function NoteView(props: NoteViewProps) {
     return <EmptyState message={error} />;
   }
 
-  if (!noteContent) {
+  if (!content || loading) {
     return <LinearProgress />;
   }
 
@@ -98,7 +90,7 @@ export function NoteView(props: NoteViewProps) {
             />
           </>
         )}
-        initialValue={noteContent?.content}
+        initialValue={content}
         onSave={loading || !notePermissions.canEdit ? undefined : handleSave}
       />
     </>

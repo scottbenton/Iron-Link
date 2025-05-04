@@ -10,7 +10,7 @@ import { createId } from "lib/id.lib";
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 
 import { INoteFolder, NoteFoldersService } from "services/noteFolders.service";
-import { INote, INoteContent, NotesService } from "services/notes.service";
+import { INote, NotesService } from "services/notes.service";
 
 import { useAuthStore, useUID } from "./auth.store";
 import { GamePermission } from "./game.store";
@@ -37,12 +37,12 @@ interface NotesStoreState {
   };
   noteContentState: Record<
     string,
-    { loading: boolean; content?: INoteContent; error?: string }
+    { loading: boolean; content?: Uint8Array; error?: string }
   >;
 
   noteTabItems: Record<string, IOpenNoteItem>;
   noteTabOrder: string[];
-  openTabItemId: string | null;
+  openTabId: string | null;
 }
 
 interface NotesStoreActions {
@@ -122,7 +122,7 @@ interface NotesStoreActions {
   openItemTab: (params: {
     type: "note" | "folder";
     id: string;
-    replacedTabId?: string;
+    replaceCurrent?: boolean;
     openInBackground?: boolean;
     disallowDuplicates?: boolean;
   }) => void;
@@ -141,7 +141,7 @@ const defaultNotesState: NotesStoreState = {
   noteContentState: {},
   noteTabItems: {},
   noteTabOrder: [],
-  openTabItemId: null,
+  openTabId: null,
 };
 
 export const useNotesStore = createWithEqualityFn<
@@ -250,7 +250,7 @@ export const useNotesStore = createWithEqualityFn<
         (noteContent) => {
           set((store) => {
             store.noteContentState[noteId] = {
-              content: noteContent,
+              content: noteContent.content,
               loading: false,
               error: undefined,
             };
@@ -520,12 +520,15 @@ export const useNotesStore = createWithEqualityFn<
     openItemTab: ({
       type,
       id,
-      replacedTabId,
+      replaceCurrent = true,
       openInBackground,
       disallowDuplicates,
     }) => {
       set((store) => {
-        const tabId = replacedTabId ?? createId();
+        const openTabId = store.openTabId;
+        const willOpenInCurrentTab = replaceCurrent && openTabId;
+        const tabId = willOpenInCurrentTab ? openTabId : createId();
+
         const tabItem: IOpenNoteItem = { type, itemId: id };
 
         if (
@@ -537,11 +540,11 @@ export const useNotesStore = createWithEqualityFn<
           return;
         }
 
-        if (!replacedTabId) {
+        if (!willOpenInCurrentTab) {
           store.noteTabOrder.push(tabId);
         }
         if (!openInBackground) {
-          store.openTabItemId = tabId;
+          store.openTabId = tabId;
         }
 
         store.noteTabItems[tabId] = tabItem;
@@ -550,7 +553,7 @@ export const useNotesStore = createWithEqualityFn<
 
     switchToTab: (tabId) => {
       set((store) => {
-        store.openTabItemId = tabId;
+        store.openTabId = tabId;
       });
     },
 
@@ -564,8 +567,8 @@ export const useNotesStore = createWithEqualityFn<
         // Remove the tab from the map
         delete store.noteTabItems[tabId];
         // If the tab is the open tab, choose the next tab in the array if it exists, the previous one if it doesn't, and null if all else fails.
-        if (store.openTabItemId === tabId) {
-          store.openTabItemId =
+        if (store.openTabId === tabId) {
+          store.openTabId =
             store.noteTabOrder[tabIndex] ??
             store.noteTabOrder[tabIndex - 1] ??
             null;

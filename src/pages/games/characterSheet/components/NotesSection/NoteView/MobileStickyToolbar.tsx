@@ -32,7 +32,7 @@ export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
     }
     return store.folderState.folders[currentNote.parentFolderId];
   });
-  const setOpenNoteItem = useNotesStore((store) => store.setOpenItem);
+  const setOpenNoteItem = useNotesStore((store) => store.openItemTab);
 
   const isMobile = useIsMobile();
 
@@ -104,7 +104,8 @@ export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
         >
           <IconButton
             onClick={() =>
-              parentFolder && setOpenNoteItem("folder", parentFolder?.id)
+              parentFolder &&
+              setOpenNoteItem({ type: "folder", id: parentFolder.id })
             }
           >
             <FolderIcon />

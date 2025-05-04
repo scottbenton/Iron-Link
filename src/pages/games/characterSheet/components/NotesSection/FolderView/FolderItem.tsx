@@ -3,6 +3,8 @@ import FolderSharedIcon from "@mui/icons-material/FolderShared";
 import { Box, Card, CardActionArea, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { useNotesStore } from "stores/notes.store";
+
 import { ReadPermissions } from "repositories/shared.types";
 
 import { INoteFolder } from "services/noteFolders.service";
@@ -13,13 +15,13 @@ import { getItemName } from "./getFolderName";
 export interface FolderItemProps {
   folderId: string;
   folder: INoteFolder;
-  openFolder: (type: "folder", folderId: string) => void;
 }
 
 export function FolderItem(props: FolderItemProps) {
-  const { folderId, folder, openFolder } = props;
+  const { folderId, folder } = props;
 
   const { t } = useTranslation();
+  const openTab = useNotesStore((store) => store.openItemTab);
 
   return (
     <Card
@@ -36,7 +38,28 @@ export function FolderItem(props: FolderItemProps) {
           justifyContent: "flex-start",
           gap: 1,
         }}
-        onClick={() => openFolder("folder", folderId)}
+        onClick={(event) => {
+          openTab({
+            type: "folder",
+            id: folderId,
+            openInBackground: true,
+            replaceCurrent: !(event.ctrlKey || event.metaKey),
+          });
+        }}
+        onAuxClick={() => {
+          openTab({
+            type: "folder",
+            id: folderId,
+            openInBackground: true,
+            replaceCurrent: false,
+          });
+        }}
+        onMouseDown={(event) => {
+          if (event.button === 1) {
+            event.preventDefault();
+            return false;
+          }
+        }}
       >
         {folder.readPermissions !== ReadPermissions.OnlyAuthor ? (
           <FolderSharedIcon color="action" />
