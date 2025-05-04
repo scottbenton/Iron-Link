@@ -10,8 +10,10 @@ export function useDeleteFolder() {
   const { t } = useTranslation();
   const confirm = useConfirm();
 
-  const currentItem = useNotesStore((store) => store.openItem);
-  const setOpenItem = useNotesStore((store) => store.setOpenItem);
+  const currentItem = useNotesStore((store) =>
+    store.openTabId ? store.noteTabItems[store.openTabId] : null,
+  );
+  const setOpenItem = useNotesStore((store) => store.openItemTab);
 
   const deleteFolder = useNotesStore((store) => store.deleteFolder);
 
@@ -43,9 +45,9 @@ export function useDeleteFolder() {
           .then(() => {
             if (
               currentItem?.type === "folder" &&
-              currentItem.folderId === folderId
+              currentItem.itemId === folderId
             ) {
-              setOpenItem("folder", parentFolderId);
+              setOpenItem({ type: "folder", id: parentFolderId });
             }
             deleteFolder(folderId).catch(() => {});
           })

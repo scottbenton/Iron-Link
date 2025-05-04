@@ -8,8 +8,10 @@ export function useDeleteNote() {
   const { t } = useTranslation();
   const confirm = useConfirm();
 
-  const currentItem = useNotesStore((store) => store.openItem);
-  const setOpenItem = useNotesStore((store) => store.setOpenItem);
+  const currentItem = useNotesStore((store) =>
+    store.openTabId ? store.noteTabItems[store.openTabId] : null,
+  );
+  const openTab = useNotesStore((store) => store.openItemTab);
 
   const deleteNote = useNotesStore((store) => store.deleteNote);
 
@@ -31,14 +33,14 @@ export function useDeleteNote() {
           confirmationText: t("common.delete", "Delete"),
         })
           .then(() => {
-            if (currentItem?.type === "note" && currentItem.noteId === noteId) {
-              setOpenItem("folder", parentFolderId);
+            if (currentItem?.type === "note" && currentItem.itemId === noteId) {
+              openTab({ type: "folder", id: parentFolderId });
             }
             deleteNote(noteId).catch(() => {});
           })
           .catch(() => {});
       }
     },
-    [notes, confirm, currentItem, deleteNote, t, setOpenItem],
+    [notes, confirm, currentItem, deleteNote, t, openTab],
   );
 }

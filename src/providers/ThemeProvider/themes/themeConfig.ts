@@ -126,7 +126,7 @@ export function getTheme(colorScheme: ColorScheme): Theme {
       grey: grey,
       background: {
         paper: "#fff",
-        default: grey[200],
+        default: grey[100],
       },
       text: {
         primary: grey[800],
@@ -165,7 +165,7 @@ export function getTheme(colorScheme: ColorScheme): Theme {
         palette: {
           mode: "dark",
           grey,
-          divider: grey[600],
+          divider: grey[700],
           background: {
             paper: grey[900],
             default: grey[950],

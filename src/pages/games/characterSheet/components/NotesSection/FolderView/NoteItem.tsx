@@ -34,7 +34,7 @@ export function NoteItemContent(
 ) {
   const { id, note, sx } = props;
 
-  const setOpenItem = useNotesStore((store) => store.setOpenItem);
+  const setOpenItem = useNotesStore((store) => store.openItemTab);
 
   return (
     <>
@@ -50,7 +50,27 @@ export function NoteItemContent(
           },
           ...(Array.isArray(sx) ? sx : [sx]),
         ]}
-        onClick={() => setOpenItem("note", id)}
+        onClick={(evt) =>
+          setOpenItem({
+            type: "note",
+            id,
+            replaceCurrent: !(evt.ctrlKey || evt.metaKey),
+            openInBackground: evt.ctrlKey || evt.metaKey,
+          })
+        }
+        onAuxClick={() =>
+          setOpenItem({
+            type: "note",
+            id,
+            openInBackground: true,
+            replaceCurrent: false,
+          })
+        }
+        onMouseDown={(evt) => {
+          if (evt.button === 1) {
+            evt.preventDefault();
+          }
+        }}
       >
         <DocIcon sx={{ color: "primary.light" }} />
         <Typography sx={{ flexGrow: 1 }}>{note.title}</Typography>

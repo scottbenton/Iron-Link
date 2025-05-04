@@ -1,4 +1,3 @@
-import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 
 export interface HeadProps {
@@ -13,7 +12,7 @@ export function Head(props: HeadProps) {
   const { t } = useTranslation();
   const appName = t("iron-link.title", "Iron Link");
   return (
-    <Helmet>
+    <>
       <title>
         {title} | {appName}
       </title>
@@ -26,6 +25,6 @@ export function Head(props: HeadProps) {
           <meta property="twitter:image" content={openGraphImageSrc} />
         </>
       )}
-    </Helmet>
+    </>
   );
 }

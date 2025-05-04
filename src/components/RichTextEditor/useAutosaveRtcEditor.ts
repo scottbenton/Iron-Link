@@ -40,7 +40,10 @@ export function useAutoSaveRtcEditor(params: {
 
   const initialValueRef = useRef(initialValue);
   useEffect(() => {
-    initialValueRef.current = initialValue;
+    if (!initialValueRef.current) {
+      console.debug("Setting initial value", initialValue);
+      initialValueRef.current = initialValue;
+    }
   }, [initialValue]);
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -97,6 +100,7 @@ export function useAutoSaveRtcEditor(params: {
   useEffect(() => {
     const newDoc = new Y.Doc();
     if (initialValueRef.current.length > 0) {
+      console.debug("Applying update", newDoc, initialValueRef.current);
       Y.applyUpdate(newDoc, initialValueRef.current);
     }
 

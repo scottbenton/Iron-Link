@@ -2,14 +2,14 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { PaletteOptions } from "@mui/material";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { TypographyOptions } from "@mui/material/styles/createTypography";
+import { TypographyOptions } from "@mui/material/styles";
 
-declare module "@mui/material/styles/createTypography" {
-  interface TypographyOptions {
+declare module "@mui/material/styles" {
+  interface TypographyVariants {
     fontFamilyTitle?: string;
   }
 
-  interface Typography {
+  interface TypographyVariantsOptions {
     fontFamilyTitle?: string;
   }
 }
