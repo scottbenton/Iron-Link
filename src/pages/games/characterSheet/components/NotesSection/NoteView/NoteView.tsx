@@ -1,4 +1,3 @@
-import { LinearProgress } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 
 import { EmptyState } from "components/Layout/EmptyState";
@@ -79,7 +78,7 @@ export function NoteView(props: NoteViewProps) {
   }
 
   if (!noteContent || loading) {
-    return <LinearProgress />;
+    return <></>;
   }
 
   return (

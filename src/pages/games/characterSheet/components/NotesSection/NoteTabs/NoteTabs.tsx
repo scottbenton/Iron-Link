@@ -53,13 +53,13 @@ export function NoteTabs() {
   );
 
   return (
-    <Box>
+    <Box height={"100%"} display="flex" flexDirection="column">
       <Box
         bgcolor="background.default"
         // borderBottom={1}
         borderColor="divider"
-        flexGrow={1}
         display="flex"
+        flexShrink={0}
       >
         {defaultTab && (
           <Box pl={1} display="flex" alignItems="center">
@@ -148,6 +148,9 @@ export function NoteTabs() {
       </Box>
       {tabOrder.map((tabId) => {
         const tabItem = openTabs[tabId];
+        if (activeTab !== tabId) {
+          return null;
+        }
         return (
           <Box
             px={1}
@@ -156,23 +159,23 @@ export function NoteTabs() {
             hidden={activeTab !== tabId}
             id={`note-tabpanel-${tabId}`}
             aria-labelledby={`note-tab-${tabId}`}
+            flexGrow={1}
+            display="flex"
+            flexDirection={"column"}
+            overflow="auto"
           >
-            {activeTab === tabId && (
-              <Box>
-                {tabItem.type === "folder" ? (
-                  <>
-                    <FolderViewToolbar folderId={tabItem.itemId} />
-                    <OpenItemWrapper sx={{ mx: -1, flexGrow: 1 }}>
-                      <FolderView folderId={tabItem.itemId} />
-                      {rootPlayerFolder?.id === tabItem.itemId && (
-                        <FolderView folderId={undefined} />
-                      )}
-                    </OpenItemWrapper>
-                  </>
-                ) : (
-                  <NoteView openNoteId={tabItem.itemId} />
-                )}
-              </Box>
+            {tabItem.type === "folder" ? (
+              <>
+                <FolderViewToolbar folderId={tabItem.itemId} />
+                <OpenItemWrapper sx={{ mx: -1, flexGrow: 1 }}>
+                  <FolderView folderId={tabItem.itemId} />
+                  {rootPlayerFolder?.id === tabItem.itemId && (
+                    <FolderView folderId={undefined} />
+                  )}
+                </OpenItemWrapper>
+              </>
+            ) : (
+              <NoteView openNoteId={tabItem.itemId} />
             )}
           </Box>
         );
