@@ -8,7 +8,7 @@ import {
 
 import { GamePermission } from "stores/game.store";
 
-import { SUPABASE_URL, supabase } from "lib/supabase.lib";
+import { SUPABASE_ANON_KEY, SUPABASE_URL, supabase } from "lib/supabase.lib";
 
 import { createSubscription } from "./_subscriptionManager";
 import {
@@ -252,6 +252,7 @@ export class NotesRepository {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
           Prefer: "return=minimal",
+          Apikey: SUPABASE_ANON_KEY,
         },
         body: JSON.stringify(updatedNote),
         keepalive: true,
