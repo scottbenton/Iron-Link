@@ -32,9 +32,9 @@ export function AssetList(props: AssetListProps) {
         <MarkdownRenderer markdown={assetCollection.description} />
       )}
       <GridLayout
-        items={Object.values(assetCollection.contents).map(
-          (asset) => asset._id,
-        )}
+        items={Object.values(assetCollection.contents)
+          .sort((a1, a2) => a1.name.localeCompare(a2.name))
+          .map((asset) => asset._id)}
         renderItem={(assetId) => (
           <AssetCard
             assetId={assetId}

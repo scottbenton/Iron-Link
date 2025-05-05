@@ -8,8 +8,16 @@ import { useActiveAssetMoveCategories } from "components/datasworn/hooks/useActi
 import { useActiveAssetOracleCollections } from "components/datasworn/hooks/useActiveAssetOracleCollections";
 
 import { ironLinkAskTheOracleRulesPackage } from "data/askTheOracle";
+import {
+  defaultBaseRulesets,
+  defaultExpansions,
+} from "data/datasworn.packages";
 
-import { PlaysetConfig } from "repositories/game.repository";
+import {
+  ExpansionConfig,
+  PlaysetConfig,
+  RulesetConfig,
+} from "repositories/game.repository";
 
 import { parseConditionMeterRules } from "./dataswornTreeHelpers/conditionMetersRules";
 import { parseImpactRules } from "./dataswornTreeHelpers/impactRules";
@@ -109,8 +117,9 @@ export const useDataswornTreeStore = createWithEqualityFn<
     setActiveRules: (tree, playset) => {
       set((store) => {
         store.activeRules = {
-          [ironLinkAskTheOracleRulesPackage._id]:
-            ironLinkAskTheOracleRulesPackage,
+          [ironLinkAskTheOracleRulesPackage._id]: JSON.parse(
+            JSON.stringify(ironLinkAskTheOracleRulesPackage),
+          ),
           ...JSON.parse(JSON.stringify(tree)),
         };
         store.autoRollCursedDie = !playset.disableAutomaticCursedDieRolls;
@@ -322,4 +331,31 @@ export function useSpecialTrackRules() {
 
 export function useStatRules() {
   return useDataswornTreeStore((state) => state.statRules);
+}
+
+export function useSyncActiveRulesPackages(
+  rulesets: RulesetConfig,
+  expansions: ExpansionConfig,
+  playset: PlaysetConfig,
+) {
+  const activeRulesPackages = useMemo(() => {
+    const activePackages: Record<string, Datasworn.RulesPackage> = {};
+
+    Object.entries(rulesets ?? {}).forEach(([id, isActive]) => {
+      if (isActive) {
+        activePackages[id] = defaultBaseRulesets[id];
+        Object.entries(expansions?.[id] ?? {}).forEach(
+          ([expansionId, isExpansionActive]) => {
+            if (isExpansionActive) {
+              activePackages[expansionId] = defaultExpansions[id][expansionId];
+            }
+          },
+        );
+      }
+    });
+
+    return activePackages;
+  }, [rulesets, expansions]);
+
+  useUpdateDataswornTree(activeRulesPackages, playset);
 }
