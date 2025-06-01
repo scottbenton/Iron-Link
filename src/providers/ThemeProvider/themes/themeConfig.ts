@@ -87,6 +87,18 @@ export const themeConfig: ThemeConfig = {
       dark: "#dab2ff",
     },
   },
+  [ColorScheme.PrideTraditional]: {
+    primary: {
+      light: "#155dfc",
+      main: "#1447e6",
+      dark: "#193cb8",
+    },
+    secondary: {
+      light: "#cefafe",
+      main: "#a2f4fd",
+      dark: "#53eafd",
+    },
+  },
 };
 
 export function getTheme(colorScheme: ColorScheme): Theme {
@@ -147,6 +159,7 @@ export function getTheme(colorScheme: ColorScheme): Theme {
         dark: "#5ea500",
         contrastText: "#000",
       },
+      gradients: getGradients(colorScheme),
       ...themeConfig[colorScheme],
       ...sharedStatusColors,
     },
@@ -166,6 +179,7 @@ export function getTheme(colorScheme: ColorScheme): Theme {
           mode: "dark",
           grey,
           divider: grey[700],
+          gradients: getGradients(colorScheme),
           background: {
             paper: grey[900],
             default: grey[950],
@@ -210,6 +224,31 @@ export function getTheme(colorScheme: ColorScheme): Theme {
       },
     },
   });
+}
+
+function getGradients(colorScheme: ColorScheme) {
+  if (colorScheme === ColorScheme.PrideTraditional) {
+    const colors = [
+      "oklch(63.7% 0.237 25.331)",
+      "oklch(70.5% 0.213 47.604)",
+      "oklch(79.5% 0.184 86.047)",
+      "oklch(69.6% 0.17 162.48)",
+      "oklch(62.3% 0.214 259.815)",
+      "oklch(60.6% 0.25 292.717)",
+    ];
+    return {
+      outline: `linear-gradient(90deg, ${colors[0]} 0%, ${colors[1]} 16.67%, ${colors[2]} 33.33%, ${colors[3]} 50%, ${colors[4]} 66.67%, ${colors[5]} 83.33%)`,
+      icon: colors,
+    };
+  }
+
+  return {
+    outline: `radial-gradient(142% 91% at 111% 84%, ${themeConfig[colorScheme].secondary.dark} 20%, ${themeConfig[colorScheme].primary.light} 80%)`,
+    icon: [
+      themeConfig[colorScheme].secondary.main,
+      themeConfig[colorScheme].primary.main,
+    ],
+  };
 }
 
 declare module "@mui/material" {
