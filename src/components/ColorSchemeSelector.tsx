@@ -6,6 +6,7 @@ import {
   ThemeProvider,
   Typography,
 } from "@mui/material";
+import { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 
 import { getTheme } from "providers/ThemeProvider/themes/themeConfig";
@@ -34,6 +35,27 @@ export function ColorSchemeSelector(props: ColorSchemeSelectorProps) {
       ))}
     </Grid>
   );
+}
+
+function getColorSchemeName(colorScheme: ColorScheme, t: TFunction): string {
+  switch (colorScheme) {
+    case ColorScheme.Default:
+      return t("colorScheme.default", "Iron Link");
+    case ColorScheme.Cinder:
+      return t("colorScheme.cinder", "Cinder");
+    case ColorScheme.Eidolon:
+      return t("colorScheme.eidolon", "Eidolon");
+    case ColorScheme.Hinterlands:
+      return t("colorScheme.hinterlands", "Hinterlands");
+    case ColorScheme.Myriad:
+      return t("colorScheme.myriad", "Myriad");
+    case ColorScheme.Mystic:
+      return t("colorScheme.mystic", "Mystic");
+    case ColorScheme.PrideTraditional:
+      return t("colorScheme.prideTraditional", "Pride");
+    default:
+      return t("colorScheme.unknown", "Unknown");
+  }
 }
 
 export function ThemedBox(props: {
@@ -81,7 +103,7 @@ export function ThemedBox(props: {
             fontFamily="fontFamilyTitle"
             textTransform={"capitalize"}
           >
-            {colorScheme}
+            {getColorSchemeName(colorScheme, t)}
           </Typography>
         </ButtonBase>
       </ThemeProvider>

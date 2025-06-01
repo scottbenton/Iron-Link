@@ -10,6 +10,7 @@ export enum ColorScheme {
   Hinterlands = "hinterlands",
   Myriad = "myriad",
   Mystic = "mystic",
+  PrideTraditional = "pride_traditional",
 }
 export enum RollResult {
   StrongHit = "strong_hit",

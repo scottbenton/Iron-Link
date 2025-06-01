@@ -17,9 +17,17 @@ declare module "@mui/material/styles" {
 declare module "@mui/material/styles" {
   interface Palette {
     cursed: Palette["primary"];
+    gradients: {
+      outline: string;
+      icon: string[];
+    };
   }
 
   interface PaletteOptions {
     cursed?: PaletteOptions["primary"];
+    gradients: {
+      outline: string;
+      icon: string[];
+    };
   }
 }
