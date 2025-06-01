@@ -30,10 +30,22 @@ export function useSyncOpenNoteItem() {
     const openItemId = searchParams.get("note-id");
 
     if (openItemType && openItemId) {
-      setOpenItem({
-        type: openItemType === "folder" ? "folder" : "note",
-        id: openItemId,
-      });
+      if (openItemType === "folder") {
+        setOpenItem({
+          type: "folder",
+          id: openItemId,
+        });
+      } else if (openItemType === "note") {
+        setOpenItem({
+          type: "note",
+          id: openItemId,
+        });
+      } else if (openItemType === "world") {
+        setOpenItem({
+          type: "world",
+          id: "world",
+        });
+      }
     }
   }, [searchParams, setOpenItem]);
 }

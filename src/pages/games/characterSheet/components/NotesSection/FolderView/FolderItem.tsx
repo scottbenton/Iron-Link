@@ -1,6 +1,8 @@
 import FolderIcon from "@mui/icons-material/Folder";
 import FolderSharedIcon from "@mui/icons-material/FolderShared";
+import WorldIcon from "@mui/icons-material/Language";
 import { Box, Card, CardActionArea, Typography } from "@mui/material";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useNotesStore } from "stores/notes.store";
@@ -22,6 +24,17 @@ export function FolderItem(props: FolderItemProps) {
 
   const { t } = useTranslation();
   const openTab = useNotesStore((store) => store.openItemTab);
+  const handleOpen = useCallback(
+    (replaceCurrent: boolean) => {
+      openTab({
+        type: folderId === "world" ? "world" : "folder",
+        id: folderId,
+        openInBackground: false,
+        replaceCurrent,
+      });
+    },
+    [openTab, folderId],
+  );
 
   return (
     <Card
@@ -39,20 +52,10 @@ export function FolderItem(props: FolderItemProps) {
           gap: 1,
         }}
         onClick={(event) => {
-          openTab({
-            type: "folder",
-            id: folderId,
-            openInBackground: true,
-            replaceCurrent: !(event.ctrlKey || event.metaKey),
-          });
+          handleOpen(!(event.ctrlKey || event.metaKey));
         }}
         onAuxClick={() => {
-          openTab({
-            type: "folder",
-            id: folderId,
-            openInBackground: true,
-            replaceCurrent: false,
-          });
+          handleOpen(false);
         }}
         onMouseDown={(event) => {
           if (event.button === 1) {
@@ -61,10 +64,16 @@ export function FolderItem(props: FolderItemProps) {
           }
         }}
       >
-        {folder.readPermissions !== ReadPermissions.OnlyAuthor ? (
-          <FolderSharedIcon color="action" />
+        {folderId === "world" ? (
+          <WorldIcon color="action" />
         ) : (
-          <FolderIcon color="action" />
+          <>
+            {folder.readPermissions !== ReadPermissions.OnlyAuthor ? (
+              <FolderSharedIcon color="action" />
+            ) : (
+              <FolderIcon color="action" />
+            )}
+          </>
         )}
         <Typography sx={{ flexGrow: 1 }}>
           {getItemName({
@@ -80,7 +89,7 @@ export function FolderItem(props: FolderItemProps) {
           })}
         />
       </CardActionArea>
-      <FolderActionMenu folderId={folderId} />
+      {folderId !== "world" && <FolderActionMenu folderId={folderId} />}
     </Card>
   );
 }

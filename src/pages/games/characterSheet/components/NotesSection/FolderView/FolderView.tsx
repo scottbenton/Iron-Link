@@ -35,9 +35,10 @@ import { useFolderPermission } from "./useFolderPermissions";
 
 export interface FolderViewProps {
   folderId: string | undefined;
+  isRootFolder?: boolean;
 }
 export function FolderView(props: FolderViewProps) {
-  const { folderId } = props;
+  const { folderId, isRootFolder } = props;
 
   const { t } = useTranslation();
 
@@ -56,9 +57,25 @@ export function FolderView(props: FolderViewProps) {
         return false;
       });
     }
-    return Object.entries(state.folderState.folders)
+
+    const folders = Object.entries(state.folderState.folders)
       .filter(([, folder]) => folder.parentFolderId === folderId)
       .sort(sortFolders);
+
+    // add a new folder at position 0 if we can edit
+    if (isRootFolder) {
+      folders.unshift([
+        "world",
+        {
+          id: "world",
+          name: t("notes.world-folder", "World"),
+          parentFolderId: folderId,
+          isRootPlayerFolder: false,
+        } as INoteFolder,
+      ]);
+    }
+
+    return folders;
   });
 
   const { sortedNoteIds, noteMap } = useNotesStore((state) => {
@@ -219,6 +236,7 @@ export function FolderView(props: FolderViewProps) {
           ))}
         </>
       )}
+      {isRootFolder && <FolderView folderId={undefined} />}
     </>
   );
 }

@@ -3,6 +3,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import { Box, IconButton, Tab, Tabs } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { WorldSelectionPage } from "components/worlds/WorldSelectionPage";
+
 import { useUID } from "stores/auth.store";
 import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
 
@@ -15,6 +17,7 @@ export function NoteTabs() {
   const { t } = useTranslation();
 
   const openTabs = useNotesStore((store) => store.noteTabItems);
+  console.debug("NoteTabs openTabs", openTabs);
   const tabOrder = useNotesStore((store) => store.noteTabOrder);
   const itemNames = useNotesStore((store) => {
     return Object.fromEntries(
@@ -164,18 +167,24 @@ export function NoteTabs() {
             flexDirection={"column"}
             overflow="auto"
           >
-            {tabItem.type === "folder" ? (
+            {tabItem.type === "folder" && (
               <>
                 <FolderViewToolbar folderId={tabItem.itemId} />
                 <OpenItemWrapper sx={{ mx: -1, flexGrow: 1 }}>
-                  <FolderView folderId={tabItem.itemId} />
-                  {rootPlayerFolder?.id === tabItem.itemId && (
-                    <FolderView folderId={undefined} />
-                  )}
+                  <FolderView
+                    isRootFolder={rootPlayerFolder?.id === tabItem.itemId}
+                    folderId={tabItem.itemId}
+                  />
                 </OpenItemWrapper>
               </>
-            ) : (
+            )}
+            {tabItem.type === "note" && (
               <NoteView openNoteId={tabItem.itemId} />
+            )}
+            {tabItem.type === "world" && (
+              <>
+                <WorldSelectionPage />
+              </>
             )}
           </Box>
         );

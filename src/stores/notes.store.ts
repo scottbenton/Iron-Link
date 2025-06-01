@@ -21,7 +21,10 @@ interface Permissions {
   canChangePermissions: boolean;
 }
 
-export type IOpenNoteItem = { type: "note" | "folder"; itemId: string };
+export type IOpenNoteItem = {
+  type: "note" | "folder" | "world";
+  itemId: string;
+};
 interface NotesStoreState {
   noteState: {
     notes: Record<string, INote>;
@@ -116,7 +119,7 @@ interface NotesStoreActions {
 
   switchToTab: (tabId: string) => void;
   openItemTab: (params: {
-    type: "note" | "folder";
+    type: "note" | "folder" | "world";
     id: string;
     replaceCurrent?: boolean;
     openInBackground?: boolean;
