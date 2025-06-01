@@ -4,10 +4,17 @@ import { useEffect } from "react";
 export function useSyncFavIconWithColorScheme() {
   const theme = useTheme();
 
-  const color1 = theme.palette.primary.main;
-  const color2 = theme.palette.secondary.main;
-
+  const colors = theme.palette.gradients.icon;
   useEffect(() => {
+    const stops = colors
+      .map(
+        (color, idx) => `
+    <stop
+              offset="${(idx / (colors.length - 1)) * 100}%"
+              stop-color="${color}"
+            />`,
+      )
+      .join("");
     const svg = `
       <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g clip-path="url(#clip0)">
@@ -19,8 +26,7 @@ export function useSyncFavIconWithColorScheme() {
         </g>
         <defs>
           <linearGradient id="paint0" x1="33.3452" y1="6.02853" x2="98.3423" y2="120.092" gradientUnits="userSpaceOnUse">
-            <stop stop-color="${color2}"/>
-            <stop offset="1" stop-color="${color1}"/>
+           ${stops}
           </linearGradient>
           <clipPath id="clip0">
             <rect width="128" height="128" fill="white"/>
@@ -42,5 +48,5 @@ export function useSyncFavIconWithColorScheme() {
       document.head.removeChild(link);
       URL.revokeObjectURL(url);
     };
-  }, [color1, color2]);
+  }, [colors]);
 }
