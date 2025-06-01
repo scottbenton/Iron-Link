@@ -243,6 +243,8 @@ export class GameService {
       colorScheme = ColorScheme.Myriad;
     } else if (gameDTO.color_scheme === ColorScheme.Mystic) {
       colorScheme = ColorScheme.Mystic;
+    } else if (gameDTO.color_scheme === ColorScheme.PrideTraditional) {
+      colorScheme = ColorScheme.PrideTraditional;
     }
 
     return {

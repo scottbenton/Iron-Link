@@ -30,8 +30,7 @@ export function GradientBox(props: GradientBoxProps) {
                 minWidth: "calc(100% * sqrt(2))", // Diagonal length
                 minHeight: "calc(100% * sqrt(2))", // Diagonal length
                 aspectRatio: "1 / 1",
-                background: (theme) =>
-                  `radial-gradient(142% 91% at 111% 84%, ${theme.palette.secondary.dark} 20%, ${theme.palette.primary.light} 80%)`,
+                background: (theme) => theme.palette.gradients.outline,
                 animation: prefersReducedMotion
                   ? "none"
                   : "spin-gradient 5s linear infinite",

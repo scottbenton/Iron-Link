@@ -47,7 +47,7 @@ export const useAppState = createWithEqualityFn<
       previousIds: [],
     },
     visibleRolls: [],
-    colorScheme: ColorScheme.Default,
+    colorScheme: getDefaultColorScheme(),
 
     setAnnouncement: (announcement) => set({ announcement }),
 
@@ -132,4 +132,9 @@ export function useSetColorScheme() {
 
 export function useAddRollSnackbar() {
   return useAppState((state) => state.addRoll);
+}
+
+export function getDefaultColorScheme() {
+  const isJune = new Date().getMonth() === 5;
+  return isJune ? ColorScheme.PrideTraditional : ColorScheme.Default;
 }

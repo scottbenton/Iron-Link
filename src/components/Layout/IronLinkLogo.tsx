@@ -10,9 +10,10 @@ export function IronLinkLogo(props: IronLinkLogoProps) {
   const { sx } = props;
 
   const theme = useTheme();
-
+  const gradientColors = theme.palette.gradients.icon;
   const id = useId();
   const { t } = useTranslation();
+
   return (
     <Box
       aria-label={t("iron-link.title", "Iron Link")}
@@ -57,17 +58,13 @@ export function IronLinkLogo(props: IronLinkLogoProps) {
           y2="120.092"
           gradientUnits="userSpaceOnUse"
         >
-          <stop
-            style={{
-              stopColor: theme.palette.secondary.main,
-            }}
-          />
-          <stop
-            offset="1"
-            style={{
-              stopColor: theme.palette.primary.main,
-            }}
-          />
+          {gradientColors.map((color, idx) => (
+            <stop
+              key={idx}
+              offset={`${(idx / (gradientColors.length - 1)) * 100}%`}
+              stopColor={color}
+            />
+          ))}
         </linearGradient>
         <clipPath id={`${id}clip0_551_463`}>
           <rect width="128" height="128" fill="white" />
