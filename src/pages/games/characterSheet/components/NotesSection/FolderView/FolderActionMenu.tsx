@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
-import { useNotesStore } from "stores/notes.store";
+import { useItemName, useNotesStore } from "stores/notes.store";
 
 import { GameType } from "repositories/game.repository";
 
@@ -32,9 +32,7 @@ export function FolderActionMenu(props: FolderActionMenuProps) {
   const parentFolderId = useNotesStore(
     (store) => store.folderState.folders[folderId].parentFolderId,
   );
-  const folderName = useNotesStore(
-    (store) => store.folderState.folders[folderId].name,
-  );
+  const folderName = useItemName("folder", folderId);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuParentRef = useRef<HTMLButtonElement>(null);
@@ -108,7 +106,7 @@ export function FolderActionMenu(props: FolderActionMenuProps) {
         {canDelete && (
           <MenuItem
             onClick={() => {
-              deleteFolder(folderId);
+              deleteFolder(folderId, folderName);
               setIsMenuOpen(false);
             }}
           >

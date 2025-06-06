@@ -1,5 +1,7 @@
 import { TreeItem } from "@mui/x-tree-view";
 
+import { useItemName } from "stores/notes.store";
+
 import { INoteFolder } from "services/noteFolders.service";
 
 export interface MoveTreeItemProps {
@@ -11,12 +13,13 @@ export interface MoveTreeItemProps {
 export function MoveTreeItem(props: MoveTreeItemProps) {
   const { folderId, folders, tree, currentFolderId } = props;
 
+  const folderName = useItemName("folder", folderId);
   const children = tree[folderId] ?? [];
 
   return (
     <TreeItem
       itemId={folderId}
-      label={folders[folderId].name}
+      label={folderName}
       disabled={folderId === currentFolderId}
     >
       {children.map((childId) => (

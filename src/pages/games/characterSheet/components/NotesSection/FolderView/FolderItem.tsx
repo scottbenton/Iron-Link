@@ -3,16 +3,14 @@ import FolderSharedIcon from "@mui/icons-material/FolderShared";
 import WorldIcon from "@mui/icons-material/Language";
 import { Box, Card, CardActionArea, Typography } from "@mui/material";
 import { useCallback } from "react";
-import { useTranslation } from "react-i18next";
 
-import { useNotesStore } from "stores/notes.store";
+import { useItemName, useNotesStore } from "stores/notes.store";
 
 import { ReadPermissions } from "repositories/shared.types";
 
 import { INoteFolder } from "services/noteFolders.service";
 
 import { FolderActionMenu } from "./FolderActionMenu";
-import { getItemName } from "./getFolderName";
 
 export interface FolderItemProps {
   folderId: string;
@@ -22,7 +20,11 @@ export interface FolderItemProps {
 export function FolderItem(props: FolderItemProps) {
   const { folderId, folder } = props;
 
-  const { t } = useTranslation();
+  const folderName = useItemName(
+    folderId === "world" ? "world" : "folder",
+    folderId,
+  );
+
   const openTab = useNotesStore((store) => store.openItemTab);
   const handleOpen = useCallback(
     (replaceCurrent: boolean) => {
@@ -75,13 +77,7 @@ export function FolderItem(props: FolderItemProps) {
             )}
           </>
         )}
-        <Typography sx={{ flexGrow: 1 }}>
-          {getItemName({
-            name: folder.name,
-            isRootPlayerFolder: folder.isRootPlayerFolder,
-            t,
-          })}
-        </Typography>
+        <Typography sx={{ flexGrow: 1 }}>{folderName}</Typography>
         <Box
           sx={(theme) => ({
             width: `calc(${theme.spacing(1 - 2)} + 40px)`,

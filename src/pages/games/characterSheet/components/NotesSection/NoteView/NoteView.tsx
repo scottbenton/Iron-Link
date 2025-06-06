@@ -9,7 +9,7 @@ import { useIsMobile } from "hooks/useIsMobile";
 
 import { useNotesStore } from "stores/notes.store";
 
-import { NoteToolbar } from "../Layout";
+import { NoteSectionToolbar } from "../Layout";
 import { MobileStickyNoteToolbar } from "./MobileStickyToolbar";
 import { NoteViewToolbar } from "./NoteViewToolbar";
 import { useNotePermission } from "./useNotePermission";
@@ -89,7 +89,7 @@ export function NoteView(props: NoteViewProps) {
         documentPassword={gameId}
         Toolbar={({ editor }) => (
           <>
-            <NoteToolbar>
+            <NoteSectionToolbar>
               {isMobile ? undefined : (
                 <>
                   {notePermissions.canEdit ? (
@@ -101,7 +101,7 @@ export function NoteView(props: NoteViewProps) {
                   ) : undefined}
                 </>
               )}
-            </NoteToolbar>
+            </NoteSectionToolbar>
             <MobileStickyNoteToolbar
               editor={editor}
               openNoteId={openNoteId}

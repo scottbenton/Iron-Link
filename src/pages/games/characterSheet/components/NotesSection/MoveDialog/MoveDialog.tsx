@@ -7,7 +7,7 @@ import {
   FormControlLabel,
   Typography,
 } from "@mui/material";
-import { SimpleTreeView, TreeItem } from "@mui/x-tree-view";
+import { SimpleTreeView } from "@mui/x-tree-view";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,7 +24,6 @@ import { EditPermissions } from "repositories/shared.types";
 
 import { INoteFolder } from "services/noteFolders.service";
 
-import { getItemName } from "../FolderView/getFolderName";
 import { useFolderDescendants } from "../FolderView/useFolderDescendants";
 import { MoveTreeItem } from "./MoveTreeItem";
 
@@ -184,25 +183,13 @@ export function MoveDialog(props: MoveDialogProps) {
           onSelectedItemsChange={(_, itemId) => setSelectedParentFolder(itemId)}
         >
           {rootNodes.map((folderId) => (
-            <TreeItem
-              itemId={folderId}
+            <MoveTreeItem
               key={folderId}
-              label={getItemName({
-                name: folders[folderId].name,
-                isRootPlayerFolder: folders[folderId].isRootPlayerFolder,
-                t,
-              })}
-            >
-              {tree[folderId]?.map((childId) => (
-                <MoveTreeItem
-                  key={childId}
-                  folderId={childId}
-                  folders={folders}
-                  tree={tree}
-                  currentFolderId={type === "folder" ? id : undefined}
-                />
-              ))}
-            </TreeItem>
+              folderId={folderId}
+              folders={folders}
+              tree={tree}
+              currentFolderId={type === "folder" ? id : undefined}
+            />
           ))}
           {!doPermissionsMatch && (
             <FormControlLabel

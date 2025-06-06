@@ -15,7 +15,7 @@ import { useNotesStore } from "stores/notes.store";
 
 import { GameType } from "repositories/game.repository";
 
-import { NoteToolbar } from "../Layout";
+import { NoteSectionToolbar } from "../Layout";
 import { MoveDialog } from "../MoveDialog";
 import { ShareDialog } from "../ShareDialog";
 import { FolderDeleteButton } from "./FolderDeleteButton";
@@ -98,7 +98,7 @@ export function FolderViewToolbar(props: FolderViewToolbarProps) {
   };
 
   return (
-    <NoteToolbar>
+    <NoteSectionToolbar>
       {canEdit && (
         <>
           {!isImmutableFolder && (
@@ -204,6 +204,6 @@ export function FolderViewToolbar(props: FolderViewToolbarProps) {
           />
         </>
       )}
-    </NoteToolbar>
+    </NoteSectionToolbar>
   );
 }

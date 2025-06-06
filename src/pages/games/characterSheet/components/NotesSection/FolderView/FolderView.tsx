@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 import { GridLayout } from "components/Layout";
 import { EmptyState } from "components/Layout/EmptyState";
 
-import { useNotesStore } from "stores/notes.store";
+import { getFolderName, useNotesStore } from "stores/notes.store";
 
 import { i18n } from "i18n/config";
 
@@ -30,7 +30,6 @@ import { INote } from "services/notes.service";
 import { FolderItem } from "./FolderItem";
 import { NoteItem } from "./NoteItem";
 import { SortableNoteItem } from "./SortableNoteItem";
-import { getItemName } from "./getFolderName";
 import { useFolderPermission } from "./useFolderPermissions";
 
 export interface FolderViewProps {
@@ -246,15 +245,7 @@ function sortFolders(aArr: [string, INoteFolder], bArr: [string, INoteFolder]) {
   const b = bArr[1];
 
   const t = i18n.t;
-  const aName = getItemName({
-    name: a.name,
-    isRootPlayerFolder: a.isRootPlayerFolder,
-    t,
-  });
-  const bName = getItemName({
-    name: b.name,
-    isRootPlayerFolder: b.isRootPlayerFolder,
-    t,
-  });
+  const aName = getFolderName(a.name, a.isRootPlayerFolder, t);
+  const bName = getFolderName(b.name, b.isRootPlayerFolder, t);
   return aName.localeCompare(bName);
 }

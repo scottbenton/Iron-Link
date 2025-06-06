@@ -1,5 +1,7 @@
 import deepEqual from "fast-deep-equal";
+import { TFunction } from "i18next";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
@@ -21,8 +23,10 @@ interface Permissions {
   canChangePermissions: boolean;
 }
 
+export type NoteItemType = "note" | "folder" | "world";
+
 export type IOpenNoteItem = {
-  type: "note" | "folder" | "world";
+  type: NoteItemType;
   itemId: string;
 };
 interface NotesStoreState {
@@ -119,14 +123,14 @@ interface NotesStoreActions {
 
   switchToTab: (tabId: string) => void;
   openItemTab: (params: {
-    type: "note" | "folder" | "world";
+    type: NoteItemType;
     id: string;
     replaceCurrent?: boolean;
     openInBackground?: boolean;
     disallowDuplicates?: boolean;
   }) => void;
   closeTab: (tabId: string) => void;
-  closeTabsMatching: (type: "note" | "folder", id: string) => void;
+  closeTabsMatching: (type: NoteItemType, id: string) => void;
 }
 
 const defaultNotesState: NotesStoreState = {
@@ -642,4 +646,47 @@ function getPermissions(
   }
 
   return { canEdit: false, canDelete: false, canChangePermissions: false };
+}
+
+export function getFolderName(
+  folderName: string | undefined,
+  isRootPlayerFolder: boolean,
+  t: TFunction,
+): string {
+  if (isRootPlayerFolder) {
+    return t("notes.root-folder-name", "Notes");
+  }
+  return folderName ?? t("notes.default-folder-name", "Folder");
+}
+
+export function useItemName(
+  itemType: NoteItemType,
+  id: string | undefined,
+): string {
+  const { t } = useTranslation();
+  const noteName = useNotesStore((store) =>
+    itemType === "note" && id ? store.noteState.notes[id]?.title : undefined,
+  );
+  const folderName = useNotesStore((store) => {
+    if (itemType !== "folder" || !id) return undefined;
+    const folder = store.folderState.folders[id];
+    if (!folder) return undefined;
+    if (folder.isRootPlayerFolder) {
+      return t("notes.root-folder-name", "Notes");
+    }
+    return folder.name;
+  });
+
+  const worldName = itemType === "world" ? "World" : undefined; // Placeholder for world name logic
+
+  if (itemType === "world") {
+    return worldName ?? t("notes.world-folder", "World");
+  }
+  if (itemType === "folder") {
+    return folderName ?? t("notes.default-folder-name", "Folder");
+  }
+  if (itemType === "note") {
+    return noteName ?? t("notes.default-note-title", "Unknown Note");
+  }
+  return t("notes.unknown-item-type", "Unknown Item");
 }

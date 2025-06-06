@@ -19,12 +19,10 @@ import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButto
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
 import { useUID } from "stores/auth.store";
-import { useNotesStore } from "stores/notes.store";
+import { useItemName, useNotesStore } from "stores/notes.store";
 
 import { GameType } from "repositories/game.repository";
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
-
-import { getItemName } from "./FolderView/getFolderName";
 
 interface PermissionOption {
   label: string;
@@ -208,7 +206,9 @@ export function ShareDialog(props: ShareDialogProps) {
     }
   };
 
-  if (!parentFolder) {
+  const parentFolderName = useItemName("folder", parentFolder?.id);
+
+  if (!parentFolder || !parentFolderName) {
     return null;
   }
 
@@ -234,11 +234,7 @@ export function ShareDialog(props: ShareDialogProps) {
                   "notes.share-permissions.inherited",
                   "Inherited from {{parentFolderName}}",
                   {
-                    parentFolderName: getItemName({
-                      name: parentFolder.name,
-                      t,
-                      isRootPlayerFolder: parentFolder.isRootPlayerFolder,
-                    }),
+                    parentFolderName,
                   },
                 )}
               </Typography>
@@ -273,11 +269,7 @@ export function ShareDialog(props: ShareDialogProps) {
                   "notes.share-permissions.inherited",
                   "Inherited from {{parentFolderName}}",
                   {
-                    parentFolderName: getItemName({
-                      name: parentFolder.name,
-                      t,
-                      isRootPlayerFolder: parentFolder.isRootPlayerFolder,
-                    }),
+                    parentFolderName,
                   },
                 )}
               </Typography>

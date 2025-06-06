@@ -4,8 +4,6 @@ import { useTranslation } from "react-i18next";
 
 import { useNotesStore } from "stores/notes.store";
 
-import { getItemName } from "./getFolderName";
-
 export function useDeleteFolder() {
   const { t } = useTranslation();
   const confirm = useConfirm();
@@ -20,7 +18,7 @@ export function useDeleteFolder() {
   const folders = useNotesStore((store) => store.folderState.folders);
 
   return useCallback(
-    (folderId: string) => {
+    (folderId: string, folderName: string) => {
       const folder = folders[folderId];
       const parentFolderId = folder?.parentFolderId;
       if (parentFolderId) {
@@ -29,11 +27,7 @@ export function useDeleteFolder() {
             "notes.confirm-folder-delete-title",
             "Delete {{folderName}}",
             {
-              folderName: getItemName({
-                name: folder.name,
-                isRootPlayerFolder: false,
-                t,
-              }),
+              folderName,
             },
           ),
           description: t(

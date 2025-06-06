@@ -3,7 +3,7 @@ import { PropsWithChildren } from "react";
 
 import { NoteBreadcrumbs } from "./NoteBreadcrumbs";
 
-export function NoteToolbar(props: PropsWithChildren) {
+export function NoteSectionToolbar(props: PropsWithChildren) {
   const { children } = props;
 
   return (

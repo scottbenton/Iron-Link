@@ -1,2 +1,2 @@
-export * from "./NoteToolbar";
+export * from "./NoteSectionToolbar";
 export * from "./OpenItemWrapper";

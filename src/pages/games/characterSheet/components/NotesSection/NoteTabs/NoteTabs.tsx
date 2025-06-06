@@ -1,7 +1,5 @@
 import AddIcon from "@mui/icons-material/Add";
-import CloseIcon from "@mui/icons-material/Close";
-import { Box, IconButton, Tab, Tabs } from "@mui/material";
-import { useTranslation } from "react-i18next";
+import { Box, IconButton, Tabs } from "@mui/material";
 
 import { WorldSelectionPage } from "components/worlds/WorldSelectionPage";
 
@@ -9,42 +7,16 @@ import { useUID } from "stores/auth.store";
 import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
 
 import { FolderView, FolderViewToolbar } from "../FolderView";
-import { getItemName } from "../FolderView/getFolderName";
 import { OpenItemWrapper } from "../Layout";
 import { NoteView } from "../NoteView";
+import { NoteTab } from "./NoteTab";
 
 export function NoteTabs() {
-  const { t } = useTranslation();
-
   const openTabs = useNotesStore((store) => store.noteTabItems);
-  console.debug("NoteTabs openTabs", openTabs);
   const tabOrder = useNotesStore((store) => store.noteTabOrder);
-  const itemNames = useNotesStore((store) => {
-    return Object.fromEntries(
-      Object.entries(store.noteTabItems).map(([key, value]) => {
-        if (value.type === "folder") {
-          const folder = store.folderState.folders[value.itemId];
-          return [
-            key,
-            getItemName({
-              name: folder?.name,
-              isRootPlayerFolder: folder?.isRootPlayerFolder ?? false,
-              t,
-            }),
-          ];
-        } else {
-          const note = store.noteState.notes[value.itemId];
-          if (note) {
-            return [key, note.title];
-          }
-          return [key, t("common.unknown", "Unknown")];
-        }
-      }),
-    );
-  });
+
   const activeTab = useNotesStore((store) => store.openTabId);
   const setActiveTab = useNotesStore((store) => store.switchToTab);
-  const closeTab = useNotesStore((store) => store.closeTab);
   const openNewTab = useNotesStore((store) => store.openItemTab);
 
   const uid = useUID();
@@ -54,6 +26,8 @@ export function NoteTabs() {
   const rootPlayerFolder = useNotesStore((store) =>
     uid ? getPlayerNotesFolder(uid, store.folderState.folders) : undefined,
   );
+
+  console.debug(activeTab, openTabs, tabOrder);
 
   return (
     <Box height={"100%"} display="flex" flexDirection="column">
@@ -95,56 +69,11 @@ export function NoteTabs() {
           scrollButtons={false}
         >
           {tabOrder.map((tabId) => (
-            <Tab
-              sx={(theme) => ({
-                textTransform: "none",
-                "&.Mui-selected": {
-                  backgroundColor: "background.paper",
-                  "& .close-tab-button": { visibility: "visible" },
-                },
-                borderRight: 1,
-                borderColor:
-                  theme.palette.grey[
-                    theme.palette.mode === "light" ? 200 : 800
-                  ],
-                py: 0.5,
-                minHeight: 0,
-                pr: 0.5,
-                "& .close-tab-button": {
-                  visibility: "hidden",
-                },
-                "&:hover .close-tab-button": {
-                  visibility: "visible",
-                },
-              })} // Add border to the left of each tab except the first one
-              label={
-                <Box display="flex" alignItems="center" gap={1}>
-                  {itemNames[tabId]}
-                  <IconButton
-                    className="close-tab-button"
-                    component="span"
-                    size="small"
-                    role="button"
-                    onClick={(evt) => {
-                      evt.stopPropagation();
-                      closeTab(tabId);
-                    }}
-                  >
-                    <CloseIcon />
-                  </IconButton>
-                </Box>
-              }
-              value={tabId}
+            <NoteTab
               key={tabId}
-              id={`note-tab-${tabId}`}
-              aria-controls={`note-tabpanel-${tabId}`}
-              onAuxClick={() => closeTab(tabId)}
-              onMouseDown={(event) => {
-                if (event.button === 1) {
-                  event.preventDefault();
-                  return false;
-                }
-              }}
+              itemType={openTabs[tabId].type}
+              itemId={openTabs[tabId].itemId}
+              value={tabId}
             />
           ))}
         </Tabs>
