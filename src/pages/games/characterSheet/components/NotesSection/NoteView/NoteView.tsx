@@ -90,16 +90,12 @@ export function NoteView(props: NoteViewProps) {
         Toolbar={({ editor }) => (
           <>
             <NoteSectionToolbar>
-              {isMobile ? undefined : (
-                <>
-                  {notePermissions.canEdit ? (
-                    <NoteViewToolbar
-                      editor={editor}
-                      openNoteId={openNoteId}
-                      permissions={notePermissions}
-                    />
-                  ) : undefined}
-                </>
+              {isMobile || !notePermissions.canEdit ? undefined : (
+                <NoteViewToolbar
+                  editor={editor}
+                  openNoteId={openNoteId}
+                  permissions={notePermissions}
+                />
               )}
             </NoteSectionToolbar>
             <MobileStickyNoteToolbar

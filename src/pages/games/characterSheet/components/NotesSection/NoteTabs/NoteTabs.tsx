@@ -7,7 +7,7 @@ import { useUID } from "stores/auth.store";
 import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
 
 import { FolderView, FolderViewToolbar } from "../FolderView";
-import { OpenItemWrapper } from "../Layout";
+import { NoteSectionToolbar, OpenItemWrapper } from "../Layout";
 import { NoteView } from "../NoteView";
 import { NoteTab } from "./NoteTab";
 
@@ -26,8 +26,6 @@ export function NoteTabs() {
   const rootPlayerFolder = useNotesStore((store) =>
     uid ? getPlayerNotesFolder(uid, store.folderState.folders) : undefined,
   );
-
-  console.debug(activeTab, openTabs, tabOrder);
 
   return (
     <Box height={"100%"} display="flex" flexDirection="column">
@@ -112,6 +110,7 @@ export function NoteTabs() {
             )}
             {tabItem.type === "world" && (
               <>
+                <NoteSectionToolbar />
                 <WorldSelectionPage />
               </>
             )}

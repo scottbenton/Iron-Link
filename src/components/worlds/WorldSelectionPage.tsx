@@ -2,9 +2,10 @@ import { Box, Button, Divider, Typography } from "@mui/material";
 
 export function WorldSelectionPage() {
   return (
-    <Box>
+    <Box mt={4}>
       <Typography>Choose an existing world</Typography>
-      <Divider>Or</Divider>
+      <Divider sx={{ my: 2 }}>Or</Divider>
+
       <Button>Create a New World</Button>
     </Box>
   );

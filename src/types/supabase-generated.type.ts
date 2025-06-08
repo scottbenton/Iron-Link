@@ -427,6 +427,7 @@ export type Database = {
           playset: Json
           rulesets: Json
           special_track_values: Json
+          world_id: string | null
         }
         Insert: {
           color_scheme?: string | null
@@ -439,6 +440,7 @@ export type Database = {
           playset?: Json
           rulesets?: Json
           special_track_values?: Json
+          world_id?: string | null
         }
         Update: {
           color_scheme?: string | null
@@ -451,8 +453,17 @@ export type Database = {
           playset?: Json
           rulesets?: Json
           special_track_values?: Json
+          world_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "games_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       note_folders: {
         Row: {
@@ -597,6 +608,88 @@ export type Database = {
         }
         Relationships: []
       }
+      world_players: {
+        Row: {
+          created_at: string
+          game_id: string | null
+          id: number
+          role: Database["public"]["Enums"]["world_player_role"]
+          user_id: string
+          world_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_id?: string | null
+          id?: number
+          role: Database["public"]["Enums"]["world_player_role"]
+          user_id: string
+          world_id: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string | null
+          id?: number
+          role?: Database["public"]["Enums"]["world_player_role"]
+          user_id?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_players_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "world_players_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "world_players_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      worlds: {
+        Row: {
+          created_at: string
+          expansions: Json
+          id: string
+          name: string
+          playset: Json
+          rulesets: Json
+          setting_package_id: string | null
+          truths: Json
+        }
+        Insert: {
+          created_at?: string
+          expansions?: Json
+          id?: string
+          name: string
+          playset?: Json
+          rulesets?: Json
+          setting_package_id?: string | null
+          truths?: Json
+        }
+        Update: {
+          created_at?: string
+          expansions?: Json
+          id?: string
+          name?: string
+          playset?: Json
+          rulesets?: Json
+          setting_package_id?: string | null
+          truths?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -643,6 +736,7 @@ export type Database = {
       progress_track_type: "vow" | "journey" | "combat"
       second_screen_options: "character" | "track" | "note_image"
       track_type: "progress_track" | "scene_challenge" | "clock"
+      world_player_role: "owner" | "guide" | "player"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -805,6 +899,7 @@ export const Constants = {
       progress_track_type: ["vow", "journey", "combat"],
       second_screen_options: ["character", "track", "note_image"],
       track_type: ["progress_track", "scene_challenge", "clock"],
+      world_player_role: ["owner", "guide", "player"],
     },
   },
 } as const

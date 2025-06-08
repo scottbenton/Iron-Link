@@ -12,7 +12,7 @@ export function NoteSectionToolbar(props: PropsWithChildren) {
       zIndex={(theme) => theme.zIndex.appBar - 1}
       maxWidth={"100%"}
       borderBottom={(theme) => `1px solid ${theme.palette.divider}`}
-      pb={children ? 0 : 2}
+      pb={children ? 0 : 0.5}
     >
       <Box>
         <NoteBreadcrumbs />

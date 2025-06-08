@@ -19,6 +19,9 @@ const GameCreatePage = lazy(
   () => import("./pages/games/create/CreateGamePage"),
 );
 const WorldSelectPage = lazy(() => import("./pages/worlds/WorldSelectPage"));
+const WorldCreatePage = lazy(
+  () => import("./pages/worlds/create/WorldCreatePage"),
+);
 const HomebrewSelectPage = lazy(
   () => import("./pages/homebrew/HomebrewSelectPage"),
 );
@@ -58,6 +61,7 @@ export function App() {
                 <Route path="/games/create" Component={GameCreatePage} />
                 <Route path="/join/:inviteKey" Component={GameJoinPage} />
                 <Route path="/worlds" Component={WorldSelectPage} />
+                <Route path="/worlds/create" Component={WorldCreatePage} />
                 <Route path="/homebrew" Component={HomebrewSelectPage} />
                 <Route path="/auth" Component={AuthPage} />
                 <Route path="*" Component={Page404} />

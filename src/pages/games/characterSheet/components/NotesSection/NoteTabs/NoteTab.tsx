@@ -10,12 +10,10 @@ export interface NoteTabProps extends TabProps {
 }
 export function NoteTab(props: NoteTabProps) {
   const { itemType, itemId, value, ...tabProps } = props;
-  console.debug(props);
 
   const itemName = useItemName(itemType, itemId);
   const closeTab = useNotesStore((store) => store.closeTab);
 
-  console.debug("TabId", value, "ItemName", itemName);
   return (
     <Tab
       {...tabProps}

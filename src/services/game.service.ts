@@ -208,6 +208,10 @@ export class GameService {
     await GameRepository.updateGame(gameId, { game_type: gameType });
   }
 
+  public static async updateWorldId(gameId: string, worldId: string | null) {
+    await GameRepository.updateGame(gameId, { world_id: worldId });
+  }
+
   public static async updateRules(
     gameId: string,
     rulesets: RulesetConfig,
@@ -250,7 +254,7 @@ export class GameService {
     return {
       id: gameDTO.id,
       name: gameDTO.name,
-      worldId: null,
+      worldId: gameDTO.world_id,
       conditionMeters: (gameDTO.condition_meter_values ?? {}) as Record<
         string,
         number

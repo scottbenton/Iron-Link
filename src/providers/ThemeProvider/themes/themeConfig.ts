@@ -236,8 +236,9 @@ function getGradients(colorScheme: ColorScheme) {
       "oklch(62.3% 0.214 259.815)",
       "oklch(60.6% 0.25 292.717)",
     ];
+    // start gradient at 15% and end at 85% to avoid the first and last colors being too close to the edges
     return {
-      outline: `linear-gradient(90deg, ${colors[0]} 0%, ${colors[1]} 16.67%, ${colors[2]} 33.33%, ${colors[3]} 50%, ${colors[4]} 66.67%, ${colors[5]} 83.33%)`,
+      outline: `linear-gradient(90deg, ${colors[0]} 10%, ${colors[1]}, ${colors[2]}, ${colors[3]}, ${colors[4]}, ${colors[5]} 90%)`,
       icon: colors,
     };
   }

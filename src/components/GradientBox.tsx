@@ -22,13 +22,11 @@ export function GradientBox(props: GradientBoxProps) {
                 content: '""',
                 position: "absolute",
                 display: "block",
-                left: "-10%",
-                right: "-10%",
-                top: 0,
-                bottom: 0,
-                margin: "auto 0",
+                left: "50%",
+                top: "50%",
                 minWidth: "calc(100% * sqrt(2))", // Diagonal length
                 minHeight: "calc(100% * sqrt(2))", // Diagonal length
+                width: "100%",
                 aspectRatio: "1 / 1",
                 background: (theme) => theme.palette.gradients.outline,
                 animation: prefersReducedMotion

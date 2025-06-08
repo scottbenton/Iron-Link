@@ -18,6 +18,7 @@ export enum PageCategory {
   GameCharacterSheet = "game_character_sheet",
   GameCharacterCreate = "game_character_create",
   GameSecondScreen = "game_second_screen",
+  WorldCreate = "world_create",
 }
 
 export function useSendPageViewEvent(page: PageCategory) {

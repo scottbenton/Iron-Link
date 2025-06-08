@@ -41,7 +41,10 @@ export function NoteBreadcrumbs() {
         ? store.folderState.folders[parentFolderId]
         : undefined;
 
-      if (parentFolderId && !parentFolder && rootPlayerFolderId) {
+      if (
+        rootPlayerFolderId &&
+        (item.type === "world" || (parentFolderId && !parentFolder))
+      ) {
         item = { type: "folder", itemId: rootPlayerFolderId };
       } else if (parentFolderId && parentFolder) {
         item = { type: "folder", itemId: parentFolderId };
@@ -62,6 +65,7 @@ export function NoteBreadcrumbs() {
               key={index}
               item={item}
               index={index}
+              isCurrentItem={index === breadcrumbItems.length - 1}
               setOpenItem={setOpenItem}
             />
           ))}
@@ -74,6 +78,7 @@ export function NoteBreadcrumbs() {
 
 function Item(props: {
   item: BreadcrumbItem;
+  isCurrentItem?: boolean;
   index: number;
   setOpenItem: (item: {
     type: NoteItemType;
@@ -82,13 +87,14 @@ function Item(props: {
     replaceCurrent?: boolean;
   }) => void;
 }) {
-  const { item, index, setOpenItem } = props;
-
+  const { item, index, isCurrentItem, setOpenItem } = props;
   const itemName = useItemName(item.type, item.id);
 
-  return index === 0 ? (
-    <Typography>{itemName}</Typography>
-  ) : (
+  if (isCurrentItem) {
+    return <Typography>{itemName}</Typography>;
+  }
+
+  return (
     <Link
       id={index === 0 ? NOTES_ID : undefined}
       component={"button"}
