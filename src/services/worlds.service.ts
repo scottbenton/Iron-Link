@@ -69,8 +69,11 @@ export class WorldsService {
     );
   }
 
-  public static async getUsersWorlds(uid: string): Promise<IWorld[]> {
-    const worlds = await WorldsRepository.getUsersWorlds(uid);
+  public static async getUsersWorlds(
+    uid: string,
+    role?: "guide" | "player" | "owner",
+  ): Promise<IWorld[]> {
+    const worlds = await WorldsRepository.getUsersWorlds(uid, role);
     return worlds.map(this.convertWorldDTOToIWorld);
   }
 

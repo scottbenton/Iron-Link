@@ -1,5 +1,5 @@
 import deepEqual from "fast-deep-equal";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
@@ -29,6 +29,10 @@ interface UsersWorldsStoreActions {
     settingsPackageId: string | null,
   ) => Promise<string>;
   getUsersWorlds: (uid: string) => void;
+  getUsersWorldsFilteredByRole: (
+    uid: string,
+    role?: "guide" | "player" | "owner",
+  ) => Promise<IWorld[]>;
 }
 
 export const useUsersWorlds = createWithEqualityFn<
@@ -75,6 +79,9 @@ export const useUsersWorlds = createWithEqualityFn<
         settingsPackageId,
       );
     },
+    getUsersWorldsFilteredByRole: async (uid, role) => {
+      return WorldsService.getUsersWorlds(uid, role);
+    },
   })),
   deepEqual,
 );
@@ -88,4 +95,47 @@ export function useLoadUsersWorlds() {
     if (!uid) return;
     getUsersWorlds(uid);
   }, [uid, getUsersWorlds]);
+}
+
+export function useUsersWorldsFilteredByRole(
+  role: "guide" | "player" | "owner",
+): {
+  worlds: IWorld[];
+  loading: boolean;
+  error: string | null;
+} {
+  const [state, setState] = useState<{
+    worlds: IWorld[];
+    loading: boolean;
+    error: string | null;
+  }>({
+    worlds: [],
+    loading: true,
+    error: null,
+  });
+
+  const uid = useUID();
+  const getUsersWorldsFilteredByRole = useUsersWorlds(
+    (store) => store.getUsersWorldsFilteredByRole,
+  );
+
+  useEffect(() => {
+    if (!uid) return;
+
+    setState((prev) => ({ ...prev, loading: true, error: null }));
+
+    getUsersWorldsFilteredByRole(uid, role)
+      .then((worlds) => {
+        setState({ worlds: worlds, loading: false, error: null });
+      })
+      .catch((error) => {
+        setState({
+          worlds: [],
+          loading: false,
+          error: error.message || "Failed to load worlds.",
+        });
+      });
+  }, [uid, role, getUsersWorldsFilteredByRole]);
+
+  return state;
 }

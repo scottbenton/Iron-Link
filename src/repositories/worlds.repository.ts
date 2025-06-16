@@ -55,7 +55,7 @@ export class WorldsRepository {
   ): (() => void) => {
     const startInitialLoad = () => {
       this.worlds()
-        .select()
+        .select("*")
         .eq("id", worldId)
         .single()
         .then((result) => {
@@ -95,27 +95,35 @@ export class WorldsRepository {
     );
   };
 
-  public static getUsersWorlds = (uid: string): Promise<WorldDTO[]> => {
+  public static getUsersWorlds = (
+    uid: string,
+    role?: "guide" | "player" | "owner",
+  ): Promise<WorldDTO[]> => {
     return new Promise((resolve, reject) => {
-      this.worlds()
+      const query = this.worlds()
         .select("*, world_players(user_id)")
-        .eq("world_players.user_id", uid)
-        .then(({ data, error, status }) => {
-          if (error) {
-            console.error(error);
-            reject(
-              getRepositoryError(
-                error,
-                ErrorVerb.Read,
-                ErrorNoun.World,
-                true,
-                status,
-              ),
-            );
-          } else {
-            resolve(data || []);
-          }
-        });
+        .eq("world_players.user_id", uid);
+
+      if (role) {
+        query.eq("world_players.role", role);
+      }
+
+      query.then(({ data, error, status }) => {
+        if (error) {
+          console.error(error);
+          reject(
+            getRepositoryError(
+              error,
+              ErrorVerb.Read,
+              ErrorNoun.World,
+              true,
+              status,
+            ),
+          );
+        } else {
+          resolve(data || []);
+        }
+      });
     });
   };
 }

@@ -1,7 +1,7 @@
 import AddIcon from "@mui/icons-material/Add";
 import { Box, IconButton, Tabs } from "@mui/material";
 
-import { WorldSelectionPage } from "components/worlds/WorldSelectionPage";
+import { WorldSelectionPage } from "components/worlds/SelectAWorld";
 
 import { useUID } from "stores/auth.store";
 import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
