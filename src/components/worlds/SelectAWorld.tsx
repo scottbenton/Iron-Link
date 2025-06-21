@@ -2,7 +2,6 @@ import {
   Alert,
   AlertTitle,
   Box,
-  Button,
   Card,
   CardActionArea,
   Divider,
@@ -14,6 +13,8 @@ import { useTranslation } from "react-i18next";
 
 import { useUsersWorldsFilteredByRole } from "stores/users.worlds.store";
 
+import { CreateWorldInGame } from "./CreateWorldInGame";
+
 export function WorldSelectionPage() {
   const { t } = useTranslation();
 
@@ -24,7 +25,7 @@ export function WorldSelectionPage() {
   }
 
   return (
-    <Box mt={2}>
+    <Box mt={2} px={2} pb={4}>
       {worlds.length > 0 && (
         <>
           <Typography>
@@ -56,7 +57,7 @@ export function WorldSelectionPage() {
         </Alert>
       )}
 
-      <Button>Create a New World</Button>
+      <CreateWorldInGame />
     </Box>
   );
 }

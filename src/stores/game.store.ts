@@ -72,6 +72,7 @@ interface GameStoreActions {
     expansions: ExpansionConfig,
     playset: PlaysetConfig,
   ) => Promise<void>;
+  updateGameWorld: (gameId: string, worldId: string | null) => Promise<void>;
 
   updateGamePlayerRole: (
     gameId: string,
@@ -188,6 +189,10 @@ export const useGameStore = createWithEqualityFn<
     },
     deleteGame: (gameId) => {
       return GameService.deleteGame(gameId);
+    },
+
+    updateGameWorld: (gameId, worldId) => {
+      return GameService.updateWorldId(gameId, worldId);
     },
 
     getGameInviteKey: (gameId) => {
