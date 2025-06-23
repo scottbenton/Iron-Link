@@ -51,7 +51,7 @@ export class WorldsService {
     return worldId;
   }
 
-  public static async listenToWorld(
+  public static listenToWorld(
     worldId: string,
     onWorldUpdate: (world: IWorld | null) => void,
     onError: (error: RepositoryError) => void,
@@ -67,6 +67,32 @@ export class WorldsService {
       },
       onError,
     );
+  }
+
+  public static listenToWorldPlayerRole(
+    worldId: string,
+    gameId: string,
+    userId: string,
+    onWorldPlayerUpdate: (worldPlayer: WorldPlayerRole | null) => void,
+    onError: (error: RepositoryError) => void,
+  ): () => void {
+    return WorldPlayersRepository.listenToWorldPlayerRole(
+      worldId,
+      gameId,
+      userId,
+      (worldPlayer) => {
+        if (worldPlayer) {
+          onWorldPlayerUpdate(worldPlayer.role as WorldPlayerRole);
+        } else {
+          onWorldPlayerUpdate(null);
+        }
+      },
+      onError,
+    );
+  }
+
+  public static async updateWorldName(worldId: string, name: string) {
+    return WorldsRepository.updateWorld(worldId, { name });
   }
 
   public static async getUsersWorlds(

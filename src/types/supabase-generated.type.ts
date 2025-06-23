@@ -695,7 +695,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      player_role_to_world_player_role: {
+        Args: { player_role: string }
+        Returns: string
+      }
     }
     Enums: {
       character_initiative_status:

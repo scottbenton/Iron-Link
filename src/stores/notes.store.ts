@@ -16,6 +16,7 @@ import { INote, INoteContent, NotesService } from "services/notes.service";
 
 import { useAuthStore, useUID } from "./auth.store";
 import { GamePermission } from "./game.store";
+import { useWorldStore } from "./world.store";
 
 interface Permissions {
   canEdit: boolean;
@@ -676,11 +677,10 @@ export function useItemName(
     }
     return folder.name;
   });
-
-  const worldName = itemType === "world" ? "World" : undefined; // Placeholder for world name logic
+  const nameOfWorld = useWorldStore((store) => store.world?.name);
 
   if (itemType === "world") {
-    return worldName ?? t("notes.world-folder", "World");
+    return nameOfWorld ?? t("notes.world-folder", "World");
   }
   if (itemType === "folder") {
     return folderName ?? t("notes.default-folder-name", "Folder");

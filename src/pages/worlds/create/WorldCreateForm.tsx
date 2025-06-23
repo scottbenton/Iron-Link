@@ -250,7 +250,6 @@ function getRulesPackagesWithTruths(
 }
 
 function getSettingName(packageKey: string, t: TFunction): string {
-  console.debug(packageKey);
   if (packageKey === "classic") {
     return t("worlds.create.setting.ironlands", "The Ironlands");
   }

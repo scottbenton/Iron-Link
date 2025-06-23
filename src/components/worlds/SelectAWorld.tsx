@@ -1,24 +1,28 @@
-import {
-  Alert,
-  AlertTitle,
-  Box,
-  Card,
-  CardActionArea,
-  Divider,
-  LinearProgress,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Divider, LinearProgress, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { GridLayout } from "components/Layout";
+
+import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
+
+import { useGameStore } from "stores/game.store";
 import { useUsersWorldsFilteredByRole } from "stores/users.worlds.store";
 
 import { CreateWorldInGame } from "./CreateWorldInGame";
+import { WorldCard } from "./WorldCard";
 
 export function WorldSelectionPage() {
   const { t } = useTranslation();
 
+  const gameId = useGameId();
   const { worlds, loading, error } = useUsersWorldsFilteredByRole("owner");
+
+  const setGameWorldId = useGameStore((store) => store.updateGameWorld);
+  const handleWorldSelect = (worldId: string) => {
+    setGameWorldId(gameId, worldId).catch((err) =>
+      console.error(`Failed to select world: ${err}`),
+    );
+  };
 
   if (loading) {
     return <LinearProgress />;
@@ -28,35 +32,44 @@ export function WorldSelectionPage() {
     <Box mt={2} px={2} pb={4}>
       {worlds.length > 0 && (
         <>
-          <Typography>
-            {t("game.worlds.use-existing", "Choose an existing world")}
+          <Typography
+            variant="h6"
+            mb={1}
+            fontFamily={(theme) => theme.typography.fontFamilyTitle}
+          >
+            {t("game.worlds.use-existing", "Use an existing world")}
           </Typography>
-          <Stack spacing={1} mt={1}>
-            {worlds.map((world) => (
-              <Card variant="outlined" key={world.id}>
-                <CardActionArea sx={{ px: 2, py: 1 }}>
-                  <Typography
-                    fontFamily={(theme) => theme.typography.fontFamilyTitle}
-                    variant="h6"
-                  >
-                    {world.name}
-                  </Typography>
-                </CardActionArea>
-              </Card>
-            ))}
-          </Stack>
-          <Divider sx={{ my: 2 }}>{t("common.or", "Or")}</Divider>
+          <GridLayout
+            items={worlds}
+            gap={1}
+            renderItem={(world) => (
+              <WorldCard
+                key={world.id}
+                world={world}
+                onClick={() => handleWorldSelect(world.id)}
+              />
+            )}
+            loading={loading}
+            error={
+              error
+                ? t(
+                    "world.list.error-loading-worlds",
+                    "Failed to load worlds. Please try again later.",
+                  )
+                : undefined
+            }
+            minWidth={300}
+          />
+          <Divider sx={{ my: 4 }}>{t("common.or", "Or")}</Divider>
         </>
       )}
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          <AlertTitle>
-            {t("game.worlds.error", "Error loading worlds")}
-          </AlertTitle>
-          {error}
-        </Alert>
-      )}
-
+      <Typography
+        variant="h6"
+        fontFamily={(theme) => theme.typography.fontFamilyTitle}
+        mb={1}
+      >
+        {t("game.worlds.create-new", "Create a new World")}
+      </Typography>
       <CreateWorldInGame />
     </Box>
   );

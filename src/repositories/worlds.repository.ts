@@ -126,4 +126,31 @@ export class WorldsRepository {
       });
     });
   };
+
+  public static updateWorld(
+    worldId: string,
+    update: UpdateWorldDTO,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.worlds()
+        .update(update)
+        .eq("id", worldId)
+        .then((result) => {
+          if (result.error) {
+            console.error(result.error);
+            reject(
+              getRepositoryError(
+                result.error,
+                ErrorVerb.Update,
+                ErrorNoun.World,
+                false,
+                result.status,
+              ),
+            );
+          } else {
+            resolve();
+          }
+        });
+    });
+  }
 }
