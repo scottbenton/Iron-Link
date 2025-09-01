@@ -3,8 +3,6 @@ import { useTranslation } from "react-i18next";
 
 import { useWorldPlayerRole, useWorldStore } from "stores/world.store";
 
-import { WorldPlayerRole } from "services/worlds.service";
-
 export function WorldPage() {
   const { t } = useTranslation();
 
