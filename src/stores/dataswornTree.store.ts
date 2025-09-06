@@ -40,6 +40,7 @@ export type OracleRollableMap = Record<
 >;
 
 interface DataswornTreeStoreState {
+  rulesError: string | null;
   activeRules: Record<string, Datasworn.RulesPackage>;
   autoRollCursedDie: boolean;
 
@@ -73,12 +74,14 @@ interface DataswornTreeStoreActions {
     tree: Record<string, Datasworn.RulesPackage>,
     playset: PlaysetConfig,
   ) => void;
+  setRulesError: (error: string | null) => void;
 }
 
 export const useDataswornTreeStore = createWithEqualityFn<
   DataswornTreeStoreState & DataswornTreeStoreActions
 >()(
   immer((set) => ({
+    rulesError: null,
     activeRules: {},
     autoRollCursedDie: true,
 
@@ -186,22 +189,17 @@ export const useDataswornTreeStore = createWithEqualityFn<
         store.specialTrackRules = parseSpecialTrackRules(store.activeRules);
       });
     },
+    setRulesError: (error: string | null) => {
+      set((state) => {
+        state.rulesError = error;
+      });
+    },
   })),
   deepEqual,
 );
 
 export function useDataswornTree() {
   return useDataswornTreeStore((state) => state.activeRules);
-}
-
-export function useUpdateDataswornTree(
-  tree: Record<string, Datasworn.RulesPackage>,
-  playset: PlaysetConfig,
-) {
-  const setTree = useSetDataswornTree();
-  useEffect(() => {
-    setTree(tree, playset);
-  }, [tree, playset, setTree]);
 }
 
 export function useSetDataswornTree() {
