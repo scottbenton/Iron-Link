@@ -280,6 +280,17 @@ function extractValidActionRollOptions(
         conditionMap.stats[option.stat] = option;
       } else if (option.using === "condition_meter" && character) {
         conditionMap.conditionMeters[option.condition_meter] = option;
+      }
+      // Datasworn doesn't handle manually adding ship supply, so we need to add it ourselves
+      else if (
+        option.using === "condition_meter" &&
+        option.condition_meter === "supply"
+      ) {
+        conditionMap.assetControls["supply"] = {
+          assets: ["asset:sundered_isles/command_vehicle/flagship"],
+          control: "supply",
+          using: "asset_control",
+        };
       } else if (option.using === "custom" && !character) {
         conditionMap.custom[option.label] = option;
       } else if (

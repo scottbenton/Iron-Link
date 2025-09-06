@@ -1,6 +1,6 @@
 import { Datasworn } from "@datasworn/core";
 import deepEqual from "fast-deep-equal";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
@@ -8,16 +8,8 @@ import { useActiveAssetMoveCategories } from "components/datasworn/hooks/useActi
 import { useActiveAssetOracleCollections } from "components/datasworn/hooks/useActiveAssetOracleCollections";
 
 import { ironLinkAskTheOracleRulesPackage } from "data/askTheOracle";
-import {
-  defaultBaseRulesets,
-  defaultExpansions,
-} from "data/datasworn.packages";
 
-import {
-  ExpansionConfig,
-  PlaysetConfig,
-  RulesetConfig,
-} from "repositories/game.repository";
+import { PlaysetConfig } from "repositories/game.repository";
 
 import { parseConditionMeterRules } from "./dataswornTreeHelpers/conditionMetersRules";
 import { parseImpactRules } from "./dataswornTreeHelpers/impactRules";
@@ -48,6 +40,7 @@ export type OracleRollableMap = Record<
 >;
 
 interface DataswornTreeStoreState {
+  rulesError: string | null;
   activeRules: Record<string, Datasworn.RulesPackage>;
   autoRollCursedDie: boolean;
 
@@ -81,12 +74,14 @@ interface DataswornTreeStoreActions {
     tree: Record<string, Datasworn.RulesPackage>,
     playset: PlaysetConfig,
   ) => void;
+  setRulesError: (error: string | null) => void;
 }
 
 export const useDataswornTreeStore = createWithEqualityFn<
   DataswornTreeStoreState & DataswornTreeStoreActions
 >()(
   immer((set) => ({
+    rulesError: null,
     activeRules: {},
     autoRollCursedDie: true,
 
@@ -194,22 +189,17 @@ export const useDataswornTreeStore = createWithEqualityFn<
         store.specialTrackRules = parseSpecialTrackRules(store.activeRules);
       });
     },
+    setRulesError: (error: string | null) => {
+      set((state) => {
+        state.rulesError = error;
+      });
+    },
   })),
   deepEqual,
 );
 
 export function useDataswornTree() {
   return useDataswornTreeStore((state) => state.activeRules);
-}
-
-export function useUpdateDataswornTree(
-  tree: Record<string, Datasworn.RulesPackage>,
-  playset: PlaysetConfig,
-) {
-  const setTree = useSetDataswornTree();
-  useEffect(() => {
-    setTree(tree, playset);
-  }, [tree, playset, setTree]);
 }
 
 export function useSetDataswornTree() {
@@ -331,31 +321,4 @@ export function useSpecialTrackRules() {
 
 export function useStatRules() {
   return useDataswornTreeStore((state) => state.statRules);
-}
-
-export function useSyncActiveRulesPackages(
-  rulesets: RulesetConfig,
-  expansions: ExpansionConfig,
-  playset: PlaysetConfig,
-) {
-  const activeRulesPackages = useMemo(() => {
-    const activePackages: Record<string, Datasworn.RulesPackage> = {};
-
-    Object.entries(rulesets ?? {}).forEach(([id, isActive]) => {
-      if (isActive) {
-        activePackages[id] = defaultBaseRulesets[id];
-        Object.entries(expansions?.[id] ?? {}).forEach(
-          ([expansionId, isExpansionActive]) => {
-            if (isExpansionActive) {
-              activePackages[expansionId] = defaultExpansions[id][expansionId];
-            }
-          },
-        );
-      }
-    });
-
-    return activePackages;
-  }, [rulesets, expansions]);
-
-  useUpdateDataswornTree(activeRulesPackages, playset);
 }

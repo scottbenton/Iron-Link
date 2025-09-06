@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { useDataswornTree } from "stores/dataswornTree.store";
 
-import { starforgedId } from "data/datasworn.packages";
+import { starforgedRulesetConfig } from "data/package.config";
 
 import { InitiativeStatus } from "repositories/character.repository";
 
@@ -10,7 +10,7 @@ export function useInitiativeStatusText(shortVariants?: boolean) {
   const { t } = useTranslation();
 
   const rulesets = useDataswornTree();
-  if (rulesets[starforgedId]) {
+  if (rulesets[starforgedRulesetConfig.id]) {
     return {
       [InitiativeStatus.HasInitiative]: t("datasworn.in-control", "In Control"),
       [InitiativeStatus.DoesNotHaveInitiative]: t(

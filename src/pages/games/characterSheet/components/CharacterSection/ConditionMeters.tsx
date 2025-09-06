@@ -7,7 +7,10 @@ import { DebouncedConditionMeter } from "components/datasworn/ConditonMeter";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId.ts";
 
-import { useConditionMeterRules } from "stores/dataswornTree.store.ts";
+import {
+  useConditionMeterRules,
+  useDataswornTreeStore,
+} from "stores/dataswornTree.store.ts";
 import { useGameStore } from "stores/game.store.ts";
 import {
   useGameCharacter,
@@ -15,6 +18,7 @@ import {
 } from "stores/gameCharacters.store.ts";
 
 import { momentumTrack } from "data/defaultTracks";
+import { elegyRulesetConfig } from "data/package.config.ts";
 
 import { DEFAULT_MOMENTUM } from "../../../../../data/constants.ts";
 import { useCharacterId } from "../../hooks/useCharacterId.ts";
@@ -53,6 +57,9 @@ export function ConditionMeters() {
   const { resetValue, max } = useMomentumParameters();
 
   const conditionMeterRules = useConditionMeterRules();
+  const isElegyActive = useDataswornTreeStore(
+    (store) => !!store.activeRules[elegyRulesetConfig.id],
+  );
 
   const { t } = useTranslation();
 
@@ -109,7 +116,11 @@ export function ConditionMeters() {
           />
         ))}
         <DebouncedConditionMeter
-          label={t("character.character-sidebar.momentum-track", "Momentum")}
+          label={
+            isElegyActive
+              ? t("character.character-sidebar.elegy-focus-track", "Focus")
+              : t("character.character-sidebar.momentum-track", "Momentum")
+          }
           min={momentumTrack.min}
           max={max}
           defaultValue={resetValue}

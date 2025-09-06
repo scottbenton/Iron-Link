@@ -7,10 +7,7 @@ import { pathConfig } from "pages/pathConfig";
 
 import { useUsersGames } from "stores/users.games.store";
 
-import {
-  defaultBaseRulesets,
-  defaultExpansions,
-} from "data/datasworn.packages";
+import { includedExpansions, includedRulesets } from "data/package.config";
 
 import { IGame } from "services/game.service";
 
@@ -35,14 +32,14 @@ export function GameCard(props: GameCardProps) {
 
     Object.entries(rulesets).forEach(([rulesetId, isRulesetActive]) => {
       if (isRulesetActive) {
-        const ruleset = defaultBaseRulesets[rulesetId];
-        packageNames.push(ruleset.title);
+        const ruleset = includedRulesets[rulesetId];
+        packageNames.push(ruleset.name);
 
         Object.entries(expansions[rulesetId] ?? {}).forEach(
           ([expansionId, isExpansionActive]) => {
             if (isExpansionActive) {
-              const expansion = defaultExpansions[rulesetId]?.[expansionId];
-              packageNames.push(expansion.title);
+              const expansion = includedExpansions[rulesetId]?.[expansionId];
+              packageNames.push(expansion.name);
             }
           },
         );
