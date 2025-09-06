@@ -1,9 +1,10 @@
-import { Datasworn } from "@datasworn/core";
 import { Dialog } from "@mui/material";
 import { Dispatch, SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
+
+import { IExpansionConfig, IRulesetConfig } from "data/package.config";
 
 import { PlaysetConfig } from "repositories/game.repository";
 
@@ -14,8 +15,8 @@ export interface PlaysetDialogProps {
   onClose: () => void;
   playset: PlaysetConfig;
   setPlayset: Dispatch<SetStateAction<PlaysetConfig>>;
-  rulesets: Record<string, Datasworn.Ruleset>;
-  expansions: Record<string, Datasworn.Expansion>;
+  rulesets: Record<string, IRulesetConfig>;
+  expansions: Record<string, IExpansionConfig>;
 }
 
 export function PlaysetDialog(props: PlaysetDialogProps) {

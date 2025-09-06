@@ -1,12 +1,9 @@
 import { Datasworn } from "@datasworn/core";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 
 import { useUpdateDataswornTree } from "stores/dataswornTree.store";
 
-import {
-  defaultBaseRulesets,
-  defaultExpansions,
-} from "data/datasworn.packages";
+import { allDefaultPackages, includedExpansions } from "data/package.config";
 
 import {
   ExpansionConfig,
@@ -19,23 +16,33 @@ export function useSyncActiveRulesPackages(
   expansions: ExpansionConfig,
   playset: PlaysetConfig,
 ) {
-  const activeRulesPackages = useMemo(() => {
-    const activePackages: Record<string, Datasworn.RulesPackage> = {};
+  const [activeRulesPackages, setActiveRulesPackages] = useState<
+    Record<string, Datasworn.RulesPackage>
+  >({});
+
+  useEffect(() => {
+    const packagePromises: Promise<Datasworn.RulesPackage>[] = [];
 
     Object.entries(rulesets ?? {}).forEach(([id, isActive]) => {
       if (isActive) {
-        activePackages[id] = defaultBaseRulesets[id];
+        packagePromises.push(allDefaultPackages[id].load());
         Object.entries(expansions?.[id] ?? {}).forEach(
           ([expansionId, isExpansionActive]) => {
-            if (isExpansionActive) {
-              activePackages[expansionId] = defaultExpansions[id][expansionId];
+            if (isExpansionActive && includedExpansions[expansionId]) {
+              packagePromises.push(allDefaultPackages[expansionId].load());
             }
           },
         );
       }
     });
 
-    return activePackages;
+    Promise.all(packagePromises).then((packages) => {
+      const activePackages: Record<string, Datasworn.RulesPackage> = {};
+      packages.forEach((pkg) => {
+        activePackages[pkg._id] = pkg;
+      });
+      setActiveRulesPackages(activePackages);
+    });
   }, [rulesets, expansions]);
 
   useUpdateDataswornTree(activeRulesPackages, playset);

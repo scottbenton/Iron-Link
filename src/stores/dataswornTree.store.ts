@@ -8,16 +8,8 @@ import { useActiveAssetMoveCategories } from "components/datasworn/hooks/useActi
 import { useActiveAssetOracleCollections } from "components/datasworn/hooks/useActiveAssetOracleCollections";
 
 import { ironLinkAskTheOracleRulesPackage } from "data/askTheOracle";
-import {
-  defaultBaseRulesets,
-  defaultExpansions,
-} from "data/datasworn.packages";
 
-import {
-  ExpansionConfig,
-  PlaysetConfig,
-  RulesetConfig,
-} from "repositories/game.repository";
+import { PlaysetConfig } from "repositories/game.repository";
 
 import { parseConditionMeterRules } from "./dataswornTreeHelpers/conditionMetersRules";
 import { parseImpactRules } from "./dataswornTreeHelpers/impactRules";
@@ -331,31 +323,4 @@ export function useSpecialTrackRules() {
 
 export function useStatRules() {
   return useDataswornTreeStore((state) => state.statRules);
-}
-
-export function useSyncActiveRulesPackages(
-  rulesets: RulesetConfig,
-  expansions: ExpansionConfig,
-  playset: PlaysetConfig,
-) {
-  const activeRulesPackages = useMemo(() => {
-    const activePackages: Record<string, Datasworn.RulesPackage> = {};
-
-    Object.entries(rulesets ?? {}).forEach(([id, isActive]) => {
-      if (isActive) {
-        activePackages[id] = defaultBaseRulesets[id];
-        Object.entries(expansions?.[id] ?? {}).forEach(
-          ([expansionId, isExpansionActive]) => {
-            if (isExpansionActive) {
-              activePackages[expansionId] = defaultExpansions[id][expansionId];
-            }
-          },
-        );
-      }
-    });
-
-    return activePackages;
-  }, [rulesets, expansions]);
-
-  useUpdateDataswornTree(activeRulesPackages, playset);
 }
