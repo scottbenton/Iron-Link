@@ -6,6 +6,7 @@ import {
   Chip,
   Collapse,
   FormControlLabel,
+  Link,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -16,6 +17,8 @@ import { IExpansionConfig } from "data/package.config";
 import { defaultPlaysets } from "data/playset.config";
 
 import { PlaysetConfig } from "repositories/game.repository";
+
+import { LicenseInfo } from "./LicenseInfo";
 
 export interface ExpansionCheckboxListRendererProps {
   rulesetKey: string;
@@ -56,6 +59,11 @@ export function ExpansionCheckboxListRenderer(
 
   return (
     <>
+      {renderMode === "homebrew" && filteredExpansions.length > 0 && (
+        <Typography color="text.secondary" mt={1}>
+          {t("ruleset-selector.homebrew-expansions", "Third-Party Expansions")}
+        </Typography>
+      )}
       {filteredExpansions.map(([expansionKey, expansion]) => (
         <Box key={expansionKey}>
           <FormControlLabel
@@ -76,6 +84,7 @@ export function ExpansionCheckboxListRenderer(
             }
             disabled={!activeRulesetConfig[rulesetKey]} // Disable if the ruleset is not active
           />
+          <LicenseInfo packageConfig={expansion} />
           {defaultPlaysets[expansion.id] && (
             <Collapse in={activeExpansionConfig[rulesetKey]?.[expansionKey]}>
               <Box ml={4}>

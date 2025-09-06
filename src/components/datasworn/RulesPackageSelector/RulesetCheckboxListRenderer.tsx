@@ -1,11 +1,14 @@
 import { Box, Checkbox, FormControlLabel } from "@mui/material";
+import { Typography } from "@mui/material";
 import { Dispatch, SetStateAction } from "react";
+import { useTranslation } from "react-i18next";
 
 import { IExpansionConfig, IRulesetConfig } from "data/package.config";
 
 import { PlaysetConfig } from "repositories/game.repository";
 
 import { ExpansionCheckboxListRenderer } from "./ExpansionCheckboxListRenderer";
+import { LicenseInfo } from "./LicenseInfo";
 
 export interface RulesetCheckboxListRendererProps {
   rulesets: Record<string, IRulesetConfig>;
@@ -38,8 +41,15 @@ export function RulesetCheckboxListRenderer(
     activePlaysetConfig,
   } = props;
 
+  const { t } = useTranslation();
+
   return (
     <>
+      <Typography color="text.secondary" mt={renderMode === "homebrew" ? 2 : 0}>
+        {renderMode === "homebrew"
+          ? t("ruleset-selector.homebrew", "Third-Party Rulesets")
+          : t("ruleset-selector.official", "Official Rulesets")}
+      </Typography>
       {Object.entries(rulesets)
         .filter(([, ruleset]) =>
           renderMode === "homebrew" ? ruleset.isHomebrew : !ruleset.isHomebrew,
@@ -53,6 +63,8 @@ export function RulesetCheckboxListRenderer(
               }
               onChange={(_, checked) => onRulesetChange(rulesetKey, checked)}
             />
+
+            <LicenseInfo packageConfig={ruleset} />
             <Box
               ml={1}
               borderColor={"divider"}

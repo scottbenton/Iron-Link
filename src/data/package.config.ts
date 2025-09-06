@@ -5,6 +5,12 @@ interface BaseConfig {
   name: string;
   type: "ruleset" | "expansion";
   isHomebrew: boolean;
+  licenseInfo?: {
+    license: string;
+    licenseUrl: string;
+    url?: string;
+    author: string;
+  };
 }
 export interface IRulesetConfig extends BaseConfig {
   type: "ruleset";
@@ -88,6 +94,12 @@ export const starsmithConfig: IExpansionConfig = {
     } as Datasworn.Expansion;
   },
   isHomebrew: true,
+  licenseInfo: {
+    license: " CC BY 4.0",
+    licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
+    url: "https://playeveryrole.com/starsmith-products/",
+    author: "Eric Bright",
+  },
 };
 
 export const elegyRulesetConfig: IRulesetConfig = {
@@ -101,6 +113,12 @@ export const elegyRulesetConfig: IRulesetConfig = {
     } as Datasworn.Ruleset;
   },
   isHomebrew: true,
+  licenseInfo: {
+    license: " CC BY 4.0",
+    licenseUrl: "https://creativecommons.org/licenses/by/4.0/deed.en",
+    url: "https://miraclem.itch.io/elegy",
+    author: "Moro de Oliveira",
+  },
 };
 
 export const includedRulesets: Record<string, IRulesetConfig> = {
