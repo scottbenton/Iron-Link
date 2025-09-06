@@ -1,6 +1,6 @@
 import { Datasworn } from "@datasworn/core";
 import deepEqual from "fast-deep-equal";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
