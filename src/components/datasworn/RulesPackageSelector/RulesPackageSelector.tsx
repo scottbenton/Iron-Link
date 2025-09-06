@@ -1,5 +1,3 @@
-import SelectedIcon from "@mui/icons-material/CheckCircle";
-import InfoIcon from "@mui/icons-material/Info";
 import { Box, Button, SxProps, Theme } from "@mui/material";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
