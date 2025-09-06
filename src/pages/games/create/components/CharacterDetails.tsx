@@ -9,23 +9,34 @@ import {
 import { useCreateCharacterStore } from "stores/createCharacter.store";
 import { useDataswornTree } from "stores/dataswornTree.store";
 
-import { ironswornId, starforgedId } from "data/datasworn.packages";
+import {
+  elegyRulesetConfig,
+  ironswornRulesetConfig,
+  starforgedRulesetConfig,
+} from "data/package.config";
 
 import { ImageInput } from "./ImageInput";
 
 const nameOracles: Record<string, OracleTextFieldOracleConfig> = {
-  [ironswornId]: {
+  [ironswornRulesetConfig.id]: {
     tableIds: [
       "oracle_rollable:classic/name/ironlander/a",
       "oracle_rollable:classic/name/ironlander/b",
     ],
   },
-  [starforgedId]: {
+  [starforgedRulesetConfig.id]: {
     tableIds: [
       "oracle_rollable:starforged/character/name/given_name",
       "oracle_rollable:starforged/character/name/family_name",
     ],
     joinTables: true,
+  },
+  [elegyRulesetConfig.id]: {
+    tableIds: [
+      "oracle_rollable:elegy/name/male",
+      "oracle_rollable:elegy/name/female",
+    ],
+    joinTables: false,
   },
 };
 
@@ -44,12 +55,11 @@ export function CharacterDetails() {
     const oracles: OracleTextFieldOracleConfig = {
       tableIds: [],
     };
-    if (rulesets[ironswornId]) {
-      oracles.tableIds.push(nameOracles[ironswornId]);
-    }
-    if (rulesets[starforgedId]) {
-      oracles.tableIds.push(nameOracles[starforgedId]);
-    }
+    Object.keys(rulesets).forEach((ruleset) => {
+      if (rulesets[ruleset] && nameOracles[ruleset]) {
+        oracles.tableIds.push(nameOracles[ruleset]);
+      }
+    });
     return oracles;
   }, [rulesets]);
 

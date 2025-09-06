@@ -10,8 +10,10 @@ import {
   FormControlLabel,
   Typography,
 } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { IExpansionConfig, IRulesetConfig } from "data/package.config";
 
 import { PlaysetConfig } from "repositories/game.repository";
 
@@ -20,8 +22,8 @@ import { PlaysetSection } from "./PlaysetSection";
 export interface PlaysetEditorProps {
   playset: PlaysetConfig;
   setPlayset: (playset: PlaysetConfig) => void;
-  rulesets: Record<string, Datasworn.Ruleset>;
-  expansions: Record<string, Datasworn.Expansion>;
+  rulesets: Record<string, IRulesetConfig>;
+  expansions: Record<string, IExpansionConfig>;
   onClose: () => void;
 }
 
@@ -30,15 +32,46 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
 
   const { t } = useTranslation();
 
-  const tree = useMemo(() => {
-    const tree: Record<string, Datasworn.RulesPackage> = {
-      ...rulesets,
-      ...expansions,
-    };
-    return tree;
-  }, [rulesets, expansions]);
+  const [tree, setTree] = useState<{
+    loading: boolean;
+    error: string | null;
+    data: Record<string, Datasworn.RulesPackage>;
+  }>({
+    loading: true,
+    error: null,
+    data: {},
+  });
+
+  useEffect(() => {
+    // Load all
+    const promises: Promise<Datasworn.RulesPackage>[] = [];
+
+    Object.values(rulesets).forEach((ruleset) => {
+      promises.push(ruleset.load());
+    });
+    Object.values(expansions).forEach((expansion) => {
+      promises.push(expansion.load());
+    });
+    Promise.all(promises)
+      .then((loadedPackages) => {
+        const tree: Record<string, Datasworn.RulesPackage> = {};
+        loadedPackages.forEach((pkg) => {
+          tree[pkg._id] = pkg;
+        });
+        setTree({ loading: false, error: null, data: tree });
+      })
+      .catch((error) => {
+        console.error(error);
+        setTree({
+          loading: false,
+          error: t("rules-package-load-failure", "Failed to load rulesets"),
+          data: {},
+        });
+      });
+  }, [rulesets, expansions, t]);
+
   const showCursedDieOptions = useMemo(() => {
-    return Object.values(tree).some((rulesPackage) => {
+    return Object.values(tree.data).some((rulesPackage) => {
       return !!rulesPackage.rules?.tags?.cursed_version_of;
     });
   }, [tree]);
@@ -54,7 +87,7 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
   const { replacedAssetCollections, replacedAssets } = useMemo(() => {
     const { replacedCollections, replacedItems } =
       getReplacedCollectionsAndItemsFromExpansions(
-        tree,
+        tree.data,
         "assets",
         excludedAssetCollections,
         excludedAssets,
@@ -74,7 +107,7 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
   const { replacedMoveCollections, replacedMoves } = useMemo(() => {
     const { replacedCollections, replacedItems } =
       getReplacedCollectionsAndItemsFromExpansions(
-        tree,
+        tree.data,
         "moves",
         excludedMoveCollections,
         excludedMoves,
@@ -94,7 +127,7 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
   const { replacedOracleCollections, replacedOracles } = useMemo(() => {
     const { replacedCollections, replacedItems } =
       getReplacedCollectionsAndItemsFromExpansions(
-        tree,
+        tree.data,
         "oracles",
         excludedOracleCollections,
         excludedOracles,
@@ -146,7 +179,7 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
         <Box mt={1}>
           <PlaysetSection
             label={t("playset-editor.assets", "Assets")}
-            rulesPackages={tree}
+            rulesPackages={tree.data}
             collectionKey="assets"
             excludedCollections={excludedAssetCollections}
             toggleExcludedCollection={(collectionId, isExcluded) => {
@@ -167,7 +200,7 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
           />
           <PlaysetSection
             label={t("playset-editor.moves", "Moves")}
-            rulesPackages={tree}
+            rulesPackages={tree.data}
             collectionKey="moves"
             excludedCollections={excludedMoveCollections}
             toggleExcludedCollection={(collectionId, isExcluded) => {
@@ -188,7 +221,7 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
           />
           <PlaysetSection
             label={t("playset-editor.oracles", "Oracles")}
-            rulesPackages={tree}
+            rulesPackages={tree.data}
             collectionKey="oracles"
             excludedCollections={excludedOracleCollections}
             toggleExcludedCollection={(collectionId, isExcluded) => {

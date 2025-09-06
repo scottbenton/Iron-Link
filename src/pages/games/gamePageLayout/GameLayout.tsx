@@ -15,6 +15,7 @@ import { GameTabs } from "pages/games/gamePageLayout/components/GameTabs";
 import { useSyncGame } from "pages/games/gamePageLayout/hooks/useSyncGame";
 import { useSyncColorScheme } from "pages/games/hooks/useSyncColorScheme";
 
+import { useDataswornTreeStore } from "stores/dataswornTree.store";
 import { useGameStore } from "stores/game.store";
 import { useSyncSecondScreenSettingsIfActive } from "stores/secondScreen.store";
 
@@ -34,6 +35,9 @@ export default function GameLayout() {
 
   const hasGame = useGameStore((state) => !!state.game);
   const error = useGameStore((state) => state.error);
+  const rulesPackageLoadError = useDataswornTreeStore(
+    (store) => store.rulesError,
+  );
 
   const { pathname } = useLocation();
 
@@ -51,13 +55,21 @@ export default function GameLayout() {
     setOpenMobileTab(MobileTabs.Outlet);
   }, [isOnOverviewPage, characterId]);
 
-  if (!hasGame && !error) {
+  if (!hasGame && !error && !rulesPackageLoadError) {
     return <LinearProgress />;
   }
 
   if (error) {
     return (
       <EmptyState message={t("game.load-failure", "Failed to load game.")} />
+    );
+  }
+
+  if (rulesPackageLoadError) {
+    return (
+      <EmptyState
+        message={t("game.rules-load-failure", "Failed to load rules package.")}
+      />
     );
   }
 

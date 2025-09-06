@@ -12,6 +12,7 @@ import {
 import { useUID } from "stores/auth.store";
 import { useCreateCharacterStore } from "stores/createCharacter.store";
 import { useCreateGameStore } from "stores/createGame.store";
+import { useDataswornTreeStore } from "stores/dataswornTree.store";
 
 import { StepButtons } from "./components/StepButtons";
 import { SyncRulesPackages } from "./components/SyncRulesPackages";
@@ -40,6 +41,7 @@ export default function CreateGamePage() {
 
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | undefined>();
+  const rulePackageError = useDataswornTreeStore((store) => store.rulesError);
 
   if (!uid) {
     return null;
@@ -58,9 +60,9 @@ export default function CreateGamePage() {
             </Step>
           ))}
         </Stepper>
-        {error && (
+        {(error || rulePackageError) && (
           <Alert severity="error" variant="filled" sx={{ mb: 2 }}>
-            {error}
+            {error || rulePackageError}
           </Alert>
         )}
         {steps[step]?.component}

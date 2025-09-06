@@ -1,13 +1,9 @@
-import { Datasworn } from "@datasworn/core";
 import deepEqual from "fast-deep-equal";
 import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
-import {
-  defaultBaseRulesets,
-  defaultExpansions,
-} from "data/datasworn.packages";
+import { useSyncActiveRulesPackages } from "pages/games/create/hooks/useSyncActiveRulesPackages";
 
 import {
   ExpansionConfig,
@@ -27,7 +23,6 @@ import {
 } from "services/game.service";
 
 import { useUID } from "./auth.store";
-import { useSetDataswornTree } from "./dataswornTree.store";
 
 export enum GamePermission {
   Guide = "guide",
@@ -227,7 +222,12 @@ export function useListenToGame(gameId: string | undefined) {
     rulesets: store.game?.rulesets ?? {},
     playset: store.game?.playset ?? {},
   }));
-  const setDataswornTree = useSetDataswornTree();
+
+  useSyncActiveRulesPackages(
+    expansionsRulesetsAndPlayset.rulesets,
+    expansionsRulesetsAndPlayset.expansions,
+    expansionsRulesetsAndPlayset.playset,
+  );
 
   const listenToGame = useGameStore((state) => state.listenToGame);
   const setPermissions = useGameStore((state) => state.setPermissions);
@@ -261,23 +261,4 @@ export function useListenToGame(gameId: string | undefined) {
       }
     }
   }, [gamePlayers, gameId, gameType, setPermissions, uid]);
-
-  useEffect(() => {
-    const dataswornTree: Record<string, Datasworn.RulesPackage> = {};
-    Object.entries(expansionsRulesetsAndPlayset.rulesets)
-      .filter(([, value]) => value)
-      .forEach(([key]) => {
-        dataswornTree[key] = defaultBaseRulesets[key];
-        Object.entries(expansionsRulesetsAndPlayset.expansions[key] ?? {})
-          .filter(([, value]) => value)
-          .forEach(([expansionId]) => {
-            dataswornTree[expansionId] = defaultExpansions[key]?.[expansionId];
-          });
-      });
-    setDataswornTree(dataswornTree, expansionsRulesetsAndPlayset.playset);
-
-    return () => {
-      setDataswornTree({}, {});
-    };
-  }, [expansionsRulesetsAndPlayset, setDataswornTree]);
 }

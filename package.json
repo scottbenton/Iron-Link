@@ -13,7 +13,7 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "extract:i18n": "i18next 'src/**/*.{ts,tsx}' [-oc]",
-    "supabase:start": "supabase start",
+    "supabase:start": "supabase start -x vector",
     "supabase:stop": "supabase stop",
     "supabase:reset-db": "supabase db reset",
     "supabase:gen-types": "supabase gen types typescript --local > ./src/types/supabase-generated.type.ts",
