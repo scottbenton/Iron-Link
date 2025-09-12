@@ -57,10 +57,16 @@ export function GameLog() {
       <div id={"load-more-logs"} />
       {loading && <LinearProgress sx={{ flexShrink: 0 }} />}
       {error && !orderedLogs.length && (
-        <EmptyState message={t("game.log.load-error", "Error loading logs")} />
+        <EmptyState
+          message={t("game.log.load-error", "Error loading logs")}
+          sx={{ flexGrow: 1 }}
+        />
       )}
       {orderedLogs.length === 0 && !loading && !error && (
-        <EmptyState message={t("game.log.no-logs", "No logs yet")} />
+        <EmptyState
+          message={t("game.log.no-logs", "No logs yet")}
+          sx={{ flexGrow: 1 }}
+        />
       )}
     </>
   );

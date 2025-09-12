@@ -222,6 +222,7 @@ export type Database = {
           game_id: string
           guides_only: boolean
           id: string
+          is_manual: boolean
           log_data: Json
           type: Database["public"]["Enums"]["game_log_type"]
           user_id: string | null
@@ -232,6 +233,7 @@ export type Database = {
           game_id: string
           guides_only?: boolean
           id?: string
+          is_manual?: boolean
           log_data?: Json
           type: Database["public"]["Enums"]["game_log_type"]
           user_id?: string | null
@@ -242,6 +244,7 @@ export type Database = {
           game_id?: string
           guides_only?: boolean
           id?: string
+          is_manual?: boolean
           log_data?: Json
           type?: Database["public"]["Enums"]["game_log_type"]
           user_id?: string | null

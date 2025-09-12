@@ -12,6 +12,7 @@ export interface IBaseRoll {
   characterId: string | null;
   uid: string | null;
   guidesOnly: boolean;
+  isManual?: boolean;
 }
 
 export interface IStatRoll extends IBaseRoll {
@@ -159,6 +160,7 @@ export class GameLogService {
           characterId: dto.character_id,
           uid: dto.user_id,
           guidesOnly: dto.guides_only ?? false,
+          isManual: dto.is_manual ?? false,
           statKey: dto.log_data.stat_key,
         } satisfies IStatRoll;
       case "oracle_table_roll":
@@ -176,6 +178,7 @@ export class GameLogService {
           characterId: dto.character_id,
           uid: dto.user_id,
           guidesOnly: dto.guides_only ?? false,
+          isManual: dto.is_manual ?? false,
           cursedDieAdditiveResult:
             dto.log_data.cursed_die_additive_result ?? null,
           cursedDieRoll: dto.log_data.cursed_die_roll ?? null,
@@ -197,6 +200,7 @@ export class GameLogService {
           characterId: dto.character_id,
           uid: dto.user_id,
           guidesOnly: dto.guides_only ?? false,
+          isManual: dto.is_manual ?? false,
         } satisfies ITrackProgressRoll;
       case "special_track_progress_roll":
         return {
@@ -214,6 +218,7 @@ export class GameLogService {
           characterId: dto.character_id,
           uid: dto.user_id,
           guidesOnly: dto.guides_only ?? false,
+          isManual: dto.is_manual ?? false,
         } satisfies ISpecialTrackProgressRoll;
       case "clock_progression_roll":
         return {
@@ -230,6 +235,7 @@ export class GameLogService {
           characterId: dto.character_id,
           uid: dto.user_id,
           guidesOnly: dto.guides_only ?? false,
+          isManual: dto.is_manual ?? false,
         } satisfies IClockProgressionRoll;
     }
   }
@@ -259,6 +265,7 @@ export class GameLogService {
           character_id: log.characterId,
           user_id: log.uid,
           guides_only: log.guidesOnly,
+          is_manual: log.isManual ?? false,
         };
       case RollType.OracleTable:
         return {
@@ -280,6 +287,7 @@ export class GameLogService {
           character_id: log.characterId,
           user_id: log.uid,
           guides_only: log.guidesOnly,
+          is_manual: log.isManual ?? false,
         };
       case RollType.TrackProgress:
         return {
@@ -299,6 +307,7 @@ export class GameLogService {
           character_id: log.characterId,
           user_id: log.uid,
           guides_only: log.guidesOnly,
+          is_manual: log.isManual ?? false,
         };
       case RollType.SpecialTrackProgress:
         return {
@@ -318,6 +327,7 @@ export class GameLogService {
           character_id: log.characterId,
           user_id: log.uid,
           guides_only: log.guidesOnly,
+          is_manual: log.isManual ?? false,
         };
       case RollType.ClockProgression:
         return {
@@ -336,6 +346,7 @@ export class GameLogService {
           character_id: log.characterId,
           user_id: log.uid,
           guides_only: log.guidesOnly,
+          is_manual: log.isManual ?? false,
         };
     }
   }
