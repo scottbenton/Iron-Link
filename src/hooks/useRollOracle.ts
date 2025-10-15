@@ -154,13 +154,7 @@ function getOracleResult(
       .join("\n");
     rolls = tmpRolls;
   } else {
-    const oracleCollectionId = oracle._id
-      .replace("oracle_rollable", "oracle_collection")
-      .split("/")
-      .slice(0, -1)
-      .join("/");
-    const oracleCollection = getOracleCollection(oracleCollectionId);
-    categoryName = oracleCollection?.name;
+    categoryName = getOracleCategoryNameFromId(oracle._id);
 
     const rollResult = rollOracleColumn(oracle);
 
@@ -235,4 +229,14 @@ function checkIfMatch(dieExpression: string, num: number) {
   if (dieExpression !== "1d100") return false;
 
   return num % 10 === Math.floor(num / 10) % 10;
+}
+
+export function getOracleCategoryNameFromId(oracleId: string) {
+  const oracleCollectionId = oracleId
+    .replace("oracle_rollable", "oracle_collection")
+    .split("/")
+    .slice(0, -1)
+    .join("/");
+  const oracleCollection = getOracleCollection(oracleCollectionId);
+  return oracleCollection?.name;
 }

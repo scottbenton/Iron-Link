@@ -30,6 +30,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@fontsource-variable/inter": "^5.2.5",
     "@fontsource/barlow-condensed": "^5.2.5",
+    "@hookform/resolvers": "^5.2.1",
     "@mui/icons-material": "^7.0.2",
     "@mui/material": "^7.0.2",
     "@mui/material-pigment-css": "^7.0.2",
@@ -66,6 +67,7 @@
     "uuid": "^11.1.0",
     "y-webrtc": "^10.3.0",
     "yjs": "^13.6.26",
+    "yup": "^1.7.0",
     "zustand": "^5.0.1"
   },
   "devDependencies": {

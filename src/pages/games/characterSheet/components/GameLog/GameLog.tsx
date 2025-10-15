@@ -1,11 +1,14 @@
-import { Box, LinearProgress } from "@mui/material";
-import { useEffect, useMemo } from "react";
+import { Box, Button, LinearProgress } from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
 
 import { useGameLogStore } from "stores/gameLog.store";
 
+import { IGameLog } from "services/gameLog.service";
+
+import { AddRollDialog } from "./AddRollDialog";
 import { GameLogEntry } from "./GameLogEntry";
 
 export function GameLog() {
@@ -14,8 +17,21 @@ export function GameLog() {
   const logs = useGameLogStore((state) => state.logs);
 
   const loadMoreLogs = useGameLogStore((state) => state.loadMoreLogsIfPresent);
+  const createLog = useGameLogStore((state) => state.createLog);
 
   const { t } = useTranslation();
+
+  const [addRollDialogOpen, setAddRollDialogOpen] = useState(false);
+
+  const handleAddRoll = async (roll: IGameLog) => {
+    try {
+      await createLog(roll.id, roll);
+      setAddRollDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to add manual roll:", error);
+      throw error; // Re-throw so dialog can handle the error
+    }
+  };
 
   const orderedLogs = useMemo(() => {
     return Object.entries(logs).sort(
@@ -51,6 +67,18 @@ export function GameLog() {
   return (
     <>
       <Box flexShrink={0} height={"1px"} style={{ overflowAnchor: "auto" }} />
+
+      {/* Add Roll Button */}
+      <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+        <Button
+          variant="outlined"
+          onClick={() => setAddRollDialogOpen(true)}
+          fullWidth
+        >
+          {t("game.log.add-roll", "Add Manual Roll")}
+        </Button>
+      </Box>
+
       {orderedLogs.map(([logId, log]) => (
         <GameLogEntry key={logId} logId={logId} log={log} />
       ))}
@@ -68,6 +96,13 @@ export function GameLog() {
           sx={{ flexGrow: 1 }}
         />
       )}
+
+      {/* Add Roll Dialog */}
+      <AddRollDialog
+        open={addRollDialogOpen}
+        onClose={() => setAddRollDialogOpen(false)}
+        onSubmit={handleAddRoll}
+      />
     </>
   );
 }
