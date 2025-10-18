@@ -9,7 +9,7 @@ import { useGameLogStore } from "stores/gameLog.store";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 
-import { IGameLog } from "services/gameLog.service";
+import { IGameLog, LogType } from "services/gameLog.service";
 
 import { LogEntryAccordion } from "./LogEntryAccordionContents";
 
@@ -92,7 +92,11 @@ export function LogEntryNode(props: NodeViewProps) {
             {logState.error ? (
               <Alert severity="error">{logState.error}</Alert>
             ) : (
-              <>{logState.log && <LogEntryAccordion log={logState.log} />}</>
+              <>
+                {logState.log && logState.log.logType === LogType.ROLL && (
+                  <LogEntryAccordion log={logState.log} />
+                )}
+              </>
             )}
           </>
         )}

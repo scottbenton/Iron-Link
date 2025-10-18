@@ -14,7 +14,7 @@ import { createId } from "lib/id.lib";
 import { RollType } from "repositories/shared.types";
 import { RollResult } from "repositories/shared.types";
 
-import { IStatRoll } from "services/gameLog.service";
+import { IStatRoll, LogType } from "services/gameLog.service";
 
 import { useCharacterIdOptional } from "../characterSheet/hooks/useCharacterId";
 import { useGameIdOptional } from "../gamePageLayout/hooks/useGameId";
@@ -101,6 +101,7 @@ function getStatRollResult(
 
   const roll: IStatRoll = {
     id: createId(),
+    logType: LogType.ROLL,
     gameId: gameId ?? "unknown",
     type: RollType.Stat,
     rollLabel: statLabel,

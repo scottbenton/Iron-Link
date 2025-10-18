@@ -39,12 +39,18 @@ type ClockProgressionRollGameLogDTO = Omit<BaseGameLogDTO, "log_data"> & {
   type: "clock_progression_roll";
   log_data: ClockProgressionRollJSONData;
 };
+type MessageGameLogDTO = Omit<BaseGameLogDTO, "log_data"> & {
+  type: "message";
+  log_data: MessageJSONData;
+};
+
 export type GameLogDTO =
   | StatRollGameLogDTO
   | OracleRollGameLogDTO
   | TrackProgressRollGameLogDTO
   | SpecialTrackRollGameLogDTO
-  | ClockProgressionRollGameLogDTO;
+  | ClockProgressionRollGameLogDTO
+  | MessageGameLogDTO;
 
 type BaseInsertGameLogDTO = TablesInsert<"game_logs">;
 type InsertStateGameLogDTO = Omit<BaseInsertGameLogDTO, "log_data"> & {
@@ -70,12 +76,18 @@ type InsertClockProgressionGameLogDTO = Omit<
   type: "clock_progression_roll";
   log_data: ClockProgressionRollJSONData;
 };
+type InsertMessageGameLogDTO = Omit<BaseInsertGameLogDTO, "log_data"> & {
+  type: "message";
+  log_data: MessageJSONData;
+};
+
 type InsertGameLogDTO =
   | InsertStateGameLogDTO
   | InsertOracleGameLogDTO
   | InsertTrackProgressGameLogDTO
   | InsertSpecialTrackGameLogDTO
-  | InsertClockProgressionGameLogDTO;
+  | InsertClockProgressionGameLogDTO
+  | InsertMessageGameLogDTO;
 
 type BaseUpdateGameLogDTO = TablesUpdate<"game_logs">;
 type UpdateStatGameLogDTO = Omit<BaseUpdateGameLogDTO, "log_data"> & {
@@ -155,6 +167,10 @@ export interface ClockProgressionRollJSONData {
   oracle_id: string;
   match: boolean;
   label: string;
+}
+
+export interface MessageJSONData {
+  message: string;
 }
 
 export class GameLogRepository {

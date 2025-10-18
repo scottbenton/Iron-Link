@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 import { RollType } from "repositories/shared.types";
 
-import { IGameLog } from "services/gameLog.service";
+import { IGameLogRoll } from "services/gameLog.service";
 
 import { OracleRollSnackbar } from "./OracleRollSnackbar";
 import { StatRollSnackbar } from "./StatRollSnackbar";
@@ -11,7 +11,7 @@ import { RollCard } from "./common";
 
 export interface RollSnackbarProps {
   rollId: string | undefined;
-  roll: IGameLog;
+  roll: IGameLogRoll;
   isExpanded: boolean;
   onSnackbarClick?: () => void;
   actions?: ReactNode;

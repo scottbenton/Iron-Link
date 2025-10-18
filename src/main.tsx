@@ -11,6 +11,7 @@ import { ErrorBoundary } from "components/ErrorBoundary";
 import "i18n/config";
 
 import "./App.css";
+import "./lib/audio.lib";
 
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>

@@ -1,4 +1,4 @@
-import { Box, Fade } from "@mui/material";
+import { Box, Fade, SxProps, Theme } from "@mui/material";
 import { EditorContent, Editor as TTEditor } from "@tiptap/react";
 
 import { useIsMobile } from "hooks/useIsMobile";
@@ -110,6 +110,9 @@ export function Editor(props: EditorProps) {
               "& > *": {
                 maxWidth: "65ch",
               },
+              "&.ProseMirror>p:last-child": {
+                marginBottom: 0,
+              },
             },
             blockquote: {
               borderLeft: `3px solid ${theme.palette.divider}`,
@@ -118,6 +121,9 @@ export function Editor(props: EditorProps) {
             },
             hr: {
               color: theme.palette.divider,
+            },
+            p: {
+              marginBottom: 0,
             },
             ".collaboration-cursor__caret": {
               borderLeft: "1px solid #0d0d0d",

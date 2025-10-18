@@ -9,7 +9,7 @@ import { TrackTypes } from "repositories/tracks.repository";
 
 import {
   IClockProgressionRoll,
-  IGameLog,
+  IGameLogRoll,
   IOracleTableRoll,
   ISpecialTrackProgressRoll,
   IStatRoll,
@@ -20,7 +20,7 @@ export function formatRich(logId: string) {
   return `iron-link-logid:${logId}`;
 }
 
-export function convertRollToClipboard(roll: IGameLog):
+export function convertRollToClipboard(roll: IGameLogRoll):
   | {
       rich: string;
       plain: string;

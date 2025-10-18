@@ -1,6 +1,6 @@
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
-import { Extensions } from "@tiptap/react";
+import { Editor, Extension, Extensions } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { WebrtcProvider } from "y-webrtc";
 import * as Y from "yjs";
@@ -10,6 +10,15 @@ import { getHueFromString, hslToHex } from "lib/getHueFromString";
 import { ExtendedImageExtension } from "./ExtendedImageNode";
 import { LogEntryNodeExtension } from "./LogEntryNode";
 import { NoteMentionExtension } from "./NoteMentionExtension";
+
+export const defaultExtensions = [
+  StarterKit.configure({
+    history: false,
+  }),
+  ExtendedImageExtension,
+  NoteMentionExtension,
+  LogEntryNodeExtension,
+];
 
 export const rtcExtensions = (params: {
   doc?: Y.Doc;
@@ -23,14 +32,7 @@ export const rtcExtensions = (params: {
     ? hslToHex(getHueFromString(userId), 70, 80)
     : "#d0d0d0";
 
-  const extensions: Extensions = [
-    StarterKit.configure({
-      history: false,
-    }),
-    ExtendedImageExtension,
-    NoteMentionExtension,
-    LogEntryNodeExtension,
-  ];
+  const extensions: Extensions = [...defaultExtensions];
   if (doc && provider) {
     extensions.push(
       Collaboration.configure({ document: doc }),
@@ -46,3 +48,32 @@ export const rtcExtensions = (params: {
 
   return extensions;
 };
+
+type CustomEnterExtensionOptions = {
+  onEnter: (editor: Editor) => void;
+};
+
+type CustomEnterExtensionStorage = {
+  onEnter: (editor: Editor) => void;
+};
+
+export const CustomEnterExtension = Extension.create<
+  CustomEnterExtensionOptions,
+  CustomEnterExtensionStorage
+>({
+  name: "custom-enter-extension",
+  priority: 101,
+  addOptions: () => {
+    return {
+      onEnter: () => {},
+    };
+  },
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        this.options.onEnter(editor);
+        return true;
+      },
+    };
+  },
+});

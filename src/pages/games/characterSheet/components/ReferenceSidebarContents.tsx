@@ -1,22 +1,21 @@
-import { Box, Typography } from "@mui/material";
-import { useState } from "react";
+import { Badge, Box, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { StyledTab, StyledTabs } from "components/StyledTabs";
 import { MoveTree } from "components/datasworn/MoveTree";
 import { OracleTree } from "components/datasworn/OracleTree";
 
+import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
+
 import { useIsMobile } from "hooks/useIsMobile";
+
+import { ReferenceTabs, useAppState } from "stores/appState.store";
+
+import { GameType } from "repositories/game.repository";
 
 import { GameLog } from "./GameLog";
 
-enum Tabs {
-  Moves = "moves",
-  Oracles = "oracles",
-  GameLog = "game-log",
-}
-
-function tabProps(tab: Tabs) {
+function tabProps(tab: ReferenceTabs) {
   return {
     value: tab,
     id: `tab-${tab}`,
@@ -24,19 +23,24 @@ function tabProps(tab: Tabs) {
   };
 }
 
-function tabPanelProps(tab: Tabs, value: Tabs, reversed?: boolean) {
+function tabPanelProps(
+  tab: ReferenceTabs,
+  value: ReferenceTabs,
+  reversed?: boolean,
+) {
   return {
     hidden: tab !== value,
     role: "tabpanel",
     id: `tabpanel-${tab}`,
     "aria-labelledby": `tab-${tab}`,
-    pb: 2,
+    pb: reversed ? 0 : 2,
     sx: {
       display: tab !== value ? "none" : "flex",
       flexDirection: reversed ? "column-reverse" : "column",
       overflow: "auto",
       maxHeight: "100%",
       flexGrow: 1,
+      position: "relative",
     },
   };
 }
@@ -46,7 +50,13 @@ export function ReferenceSidebarContents() {
 
   const isMobile = useIsMobile();
 
-  const [currentTab, setCurrentTab] = useState<Tabs>(Tabs.Moves);
+  const currentTab = useAppState((state) => state.currentReferenceTab);
+  const setCurrentTab = useAppState((state) => state.setCurrentReferenceTab);
+  const { gameType } = useGamePermissions();
+  const gameLogNotificationCount = useAppState(
+    (state) => state.gameLogNotificationCount,
+  );
+
   return (
     <>
       {!isMobile && (
@@ -62,33 +72,43 @@ export function ReferenceSidebarContents() {
       <StyledTabs
         centered
         value={currentTab}
-        onChange={(_, value) => setCurrentTab(value as unknown as Tabs)}
+        onChange={(_, value) =>
+          setCurrentTab(value as unknown as ReferenceTabs)
+        }
       >
         <StyledTab
           label={t("character.reference-sidebar-moves", "Moves")}
-          {...tabProps(Tabs.Moves)}
+          {...tabProps(ReferenceTabs.Moves)}
         />
         <StyledTab
           label={t("character.reference-sidebar-oracles", "Oracles")}
-          {...tabProps(Tabs.Oracles)}
+          {...tabProps(ReferenceTabs.Oracles)}
         />
         <StyledTab
           label={t("character.reference-sidebar-game-log", "Game Log")}
-          {...tabProps(Tabs.GameLog)}
+          icon={
+            gameLogNotificationCount > 0 && gameType !== GameType.Solo ? (
+              <Badge badgeContent={gameLogNotificationCount} color="primary">
+                <Box ml={1} />
+              </Badge>
+            ) : undefined
+          }
+          iconPosition="end"
+          {...tabProps(ReferenceTabs.GameLog)}
         />
       </StyledTabs>
       {/* <Box flexGrow={1}> */}
-      <Box {...tabPanelProps(Tabs.Moves, currentTab)}>
+      <Box {...tabPanelProps(ReferenceTabs.Moves, currentTab)}>
         <MoveTree />
       </Box>
-      <Box {...tabPanelProps(Tabs.Oracles, currentTab)}>
+      <Box {...tabPanelProps(ReferenceTabs.Oracles, currentTab)}>
         <OracleTree />
       </Box>
       <Box
-        {...tabPanelProps(Tabs.GameLog, currentTab, true)}
+        {...tabPanelProps(ReferenceTabs.GameLog, currentTab, true)}
         style={{ overflowAnchor: "none" }}
       >
-        <GameLog />
+        <GameLog open={currentTab === ReferenceTabs.GameLog} />
       </Box>
       {/* </Box> */}
     </>

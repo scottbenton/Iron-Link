@@ -1,13 +1,13 @@
 import { RollType } from "repositories/shared.types";
 
-import { IGameLog } from "services/gameLog.service";
+import { IGameLogRoll } from "services/gameLog.service";
 
 import { OracleRollAccordion } from "./OracleRollAccordion";
 import { StatRollAccordion } from "./StatRollAccordion";
 import { TrackProgressRollAccordion } from "./TrackProgressRollAccordion";
 
 interface LogEntryAccordionProps {
-  log: IGameLog;
+  log: IGameLogRoll;
 }
 export function LogEntryAccordion(props: LogEntryAccordionProps) {
   const { log } = props;
