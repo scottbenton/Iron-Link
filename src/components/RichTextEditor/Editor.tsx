@@ -1,4 +1,4 @@
-import { Box, Fade, SxProps, Theme } from "@mui/material";
+import { Box, Fade } from "@mui/material";
 import { EditorContent, Editor as TTEditor } from "@tiptap/react";
 
 import { useIsMobile } from "hooks/useIsMobile";
