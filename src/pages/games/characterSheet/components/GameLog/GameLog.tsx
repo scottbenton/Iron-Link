@@ -18,6 +18,7 @@ export function GameLog() {
   const { t } = useTranslation();
 
   const orderedLogs = useMemo(() => {
+    console.debug(logs);
     return Object.entries(logs).sort(
       ([, l1], [, l2]) => l2.timestamp.getTime() - l1.timestamp.getTime(),
     );

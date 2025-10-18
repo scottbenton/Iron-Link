@@ -63,6 +63,7 @@ export const useGameLogStore = createWithEqualityFn<
         isGuide,
         nLogs,
         (addedLogs, changedLogs, deletedLogIds, replaceState) => {
+          console.debug(addedLogs, changedLogs);
           set((state) => {
             state.loading = false;
             state.error = undefined;
