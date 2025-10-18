@@ -230,4 +230,33 @@ export class GamePlayersRepository {
         });
     });
   }
+
+  public static updateLastSeenLogDate(
+    gameId: string,
+    userId: string,
+    lastSeenLogDate: Date,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.gamePlayers()
+        .update({ last_seen_log_timestamp: lastSeenLogDate.toISOString() })
+        .eq("game_id", gameId)
+        .eq("user_id", userId)
+        .then((response) => {
+          if (response.error) {
+            console.error(response.error);
+            reject(
+              getRepositoryError(
+                response.error,
+                ErrorVerb.Update,
+                ErrorNoun.GamePlayers,
+                false,
+                response.status,
+              ),
+            );
+          } else {
+            resolve();
+          }
+        });
+    });
+  }
 }

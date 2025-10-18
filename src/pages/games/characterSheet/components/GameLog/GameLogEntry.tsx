@@ -7,8 +7,9 @@ import { useUID } from "stores/auth.store";
 import { useGameCharactersStore } from "stores/gameCharacters.store";
 import { useUserName } from "stores/users.store";
 
-import { IGameLog } from "services/gameLog.service";
+import { IGameLog, LogType } from "services/gameLog.service";
 
+import { GameLogMessage } from "./GameLogMessage";
 import { NormalRollActions } from "./NormalRollActions";
 
 export interface GameLogEntryProps {
@@ -58,12 +59,15 @@ export function GameLogEntry(props: GameLogEntryProps) {
       alignItems={isYourEntry ? "flex-end" : "flex-start"}
     >
       <Typography>{rollerName}</Typography>
-      <RollSnackbar
-        actions={<NormalRollActions rollId={logId} roll={log} />}
-        rollId={logId}
-        roll={log}
-        isExpanded
-      />
+      {log.logType === LogType.ROLL && (
+        <RollSnackbar
+          actions={<NormalRollActions rollId={logId} roll={log} />}
+          rollId={logId}
+          roll={log}
+          isExpanded
+        />
+      )}
+      {log.logType === LogType.MESSAGE && <GameLogMessage message={log} />}
       <Typography color={"textSecondary"} variant={"caption"}>
         {getLogTimeString(log.timestamp)}
       </Typography>

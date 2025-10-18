@@ -33,8 +33,13 @@ export enum GamePlayerRole {
   Guide = "guide",
 }
 
-export interface IGamePlayer extends GamePlayerDTO {
+export interface IGamePlayer {
   role: GamePlayerRole;
+  userId: string;
+  gameId: string;
+
+  createdAt: Date;
+  lastSeenLogDate: Date;
 }
 
 export class GameService {
@@ -288,9 +293,10 @@ export class GameService {
       dto.role === "guide" ? GamePlayerRole.Guide : GamePlayerRole.Player;
     return {
       role,
-      created_at: dto.created_at,
-      game_id: dto.game_id,
-      user_id: dto.user_id,
+      createdAt: new Date(dto.created_at),
+      gameId: dto.game_id,
+      userId: dto.user_id,
+      lastSeenLogDate: new Date(dto.last_seen_log_timestamp),
     };
   }
 }

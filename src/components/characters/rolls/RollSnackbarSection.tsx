@@ -42,6 +42,7 @@ export function RollSnackbarSection() {
         {rolls.map(({ id, roll }, index, array) => (
           <Slide direction={"left"} key={id}>
             <Box mt={1} sx={{ pointerEvents: "all" }}>
+              {}
               <RollSnackbar
                 roll={roll}
                 rollId={id}

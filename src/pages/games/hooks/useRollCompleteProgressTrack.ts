@@ -13,7 +13,7 @@ import { RollType } from "repositories/shared.types";
 import { RollResult } from "repositories/shared.types";
 import { TrackTypes } from "repositories/tracks.repository";
 
-import { ITrackProgressRoll } from "services/gameLog.service";
+import { ITrackProgressRoll, LogType } from "services/gameLog.service";
 
 import { getTrackTypeLabel } from "../characterSheet/components/TracksSection/common";
 import { useCharacterIdOptional } from "../characterSheet/hooks/useCharacterId";
@@ -55,6 +55,7 @@ export function useRollCompleteProgressTrack() {
 
       const trackProgressRoll: ITrackProgressRoll = {
         id: createId(),
+        logType: LogType.ROLL,
         gameId: gameId ?? "fake-game",
         type: RollType.TrackProgress,
         rollLabel: trackLabel,

@@ -27,7 +27,7 @@ import { useGameLogStore } from "stores/gameLog.store";
 import { RollType } from "repositories/shared.types";
 import { RollResult } from "repositories/shared.types";
 
-import { IGameLog } from "services/gameLog.service";
+import { IGameLogRoll } from "services/gameLog.service";
 
 import { useCharacterIdOptional } from "../../hooks/useCharacterId";
 import { useMomentumParameters } from "../../hooks/useMomentumResetValue";
@@ -36,7 +36,7 @@ import { convertRollToClipboard } from "./clipboardFormatter";
 
 export interface NormalRollActionsProps {
   rollId: string;
-  roll: IGameLog;
+  roll: IGameLogRoll;
 }
 
 async function pasteRich(rich: string, plain: string) {
