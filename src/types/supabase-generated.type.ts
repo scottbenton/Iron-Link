@@ -295,18 +295,21 @@ export type Database = {
         Row: {
           created_at: string
           game_id: string
+          last_seen_log_timestamp: string
           role: Database["public"]["Enums"]["player_role"]
           user_id: string
         }
         Insert: {
           created_at?: string
           game_id: string
+          last_seen_log_timestamp?: string
           role?: Database["public"]["Enums"]["player_role"]
           user_id: string
         }
         Update: {
           created_at?: string
           game_id?: string
+          last_seen_log_timestamp?: string
           role?: Database["public"]["Enums"]["player_role"]
           user_id?: string
         }
@@ -621,6 +624,7 @@ export type Database = {
         | "track_progress_roll"
         | "special_track_progress_roll"
         | "clock_progression_roll"
+        | "message"
       game_type: "solo" | "co-op" | "guided"
       note_edit_permissions:
         | "only_author"
@@ -779,6 +783,7 @@ export const Constants = {
         "track_progress_roll",
         "special_track_progress_roll",
         "clock_progression_roll",
+        "message",
       ],
       game_type: ["solo", "co-op", "guided"],
       note_edit_permissions: [

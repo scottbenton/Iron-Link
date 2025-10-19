@@ -1,10 +1,26 @@
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import { GameLogDTO, GameLogRepository } from "repositories/gameLog.repository";
+import { GamePlayersRepository } from "repositories/gamePlayers.repository";
 import { RollResult, RollType } from "repositories/shared.types";
 import { TrackTypes } from "repositories/tracks.repository";
 
-export interface IBaseRoll {
+export enum LogType {
+  ROLL = "roll",
+  MESSAGE = "message",
+}
+
+export interface IBaseLog {
   id: string;
+  logType: LogType;
+  timestamp: Date;
+  gameId: string;
+  characterId: string | null;
+  uid: string | null;
+  guidesOnly: boolean;
+}
+
+export interface IBaseRoll extends IBaseLog {
+  logType: LogType.ROLL;
   type: RollType;
   rollLabel: string;
   timestamp: Date;
@@ -70,7 +86,20 @@ export interface IClockProgressionRoll extends IBaseRoll {
   match: boolean;
 }
 
+export interface IMessage extends IBaseLog {
+  logType: LogType.MESSAGE;
+  contents: string;
+}
+
 export type IGameLog =
+  | IStatRoll
+  | IOracleTableRoll
+  | ITrackProgressRoll
+  | ISpecialTrackProgressRoll
+  | IClockProgressionRoll
+  | IMessage;
+
+export type IGameLogRoll =
   | IStatRoll
   | IOracleTableRoll
   | ITrackProgressRoll
@@ -126,6 +155,17 @@ export class GameLogService {
     return GameLogRepository.deleteGameLog(logId);
   }
 
+  public static async updateLastSeenLogDate(
+    gameId: string,
+    userId: string,
+  ): Promise<void> {
+    return GamePlayersRepository.updateLastSeenLogDate(
+      gameId,
+      userId,
+      new Date(),
+    );
+  }
+
   private static convertGameLogDTOMapToGameLogMap(
     dtoMap: Record<string, GameLogDTO>,
   ): Record<string, IGameLog> {
@@ -141,6 +181,7 @@ export class GameLogService {
     switch (dto.type) {
       case "stat_roll":
         return {
+          logType: LogType.ROLL,
           type: RollType.Stat,
           id: dto.id,
           gameId: dto.game_id,
@@ -163,6 +204,7 @@ export class GameLogService {
         } satisfies IStatRoll;
       case "oracle_table_roll":
         return {
+          logType: LogType.ROLL,
           type: RollType.OracleTable,
           id: dto.id,
           gameId: dto.game_id,
@@ -183,6 +225,7 @@ export class GameLogService {
         } satisfies IOracleTableRoll;
       case "track_progress_roll":
         return {
+          logType: LogType.ROLL,
           type: RollType.TrackProgress,
           id: dto.id,
           gameId: dto.game_id,
@@ -200,6 +243,7 @@ export class GameLogService {
         } satisfies ITrackProgressRoll;
       case "special_track_progress_roll":
         return {
+          logType: LogType.ROLL,
           type: RollType.SpecialTrackProgress,
           id: dto.id,
           gameId: dto.game_id,
@@ -217,6 +261,7 @@ export class GameLogService {
         } satisfies ISpecialTrackProgressRoll;
       case "clock_progression_roll":
         return {
+          logType: LogType.ROLL,
           type: RollType.ClockProgression,
           id: dto.id,
           gameId: dto.game_id,
@@ -231,112 +276,138 @@ export class GameLogService {
           uid: dto.user_id,
           guidesOnly: dto.guides_only ?? false,
         } satisfies IClockProgressionRoll;
+      case "message":
+        return {
+          logType: LogType.MESSAGE,
+          id: dto.id,
+          gameId: dto.game_id,
+          contents: dto.log_data.message,
+          timestamp: new Date(dto.created_at),
+          characterId: dto.character_id,
+          uid: dto.user_id,
+          guidesOnly: dto.guides_only ?? false,
+        } satisfies IMessage;
     }
   }
 
   private static convertGameLogToGameLogDTO(log: IGameLog): GameLogDTO {
-    switch (log.type) {
-      case RollType.Stat:
-        return {
-          id: log.id,
-          game_id: log.gameId,
-          type: "stat_roll",
-          log_data: {
-            move_id: log.moveId ?? null,
-            action: log.action,
-            action_total: log.actionTotal,
-            challenge_1: log.challenge1,
-            challenge_2: log.challenge2,
-            modifier: log.modifier,
-            matched_negative_momentum: log.matchedNegativeMomentum,
-            adds: log.adds,
-            result: log.result,
-            momentum_burned: log.momentumBurned,
-            label: log.rollLabel,
-            stat_key: log.statKey,
-          },
-          created_at: log.timestamp.toISOString(),
-          character_id: log.characterId,
-          user_id: log.uid,
-          guides_only: log.guidesOnly,
-        };
-      case RollType.OracleTable:
-        return {
-          id: log.id,
-          game_id: log.gameId,
-          type: "oracle_table_roll",
-          log_data: {
-            roll: log.roll,
-            result: log.result,
-            oracle_category_name: log.oracleCategoryName ?? null,
-            oracle_id: log.oracleId,
-            match: log.match,
-            label: log.rollLabel,
-            cursed_die_additive_result: log.cursedDieAdditiveResult,
-            cursed_die_roll: log.cursedDieRoll,
-            was_cursed: log.wasCursed,
-          },
-          created_at: log.timestamp.toISOString(),
-          character_id: log.characterId,
-          user_id: log.uid,
-          guides_only: log.guidesOnly,
-        };
-      case RollType.TrackProgress:
-        return {
-          id: log.id,
-          game_id: log.gameId,
-          type: "track_progress_roll",
-          log_data: {
-            challenge_1: log.challenge1,
-            challenge_2: log.challenge2,
-            track_progress: log.trackProgress,
-            result: log.result,
-            track_type: log.trackType,
-            move_id: log.moveId,
-            label: log.rollLabel,
-          },
-          created_at: log.timestamp.toISOString(),
-          character_id: log.characterId,
-          user_id: log.uid,
-          guides_only: log.guidesOnly,
-        };
-      case RollType.SpecialTrackProgress:
-        return {
-          id: log.id,
-          game_id: log.gameId,
-          type: "special_track_progress_roll",
-          log_data: {
-            challenge_1: log.challenge1,
-            challenge_2: log.challenge2,
-            track_progress: log.trackProgress,
-            result: log.result,
-            special_track_key: log.specialTrackKey,
-            move_id: log.moveId,
-            label: log.rollLabel,
-          },
-          created_at: log.timestamp.toISOString(),
-          character_id: log.characterId,
-          user_id: log.uid,
-          guides_only: log.guidesOnly,
-        };
-      case RollType.ClockProgression:
-        return {
-          id: log.id,
-          game_id: log.gameId,
-          type: "clock_progression_roll",
-          log_data: {
-            roll: log.roll,
-            oracle_title: log.oracleTitle,
-            result: log.result,
-            oracle_id: log.oracleId,
-            match: log.match,
-            label: log.rollLabel,
-          },
-          created_at: log.timestamp.toISOString(),
-          character_id: log.characterId,
-          user_id: log.uid,
-          guides_only: log.guidesOnly,
-        };
+    if (log.logType === LogType.MESSAGE) {
+      return {
+        id: log.id,
+        game_id: log.gameId,
+        type: "message",
+        log_data: {
+          message: log.contents,
+        },
+        created_at: log.timestamp.toISOString(),
+        character_id: log.characterId,
+        user_id: log.uid,
+        guides_only: log.guidesOnly,
+      };
+    } else {
+      switch (log.type) {
+        case RollType.Stat:
+          return {
+            id: log.id,
+            game_id: log.gameId,
+            type: "stat_roll",
+            log_data: {
+              move_id: log.moveId ?? null,
+              action: log.action,
+              action_total: log.actionTotal,
+              challenge_1: log.challenge1,
+              challenge_2: log.challenge2,
+              modifier: log.modifier,
+              matched_negative_momentum: log.matchedNegativeMomentum,
+              adds: log.adds,
+              result: log.result,
+              momentum_burned: log.momentumBurned,
+              label: log.rollLabel,
+              stat_key: log.statKey,
+            },
+            created_at: log.timestamp.toISOString(),
+            character_id: log.characterId,
+            user_id: log.uid,
+            guides_only: log.guidesOnly,
+          };
+        case RollType.OracleTable:
+          return {
+            id: log.id,
+            game_id: log.gameId,
+            type: "oracle_table_roll",
+            log_data: {
+              roll: log.roll,
+              result: log.result,
+              oracle_category_name: log.oracleCategoryName ?? null,
+              oracle_id: log.oracleId,
+              match: log.match,
+              label: log.rollLabel,
+              cursed_die_additive_result: log.cursedDieAdditiveResult,
+              cursed_die_roll: log.cursedDieRoll,
+              was_cursed: log.wasCursed,
+            },
+            created_at: log.timestamp.toISOString(),
+            character_id: log.characterId,
+            user_id: log.uid,
+            guides_only: log.guidesOnly,
+          };
+        case RollType.TrackProgress:
+          return {
+            id: log.id,
+            game_id: log.gameId,
+            type: "track_progress_roll",
+            log_data: {
+              challenge_1: log.challenge1,
+              challenge_2: log.challenge2,
+              track_progress: log.trackProgress,
+              result: log.result,
+              track_type: log.trackType,
+              move_id: log.moveId,
+              label: log.rollLabel,
+            },
+            created_at: log.timestamp.toISOString(),
+            character_id: log.characterId,
+            user_id: log.uid,
+            guides_only: log.guidesOnly,
+          };
+        case RollType.SpecialTrackProgress:
+          return {
+            id: log.id,
+            game_id: log.gameId,
+            type: "special_track_progress_roll",
+            log_data: {
+              challenge_1: log.challenge1,
+              challenge_2: log.challenge2,
+              track_progress: log.trackProgress,
+              result: log.result,
+              special_track_key: log.specialTrackKey,
+              move_id: log.moveId,
+              label: log.rollLabel,
+            },
+            created_at: log.timestamp.toISOString(),
+            character_id: log.characterId,
+            user_id: log.uid,
+            guides_only: log.guidesOnly,
+          };
+        case RollType.ClockProgression:
+          return {
+            id: log.id,
+            game_id: log.gameId,
+            type: "clock_progression_roll",
+            log_data: {
+              roll: log.roll,
+              oracle_title: log.oracleTitle,
+              result: log.result,
+              oracle_id: log.oracleId,
+              match: log.match,
+              label: log.rollLabel,
+            },
+            created_at: log.timestamp.toISOString(),
+            character_id: log.characterId,
+            user_id: log.uid,
+            guides_only: log.guidesOnly,
+          };
+      }
     }
   }
 }

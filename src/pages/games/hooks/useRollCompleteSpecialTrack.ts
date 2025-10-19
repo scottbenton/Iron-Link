@@ -12,7 +12,7 @@ import { createId } from "lib/id.lib";
 import { RollType } from "repositories/shared.types";
 import { RollResult } from "repositories/shared.types";
 
-import { ISpecialTrackProgressRoll } from "services/gameLog.service";
+import { ISpecialTrackProgressRoll, LogType } from "services/gameLog.service";
 
 import { useCharacterIdOptional } from "../characterSheet/hooks/useCharacterId";
 import { useIsOwnerOfCharacter } from "../characterSheet/hooks/useIsOwnerOfCharacter";
@@ -52,6 +52,7 @@ export function useRollCompleteSpecialTrack() {
 
       const trackProgressRoll: ISpecialTrackProgressRoll = {
         type: RollType.SpecialTrackProgress,
+        logType: LogType.ROLL,
         rollLabel: trackLabel,
         timestamp: new Date(),
         challenge1,

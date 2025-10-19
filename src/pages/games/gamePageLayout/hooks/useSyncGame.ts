@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+
+import { useAppState } from "stores/appState.store";
 import { useListenToGameAssets } from "stores/assets.store";
 import { useListenToGame } from "stores/game.store";
 import { useListenToGameCharacters } from "stores/gameCharacters.store";
@@ -9,6 +12,12 @@ import { useGameIdOptional } from "./useGameId";
 
 export function useSyncGame() {
   const gameId = useGameIdOptional();
+
+  const resetReference = useAppState((state) => state.resetReference);
+
+  useEffect(() => {
+    resetReference();
+  }, [resetReference]);
 
   useListenToGame(gameId);
   useListenToGameCharacters(gameId);

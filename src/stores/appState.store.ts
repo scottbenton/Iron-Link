@@ -5,9 +5,15 @@ import { createWithEqualityFn } from "zustand/traditional";
 
 import { ColorScheme } from "repositories/shared.types";
 
-import { IGameLog } from "services/gameLog.service";
+import { IGameLogRoll } from "services/gameLog.service";
 
-export type VisibleRoll = { id?: string; roll: IGameLog };
+export type VisibleRoll = { id?: string; roll: IGameLogRoll };
+
+export enum ReferenceTabs {
+  Moves = "moves",
+  Oracles = "oracles",
+  GameLog = "game-log",
+}
 
 interface AppStateState {
   announcement: string | null;
@@ -20,6 +26,9 @@ interface AppStateState {
   visibleRolls: VisibleRoll[];
 
   colorScheme: ColorScheme;
+
+  currentReferenceTab: ReferenceTabs;
+  gameLogNotificationCount: number;
 }
 
 interface AppStateActions {
@@ -31,23 +40,32 @@ interface AppStateActions {
 
   setColorScheme: (colorScheme: ColorScheme) => void;
 
-  addRoll: (rollId: string | undefined, roll: IGameLog) => void;
-  updateRollIfPresent: (rollId: string, roll: IGameLog) => void;
+  addRoll: (rollId: string | undefined, roll: IGameLogRoll) => void;
+  updateRollIfPresent: (rollId: string, roll: IGameLogRoll) => void;
   clearRoll: (index: number) => void;
   clearAllRolls: () => void;
+  setCurrentReferenceTab: (tab: ReferenceTabs) => void;
+  setGameLogNotificationCount: (count: number) => void;
+  resetReference: () => void;
 }
+
+const defaultAppState: AppStateState = {
+  announcement: null,
+  dataswornDialogState: {
+    isOpen: false,
+    previousIds: [],
+  },
+  visibleRolls: [],
+  colorScheme: getDefaultColorScheme(),
+  currentReferenceTab: ReferenceTabs.Moves,
+  gameLogNotificationCount: 0,
+};
 
 export const useAppState = createWithEqualityFn<
   AppStateState & AppStateActions
 >()(
   immer((set) => ({
-    announcement: null,
-    dataswornDialogState: {
-      isOpen: false,
-      previousIds: [],
-    },
-    visibleRolls: [],
-    colorScheme: getDefaultColorScheme(),
+    ...defaultAppState,
 
     setAnnouncement: (announcement) => set({ announcement }),
 
@@ -108,6 +126,24 @@ export const useAppState = createWithEqualityFn<
         if (rollIndex >= 0) {
           state.visibleRolls[rollIndex].roll = roll;
         }
+      });
+    },
+    setCurrentReferenceTab: (tab) => {
+      set((state) => {
+        state.currentReferenceTab = tab;
+      });
+    },
+    setGameLogNotificationCount: (count) => {
+      set((state) => {
+        state.gameLogNotificationCount =
+          state.currentReferenceTab === ReferenceTabs.GameLog ? 0 : count;
+      });
+    },
+    resetReference: () => {
+      set((state) => {
+        state.currentReferenceTab = defaultAppState.currentReferenceTab;
+        state.gameLogNotificationCount =
+          defaultAppState.gameLogNotificationCount;
       });
     },
   })),

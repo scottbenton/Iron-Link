@@ -12,7 +12,7 @@ import { rollDie } from "lib/rollDie";
 
 import { RollType } from "repositories/shared.types";
 
-import { IOracleTableRoll } from "services/gameLog.service";
+import { IOracleTableRoll, LogType } from "services/gameLog.service";
 
 import { getOracleCollection } from "./datasworn/useOracleCollection";
 import { getOracleRollable } from "./datasworn/useOracleRollable";
@@ -91,6 +91,7 @@ export function rollOracle(
   if (baseResult?.resultString && baseResult.rolls !== undefined) {
     return {
       id: createId(),
+      logType: LogType.ROLL,
       gameId: gameId,
       type: RollType.OracleTable,
       oracleCategoryName: baseResult.categoryName,

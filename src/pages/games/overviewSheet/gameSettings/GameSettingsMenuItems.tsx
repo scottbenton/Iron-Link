@@ -1,5 +1,6 @@
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import ThemeIcon from "@mui/icons-material/Palette";
 import RulesetIcon from "@mui/icons-material/PlaylistAdd";
 import SecondScreenIcon from "@mui/icons-material/ScreenShare";
@@ -17,6 +18,8 @@ import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFe
 import { GamePermission, useGameStore } from "stores/game.store";
 import { useMenuState } from "stores/menuState";
 import { useSecondScreenStore } from "stores/secondScreen.store";
+
+import { GameType } from "repositories/game.repository";
 
 import { useGameIdOptional } from "../../gamePageLayout/hooks/useGameId";
 import { useGamePermissions } from "../../gamePageLayout/hooks/usePermissions";
@@ -39,7 +42,11 @@ export function GameSettingsMenuItems(props: GameSettingsMenuItemsProps) {
     (state) => state.setIsGameThemeDialogOpen,
   );
 
-  const { gamePermission } = useGamePermissions();
+  const { gamePermission, gameType } = useGamePermissions();
+
+  const setIsNotificationsDialogOpen = useMenuState(
+    (state) => state.setIsNotificationSettingsDialogOpen,
+  );
 
   const deleteGame = useGameStore((store) => store.deleteGame);
   const gameId = useGameIdOptional();
@@ -154,6 +161,24 @@ export function GameSettingsMenuItems(props: GameSettingsMenuItemsProps) {
                     "Show All Characters on Second Screen",
                   )
             }
+          />
+        </MenuItem>
+      )}
+      {gameType !== GameType.Solo && (
+        <MenuItem
+          onClick={() => {
+            setIsNotificationsDialogOpen(true);
+            closeMenu();
+          }}
+        >
+          <ListItemIcon>
+            <NotificationsActiveIcon />
+          </ListItemIcon>
+          <ListItemText
+            primary={t(
+              "game.overview-sidebar.notification-settings",
+              "Notification Settings",
+            )}
           />
         </MenuItem>
       )}

@@ -22,7 +22,8 @@ import {
   IGamePlayer,
 } from "services/game.service";
 
-import { useUID } from "./auth.store";
+import { useAuthStore, useUID } from "./auth.store";
+import { useGameLogStore } from "./gameLog.store";
 
 export enum GamePermission {
   Guide = "guide",
@@ -134,6 +135,13 @@ export const useGameStore = createWithEqualityFn<
               removedGamePlayerIds.forEach((id) => {
                 delete state.gamePlayers?.[id];
               });
+            }
+
+            const uid = useAuthStore.getState().uid;
+            if (uid && gamePlayers[uid]) {
+              useGameLogStore
+                .getState()
+                .setLastViewedLogsDate(gamePlayers[uid].lastSeenLogDate);
             }
           });
         },
