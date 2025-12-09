@@ -13,6 +13,7 @@ export enum ReferenceTabs {
   Moves = "moves",
   Oracles = "oracles",
   GameLog = "game-log",
+  SecondScreen = "second-screen",
 }
 
 interface AppStateState {
