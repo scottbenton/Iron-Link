@@ -1,4 +1,5 @@
 import { Badge, Box, Typography } from "@mui/material";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { StyledTab, StyledTabs } from "components/StyledTabs";
@@ -7,6 +8,7 @@ import { OracleTree } from "components/datasworn/OracleTree";
 
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
+import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
 import { useIsMobile } from "hooks/useIsMobile";
 
 import { ReferenceTabs, useAppState } from "stores/appState.store";
@@ -14,6 +16,7 @@ import { ReferenceTabs, useAppState } from "stores/appState.store";
 import { GameType } from "repositories/game.repository";
 
 import { GameLog } from "./GameLog";
+import { SecondScreenSectionSettings } from "./SecondScreenSection";
 
 function tabProps(tab: ReferenceTabs) {
   return {
@@ -57,6 +60,17 @@ export function ReferenceSidebarContents() {
     (state) => state.gameLogNotificationCount,
   );
 
+  const secondScreenToggleIsActive = useSecondScreenFeature();
+
+  useEffect(() => {
+    if (
+      !secondScreenToggleIsActive &&
+      currentTab === ReferenceTabs.SecondScreen
+    ) {
+      setCurrentTab(ReferenceTabs.Moves);
+    }
+  }, [secondScreenToggleIsActive, currentTab, setCurrentTab]);
+
   return (
     <>
       {!isMobile && (
@@ -96,6 +110,12 @@ export function ReferenceSidebarContents() {
           iconPosition="end"
           {...tabProps(ReferenceTabs.GameLog)}
         />
+        {secondScreenToggleIsActive && (
+          <StyledTab
+            label={t("character.reference-sidebar-second-screen-tab", "Screen")}
+            {...tabProps(ReferenceTabs.SecondScreen)}
+          />
+        )}
       </StyledTabs>
       {/* <Box flexGrow={1}> */}
       <Box {...tabPanelProps(ReferenceTabs.Moves, currentTab)}>
@@ -110,7 +130,13 @@ export function ReferenceSidebarContents() {
       >
         <GameLog open={currentTab === ReferenceTabs.GameLog} />
       </Box>
-      {/* </Box> */}
+      {secondScreenToggleIsActive && (
+        <Box {...tabPanelProps(ReferenceTabs.SecondScreen, currentTab)}>
+          <SecondScreenSectionSettings
+            open={currentTab === ReferenceTabs.SecondScreen}
+          />
+        </Box>
+      )}
     </>
   );
 }
