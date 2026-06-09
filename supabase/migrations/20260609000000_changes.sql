@@ -564,7 +564,9 @@ as permissive
 for delete
 to authenticated
 using (
+    -- Owner can remove anyone; any member can remove themselves (leave)
     public.world_role(world_players.world_id, ( select auth.uid() )) = 'owner'
+    or world_players.user_id = ( select auth.uid() )
 );
 
 
@@ -900,6 +902,18 @@ on conflict (id) do nothing;
 
 -- Storage RLS: any authenticated world/game member can read (public bucket already
 -- exposes objects publicly, but explicit policies guard uploads/deletes).
+--
+-- Object path convention for both buckets: <worldId>/<entryId>/<filename>
+-- Write policies enforce world membership via world_role() on the path's first
+-- segment (the worldId). The first segment is validated as a UUID before casting
+-- to avoid errors on malformed paths.
+--
+-- Entry images: players may upload (players can author entries per edit_permissions).
+-- Map backgrounds: owner/editor/guide only (map management is GM/editor territory).
+
+-- UUID guard helper: use CASE WHEN for the UUID validation before casting.
+-- Postgres does NOT guarantee AND short-circuit evaluation in plain SQL expressions,
+-- but DOES guarantee CASE WHEN branches — so the cast only runs when the regex passes.
 
 create policy "World members can upload entry images"
 on storage.objects
@@ -908,17 +922,121 @@ for insert
 to authenticated
 with check (
     bucket_id = 'world_entry_images'
-    and auth.uid() is not null
+    and case when (storage.foldername(name))[1]
+                    ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+             then public.world_role(
+                    ((storage.foldername(name))[1])::uuid,
+                    auth.uid()
+                  ) in ('owner', 'editor', 'guide', 'player')
+             else false
+        end
 );
 
-create policy "World members can upload map backgrounds"
+create policy "World members can update entry images"
+on storage.objects
+as permissive
+for update
+to authenticated
+using (
+    bucket_id = 'world_entry_images'
+    and case when (storage.foldername(name))[1]
+                    ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+             then public.world_role(
+                    ((storage.foldername(name))[1])::uuid,
+                    auth.uid()
+                  ) in ('owner', 'editor', 'guide', 'player')
+             else false
+        end
+)
+with check (
+    bucket_id = 'world_entry_images'
+    and case when (storage.foldername(name))[1]
+                    ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+             then public.world_role(
+                    ((storage.foldername(name))[1])::uuid,
+                    auth.uid()
+                  ) in ('owner', 'editor', 'guide', 'player')
+             else false
+        end
+);
+
+create policy "World members can delete entry images"
+on storage.objects
+as permissive
+for delete
+to authenticated
+using (
+    bucket_id = 'world_entry_images'
+    and case when (storage.foldername(name))[1]
+                    ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+             then public.world_role(
+                    ((storage.foldername(name))[1])::uuid,
+                    auth.uid()
+                  ) in ('owner', 'editor', 'guide', 'player')
+             else false
+        end
+);
+
+create policy "GMs and editors can upload map backgrounds"
 on storage.objects
 as permissive
 for insert
 to authenticated
 with check (
     bucket_id = 'world_map_backgrounds'
-    and auth.uid() is not null
+    and case when (storage.foldername(name))[1]
+                    ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+             then public.world_role(
+                    ((storage.foldername(name))[1])::uuid,
+                    auth.uid()
+                  ) in ('owner', 'editor', 'guide')
+             else false
+        end
+);
+
+create policy "GMs and editors can update map backgrounds"
+on storage.objects
+as permissive
+for update
+to authenticated
+using (
+    bucket_id = 'world_map_backgrounds'
+    and case when (storage.foldername(name))[1]
+                    ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+             then public.world_role(
+                    ((storage.foldername(name))[1])::uuid,
+                    auth.uid()
+                  ) in ('owner', 'editor', 'guide')
+             else false
+        end
+)
+with check (
+    bucket_id = 'world_map_backgrounds'
+    and case when (storage.foldername(name))[1]
+                    ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+             then public.world_role(
+                    ((storage.foldername(name))[1])::uuid,
+                    auth.uid()
+                  ) in ('owner', 'editor', 'guide')
+             else false
+        end
+);
+
+create policy "GMs and editors can delete map backgrounds"
+on storage.objects
+as permissive
+for delete
+to authenticated
+using (
+    bucket_id = 'world_map_backgrounds'
+    and case when (storage.foldername(name))[1]
+                    ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+             then public.world_role(
+                    ((storage.foldername(name))[1])::uuid,
+                    auth.uid()
+                  ) in ('owner', 'editor', 'guide')
+             else false
+        end
 );
 
 create policy "World entry images are publicly readable"
@@ -934,23 +1052,3 @@ as permissive
 for select
 to public
 using ( bucket_id = 'world_map_backgrounds' );
-
-create policy "Authenticated users can delete world entry images"
-on storage.objects
-as permissive
-for delete
-to authenticated
-using (
-    bucket_id = 'world_entry_images'
-    and owner = ( select auth.uid() )
-);
-
-create policy "Authenticated users can delete world map backgrounds"
-on storage.objects
-as permissive
-for delete
-to authenticated
-using (
-    bucket_id = 'world_map_backgrounds'
-    and owner = ( select auth.uid() )
-);
