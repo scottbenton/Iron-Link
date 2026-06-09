@@ -430,6 +430,7 @@ export type Database = {
           playset: Json
           rulesets: Json
           special_track_values: Json
+          world_id: string | null
         }
         Insert: {
           color_scheme?: string | null
@@ -442,6 +443,7 @@ export type Database = {
           playset?: Json
           rulesets?: Json
           special_track_values?: Json
+          world_id?: string | null
         }
         Update: {
           color_scheme?: string | null
@@ -454,8 +456,17 @@ export type Database = {
           playset?: Json
           rulesets?: Json
           special_track_values?: Json
+          world_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "games_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       note_folders: {
         Row: {
@@ -600,12 +611,303 @@ export type Database = {
         }
         Relationships: []
       }
+      world_categories: {
+        Row: {
+          created_at: string
+          field_definitions: Json
+          icon: Json | null
+          id: string
+          name: string
+          sort_order: number
+          supports_bonds: boolean
+          supports_hierarchy: boolean
+          supports_map: boolean
+          updated_at: string
+          world_id: string
+        }
+        Insert: {
+          created_at?: string
+          field_definitions?: Json
+          icon?: Json | null
+          id?: string
+          name: string
+          sort_order?: number
+          supports_bonds?: boolean
+          supports_hierarchy?: boolean
+          supports_map?: boolean
+          updated_at?: string
+          world_id: string
+        }
+        Update: {
+          created_at?: string
+          field_definitions?: Json
+          icon?: Json | null
+          id?: string
+          name?: string
+          sort_order?: number
+          supports_bonds?: boolean
+          supports_hierarchy?: boolean
+          supports_map?: boolean
+          updated_at?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_categories_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      world_entries: {
+        Row: {
+          author_id: string
+          category_id: string
+          created_at: string
+          edit_permissions: Database["public"]["Enums"]["note_edit_permissions"]
+          fields: Json
+          icon: Json | null
+          id: string
+          image_filenames: string[]
+          map: Json | null
+          map_background_filename: string | null
+          map_settings: Json | null
+          name: string
+          notes_content: string | null
+          parent_entry_id: string | null
+          read_permissions: Database["public"]["Enums"]["note_read_permissions"]
+          updated_at: string
+          world_id: string
+        }
+        Insert: {
+          author_id: string
+          category_id: string
+          created_at?: string
+          edit_permissions?: Database["public"]["Enums"]["note_edit_permissions"]
+          fields?: Json
+          icon?: Json | null
+          id?: string
+          image_filenames?: string[]
+          map?: Json | null
+          map_background_filename?: string | null
+          map_settings?: Json | null
+          name: string
+          notes_content?: string | null
+          parent_entry_id?: string | null
+          read_permissions?: Database["public"]["Enums"]["note_read_permissions"]
+          updated_at?: string
+          world_id: string
+        }
+        Update: {
+          author_id?: string
+          category_id?: string
+          created_at?: string
+          edit_permissions?: Database["public"]["Enums"]["note_edit_permissions"]
+          fields?: Json
+          icon?: Json | null
+          id?: string
+          image_filenames?: string[]
+          map?: Json | null
+          map_background_filename?: string | null
+          map_settings?: Json | null
+          name?: string
+          notes_content?: string | null
+          parent_entry_id?: string | null
+          read_permissions?: Database["public"]["Enums"]["note_read_permissions"]
+          updated_at?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_entries_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "world_entries_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "world_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "world_entries_parent_entry_id_fkey"
+            columns: ["parent_entry_id"]
+            isOneToOne: false
+            referencedRelation: "world_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "world_entries_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      world_entry_bonds: {
+        Row: {
+          character_id: string
+          created_at: string
+          entry_id: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          entry_id: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          entry_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_entry_bonds_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "world_entry_bonds_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "world_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      world_entry_gm_data: {
+        Row: {
+          created_at: string
+          entry_id: string
+          fields: Json
+          gm_notes_content: string | null
+          updated_at: string
+          world_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_id: string
+          fields?: Json
+          gm_notes_content?: string | null
+          updated_at?: string
+          world_id: string
+        }
+        Update: {
+          created_at?: string
+          entry_id?: string
+          fields?: Json
+          gm_notes_content?: string | null
+          updated_at?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_entry_gm_data_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: true
+            referencedRelation: "world_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "world_entry_gm_data_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      world_players: {
+        Row: {
+          created_at: string
+          role: string
+          user_id: string
+          world_id: string
+        }
+        Insert: {
+          created_at?: string
+          role: string
+          user_id: string
+          world_id: string
+        }
+        Update: {
+          created_at?: string
+          role?: string
+          user_id?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_players_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "world_players_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      worlds: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          setting_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          setting_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          setting_key?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worlds_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      world_role: {
+        Args: { p_world_id: string; p_uid: string }
+        Returns: string
+      }
     }
     Enums: {
       character_initiative_status:
