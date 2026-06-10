@@ -43,12 +43,7 @@ export function ProgressRolls(props: ProgressRollsProps) {
             color="inherit"
             sx={{ mt: 1 }}
             onClick={() => {
-              rollTrackProgress(
-                track.type,
-                track.label,
-                Math.floor(track.value / 4),
-                moveId,
-              );
+              rollTrackProgress(track.type, track.label, track.value, moveId);
             }}
           >
             {t("datasworn.move.roll-track-progress", "Roll {{moveName}}", {

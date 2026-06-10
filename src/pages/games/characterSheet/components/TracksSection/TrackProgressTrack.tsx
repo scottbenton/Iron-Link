@@ -190,7 +190,7 @@ export function TrackProgressTrack(props: TrackProgressTrackProps) {
                     moveId={moveId}
                     trackType={track.type}
                     trackLabel={track.label}
-                    trackProgress={Math.floor(track.value / 4)}
+                    trackTicks={track.value}
                   />
                 ))}
               </Box>
