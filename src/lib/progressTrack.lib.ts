@@ -22,6 +22,20 @@ export function getProgressScore(ticks: number): number {
 }
 
 /**
+ * Converts a special (legacy) track's tick count to the progress score used
+ * for rolls. Once a Starforged legacy track has been filled and marked as a
+ * legacy, the player clears it and continues — and rolls against it always
+ * use the maximum progress score, regardless of the reset track's ticks.
+ */
+export function getSpecialTrackProgressScore(
+  ticks: number,
+  isLegacy: boolean,
+): number {
+  const score = getProgressScore(ticks);
+  return isLegacy ? MAX_PROGRESS_SCORE : score;
+}
+
+/**
  * Scores a progress roll: the progress score must beat (not tie) each
  * challenge die individually.
  */
