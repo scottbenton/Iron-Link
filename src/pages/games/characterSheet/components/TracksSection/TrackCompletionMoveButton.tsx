@@ -12,13 +12,13 @@ export interface TrackCompletionMoveButtonProps {
   moveId: string;
   trackType: TrackTypes;
   trackLabel: string;
-  trackProgress: number;
+  trackTicks: number;
 }
 
 export function TrackCompletionMoveButton(
   props: TrackCompletionMoveButtonProps,
 ) {
-  const { moveId, trackType, trackLabel, trackProgress } = props;
+  const { moveId, trackType, trackLabel, trackTicks } = props;
   const { t } = useTranslation();
 
   const move = useMove(moveId);
@@ -35,7 +35,7 @@ export function TrackCompletionMoveButton(
       color="inherit"
       endIcon={<RollIcon />}
       onClick={() =>
-        rollCompleteProgressTrack(trackType, trackLabel, trackProgress, moveId)
+        rollCompleteProgressTrack(trackType, trackLabel, trackTicks, moveId)
       }
     >
       {t(
