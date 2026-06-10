@@ -8,9 +8,9 @@ import { useGameLogStore } from "stores/gameLog.store";
 import { getRollResultLabel } from "data/rollResultLabel";
 
 import { createId } from "lib/id.lib";
+import { getProgressRollResult, getProgressScore } from "lib/progressTrack.lib";
 
 import { RollType } from "repositories/shared.types";
-import { RollResult } from "repositories/shared.types";
 import { TrackTypes } from "repositories/tracks.repository";
 
 import { ITrackProgressRoll, LogType } from "services/gameLog.service";
@@ -39,19 +39,19 @@ export function useRollCompleteProgressTrack() {
     (
       trackType: TrackTypes,
       trackLabel: string,
-      trackProgress: number,
+      trackTicks: number,
       moveId: string,
     ) => {
+      const trackProgress = getProgressScore(trackTicks);
+
       const challenge1 = getRoll(10);
       const challenge2 = getRoll(10);
 
-      let result: RollResult = RollResult.WeakHit;
-      if (trackProgress > challenge1 && trackProgress > challenge2) {
-        result = RollResult.StrongHit;
-        // Strong Hit
-      } else if (trackProgress <= challenge1 && trackProgress <= challenge2) {
-        result = RollResult.Miss;
-      }
+      const result = getProgressRollResult(
+        trackProgress,
+        challenge1,
+        challenge2,
+      );
 
       const trackProgressRoll: ITrackProgressRoll = {
         id: createId(),

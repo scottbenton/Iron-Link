@@ -43,9 +43,7 @@ export function SpecialTracks(props: SpecialTracksProps) {
               rollTrackProgress(
                 trackId,
                 capitalize(specialTracks[trackId].label),
-                Math.floor(
-                  (characterData.specialTracks?.[trackId]?.value ?? 0) / 4,
-                ),
+                characterData.specialTracks?.[trackId]?.value ?? 0,
                 moveId,
               );
             }}
