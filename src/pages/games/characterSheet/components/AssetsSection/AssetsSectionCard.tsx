@@ -68,7 +68,8 @@ function AssetsSectionCardUnMemoized(props: AssetsSectionCardProps) {
       ),
       confirmationText: t("common.delete", "Delete"),
     })
-      .then(() => {
+      .then(({ confirmed }) => {
+        if (!confirmed) return;
         deleteAsset(assetId).catch(() => {});
       })
       .catch(() => {});

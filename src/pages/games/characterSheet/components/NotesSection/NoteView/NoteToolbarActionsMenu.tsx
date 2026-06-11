@@ -53,7 +53,8 @@ export function NoteToolbarActionsMenu(props: NoteToolbarActionsMenuProps) {
       ),
       confirmationText: t("common.delete", "Delete"),
     })
-      .then(() => {
+      .then(({ confirmed }) => {
+        if (!confirmed) return;
         setOpenNote({ type: "folder", id: parentFolderId });
         deleteNote(openNoteId).catch(() => {});
       })

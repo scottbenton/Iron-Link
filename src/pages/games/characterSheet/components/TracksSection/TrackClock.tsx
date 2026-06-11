@@ -116,7 +116,8 @@ export function TrackClock(props: TrackClockProps) {
       ),
       confirmationText: t("common.delete", "Delete"),
     })
-      .then(() => {
+      .then(({ confirmed }) => {
+        if (!confirmed) return;
         deleteTrack(clockId).catch(() => {});
       })
       .catch(() => {});

@@ -84,7 +84,8 @@ export function TrackProgressTrack(props: TrackProgressTrackProps) {
       ),
       confirmationText: t("common.delete", "Delete"),
     })
-      .then(() => {
+      .then(({ confirmed }) => {
+        if (!confirmed) return;
         deleteTrack(trackId)
           .then(() => {
             announce(

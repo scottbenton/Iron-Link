@@ -48,8 +48,9 @@ export function DeleteCharacterButton(props: DeleteCharacterButtonProps) {
         ),
         confirmationText: t("common.delete", "Delete"),
       })
-        .then(() => {
+        .then(({ confirmed }) => {
           closeMenu();
+          if (!confirmed) return;
           navigate(
             hasMoreThanOneCharacter
               ? pathConfig.game(gameId)

@@ -91,7 +91,8 @@ export function UserCard(props: UserCardProps) {
           "Remove User",
         ),
       })
-        .then(() => {
+        .then(({ confirmed }) => {
+          if (!confirmed) return;
           removePlayerFromGame(gameId, uid, charactersByUser[uid] ?? []).catch(
             () => {},
           );

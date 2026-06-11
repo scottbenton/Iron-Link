@@ -45,6 +45,7 @@ export function GameCharacterPortraits(props: GameCharacterPortraitsProps) {
         name={sortedCampaignCharacters[0][1].name}
         size={"large"}
         borderWidth={1}
+        sx={{ flexShrink: 0 }}
       />
     );
   }
@@ -52,6 +53,7 @@ export function GameCharacterPortraits(props: GameCharacterPortraitsProps) {
     return (
       <Box
         position={"relative"}
+        flexShrink={0}
         width={AVATAR_SIZES.large}
         height={AVATAR_SIZES.large}
       >
@@ -80,6 +82,7 @@ export function GameCharacterPortraits(props: GameCharacterPortraitsProps) {
     <Box
       display="flex"
       gap={-1}
+      flexShrink={0}
       flexWrap="wrap"
       width={AVATAR_SIZES.large}
       height={AVATAR_SIZES.large}
