@@ -32,7 +32,8 @@ export function useDeleteNote() {
           ),
           confirmationText: t("common.delete", "Delete"),
         })
-          .then(() => {
+          .then(({ confirmed }) => {
+            if (!confirmed) return;
             if (currentItem?.type === "note" && currentItem.itemId === noteId) {
               openTab({ type: "folder", id: parentFolderId });
             }

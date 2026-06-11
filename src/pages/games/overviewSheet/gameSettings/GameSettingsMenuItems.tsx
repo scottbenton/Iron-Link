@@ -64,7 +64,11 @@ export function GameSettingsMenuItems(props: GameSettingsMenuItemsProps) {
         confirmationText: t("common.delete", "Delete"),
         confirmationButtonProps: { color: "error" },
       })
-        .then(() => {
+        .then(({ confirmed }) => {
+          if (!confirmed) {
+            closeMenu();
+            return;
+          }
           deleteGame(gameId)
             .then(() => {
               navigate(pathConfig.gameSelect);

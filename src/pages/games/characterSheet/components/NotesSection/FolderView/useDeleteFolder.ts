@@ -42,7 +42,8 @@ export function useDeleteFolder() {
           ),
           confirmationText: t("common.delete", "Delete"),
         })
-          .then(() => {
+          .then(({ confirmed }) => {
+            if (!confirmed) return;
             if (
               currentItem?.type === "folder" &&
               currentItem.itemId === folderId
