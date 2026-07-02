@@ -16,6 +16,10 @@ export enum ErrorNoun {
   Tracks = "tracks",
   User = "user",
   Image = "image",
+  World = "world",
+  WorldPlayers = "world players",
+  WorldCategories = "world categories",
+  WorldEntries = "world entries",
 }
 
 export enum ErrorVerb {
