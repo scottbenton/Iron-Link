@@ -152,6 +152,22 @@ function getTranslatedNoun(noun: ErrorNoun, plural: boolean): string {
       return plural
         ? i18n.t("errors.gameInviteKeys", "game invite keys")
         : i18n.t("errors.gameInviteKey", "game invite key");
+    case ErrorNoun.World:
+      return plural
+        ? i18n.t("errors.worlds", "worlds")
+        : i18n.t("errors.world", "world");
+    case ErrorNoun.WorldPlayer:
+      return plural
+        ? i18n.t("errors.worldPlayers", "players")
+        : i18n.t("errors.worldPlayer", "player");
+    case ErrorNoun.WorldCategory:
+      return plural
+        ? i18n.t("errors.worldCategories", "categories")
+        : i18n.t("errors.worldCategory", "category");
+    case ErrorNoun.WorldEntry:
+      return plural
+        ? i18n.t("errors.worldEntries", "entries")
+        : i18n.t("errors.worldEntry", "entry");
     default:
       return "";
   }

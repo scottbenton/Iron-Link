@@ -37,7 +37,7 @@ export class WorldPlayersRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Read,
-                ErrorNoun.WorldPlayers,
+                ErrorNoun.WorldPlayer,
                 true,
                 status,
               ),
@@ -62,7 +62,7 @@ export class WorldPlayersRepository {
           getRepositoryError(
             payload.errors,
             ErrorVerb.Read,
-            ErrorNoun.WorldPlayers,
+            ErrorNoun.WorldPlayer,
             true,
           ),
         );
@@ -104,7 +104,7 @@ export class WorldPlayersRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Create,
-                ErrorNoun.WorldPlayers,
+                ErrorNoun.WorldPlayer,
                 false,
                 status,
               ),
@@ -133,7 +133,7 @@ export class WorldPlayersRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Update,
-                ErrorNoun.WorldPlayers,
+                ErrorNoun.WorldPlayer,
                 false,
                 status,
               ),
@@ -161,7 +161,7 @@ export class WorldPlayersRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Delete,
-                ErrorNoun.WorldPlayers,
+                ErrorNoun.WorldPlayer,
                 false,
                 status,
               ),

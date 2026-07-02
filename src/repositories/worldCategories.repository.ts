@@ -72,7 +72,7 @@ export class WorldCategoriesRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Read,
-                ErrorNoun.WorldCategories,
+                ErrorNoun.WorldCategory,
                 true,
                 status,
               ),
@@ -97,7 +97,7 @@ export class WorldCategoriesRepository {
           getRepositoryError(
             payload.errors,
             ErrorVerb.Read,
-            ErrorNoun.WorldCategories,
+            ErrorNoun.WorldCategory,
             true,
           ),
         );
@@ -139,7 +139,7 @@ export class WorldCategoriesRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Create,
-                ErrorNoun.WorldCategories,
+                ErrorNoun.WorldCategory,
                 false,
                 status,
               ),
@@ -166,7 +166,7 @@ export class WorldCategoriesRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Update,
-                ErrorNoun.WorldCategories,
+                ErrorNoun.WorldCategory,
                 false,
                 status,
               ),
@@ -190,7 +190,7 @@ export class WorldCategoriesRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Delete,
-                ErrorNoun.WorldCategories,
+                ErrorNoun.WorldCategory,
                 false,
                 status,
               ),
