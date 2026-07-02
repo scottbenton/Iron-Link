@@ -110,3 +110,36 @@ with check (
         else false
     end
 );
+
+
+-- ---------------------------------------------------------------------------
+-- Fix infinite recursion in the worlds / world_players select policies
+--
+-- The world_players select policy referenced world_players in its own USING
+-- clause, which Postgres rejects at query time (42P17), and the worlds select
+-- policy hit the same recursion through its world_players subquery — every
+-- read of either table failed. world_role() is SECURITY DEFINER, so its
+-- internal membership lookups bypass RLS and cannot recurse.
+-- ---------------------------------------------------------------------------
+
+drop policy "World members and linked game players can read worlds" on "public"."worlds";
+
+create policy "World members and linked game players can read worlds"
+on "public"."worlds"
+as permissive
+for select
+to authenticated
+using (
+    public.world_role(worlds.id, ( select auth.uid() )) <> 'none'
+);
+
+drop policy "World members can read world_players" on "public"."world_players";
+
+create policy "World members can read world_players"
+on "public"."world_players"
+as permissive
+for select
+to authenticated
+using (
+    public.world_role(world_players.world_id, ( select auth.uid() )) <> 'none'
+);
