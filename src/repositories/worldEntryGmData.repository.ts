@@ -41,7 +41,7 @@ export class WorldEntryGmDataRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Read,
-                ErrorNoun.WorldEntries,
+                ErrorNoun.WorldEntry,
                 true,
                 status,
               ),
@@ -69,7 +69,7 @@ export class WorldEntryGmDataRepository {
           getRepositoryError(
             payload.errors,
             ErrorVerb.Read,
-            ErrorNoun.WorldEntries,
+            ErrorNoun.WorldEntry,
             true,
           ),
         );
@@ -112,7 +112,7 @@ export class WorldEntryGmDataRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Read,
-                ErrorNoun.WorldEntries,
+                ErrorNoun.WorldEntry,
                 false,
                 status,
               ),
@@ -137,7 +137,7 @@ export class WorldEntryGmDataRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Update,
-                ErrorNoun.WorldEntries,
+                ErrorNoun.WorldEntry,
                 false,
                 status,
               ),

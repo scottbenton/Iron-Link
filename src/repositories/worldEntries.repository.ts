@@ -111,7 +111,7 @@ export class WorldEntriesRepository {
             getRepositoryError(
               error,
               ErrorVerb.Read,
-              ErrorNoun.WorldEntries,
+              ErrorNoun.WorldEntry,
               true,
               status,
             ),
@@ -139,7 +139,7 @@ export class WorldEntriesRepository {
           getRepositoryError(
             payload.errors,
             ErrorVerb.Read,
-            ErrorNoun.WorldEntries,
+            ErrorNoun.WorldEntry,
             true,
           ),
         );
@@ -184,7 +184,7 @@ export class WorldEntriesRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Create,
-                ErrorNoun.WorldEntries,
+                ErrorNoun.WorldEntry,
                 false,
                 status,
               ),
@@ -211,7 +211,7 @@ export class WorldEntriesRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Update,
-                ErrorNoun.WorldEntries,
+                ErrorNoun.WorldEntry,
                 false,
                 status,
               ),
@@ -247,7 +247,7 @@ export class WorldEntriesRepository {
             getRepositoryError(
               res,
               ErrorVerb.Update,
-              ErrorNoun.WorldEntries,
+              ErrorNoun.WorldEntry,
               false,
               res.status,
             ),
@@ -273,7 +273,7 @@ export class WorldEntriesRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Read,
-                ErrorNoun.WorldEntries,
+                ErrorNoun.WorldEntry,
                 false,
                 status,
               ),
@@ -297,7 +297,7 @@ export class WorldEntriesRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Delete,
-                ErrorNoun.WorldEntries,
+                ErrorNoun.WorldEntry,
                 false,
                 status,
               ),

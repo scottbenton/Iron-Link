@@ -17,9 +17,9 @@ export enum ErrorNoun {
   User = "user",
   Image = "image",
   World = "world",
-  WorldPlayers = "world players",
-  WorldCategories = "world categories",
-  WorldEntries = "world entries",
+  WorldPlayer = "world player",
+  WorldCategory = "world category",
+  WorldEntry = "world entry",
 }
 
 export enum ErrorVerb {
