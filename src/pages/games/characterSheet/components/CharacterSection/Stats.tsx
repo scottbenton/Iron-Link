@@ -3,7 +3,7 @@ import { Box, Typography } from "@mui/material";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DebouncedConditionMeter } from "components/datasworn/ConditonMeter";
+import { ConditionMeter } from "components/datasworn/ConditonMeter";
 import { Stat } from "components/datasworn/Stat";
 
 import { useRollStatAndAddToLog } from "pages/games/hooks/useRollStatAndAddToLog.ts";
@@ -84,7 +84,7 @@ export function Stats() {
             }
           />
         ))}
-        <DebouncedConditionMeter
+        <ConditionMeter
           label={t("character.character-sidebar.adds", "Adds")}
           min={-9}
           max={9}

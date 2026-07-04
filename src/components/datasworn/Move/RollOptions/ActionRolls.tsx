@@ -3,7 +3,7 @@ import { Box, SxProps, Theme } from "@mui/material";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DebouncedConditionMeter } from "components/datasworn/ConditonMeter";
+import { ConditionMeter } from "components/datasworn/ConditonMeter";
 
 import { useGameCharactersStore } from "stores/gameCharacters.store";
 
@@ -72,7 +72,7 @@ export function ActionRolls(props: ActionRollsProps) {
         </React.Fragment>
       ))}
       {character && includeAdds && (
-        <DebouncedConditionMeter
+        <ConditionMeter
           label={t("character.character-sidebar.adds", "Adds")}
           min={-9}
           max={9}
