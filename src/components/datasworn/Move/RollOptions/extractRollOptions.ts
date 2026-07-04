@@ -1,4 +1,4 @@
-import { Datasworn, IdParser } from "@datasworn/core";
+import { Datasworn, IdParser } from "@datasworn-community/core";
 import { Primary } from "@datasworn/core/dist/StringId";
 
 import { getAsset } from "hooks/datasworn/useAsset";

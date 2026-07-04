@@ -1,5 +1,4 @@
-import { Datasworn, IdParser } from "@datasworn/core";
-import { Primary } from "@datasworn/core/dist/StringId";
+import { Datasworn, IdParser, StringId } from "@datasworn-community/core";
 import RollIcon from "@mui/icons-material/Casino";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -50,7 +49,10 @@ export function MoveActionAssetControl(props: MoveActionAssetControlProps) {
     > = {};
 
     rollOption.assets?.forEach((assetWildcard) => {
-      const matches = IdParser.getMatches(assetWildcard as Primary, tree);
+      const matches = IdParser.getMatches(
+        assetWildcard as StringId.Primary,
+        tree,
+      );
       matches.forEach((asset) => {
         if (asset.type === "asset") {
           Object.entries({ ...characterAssets, ...gameAssets }).forEach(

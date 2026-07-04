@@ -1,5 +1,4 @@
-import { Datasworn, IdParser } from "@datasworn/core";
-import { Primary } from "@datasworn/core/dist/StringId";
+import { Datasworn, IdParser, StringId } from "@datasworn-community/core";
 import {
   Alert,
   Box,
@@ -322,7 +321,7 @@ function getReplacedCollectionsAndItemsFromCollection(
     if (collection.replaces) {
       collection.replaces.forEach((replacesKey) => {
         const collectionsToReplace = IdParser.getMatches(
-          replacesKey as Primary,
+          replacesKey as StringId.Primary,
           tree,
         );
         collectionsToReplace.forEach((collectionToReplace) => {
@@ -354,7 +353,7 @@ function getReplacedCollectionsAndItemsFromCollection(
         if (item.replaces && !excludedItems[item._id]) {
           item.replaces.forEach((replacesKey) => {
             const itemsToReplace = IdParser.getMatches(
-              replacesKey as Primary,
+              replacesKey as StringId.Primary,
               tree,
             );
             itemsToReplace.forEach((itemToReplace) => {

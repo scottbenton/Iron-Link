@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import OracleTableIcon from "@mui/icons-material/List";
 import { IconButton, ListItemText, Tooltip } from "@mui/material";
 import { useTranslation } from "react-i18next";

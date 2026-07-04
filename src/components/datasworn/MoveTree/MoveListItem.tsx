@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import ChevronIcon from "@mui/icons-material/ChevronRight";
 import { Collapse, ListItem, ListItemButton } from "@mui/material";
 import { ListItemText } from "@mui/material";

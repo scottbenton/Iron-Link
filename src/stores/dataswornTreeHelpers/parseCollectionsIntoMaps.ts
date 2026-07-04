@@ -1,5 +1,9 @@
-import { CollectionId, Datasworn, IdParser } from "@datasworn/core";
-import { Primary } from "@datasworn/core/dist/StringId";
+import {
+  CollectionId,
+  Datasworn,
+  IdParser,
+  StringId,
+} from "@datasworn-community/core";
 
 import { ironLinkAskTheOracleRulesPackage } from "data/askTheOracle";
 
@@ -39,7 +43,7 @@ export function parseCollectionsIntoMaps<C extends Collections>(
   // Get the root collections
   IdParser.tree = tree;
   const rootCollectionQueryResult = CollectionId.getMatches(
-    rootCollectionQueryRegex as Primary,
+    rootCollectionQueryRegex as StringId.Primary,
     tree,
   ) as Map<string, C>;
 
@@ -112,7 +116,10 @@ function parseCollection<C extends Collections>(
       if (isItemExcluded) return;
 
       item.replaces?.forEach((replacesKey) => {
-        const replacedItems = IdParser.getMatches(replacesKey as Primary, tree);
+        const replacedItems = IdParser.getMatches(
+          replacesKey as StringId.Primary,
+          tree,
+        );
         replacedItems.forEach((value) => {
           if (value.type === item.type) {
             itemMap[value._id] = value;
@@ -146,7 +153,10 @@ function parseCollection<C extends Collections>(
 
   if (collection.replaces) {
     collection.replaces.forEach((replacesKey) => {
-      const replacedItems = IdParser.getMatches(replacesKey as Primary, tree);
+      const replacedItems = IdParser.getMatches(
+        replacesKey as StringId.Primary,
+        tree,
+      );
       replacedItems.forEach((value) => {
         if (value.type === collection.type) {
           collectionMap[value._id] = collection;
@@ -156,7 +166,10 @@ function parseCollection<C extends Collections>(
   } else if (collection.enhances) {
     delete collectionMap[collection._id];
     collection.enhances.forEach((enhancesKey) => {
-      const enhancedItems = IdParser.getMatches(enhancesKey as Primary, tree);
+      const enhancedItems = IdParser.getMatches(
+        enhancesKey as StringId.Primary,
+        tree,
+      );
       enhancedItems.forEach((value) => {
         if (value.type === collection.type) {
           if (collectionMap[value._id]) {

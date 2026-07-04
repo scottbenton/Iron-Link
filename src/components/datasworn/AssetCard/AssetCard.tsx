@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import { Box, Card, Stack, SxProps, Theme, Typography } from "@mui/material";
 
 import { useAsset } from "hooks/datasworn/useAsset";

@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MockedFunction, beforeEach, describe, expect, it, vi } from "vitest";
 

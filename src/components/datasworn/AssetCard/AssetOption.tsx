@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 
 import { AssetSelectEnhancementField } from "./fields/AssetSelectEnhancementField";
 import { AssetSelectValueField } from "./fields/AssetSelectValueField";

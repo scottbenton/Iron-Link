@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 
 import { RollResult as RollResultType } from "repositories/shared.types";
 

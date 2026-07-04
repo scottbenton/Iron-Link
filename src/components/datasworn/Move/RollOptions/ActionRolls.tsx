@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import { Box, SxProps, Theme } from "@mui/material";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
