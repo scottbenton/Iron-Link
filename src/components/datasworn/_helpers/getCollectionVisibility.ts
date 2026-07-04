@@ -44,6 +44,8 @@ export function getCollectionVisibilities<
         collectionVisibilityMap,
         itemVisibilityMap,
       );
+    } else {
+      collectionVisibilityMap[collectionId] = CollectionVisibility.Hidden;
     }
   });
 }
