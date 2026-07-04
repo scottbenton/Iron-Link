@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import RollIcon from "@mui/icons-material/Casino";
 import { useTranslation } from "react-i18next";
 

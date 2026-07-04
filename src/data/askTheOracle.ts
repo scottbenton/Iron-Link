@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 
 import { AskTheOracle } from "repositories/tracks.repository";
 
@@ -218,7 +218,7 @@ export const askTheOracleEnumMap: Record<
 
 export const ironLinkAskTheOracleRulesPackage: Datasworn.Ruleset = {
   _id: "ironlink",
-  datasworn_version: "0.1.0",
+  datasworn_version: "0.2.0",
   title: "Iron Link Ask the Oracle Oracles",
   type: "ruleset",
   authors: [],

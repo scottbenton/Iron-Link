@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import RollIcon from "@mui/icons-material/Casino";
 import { Box } from "@mui/material";
 import { useCallback } from "react";

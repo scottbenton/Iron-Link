@@ -19,10 +19,7 @@ import { ImageInput } from "./ImageInput";
 
 const nameOracles: Record<string, OracleTextFieldOracleConfig> = {
   [ironswornRulesetConfig.id]: {
-    tableIds: [
-      "oracle_rollable:classic/name/ironlander/a",
-      "oracle_rollable:classic/name/ironlander/b",
-    ],
+    tableIds: ["oracle_rollable:classic/name/ironlander"],
   },
   [starforgedRulesetConfig.id]: {
     tableIds: [
@@ -55,6 +52,7 @@ export function CharacterDetails() {
     const oracles: OracleTextFieldOracleConfig = {
       tableIds: [],
     };
+
     Object.keys(rulesets).forEach((ruleset) => {
       if (rulesets[ruleset] && nameOracles[ruleset]) {
         oracles.tableIds.push(nameOracles[ruleset]);

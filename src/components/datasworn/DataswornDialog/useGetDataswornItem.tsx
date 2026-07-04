@@ -1,4 +1,4 @@
-import { Datasworn, IdParser } from "@datasworn/core";
+import { Datasworn, IdParser } from "@datasworn-community/core";
 import { useEffect, useState } from "react";
 
 import { useDataswornTree } from "stores/dataswornTree.store";

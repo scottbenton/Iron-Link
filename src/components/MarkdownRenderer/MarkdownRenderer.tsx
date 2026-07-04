@@ -1,4 +1,4 @@
-import { Datasworn, IdParser } from "@datasworn/core";
+import { Datasworn, IdParser } from "@datasworn-community/core";
 import {
   Box,
   Link,

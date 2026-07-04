@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import ExpandIcon from "@mui/icons-material/ExpandMore";
 import {
   Accordion,

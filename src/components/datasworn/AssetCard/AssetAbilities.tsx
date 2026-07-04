@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import { Box, Checkbox, Stack, Typography } from "@mui/material";
 
 import { MarkdownRenderer } from "components/MarkdownRenderer";

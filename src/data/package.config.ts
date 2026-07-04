@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 
 interface BaseConfig {
   id: string;
@@ -29,7 +29,7 @@ export const ironswornRulesetConfig: IRulesetConfig = {
   type: "ruleset",
   load: async () => {
     const ironswornJSON = await import(
-      "@datasworn/ironsworn-classic/json/classic.json"
+      "@datasworn-community/ironsworn-classic/json/classic.json"
     );
     return { ...ironswornJSON, title: "Ironsworn" } as Datasworn.Ruleset;
   },
@@ -42,7 +42,7 @@ export const ironswornDelveConfig: IExpansionConfig = {
   type: "expansion",
   load: async () => {
     const ironswornDelveJSON = await import(
-      "@datasworn/ironsworn-classic-delve/json/delve.json"
+      "@datasworn-community/ironsworn-classic-delve/json/delve.json"
     );
     return {
       ...ironswornDelveJSON,
@@ -58,7 +58,7 @@ export const starforgedRulesetConfig: IRulesetConfig = {
   type: "ruleset",
   load: async () => {
     const starforgedJSON = await import(
-      "@datasworn/starforged/json/starforged.json"
+      "@datasworn-community/starforged/json/starforged.json"
     );
     return {
       ...starforgedJSON,
@@ -74,7 +74,7 @@ export const sunderedIslesConfig: IExpansionConfig = {
   type: "expansion",
   load: async () => {
     const starforgedDelveJSON = await import(
-      "@datasworn/sundered-isles/json/sundered_isles.json"
+      "@datasworn-community/sundered-isles/json/sundered_isles.json"
     );
     return {
       ...starforgedDelveJSON,
@@ -88,7 +88,9 @@ export const starsmithConfig: IExpansionConfig = {
   name: "Starsmith",
   type: "expansion",
   load: async () => {
-    const starsmithJSON = await import("./third-party-json/starsmith.json");
+    const starsmithJSON = await import(
+      "@datasworn-community/starsmith/json/starsmith.json"
+    );
     return {
       ...starsmithJSON,
     } as Datasworn.Expansion;
@@ -107,7 +109,9 @@ export const elegyRulesetConfig: IRulesetConfig = {
   name: "Elegy",
   type: "ruleset",
   load: async () => {
-    const elegyJSON = await import("./third-party-json/elegy.json");
+    const elegyJSON = await import(
+      "@datasworn-community/elegy/json/elegy.json"
+    );
     return {
       ...elegyJSON,
     } as Datasworn.Ruleset;

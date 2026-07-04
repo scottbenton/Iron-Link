@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import { useCallback } from "react";
 
 import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";

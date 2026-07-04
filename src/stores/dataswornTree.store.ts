@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import deepEqual from "fast-deep-equal";
 import { useMemo } from "react";
 import { immer } from "zustand/middleware/immer";

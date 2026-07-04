@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import { Stack } from "@mui/material";
 
 import { IAsset } from "services/asset.service";

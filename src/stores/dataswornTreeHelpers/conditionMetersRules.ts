@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 
 export function parseConditionMeterRules(
   trees: Record<string, Datasworn.RulesPackage>,
