@@ -56,11 +56,6 @@ export function MoveCategoryListItem(props: MoveCategoryListItemProps) {
     return null;
   }
 
-  // This move category replaces another, we don't want to render it here
-  if (moveCategory.replaces && moveCategory._id === moveCategoryId) {
-    return null;
-  }
-
   const isExpandedOrForced = isExpanded || isSearchActive;
 
   return (

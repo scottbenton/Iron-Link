@@ -28,11 +28,12 @@ export function Oracle(props: OracleProps) {
       ? cursedOracleAlternative
       : undefined,
   );
-  const [currentOracle, setCurrentOracle] = useState(oracleId);
+  const activeOracleId = oracle?._id ?? oracleId;
+  const [currentOracle, setCurrentOracle] = useState(activeOracleId);
 
   useEffect(() => {
-    setCurrentOracle(oracleId);
-  }, [oracleId]);
+    setCurrentOracle(activeOracleId);
+  }, [activeOracleId]);
 
   const { t } = useTranslation();
 
