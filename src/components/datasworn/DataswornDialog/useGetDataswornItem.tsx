@@ -3,13 +3,11 @@ import { Datasworn } from "@datasworn-community/core";
 import { getAsset } from "hooks/datasworn/useAsset";
 import { getAssetCollection } from "hooks/datasworn/useAssetCollection";
 import { getMove } from "hooks/datasworn/useMove";
+import { getMoveCategory } from "hooks/datasworn/useMoveCategory";
 import { getOracleCollection } from "hooks/datasworn/useOracleCollection";
 import { getOracleRollable } from "hooks/datasworn/useOracleRollable";
 
-import {
-  useDataswornTree,
-  useDataswornTreeStore,
-} from "stores/dataswornTree.store";
+import { useDataswornTree } from "stores/dataswornTree.store";
 
 type ReturnType =
   | {
@@ -68,11 +66,7 @@ export function getDataswornItem(itemId: string): ReturnType {
     };
   }
 
-  const { moveCategoryAliases, moveCategoryMap } =
-    useDataswornTreeStore.getState().moves;
-  const moveCategory =
-    moveCategoryMap[moveCategoryAliases[itemId] ?? itemId] ??
-    moveCategoryMap[itemId];
+  const moveCategory = getMoveCategory(itemId);
   if (moveCategory) {
     return {
       type: "move_category",
