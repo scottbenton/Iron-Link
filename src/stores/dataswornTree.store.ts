@@ -155,7 +155,6 @@ export const useDataswornTreeStore = createWithEqualityFn<
           },
           "oracle_collection:*/*",
         );
-        console.log(moveMaps, oracleMaps);
         store.oracles = {
           oracleCollectionMap: oracleMaps.collectionMap,
           oracleRollableMap: oracleMaps.itemMap,
