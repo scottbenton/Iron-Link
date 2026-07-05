@@ -1,4 +1,3 @@
-import { Datasworn, IdParser } from "@datasworn-community/core";
 import {
   Box,
   Link,
@@ -15,6 +14,10 @@ import remarkGfm from "remark-gfm";
 import { useOpenDataswornDialog } from "stores/appState.store";
 
 import { idMap } from "data/idMap";
+
+import { getDataswornItem } from "components/datasworn/DataswornDialog/useGetDataswornItem";
+
+import { getOracleRollable } from "hooks/datasworn/useOracleRollable";
 
 import { OracleTableRenderer } from "./OracleTableRenderer";
 
@@ -67,15 +70,7 @@ export function MarkdownRenderer(props: MarkdownRendererProps) {
                 .replace("{{table:", "")
                 .replace("}}", "")
                 .replace("{{table>", "");
-              let oracle: Datasworn.OracleRollable | undefined = undefined;
-              try {
-                const tmpOracle = IdParser.get(id) as Datasworn.OracleRollable;
-                if (tmpOracle.type === "oracle_rollable") {
-                  oracle = tmpOracle;
-                }
-              } catch {
-                // Empty - if oracle is undefined we will continue parsing
-              }
+              const oracle = getOracleRollable(id);
               if (oracle) {
                 return <OracleTableRenderer oracle={oracle} />;
               }
@@ -202,13 +197,7 @@ export function MarkdownRenderer(props: MarkdownRendererProps) {
             // We have a datasworn id
             const id = idMap[strippedHref] ?? strippedHref;
 
-            let item: unknown;
-            try {
-              item = IdParser.get(id);
-            } catch {
-              // console.warn("Could not find in datasworn");
-              // Empty - if item is undefined we will continue parsing
-            }
+            const item = getDataswornItem(id);
 
             if (
               item &&

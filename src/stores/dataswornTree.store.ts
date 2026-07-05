@@ -38,6 +38,7 @@ export type OracleRollableMap = Record<
   string,
   Datasworn.OracleRollable | Datasworn.EmbeddedOracleRollable
 >;
+export type DataswornIdAliases = Record<string, string>;
 
 interface DataswornTreeStoreState {
   rulesError: string | null;
@@ -48,16 +49,22 @@ interface DataswornTreeStoreState {
     assetCollectionMap: AssetCollectionMap;
     assetMap: AssetMap;
     rootAssetCollections: RootCollections;
+    assetCollectionAliases: DataswornIdAliases;
+    assetAliases: DataswornIdAliases;
   };
   moves: {
     rootMoveCategories: RootMoveCategories;
     moveCategoryMap: MoveCategoryMap;
     moveMap: MoveMap;
+    moveCategoryAliases: DataswornIdAliases;
+    moveAliases: DataswornIdAliases;
   };
   oracles: {
     rootOracleCollections: RootOracleCollections;
     oracleCollectionMap: OracleCollectionMap;
     oracleRollableMap: OracleRollableMap;
+    oracleCollectionAliases: DataswornIdAliases;
+    oracleAliases: DataswornIdAliases;
   };
 
   statRules: Record<string, Datasworn.StatRule>;
@@ -89,16 +96,22 @@ export const useDataswornTreeStore = createWithEqualityFn<
       assetCollectionMap: {},
       assetMap: {},
       rootAssetCollections: {},
+      assetCollectionAliases: {},
+      assetAliases: {},
     },
     moves: {
       moveCategoryMap: {},
       moveMap: {},
       rootMoveCategories: {},
+      moveCategoryAliases: {},
+      moveAliases: {},
     },
     oracles: {
       oracleCollectionMap: {},
       oracleRollableMap: {},
       rootOracleCollections: {},
+      oracleCollectionAliases: {},
+      oracleAliases: {},
     },
 
     statRules: {},
@@ -131,6 +144,8 @@ export const useDataswornTreeStore = createWithEqualityFn<
           assetCollectionMap: assetMaps.collectionMap,
           assetMap: assetMaps.itemMap,
           rootAssetCollections: assetMaps.rootCollections,
+          assetCollectionAliases: assetMaps.collectionAliases,
+          assetAliases: assetMaps.itemAliases,
         };
 
         const moveMaps = parseCollectionsIntoMaps<Datasworn.MoveCategory>(
@@ -145,6 +160,8 @@ export const useDataswornTreeStore = createWithEqualityFn<
           moveCategoryMap: moveMaps.collectionMap,
           moveMap: moveMaps.itemMap,
           rootMoveCategories: moveMaps.rootCollections,
+          moveCategoryAliases: moveMaps.collectionAliases,
+          moveAliases: moveMaps.itemAliases,
         };
 
         const oracleMaps = parseCollectionsIntoMaps<Datasworn.OracleCollection>(
@@ -155,11 +172,12 @@ export const useDataswornTreeStore = createWithEqualityFn<
           },
           "oracle_collection:*/*",
         );
-        console.log(moveMaps, oracleMaps);
         store.oracles = {
           oracleCollectionMap: oracleMaps.collectionMap,
           oracleRollableMap: oracleMaps.itemMap,
           rootOracleCollections: oracleMaps.rootCollections,
+          oracleCollectionAliases: oracleMaps.collectionAliases,
+          oracleAliases: oracleMaps.itemAliases,
         };
 
         Object.values(store.moves.moveMap).forEach((move) => {

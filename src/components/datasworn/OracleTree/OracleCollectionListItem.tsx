@@ -58,14 +58,6 @@ export function OracleCollectionListItem(props: OracleCollectionListItemProps) {
 
   const isExpandedOrForced = isExpanded || isSearchActive;
 
-  // This oracle collection replaces another, we don't want to render it here
-  if (
-    oracleCollection.replaces &&
-    oracleCollection._id === oracleCollectionId
-  ) {
-    return null;
-  }
-
   if (
     oracleCollection.oracle_type === "table_shared_text" ||
     oracleCollection.oracle_type === "table_shared_text2" ||
