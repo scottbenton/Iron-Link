@@ -37,9 +37,15 @@ describe("parseCollectionsIntoMaps", () => {
       maps.collectionMap["oracle_collection:starforged/character/name"]._id,
     ).toEqual("oracle_collection:sundered_isles/character/name");
 
+    const characterCollection =
+      maps.collectionMap["oracle_collection:sundered_isles/character"];
+    expect("collections" in characterCollection).toEqual(true);
+    if (!("collections" in characterCollection)) return;
+
     expect(
-      maps.collectionMap["oracle_collection:sundered_isles/character"]
-        .collections["oracle_collection:sundered_isles/character/name"]._id,
+      characterCollection.collections[
+        "oracle_collection:sundered_isles/character/name"
+      ]._id,
     ).toEqual("oracle_collection:sundered_isles/character/name");
   });
 

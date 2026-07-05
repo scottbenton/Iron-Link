@@ -19,6 +19,10 @@ type Items =
   | Datasworn.Move
   | Datasworn.OracleRollable
   | Datasworn.OracleColumnText;
+type ItemRecord = Record<string, Items>;
+type CollectionWithChildren<C extends Collections> = C & {
+  collections: Record<string, C>;
+};
 
 export type RootCollections = Record<
   string,
@@ -55,7 +59,7 @@ export function parseCollectionsIntoMaps<C extends Collections>(
   const allRootCollections: C[] = [];
 
   const collectionMap: Record<string, C> = {};
-  const itemMap: C["contents"] = {};
+  const itemMap: ItemRecord = {};
   const collectionAliases: Record<string, string> = {};
   const itemAliases: Record<string, string> = {};
   const replacedCollectionIds = new Set<string>();
@@ -126,7 +130,7 @@ export function parseCollectionsIntoMaps<C extends Collections>(
   Object.entries(itemAliases).forEach(([replacedId, replacementId]) => {
     const replacement = itemMap[replacementId];
     if (replacement) {
-      itemMap[replacedId as keyof C["contents"]] = replacement;
+      itemMap[replacedId] = replacement;
     }
   });
 
@@ -147,7 +151,7 @@ export function parseCollectionsIntoMaps<C extends Collections>(
   return {
     rootCollections,
     collectionMap,
-    itemMap,
+    itemMap: itemMap as C["contents"],
     collectionAliases,
     itemAliases,
   };
@@ -161,7 +165,7 @@ function parseCollection<C extends Collections>(
     itemExclusions: Record<string, boolean>;
   },
   collectionMap: Record<string, C>,
-  itemMap: C["contents"],
+  itemMap: ItemRecord,
   collectionAliases: Record<string, string>,
   itemAliases: Record<string, string>,
   replacedCollectionIds: Set<string>,
@@ -172,7 +176,7 @@ function parseCollection<C extends Collections>(
   const isExcluded = playsetExclusions.collectionExclusions[collection._id];
   if (isExcluded) return undefined;
 
-  const filteredContents: C["contents"] = {};
+  const filteredContents: ItemRecord = {};
   (Object.entries(collection.contents) as [string, Items][]).forEach(
     ([key, item]) => {
       const isItemExcluded = playsetExclusions.itemExclusions[item._id];
@@ -191,8 +195,8 @@ function parseCollection<C extends Collections>(
         });
       });
 
-      itemMap[item._id as keyof C["contents"]] = item;
-      filteredContents[key as keyof C["contents"]] = item;
+      itemMap[item._id] = item;
+      filteredContents[key] = item;
     },
   );
 
@@ -220,7 +224,7 @@ function parseCollection<C extends Collections>(
 
   const parsedCollection = {
     ...collection,
-    contents: filteredContents,
+    contents: filteredContents as C["contents"],
     ...("collections" in collection
       ? { collections: filteredCollections }
       : undefined),
@@ -271,24 +275,29 @@ function mergeCollectionEnhancement<C extends Collections>(
   });
 
   target.contents = {
-    ...filterRecordByItemId(target.contents, enhancedItemReplacementIds),
+    ...filterRecordByItemId(
+      target.contents as ItemRecord,
+      enhancedItemReplacementIds,
+    ),
     ...enhancer.contents,
-  };
+  } as C["contents"];
 
   if ("collections" in target && "collections" in enhancer) {
+    const targetWithChildren = target as CollectionWithChildren<C>;
+    const enhancerWithChildren = enhancer as CollectionWithChildren<C>;
     const enhancedCollectionReplacementIds = new Set<string>();
-    (Object.values(enhancer.collections) as C[]).forEach((collection) => {
+    Object.values(enhancerWithChildren.collections).forEach((collection) => {
       collection.replaces?.forEach((replacedId) => {
         enhancedCollectionReplacementIds.add(replacedId);
       });
     });
 
-    target.collections = {
+    targetWithChildren.collections = {
       ...filterRecordByItemId(
-        target.collections as Record<string, C>,
+        targetWithChildren.collections,
         enhancedCollectionReplacementIds,
       ),
-      ...(enhancer.collections as Record<string, C>),
+      ...enhancerWithChildren.collections,
     };
   }
 }
@@ -298,14 +307,18 @@ function removeHiddenEntries<C extends Collections>(
   replacedCollectionIds: Set<string>,
   replacedItemIds: Set<string>,
 ) {
-  collection.contents = filterRecordByItemId(collection.contents, replacedItemIds);
+  collection.contents = filterRecordByItemId(
+    collection.contents as ItemRecord,
+    replacedItemIds,
+  ) as C["contents"];
 
   if ("collections" in collection) {
-    collection.collections = filterRecordByItemId(
-      collection.collections as Record<string, C>,
+    const collectionWithChildren = collection as CollectionWithChildren<C>;
+    collectionWithChildren.collections = filterRecordByItemId(
+      collectionWithChildren.collections,
       replacedCollectionIds,
     );
-    (Object.values(collection.collections) as C[]).forEach((subCollection) => {
+    Object.values(collectionWithChildren.collections).forEach((subCollection) => {
       removeHiddenEntries(subCollection, replacedCollectionIds, replacedItemIds);
     });
   }
