@@ -1,4 +1,3 @@
-import { Datasworn } from "@datasworn-community/core";
 import {
   Box,
   Link,
@@ -73,11 +72,7 @@ export function MarkdownRenderer(props: MarkdownRendererProps) {
                 .replace("{{table>", "");
               const oracle = getOracleRollable(id);
               if (oracle) {
-                return (
-                  <OracleTableRenderer
-                    oracle={oracle as Datasworn.OracleRollable}
-                  />
-                );
+                return <OracleTableRenderer oracle={oracle} />;
               }
             } else if (content.match(/^{{table:[^/]+\/truths\/[^}]+}}$/)) {
               return null;

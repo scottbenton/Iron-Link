@@ -6,7 +6,10 @@ import { Datasworn } from "@datasworn-community/core";
 // import { OracleTableSharedRolls } from "components/features/charactersAndCampaigns/LinkedDialog/LinkedDialogContent/OracleDialogContent/OracleTableSharedRolls";
 
 export interface OracleTableRendererProps {
-  oracle: Datasworn.OracleCollection | Datasworn.OracleRollable;
+  oracle:
+    | Datasworn.OracleCollection
+    | Datasworn.OracleRollable
+    | Datasworn.EmbeddedOracleRollable;
 }
 
 export function OracleTableRenderer(props: OracleTableRendererProps) {
