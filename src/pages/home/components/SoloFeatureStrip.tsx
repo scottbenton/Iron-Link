@@ -38,29 +38,28 @@ export function SoloFeatureStrip() {
       borderColor="divider"
       py={2}
       display="flex"
-      flexWrap="wrap"
-      alignItems="center"
-      justifyContent="center"
-      columnGap={4}
-      rowGap={1}
+      flexDirection="column"
+      gap={1}
     >
       <Typography
         variant="overline"
         component="p"
-        color="text.secondary"
+        color="primary"
         fontFamily={(theme) => theme.typography.fontFamilyTitle}
         letterSpacing={2}
       >
         {t("home.solo.eyebrow", "And everything solo players expect")}
       </Typography>
-      {features.map(({ Icon, label }) => (
-        <Box key={label} display="flex" alignItems="center" gap={1}>
-          <Icon color="primary" fontSize="small" />
-          <Typography variant="body2" color="text.secondary">
-            {label}
-          </Typography>
-        </Box>
-      ))}
+      <Box display="flex" rowGap={1} columnGap={2} flexWrap="wrap">
+        {features.map(({ Icon, label }) => (
+          <Box key={label} display="flex" alignItems="center" gap={1}>
+            <Icon color="primary" fontSize="small" />
+            <Typography variant="body2" color="text.secondary">
+              {label}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
     </Box>
   );
 }

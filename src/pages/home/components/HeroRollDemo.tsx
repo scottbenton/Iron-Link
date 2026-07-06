@@ -56,10 +56,7 @@ export function HeroRollDemo(props: HeroRollDemoProps) {
         lineHeight={1.2}
         mb={1}
       >
-        {t(
-          "home.hero.demo-caption",
-          "These are the real sheet controls — click a stat to roll it",
-        )}
+        {t("home.hero.demo-caption", "Click a stat to roll it")}
       </Typography>
       <Box display="flex" flexWrap="wrap" gap={1}>
         {demoStats.map((stat) => (
@@ -94,7 +91,7 @@ export function HeroRollDemo(props: HeroRollDemoProps) {
             <Typography variant="body2">
               {t(
                 "home.hero.demo-placeholder",
-                "Your roll will appear here — beat both challenge dice for a strong hit.",
+                "Your roll will appear here. Beat both challenge dice for a strong hit.",
               )}
             </Typography>
           </Card>

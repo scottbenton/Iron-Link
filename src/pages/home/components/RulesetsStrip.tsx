@@ -6,7 +6,6 @@ export function RulesetsStrip() {
 
   const rulesets = [
     t("home.rulesets.ironsworn", "Ironsworn"),
-    t("home.rulesets.delve", "Ironsworn: Delve"),
     t("home.rulesets.starforged", "Starforged"),
     t("home.rulesets.sundered-isles", "Sundered Isles"),
   ];
@@ -22,7 +21,7 @@ export function RulesetsStrip() {
       <Typography
         variant="overline"
         component="p"
-        color="text.secondary"
+        color="primary"
         fontFamily={(theme) => theme.typography.fontFamilyTitle}
         letterSpacing={2}
         mr={1}

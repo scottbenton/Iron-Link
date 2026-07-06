@@ -32,7 +32,7 @@ export function GroupPlaySection(props: GroupPlaySectionProps) {
         fontFamily={(theme) => theme.typography.fontFamilyTitle}
         letterSpacing={2}
       >
-        {t("home.group.eyebrow", "Built for the whole table")}
+        {t("home.group.eyebrow", "Bring your table together")}
       </Typography>
       <Typography
         variant="h4"
@@ -41,12 +41,15 @@ export function GroupPlaySection(props: GroupPlaySectionProps) {
         fontWeight={600}
         mt={0.5}
       >
-        {t("home.group.title", "Most Ironsworn tools are built for one.")}
+        {t(
+          "home.group.title",
+          "Most Ironsworn and Starforged tools are built for one.",
+        )}
       </Typography>
       <Typography color="text.secondary" mt={1} maxWidth="70ch">
         {t(
           "home.group.subtitle",
-          "One invite link brings your whole table into a shared campaign. Every roll, vow, and clock lands on everyone's screen the moment it happens — roll a stat above and watch the table react.",
+          "One invite link brings your whole table into a shared campaign. Every roll, vow, and clock lands on everyone's screen the moment it happens. Roll a stat above and watch the table react.",
         )}
       </Typography>
       <Box
@@ -58,13 +61,15 @@ export function GroupPlaySection(props: GroupPlaySectionProps) {
         <DemoGameLog logEntries={logEntries} />
         <Box display="flex" flexDirection="column" gap={2}>
           <Card variant="outlined" sx={{ px: 2, py: 1.5 }}>
-            <ProgressTrack
-              difficulty={Difficulty.Dangerous}
-              trackType={t("home.demo.track-type-journey", "Journey")}
-              label={t("home.demo.track-label", "Escort the caravan")}
-              value={trackTicks}
-              onChange={onTrackTicksChange}
-            />
+            <Box>
+              <ProgressTrack
+                difficulty={Difficulty.Dangerous}
+                trackType={t("home.demo.track-type-journey", "Journey")}
+                label={t("home.demo.track-label", "Escort the caravan")}
+                value={trackTicks}
+                onChange={onTrackTicksChange}
+              />
+            </Box>
             <Typography
               variant="caption"
               component="p"
@@ -73,7 +78,7 @@ export function GroupPlaySection(props: GroupPlaySectionProps) {
             >
               {t(
                 "home.demo.track-caption",
-                "Shared with the table — anyone can mark progress.",
+                "Shared with the table. Anyone can mark progress.",
               )}
             </Typography>
           </Card>
@@ -82,7 +87,7 @@ export function GroupPlaySection(props: GroupPlaySectionProps) {
             title={t("home.group.invite-title", "One link invites your table")}
             description={t(
               "home.group.invite-description",
-              "Send a single link — everyone joins your game in seconds.",
+              "Send a single link, and everyone joins your game in seconds.",
             )}
           />
           <GroupPlayCallout
@@ -90,7 +95,7 @@ export function GroupPlaySection(props: GroupPlaySectionProps) {
             title={t("home.group.notes-title", "Shared notes & journals")}
             description={t(
               "home.group.notes-description",
-              "Chronicle the saga together with collaborative rich text notes.",
+              "Chronicle your saga together with collaborative rich text notes.",
             )}
           />
           <GroupPlayCallout
@@ -98,7 +103,7 @@ export function GroupPlaySection(props: GroupPlaySectionProps) {
             title={t("home.group.gm-title", "GM optional")}
             description={t(
               "home.group.gm-description",
-              "Guided, co-op, or solo — the same sheet works for every style.",
+              "Whether playing a guided, co-op, or solo game, the same sheet works for every style.",
             )}
           />
         </Box>

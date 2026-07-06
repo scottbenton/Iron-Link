@@ -1,4 +1,4 @@
-import { Avatar, AvatarGroup, Box, Card, Typography } from "@mui/material";
+import { Box, Card, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { RollSnackbar } from "components/characters/rolls/RollSnackbar";
@@ -40,19 +40,6 @@ export function DemoGameLog(props: DemoGameLogProps) {
         >
           {t("game.log.title", "Game Log")}
         </Typography>
-        <AvatarGroup
-          sx={{ "& .MuiAvatar-root": { width: 28, height: 28, fontSize: 12 } }}
-        >
-          <Avatar sx={{ bgcolor: "primary.dark" }}>
-            {t("home.demo.player-kira-initial", "K")}
-          </Avatar>
-          <Avatar sx={{ bgcolor: "success.dark" }}>
-            {t("home.demo.player-vesh-initial", "V")}
-          </Avatar>
-          <Avatar sx={{ bgcolor: "info.dark" }}>
-            {t("home.demo.player-you-initial", "I")}
-          </Avatar>
-        </AvatarGroup>
       </Box>
       <Box
         flexGrow={1}

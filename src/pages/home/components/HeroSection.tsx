@@ -50,12 +50,12 @@ export function HeroSection(props: HeroSectionProps) {
           lineHeight={1.05}
           mt={1}
         >
-          {t("home.hero.title", "The table is wherever you are.")}
+          {t("home.hero.title", "Share every vow. Sync every roll.")}
         </Typography>
         <Typography color="text.secondary" mt={2} maxWidth="45ch">
           {t(
             "home.hero.subtitle",
-            "Shared campaigns where every roll, vow, and clock is live for the whole table — plus the cleanest solo sheet in the Ironlands. Free, forever.",
+            "Play multiplayer games where every roll, vow, and clock is live for the whole table. Or play solo and have your game on all of your devices. Free, forever.",
           )}
         </Typography>
         <Box display="flex" flexWrap="wrap" gap={2} mt={3}>
@@ -64,7 +64,7 @@ export function HeroSection(props: HeroSectionProps) {
           >
             {isAuthenticated
               ? t("home.hero.cta-authenticated", "Go to your games")
-              : t("home.hero.cta-unauthenticated", "Start playing — free")}
+              : t("home.hero.cta-unauthenticated", "Start playing")}
           </GradientButton>
           <Button
             color="inherit"

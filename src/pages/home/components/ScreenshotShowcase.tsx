@@ -1,4 +1,3 @@
-import PhotoIcon from "@mui/icons-material/Photo";
 import { Box, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
@@ -25,15 +24,22 @@ export function ScreenshotShowcase() {
           <Typography color="text.secondary" mt={1}>
             {t(
               "home.showcase.sheet-description",
-              "Tap a stat to roll it. Assets, meters, momentum, and vows on one screen — with the full rules reference one click away.",
+              "Tap a stat to roll it. Assets, meters, momentum, and vows on one screen, with the full rules reference one click away.",
             )}
           </Typography>
         </Box>
-        <ScreenshotPlaceholder
-          label={t(
-            "home.showcase.sheet-screenshot",
-            "Screenshot: character sheet with the reference sidebar and a roll result",
-          )}
+        <Box
+          component={"img"}
+          src="/images/SoloGame.webp"
+          alt="Screenshot of a solo game with a character overview, notes, and the referense sidebar all visible."
+          sx={(theme) => ({
+            borderRadius: 1,
+            aspectRatio: "16 / 10",
+            borderWidth: 1,
+            borderStyle: "solid",
+            borderColor: theme.palette.divider,
+            width: "100%",
+          })}
         />
       </Box>
       <Box
@@ -42,12 +48,19 @@ export function ScreenshotShowcase() {
         gap={3}
         alignItems="center"
       >
-        <ScreenshotPlaceholder
-          label={t(
-            "home.showcase.overview-screenshot",
-            "Screenshot: game overview with characters and shared tracks",
-          )}
-          sx={{ order: { xs: 2, md: 1 } }}
+        <Box
+          component={"img"}
+          src="/images/GuidedGame.webp"
+          alt="Screenshot of a guided game with characters, notes, and the game's log all visible."
+          sx={(theme) => ({
+            order: { xs: 2, md: 1 },
+            borderRadius: 1,
+            aspectRatio: "16 / 10",
+            borderWidth: 1,
+            borderStyle: "solid",
+            borderColor: theme.palette.divider,
+            width: "100%",
+          })}
         />
         <Box sx={{ order: { xs: 1, md: 2 } }}>
           <Typography
@@ -66,41 +79,6 @@ export function ScreenshotShowcase() {
           </Typography>
         </Box>
       </Box>
-    </Box>
-  );
-}
-
-// TODO: replace these placeholders with real app screenshots once captured.
-function ScreenshotPlaceholder(props: {
-  label: string;
-  sx?: React.ComponentProps<typeof Box>["sx"];
-}) {
-  const { label, sx } = props;
-
-  return (
-    <Box
-      sx={[
-        {
-          border: 1,
-          borderStyle: "dashed",
-          borderColor: "divider",
-          borderRadius: 2,
-          aspectRatio: "16 / 10",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 1,
-          color: "text.secondary",
-          px: 2,
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-    >
-      <PhotoIcon />
-      <Typography variant="caption" textAlign="center">
-        {label}
-      </Typography>
     </Box>
   );
 }

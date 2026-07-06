@@ -23,7 +23,7 @@ export default function HomePage() {
 
   return (
     <PageContent maxWidth="lg">
-      <Box display="flex" flexDirection="column" gap={8} py={6}>
+      <Box display="flex" flexDirection="column" gap={8} pt={6}>
         <HeroSection onRoll={handlePlayerRoll} />
         <GroupPlaySection
           logEntries={logEntries}
