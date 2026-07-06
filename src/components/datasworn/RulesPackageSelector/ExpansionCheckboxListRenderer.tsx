@@ -12,7 +12,11 @@ import {
 import { Dispatch, SetStateAction, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { IExpansionConfig } from "data/package.config";
+import {
+  IExpansionConfig,
+  getExpansionDependencies,
+  getExpansionDependents,
+} from "data/package.config";
 import { defaultPlaysets } from "data/playset.config";
 
 import { PlaysetConfig } from "repositories/game.repository";
@@ -67,7 +71,17 @@ export function ExpansionCheckboxListRenderer(
         <Box key={expansionKey}>
           <FormControlLabel
             key={expansionKey}
-            label={expansion.name}
+            label={
+              <Box component="span" display="inline-flex" alignItems="center">
+                {expansion.name}
+                <ExpansionDependencyTooltip
+                  rulesetKey={rulesetKey}
+                  expansionKey={expansionKey}
+                  expansionName={expansion.name}
+                  expansions={expansions}
+                />
+              </Box>
+            }
             control={
               <Checkbox
                 checked={
@@ -121,5 +135,50 @@ export function ExpansionCheckboxListRenderer(
         </Box>
       ))}
     </>
+  );
+}
+
+interface ExpansionDependencyTooltipProps {
+  rulesetKey: string;
+  expansionKey: string;
+  expansionName: string;
+  expansions: Record<string, IExpansionConfig>;
+}
+
+function ExpansionDependencyTooltip(props: ExpansionDependencyTooltipProps) {
+  const { rulesetKey, expansionKey, expansionName, expansions } = props;
+  const { t } = useTranslation();
+
+  const dependencyNames = getExpansionDependencies(rulesetKey, expansionKey)
+    .map((dependencyKey) => expansions[dependencyKey]?.name)
+    .filter(Boolean);
+  const dependentNames = getExpansionDependents(rulesetKey, expansionKey)
+    .map((dependentKey) => expansions[dependentKey]?.name)
+    .filter(Boolean);
+
+  const dependencyList = dependencyNames.join(", ");
+  const dependentList = dependentNames.join(", ");
+
+  const tooltip =
+    dependencyList.length > 0
+      ? t(
+          "ruleset-selector.expansion-enables-dependencies",
+          "{{expansion}} uses content from {{dependencies}}, so enabling it also enables {{dependencies}}.",
+          { expansion: expansionName, dependencies: dependencyList },
+        )
+      : dependentList.length > 0
+        ? t(
+            "ruleset-selector.expansion-disables-dependents",
+            "{{dependents}} depends on {{expansion}}, so turning {{expansion}} off also turns {{dependents}} off.",
+            { dependents: dependentList, expansion: expansionName },
+          )
+        : null;
+
+  if (!tooltip) return null;
+
+  return (
+    <Tooltip title={tooltip}>
+      <InfoIcon color="info" fontSize="small" sx={{ ml: 0.5 }} />
+    </Tooltip>
   );
 }

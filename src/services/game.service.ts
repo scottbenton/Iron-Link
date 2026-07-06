@@ -1,3 +1,5 @@
+import { enforceExpansionDependencies } from "data/package.config";
+
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import {
   ExpansionConfig,
@@ -51,11 +53,13 @@ export class GameService {
     expansions: Record<string, Record<string, boolean>>,
     playset: PlaysetConfig,
   ): Promise<string> {
+    const enforcedExpansions = enforceExpansionDependencies(expansions);
+
     const gameId = await GameRepository.createGame(
       gameName,
       gameType,
       rulesets,
-      expansions,
+      enforcedExpansions,
       playset,
     );
 
@@ -219,7 +223,13 @@ export class GameService {
     expansions: ExpansionConfig,
     playset: PlaysetConfig,
   ): Promise<void> {
-    await GameRepository.updateGame(gameId, { rulesets, expansions, playset });
+    const enforcedExpansions = enforceExpansionDependencies(expansions);
+
+    await GameRepository.updateGame(gameId, {
+      rulesets,
+      expansions: enforcedExpansions,
+      playset,
+    });
   }
 
   public static async updateColorScheme(
@@ -267,7 +277,9 @@ export class GameService {
       gameType,
       colorScheme,
       rulesets: gameDTO.rulesets as Record<string, boolean>,
-      expansions: gameDTO.expansions as Record<string, Record<string, boolean>>,
+      expansions: enforceExpansionDependencies(
+        gameDTO.expansions as Record<string, Record<string, boolean>>,
+      ),
       playset: gameDTO.playset as PlaysetConfig,
     };
   }
