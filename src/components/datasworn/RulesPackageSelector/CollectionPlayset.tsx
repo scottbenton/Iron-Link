@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import {
   Box,

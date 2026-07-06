@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import { Checkbox, FormControlLabel, capitalize } from "@mui/material";
 
 export interface AssetCheckboxFieldProps {

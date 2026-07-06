@@ -1,5 +1,11 @@
-import { Datasworn, IdParser } from "@datasworn/core";
-import { useEffect, useState } from "react";
+import { Datasworn } from "@datasworn-community/core";
+
+import { getAsset } from "hooks/datasworn/useAsset";
+import { getAssetCollection } from "hooks/datasworn/useAssetCollection";
+import { getMove } from "hooks/datasworn/useMove";
+import { getMoveCategory } from "hooks/datasworn/useMoveCategory";
+import { getOracleCollection } from "hooks/datasworn/useOracleCollection";
+import { getOracleRollable } from "hooks/datasworn/useOracleRollable";
 
 import { useDataswornTree } from "stores/dataswornTree.store";
 
@@ -18,7 +24,7 @@ type ReturnType =
     }
   | {
       type: "move";
-      move: Datasworn.Move;
+      move: Datasworn.Move | Datasworn.EmbeddedMove;
     }
   | {
       type: "asset_collection";
@@ -31,63 +37,58 @@ type ReturnType =
   | undefined;
 
 export function useGetDataswornItem(itemId: string): ReturnType {
-  const tree = useDataswornTree();
-
-  const [returnType, setReturnType] = useState<ReturnType>(
-    getDataswornItem(itemId, tree),
-  );
-
-  useEffect(() => {
-    setReturnType(getDataswornItem(itemId, tree));
-  }, [tree, itemId]);
-
-  return returnType;
+  useDataswornTree();
+  return getDataswornItem(itemId);
 }
 
-function getDataswornItem(
-  itemId: string,
-  tree: Record<string, Datasworn.RulesPackage>,
-): ReturnType {
-  try {
-    IdParser.tree = tree;
-    const item = IdParser.get(itemId);
-    if ((item as Datasworn.OracleCollection).type === "oracle_collection") {
-      return {
-        type: "oracle_collection",
-        oracleCollection: item as Datasworn.OracleCollection,
-      };
-    }
-    if ((item as Datasworn.OracleRollable).type === "oracle_rollable") {
-      return {
-        type: "oracle_rollable",
-        oracle: item as Datasworn.OracleRollable,
-      };
-    }
-    if ((item as Datasworn.MoveCategory).type === "move_category") {
-      return {
-        type: "move_category",
-        moveCategory: item as Datasworn.MoveCategory,
-      };
-    }
-    if ((item as Datasworn.Move).type === "move") {
-      return {
-        type: "move",
-        move: item as Datasworn.Move,
-      };
-    }
-    if ((item as Datasworn.AssetCollection).type === "asset_collection") {
-      return {
-        type: "asset_collection",
-        assetCollection: item as Datasworn.AssetCollection,
-      };
-    }
-    if ((item as Datasworn.Asset).type === "asset") {
-      return {
-        type: "asset",
-        asset: item as Datasworn.Asset,
-      };
-    }
-  } catch {
-    return undefined;
+export function getDataswornItem(itemId: string): ReturnType {
+  const oracle = getOracleRollable(itemId);
+  if (oracle) {
+    return {
+      type: "oracle_rollable",
+      oracle,
+    };
   }
+
+  const oracleCollection = getOracleCollection(itemId);
+  if (oracleCollection) {
+    return {
+      type: "oracle_collection",
+      oracleCollection,
+    };
+  }
+
+  const move = getMove(itemId);
+  if (move) {
+    return {
+      type: "move",
+      move,
+    };
+  }
+
+  const moveCategory = getMoveCategory(itemId);
+  if (moveCategory) {
+    return {
+      type: "move_category",
+      moveCategory,
+    };
+  }
+
+  const asset = getAsset(itemId);
+  if (asset) {
+    return {
+      type: "asset",
+      asset,
+    };
+  }
+
+  const assetCollection = getAssetCollection(itemId);
+  if (assetCollection) {
+    return {
+      type: "asset_collection",
+      assetCollection,
+    };
+  }
+
+  return undefined;
 }

@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 import { TFunction } from "i18next";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,7 @@ import { getMove } from "hooks/datasworn/useMove";
 
 import { useAddRollSnackbar, useSetAnnouncement } from "stores/appState.store";
 import { useUID } from "stores/auth.store";
+import { useGameCharactersStore } from "stores/gameCharacters.store";
 import { useGameLogStore } from "stores/gameLog.store";
 
 import { createId } from "lib/id.lib";
@@ -43,14 +44,18 @@ export function useRollStatAndAddToLog() {
   const addRollSnackbar = useAddRollSnackbar();
 
   const addLog = useGameLogStore((store) => store.createLog);
+  const updateCharacterAdds = useGameCharactersStore(
+    (store) => store.updateCharacterAdds,
+  );
 
   const rollStat = useCallback(
     (config: StatRollConfig) => {
+      const resolvedCharacterId = config.characterId ?? characterId;
       const result = getStatRollResult(
         config,
         uid,
         gameId,
-        config.characterId ?? characterId,
+        resolvedCharacterId,
       );
 
       if (gameId) {
@@ -62,9 +67,22 @@ export function useRollStatAndAddToLog() {
         addRollSnackbar(result.id, result);
       }
 
+      if (resolvedCharacterId && result.adds !== 0) {
+        updateCharacterAdds(resolvedCharacterId, 0).catch(() => {});
+      }
+
       return result;
     },
-    [uid, characterId, gameId, t, announce, addRollSnackbar, addLog],
+    [
+      uid,
+      characterId,
+      gameId,
+      t,
+      announce,
+      addRollSnackbar,
+      addLog,
+      updateCharacterAdds,
+    ],
   );
 
   return rollStat;

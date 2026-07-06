@@ -1,4 +1,4 @@
-import { Datasworn } from "@datasworn/core";
+import { Datasworn } from "@datasworn-community/core";
 
 export enum CollectionVisibility {
   All,
@@ -44,6 +44,8 @@ export function getCollectionVisibilities<
         collectionVisibilityMap,
         itemVisibilityMap,
       );
+    } else {
+      collectionVisibilityMap[collectionId] = CollectionVisibility.Hidden;
     }
   });
 }

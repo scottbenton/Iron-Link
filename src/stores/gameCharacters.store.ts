@@ -189,7 +189,24 @@ export const useGameCharactersStore = createWithEqualityFn<
       return CharacterService.updateMomentum(characterId, momentum);
     },
     updateCharacterAdds: (characterId, adds) => {
-      return CharacterService.updateAdds(characterId, adds);
+      const previousAdds = getState().characters[characterId]?.adds;
+
+      set((store) => {
+        if (store.characters[characterId]) {
+          store.characters[characterId].adds = adds;
+        }
+      });
+
+      return CharacterService.updateAdds(characterId, adds).catch((error) => {
+        if (previousAdds !== undefined) {
+          set((store) => {
+            if (store.characters[characterId]) {
+              store.characters[characterId].adds = previousAdds;
+            }
+          });
+        }
+        throw error;
+      });
     },
     updateCharacterImpactValue: (characterId, impactKey, checked) => {
       return new Promise((resolve, reject) => {

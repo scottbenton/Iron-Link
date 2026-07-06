@@ -1,5 +1,4 @@
-import { Datasworn, IdParser } from "@datasworn/core";
-import { Primary } from "@datasworn/core/dist/StringId";
+import { Datasworn, IdParser, StringId } from "@datasworn-community/core";
 
 import { getAsset } from "hooks/datasworn/useAsset";
 
@@ -160,7 +159,7 @@ function getEnhancementsFromAssets(
             if (
               moveEnhancement.enhances?.some((wildcardId) => {
                 const matches = IdParser.getMatches(
-                  wildcardId as Primary,
+                  wildcardId as StringId.Primary,
                   tree,
                 );
                 return matches.has(moveId);
@@ -312,7 +311,10 @@ function canUseAssetControlRoll(
 ): boolean {
   return (
     option.assets?.some((assetWildcard) => {
-      const matches = IdParser.getMatches(assetWildcard as Primary, tree);
+      const matches = IdParser.getMatches(
+        assetWildcard as StringId.Primary,
+        tree,
+      );
       for (const [, asset] of matches) {
         if (asset.type === "asset") {
           for (const assetDocument of Object.values(assets)) {
