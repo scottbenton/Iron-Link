@@ -73,6 +73,11 @@ interface GameCharactersStoreActions {
     specialTrackKey: string,
     value: number,
   ) => Promise<void>;
+  updateSpecialTrackIsLegacy: (
+    characterId: string,
+    specialTrackKey: string,
+    isLegacy: boolean,
+  ) => Promise<void>;
   updateExperience: (characterId: string, experience: number) => Promise<void>;
   deleteCharacter: (characterId: string) => Promise<void>;
 }
@@ -227,6 +232,23 @@ export const useGameCharactersStore = createWithEqualityFn<
           store.characters[characterId].specialTracks[specialTrackKey] = {
             ...store.characters[characterId].specialTracks[specialTrackKey],
             value,
+          };
+          CharacterService.updateSpecialTracks(
+            characterId,
+            store.characters[characterId].specialTracks,
+          )
+            .then(resolve)
+            .catch(reject);
+        });
+      });
+    },
+    updateSpecialTrackIsLegacy: (characterId, specialTrackKey, isLegacy) => {
+      return new Promise((resolve, reject) => {
+        set((store) => {
+          // Toggling the legacy state clears the track's progress
+          store.characters[characterId].specialTracks[specialTrackKey] = {
+            value: 0,
+            isLegacy,
           };
           CharacterService.updateSpecialTracks(
             characterId,

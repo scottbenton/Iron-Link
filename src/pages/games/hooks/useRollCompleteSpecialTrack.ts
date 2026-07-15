@@ -8,9 +8,12 @@ import { useGameLogStore } from "stores/gameLog.store";
 import { getRollResultLabel } from "data/rollResultLabel";
 
 import { createId } from "lib/id.lib";
-import { getProgressRollResult, getProgressScore } from "lib/progressTrack.lib";
+import {
+  getProgressRollResult,
+  getSpecialTrackProgressScore,
+} from "lib/progressTrack.lib";
 
-import { RollType } from "repositories/shared.types";
+import { RollType, SpecialTrack } from "repositories/shared.types";
 
 import { ISpecialTrackProgressRoll, LogType } from "services/gameLog.service";
 
@@ -37,10 +40,13 @@ export function useRollCompleteSpecialTrack() {
     (
       specialTrackKey: string,
       trackLabel: string,
-      trackTicks: number,
+      track: SpecialTrack,
       moveId: string,
     ) => {
-      const trackProgress = getProgressScore(trackTicks);
+      const trackProgress = getSpecialTrackProgressScore(
+        track.value,
+        track.isLegacy ?? false,
+      );
 
       const challenge1 = getRoll(10);
       const challenge2 = getRoll(10);
