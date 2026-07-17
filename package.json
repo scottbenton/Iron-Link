@@ -27,7 +27,7 @@
     "@datasworn-community/ironsworn-classic": "^0.2.2",
     "@datasworn-community/ironsworn-classic-delve": "^0.2.3",
     "@datasworn-community/ironsworn-classic-lodestar": "^0.2.2",
-    "@datasworn-community/starforged": "^0.2.2",
+    "@datasworn-community/starforged": "^0.2.0-experimental.12.2f6268f42a66",
     "@datasworn-community/starsmith": "^0.2.0",
     "@datasworn-community/sundered-isles": "^0.2.2",
     "@dnd-kit/sortable": "^10.0.0",
