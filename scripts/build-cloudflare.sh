@@ -38,6 +38,12 @@ echo "Injecting PostHog source map metadata into dist..."
 "${POSTHOG_CLI_BIN}" sourcemap inject --directory dist
 
 echo "Uploading PostHog source maps for iron-link-web at ${CF_PAGES_COMMIT_SHA}..."
+cli_args=()
+
+if [[ -n "${POSTHOG_CLI_HOST:-}" ]]; then
+  cli_args+=(--host "${POSTHOG_CLI_HOST}")
+fi
+
 upload_args=(
   sourcemap upload
   --directory dist
@@ -46,10 +52,6 @@ upload_args=(
   --delete-after
 )
 
-if [[ -n "${POSTHOG_CLI_HOST:-}" ]]; then
-  upload_args+=(--host "${POSTHOG_CLI_HOST}")
-fi
-
 POSTHOG_CLI_PROJECT_ID="${POSTHOG_CLI_PROJECT_ID}" \
 POSTHOG_CLI_API_KEY="${POSTHOG_CLI_API_KEY}" \
-"${POSTHOG_CLI_BIN}" "${upload_args[@]}"
+"${POSTHOG_CLI_BIN}" "${cli_args[@]}" "${upload_args[@]}"
