@@ -13,7 +13,7 @@ The build flow is:
 
 1. In PostHog, create or confirm the project you want to receive the source maps.
 
-2. In PostHog, create a personal API key with the error tracking write and organization read scopes.
+2. In PostHog, create a personal API key scoped to this project with the `error_tracking:write` scope. The pinned PostHog CLI requires this scope for source-map uploads; no organization-level scope is needed.
 
 3. In Cloudflare Pages, add these production-only environment variables:
 
