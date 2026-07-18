@@ -3,7 +3,11 @@ import { useEffect, useState } from "react";
 
 import { useDataswornTreeStore } from "stores/dataswornTree.store";
 
-import { allDefaultPackages, includedExpansions } from "data/package.config";
+import {
+  allDefaultPackages,
+  enforceExpansionDependencies,
+  includedExpansions,
+} from "data/package.config";
 
 import {
   ExpansionConfig,
@@ -26,11 +30,12 @@ export function useSyncActiveRulesPackages(
   useEffect(() => {
     setTreeError(null);
     const packagePromises: Promise<Datasworn.RulesPackage>[] = [];
+    const activeExpansions = enforceExpansionDependencies(expansions ?? {});
 
     Object.entries(rulesets ?? {}).forEach(([id, isActive]) => {
       if (isActive) {
         packagePromises.push(allDefaultPackages[id].load());
-        Object.entries(expansions?.[id] ?? {}).forEach(
+        Object.entries(activeExpansions[id] ?? {}).forEach(
           ([expansionId, isExpansionActive]) => {
             if (isExpansionActive && includedExpansions[id]?.[expansionId]) {
               packagePromises.push(allDefaultPackages[expansionId].load());

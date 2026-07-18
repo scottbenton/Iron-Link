@@ -17,6 +17,7 @@ import { defaultPlaysets } from "data/playset.config";
 
 import { PlaysetConfig } from "repositories/game.repository";
 
+import { ExpansionDependencyTooltip } from "./ExpansionDependencyTooltip";
 import { LicenseInfo } from "./LicenseInfo";
 
 export interface ExpansionCheckboxListRendererProps {
@@ -67,7 +68,17 @@ export function ExpansionCheckboxListRenderer(
         <Box key={expansionKey}>
           <FormControlLabel
             key={expansionKey}
-            label={expansion.name}
+            label={
+              <Box component="span" display="inline-flex" alignItems="center">
+                {expansion.name}
+                <ExpansionDependencyTooltip
+                  rulesetKey={rulesetKey}
+                  expansionKey={expansionKey}
+                  expansionName={expansion.name}
+                  expansions={expansions}
+                />
+              </Box>
+            }
             control={
               <Checkbox
                 checked={

@@ -1,10 +1,18 @@
 import { Box, Button, SxProps, Theme } from "@mui/material";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import {
   IExpansionConfig,
   IRulesetConfig,
+  getExpansionDependencies,
+  getExpansionDependents,
   includedExpansions,
   includedRulesets,
 } from "data/package.config";
@@ -70,6 +78,27 @@ export function RulesPackageSelector(props: RulesPackageSelectorProps) {
     (val) => val,
   );
 
+  const handleExpansionChange = useCallback(
+    (rulesetKey: string, expansionKey: string, isActive: boolean) => {
+      if (isActive) {
+        getExpansionDependencies(rulesetKey, expansionKey).forEach(
+          (dependencyKey) => {
+            onExpansionChange(rulesetKey, dependencyKey, true);
+          },
+        );
+      } else {
+        getExpansionDependents(rulesetKey, expansionKey).forEach(
+          (dependentKey) => {
+            onExpansionChange(rulesetKey, dependentKey, false);
+          },
+        );
+      }
+
+      onExpansionChange(rulesetKey, expansionKey, isActive);
+    },
+    [onExpansionChange],
+  );
+
   return (
     <Box sx={sx}>
       <RulesetCheckboxListRenderer
@@ -79,7 +108,7 @@ export function RulesPackageSelector(props: RulesPackageSelectorProps) {
         onRulesetChange={onRulesetChange}
         expansions={expansions}
         activeExpansionConfig={activeExpansionConfig}
-        onExpansionChange={onExpansionChange}
+        onExpansionChange={handleExpansionChange}
         activePlaysetConfig={activePlaysetConfig}
         onPlaysetChange={onPlaysetChange}
       />
@@ -90,7 +119,7 @@ export function RulesPackageSelector(props: RulesPackageSelectorProps) {
         onRulesetChange={onRulesetChange}
         expansions={expansions}
         activeExpansionConfig={activeExpansionConfig}
-        onExpansionChange={onExpansionChange}
+        onExpansionChange={handleExpansionChange}
         activePlaysetConfig={activePlaysetConfig}
         onPlaysetChange={onPlaysetChange}
       />
