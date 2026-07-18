@@ -7,6 +7,7 @@
     "dev": "vite",
     "tsc": "tsc -b",
     "build": "npm run tsc && vitest --run && vite build",
+    "build:cloudflare": "bash scripts/build-cloudflare.sh",
     "lint": "eslint .",
     "format": "eslint . --fix && prettier . --write",
     "preview": "vite preview",
@@ -73,6 +74,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
+    "@posthog/cli": "^0.8.4",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",

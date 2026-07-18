@@ -6,6 +6,9 @@ import tsConfigPaths from "vite-tsconfig-paths";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  build: {
+    sourcemap: true,
+  },
   plugins: [react(), svgr(), tsConfigPaths()],
   define: {
     APP_VERSION: JSON.stringify(process.env.npm_package_version),
