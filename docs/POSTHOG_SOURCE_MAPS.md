@@ -4,7 +4,7 @@ This repo uploads PostHog source maps from the Cloudflare Pages build, not from 
 
 The build flow is:
 
-1. Vite builds the frontend into `dist/` with source maps enabled.
+1. Vite builds the frontend into `dist/`, enabling source maps only for Cloudflare's `main` build.
 2. On Cloudflare production builds only (`CF_PAGES_BRANCH=main`), the build script injects PostHog metadata into `dist/`.
 3. The same script uploads the source maps to PostHog and deletes the local `.map` files after upload.
 4. Cloudflare deploys the injected files from `dist/`.
@@ -31,7 +31,7 @@ The build flow is:
 
 ## Repository changes that support this
 
-- `vite.config.ts` enables `build.sourcemap: true` so `dist/` includes the maps Cloudflare needs to upload.
+- `vite.config.ts` enables `build.sourcemap` only when Cloudflare is building `main`, so preview deployments do not publish `.map` files.
 - `scripts/build-cloudflare.sh` runs the build, skips PostHog on non-`main` branches, and uploads on `main`.
 - `package.json` includes `build:cloudflare` as a local shortcut for the same script.
 

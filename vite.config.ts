@@ -4,10 +4,12 @@ import { defineConfig } from "vite";
 import svgr from "vite-plugin-svgr";
 import tsConfigPaths from "vite-tsconfig-paths";
 
+const isCloudflareProductionBuild = process.env.CF_PAGES_BRANCH === "main";
+
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
-    sourcemap: true,
+    sourcemap: isCloudflareProductionBuild,
   },
   plugins: [react(), svgr(), tsConfigPaths()],
   define: {
