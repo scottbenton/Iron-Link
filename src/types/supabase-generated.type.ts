@@ -904,6 +904,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_world: {
+        Args: {
+          p_name: string
+          p_description?: string
+          p_setting_key?: string
+        }
+        Returns: string
+      }
       world_role: {
         Args: { p_world_id: string; p_uid: string }
         Returns: string

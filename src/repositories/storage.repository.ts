@@ -6,7 +6,11 @@ import {
   getRepositoryError,
 } from "./errors/RepositoryErrors";
 
-type BucketNames = "characters" | "note_images";
+type BucketNames =
+  | "characters"
+  | "note_images"
+  | "world_entry_images"
+  | "world_map_backgrounds";
 
 export class StorageRepository {
   public static async storeImage(
