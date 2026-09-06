@@ -28,10 +28,8 @@ export const ironswornRulesetConfig: IRulesetConfig = {
   name: "Ironsworn",
   type: "ruleset",
   load: async () => {
-    const ironswornJSON = await import(
-      "@datasworn-community/ironsworn-classic/json/classic.json"
-    );
-    return { ...ironswornJSON, title: "Ironsworn" } as Datasworn.Ruleset;
+    const { classic } = await import("@datasworn-community/ironsworn-classic");
+    return { ...classic, title: "Ironsworn" };
   },
   isHomebrew: false,
 };
@@ -41,13 +39,13 @@ export const ironswornDelveConfig: IExpansionConfig = {
   name: "Delve",
   type: "expansion",
   load: async () => {
-    const ironswornDelveJSON = await import(
-      "@datasworn-community/ironsworn-classic-delve/json/delve.json"
+    const { delve } = await import(
+      "@datasworn-community/ironsworn-classic-delve"
     );
     return {
-      ...ironswornDelveJSON,
+      ...delve,
       title: "Delve",
-    } as unknown as Datasworn.Expansion;
+    };
   },
   isHomebrew: false,
 };
@@ -57,13 +55,11 @@ export const starforgedRulesetConfig: IRulesetConfig = {
   name: "Starforged",
   type: "ruleset",
   load: async () => {
-    const starforgedJSON = await import(
-      "@datasworn-community/starforged/json/starforged.json"
-    );
+    const { starforged } = await import("@datasworn-community/starforged");
     return {
-      ...starforgedJSON,
+      ...starforged,
       title: "Starforged",
-    } as unknown as Datasworn.Ruleset;
+    };
   },
   isHomebrew: false,
 };
@@ -73,12 +69,10 @@ export const sunderedIslesConfig: IExpansionConfig = {
   name: "Sundered Isles",
   type: "expansion",
   load: async () => {
-    const starforgedDelveJSON = await import(
-      "@datasworn-community/sundered-isles/json/sundered_isles.json"
+    const { sundered_isles } = await import(
+      "@datasworn-community/sundered-isles"
     );
-    return {
-      ...starforgedDelveJSON,
-    } as unknown as Datasworn.Expansion;
+    return { ...sundered_isles };
   },
   isHomebrew: false,
 };
@@ -88,12 +82,8 @@ export const starsmithConfig: IExpansionConfig = {
   name: "Starsmith",
   type: "expansion",
   load: async () => {
-    const starsmithJSON = await import(
-      "@datasworn-community/starsmith/json/starsmith.json"
-    );
-    return {
-      ...starsmithJSON,
-    } as Datasworn.Expansion;
+    const { starsmith } = await import("@datasworn-community/starsmith");
+    return { ...starsmith };
   },
   isHomebrew: true,
   licenseInfo: {
@@ -109,12 +99,10 @@ export const elegyRulesetConfig: IRulesetConfig = {
   name: "Elegy",
   type: "ruleset",
   load: async () => {
-    const elegyJSON = await import(
-      "@datasworn-community/elegy/json/elegy.json"
-    );
+    const { elegy } = await import("@datasworn-community/elegy");
     return {
-      ...elegyJSON,
-    } as Datasworn.Ruleset;
+      ...elegy,
+    };
   },
   isHomebrew: true,
   licenseInfo: {
