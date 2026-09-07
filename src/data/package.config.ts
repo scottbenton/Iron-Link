@@ -50,6 +50,22 @@ export const ironswornDelveConfig: IExpansionConfig = {
   isHomebrew: false,
 };
 
+export const ironswornLodestarConfig: IExpansionConfig = {
+  id: "lodestar",
+  name: "Lodestar",
+  type: "expansion",
+  load: async () => {
+    const { lodestar } = await import(
+      "@datasworn-community/ironsworn-classic-lodestar"
+    );
+    return {
+      ...lodestar,
+      title: "Lodestar",
+    };
+  },
+  isHomebrew: false,
+};
+
 export const starforgedRulesetConfig: IRulesetConfig = {
   id: "starforged",
   name: "Starforged",
@@ -125,6 +141,7 @@ export const includedExpansions: Record<
 > = {
   [ironswornRulesetConfig.id]: {
     [ironswornDelveConfig.id]: ironswornDelveConfig,
+    [ironswornLodestarConfig.id]: ironswornLodestarConfig,
   },
   [starforgedRulesetConfig.id]: {
     [sunderedIslesConfig.id]: sunderedIslesConfig,
@@ -132,9 +149,61 @@ export const includedExpansions: Record<
   },
 };
 
+export const expansionDependencies: Record<string, Record<string, string[]>> = {
+  [ironswornRulesetConfig.id]: {
+    [ironswornLodestarConfig.id]: [ironswornDelveConfig.id],
+  },
+};
+
+export function getExpansionDependencies(
+  rulesetId: string,
+  expansionId: string,
+): string[] {
+  return expansionDependencies[rulesetId]?.[expansionId] ?? [];
+}
+
+export function getExpansionDependents(
+  rulesetId: string,
+  expansionId: string,
+): string[] {
+  return Object.entries(expansionDependencies[rulesetId] ?? {})
+    .filter(([, dependencyIds]) => dependencyIds.includes(expansionId))
+    .map(([dependentId]) => dependentId);
+}
+
+export function enforceExpansionDependencies<
+  T extends Record<string, Record<string, boolean>>,
+>(expansions: T): T {
+  const next: Record<string, Record<string, boolean>> = { ...expansions };
+
+  Object.entries(expansionDependencies).forEach(
+    ([rulesetId, dependentRules]) => {
+      const rulesetExpansions = next[rulesetId];
+      if (!rulesetExpansions) return;
+
+      Object.entries(dependentRules).forEach(([dependentId, dependencyIds]) => {
+        const isDependentActive = rulesetExpansions[dependentId] ?? false;
+        const areDependenciesActive = dependencyIds.every(
+          (dependencyId) => rulesetExpansions[dependencyId] ?? false,
+        );
+
+        if (isDependentActive && !areDependenciesActive) {
+          next[rulesetId] = {
+            ...rulesetExpansions,
+            [dependentId]: false,
+          };
+        }
+      });
+    },
+  );
+
+  return next as T;
+}
+
 export const allDefaultPackages: Record<string, IPackageConfig> = {
   ...includedRulesets,
   [ironswornDelveConfig.id]: ironswornDelveConfig,
+  [ironswornLodestarConfig.id]: ironswornLodestarConfig,
   [sunderedIslesConfig.id]: sunderedIslesConfig,
   [starsmithConfig.id]: starsmithConfig,
 };
