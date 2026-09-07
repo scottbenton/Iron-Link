@@ -55,13 +55,13 @@ export const ironswornLodestarConfig: IExpansionConfig = {
   name: "Lodestar",
   type: "expansion",
   load: async () => {
-    const ironswornLodestarJSON = await import(
-      "@datasworn-community/ironsworn-classic-lodestar/json/lodestar.json"
+    const { lodestar } = await import(
+      "@datasworn-community/ironsworn-classic-lodestar"
     );
     return {
-      ...ironswornLodestarJSON,
+      ...lodestar,
       title: "Lodestar",
-    } as unknown as Datasworn.Expansion;
+    };
   },
   isHomebrew: false,
 };
@@ -174,7 +174,7 @@ export function getExpansionDependents(
 export function enforceExpansionDependencies<
   T extends Record<string, Record<string, boolean>>,
 >(expansions: T): T {
-  const next = { ...expansions } as T;
+  const next: Record<string, Record<string, boolean>> = { ...expansions };
 
   Object.entries(expansionDependencies).forEach(
     ([rulesetId, dependentRules]) => {
@@ -197,7 +197,7 @@ export function enforceExpansionDependencies<
     },
   );
 
-  return next;
+  return next as T;
 }
 
 export const allDefaultPackages: Record<string, IPackageConfig> = {
