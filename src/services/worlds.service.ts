@@ -34,8 +34,10 @@ export class WorldsService {
     );
   }
 
-  public static async getUsersWorlds(): Promise<Record<string, IWorld>> {
-    const worlds = await WorldsRepository.getUsersWorlds();
+  public static async getUsersWorlds(
+    userId: string,
+  ): Promise<Record<string, IWorld>> {
+    const worlds = await WorldsRepository.getUsersWorlds(userId);
     return Object.fromEntries(
       worlds.map((world) => [world.id, this.convertWorldDTOToWorld(world)]),
     );

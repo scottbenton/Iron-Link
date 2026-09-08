@@ -14,7 +14,7 @@ interface UsersWorldsState {
 }
 
 interface UsersWorldsActions {
-  loadUsersWorlds: () => Promise<void>;
+  loadUsersWorlds: (uid: string) => Promise<void>;
 }
 
 const defaultValues: UsersWorldsState = {
@@ -28,9 +28,9 @@ export const useUsersWorlds = createWithEqualityFn<
   immer((set) => ({
     ...defaultValues,
 
-    loadUsersWorlds: async () => {
+    loadUsersWorlds: async (uid) => {
       try {
-        const worlds = await WorldsService.getUsersWorlds();
+        const worlds = await WorldsService.getUsersWorlds(uid);
         set((state) => {
           state.loading = false;
           state.worlds = worlds;
@@ -54,7 +54,7 @@ export function useLoadUsersWorlds() {
   const uid = useUID();
   useEffect(() => {
     if (uid) {
-      loadUsersWorlds();
+      loadUsersWorlds(uid);
     }
   }, [uid, loadUsersWorlds]);
 }

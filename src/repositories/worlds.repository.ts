@@ -84,29 +84,41 @@ export class WorldsRepository {
     };
   }
 
-  // RLS already limits the result to worlds the user can read
-  // (explicit membership or membership in a linked game).
-  public static async getUsersWorlds(): Promise<WorldDTO[]> {
-    return new Promise((resolve, reject) => {
-      this.worlds()
-        .select("*")
-        .then(({ data, error, status }) => {
-          if (error) {
-            console.error(error);
-            reject(
-              getRepositoryError(
-                error,
-                ErrorVerb.Read,
-                ErrorNoun.World,
-                true,
-                status,
-              ),
-            );
-          } else {
-            resolve(data);
-          }
-        });
+  // RLS would already limit a bare `select * from worlds` to the readable set,
+  // but its predicate is a SECURITY DEFINER world_role() call, which Postgres
+  // cannot inline -- an unfiltered select runs it once per world in the table.
+  // Drive the query from the two membership sources instead (both indexed) so
+  // the policy only has to confirm the handful of rows we already narrowed to.
+  public static async getUsersWorlds(userId: string): Promise<WorldDTO[]> {
+    const [explicit, viaGames] = await Promise.all([
+      supabase
+        .from("world_players")
+        .select("worlds!inner(*)")
+        .eq("user_id", userId),
+      supabase
+        .from("games")
+        .select("worlds!inner(*), game_players!inner(user_id)")
+        .eq("game_players.user_id", userId),
+    ]);
+
+    const failure = explicit.error ? explicit : viaGames;
+    if (failure.error) {
+      console.error(failure.error);
+      throw getRepositoryError(
+        failure.error,
+        ErrorVerb.Read,
+        ErrorNoun.World,
+        true,
+        failure.status,
+      );
+    }
+
+    // A world reachable both ways shows up in both results; key by id.
+    const worlds: Record<string, WorldDTO> = {};
+    [...(explicit.data ?? []), ...(viaGames.data ?? [])].forEach((row) => {
+      worlds[row.worlds.id] = row.worlds;
     });
+    return Object.values(worlds);
   }
 
   // Inserts the world and the creator's owner membership row atomically;
