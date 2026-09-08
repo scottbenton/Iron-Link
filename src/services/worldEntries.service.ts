@@ -1,5 +1,3 @@
-import { Buffer } from "buffer";
-
 import { IconDefinition } from "types/Icon.type";
 import {
   LocationMap,
@@ -7,6 +5,8 @@ import {
   MapStrokeColors,
 } from "types/Locations.type";
 import { Json } from "types/supabase-generated.type";
+
+import { byteaToUint8Array, uint8ArrayToBytea } from "lib/bytea.lib";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import {
@@ -140,7 +140,7 @@ export class WorldEntriesService {
     content: Uint8Array,
   ): Promise<void> {
     return WorldEntriesRepository.updateWorldEntry(entryId, {
-      notes_content: this.uint8ArrayToDatabase(content),
+      notes_content: uint8ArrayToBytea(content),
     });
   }
 
@@ -153,7 +153,7 @@ export class WorldEntriesService {
       token,
       entryId,
       {
-        notes_content: this.uint8ArrayToDatabase(content),
+        notes_content: uint8ArrayToBytea(content),
       },
     );
   }
@@ -165,7 +165,7 @@ export class WorldEntriesService {
       await WorldEntriesRepository.getWorldEntryNotesContent(entryId);
     return {
       content: entry.notes_content
-        ? this.databaseToUint8Array(entry.notes_content)
+        ? byteaToUint8Array(entry.notes_content)
         : new Uint8Array(),
     };
   }
@@ -315,12 +315,5 @@ export class WorldEntriesService {
       createdAt: new Date(entry.created_at),
       updatedAt: new Date(entry.updated_at),
     };
-  }
-
-  private static uint8ArrayToDatabase(arr: Uint8Array): string {
-    return "\\x" + Buffer.from(arr).toString("hex");
-  }
-  private static databaseToUint8Array(str: string): Uint8Array {
-    return Buffer.from(str.slice(2), "hex");
   }
 }

@@ -1,6 +1,6 @@
-import { Buffer } from "buffer";
-
 import { Json } from "types/supabase-generated.type";
+
+import { byteaToUint8Array, uint8ArrayToBytea } from "lib/bytea.lib";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import {
@@ -63,7 +63,7 @@ export class WorldEntryGmDataService {
     return WorldEntryGmDataRepository.upsertWorldEntryGmData({
       entry_id: entryId,
       world_id: worldId,
-      gm_notes_content: this.uint8ArrayToDatabase(content),
+      gm_notes_content: uint8ArrayToBytea(content),
     });
   }
 
@@ -74,7 +74,7 @@ export class WorldEntryGmDataService {
       await WorldEntryGmDataRepository.getWorldEntryGmNotesContent(entryId);
     return {
       content: gmData?.gm_notes_content
-        ? this.databaseToUint8Array(gmData.gm_notes_content)
+        ? byteaToUint8Array(gmData.gm_notes_content)
         : new Uint8Array(),
     };
   }
@@ -90,12 +90,5 @@ export class WorldEntryGmDataService {
           ? (gmData.fields as Record<string, WorldEntryFieldValue>)
           : {},
     };
-  }
-
-  private static uint8ArrayToDatabase(arr: Uint8Array): string {
-    return "\\x" + Buffer.from(arr).toString("hex");
-  }
-  private static databaseToUint8Array(str: string): Uint8Array {
-    return Buffer.from(str.slice(2), "hex");
   }
 }
