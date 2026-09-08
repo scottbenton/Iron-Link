@@ -905,11 +905,7 @@ export type Database = {
     }
     Functions: {
       create_world: {
-        Args: {
-          p_name: string
-          p_description?: string
-          p_setting_key?: string
-        }
+        Args: { p_name: string; p_description?: string; p_setting_key?: string }
         Returns: string
       }
       world_role: {

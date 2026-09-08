@@ -13,6 +13,7 @@ import {
   IWorldEntry,
   IWorldEntryNotesContent,
   WorldEntriesService,
+  WorldEntryFieldValue,
 } from "services/worldEntries.service";
 import {
   IWorldEntryGmData,
@@ -289,6 +290,20 @@ export function useListenToWorldEntries(worldId: string | undefined) {
       resetStore();
     };
   }, [worldId, resetStore]);
+}
+
+// One logical field map, two tables: non-GM values live on world_entries.fields
+// and gmOnly values on world_entry_gm_data.fields, which RLS hides from anyone
+// below guide. Merge them here so consumers read a single record rather than
+// re-deriving the overlay in every component. Non-GMs simply get the non-GM
+// half, because the GM slice is never populated for them.
+export function useWorldEntryFields(
+  entryId: string,
+): Record<string, WorldEntryFieldValue> {
+  return useWorldEntriesStore((store) => ({
+    ...(store.entryState.entries[entryId]?.fields ?? {}),
+    ...(store.gmDataState.gmData[entryId]?.fields ?? {}),
+  }));
 }
 
 export function isGuideEquivalent(permission: WorldPermission): boolean {

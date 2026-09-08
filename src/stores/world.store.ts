@@ -119,7 +119,12 @@ export const useWorldStore = createWithEqualityFn<
             }
           });
         },
-        () => {},
+        (error) => {
+          console.error(error);
+          set((state) => {
+            state.error = "Failed to load world players";
+          });
+        },
       );
 
       return () => {
@@ -208,8 +213,9 @@ export function useListenToWorld(worldId: string | undefined) {
   }, [worldId, uid, worldPlayers, loadWorldPermission]);
 }
 
-export function useWorldPermission(): WorldPermission {
-  return useWorldStore(
-    (state) => state.worldPermission ?? WorldPermission.None,
-  );
+// Returns null while the role is still being fetched. Collapsing that into
+// `None` makes every permission-gated view flash a denied state on mount, so
+// callers are expected to handle the loading case explicitly.
+export function useWorldPermission(): WorldPermission | null {
+  return useWorldStore((state) => state.worldPermission);
 }

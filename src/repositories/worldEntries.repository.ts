@@ -252,6 +252,7 @@ export class WorldEntriesRepository {
               res.status,
             ),
           );
+          return;
         }
         resolve();
       });
