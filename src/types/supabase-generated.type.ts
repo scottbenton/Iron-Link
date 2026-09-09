@@ -614,11 +614,11 @@ export type Database = {
       world_categories: {
         Row: {
           created_at: string
-          field_definitions: Json
           icon: Json | null
           id: string
           name: string
           sort_order: number
+          subtitle_field_definition_id: string | null
           supports_bonds: boolean
           supports_hierarchy: boolean
           supports_map: boolean
@@ -627,11 +627,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          field_definitions?: Json
           icon?: Json | null
           id?: string
           name: string
           sort_order?: number
+          subtitle_field_definition_id?: string | null
           supports_bonds?: boolean
           supports_hierarchy?: boolean
           supports_map?: boolean
@@ -640,11 +640,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          field_definitions?: Json
           icon?: Json | null
           id?: string
           name?: string
           sort_order?: number
+          subtitle_field_definition_id?: string | null
           supports_bonds?: boolean
           supports_hierarchy?: boolean
           supports_map?: boolean
@@ -652,6 +652,13 @@ export type Database = {
           world_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "world_categories_subtitle_field_definition_id_fkey"
+            columns: ["subtitle_field_definition_id"]
+            isOneToOne: false
+            referencedRelation: "world_field_definitions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "world_categories_world_id_fkey"
             columns: ["world_id"]
@@ -667,10 +674,9 @@ export type Database = {
           category_id: string
           created_at: string
           edit_permissions: Database["public"]["Enums"]["note_edit_permissions"]
-          fields: Json
           icon: Json | null
           id: string
-          image_filenames: string[]
+          image_filename: string | null
           map: Json | null
           map_background_filename: string | null
           map_settings: Json | null
@@ -686,10 +692,9 @@ export type Database = {
           category_id: string
           created_at?: string
           edit_permissions?: Database["public"]["Enums"]["note_edit_permissions"]
-          fields?: Json
           icon?: Json | null
           id?: string
-          image_filenames?: string[]
+          image_filename?: string | null
           map?: Json | null
           map_background_filename?: string | null
           map_settings?: Json | null
@@ -705,10 +710,9 @@ export type Database = {
           category_id?: string
           created_at?: string
           edit_permissions?: Database["public"]["Enums"]["note_edit_permissions"]
-          fields?: Json
           icon?: Json | null
           id?: string
-          image_filenames?: string[]
+          image_filename?: string | null
           map?: Json | null
           map_background_filename?: string | null
           map_settings?: Json | null
@@ -783,41 +787,111 @@ export type Database = {
           },
         ]
       }
-      world_entry_gm_data: {
+      world_entry_field_values: {
         Row: {
+          content: string | null
           created_at: string
           entry_id: string
-          fields: Json
-          gm_notes_content: string | null
+          field_definition_id: string
+          gm_only: boolean
+          updated_at: string
+          value: Json | null
+          world_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          entry_id: string
+          field_definition_id: string
+          gm_only?: boolean
+          updated_at?: string
+          value?: Json | null
+          world_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          entry_id?: string
+          field_definition_id?: string
+          gm_only?: boolean
+          updated_at?: string
+          value?: Json | null
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_entry_field_values_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "world_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "world_entry_field_values_field_definition_id_fkey"
+            columns: ["field_definition_id"]
+            isOneToOne: false
+            referencedRelation: "world_field_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "world_entry_field_values_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      world_field_definitions: {
+        Row: {
+          binding: Json | null
+          category_id: string
+          created_at: string
+          gm_only: boolean
+          id: string
+          key: string
+          label: string
+          sort_order: number
+          type: string
           updated_at: string
           world_id: string
         }
         Insert: {
+          binding?: Json | null
+          category_id: string
           created_at?: string
-          entry_id: string
-          fields?: Json
-          gm_notes_content?: string | null
+          gm_only?: boolean
+          id?: string
+          key: string
+          label: string
+          sort_order?: number
+          type: string
           updated_at?: string
           world_id: string
         }
         Update: {
+          binding?: Json | null
+          category_id?: string
           created_at?: string
-          entry_id?: string
-          fields?: Json
-          gm_notes_content?: string | null
+          gm_only?: boolean
+          id?: string
+          key?: string
+          label?: string
+          sort_order?: number
+          type?: string
           updated_at?: string
           world_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "world_entry_gm_data_entry_id_fkey"
-            columns: ["entry_id"]
-            isOneToOne: true
-            referencedRelation: "world_entries"
+            foreignKeyName: "world_field_definitions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "world_categories"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "world_entry_gm_data_world_id_fkey"
+            foreignKeyName: "world_field_definitions_world_id_fkey"
             columns: ["world_id"]
             isOneToOne: false
             referencedRelation: "worlds"

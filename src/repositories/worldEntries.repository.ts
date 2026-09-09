@@ -15,7 +15,7 @@ import {
   RepositoryError,
   getRepositoryError,
 } from "./errors/RepositoryErrors";
-import { WorldPermission } from "./shared.types";
+import { WorldPermission, isGuideEquivalent } from "./shared.types";
 
 export type WorldEntryDTO = Tables<"world_entries">;
 export type WorldEntryInsertDTO = TablesInsert<"world_entries">;
@@ -30,8 +30,7 @@ const ENTRY_LIST_COLUMNS = `
   parent_entry_id,
   name,
   icon,
-  image_filenames,
-  fields,
+  image_filename,
   map,
   map_background_filename,
   map_settings,
@@ -41,14 +40,6 @@ const ENTRY_LIST_COLUMNS = `
   created_at,
   updated_at
 `;
-
-function isGuideEquivalent(permission: WorldPermission): boolean {
-  return (
-    permission === WorldPermission.Owner ||
-    permission === WorldPermission.Editor ||
-    permission === WorldPermission.Guide
-  );
-}
 
 // Mirrors the world_entries select policy so realtime payloads are filtered
 // the same way RLS filters the initial load.

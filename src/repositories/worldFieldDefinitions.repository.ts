@@ -16,24 +16,42 @@ import {
   getRepositoryError,
 } from "./errors/RepositoryErrors";
 
-export type WorldCategoryDTO = Tables<"world_categories">;
-export type WorldCategoryInsertDTO = TablesInsert<"world_categories">;
-export type WorldCategoryUpdateDTO = TablesUpdate<"world_categories">;
+// JSON shape stored in world_field_definitions.binding.
+// Bindings are pinned and concrete: the picker browses the world's effective
+// playset with `replaces` applied, so what the user picked is what is stored.
+export interface OracleBindingDTO {
+  packageId: string;
+  oracleId: string;
+  // What the binding actually resolved to last time; a difference against a
+  // fresh resolution is a divergence and must be surfaced, never silent.
+  resolvedOracleId: string;
+  // Escape hatch: ignore replacements, always roll exactly oracleId.
+  exact?: boolean;
+}
 
-export class WorldCategoriesRepository {
-  private static worldCategories = () => supabase.from("world_categories");
+export type WorldFieldDefinitionDTO = Tables<"world_field_definitions">;
+export type WorldFieldDefinitionInsertDTO =
+  TablesInsert<"world_field_definitions">;
+export type WorldFieldDefinitionUpdateDTO =
+  TablesUpdate<"world_field_definitions">;
 
-  public static listenToWorldCategories(
+export class WorldFieldDefinitionsRepository {
+  private static worldFieldDefinitions = () =>
+    supabase.from("world_field_definitions");
+
+  // Definitions are the world's shape rather than its content, so they load
+  // per world alongside categories, not per entry like values do.
+  public static listenToWorldFieldDefinitions(
     worldId: string,
-    onWorldCategoryChanges: (
-      changedCategories: Record<string, WorldCategoryDTO>,
-      removedCategoryIds: string[],
+    onDefinitionChanges: (
+      changedDefinitions: Record<string, WorldFieldDefinitionDTO>,
+      removedDefinitionIds: string[],
       replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
     const startInitialLoad = () => {
-      this.worldCategories()
+      this.worldFieldDefinitions()
         .select("*")
         .eq("world_id", worldId)
         .then(({ data, error, status }) => {
@@ -43,15 +61,15 @@ export class WorldCategoriesRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Read,
-                ErrorNoun.WorldCategory,
+                ErrorNoun.WorldFieldDefinition,
                 true,
                 status,
               ),
             );
           } else {
-            onWorldCategoryChanges(
+            onDefinitionChanges(
               Object.fromEntries(
-                data.map((category) => [category.id, category]),
+                data.map((definition) => [definition.id, definition]),
               ),
               [],
               true,
@@ -61,14 +79,14 @@ export class WorldCategoriesRepository {
     };
 
     const handlePayload = (
-      payload: RealtimePostgresChangesPayload<WorldCategoryDTO>,
+      payload: RealtimePostgresChangesPayload<WorldFieldDefinitionDTO>,
     ) => {
       if (payload.errors) {
         onError(
           getRepositoryError(
             payload.errors,
             ErrorVerb.Read,
-            ErrorNoun.WorldCategory,
+            ErrorNoun.WorldFieldDefinition,
             true,
           ),
         );
@@ -76,15 +94,15 @@ export class WorldCategoriesRepository {
         payload.eventType === "INSERT" ||
         payload.eventType === "UPDATE"
       ) {
-        onWorldCategoryChanges({ [payload.new.id]: payload.new }, [], false);
+        onDefinitionChanges({ [payload.new.id]: payload.new }, [], false);
       } else if (payload.eventType === "DELETE" && payload.old.id) {
-        onWorldCategoryChanges({}, [payload.old.id], false);
+        onDefinitionChanges({}, [payload.old.id], false);
       }
     };
 
     const unsubscribe = createSubscription(
-      `world_categories:world_id=eq.${worldId}`,
-      "world_categories",
+      `world_field_definitions:world_id=eq.${worldId}`,
+      "world_field_definitions",
       `world_id=eq.${worldId}`,
       startInitialLoad,
       handlePayload,
@@ -95,12 +113,12 @@ export class WorldCategoriesRepository {
     };
   }
 
-  public static addWorldCategory(
-    category: WorldCategoryInsertDTO,
+  public static addWorldFieldDefinition(
+    definition: WorldFieldDefinitionInsertDTO,
   ): Promise<string> {
     return new Promise((resolve, reject) => {
-      this.worldCategories()
-        .insert(category)
+      this.worldFieldDefinitions()
+        .insert(definition)
         .select()
         .single()
         .then(({ data, error, status }) => {
@@ -110,7 +128,7 @@ export class WorldCategoriesRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Create,
-                ErrorNoun.WorldCategory,
+                ErrorNoun.WorldFieldDefinition,
                 false,
                 status,
               ),
@@ -122,14 +140,17 @@ export class WorldCategoriesRepository {
     });
   }
 
-  public static updateWorldCategory(
-    categoryId: string,
-    category: WorldCategoryUpdateDTO,
+  // Flipping gm_only here is all that is needed to move existing values across
+  // the RLS boundary: a trigger propagates the new value to every value row
+  // for this definition in the same statement.
+  public static updateWorldFieldDefinition(
+    definitionId: string,
+    definition: WorldFieldDefinitionUpdateDTO,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.worldCategories()
-        .update(category)
-        .eq("id", categoryId)
+      this.worldFieldDefinitions()
+        .update(definition)
+        .eq("id", definitionId)
         .then(({ error, status }) => {
           if (error) {
             console.error(error);
@@ -137,7 +158,7 @@ export class WorldCategoriesRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Update,
-                ErrorNoun.WorldCategory,
+                ErrorNoun.WorldFieldDefinition,
                 false,
                 status,
               ),
@@ -149,11 +170,14 @@ export class WorldCategoriesRepository {
     });
   }
 
-  public static deleteWorldCategory(categoryId: string): Promise<void> {
+  // Cascades to every value row for this definition.
+  public static deleteWorldFieldDefinition(
+    definitionId: string,
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.worldCategories()
+      this.worldFieldDefinitions()
         .delete()
-        .eq("id", categoryId)
+        .eq("id", definitionId)
         .then(({ error, status }) => {
           if (error) {
             console.error(error);
@@ -161,7 +185,7 @@ export class WorldCategoriesRepository {
               getRepositoryError(
                 error,
                 ErrorVerb.Delete,
-                ErrorNoun.WorldCategory,
+                ErrorNoun.WorldFieldDefinition,
                 false,
                 status,
               ),

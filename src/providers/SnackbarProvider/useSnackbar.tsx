@@ -168,8 +168,14 @@ function getTranslatedNoun(noun: ErrorNoun, plural: boolean): string {
       return plural
         ? i18n.t("errors.worldEntries", "entries")
         : i18n.t("errors.worldEntry", "entry");
-    case ErrorNoun.WorldEntryGmData:
-      return i18n.t("errors.worldEntryGmData", "GM data");
+    case ErrorNoun.WorldFieldDefinition:
+      return plural
+        ? i18n.t("errors.worldFieldDefinitions", "fields")
+        : i18n.t("errors.worldFieldDefinition", "field");
+    case ErrorNoun.WorldEntryFieldValue:
+      return plural
+        ? i18n.t("errors.worldEntryFieldValues", "field values")
+        : i18n.t("errors.worldEntryFieldValue", "field value");
     default:
       return "";
   }

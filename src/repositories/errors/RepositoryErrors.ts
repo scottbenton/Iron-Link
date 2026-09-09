@@ -20,7 +20,8 @@ export enum ErrorNoun {
   WorldPlayer = "world player",
   WorldCategory = "world category",
   WorldEntry = "world entry",
-  WorldEntryGmData = "world entry GM data",
+  WorldFieldDefinition = "world field definition",
+  WorldEntryFieldValue = "world entry field value",
 }
 
 export enum ErrorVerb {

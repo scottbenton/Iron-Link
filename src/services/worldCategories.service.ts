@@ -3,16 +3,9 @@ import { Json } from "types/supabase-generated.type";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import {
-  FieldDefinitionDTO,
-  OracleBindingDTO,
   WorldCategoriesRepository,
   WorldCategoryDTO,
 } from "repositories/worldCategories.repository";
-
-// The stored JSON already uses the domain shape (see the repository DTOs),
-// so the domain types are aliases rather than conversions.
-export type FieldDefinition = FieldDefinitionDTO;
-export type OracleBinding = OracleBindingDTO;
 
 export interface IWorldCategory {
   id: string;
@@ -23,7 +16,9 @@ export interface IWorldCategory {
   supportsHierarchy: boolean;
   supportsMap: boolean;
   supportsBonds: boolean;
-  fieldDefinitions: FieldDefinition[];
+  // Field whose value renders as secondary content under the entry name in
+  // list views. Null means the list shows names only.
+  subtitleFieldDefinitionId: string | null;
 }
 
 export class WorldCategoriesService {
@@ -62,7 +57,6 @@ export class WorldCategoriesService {
       supportsHierarchy?: boolean;
       supportsMap?: boolean;
       supportsBonds?: boolean;
-      fieldDefinitions?: FieldDefinition[];
     },
   ): Promise<string> {
     return WorldCategoriesRepository.addWorldCategory({
@@ -73,7 +67,6 @@ export class WorldCategoriesService {
       supports_hierarchy: category.supportsHierarchy ?? false,
       supports_map: category.supportsMap ?? false,
       supports_bonds: category.supportsBonds ?? false,
-      field_definitions: (category.fieldDefinitions ?? []) as unknown as Json,
     });
   }
 
@@ -91,10 +84,7 @@ export class WorldCategoriesService {
       supports_hierarchy: category.supportsHierarchy,
       supports_map: category.supportsMap,
       supports_bonds: category.supportsBonds,
-      field_definitions:
-        category.fieldDefinitions === undefined
-          ? undefined
-          : (category.fieldDefinitions as unknown as Json),
+      subtitle_field_definition_id: category.subtitleFieldDefinitionId,
     });
   }
 
@@ -114,9 +104,7 @@ export class WorldCategoriesService {
       supportsHierarchy: category.supports_hierarchy,
       supportsMap: category.supports_map,
       supportsBonds: category.supports_bonds,
-      fieldDefinitions: Array.isArray(category.field_definitions)
-        ? (category.field_definitions as unknown as FieldDefinition[])
-        : [],
+      subtitleFieldDefinitionId: category.subtitle_field_definition_id,
     };
   }
 }

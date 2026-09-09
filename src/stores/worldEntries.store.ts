@@ -7,18 +7,19 @@ import {
   EditPermissions,
   ReadPermissions,
   WorldPermission,
+  isGuideEquivalent,
 } from "repositories/shared.types";
 
 import {
   IWorldEntry,
   IWorldEntryNotesContent,
   WorldEntriesService,
-  WorldEntryFieldValue,
 } from "services/worldEntries.service";
 import {
-  IWorldEntryGmData,
-  WorldEntryGmDataService,
-} from "services/worldEntryGmData.service";
+  IWorldEntryFieldValue,
+  WorldEntryFieldValuesService,
+  WorldFieldValue,
+} from "services/worldEntryFieldValues.service";
 
 import { useUID } from "./auth.store";
 import { useWorldStore } from "./world.store";
@@ -36,8 +37,11 @@ interface WorldEntriesStoreState {
     loading: boolean;
     error?: string;
   };
-  gmDataState: {
-    gmData: Record<string, IWorldEntryGmData>;
+  // Values are scoped to the entry currently open, keyed by field definition
+  // id. Subscribing per world would stream every field of every entry.
+  fieldValueState: {
+    entryId: string | null;
+    values: Record<string, IWorldEntryFieldValue>;
     loading: boolean;
     error?: string;
   };
@@ -49,7 +53,7 @@ interface WorldEntriesStoreActions {
     worldId: string,
     permission: WorldPermission,
   ) => () => void;
-  listenToWorldEntryGmData: (worldId: string) => () => void;
+  listenToWorldEntryFieldValues: (entryId: string) => () => void;
 
   createEntry: (
     uid: string,
@@ -77,16 +81,25 @@ interface WorldEntriesStoreActions {
     content: Uint8Array,
   ) => Promise<void>;
 
-  updateEntryGmFields: (
+  setFieldValue: (
     entryId: string,
     worldId: string,
-    fields: IWorldEntryGmData["fields"],
+    fieldDefinitionId: string,
+    value: WorldFieldValue | null,
   ) => Promise<void>;
-  getEntryGmNotesContent: (entryId: string) => Promise<{ content: Uint8Array }>;
-  updateEntryGmNotesContent: (
+  setFieldContent: (
     entryId: string,
     worldId: string,
+    fieldDefinitionId: string,
     content: Uint8Array,
+  ) => Promise<void>;
+  getFieldContent: (
+    entryId: string,
+    fieldDefinitionId: string,
+  ) => Promise<{ content: Uint8Array }>;
+  deleteFieldValue: (
+    entryId: string,
+    fieldDefinitionId: string,
   ) => Promise<void>;
 
   uploadEntryImage: (
@@ -109,8 +122,9 @@ const defaultWorldEntriesState: WorldEntriesStoreState = {
     permissions: {},
     loading: true,
   },
-  gmDataState: {
-    gmData: {},
+  fieldValueState: {
+    entryId: null,
+    values: {},
     loading: true,
   },
 };
@@ -162,30 +176,42 @@ export const useWorldEntriesStore = createWithEqualityFn<
       );
     },
 
-    listenToWorldEntryGmData: (worldId) => {
-      return WorldEntryGmDataService.listenToWorldEntryGmData(
-        worldId,
-        (changedGmData, removedEntryIds, replaceState) => {
+    listenToWorldEntryFieldValues: (entryId) => {
+      set((store) => {
+        store.fieldValueState = {
+          entryId,
+          values: {},
+          loading: true,
+        };
+      });
+
+      return WorldEntryFieldValuesService.listenToWorldEntryFieldValues(
+        entryId,
+        (changedValues, removedFieldDefinitionIds, replaceState) => {
           set((store) => {
+            // A late payload from the previous entry must not leak into the
+            // one now open.
+            if (store.fieldValueState.entryId !== entryId) return;
             if (replaceState) {
-              store.gmDataState.gmData = changedGmData;
+              store.fieldValueState.values = changedValues;
             } else {
-              store.gmDataState.gmData = {
-                ...store.gmDataState.gmData,
-                ...changedGmData,
+              store.fieldValueState.values = {
+                ...store.fieldValueState.values,
+                ...changedValues,
               };
-              removedEntryIds.forEach((entryId) => {
-                delete store.gmDataState.gmData[entryId];
+              removedFieldDefinitionIds.forEach((definitionId) => {
+                delete store.fieldValueState.values[definitionId];
               });
             }
-            store.gmDataState.loading = false;
-            store.gmDataState.error = undefined;
+            store.fieldValueState.loading = false;
+            store.fieldValueState.error = undefined;
           });
         },
         (error) => {
           set((store) => {
-            store.gmDataState.loading = false;
-            store.gmDataState.error = error.message;
+            if (store.fieldValueState.entryId !== entryId) return;
+            store.fieldValueState.loading = false;
+            store.fieldValueState.error = error.message;
           });
         },
       );
@@ -224,21 +250,32 @@ export const useWorldEntriesStore = createWithEqualityFn<
       return WorldEntriesService.updateWorldEntryNotesContent(entryId, content);
     },
 
-    updateEntryGmFields: (entryId, worldId, fields) => {
-      return WorldEntryGmDataService.updateWorldEntryGmFields(
+    setFieldValue: (entryId, worldId, fieldDefinitionId, value) => {
+      return WorldEntryFieldValuesService.setWorldEntryFieldValue(
         entryId,
         worldId,
-        fields,
+        fieldDefinitionId,
+        value,
       );
     },
-    getEntryGmNotesContent: (entryId) => {
-      return WorldEntryGmDataService.getWorldEntryGmNotesContent(entryId);
-    },
-    updateEntryGmNotesContent: (entryId, worldId, content) => {
-      return WorldEntryGmDataService.updateWorldEntryGmNotesContent(
+    setFieldContent: (entryId, worldId, fieldDefinitionId, content) => {
+      return WorldEntryFieldValuesService.setWorldEntryFieldContent(
         entryId,
         worldId,
+        fieldDefinitionId,
         content,
+      );
+    },
+    getFieldContent: (entryId, fieldDefinitionId) => {
+      return WorldEntryFieldValuesService.getWorldEntryFieldContent(
+        entryId,
+        fieldDefinitionId,
+      );
+    },
+    deleteFieldValue: (entryId, fieldDefinitionId) => {
+      return WorldEntryFieldValuesService.deleteWorldEntryFieldValue(
+        entryId,
+        fieldDefinitionId,
       );
     },
 
@@ -267,9 +304,6 @@ export function useListenToWorldEntries(worldId: string | undefined) {
   const listenToWorldEntries = useWorldEntriesStore(
     (store) => store.listenToWorldEntries,
   );
-  const listenToWorldEntryGmData = useWorldEntriesStore(
-    (store) => store.listenToWorldEntryGmData,
-  );
   const resetStore = useWorldEntriesStore((store) => store.reset);
 
   useEffect(() => {
@@ -279,38 +313,36 @@ export function useListenToWorldEntries(worldId: string | undefined) {
   }, [worldId, uid, worldPermission, listenToWorldEntries]);
 
   useEffect(() => {
-    // RLS limits gm data to owner/editor/guide; don't subscribe for others
-    if (worldId && worldPermission && isGuideEquivalent(worldPermission)) {
-      return listenToWorldEntryGmData(worldId);
-    }
-  }, [worldId, worldPermission, listenToWorldEntryGmData]);
-
-  useEffect(() => {
     return () => {
       resetStore();
     };
   }, [worldId, resetStore]);
 }
 
-// One logical field map, two tables: non-GM values live on world_entries.fields
-// and gmOnly values on world_entry_gm_data.fields, which RLS hides from anyone
-// below guide. Merge them here so consumers read a single record rather than
-// re-deriving the overlay in every component. Non-GMs simply get the non-GM
-// half, because the GM slice is never populated for them.
-export function useWorldEntryFields(
-  entryId: string,
-): Record<string, WorldEntryFieldValue> {
-  return useWorldEntriesStore((store) => ({
-    ...(store.entryState.entries[entryId]?.fields ?? {}),
-    ...(store.gmDataState.gmData[entryId]?.fields ?? {}),
-  }));
+// Field values load for one entry at a time; call this from the entry detail
+// view. RLS omits gmOnly rows for anyone below guide, so no client-side filter
+// is needed here.
+export function useListenToWorldEntryFieldValues(entryId: string | undefined) {
+  const listenToWorldEntryFieldValues = useWorldEntriesStore(
+    (store) => store.listenToWorldEntryFieldValues,
+  );
+
+  useEffect(() => {
+    if (entryId) {
+      return listenToWorldEntryFieldValues(entryId);
+    }
+  }, [entryId, listenToWorldEntryFieldValues]);
 }
 
-export function isGuideEquivalent(permission: WorldPermission): boolean {
-  return (
-    permission === WorldPermission.Owner ||
-    permission === WorldPermission.Editor ||
-    permission === WorldPermission.Guide
+// Values for the entry currently subscribed, keyed by field definition id.
+// Returns empty for any other entry rather than another entry's values.
+export function useWorldEntryFieldValues(
+  entryId: string,
+): Record<string, IWorldEntryFieldValue> {
+  return useWorldEntriesStore((store) =>
+    store.fieldValueState.entryId === entryId
+      ? store.fieldValueState.values
+      : {},
   );
 }
 

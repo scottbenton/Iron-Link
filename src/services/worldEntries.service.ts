@@ -20,14 +20,15 @@ import {
   WorldEntryDTO,
 } from "repositories/worldEntries.repository";
 
-// Values for text/richText/oracleText fields are strings; tags fields store
-// string arrays. Image fields store filenames in image_filenames instead.
-export type WorldEntryFieldValue = string | string[];
-
 export interface IWorldEntryMapSettings {
   backgroundImageFit: MapBackgroundImageFit;
   strokeColor: MapStrokeColors;
   showMap: boolean;
+  // Absent until the user resizes the map, at which point the grid is pinned
+  // instead of being derived from the background image's aspect ratio.
+  rows?: number;
+  cols?: number;
+  hexSize?: number;
 }
 
 export interface IWorldEntry {
@@ -36,9 +37,10 @@ export interface IWorldEntry {
   categoryId: string;
   parentEntryId: string | null;
   name: string;
+  // Avatar resolution order: imageFilename -> icon -> a template's derived
+  // default -> the category's icon.
+  imageFilename: string | null;
   icon: IconDefinition | null;
-  imageFilenames: string[];
-  fields: Record<string, WorldEntryFieldValue>;
   map: LocationMap | null;
   mapBackgroundFilename: string | null;
   mapSettings: IWorldEntryMapSettings | null;
@@ -119,11 +121,7 @@ export class WorldEntriesService {
       name: entry.name,
       icon:
         entry.icon === undefined ? undefined : (entry.icon as unknown as Json),
-      image_filenames: entry.imageFilenames,
-      fields:
-        entry.fields === undefined
-          ? undefined
-          : (entry.fields as unknown as Json),
+      image_filename: entry.imageFilename,
       map: entry.map === undefined ? undefined : (entry.map as unknown as Json),
       map_background_filename: entry.mapBackgroundFilename,
       map_settings:
@@ -299,12 +297,8 @@ export class WorldEntriesService {
       categoryId: entry.category_id,
       parentEntryId: entry.parent_entry_id,
       name: entry.name,
+      imageFilename: entry.image_filename,
       icon: (entry.icon as unknown as IconDefinition) ?? null,
-      imageFilenames: entry.image_filenames ?? [],
-      fields:
-        entry.fields && typeof entry.fields === "object"
-          ? (entry.fields as Record<string, WorldEntryFieldValue>)
-          : {},
       map: (entry.map as unknown as LocationMap) ?? null,
       mapBackgroundFilename: entry.map_background_filename,
       mapSettings:
