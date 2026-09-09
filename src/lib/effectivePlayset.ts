@@ -1,5 +1,4 @@
-import { Datasworn, IdParser } from "@datasworn/core";
-import { Primary } from "@datasworn/core/dist/StringId";
+import { Datasworn, IdParser, StringId } from "@datasworn-community/core";
 
 import {
   ExpansionConfig,
@@ -138,7 +137,7 @@ export function buildOracleReplacementMap(
 
   const getOracleMatches = (pattern: string) => {
     try {
-      return IdParser.getMatches(pattern as Primary, tree);
+      return IdParser.getMatches(pattern as StringId.Primary, tree);
     } catch (e) {
       console.error(`Failed to resolve datasworn id "${pattern}"`, e);
       return new Map<string, unknown>();
