@@ -73,6 +73,11 @@ export interface Location {
   mapBackgroundImageFit?: MapBackgroundImageFit;
   mapStrokeColor?: MapStrokeColors;
   showMap?: boolean;
+  // Persisted by IF's ResizeMapDialog; when absent, getMapLayout derives the
+  // grid from the background image's aspect ratio instead.
+  mapRows?: number;
+  mapCols?: number;
+  mapHexSize?: number;
 
   updatedDate: Date;
   createdDate: Date;

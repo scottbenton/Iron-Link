@@ -1,6 +1,6 @@
-import { Buffer } from "buffer";
-
 import { GamePermission } from "stores/game.store";
+
+import { byteaToUint8Array, uint8ArrayToBytea } from "lib/bytea.lib";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import { NoteDTO, NotesRepository } from "repositories/notes.repository";
@@ -118,7 +118,7 @@ export class NotesService {
     return NotesRepository.getNoteContent(noteId).then((noteDTO) => {
       return {
         content: noteDTO.note_content_bytes
-          ? this.databaseToUint8Array(noteDTO.note_content_bytes)
+          ? byteaToUint8Array(noteDTO.note_content_bytes)
           : new Uint8Array(),
       };
     });
@@ -130,7 +130,7 @@ export class NotesService {
     noteContentText: string,
   ): Promise<void> {
     return NotesRepository.updateNote(noteId, {
-      note_content_bytes: this.uint8ArrayToDatabase(noteContent),
+      note_content_bytes: uint8ArrayToBytea(noteContent),
       note_content_text: noteContentText,
     });
   }
@@ -141,7 +141,7 @@ export class NotesService {
     token: string,
   ): Promise<void> {
     return NotesRepository.updateNoteBeaconRequest(token, noteId, {
-      note_content_bytes: this.uint8ArrayToDatabase(noteContent),
+      note_content_bytes: uint8ArrayToBytea(noteContent),
       note_content_text: noteContentText,
     });
   }
@@ -199,12 +199,5 @@ export class NotesService {
     const newName = `${time}_${image.name}`;
     const newFile = StorageRepository.renameFile(image, newName);
     return StorageRepository.storeImage("note_images", noteId, newFile);
-  }
-
-  private static uint8ArrayToDatabase(arr: Uint8Array): string {
-    return "\\x" + Buffer.from(arr).toString("hex");
-  }
-  private static databaseToUint8Array(str: string): Uint8Array {
-    return Buffer.from(str.slice(2), "hex");
   }
 }
