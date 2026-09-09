@@ -49,7 +49,7 @@ export enum WorldPermission {
   None = "none",
 }
 
-// Roles with GM-equivalent access: they read and write world_entry_gm_data,
+// Roles with GM-equivalent access: they read and write gm_only field values,
 // see only_guides entries, and satisfy the "guide" branch of every
 // edit_permissions check. Mirrors the role lists in the RLS policies.
 export function isGuideEquivalent(permission: WorldPermission): boolean {
