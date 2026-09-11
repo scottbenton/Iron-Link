@@ -1,10 +1,13 @@
 import { Datasworn } from "@datasworn-community/core";
 
+import { i18n } from "i18n/config";
+
 interface BaseConfig {
   id: string;
   name: string;
   type: "ruleset" | "expansion";
   isHomebrew: boolean;
+  note?: string;
   licenseInfo?: {
     license: string;
     licenseUrl: string;
@@ -66,6 +69,23 @@ export const ironswornLodestarConfig: IExpansionConfig = {
   isHomebrew: false,
 };
 
+export const ironswornGiveawaysConfig: IExpansionConfig = {
+  id: "giveaways_classic",
+  name: "Giveaway Assets",
+  type: "expansion",
+  load: async () => {
+    const { giveaways_classic } = await import(
+      "@datasworn-community/ironsworn-classic-giveaways"
+    );
+    return { ...giveaways_classic };
+  },
+  isHomebrew: false,
+  note: i18n.t(
+    "datasworn.package-notes.ironsworn-giveaways",
+    "Some assets reference content from Delve.",
+  ),
+};
+
 export const starforgedRulesetConfig: IRulesetConfig = {
   id: "starforged",
   name: "Starforged",
@@ -89,6 +109,19 @@ export const sunderedIslesConfig: IExpansionConfig = {
       "@datasworn-community/sundered-isles"
     );
     return { ...sundered_isles };
+  },
+  isHomebrew: false,
+};
+
+export const starforgedGiveawaysConfig: IExpansionConfig = {
+  id: "giveaways_starforged",
+  name: "Giveaway Assets",
+  type: "expansion",
+  load: async () => {
+    const { giveaways_starforged } = await import(
+      "@datasworn-community/starforged-giveaways"
+    );
+    return { ...giveaways_starforged };
   },
   isHomebrew: false,
 };
@@ -142,9 +175,11 @@ export const includedExpansions: Record<
   [ironswornRulesetConfig.id]: {
     [ironswornDelveConfig.id]: ironswornDelveConfig,
     [ironswornLodestarConfig.id]: ironswornLodestarConfig,
+    [ironswornGiveawaysConfig.id]: ironswornGiveawaysConfig,
   },
   [starforgedRulesetConfig.id]: {
     [sunderedIslesConfig.id]: sunderedIslesConfig,
+    [starforgedGiveawaysConfig.id]: starforgedGiveawaysConfig,
     [starsmithConfig.id]: starsmithConfig,
   },
 };
@@ -204,6 +239,8 @@ export const allDefaultPackages: Record<string, IPackageConfig> = {
   ...includedRulesets,
   [ironswornDelveConfig.id]: ironswornDelveConfig,
   [ironswornLodestarConfig.id]: ironswornLodestarConfig,
+  [ironswornGiveawaysConfig.id]: ironswornGiveawaysConfig,
   [sunderedIslesConfig.id]: sunderedIslesConfig,
+  [starforgedGiveawaysConfig.id]: starforgedGiveawaysConfig,
   [starsmithConfig.id]: starsmithConfig,
 };

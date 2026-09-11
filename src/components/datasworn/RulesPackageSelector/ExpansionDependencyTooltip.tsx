@@ -13,12 +13,13 @@ interface ExpansionDependencyTooltipProps {
   expansionKey: string;
   expansionName: string;
   expansions: Record<string, IExpansionConfig>;
+  note?: string;
 }
 
 export function ExpansionDependencyTooltip(
   props: ExpansionDependencyTooltipProps,
 ) {
-  const { rulesetKey, expansionKey, expansionName, expansions } = props;
+  const { rulesetKey, expansionKey, expansionName, expansions, note } = props;
   const { t } = useTranslation();
 
   const dependencyNames = getExpansionDependencies(rulesetKey, expansionKey)
@@ -44,7 +45,7 @@ export function ExpansionDependencyTooltip(
             "{{dependents}} depends on {{expansion}}, so turning {{expansion}} off also turns {{dependents}} off.",
             { dependents: dependentList, expansion: expansionName },
           )
-        : null;
+        : (note ?? null);
 
   if (!tooltip) return null;
 
