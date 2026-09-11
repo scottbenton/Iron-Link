@@ -76,6 +76,7 @@ export function ExpansionCheckboxListRenderer(
                   expansionKey={expansionKey}
                   expansionName={expansion.name}
                   expansions={expansions}
+                  note={expansion.note}
                 />
               </Box>
             }
