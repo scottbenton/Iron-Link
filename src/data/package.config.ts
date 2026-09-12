@@ -207,3 +207,20 @@ export const allDefaultPackages: Record<string, IPackageConfig> = {
   [sunderedIslesConfig.id]: sunderedIslesConfig,
   [starsmithConfig.id]: starsmithConfig,
 };
+
+// Deterministic package ordering: rulesets in their declared order, and
+// after each ruleset its expansions in their declared order. Used anywhere
+// that needs a stable iteration order over all registered packages (e.g.
+// deriving the static world-picker table in `lib/worldOptions.ts`).
+export function getOrderedPackageConfigs(): IPackageConfig[] {
+  const orderedConfigs: IPackageConfig[] = [];
+  Object.values(includedRulesets).forEach((rulesetConfig) => {
+    orderedConfigs.push(rulesetConfig);
+    Object.values(includedExpansions[rulesetConfig.id] ?? {}).forEach(
+      (expansionConfig) => {
+        orderedConfigs.push(expansionConfig);
+      },
+    );
+  });
+  return orderedConfigs;
+}

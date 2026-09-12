@@ -3,12 +3,12 @@ import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
-import { IWorld, WorldsService } from "services/worlds.service";
+import { IUsersWorld, WorldsService } from "services/worlds.service";
 
 import { useUID } from "./auth.store";
 
 interface UsersWorldsState {
-  worlds: Record<string, IWorld>;
+  worlds: Record<string, IUsersWorld>;
   loading: boolean;
   error?: Error;
 }
