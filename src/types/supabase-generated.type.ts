@@ -982,6 +982,14 @@ export type Database = {
         Args: { p_name: string; p_description?: string; p_setting_key?: string }
         Returns: string
       }
+      link_game_to_world: {
+        Args: { p_game_id: string; p_world_id: string }
+        Returns: Json
+      }
+      unlink_game_from_world: {
+        Args: { p_game_id: string }
+        Returns: undefined
+      }
       world_role: {
         Args: { p_world_id: string; p_uid: string }
         Returns: string
