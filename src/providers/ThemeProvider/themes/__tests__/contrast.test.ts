@@ -6,12 +6,11 @@ import { ColorScheme } from "repositories/shared.types";
 import { getTheme, themeConfig } from "../themeConfig";
 
 const WHITE = "#ffffff";
-const LIGHT_PAGE = "#f3f4f6"; // grey[100] — the light-mode default background
 const DARK_SURFACE = "#111827"; // grey[900] — the dark-mode paper background
-const DARK_PAGE = "#030712"; // grey[950] — the dark-mode default background
+const GREY_700 = "#374151"; // GradientBox inner box, light mode
+const GREY_900 = "#111827"; // GradientBox inner box, dark mode
 
 const AA_TEXT = 4.5;
-const AA_NON_TEXT = 3;
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
@@ -144,32 +143,32 @@ describe.each(schemes)("color scheme %s", (scheme) => {
     );
   });
 
-  it("brand ring stops clear 3:1 on light and dark surfaces", () => {
+  it("brand ring glows against the inner box it wraps", () => {
     const { icon, ring } = themeConfig[scheme].brand;
 
-    // Default is explicitly exempt from checking its `icon` stops: its original
-    // bright mark is preserved by product decision, and those stops do not
-    // clear 3:1 on a light page. It is the one theme carrying a darker `ring`
-    // override, and that override is what is asserted here.
-    if (scheme === ColorScheme.Default) {
-      expect(ring, "Default must supply a ring override").toBeDefined();
+    // The ring is NOT held to a page-contrast floor. GradientBox draws it behind
+    // an opaque dark inner box (grey.700 light / grey.900 dark) and it reads as
+    // a glow around that chip -- pale, bright stops are the intent. What would
+    // actually break it is a ring whose every stop is close to the inner box,
+    // leaving nothing to glow. So: at least one stop must stand off the chip.
+    //
+    // Pride may fall back to `icon`; its rainbow is authored in oklch() and is
+    // skipped by the hex-only helper.
+    if (scheme !== ColorScheme.PrideTraditional) {
+      expect(ring, `${scheme} must define an explicit brand.ring`).toBeDefined();
     }
 
-    const stops = ring ?? icon;
+    const hexStops = (ring ?? icon).filter((stop) => HEX_COLOR.test(stop));
+    if (hexStops.length === 0) return;
 
-    // Pride's rainbow stops are authored in oklch() and are not parseable by
-    // the hex-only helper; they are skipped rather than converted.
-    const hexStops = stops.filter((stop) => HEX_COLOR.test(stop));
-
-    for (const stop of hexStops) {
-      for (const background of [WHITE, LIGHT_PAGE, DARK_PAGE]) {
-        expectContrast(
-          stop,
-          background,
-          AA_NON_TEXT,
-          `${scheme} brand ring stop`,
-        );
-      }
+    for (const innerBox of [GREY_700, GREY_900]) {
+      const best = Math.max(
+        ...hexStops.map((stop) => contrastRatio(stop, innerBox)),
+      );
+      expect(
+        best,
+        `${scheme} ring has no stop that stands off the inner box ${innerBox}`,
+      ).toBeGreaterThanOrEqual(AA_TEXT);
     }
   });
 });

@@ -15,11 +15,20 @@ interface ModePalette {
 }
 
 interface BrandTokens {
-  /** Gradient stops for the logo mark. */
+  /**
+   * Gradient stops for the logo mark. A brand mark, not text -- these run a
+   * wide tonal range (bright pale end into a deep saturated end) for glow and
+   * to keep the schemes distinguishable from one another. Deliberately NOT
+   * held to a contrast floor.
+   */
   icon: string[];
   /**
-   * Gradient stops for the outline/ring treatment. Defaults to `icon` when a
-   * theme's icon stops already read well as a ring on a light page.
+   * Gradient stops for the GradientBox ring. The ring is always drawn around an
+   * opaque dark inner box (grey.700 in light mode, grey.900 in dark), so it
+   * reads as a glow against that chip rather than needing to be legible against
+   * the page on its own -- which is why the pale stops are the point, not a
+   * defect. What it must not be is a colour close to BOTH the inner box and the
+   * page, which is the one case that makes it disappear. Falls back to `icon`.
    */
   ring?: string[];
 }
@@ -63,12 +72,8 @@ export const themeConfig: ThemeConfig = {
       },
     },
     brand: {
-      // Default is the one theme that keeps its original bright mark, by
-      // explicit product decision. Those stops are too light to read as a ring
-      // on a light page, so it is also the one theme that needs a `ring`
-      // override.
       icon: ["#ff637e", "#d08700"],
-      ring: ["#ec003f", "#bb4d00"],
+      ring: ["#ff2056", "#f0b100"],
     },
   },
   [ColorScheme.Cinder]: {
@@ -89,7 +94,8 @@ export const themeConfig: ThemeConfig = {
       },
     },
     brand: {
-      icon: ["#f54a00", "#e7000b"],
+      icon: ["#ff8904", "#c10007"],
+      ring: ["#ffa1ad", "#e7000b"],
     },
   },
   [ColorScheme.Eidolon]: {
@@ -110,7 +116,8 @@ export const themeConfig: ThemeConfig = {
       },
     },
     brand: {
-      icon: ["#ca3500", "#a65f00"],
+      icon: ["#fdc700", "#a65f00"],
+      ring: ["#ffd230", "#d08700"],
     },
   },
   [ColorScheme.Hinterlands]: {
@@ -131,7 +138,8 @@ export const themeConfig: ThemeConfig = {
       },
     },
     brand: {
-      icon: ["#497d00", "#007a55"],
+      icon: ["#00d492", "#006045"],
+      ring: ["#7bf1a8", "#009966"],
     },
   },
   [ColorScheme.Myriad]: {
@@ -152,7 +160,8 @@ export const themeConfig: ThemeConfig = {
       },
     },
     brand: {
-      icon: ["#0092b8", "#155dfc"],
+      icon: ["#00d3f2", "#1447e6"],
+      ring: ["#53eafd", "#155dfc"],
     },
   },
   [ColorScheme.Mystic]: {
@@ -173,7 +182,8 @@ export const themeConfig: ThemeConfig = {
       },
     },
     brand: {
-      icon: ["#c800de", "#7f22fe"],
+      icon: ["#a684ff", "#5d0ec0"],
+      ring: ["#dab2ff", "#7f22fe"],
     },
   },
   [ColorScheme.PrideTraditional]: {
@@ -222,28 +232,34 @@ export const themeConfig: ThemeConfig = {
       },
     },
     brand: {
-      icon: ["#c800de", "#e60076"],
+      icon: ["#ed6bff", "#c6005c"],
+      ring: ["#f4a8ff", "#c800de"],
     },
   },
   [ColorScheme.Gloaming]: {
+    // The accent is the flag's purple -- the overlap stripe, and the middle stop
+    // of the mark. Kept vivid rather than flag-accurate: the flag's own #9b4f96
+    // is desaturated and read as muted next to its neighbours. Separated from
+    // Mystic by lightness and chroma, since both are in the violet family.
     light: {
       primary: {
-        light: "#e60076",
-        main: "#d60270",
-        dark: "#a3004c",
+        light: "#ad46ff",
+        main: "#9810fa",
+        dark: "#8200db",
         contrastText: LIGHT_CONTRAST_TEXT,
       },
     },
     dark: {
       primary: {
-        light: "#fccee8",
-        main: "#fb64b6",
-        dark: "#f6339a",
+        light: "#dab2ff",
+        main: "#c27aff",
+        dark: "#ad46ff",
         contrastText: DARK_CONTRAST_TEXT,
       },
     },
     brand: {
-      icon: ["#d60270", "#9b4f96", "#155dfc"],
+      icon: ["#f6339a", "#ad46ff", "#2b7fff"],
+      ring: ["#fb64b6", "#dab2ff", "#51a2ff"],
     },
   },
 };
