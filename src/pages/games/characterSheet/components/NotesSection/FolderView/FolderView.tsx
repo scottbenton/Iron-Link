@@ -20,18 +20,27 @@ import { useTranslation } from "react-i18next";
 import { GridLayout } from "components/Layout";
 import { EmptyState } from "components/Layout/EmptyState";
 
-import { useNotesStore } from "stores/notes.store";
+import { useUID } from "stores/auth.store";
+import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
 
 import { i18n } from "i18n/config";
 
 import { INoteFolder } from "services/noteFolders.service";
 import { INote } from "services/notes.service";
 
+import { useShowWorldItem } from "../hooks/useGameWorld";
 import { FolderItem } from "./FolderItem";
 import { NoteItem } from "./NoteItem";
 import { SortableNoteItem } from "./SortableNoteItem";
+import { WorldItem } from "./WorldItem";
 import { getItemName } from "./getFolderName";
 import { useFolderPermission } from "./useFolderPermissions";
+
+// The folder grid holds folder cards plus, in the viewer's own root folder,
+// the game's world as the leading tile.
+type FolderGridItem =
+  | { kind: "world" }
+  | { kind: "folder"; folderId: string; folder: INoteFolder };
 
 export interface FolderViewProps {
   folderId: string | undefined;
@@ -42,6 +51,17 @@ export function FolderView(props: FolderViewProps) {
   const { t } = useTranslation();
 
   const { canEdit } = useFolderPermission(folderId);
+
+  // The world tile belongs to the game, so it shows once: in the viewer's own
+  // root folder, which is the folder view they actually land on.
+  const uid = useUID();
+  const rootPlayerFolderId = useNotesStore((state) =>
+    uid ? getPlayerNotesFolder(uid, state.folderState.folders)?.id : undefined,
+  );
+  const showWorldItem =
+    useShowWorldItem() &&
+    folderId !== undefined &&
+    folderId === rootPlayerFolderId;
 
   const subFolders = useNotesStore((state) => {
     if (!folderId) {
@@ -157,6 +177,15 @@ export function FolderView(props: FolderViewProps) {
     }),
   );
 
+  const gridItems: FolderGridItem[] = [
+    ...(showWorldItem ? [{ kind: "world" as const }] : []),
+    ...subFolders.map(([subFolderId, subFolder]) => ({
+      kind: "folder" as const,
+      folderId: subFolderId,
+      folder: subFolder,
+    })),
+  ];
+
   return (
     <>
       {folderId === undefined &&
@@ -168,31 +197,38 @@ export function FolderView(props: FolderViewProps) {
             </Typography>
           </>
         )}
-      {subFolders.length > 0 && (
+      {gridItems.length > 0 && (
         <GridLayout
           sx={{ mb: 1 }}
           gap={1}
-          items={subFolders}
+          items={gridItems}
           minWidth={200}
-          renderItem={([subFolderId, subFolder]) => (
-            <FolderItem
-              key={subFolderId}
-              folderId={subFolderId}
-              folder={subFolder}
-            />
-          )}
+          renderItem={(item) =>
+            item.kind === "world" ? (
+              <WorldItem key="world" />
+            ) : (
+              <FolderItem
+                key={item.folderId}
+                folderId={item.folderId}
+                folder={item.folder}
+              />
+            )
+          }
         />
       )}
-      {subFolders.length === 0 && sortedNoteIds.length === 0 && folderId && (
-        <EmptyState
-          title={t("notes.empty-folder", "Empty Folder")}
-          message={t(
-            "notes.empty-folder-description",
-            "This folder has no contents yet.",
-          )}
-          sx={{ py: 2 }}
-        />
-      )}
+      {subFolders.length === 0 &&
+        sortedNoteIds.length === 0 &&
+        folderId &&
+        !showWorldItem && (
+          <EmptyState
+            title={t("notes.empty-folder", "Empty Folder")}
+            message={t(
+              "notes.empty-folder-description",
+              "This folder has no contents yet.",
+            )}
+            sx={{ py: 2 }}
+          />
+        )}
       {folderId && canEdit ? (
         <DndContext
           collisionDetection={closestCenter}

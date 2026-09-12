@@ -46,7 +46,8 @@ export function AdvancedFeaturesDialog(props: AdvancedFeaturesDialogProps) {
                   control={
                     <Switch
                       checked={
-                        featureStates[key as keyof typeof advancedFeatures]
+                        featureStates[key as keyof typeof advancedFeatures] ??
+                        false
                       }
                       onChange={(event) =>
                         updateFeature(

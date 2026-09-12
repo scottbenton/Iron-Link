@@ -12,7 +12,7 @@ interface AdvancedFeature {
   requiresGuideRole?: boolean;
 }
 
-type FeatureKey = "secondScreen";
+export type FeatureKey = "secondScreen" | "worlds";
 
 export const advancedFeaturesLocalStorageKey =
   "iron-link-advanced-feature-toggles";
@@ -26,6 +26,13 @@ export const advancedFeatures: Record<FeatureKey, AdvancedFeature> = {
     ),
     requiresGuideRole: true,
   },
+  worlds: {
+    name: i18n.t("advanced-features.worlds", "Worlds (Beta)"),
+    description: i18n.t(
+      "advanced-features.worlds-description",
+      "Enables in-progress worldbuilding features: creating worlds and linking them to your games.",
+    ),
+  },
 };
 
 export const useAdvancedFeatureToggles = create<{
@@ -36,6 +43,7 @@ export const useAdvancedFeatureToggles = create<{
     immer((set) => ({
       toggles: {
         secondScreen: false,
+        worlds: false,
       },
       updateToggle: (feature, value) => {
         set((state) => {

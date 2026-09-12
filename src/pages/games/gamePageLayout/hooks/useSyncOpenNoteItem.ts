@@ -1,7 +1,17 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router";
 
-import { useNotesStore } from "stores/notes.store";
+import { IOpenNoteItemType, useNotesStore } from "stores/notes.store";
+
+const openNoteItemTypes: IOpenNoteItemType[] = ["note", "folder", "world"];
+
+// The search param is user-controlled, so it is validated against the union
+// rather than coerced. Coercing an unrecognized value to "note" would open a
+// note tab pointed at an id that is not a note -- which is what happened to
+// world tabs before "world" joined the union.
+function isOpenNoteItemType(value: string): value is IOpenNoteItemType {
+  return (openNoteItemTypes as string[]).includes(value);
+}
 
 export function useSyncOpenNoteItem() {
   const openItem = useNotesStore((store) =>
@@ -29,9 +39,9 @@ export function useSyncOpenNoteItem() {
     const openItemType = searchParams.get("note-type");
     const openItemId = searchParams.get("note-id");
 
-    if (openItemType && openItemId) {
+    if (openItemType && openItemId && isOpenNoteItemType(openItemType)) {
       setOpenItem({
-        type: openItemType === "folder" ? "folder" : "note",
+        type: openItemType,
         id: openItemId,
       });
     }

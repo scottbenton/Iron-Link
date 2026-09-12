@@ -2,17 +2,11 @@ import { Outlet } from "react-router";
 
 import { ErrorBoundary } from "components/ErrorBoundary";
 
-import { AuthStatus, useAuthStatus } from "stores/auth.store";
-
 import { NavBar } from "./NavBar";
-import { authenticatedNavRoutes, unauthenticatedNavRoutes } from "./navRoutes";
+import { useNavRoutes } from "./useNavRoutes";
 
 export function DefaultLayout() {
-  const authStatus = useAuthStatus();
-  const navRoutes =
-    authStatus === AuthStatus.Authenticated
-      ? authenticatedNavRoutes
-      : unauthenticatedNavRoutes;
+  const navRoutes = useNavRoutes();
 
   return (
     <>

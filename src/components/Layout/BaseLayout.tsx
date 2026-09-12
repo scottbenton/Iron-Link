@@ -11,19 +11,15 @@ import { LayoutPathListener } from "./LayoutPathListener";
 import { LiveRegion } from "./LiveRegion";
 import { NavRail } from "./NavRail";
 import { SkipToContentButton } from "./SkipToContentButton";
-import { authenticatedNavRoutes, unauthenticatedNavRoutes } from "./navRoutes";
+import { useNavRoutes } from "./useNavRoutes";
 
 export function BaseLayout() {
   const authStatus = useAuthStatus();
+  const routes = useNavRoutes();
 
   if (authStatus === AuthStatus.Loading) {
     return <LinearProgress />;
   }
-
-  const routes =
-    authStatus === AuthStatus.Authenticated
-      ? authenticatedNavRoutes
-      : unauthenticatedNavRoutes;
 
   return (
     <Box
