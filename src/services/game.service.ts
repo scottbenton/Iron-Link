@@ -247,19 +247,15 @@ export class GameService {
       gameType = GameType.Guided;
     }
 
+    // Validate against the enum rather than listing members: an unlisted member
+    // would otherwise be silently dropped here and the game would fall back to
+    // the default scheme on every read. Mirrors CharacterService.
     let colorScheme: ColorScheme | null = null;
-    if (gameDTO.color_scheme === ColorScheme.Cinder) {
-      colorScheme = ColorScheme.Cinder;
-    } else if (gameDTO.color_scheme === ColorScheme.Eidolon) {
-      colorScheme = ColorScheme.Eidolon;
-    } else if (gameDTO.color_scheme === ColorScheme.Hinterlands) {
-      colorScheme = ColorScheme.Hinterlands;
-    } else if (gameDTO.color_scheme === ColorScheme.Myriad) {
-      colorScheme = ColorScheme.Myriad;
-    } else if (gameDTO.color_scheme === ColorScheme.Mystic) {
-      colorScheme = ColorScheme.Mystic;
-    } else if (gameDTO.color_scheme === ColorScheme.PrideTraditional) {
-      colorScheme = ColorScheme.PrideTraditional;
+    if (
+      gameDTO.color_scheme &&
+      Object.values(ColorScheme).includes(gameDTO.color_scheme as ColorScheme)
+    ) {
+      colorScheme = gameDTO.color_scheme as ColorScheme;
     }
 
     return {
