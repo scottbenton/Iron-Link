@@ -1,7 +1,3 @@
-import { useMemo } from "react";
-
-import { useAdvancedFeatureToggle } from "hooks/advancedFeatures/advancedFeatures";
-
 import { AuthStatus, useAuthStatus } from "stores/auth.store";
 
 import {
@@ -10,20 +6,17 @@ import {
   unauthenticatedNavRoutes,
 } from "./navRoutes";
 
-// The nav routes for the current auth status, minus any route whose advanced
-// feature toggle is off.
+// The nav routes for the current auth status.
+//
+// Routes are deliberately not filtered by advanced feature toggles. A route
+// hidden from the nav is indistinguishable from one that does not exist, so
+// gating Worlds here would have removed it entirely while Homebrew sat next to
+// it advertising itself as coming soon. Each page renders its own coming-soon
+// state when its feature is off instead.
 export function useNavRoutes(): NavRouteConfig[] {
   const authStatus = useAuthStatus();
-  const worldsEnabled = useAdvancedFeatureToggle("worlds");
 
-  const routes =
-    authStatus === AuthStatus.Authenticated
-      ? authenticatedNavRoutes
-      : unauthenticatedNavRoutes;
-
-  return useMemo(
-    () =>
-      routes.filter((route) => route.featureKey !== "worlds" || worldsEnabled),
-    [routes, worldsEnabled],
-  );
+  return authStatus === AuthStatus.Authenticated
+    ? authenticatedNavRoutes
+    : unauthenticatedNavRoutes;
 }

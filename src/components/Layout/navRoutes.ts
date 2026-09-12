@@ -6,8 +6,6 @@ import WorldsIcon from "@mui/icons-material/TravelExplore";
 
 import { pathConfig } from "pages/pathConfig";
 
-import { FeatureKey } from "hooks/advancedFeatures/advancedFeatures";
-
 import { i18n } from "i18n/config";
 
 export interface NavRouteConfig {
@@ -15,8 +13,6 @@ export interface NavRouteConfig {
   title: string;
   href: string;
   checkIsSelected: (path: string) => boolean;
-  // When set, the route is only shown while that advanced feature toggle is on.
-  featureKey?: FeatureKey;
 }
 
 export const authenticatedNavRoutes: NavRouteConfig[] = [
@@ -31,7 +27,6 @@ export const authenticatedNavRoutes: NavRouteConfig[] = [
     title: i18n.t("datasworn.worlds", "Worlds"),
     href: pathConfig.worldSelect,
     checkIsSelected: (path) => path.startsWith(pathConfig.worldSelect),
-    featureKey: "worlds",
   },
   {
     Logo: HomebrewIcon,
