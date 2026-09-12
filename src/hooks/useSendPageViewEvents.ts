@@ -11,6 +11,8 @@ export enum PageCategory {
   GameSelect = "game_select",
   GameCreate = "game_create",
   WorldSelect = "world_select",
+  WorldCreate = "world_create",
+  World = "world",
   HomebrewSelect = "homebrew_select",
   Auth = "auth",
   GameJoin = "game_join",

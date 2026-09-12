@@ -33,7 +33,8 @@ export function NoteBreadcrumbs() {
 
     const breadcrumbs: BreadcrumbItem[] = [];
 
-    while (item) {
+    // The world tab sits outside the notes hierarchy, so it has no trail.
+    while (item && item.type !== "world") {
       breadcrumbs.push({
         type: item.type,
         id: item.itemId,

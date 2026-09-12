@@ -261,7 +261,7 @@ export class GameService {
     return {
       id: gameDTO.id,
       name: gameDTO.name,
-      worldId: null,
+      worldId: gameDTO.world_id,
       conditionMeters: (gameDTO.condition_meter_values ?? {}) as Record<
         string,
         number

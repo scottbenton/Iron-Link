@@ -21,7 +21,11 @@ interface Permissions {
   canChangePermissions: boolean;
 }
 
-export type IOpenNoteItem = { type: "note" | "folder"; itemId: string };
+// "world" is the one non-note concept that can occupy a tab: the game's
+// linked world. It has no row in the notes tables, so nothing but the tab
+// bookkeeping below knows about it.
+export type IOpenNoteItemType = "note" | "folder" | "world";
+export type IOpenNoteItem = { type: IOpenNoteItemType; itemId: string };
 interface NotesStoreState {
   noteState: {
     notes: Record<string, INote>;
@@ -116,14 +120,14 @@ interface NotesStoreActions {
 
   switchToTab: (tabId: string) => void;
   openItemTab: (params: {
-    type: "note" | "folder";
+    type: IOpenNoteItemType;
     id: string;
     replaceCurrent?: boolean;
     openInBackground?: boolean;
     disallowDuplicates?: boolean;
   }) => void;
   closeTab: (tabId: string) => void;
-  closeTabsMatching: (type: "note" | "folder", id: string) => void;
+  closeTabsMatching: (type: IOpenNoteItemType, id: string) => void;
 }
 
 const defaultNotesState: NotesStoreState = {

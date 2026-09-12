@@ -5,11 +5,13 @@ import { useTranslation } from "react-i18next";
 
 import { useUID } from "stores/auth.store";
 import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
+import { useWorldStore } from "stores/world.store";
 
 import { FolderView, FolderViewToolbar } from "../FolderView";
 import { getItemName } from "../FolderView/getFolderName";
 import { OpenItemWrapper } from "../Layout";
 import { NoteView } from "../NoteView";
+import { GameWorldView } from "../WorldView/GameWorldView";
 
 export function NoteTabs() {
   const { t } = useTranslation();
@@ -19,6 +21,11 @@ export function NoteTabs() {
   const itemNames = useNotesStore((store) => {
     return Object.fromEntries(
       Object.entries(store.noteTabItems).map(([key, value]) => {
+        if (value.type === "world") {
+          // Resolved from the world store below - the notes store knows
+          // nothing about worlds beyond the tab bookkeeping.
+          return [key, null];
+        }
         if (value.type === "folder") {
           const folder = store.folderState.folders[value.itemId];
           return [
@@ -39,6 +46,9 @@ export function NoteTabs() {
       }),
     );
   });
+  const worldName = useWorldStore((store) => store.world?.name);
+  const worldTabLabel = worldName ?? t("worlds.tab.world", "World");
+
   const activeTab = useNotesStore((store) => store.openTabId);
   const setActiveTab = useNotesStore((store) => store.switchToTab);
   const closeTab = useNotesStore((store) => store.closeTab);
@@ -82,14 +92,15 @@ export function NoteTabs() {
         <Tabs
           value={activeTab ?? null}
           onChange={(_, newValue) => setActiveTab(newValue)}
-          sx={{
-            minHeight: 0,
-            "& .MuiTabs-scroller.MuiTabs-hideScrollbar.MuiTabs-scrollableX": {
-              scrollbarWidth: "thin",
-            },
-          }}
+          sx={{ minHeight: 0 }}
           variant="scrollable"
-          scrollButtons={false}
+          // Do not re-enable the scroller's scrollbar here. MUI hides it by
+          // applying a negative margin-bottom equal to the measured scrollbar
+          // height; making it visible again leaves that margin in place, which
+          // detaches the selection indicator from the tabs by exactly a
+          // scrollbar's height and makes one flash in whenever the strip is
+          // re-measured. Scroll buttons cover overflow instead.
+          scrollButtons="auto"
         >
           {tabOrder.map((tabId) => (
             <Tab
@@ -116,7 +127,7 @@ export function NoteTabs() {
               })} // Add border to the left of each tab except the first one
               label={
                 <Box display="flex" alignItems="center" gap={1}>
-                  {itemNames[tabId]}
+                  {itemNames[tabId] ?? worldTabLabel}
                   <IconButton
                     className="close-tab-button"
                     component="span"
@@ -164,7 +175,11 @@ export function NoteTabs() {
             flexDirection={"column"}
             overflow="auto"
           >
-            {tabItem.type === "folder" ? (
+            {tabItem.type === "world" ? (
+              <OpenItemWrapper sx={{ flexGrow: 1 }}>
+                <GameWorldView worldId={tabItem.itemId} />
+              </OpenItemWrapper>
+            ) : tabItem.type === "folder" ? (
               <>
                 <FolderViewToolbar folderId={tabItem.itemId} />
                 <OpenItemWrapper sx={{ mx: -1, flexGrow: 1 }}>
