@@ -55,25 +55,74 @@ export const grey: ColorWith950 = {
   A700: greyPalette[700],
 };
 
-export const sharedStatusColors = {
+// Status colors are mode-aware: light mode uses the Tailwind 700 ramp stop so
+// it clears WCAG AA against a white surface; dark mode uses the 400 stop so it
+// clears AA against the dark surface. contrastText is pinned explicitly rather
+// than left to MUI's 3.0 contrast threshold.
+export const sharedStatusColorsLight = {
   success: {
-    light: "#10b981",
-    main: "#059669",
-    dark: "#047857",
+    light: "#009966",
+    main: "#007a55",
+    dark: "#006045",
+    contrastText: "#ffffff",
   },
   warning: {
-    light: "#d97706",
-    main: "#b45309",
-    dark: "#92400e",
+    light: "#e17100",
+    main: "#bb4d00",
+    dark: "#973c00",
+    contrastText: "#ffffff",
   },
   error: {
-    light: "#ef4444",
-    main: "#dc2626",
-    dark: "#b91c1c",
+    light: "#e7000b",
+    main: "#c10007",
+    dark: "#9f0712",
+    contrastText: "#ffffff",
   },
   info: {
-    light: "#0ea5e9",
-    main: "#0284c7",
-    dark: "#0369a1",
+    light: "#0084d1",
+    main: "#00699d",
+    dark: "#035888",
+    contrastText: "#ffffff",
   },
+};
+
+export const sharedStatusColorsDark = {
+  success: {
+    light: "#5ee9b5",
+    main: "#00d492",
+    dark: "#00bc7d",
+    contrastText: "#030712",
+  },
+  warning: {
+    light: "#ffd230",
+    main: "#ffb900",
+    dark: "#fe9a00",
+    contrastText: "#030712",
+  },
+  error: {
+    light: "#ffa2a2",
+    main: "#ff6467",
+    dark: "#fb2c36",
+    contrastText: "#030712",
+  },
+  info: {
+    light: "#74d4ff",
+    main: "#00bcff",
+    dark: "#00a6f4",
+    contrastText: "#030712",
+  },
+};
+
+export const cursedLight = {
+  light: "#5ea500",
+  main: "#497d00",
+  dark: "#3c6300",
+  contrastText: "#ffffff",
+};
+
+export const cursedDark = {
+  light: "#bbf451",
+  main: "#9ae600",
+  dark: "#7ccf00",
+  contrastText: "#030712",
 };

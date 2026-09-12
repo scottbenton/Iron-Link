@@ -90,7 +90,9 @@ export function PortraitAvatarDisplay(props: PortraitAvatarDisplayProps) {
           borderColor:
             borderColor === "follow-theme"
               ? theme.palette.divider
-              : themeConfig[borderColor as ColorScheme].primary.main,
+              : themeConfig[borderColor as ColorScheme][
+                  theme.palette.mode === "light" ? "light" : "dark"
+                ].primary.main,
           borderRadius: rounded ? "100%" : `${theme.shape.borderRadius}px`,
           "&>img": {
             width: isTaller ? `${100 * scale}%` : "auto",
