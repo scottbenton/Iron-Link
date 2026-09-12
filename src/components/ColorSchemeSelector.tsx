@@ -53,6 +53,10 @@ function getColorSchemeName(colorScheme: ColorScheme, t: TFunction): string {
       return t("colorScheme.mystic", "Mystic");
     case ColorScheme.PrideTraditional:
       return t("colorScheme.prideTraditional", "Pride");
+    case ColorScheme.Orchid:
+      return t("colorScheme.orchid", "Orchid");
+    case ColorScheme.Gloaming:
+      return t("colorScheme.gloaming", "Gloaming");
     default:
       return t("colorScheme.unknown", "Unknown");
   }
