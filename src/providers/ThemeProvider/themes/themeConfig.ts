@@ -45,7 +45,7 @@ export type ThemeConfig = Record<
 const BORDER_RADIUS = 8;
 
 const LIGHT_CONTRAST_TEXT = "#ffffff";
-const DARK_CONTRAST_TEXT = grey[950];
+const DARK_CONTRAST_TEXT = "#000000d0";
 
 /**
  * Each theme carries two accent palettes: light mode uses the Tailwind 700 ramp
@@ -57,149 +57,149 @@ export const themeConfig: ThemeConfig = {
   [ColorScheme.Default]: {
     light: {
       primary: {
-        light: "#ec003f",
-        main: "#c70036",
-        dark: "#a50036",
+        light: "#e11d48", // Rose 600
+        main: "#be123c", // Rose 700
+        dark: "#9f1239", // Rose 800
         contrastText: LIGHT_CONTRAST_TEXT,
       },
     },
     dark: {
       primary: {
-        light: "#ffa1ad",
-        main: "#ff637e",
-        dark: "#ff2056",
+        light: "#fb7185", // Rose 400
+        main: "#f43f5e", // Rose 500
+        dark: "#e11d48", // Rose 600
         contrastText: DARK_CONTRAST_TEXT,
       },
     },
     brand: {
-      icon: ["#ff637e", "#d08700"],
-      ring: ["#ff2056", "#f0b100"],
+      icon: ["#fb7185", "#d08700"], // Rose 400, Amber 600
+      ring: ["#e11d48", "#f59e0b"], // Rose 600, Amber 500
     },
   },
   [ColorScheme.Cinder]: {
     light: {
       primary: {
-        light: "#e7000b",
-        main: "#c10007",
-        dark: "#9f0712",
+        light: "#dc2626", // Red 600
+        main: "#b91c1c", // Red 700
+        dark: "#991b1b", // Red 800
         contrastText: LIGHT_CONTRAST_TEXT,
       },
     },
     dark: {
       primary: {
-        light: "#ffa2a2",
-        main: "#ff6467",
-        dark: "#fb2c36",
+        light: "#f87171", // Red 400
+        main: "#ef4444", // Red 500
+        dark: "#dc2626", // Red 600
         contrastText: DARK_CONTRAST_TEXT,
       },
     },
     brand: {
-      icon: ["#ff8904", "#c10007"],
-      ring: ["#ffa1ad", "#e7000b"],
+      icon: ["#f87171", "#991b1b"], // Red 400 -> Red 800
+      ring: ["#fca5a5", "#b91c1c"], // Red 300 -> Red 700
     },
   },
   [ColorScheme.Eidolon]: {
     light: {
       primary: {
-        light: "#d08700",
-        main: "#a65f00",
-        dark: "#894b00",
+        light: "#ca8a04", // Yellow 600
+        main: "#a16207", // Yellow 700
+        dark: "#854d0e", // Yellow 800
         contrastText: LIGHT_CONTRAST_TEXT,
       },
     },
     dark: {
       primary: {
-        light: "#ffdf20",
-        main: "#fdc700",
-        dark: "#f0b100",
+        light: "#facc15", // Yellow 400
+        main: "#eab308", // Yellow 500
+        dark: "#ca8a04", // Yellow 600
         contrastText: DARK_CONTRAST_TEXT,
       },
     },
     brand: {
-      icon: ["#fdc700", "#a65f00"],
-      ring: ["#ffd230", "#d08700"],
+      icon: ["#fde047", "#854d0e"], // Yellow 300 -> Yellow 800
+      ring: ["#fef08a", "#ca8a04"], // Yellow 200 -> Yellow 600
     },
   },
   [ColorScheme.Hinterlands]: {
     light: {
       primary: {
-        light: "#009966",
-        main: "#007a55",
-        dark: "#006045",
+        light: "#059669", // Emerald 600
+        main: "#047857", // Emerald 700
+        dark: "#065f46", // Emerald 800
         contrastText: LIGHT_CONTRAST_TEXT,
       },
     },
     dark: {
       primary: {
-        light: "#5ee9b5",
-        main: "#00d492",
-        dark: "#00bc7d",
+        light: "#34d399", // Emerald 400
+        main: "#10b981", // Emerald 500
+        dark: "#059669", // Emerald 600
         contrastText: DARK_CONTRAST_TEXT,
       },
     },
     brand: {
-      icon: ["#00d492", "#006045"],
-      ring: ["#7bf1a8", "#009966"],
+      icon: ["#6ee7b7", "#065f46"], // Emerald 300 -> Emerald 800
+      ring: ["#6ee7b7", "#059669"], // Emerald 300 -> Emerald 600
     },
   },
   [ColorScheme.Myriad]: {
     light: {
       primary: {
-        light: "#155dfc",
-        main: "#1447e6",
-        dark: "#193cb8",
+        light: "#2563eb", // Blue 600
+        main: "#1d4ed8", // Blue 700
+        dark: "#1e40af", // Blue 800
         contrastText: LIGHT_CONTRAST_TEXT,
       },
     },
     dark: {
       primary: {
-        light: "#8ec5ff",
-        main: "#51a2ff",
-        dark: "#2b7fff",
+        light: "#60a5fa", // Blue 400
+        main: "#3b82f6", // Blue 500
+        dark: "#2563eb", // Blue 600
         contrastText: DARK_CONTRAST_TEXT,
       },
     },
     brand: {
-      icon: ["#00d3f2", "#1447e6"],
-      ring: ["#53eafd", "#155dfc"],
+      icon: ["#67e8f9", "#1d4ed8"], // Cyan 300 -> Blue 700
+      ring: ["#22d3ee", "#2563eb"], // Cyan 400 -> Blue 600
     },
   },
   [ColorScheme.Mystic]: {
     light: {
       primary: {
-        light: "#7f22fe",
-        main: "#7008e7",
-        dark: "#5d0ec0",
+        light: "#9333ea", // Purple 600
+        main: "#7e22ce", // Purple 700
+        dark: "#6b21a8", // Purple 800
         contrastText: LIGHT_CONTRAST_TEXT,
       },
     },
     dark: {
       primary: {
-        light: "#c4b4ff",
-        main: "#a684ff",
-        dark: "#8e51ff",
+        light: "#d8b4fe", // Purple 300
+        main: "#c084fc", // Purple 400
+        dark: "#a855f7", // Purple 500
         contrastText: DARK_CONTRAST_TEXT,
       },
     },
     brand: {
-      icon: ["#a684ff", "#5d0ec0"],
-      ring: ["#dab2ff", "#7f22fe"],
+      icon: ["#a78bfa", "#6b21a8"], // Violet 400 -> Purple 800
+      ring: ["#a78bfa", "#9333ea"], // Violet 400 -> Purple 600
     },
   },
   [ColorScheme.PrideTraditional]: {
     light: {
       primary: {
-        light: "#155dfc",
-        main: "#1447e6",
-        dark: "#193cb8",
+        light: "#2563eb", // Blue 600
+        main: "#1d4ed8", // Blue 700
+        dark: "#1e40af", // Blue 800
         contrastText: LIGHT_CONTRAST_TEXT,
       },
     },
     dark: {
       primary: {
-        light: "#8ec5ff",
-        main: "#51a2ff",
-        dark: "#2b7fff",
+        light: "#60a5fa", // Blue 400
+        main: "#3b82f6", // Blue 500
+        dark: "#2563eb", // Blue 600
         contrastText: DARK_CONTRAST_TEXT,
       },
     },
@@ -217,49 +217,45 @@ export const themeConfig: ThemeConfig = {
   [ColorScheme.Orchid]: {
     light: {
       primary: {
-        light: "#e12afb",
-        main: "#c800de",
-        dark: "#a800b7",
+        light: "#db2777", // Pink 600
+        main: "#be185d", // Pink 700
+        dark: "#9d174d", // Pink 800
         contrastText: LIGHT_CONTRAST_TEXT,
       },
     },
     dark: {
       primary: {
-        light: "#f4a8ff",
-        main: "#ed6bff",
-        dark: "#e12afb",
+        light: "#f472b6", // Pink 400
+        main: "#ec4899", // Pink 500
+        dark: "#db2777", // Pink 600
         contrastText: DARK_CONTRAST_TEXT,
       },
     },
     brand: {
-      icon: ["#ed6bff", "#c6005c"],
-      ring: ["#f4a8ff", "#c800de"],
+      icon: ["#e879f9", "#be185d"], // Fushia 400 -> Pink 700
+      ring: ["#f472b6", "#db2777"], // Pink 400 -> Pink 600
     },
   },
   [ColorScheme.Gloaming]: {
-    // The accent is the flag's purple -- the overlap stripe, and the middle stop
-    // of the mark. Kept vivid rather than flag-accurate: the flag's own #9b4f96
-    // is desaturated and read as muted next to its neighbours. Separated from
-    // Mystic by lightness and chroma, since both are in the violet family.
     light: {
       primary: {
-        light: "#ad46ff",
-        main: "#9810fa",
-        dark: "#8200db",
+        light: "#9333ea", // Purple 600
+        main: "#7e22ce", // Purple 700
+        dark: "#6b21a8", // Purple 800
         contrastText: LIGHT_CONTRAST_TEXT,
       },
     },
     dark: {
       primary: {
-        light: "#dab2ff",
-        main: "#c27aff",
-        dark: "#ad46ff",
+        light: "#d8b4fe", // Purple 300
+        main: "#c084fc", // Purple 400
+        dark: "#a855f7", // Purple 500
         contrastText: DARK_CONTRAST_TEXT,
       },
     },
     brand: {
-      icon: ["#f6339a", "#ad46ff", "#2b7fff"],
-      ring: ["#fb64b6", "#dab2ff", "#51a2ff"],
+      icon: ["#ec4899", "#9333ea", "#3b82f6"], // Pink 500 Purple 600 Blue 500
+      ring: ["#f472b6", "#a855f7", "#60a5fa"], // Pink 400 Purple 500 Blue 400
     },
   },
 };
