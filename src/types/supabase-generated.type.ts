@@ -846,6 +846,7 @@ export type Database = {
         Row: {
           binding: Json | null
           category_id: string
+          configuration: Json
           created_at: string
           gm_only: boolean
           id: string
@@ -859,6 +860,7 @@ export type Database = {
         Insert: {
           binding?: Json | null
           category_id: string
+          configuration?: Json
           created_at?: string
           gm_only?: boolean
           id?: string
@@ -872,6 +874,7 @@ export type Database = {
         Update: {
           binding?: Json | null
           category_id?: string
+          configuration?: Json
           created_at?: string
           gm_only?: boolean
           id?: string
@@ -935,6 +938,29 @@ export type Database = {
           },
         ]
       }
+      world_template_receipts: {
+        Row: {
+          created_at: string
+          world_id: string
+        }
+        Insert: {
+          created_at?: string
+          world_id: string
+        }
+        Update: {
+          created_at?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_template_receipts_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: true
+            referencedRelation: "worlds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       worlds: {
         Row: {
           created_at: string
@@ -982,12 +1008,53 @@ export type Database = {
         Args: { p_name: string; p_description?: string; p_setting_key?: string }
         Returns: string
       }
+      create_world_with_template: {
+        Args: {
+          p_name: string
+          p_description?: string
+          p_setting_key?: string
+          p_template?: Json
+        }
+        Returns: string
+      }
+      get_world_category_counts: {
+        Args: { p_category_id: string }
+        Returns: Json
+      }
+      get_world_playsets: {
+        Args: { p_world_id: string }
+        Returns: Json
+      }
       link_game_to_world: {
         Args: { p_game_id: string; p_world_id: string }
         Returns: Json
       }
+      reorder_world_categories: {
+        Args: { p_world_id: string; p_ids: string[] }
+        Returns: undefined
+      }
+      reorder_world_fields: {
+        Args: { p_category_id: string; p_ids: string[] }
+        Returns: undefined
+      }
+      seed_world_template: {
+        Args: { p_world_id: string; p_template: Json }
+        Returns: boolean
+      }
       unlink_game_from_world: {
         Args: { p_game_id: string }
+        Returns: undefined
+      }
+      w4_validate_binding: {
+        Args: { p_binding: Json }
+        Returns: undefined
+      }
+      w4_validate_category_fields: {
+        Args: { p_category_id: string }
+        Returns: undefined
+      }
+      w4_validate_configuration: {
+        Args: { p_configuration: Json; p_type: string }
         Returns: undefined
       }
       world_role: {

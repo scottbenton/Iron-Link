@@ -23,6 +23,71 @@ export type WorldCategoryUpdateDTO = TablesUpdate<"world_categories">;
 export class WorldCategoriesRepository {
   private static worldCategories = () => supabase.from("world_categories");
 
+  public static async reorderCategories(
+    worldId: string,
+    ids: string[],
+  ): Promise<void> {
+    const { error, status } = await supabase.rpc("reorder_world_categories", {
+      p_world_id: worldId,
+      p_ids: ids,
+    });
+    if (error)
+      throw getRepositoryError(
+        error,
+        ErrorVerb.Update,
+        ErrorNoun.WorldCategory,
+        false,
+        status,
+      );
+  }
+
+  public static async reorderFields(
+    categoryId: string,
+    ids: string[],
+  ): Promise<void> {
+    const { error, status } = await supabase.rpc("reorder_world_fields", {
+      p_category_id: categoryId,
+      p_ids: ids,
+    });
+    if (error)
+      throw getRepositoryError(
+        error,
+        ErrorVerb.Update,
+        ErrorNoun.WorldFieldDefinition,
+        false,
+        status,
+      );
+  }
+
+  public static async getCategoryCounts(categoryId: string): Promise<{
+    entryCount: number;
+    valueCounts: Record<string, number>;
+  }> {
+    const { data, error, status } = await supabase.rpc(
+      "get_world_category_counts",
+      {
+        p_category_id: categoryId,
+      },
+    );
+    if (error) {
+      throw getRepositoryError(
+        error,
+        ErrorVerb.Read,
+        ErrorNoun.WorldCategory,
+        false,
+        status,
+      );
+    }
+    const counts = data as {
+      entryCount: number;
+      valueCounts: Record<string, number>;
+    };
+    return {
+      entryCount: counts.entryCount,
+      valueCounts: counts.valueCounts ?? {},
+    };
+  }
+
   public static listenToWorldCategories(
     worldId: string,
     onWorldCategoryChanges: (

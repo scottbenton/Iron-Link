@@ -1,4 +1,13 @@
+import { v4 as uuid } from "uuid";
+
 import { Json } from "types/supabase-generated.type";
+
+import {
+  WorldFieldConfiguration,
+  createWorldFieldConfiguration,
+  generateWorldFieldKey,
+  normalizeWorldFieldConfiguration,
+} from "lib/worldFieldRules";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import {
@@ -29,6 +38,7 @@ export interface IWorldFieldDefinition {
   label: string;
   type: WorldFieldType;
   binding: OracleBinding | null;
+  configuration: WorldFieldConfiguration;
   // Mirrored onto every value row by a database trigger; flipping it here is
   // what moves existing values across the RLS boundary.
   gmOnly: boolean;
@@ -68,21 +78,27 @@ export class WorldFieldDefinitionsService {
     worldId: string,
     categoryId: string,
     definition: {
-      key: string;
+      id?: string;
+      key?: string;
       label: string;
       type: WorldFieldType;
-      binding?: OracleBinding;
+      binding?: OracleBinding | null;
+      configuration?: WorldFieldConfiguration;
       gmOnly?: boolean;
       sortOrder: number;
     },
   ): Promise<string> {
+    const id = definition.id ?? uuid();
     return WorldFieldDefinitionsRepository.addWorldFieldDefinition({
+      id,
       world_id: worldId,
       category_id: categoryId,
-      key: definition.key,
+      key: definition.key ?? generateWorldFieldKey(id),
       label: definition.label,
       type: definition.type,
       binding: (definition.binding ?? null) as unknown as Json,
+      configuration: (definition.configuration ??
+        createWorldFieldConfiguration()) as unknown as Json,
       gm_only: definition.gmOnly ?? false,
       sort_order: definition.sortOrder,
     });
@@ -104,6 +120,10 @@ export class WorldFieldDefinitionsService {
           definition.binding === undefined
             ? undefined
             : (definition.binding as unknown as Json),
+        configuration:
+          definition.configuration === undefined
+            ? undefined
+            : (definition.configuration as unknown as Json),
         gm_only: definition.gmOnly,
         sort_order: definition.sortOrder,
       },
@@ -147,6 +167,7 @@ export class WorldFieldDefinitionsService {
       label: definition.label,
       type,
       binding: (definition.binding as unknown as OracleBinding) ?? null,
+      configuration: normalizeWorldFieldConfiguration(definition.configuration),
       gmOnly: definition.gm_only,
       sortOrder: definition.sort_order,
     };

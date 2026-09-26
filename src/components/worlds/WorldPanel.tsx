@@ -11,6 +11,8 @@ import { WorldPermission } from "repositories/shared.types";
 
 import { DeleteWorldButton } from "./DeleteWorldButton";
 import { WorldNameField } from "./WorldNameField";
+import { WorldOracleContextProvider } from "./WorldOracleContextProvider";
+import { WorldCategoryManager } from "./categories/WorldCategoryManager";
 
 export interface WorldPanelProps {
   worldId: string;
@@ -96,6 +98,15 @@ export function WorldPanel(props: WorldPanelProps) {
           settingLabel,
         })}
       </Typography>
+      {world.id === worldId && (
+        <WorldOracleContextProvider worldId={worldId}>
+          <WorldCategoryManager
+            key={worldId}
+            worldId={worldId}
+            permission={worldPermission}
+          />
+        </WorldOracleContextProvider>
+      )}
       {isOwner && (
         <Box sx={{ mt: 4 }}>
           <DeleteWorldButton

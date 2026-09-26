@@ -1,3 +1,5 @@
+import type { LinkedGamePlayset } from "lib/effectivePlayset";
+
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import { WorldPermission } from "repositories/shared.types";
 import {
@@ -6,6 +8,8 @@ import {
   WorldMembershipRole,
   WorldsRepository,
 } from "repositories/worlds.repository";
+
+import { WorldTemplatesService } from "./worldTemplates.service";
 
 export interface IWorld {
   id: string;
@@ -64,11 +68,13 @@ export class WorldsService {
     name: string,
     description?: string,
     settingKey?: string,
+    creationGame?: LinkedGamePlayset,
   ): Promise<string> {
-    return WorldsRepository.createWorld(
+    return WorldTemplatesService.createWorld(
       name,
       description ?? null,
       settingKey ?? null,
+      creationGame,
     );
   }
 

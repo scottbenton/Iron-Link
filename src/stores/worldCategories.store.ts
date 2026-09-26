@@ -1,9 +1,11 @@
 import deepEqual from "fast-deep-equal";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
 import { IconDefinition } from "types/Icon.type";
+
+import type { WorldFieldConfiguration } from "lib/worldFieldRules";
 
 import {
   IWorldCategory,
@@ -17,6 +19,7 @@ import {
 } from "services/worldFieldDefinitions.service";
 
 interface WorldCategoriesStoreState {
+  worldId: string;
   categories: Record<string, IWorldCategory>;
   // Field definitions are the categories' shape and are always needed with
   // them, so they load per world in the same store rather than a parallel one.
@@ -49,10 +52,12 @@ interface WorldCategoriesStoreActions {
     worldId: string,
     categoryId: string,
     definition: {
-      key: string;
+      id?: string;
+      key?: string;
       label: string;
       type: WorldFieldType;
-      binding?: OracleBinding;
+      binding?: OracleBinding | null;
+      configuration?: WorldFieldConfiguration;
       gmOnly?: boolean;
       sortOrder: number;
     },
@@ -69,6 +74,7 @@ interface WorldCategoriesStoreActions {
 }
 
 const defaultWorldCategoriesState: WorldCategoriesStoreState = {
+  worldId: "",
   categories: {},
   fieldDefinitions: {},
   loading: true,
@@ -82,11 +88,21 @@ export const useWorldCategoriesStore = createWithEqualityFn<
     ...defaultWorldCategoriesState,
 
     listenToWorldCategories: (worldId) => {
+      let active = true;
+      let categoriesReady = false;
+      let definitionsReady = false;
+      let categoriesError: string | undefined;
+      let definitionsError: string | undefined;
+      set((state) => ({ ...state, ...defaultWorldCategoriesState, worldId }));
       const categoriesUnsubscribe =
         WorldCategoriesService.listenToWorldCategories(
           worldId,
           (changedCategories, removedCategoryIds, replaceState) => {
+            if (!active) return;
+            categoriesReady ||= !!replaceState;
+            categoriesError = undefined;
             set((state) => {
+              if (state.worldId !== worldId) return;
               if (replaceState) {
                 state.categories = changedCategories;
               } else {
@@ -98,13 +114,17 @@ export const useWorldCategoriesStore = createWithEqualityFn<
                   delete state.categories[categoryId];
                 });
               }
-              state.loading = false;
-              state.error = undefined;
+              state.loading =
+                !definitionsError && !(categoriesReady && definitionsReady);
+              state.error = definitionsError;
             });
           },
           (error) => {
+            if (!active) return;
+            categoriesError = error.message;
             console.error(error);
             set((state) => {
+              if (state.worldId !== worldId) return;
               state.loading = false;
               state.error = error.message;
             });
@@ -115,7 +135,14 @@ export const useWorldCategoriesStore = createWithEqualityFn<
         WorldFieldDefinitionsService.listenToWorldFieldDefinitions(
           worldId,
           (changedDefinitions, removedDefinitionIds, replaceState) => {
+            if (!active) return;
+            definitionsReady ||= !!replaceState;
+            definitionsError = undefined;
             set((state) => {
+              if (state.worldId !== worldId) return;
+              state.loading =
+                !categoriesError && !(categoriesReady && definitionsReady);
+              state.error = categoriesError;
               if (replaceState) {
                 state.fieldDefinitions = changedDefinitions;
               } else {
@@ -130,14 +157,19 @@ export const useWorldCategoriesStore = createWithEqualityFn<
             });
           },
           (error) => {
+            if (!active) return;
+            definitionsError = error.message;
             console.error(error);
             set((state) => {
+              if (state.worldId !== worldId) return;
+              state.loading = false;
               state.error = error.message;
             });
           },
         );
 
       return () => {
+        active = false;
         categoriesUnsubscribe();
         definitionsUnsubscribe();
       };
@@ -204,9 +236,14 @@ export function useListenToWorldCategories(worldId: string | undefined) {
 export function useWorldCategoryFieldDefinitions(
   categoryId: string | undefined,
 ): IWorldFieldDefinition[] {
-  return useWorldCategoriesStore((store) =>
-    Object.values(store.fieldDefinitions)
-      .filter((definition) => definition.categoryId === categoryId)
-      .sort((a, b) => a.sortOrder - b.sortOrder),
+  const definitions = useWorldCategoriesStore(
+    (store) => store.fieldDefinitions,
+  );
+  return useMemo(
+    () =>
+      Object.values(definitions)
+        .filter((definition) => definition.categoryId === categoryId)
+        .sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id)),
+    [definitions, categoryId],
   );
 }

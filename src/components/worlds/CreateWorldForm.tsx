@@ -1,4 +1,4 @@
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, TextField, Typography } from "@mui/material";
 import { FormEvent, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -6,16 +6,22 @@ import { GradientButton } from "components/GradientButton";
 import { GridLayout } from "components/Layout/GridLayout";
 
 import {
+  type LinkedGamePlayset,
+  getGameActivePackageIds,
+} from "lib/effectivePlayset";
+import {
   WorldCreationOption,
   blankWorldOptionId,
   getWorldSettingCreationOptions,
 } from "lib/worldSettings";
+import { getWorldSettingPackageIds } from "lib/worldTemplates";
 
 import { WorldsService } from "services/worlds.service";
 
 import { WorldOptionCard } from "./WorldOptionCard";
 
 export interface CreateWorldFormProps {
+  creationGame?: LinkedGamePlayset;
   onCreated: (worldId: string) => void;
   onCancel?: () => void;
 }
@@ -23,25 +29,31 @@ export interface CreateWorldFormProps {
 // Renders only its own content (no page chrome, no dialog shell) so it can be
 // dropped into the standalone create page or into an in-game dialog.
 export function CreateWorldForm(props: CreateWorldFormProps) {
-  const { onCreated, onCancel } = props;
+  const { onCreated, onCancel, creationGame } = props;
 
   const { t } = useTranslation();
 
   const options = useMemo<WorldCreationOption[]>(
     () => [
-      ...getWorldSettingCreationOptions(),
+      ...getWorldSettingCreationOptions().filter(
+        (option) =>
+          !creationGame ||
+          getWorldSettingPackageIds(option.settingKey).every((id) =>
+            getGameActivePackageIds(creationGame).includes(id),
+          ),
+      ),
       {
         id: blankWorldOptionId,
         name: t("worlds.create.blank-world", "Blank World"),
         description: t(
           "worlds.create.blank-world-description",
-          "No setting truths, nothing pre-configured. Start from an empty world.",
+          "Locations, NPCs, and Lore with neutral fields and no oracle bindings.",
         ),
         settingKey: null,
         prefillName: null,
       },
     ],
-    [t],
+    [t, creationGame],
   );
 
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
@@ -50,6 +62,7 @@ export function CreateWorldForm(props: CreateWorldFormProps) {
   // not typed anything of their own, so switching cards may overwrite it.
   const [prefilledName, setPrefilledName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string>();
 
   const handleSelectOption = useCallback(
     (option: WorldCreationOption) => {
@@ -75,21 +88,29 @@ export function CreateWorldForm(props: CreateWorldFormProps) {
         return;
       }
       setSaving(true);
+      setError(undefined);
       WorldsService.createWorld(
         trimmedName,
         undefined,
         selectedOption.settingKey ?? undefined,
+        creationGame,
       )
         .then((worldId) => {
           onCreated(worldId);
         })
-        .catch(() => {
-          // RepositoryErrors already raise their own error snackbar as they
-          // are constructed, so this only has to undo the busy state.
+        .catch((cause) => {
+          setError(
+            cause instanceof Error
+              ? cause.message
+              : t(
+                  "worlds.create.failed",
+                  "Could not create the world. Please try again.",
+                ),
+          );
           setSaving(false);
         });
     },
-    [name, selectedOption, saving, onCreated],
+    [name, selectedOption, saving, onCreated, creationGame, t],
   );
 
   return (
@@ -115,6 +136,11 @@ export function CreateWorldForm(props: CreateWorldFormProps) {
         )}
         minWidth={220}
       />
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      )}
       <TextField
         label={t("worlds.create.world-name", "World Name")}
         value={name}

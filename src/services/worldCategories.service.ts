@@ -22,6 +22,18 @@ export interface IWorldCategory {
 }
 
 export class WorldCategoriesService {
+  public static reorderCategories(worldId: string, ids: string[]) {
+    return WorldCategoriesRepository.reorderCategories(worldId, ids);
+  }
+
+  public static reorderFields(categoryId: string, ids: string[]) {
+    return WorldCategoriesRepository.reorderFields(categoryId, ids);
+  }
+
+  public static getCategoryCounts(categoryId: string) {
+    return WorldCategoriesRepository.getCategoryCounts(categoryId);
+  }
+
   public static listenToWorldCategories(
     worldId: string,
     onWorldCategoryChanges: (
