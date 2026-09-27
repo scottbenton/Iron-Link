@@ -1,20 +1,7 @@
-import {
-  Alert,
-  Box,
-  Button,
-  Dialog,
-  DialogContent,
-  Divider,
-  LinearProgress,
-  Stack,
-  Tab,
-  Tabs,
-  Typography,
-} from "@mui/material";
-import { useState } from "react";
+import { Alert, Button, LinearProgress, Paper, Stack } from "@mui/material";
+import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 import { useWorldOracleContext } from "components/worlds/worldOracleContext";
 
 import {
@@ -29,22 +16,27 @@ import {
   WorldCategoriesService,
 } from "services/worldCategories.service";
 
-import { WorldCategoryConfigurationRow } from "./WorldCategoryConfigurationRow";
-import { WorldCategoryContents } from "./WorldCategoryContents";
+import { WorldCategoryBrowser } from "./WorldCategoryBrowser";
 import { CategoryDraft, WorldCategoryEditor } from "./WorldCategoryEditor";
-import { WorldCategoryFields } from "./WorldCategoryFields";
-import { WorldCategoryIcon } from "./WorldCategoryIcon";
 import { WorldConfigurationDeleteDialog } from "./WorldConfigurationDeleteDialog";
-import { WorldConfigurationSortList } from "./WorldConfigurationSortList";
+import { WorldConfigurationView } from "./WorldConfigurationView";
 import { editorError } from "./categoryEditor.utils";
 import { useWorldConfigurationDeleteConfirmation } from "./useWorldConfigurationDeleteConfirmation";
 
 export function WorldCategoryManager({
   worldId,
+  worldName,
   permission,
+  configuring,
+  onDone,
+  generalSettings,
 }: {
   worldId: string;
+  worldName: string;
   permission: WorldPermission | null;
+  configuring: boolean;
+  onDone: () => void;
+  generalSettings: ReactNode;
 }) {
   const { t } = useTranslation();
   const {
@@ -82,13 +74,11 @@ export function WorldCategoryManager({
   const deleteCategory = useWorldCategoriesStore(
     (store) => store.deleteCategory,
   );
-  const [configuring, setConfiguring] = useState(false);
   const [selectedId, setSelectedId] = useState<string>();
   const [editor, setEditor] = useState<{ category?: IWorldCategory }>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const selected =
-    categories.find((category) => category.id === selectedId) ?? categories[0];
+  const selected = categories.find((category) => category.id === selectedId);
   const fields = Object.values(definitions)
     .filter(
       (field) => field.worldId === worldId && field.categoryId === selected?.id,
@@ -145,7 +135,12 @@ export function WorldCategoryManager({
         ),
         confirmationText: t("common.delete", "Delete"),
       });
-      if (confirmed) await deleteCategory(category.id);
+      if (confirmed) {
+        await deleteCategory(category.id);
+        setSelectedId((current) =>
+          current === category.id ? undefined : current,
+        );
+      }
     });
   const save = async (draft: CategoryDraft) => {
     if (editor?.category) await updateCategory(editor.category.id, draft);
@@ -156,62 +151,21 @@ export function WorldCategoryManager({
           ? Math.max(...categories.map((category) => category.sortOrder)) + 1
           : 0,
       });
-      setSelectedId(id);
+      if (configuring) setSelectedId(id);
     }
   };
-  const categoryTabs = (
-    <Tabs
-      value={selected?.id ?? false}
-      onChange={(_, id: string) => setSelectedId(id)}
-      variant="scrollable"
-      scrollButtons="auto"
-      aria-label={t("worlds.categories.title", "Categories")}
-    >
-      {categories.map((category) => (
-        <Tab
-          key={category.id}
-          value={category.id}
-          label={category.name}
-          icon={<WorldCategoryIcon icon={category.icon} />}
-          iconPosition="start"
-          id={`world-category-tab-${category.id}`}
-          aria-controls={`world-category-panel-${category.id}`}
-        />
-      ))}
-    </Tabs>
-  );
   return (
-    <Box
+    <Paper
       component="section"
-      sx={{ mt: 4 }}
-      aria-label={t("worlds.categories.title", "Categories")}
+      variant="outlined"
+      sx={{
+        p: 2,
+        minWidth: 0,
+        containerType: "inline-size",
+        containerName: "world-configuration",
+      }}
     >
       <Stack spacing={2}>
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          flexWrap="wrap"
-          gap={1}
-        >
-          <Typography variant="h5">
-            {t("worlds.categories.title", "Categories")}
-          </Typography>
-          <Stack direction="row" gap={1}>
-            <Button onClick={() => setConfiguring(true)} disabled={loading}>
-              {t("worlds.categories.configure", "Configure")}
-            </Button>
-            {canEdit && (
-              <Button
-                variant="outlined"
-                disabled={busy || loading || !configurationReady}
-                onClick={() => setEditor({})}
-              >
-                {t("worlds.categories.add", "Add category")}
-              </Button>
-            )}
-          </Stack>
-        </Stack>
         {(loading || (!customized && oracleContext.loading)) && (
           <LinearProgress />
         )}
@@ -228,120 +182,53 @@ export function WorldCategoryManager({
           </Alert>
         )}
         {loadError && <Alert severity="error">{loadError}</Alert>}
-        {!loading && !selected && (
-          <Typography color="text.secondary">
-            {t(
-              "worlds.categories.empty-state",
-              "This world has no categories yet.",
-            )}
-          </Typography>
+        {error && (
+          <Alert severity="error" onClose={() => setError(undefined)}>
+            {error}
+          </Alert>
         )}
-        {selected && (
-          <>
-            {categoryTabs}
-            <WorldCategoryContents
-              key={selected.id}
-              category={selected}
-              permission={permission}
-            />
-          </>
-        )}
-      </Stack>
-      <Dialog
-        open={configuring}
-        onClose={() => setConfiguring(false)}
-        fullWidth
-        maxWidth="md"
-      >
-        <DialogTitleWithCloseButton onClose={() => setConfiguring(false)}>
-          {t("worlds.categories.configure-title", "Configure world")}
-        </DialogTitleWithCloseButton>
-        <DialogContent>
-          <Stack spacing={2} sx={{ pt: 1 }}>
-            <Alert severity="info">
-              {customized
+        {configuring ? (
+          <WorldConfigurationView
+            configurationNotice={
+              customized
                 ? t(
-                    "worlds.categories.customized",
-                    "This world has a custom configuration. Changes to shared defaults will not affect it.",
+                    "worlds.categories.customized-summary",
+                    "This world has a custom configuration. Shared default updates do not affect it.",
                   )
                 : t(
-                    "worlds.categories.shared-defaults",
-                    "This world uses shared defaults and receives updates automatically. Your first saved configuration change creates an independent copy of all categories and fields.",
-                  )}
-            </Alert>
-            {error && (
-              <Alert severity="error" onClose={() => setError(undefined)}>
-                {error}
-              </Alert>
-            )}
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <Typography variant="h6">
-                {t("worlds.categories.title", "Categories")}
-              </Typography>
-              {canEdit && (
-                <Button
-                  disabled={busy || loading || !configurationReady}
-                  onClick={() => setEditor({})}
-                >
-                  {t("worlds.categories.add", "Add category")}
-                </Button>
-              )}
-            </Stack>
-            <WorldConfigurationSortList
-              items={categories.map((category) => ({
-                id: category.id,
-                label: category.name,
-              }))}
-              onReorder={(ids) => run(() => reorderCategories(ids))}
-            >
-              <Stack spacing={1}>
-                {categories.map((category) => (
-                  <WorldCategoryConfigurationRow
-                    key={category.id}
-                    category={category}
-                    selected={category.id === selected?.id}
-                    canEdit={canEdit}
-                    canDelete={canDelete}
-                    disabled={busy || !configurationReady}
-                    onSelect={() => setSelectedId(category.id)}
-                    onEdit={() => setEditor({ category })}
-                    onDelete={() => remove(category)}
-                  />
-                ))}
-              </Stack>
-            </WorldConfigurationSortList>
-            {selected && (
-              <>
-                <Divider />
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
-                >
-                  <Typography variant="h6">{selected.name}</Typography>
-                  {!canEdit && (
-                    <Button onClick={() => setEditor({ category: selected })}>
-                      {t("worlds.categories.view", "Category configuration")}
-                    </Button>
-                  )}
-                </Stack>
-                <WorldCategoryFields
-                  key={selected.id}
-                  category={selected}
-                  fields={fields}
-                  canEdit={canEdit}
-                  canDelete={canDelete}
-                  configurationReady={configurationReady}
-                />
-              </>
-            )}
-          </Stack>
-        </DialogContent>
-      </Dialog>
+                    "worlds.categories.shared-defaults-summary",
+                    "Shared defaults receive updates. Your first configuration change creates an independent copy.",
+                  )
+            }
+            categories={categories}
+            selectedId={selected?.id}
+            fields={fields}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            configurationReady={configurationReady && !loading}
+            busy={busy}
+            generalSettings={generalSettings}
+            onSelect={setSelectedId}
+            onAdd={() => setEditor({})}
+            onEdit={(category) => setEditor({ category })}
+            onDelete={remove}
+            onReorder={(ids) => run(() => reorderCategories(ids))}
+            onDone={() => {
+              setSelectedId(undefined);
+              onDone();
+            }}
+          />
+        ) : !loading ? (
+          <WorldCategoryBrowser
+            worldId={worldId}
+            worldName={worldName}
+            permission={permission}
+            categories={categories}
+            canAddCategory={canEdit && configurationReady && !busy}
+            onAddCategory={() => setEditor({})}
+          />
+        ) : null}
+      </Stack>
       <WorldConfigurationDeleteDialog
         request={deleteRequest}
         onAnswer={answerDelete}
@@ -351,13 +238,15 @@ export function WorldCategoryManager({
           key={editor.category?.id ?? "new"}
           category={editor.category}
           fields={Object.values(definitions).filter(
-            (field) => field.categoryId === editor.category?.id,
+            (field) =>
+              field.worldId === worldId &&
+              field.categoryId === editor.category?.id,
           )}
           readOnly={!canEdit}
           onSave={save}
           onClose={() => setEditor(undefined)}
         />
       )}
-    </Box>
+    </Paper>
   );
 }

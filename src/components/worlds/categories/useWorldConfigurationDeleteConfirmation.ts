@@ -11,19 +11,26 @@ export function useWorldConfigurationDeleteConfirmation() {
   const resolveRef = useRef<
     ((result: { confirmed: boolean }) => void) | undefined
   >(undefined);
-  useEffect(
-    () => () => {
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
       resolveRef.current?.({ confirmed: false });
-    },
-    [],
-  );
+      resolveRef.current = undefined;
+    };
+  }, []);
   const answer = (confirmed: boolean) => {
     resolveRef.current?.({ confirmed });
     resolveRef.current = undefined;
-    setRequest(undefined);
+    if (mounted.current) setRequest(undefined);
   };
   const confirm = (next: WorldConfigurationDeleteRequest) =>
     new Promise<{ confirmed: boolean }>((resolve) => {
+      if (!mounted.current) {
+        resolve({ confirmed: false });
+        return;
+      }
       resolveRef.current?.({ confirmed: false });
       resolveRef.current = resolve;
       setRequest(next);

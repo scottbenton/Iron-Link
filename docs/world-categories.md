@@ -71,9 +71,19 @@ Existing GM-value mirroring/RLS continues to protect stored values.
 
 ## Configuration editor
 
-The world panel shows category tabs. **Configure** opens category and field
-settings; **Add category** is available alongside it. Category and field drag
-handles support pointer and keyboard ordering. Entry lists and editing remain W5.
+The shared world panel follows the Notes folder/item structure. Categories are
+folder cards; opening one shows breadcrumb navigation, name search, and read-only
+entry rows. The open category is remembered per world across Notes-tab switches,
+without retaining entry data. Entry creation, detail, and editing remain W5.
+
+**Settings** opens a dedicated view inside the same panel. General contains the
+world name and setting, owner-only deletion, and game connection actions when
+opened by a game guide. Category settings show one category's fields at a time.
+The category sidebar becomes a compact selector in narrow containers, including
+embedded Notes panels. **Done** returns to the browser. Category/field edit forms
+remain dialogs with close-button titles. Category and field drag handles support
+pointer and keyboard ordering; narrow settings expose category reordering
+separately. **Add category** is available in both the folder root and settings.
 
 Category icons use the Game Icons collection and theme-aware color shades.
 Field settings group basic details, fallback behavior, and conditional overrides.
@@ -363,7 +373,11 @@ and type changes. Review standalone and in-game category surfaces as well.
 
 ## Follow-ups
 
-- **W5:** entry list/filter/detail, scalar and Yjs value controls, suggestion
+Intrinsic name-generator configuration and type-based icon configuration remain
+deferred to their planned tickets; neither editor is part of this layout revision.
+
+- **W5:** build on the read-only entry list/name search with entry creation and
+  detail, scalar and Yjs value controls, suggestion
   controls, effective-binding rolling, images, notes, and a simple parent Location
   selector. Validate same-world/category parents and cycles, and audit existing
   links before adding constraints. Include oracle buttons for generating the

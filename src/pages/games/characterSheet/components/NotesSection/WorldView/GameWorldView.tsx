@@ -1,8 +1,8 @@
 import LinkOffIcon from "@mui/icons-material/LinkOff";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-import { Box, Button } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
@@ -38,6 +38,20 @@ export function GameWorldView(props: GameWorldViewProps) {
   const gameWorldId = useGameWorldId();
   const closeTabsMatching = useNotesStore((store) => store.closeTabsMatching);
 
+  const activeContext = useRef({ gameId, gameWorldId, isGuide, mounted: true });
+  activeContext.current = {
+    ...activeContext.current,
+    gameId,
+    gameWorldId,
+    isGuide,
+  };
+  useEffect(() => {
+    activeContext.current.mounted = true;
+    return () => {
+      activeContext.current.mounted = false;
+    };
+  }, []);
+
   const [unlinking, setUnlinking] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
 
@@ -52,7 +66,14 @@ export function GameWorldView(props: GameWorldViewProps) {
       confirmationText: t("worlds.game.unlink-world", "Unlink World"),
     })
       .then((result) => {
-        if (!result?.confirmed) {
+        const current = activeContext.current;
+        if (
+          !result?.confirmed ||
+          !current.mounted ||
+          !current.isGuide ||
+          current.gameId !== gameId ||
+          current.gameWorldId !== worldId
+        ) {
           return;
         }
         setUnlinking(true);
@@ -88,29 +109,42 @@ export function GameWorldView(props: GameWorldViewProps) {
         worldId={worldId}
         manageSubscription={false}
         onWorldDeleted={() => closeTabsMatching("world", worldId)}
+        additionalSettings={
+          isGuide ? (
+            <Box>
+              <Typography variant="h6" component="h3">
+                {t("worlds.game.connection", "Game connection")}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t(
+                  "worlds.game.connection-help",
+                  "Choose which world this game uses, or unlink it. The world itself is kept.",
+                )}
+              </Typography>
+              <Box sx={{ mt: 2, display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <Button
+                  color="inherit"
+                  variant="outlined"
+                  startIcon={<SwapHorizIcon />}
+                  disabled={unlinking}
+                  onClick={() => setLinkDialogOpen(true)}
+                >
+                  {t("worlds.game.change-world", "Change World")}
+                </Button>
+                <Button
+                  color="inherit"
+                  variant="outlined"
+                  startIcon={<LinkOffIcon />}
+                  disabled={unlinking}
+                  onClick={handleUnlink}
+                >
+                  {t("worlds.game.unlink-world", "Unlink World")}
+                </Button>
+              </Box>
+            </Box>
+          ) : undefined
+        }
       />
-      {isGuide && (
-        <Box sx={{ mt: 2, display: "flex", gap: 1, flexWrap: "wrap" }}>
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<SwapHorizIcon />}
-            disabled={unlinking}
-            onClick={() => setLinkDialogOpen(true)}
-          >
-            {t("worlds.game.change-world", "Change World")}
-          </Button>
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<LinkOffIcon />}
-            disabled={unlinking}
-            onClick={handleUnlink}
-          >
-            {t("worlds.game.unlink-world", "Unlink World")}
-          </Button>
-        </Box>
-      )}
       {/* Mounted only while open: the dialog loads the user's worlds on mount. */}
       {linkDialogOpen && (
         <LinkWorldDialog open onClose={() => setLinkDialogOpen(false)} />

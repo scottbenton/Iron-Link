@@ -1,10 +1,12 @@
+import SearchIcon from "@mui/icons-material/Search";
 import {
   Alert,
   Box,
   CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
+  InputAdornment,
+  Paper,
+  Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -20,6 +22,8 @@ import {
   WorldEntriesService,
 } from "services/worldEntries.service";
 
+import { WorldCategoryEntryItem } from "./WorldCategoryEntryItem";
+
 export function WorldCategoryContents({
   category,
   permission,
@@ -29,6 +33,7 @@ export function WorldCategoryContents({
 }) {
   const { t } = useTranslation();
   const uid = useUID();
+  const [search, setSearch] = useState("");
   const scope = `${category.worldId}:${permission}:${uid}`;
   const [snapshot, setSnapshot] = useState<{
     scope: string;
@@ -68,13 +73,32 @@ export function WorldCategoryContents({
   const visible = Object.values(entries)
     .filter((entry) => entry.categoryId === category.id)
     .sort((a, b) => a.name.localeCompare(b.name));
+  const filtered = visible.filter((entry) =>
+    entry.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()),
+  );
   return (
-    <Box
-      role="tabpanel"
-      id={`world-category-panel-${category.id}`}
-      aria-labelledby={`world-category-tab-${category.id}`}
-      sx={{ py: 4 }}
+    <Stack
+      component="section"
+      spacing={2}
+      aria-label={t("worlds.categories.entries", "{{category}} entries", {
+        category: category.name,
+      })}
     >
+      <TextField
+        label={t("worlds.categories.search", "Search entries")}
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        fullWidth
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          },
+        }}
+      />
       {error ? (
         <Alert severity="error">
           {t(
@@ -83,23 +107,36 @@ export function WorldCategoryContents({
           )}
         </Alert>
       ) : loading ? (
-        <CircularProgress size={24} />
-      ) : visible.length === 0 ? (
-        <Typography color="text.secondary" textAlign="center">
-          {t(
-            "worlds.categories.no-entries",
-            "No entries in this category yet.",
-          )}
-        </Typography>
+        <Box sx={{ py: 3 }}>
+          <CircularProgress
+            size={24}
+            aria-label={t(
+              "worlds.categories.loading-entries",
+              "Loading entries",
+            )}
+          />
+        </Box>
+      ) : filtered.length === 0 ? (
+        <Paper variant="outlined" sx={{ p: 3 }}>
+          <Typography color="text.secondary">
+            {visible.length === 0
+              ? t(
+                  "worlds.categories.no-entries",
+                  "No entries in this category yet.",
+                )
+              : t(
+                  "worlds.categories.no-search-results",
+                  "No entries match your search.",
+                )}
+          </Typography>
+        </Paper>
       ) : (
-        <List>
-          {visible.map((entry) => (
-            <ListItem key={entry.id}>
-              <ListItemText primary={entry.name} />
-            </ListItem>
+        <Box component="ul" sx={{ listStyle: "none", p: 0, m: 0 }}>
+          {filtered.map((entry) => (
+            <WorldCategoryEntryItem key={entry.id} entry={entry} />
           ))}
-        </List>
+        </Box>
       )}
-    </Box>
+    </Stack>
   );
 }

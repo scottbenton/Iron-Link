@@ -1,8 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { Button, IconButton, Paper, Stack, Tooltip } from "@mui/material";
 
 import { IWorldCategory } from "services/worldCategories.service";
@@ -13,20 +11,14 @@ export function WorldCategoryConfigurationRow({
   category,
   selected,
   canEdit,
-  canDelete,
   disabled,
   onSelect,
-  onEdit,
-  onDelete,
 }: {
   category: IWorldCategory;
   selected: boolean;
   canEdit: boolean;
-  canDelete: boolean;
   disabled: boolean;
   onSelect: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
 }) {
   const {
     setNodeRef,
@@ -72,37 +64,16 @@ export function WorldCategoryConfigurationRow({
           onClick={onSelect}
           aria-pressed={selected}
           startIcon={<WorldCategoryIcon icon={category.icon} />}
-          sx={{ flex: 1, justifyContent: "flex-start" }}
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            overflowWrap: "anywhere",
+            textAlign: "left",
+            justifyContent: "flex-start",
+          }}
         >
           {category.name}
         </Button>
-        {canEdit && (
-          <Tooltip title={`Edit ${category.name}`}>
-            <span>
-              <IconButton
-                aria-label={`Edit ${category.name}`}
-                disabled={disabled}
-                onClick={onEdit}
-              >
-                <EditOutlinedIcon />
-              </IconButton>
-            </span>
-          </Tooltip>
-        )}
-        {canDelete && (
-          <Tooltip title={`Delete ${category.name}`}>
-            <span>
-              <IconButton
-                aria-label={`Delete ${category.name}`}
-                disabled={disabled}
-                color="error"
-                onClick={onDelete}
-              >
-                <DeleteOutlineIcon />
-              </IconButton>
-            </span>
-          </Tooltip>
-        )}
       </Stack>
     </Paper>
   );
