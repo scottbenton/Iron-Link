@@ -10,6 +10,7 @@ import {
 } from "lib/worldFieldRules";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
+import type { DefaultWorldFieldBinding } from "repositories/worldConfiguration.repository";
 import {
   OracleBindingDTO,
   WorldFieldDefinitionDTO,
@@ -87,33 +88,39 @@ export class WorldFieldDefinitionsService {
       gmOnly?: boolean;
       sortOrder: number;
     },
+    defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<string> {
     const id = definition.id ?? uuid();
-    return WorldFieldDefinitionsRepository.addWorldFieldDefinition({
-      id,
-      world_id: worldId,
-      category_id: categoryId,
-      key: definition.key ?? generateWorldFieldKey(id),
-      label: definition.label,
-      type: definition.type,
-      binding: (definition.binding ?? null) as unknown as Json,
-      configuration: (definition.configuration ??
-        createWorldFieldConfiguration()) as unknown as Json,
-      gm_only: definition.gmOnly ?? false,
-      sort_order: definition.sortOrder,
-    });
+    return WorldFieldDefinitionsRepository.addWorldFieldDefinition(
+      {
+        id,
+        world_id: worldId,
+        category_id: categoryId,
+        key: definition.key ?? generateWorldFieldKey(id),
+        label: definition.label,
+        type: definition.type,
+        binding: (definition.binding ?? null) as unknown as Json,
+        configuration: (definition.configuration ??
+          createWorldFieldConfiguration()) as unknown as Json,
+        gm_only: definition.gmOnly ?? false,
+        sort_order: definition.sortOrder,
+      },
+      defaultBindings,
+    );
   }
 
   public static updateWorldFieldDefinition(
+    worldId: string,
     definitionId: string,
     definition: Partial<
       Omit<IWorldFieldDefinition, "id" | "worldId" | "categoryId">
     >,
+    defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<void> {
     return WorldFieldDefinitionsRepository.updateWorldFieldDefinition(
+      worldId,
       definitionId,
       {
-        key: definition.key,
         label: definition.label,
         type: definition.type,
         binding:
@@ -127,14 +134,19 @@ export class WorldFieldDefinitionsService {
         gm_only: definition.gmOnly,
         sort_order: definition.sortOrder,
       },
+      defaultBindings,
     );
   }
 
   public static deleteWorldFieldDefinition(
+    worldId: string,
     definitionId: string,
+    defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<void> {
     return WorldFieldDefinitionsRepository.deleteWorldFieldDefinition(
+      worldId,
       definitionId,
+      defaultBindings,
     );
   }
 

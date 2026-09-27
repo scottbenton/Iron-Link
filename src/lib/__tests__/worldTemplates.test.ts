@@ -15,6 +15,9 @@ import {
   getWorldTemplateBindings,
 } from "../worldTemplates";
 
+const worldId = "09c0d230-3f90-4acb-a407-c8b99e074a2c";
+const otherWorldId = "3325bfc5-2c3d-41e2-8068-70b61d4bccdd";
+
 const settings = [
   null,
   "world:classic/ironlands",
@@ -56,9 +59,9 @@ function entry(
 
 describe("world templates", () => {
   it.each(settings)(
-    "seeds editable categories with fresh identities for %s",
+    "builds stable world-specific identities for %s",
     (setting) => {
-      const manifest = buildWorldTemplate(setting);
+      const manifest = buildWorldTemplate(setting, worldId);
       expect(manifest.version).toBe(1);
       expect(manifest.categories.map((category) => category.name)).toEqual([
         "Locations",
@@ -91,12 +94,14 @@ describe("world templates", () => {
       }
       expect(ids.every(isUuid)).toBe(true);
       expect(new Set(ids).size).toBe(ids.length);
-      const nextIds = buildWorldTemplate(setting).categories.flatMap(
-        (category) => [
-          category.id,
-          ...category.fields.map((field) => field.id),
-        ],
-      );
+      expect(buildWorldTemplate(setting, worldId)).toEqual(manifest);
+      const nextIds = buildWorldTemplate(
+        setting,
+        otherWorldId,
+      ).categories.flatMap((category) => [
+        category.id,
+        ...category.fields.map((field) => field.id),
+      ]);
       expect(nextIds.some((id) => ids.includes(id))).toBe(false);
       expect(manifest.categories[0].fields[0].type).toBe("text");
     },
@@ -116,7 +121,7 @@ describe("world templates", () => {
     }
     for (const config of getOrderedPackageConfigs()) visit(await config.load());
     const bindings = settings.flatMap((setting) =>
-      getWorldTemplateBindings(buildWorldTemplate(setting)),
+      getWorldTemplateBindings(buildWorldTemplate(setting, worldId)),
     );
     expect(bindings.length).toBeGreaterThan(100);
     for (const binding of bindings) {
@@ -130,7 +135,7 @@ describe("world templates", () => {
 
   it("pins the effective merged oracle as the concrete initial selection", () => {
     const target = "oracle_rollable:starsmith/character/goal";
-    const manifest = buildWorldTemplate("world:starforged/forge", {
+    const manifest = buildWorldTemplate("world:starforged/forge", worldId, {
       "oracle_rollable:starforged/character/goal": target,
     });
     expect(
@@ -144,29 +149,33 @@ describe("world templates", () => {
   });
 
   it("has no Blank bindings, Delve defaults, Elegy type suggestions, or misleading Vault label", () => {
-    expect(getWorldTemplateBindings(buildWorldTemplate(null))).toEqual([]);
+    expect(getWorldTemplateBindings(buildWorldTemplate(null, worldId))).toEqual(
+      [],
+    );
     expect(getWorldSettingPackageIds("sundered_isles")).toEqual([
       "starforged",
       "sundered_isles",
     ]);
     expect(getWorldSettingPackageIds(null)).toEqual([]);
     expect(
-      buildWorldTemplate(null).categories.map(
+      buildWorldTemplate(null, worldId).categories.map(
         (category) => category.supports_bonds,
       ),
     ).toEqual([true, true, false]);
     expect(
       getWorldTemplateBindings(
-        buildWorldTemplate("world:classic/ironlands"),
+        buildWorldTemplate("world:classic/ironlands", worldId),
       ).some((binding) => binding.packageId === "delve"),
     ).toBe(false);
     expect(
-      domainField(buildWorldTemplate("world:elegy/santa_maria"), "locationType")
-        .configuration.suggestions,
+      domainField(
+        buildWorldTemplate("world:elegy/santa_maria", worldId),
+        "locationType",
+      ).configuration.suggestions,
     ).toEqual([]);
     expect(
       domainField(
-        buildWorldTemplate("world:starforged/forge"),
+        buildWorldTemplate("world:starforged/forge", worldId),
         "vaultOuterFirstLook",
       ).label,
     ).toBe("Outer First Look");
@@ -176,7 +185,7 @@ describe("world templates", () => {
   });
 
   it("resolves Forge class and nearest Sector region; Void and missing inputs stay editable", () => {
-    const template = buildWorldTemplate("world:starforged/forge");
+    const template = buildWorldTemplate("world:starforged/forge", worldId);
     const outer = entry(template, "outer", {
       locationType: "Sector",
       region: "Terminus",
@@ -218,7 +227,10 @@ describe("world templates", () => {
   });
 
   it("takes regional SI bindings from the nearest Area and has an unbound visible fallback", () => {
-    const template = buildWorldTemplate("world:sundered_isles/sundered_isles");
+    const template = buildWorldTemplate(
+      "world:sundered_isles/sundered_isles",
+      worldId,
+    );
     const outer = entry(template, "outer", {
       locationType: "Area",
       region: "Myriads",

@@ -12,6 +12,7 @@ const actions = vi.hoisted(() => ({
   updateFieldDefinition: vi.fn(),
   deleteFieldDefinition: vi.fn(),
   confirm: vi.fn(),
+  reorderFields: vi.fn(),
 }));
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("react-i18next", async (importOriginal) => ({
@@ -36,6 +37,7 @@ describe("WorldCategoryFields", () => {
   it("lets guides add and edit but hides delete; readers get configuration only", () => {
     const view = render(
       <WorldCategoryFields
+        configurationReady
         category={category}
         fields={[field()]}
         canEdit
@@ -49,6 +51,7 @@ describe("WorldCategoryFields", () => {
     ).not.toBeInTheDocument();
     view.rerender(
       <WorldCategoryFields
+        configurationReady
         category={category}
         fields={[field()]}
         canEdit={false}
@@ -76,6 +79,7 @@ describe("WorldCategoryFields", () => {
     actions.confirm.mockResolvedValue({ confirmed: false });
     render(
       <WorldCategoryFields
+        configurationReady
         category={category}
         fields={[definition]}
         canEdit
@@ -116,6 +120,7 @@ describe("WorldCategoryFields", () => {
     ];
     render(
       <WorldCategoryFields
+        configurationReady
         category={category}
         fields={[source, dependent]}
         canEdit
@@ -136,11 +141,10 @@ describe("WorldCategoryFields", () => {
     const user = userEvent.setup();
     const first = field({ label: "Type" });
     const second = field({ id: "second", label: "Region", sortOrder: 1 });
-    const reorder = vi
-      .spyOn(WorldCategoriesService, "reorderFields")
-      .mockResolvedValue(undefined);
+    const reorder = actions.reorderFields.mockResolvedValue(undefined);
     render(
       <WorldCategoryFields
+        configurationReady
         category={category}
         fields={[first, second]}
         canEdit
@@ -159,6 +163,7 @@ describe("WorldCategoryFields", () => {
     actions.createFieldDefinition.mockResolvedValue("created");
     render(
       <WorldCategoryFields
+        configurationReady
         category={category}
         fields={[field()]}
         canEdit

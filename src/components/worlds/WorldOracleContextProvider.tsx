@@ -7,6 +7,10 @@ import {
   type WorldOracleCatalog,
   loadWorldOracleCatalog,
 } from "lib/worldOracleCatalog";
+import {
+  buildWorldTemplate,
+  getWorldTemplateBindings,
+} from "lib/worldTemplates";
 
 import { WorldTemplatesRepository } from "repositories/worldTemplates.repository";
 
@@ -25,6 +29,15 @@ export function WorldOracleContextProvider({
   const definitions = useWorldCategoriesStore(
     (store) => store.fieldDefinitions,
   );
+  const applyDefaultReplacementMap = useWorldCategoriesStore(
+    (store) => store.applyDefaultReplacementMap,
+  );
+  const invalidateDefaultBindings = useWorldCategoriesStore(
+    (store) => store.invalidateDefaultBindings,
+  );
+  const configurationWorldId = useWorldCategoriesStore(
+    (store) => store.worldId,
+  );
   const [allPackages, setAllPackages] = useState(false);
   const [revision, setRevision] = useState(0);
   const [result, setResult] = useState<{
@@ -36,14 +49,24 @@ export function WorldOracleContextProvider({
   }>({ worldId, catalog: null, loading: true });
   const bindings = useMemo(
     () =>
-      Object.values(definitions)
-        .filter((definition) => definition.worldId === worldId)
-        .flatMap((definition) => [
-          definition.binding,
-          ...definition.configuration.rules.map((rule) => rule.binding),
-        ])
-        .filter((binding): binding is OracleBinding => !!binding),
-    [definitions, worldId],
+      world?.id === worldId && !world.configurationCustomized
+        ? getWorldTemplateBindings(
+            buildWorldTemplate(world.settingKey, worldId),
+          )
+        : Object.values(definitions)
+            .filter((definition) => definition.worldId === worldId)
+            .flatMap((definition) => [
+              definition.binding,
+              ...definition.configuration.rules.map((rule) => rule.binding),
+            ])
+            .filter((binding): binding is OracleBinding => !!binding),
+    [
+      definitions,
+      worldId,
+      world?.id,
+      world?.settingKey,
+      world?.configurationCustomized,
+    ],
   );
   // Only package changes require reloading the catalog; label edits do not.
   const bindingKey = JSON.stringify(
@@ -129,6 +152,27 @@ export function WorldOracleContextProvider({
     allPackages,
     revision,
     requestKey,
+  ]);
+
+  useEffect(() => {
+    if (
+      result.requestKey === requestKey &&
+      !result.loading &&
+      result.catalog &&
+      !result.error &&
+      configurationWorldId === worldId
+    ) {
+      applyDefaultReplacementMap(worldId, result.catalog.replacementMap);
+    } else {
+      invalidateDefaultBindings(worldId);
+    }
+  }, [
+    result,
+    requestKey,
+    worldId,
+    configurationWorldId,
+    applyDefaultReplacementMap,
+    invalidateDefaultBindings,
   ]);
 
   return (

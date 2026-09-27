@@ -15,6 +15,10 @@ import {
   RepositoryError,
   getRepositoryError,
 } from "./errors/RepositoryErrors";
+import {
+  type DefaultWorldFieldBinding,
+  mutateWorldConfiguration,
+} from "./worldConfiguration.repository";
 
 // JSON shape stored in world_field_definitions.binding.
 // Bindings are pinned and concrete: the picker browses the world's effective
@@ -113,87 +117,41 @@ export class WorldFieldDefinitionsRepository {
     };
   }
 
-  public static addWorldFieldDefinition(
-    definition: WorldFieldDefinitionInsertDTO,
+  public static async addWorldFieldDefinition(
+    definition: WorldFieldDefinitionInsertDTO & { id: string },
+    defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<string> {
-    return new Promise((resolve, reject) => {
-      this.worldFieldDefinitions()
-        .insert(definition)
-        .select()
-        .single()
-        .then(({ data, error, status }) => {
-          if (error) {
-            console.error(error);
-            reject(
-              getRepositoryError(
-                error,
-                ErrorVerb.Create,
-                ErrorNoun.WorldFieldDefinition,
-                false,
-                status,
-              ),
-            );
-          } else {
-            resolve(data.id);
-          }
-        });
-    });
+    const { world_id: worldId, category_id: categoryId, ...field } = definition;
+    await mutateWorldConfiguration(
+      worldId,
+      { type: "create_field", category_id: categoryId, field },
+      defaultBindings,
+    );
+    return definition.id;
   }
 
-  // Flipping gm_only here is all that is needed to move existing values across
-  // the RLS boundary: a trigger propagates the new value to every value row
-  // for this definition in the same statement.
   public static updateWorldFieldDefinition(
+    worldId: string,
     definitionId: string,
     definition: WorldFieldDefinitionUpdateDTO,
+    defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.worldFieldDefinitions()
-        .update(definition)
-        .eq("id", definitionId)
-        .then(({ error, status }) => {
-          if (error) {
-            console.error(error);
-            reject(
-              getRepositoryError(
-                error,
-                ErrorVerb.Update,
-                ErrorNoun.WorldFieldDefinition,
-                false,
-                status,
-              ),
-            );
-          } else {
-            resolve();
-          }
-        });
-    });
+    return mutateWorldConfiguration(
+      worldId,
+      { type: "update_field", id: definitionId, changes: definition },
+      defaultBindings,
+    );
   }
 
-  // Cascades to every value row for this definition.
   public static deleteWorldFieldDefinition(
+    worldId: string,
     definitionId: string,
+    defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.worldFieldDefinitions()
-        .delete()
-        .eq("id", definitionId)
-        .then(({ error, status }) => {
-          if (error) {
-            console.error(error);
-            reject(
-              getRepositoryError(
-                error,
-                ErrorVerb.Delete,
-                ErrorNoun.WorldFieldDefinition,
-                false,
-                status,
-              ),
-            );
-          } else {
-            resolve();
-          }
-        });
-    });
+    return mutateWorldConfiguration(
+      worldId,
+      { type: "delete_field", id: definitionId },
+      defaultBindings,
+    );
   }
 }

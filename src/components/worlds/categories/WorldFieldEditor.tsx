@@ -12,7 +12,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import deepEqual from "fast-deep-equal";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -64,6 +65,9 @@ export function WorldFieldEditor({
     binding: field?.binding ?? null,
     configuration: field?.configuration ?? createWorldFieldConfiguration(),
   });
+  const initialDraft = useRef(draft).current;
+  const hasChanges =
+    !field || !deepEqual({ ...draft, label: draft.label.trim() }, initialDraft);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
   const disabled = readOnly || saving;
@@ -90,6 +94,7 @@ export function WorldFieldEditor({
     configuration({ rules: next });
   };
   const save = async (createNew = false) => {
+    if (!createNew && !hasChanges) return;
     setSaving(true);
     setError(undefined);
     try {
@@ -303,6 +308,7 @@ export function WorldFieldEditor({
               variant="contained"
               disabled={
                 saving ||
+                !hasChanges ||
                 !draft.label.trim() ||
                 invalidCondition ||
                 invalidRuleLabel ||

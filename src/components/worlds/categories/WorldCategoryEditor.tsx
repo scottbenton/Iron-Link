@@ -11,7 +11,8 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { useState } from "react";
+import deepEqual from "fast-deep-equal";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { IconColors, IconDefinition } from "types/Icon.type";
@@ -54,9 +55,14 @@ export function WorldCategoryEditor({
     supportsBonds: category?.supportsBonds ?? false,
     subtitleFieldDefinitionId: category?.subtitleFieldDefinitionId ?? null,
   });
+  const initialDraft = useRef(draft).current;
+  const hasChanges =
+    !category ||
+    !deepEqual({ ...draft, name: draft.name.trim() }, initialDraft);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
   const save = async () => {
+    if (!hasChanges) return;
     setSaving(true);
     setError(undefined);
     try {
@@ -218,7 +224,7 @@ export function WorldCategoryEditor({
         </Button>
         {!readOnly && (
           <Button
-            disabled={saving || !draft.name.trim()}
+            disabled={saving || !draft.name.trim() || !hasChanges}
             onClick={save}
             variant="contained"
           >

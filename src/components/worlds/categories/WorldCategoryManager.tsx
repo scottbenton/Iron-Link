@@ -12,7 +12,7 @@ import { useConfirm } from "material-ui-confirm";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useWorldTemplateBackfill } from "hooks/worlds/useWorldTemplateBackfill";
+import { useWorldOracleContext } from "components/worlds/worldOracleContext";
 
 import {
   useListenToWorldCategories,
@@ -40,8 +40,17 @@ export function WorldCategoryManager({
 }) {
   const { t } = useTranslation();
   const confirm = useConfirm();
+  const oracleContext = useWorldOracleContext(worldId);
   useListenToWorldCategories(worldId);
-  const backfill = useWorldTemplateBackfill(worldId);
+  const customized = useWorldCategoriesStore(
+    (store) => store.configurationCustomized,
+  );
+  const defaultBindingsReady = useWorldCategoriesStore(
+    (store) => store.defaultBindingsReady,
+  );
+  const reorderCategories = useWorldCategoriesStore(
+    (store) => store.reorderCategories,
+  );
   const categories = useWorldCategoriesStore((store) =>
     Object.values(store.categories)
       .filter((category) => category.worldId === worldId)
@@ -73,6 +82,9 @@ export function WorldCategoryManager({
     )
     .sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id));
   const canEdit = permission !== null && isGuideEquivalent(permission);
+  const configurationReady =
+    customized ||
+    (defaultBindingsReady && !oracleContext.loading && !oracleContext.error);
   const canDelete =
     permission === WorldPermission.Owner ||
     permission === WorldPermission.Editor;
@@ -98,6 +110,7 @@ export function WorldCategoryManager({
   const remove = (category: IWorldCategory) =>
     run(async () => {
       const { entryCount } = await WorldCategoriesService.getCategoryCounts(
+        worldId,
         category.id,
       );
       if (entryCount > 0) {
@@ -128,10 +141,7 @@ export function WorldCategoryManager({
       );
       const next = [...categories];
       [next[index], next[index + offset]] = [next[index + offset], next[index]];
-      await WorldCategoriesService.reorderCategories(
-        worldId,
-        next.map((category) => category.id),
-      );
+      await reorderCategories(next.map((category) => category.id));
     });
   const save = async (draft: CategoryDraft) => {
     if (editor?.category) await updateCategory(editor.category.id, draft);
@@ -163,27 +173,40 @@ export function WorldCategoryManager({
           {canEdit && (
             <Button
               variant="outlined"
-              disabled={busy || loading || backfill.loading}
+              disabled={busy || loading || !configurationReady}
               onClick={() => setEditor({})}
             >
               {t("worlds.categories.add", "Add category")}
             </Button>
           )}
         </Stack>
-        {(loading || backfill.loading) && <LinearProgress />}
-        {loadError && <Alert severity="error">{loadError}</Alert>}
-        {backfill.error && (
+        {(loading || (!customized && oracleContext.loading)) && (
+          <LinearProgress />
+        )}
+        {!customized && oracleContext.error && (
           <Alert
             severity="error"
             action={
-              canEdit && (
-                <Button color="inherit" onClick={backfill.retry}>
-                  {t("common.retry", "Retry")}
-                </Button>
-              )
+              <Button color="inherit" onClick={oracleContext.retry}>
+                {t("common.retry", "Retry")}
+              </Button>
             }
           >
-            {backfill.error}
+            {oracleContext.error}
+          </Alert>
+        )}
+        {loadError && <Alert severity="error">{loadError}</Alert>}
+        {!loading && (
+          <Alert severity="info">
+            {customized
+              ? t(
+                  "worlds.categories.customized",
+                  "This world has a custom configuration. Changes to shared defaults will not affect it.",
+                )
+              : t(
+                  "worlds.categories.shared-defaults",
+                  "This world uses shared defaults and receives updates automatically. Your first saved configuration change creates an independent copy of all categories and fields.",
+                )}
           </Alert>
         )}
         {error && (
@@ -191,7 +214,7 @@ export function WorldCategoryManager({
             {error}
           </Alert>
         )}
-        {!loading && !backfill.loading && !selected && (
+        {!loading && !selected && (
           <Typography color="text.secondary">
             {t(
               "worlds.categories.empty-state",
@@ -218,13 +241,21 @@ export function WorldCategoryManager({
               {canEdit && (
                 <>
                   <Button
-                    disabled={busy || selected.id === categories[0]?.id}
+                    disabled={
+                      busy ||
+                      !configurationReady ||
+                      selected.id === categories[0]?.id
+                    }
                     onClick={() => move(-1)}
                   >
                     {t("worlds.categories.move-up", "Move category up")}
                   </Button>
                   <Button
-                    disabled={busy || selected.id === categories.at(-1)?.id}
+                    disabled={
+                      busy ||
+                      !configurationReady ||
+                      selected.id === categories.at(-1)?.id
+                    }
                     onClick={() => move(1)}
                   >
                     {t("worlds.categories.move-down", "Move category down")}
@@ -232,7 +263,7 @@ export function WorldCategoryManager({
                 </>
               )}
               <Button
-                disabled={busy}
+                disabled={busy || (canEdit && !configurationReady)}
                 onClick={() => setEditor({ category: selected })}
               >
                 {canEdit
@@ -242,7 +273,7 @@ export function WorldCategoryManager({
               {canDelete && (
                 <Button
                   color="error"
-                  disabled={busy}
+                  disabled={busy || !configurationReady}
                   onClick={() => remove(selected)}
                 >
                   {t("worlds.categories.delete", "Delete category")}
@@ -255,6 +286,7 @@ export function WorldCategoryManager({
               fields={fields}
               canEdit={canEdit}
               canDelete={canDelete}
+              configurationReady={configurationReady}
             />
           </>
         )}

@@ -6,6 +6,7 @@ import {
   WorldCategoriesRepository,
   WorldCategoryDTO,
 } from "repositories/worldCategories.repository";
+import type { DefaultWorldFieldBinding } from "repositories/worldConfiguration.repository";
 
 export interface IWorldCategory {
   id: string;
@@ -22,16 +23,34 @@ export interface IWorldCategory {
 }
 
 export class WorldCategoriesService {
-  public static reorderCategories(worldId: string, ids: string[]) {
-    return WorldCategoriesRepository.reorderCategories(worldId, ids);
+  public static reorderCategories(
+    worldId: string,
+    ids: string[],
+    defaultBindings?: DefaultWorldFieldBinding[],
+  ) {
+    return WorldCategoriesRepository.reorderCategories(
+      worldId,
+      ids,
+      defaultBindings,
+    );
   }
 
-  public static reorderFields(categoryId: string, ids: string[]) {
-    return WorldCategoriesRepository.reorderFields(categoryId, ids);
+  public static reorderFields(
+    worldId: string,
+    categoryId: string,
+    ids: string[],
+    defaultBindings?: DefaultWorldFieldBinding[],
+  ) {
+    return WorldCategoriesRepository.reorderFields(
+      worldId,
+      categoryId,
+      ids,
+      defaultBindings,
+    );
   }
 
-  public static getCategoryCounts(categoryId: string) {
-    return WorldCategoriesRepository.getCategoryCounts(categoryId);
+  public static getCategoryCounts(worldId: string, categoryId: string) {
+    return WorldCategoriesRepository.getCategoryCounts(worldId, categoryId);
   }
 
   public static listenToWorldCategories(
@@ -70,38 +89,57 @@ export class WorldCategoriesService {
       supportsMap?: boolean;
       supportsBonds?: boolean;
     },
+    defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<string> {
-    return WorldCategoriesRepository.addWorldCategory({
-      world_id: worldId,
-      name: category.name,
-      icon: (category.icon ?? null) as unknown as Json,
-      sort_order: category.sortOrder,
-      supports_hierarchy: category.supportsHierarchy ?? false,
-      supports_map: category.supportsMap ?? false,
-      supports_bonds: category.supportsBonds ?? false,
-    });
+    return WorldCategoriesRepository.addWorldCategory(
+      {
+        world_id: worldId,
+        name: category.name,
+        icon: (category.icon ?? null) as unknown as Json,
+        sort_order: category.sortOrder,
+        supports_hierarchy: category.supportsHierarchy ?? false,
+        supports_map: category.supportsMap ?? false,
+        supports_bonds: category.supportsBonds ?? false,
+      },
+      defaultBindings,
+    );
   }
 
   public static updateWorldCategory(
+    worldId: string,
     categoryId: string,
     category: Partial<Omit<IWorldCategory, "id" | "worldId">>,
+    defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<void> {
-    return WorldCategoriesRepository.updateWorldCategory(categoryId, {
-      name: category.name,
-      icon:
-        category.icon === undefined
-          ? undefined
-          : (category.icon as unknown as Json),
-      sort_order: category.sortOrder,
-      supports_hierarchy: category.supportsHierarchy,
-      supports_map: category.supportsMap,
-      supports_bonds: category.supportsBonds,
-      subtitle_field_definition_id: category.subtitleFieldDefinitionId,
-    });
+    return WorldCategoriesRepository.updateWorldCategory(
+      worldId,
+      categoryId,
+      {
+        name: category.name,
+        icon:
+          category.icon === undefined
+            ? undefined
+            : (category.icon as unknown as Json),
+        sort_order: category.sortOrder,
+        supports_hierarchy: category.supportsHierarchy,
+        supports_map: category.supportsMap,
+        supports_bonds: category.supportsBonds,
+        subtitle_field_definition_id: category.subtitleFieldDefinitionId,
+      },
+      defaultBindings,
+    );
   }
 
-  public static deleteWorldCategory(categoryId: string): Promise<void> {
-    return WorldCategoriesRepository.deleteWorldCategory(categoryId);
+  public static deleteWorldCategory(
+    worldId: string,
+    categoryId: string,
+    defaultBindings?: DefaultWorldFieldBinding[],
+  ): Promise<void> {
+    return WorldCategoriesRepository.deleteWorldCategory(
+      worldId,
+      categoryId,
+      defaultBindings,
+    );
   }
 
   private static convertWorldCategoryDTOToWorldCategory(

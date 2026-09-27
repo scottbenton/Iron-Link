@@ -1,4 +1,4 @@
-import { v4 as uuid } from "uuid";
+import { v5 as uuid } from "uuid";
 
 import { IconColors } from "types/Icon.type";
 
@@ -38,9 +38,10 @@ export function getWorldSettingPackageIds(settingKey: string | null): string[] {
     : [packageId];
 }
 
-/** A seed is copied once; later calls never mutate prior manifests or live rows. */
+/** Defaults are rebuilt from code with identities stable for the lifetime of a world. */
 export function buildWorldTemplate(
   settingKey: string | null,
+  worldId: string,
   replacementMap: Record<string, string> = {},
 ): WorldTemplateManifest {
   let locations: TemplateField[] = [
@@ -83,30 +84,36 @@ export function buildWorldTemplate(
     version: 1,
     categories: [
       {
+        key: "locations",
         name: "Locations",
         icon: { key: "GiCompass", color: IconColors.Green },
         fields: locations,
       },
       {
+        key: "npcs",
         name: "NPCs",
         icon: { key: "GiPerson", color: IconColors.Blue },
         fields: npcs,
       },
       {
+        key: "lore",
         name: "Lore",
         icon: { key: "GiBookCover", color: IconColors.Purple },
         fields: [tags(), notes()],
       },
     ].map((category, categoryIndex) => {
       const ids = Object.fromEntries(
-        category.fields.map((definition) => [definition.key, uuid()]),
+        category.fields.map((definition) => [
+          definition.key,
+          uuid(`field:${category.key}:${definition.key}`, worldId),
+        ]),
       );
       const resolveReference = (key: string) => {
         if (!ids[key]) throw new Error(`Unknown template field: ${key}`);
         return ids[key];
       };
       return {
-        id: uuid(),
+        id: uuid(`category:${category.key}`, worldId),
         name: category.name,
         icon: category.icon,
         sort_order: categoryIndex,

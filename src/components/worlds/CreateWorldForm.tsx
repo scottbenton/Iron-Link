@@ -93,7 +93,6 @@ export function CreateWorldForm(props: CreateWorldFormProps) {
         trimmedName,
         undefined,
         selectedOption.settingKey ?? undefined,
-        creationGame,
       )
         .then((worldId) => {
           onCreated(worldId);

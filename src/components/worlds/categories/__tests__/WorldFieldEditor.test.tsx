@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -17,6 +17,38 @@ vi.mock("../../WorldOracleBindingPicker", () => ({
 }));
 
 describe("WorldFieldEditor", () => {
+  it("only saves an actual change so an untouched default stays inherited", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const definition = field();
+    render(
+      <WorldFieldEditor
+        worldId="world-1"
+        field={definition}
+        fields={[]}
+        valueCount={0}
+        readOnly={false}
+        onSave={onSave}
+        onClose={vi.fn()}
+      />,
+    );
+    const save = screen.getByRole("button", { name: "Save" });
+    const label = screen.getByRole("textbox", { name: "Field label" });
+    expect(save).toBeDisabled();
+    fireEvent.click(save);
+    await user.type(label, " ");
+    expect(save).toBeDisabled();
+    expect(onSave).not.toHaveBeenCalled();
+    await user.type(label, "updated");
+    expect(save).toBeEnabled();
+    await user.clear(label);
+    await user.type(label, definition.label);
+    expect(save).toBeDisabled();
+    await user.type(label, " updated");
+    await user.click(save);
+    expect(onSave).toHaveBeenCalledOnce();
+  });
+
   it("names dependent public fields before making their source GM-only", async () => {
     const user = userEvent.setup();
     const source = field({ label: "Location Type" });
@@ -113,7 +145,7 @@ describe("WorldFieldEditor", () => {
     expect(
       screen.queryByRole("combobox", { name: "Source field" }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     await user.click(
       screen.getByRole("button", { name: /Rule 1: Type Equals/ }),
     );

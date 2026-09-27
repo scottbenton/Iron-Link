@@ -38,13 +38,16 @@ export function WorldCategoryFields({
   fields,
   canEdit,
   canDelete,
+  configurationReady,
 }: {
   category: IWorldCategory;
   fields: IWorldFieldDefinition[];
   canEdit: boolean;
   canDelete: boolean;
+  configurationReady: boolean;
 }) {
   const { t } = useTranslation();
+  const reorderFields = useWorldCategoriesStore((store) => store.reorderFields);
   const confirm = useConfirm();
   const createField = useWorldCategoriesStore(
     (store) => store.createFieldDefinition,
@@ -87,6 +90,7 @@ export function WorldCategoryFields({
         return;
       }
       const counts = await WorldCategoriesService.getCategoryCounts(
+        category.worldId,
         category.id,
       );
       setEditor({ field, valueCount: counts.valueCounts[field.id] ?? 0 });
@@ -109,6 +113,7 @@ export function WorldCategoryFields({
         return;
       }
       const counts = await WorldCategoriesService.getCategoryCounts(
+        category.worldId,
         category.id,
       );
       const { confirmed } = await confirm({
@@ -126,7 +131,7 @@ export function WorldCategoryFields({
     run(async () => {
       const next = [...fields];
       [next[index], next[index + offset]] = [next[index + offset], next[index]];
-      await WorldCategoriesService.reorderFields(
+      await reorderFields(
         category.id,
         next.map((field) => field.id),
       );
@@ -170,7 +175,10 @@ export function WorldCategoryFields({
           {t("worlds.fields.title", "Fields")}
         </Typography>
         {canEdit && (
-          <Button disabled={busy} onClick={() => setEditor({ valueCount: 0 })}>
+          <Button
+            disabled={busy || !configurationReady}
+            onClick={() => setEditor({ valueCount: 0 })}
+          >
             {t("worlds.fields.add", "Add field")}
           </Button>
         )}
@@ -239,7 +247,7 @@ export function WorldCategoryFields({
                       "Move {{label}} up",
                       { label: fieldChoiceLabel(field, fields) },
                     )}
-                    disabled={busy || index === 0}
+                    disabled={busy || !configurationReady || index === 0}
                     onClick={() => move(index, -1)}
                   >
                     {t("common.move-up", "Move up")}
@@ -250,14 +258,19 @@ export function WorldCategoryFields({
                       "Move {{label}} down",
                       { label: fieldChoiceLabel(field, fields) },
                     )}
-                    disabled={busy || index === fields.length - 1}
+                    disabled={
+                      busy || !configurationReady || index === fields.length - 1
+                    }
                     onClick={() => move(index, 1)}
                   >
                     {t("common.move-down", "Move down")}
                   </Button>
                 </>
               )}
-              <Button disabled={busy} onClick={() => edit(field)}>
+              <Button
+                disabled={busy || (canEdit && !configurationReady)}
+                onClick={() => edit(field)}
+              >
                 {canEdit
                   ? t("common.edit", "Edit")
                   : t("worlds.fields.view", "Field configuration")}
@@ -265,7 +278,7 @@ export function WorldCategoryFields({
               {canDelete && (
                 <Button
                   color="error"
-                  disabled={busy}
+                  disabled={busy || !configurationReady}
                   onClick={() => remove(field)}
                 >
                   {t("worlds.fields.delete", "Delete field")}

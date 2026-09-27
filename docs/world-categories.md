@@ -5,21 +5,39 @@ initial templates, conditional field configuration, and an oracle picker.
 Implementation accepted on 2026-09-26; review and final verification are tracked
 with the change, not certified by this document. Entry editing is W5.
 
+## Configuration inheritance
+
+Default configurations live in TypeScript. An uncustomized world reads the
+current defaults for its setting without storing category or field-definition
+rows. Corrections to those defaults reach uncustomized worlds on deployment.
+
+The first category/field configuration edit copies the entire effective
+configuration and applies the edit in one database transaction. Later edits
+update that independent copy. Entry creation and entry/value edits do not fork
+configuration. Deleting every custom category leaves a deliberately empty
+world; it does not restore defaults. There is no historical template-version
+system or new version number for user edits. The JSON rule schema version is
+separate from configuration inheritance.
+
 ## Architecture
 
 | Area | Implementation |
 | --- | --- |
-| Template manifests and UUID allocation | [worldTemplates.ts](../src/lib/worldTemplates.ts), [shared helpers](../src/lib/worldTemplates/shared.ts), [Forge](../src/lib/worldTemplates/forge.ts), [other settings](../src/lib/worldTemplates/otherSettings.ts) |
+| Static manifests and world-scoped UUIDv5 identities | [worldTemplates.ts](../src/lib/worldTemplates.ts), [shared helpers](../src/lib/worldTemplates/shared.ts), [Forge](../src/lib/worldTemplates/forge.ts), [other settings](../src/lib/worldTemplates/otherSettings.ts) |
 | Pure rule evaluation and type compatibility | [worldFieldRules.ts](../src/lib/worldFieldRules.ts) |
 | Package loading, merged choices, stored roll target | [worldOracleCatalog.ts](../src/lib/worldOracleCatalog.ts) |
-| Creation and seeding RPC boundary | [service](../src/services/worldTemplates.service.ts), [repository](../src/repositories/worldTemplates.repository.ts) |
-| Lazy legacy-world backfill | [useWorldTemplateBackfill.ts](../src/hooks/worlds/useWorldTemplateBackfill.ts) |
+| Atomic configuration mutation boundary | [worldConfiguration.repository.ts](../src/repositories/worldConfiguration.repository.ts) |
 | Shared category/field management | [WorldCategoryManager.tsx](../src/components/worlds/categories/WorldCategoryManager.tsx), [WorldCategoryFields.tsx](../src/components/worlds/categories/WorldCategoryFields.tsx) |
-| Database validation and atomic operations | [W4 migration](../supabase/migrations/20260926000000_world_category_templates.sql) |
+| Generated trusted defaults | [catalog generator](../supabase/tests/generate-static-world-catalog.mjs), [initial catalog migration](../supabase/migrations/20260926010000_world_static_catalog.sql) |
+| Database validation and atomic operations | [W4 migration](../supabase/migrations/20260926000000_world_category_templates.sql), [inheritance migration](../supabase/migrations/20260926020000_world_configuration_inheritance.sql) |
 
-Definitions and values remain separate database rows. Values reference the
-immutable definition UUID; labels can repeat. Seed keys such as `locationType`
-are stable import handles. Add Field always generates a new UUID and
+Custom definitions and all values remain separate database rows. Inherited
+definitions are built from code. Both use the same definition contract. Default
+category and field IDs are deterministic UUIDv5 values derived from the world
+UUID and stable template keys. Materialization preserves those IDs, so existing
+values and conditional references survive the first configuration edit.
+Labels can repeat. Template keys such as `locationType` are stable import handles.
+Add Field always generates a new UUID and
 `field_<uuid-without-hyphens>` key, including after deletion or with a duplicate
 label. Renaming does not change identity or reconnect old data.
 
@@ -53,7 +71,7 @@ Existing GM-value mirroring/RLS continues to protect stored values.
 
 ## Initial templates
 
-Every choice seeds **Locations, NPCs, Lore**, including Blank. No template seeds
+Every choice provides **Locations, NPCs, Lore**, including Blank. No template includes
 Truths. Locations support hierarchy, maps, and bonds; NPCs support bonds; Lore
 has no capability flags. Locations use Location Type as subtitle. All categories
 include GM Notes (`richText`, GM-only); Lore always has Tags and GM Notes.
@@ -125,49 +143,76 @@ The standalone package scope includes **Starforged plus Sundered Isles**.
 
 The picker defaults to the world's effective playset: the union of linked-game
 playsets, or setting packages plus existing binding packages when standalone.
-Creation from a game uses that game's playset to pin initial bindings. The
-catalog applies replacements and surfaces deterministic replacement collisions.
+Inherited defaults follow the current effective playset. The catalog applies
+replacements and surfaces deterministic replacement collisions.
 **All packages** expands choices to currently registered packages. Selecting an
 outside package does not modify game curation. **Exact** permits the original
 oracle despite replacement rules. Private homebrew read grants remain H work.
 
-Each base/rule binding stores its own package, concrete oracle ID, and
-`resolvedOracleId`. Unrelated edits preserve it; rebinding deliberately changes
-it. `getFrozenWorldOracleBinding` loads the stored target and reports pending
-divergence from current resolution. W5 rolls must use this helper's stored
-target. Missing targets remain editable and visibly broken; never silently
-choose another oracle. W9 owns actor previews, durable game-log notices, and
+At the first configuration edit, every effective base/rule binding is copied
+with its package, concrete oracle ID, and `resolvedOracleId`. Customized worlds
+pin these targets. Unrelated edits preserve them; rebinding deliberately changes
+them. Uncustomized worlds continue resolving current defaults and playsets.
+`getFrozenWorldOracleBinding` loads the stored target and reports pending
+divergence from current resolution. W5 rolls use the effective binding: the
+current inherited target for default configuration, or this helper's stored
+target for customized configuration. Missing targets remain editable and visibly
+broken; never silently choose another oracle. W9 owns actor previews, durable game-log notices, and
 concurrency-protected transitions to a changed target.
 
-## Permissions, deletion, and seeding
+## Permissions, deletion, and persistence
 
-Readers can inspect configuration. Owner/editor/guide can add and edit
-categories and fields. Only owner/editor can delete. Populated category deletion
-is blocked in both UI and database; empty-category deletion confirms the
-field-definition cascade. Field deletion counts values and confirms their
-cascade, while referenced source fields require removing references first.
-A future populated-category workflow must clean up stored images/maps.
+Readers can inspect configuration, including defaults before any member edits
+it. Owner/editor/guide can add and edit categories and fields. Only owner/editor
+can delete. Populated category deletion is blocked in both UI and database;
+empty-category deletion confirms the field-definition cascade. Field deletion
+counts values and confirms their cascade, while referenced source fields require
+removing references first. A future populated-category workflow must clean up
+stored images/maps.
 
-`create_world_with_template` creates the world and inserts its manifest in one
-transaction. Invalid manifests roll back creation. `seed_world_template` locks
-the world before checking/seeding, preventing concurrent duplicate seeds.
-Definitions are installed before rules so forward references can be validated.
-Subtitle fields and entry values must belong to the correct category/world.
+World creation uses `create_world` without inserting default definitions.
+`mutate_world_configuration` locks the world, materializes all effective defaults
+if necessary, and applies the requested configuration mutation atomically. A
+failed edit rolls back the fork as well. Concurrent first edits cannot create
+duplicate default rows or overwrite an already customized configuration.
+`configuration_customized` distinguishes inheritance from an intentionally empty
+custom configuration; its state is derived from the durable receipt.
 
-Existing worlds with zero categories and no receipt are backfilled lazily when
-an **owner/editor/guide visits**. Read-only visitors cannot initiate seeding and
-may see an empty world until an authorized visitor opens it. Failures expose a
-retry. Durable `world_template_receipts` protect previously seeded/customized
-worlds even if every category is later deliberately deleted. Receipts are also
-recorded for existing category-bearing worlds and new custom categories.
-Neither a later template version nor a setting change reapplies defaults.
+Entry/value writes require authoritative category and field lookup even before
+there are definition rows. A trusted SQL function catalog is generated from the
+same TypeScript defaults. Database validation uses that catalog for inherited
+worlds and stored definitions for customized worlds. It enforces category/world
+membership and derives GM visibility from the effective definition. The catalog
+is release code, not an administrator-editable global configuration table.
+
+Existing materialized configurations and receipt-bearing worlds are preserved
+as custom: migration does not guess whether their differences were user edits.
+Previously empty worlds without a receipt inherit defaults immediately, including
+for readers. There is no visit-triggered backfill. Later default changes never
+overwrite custom rows.
 
 ## Rollout and verification
 
-**Apply the W4 migration before deploying the client.** The new client requires
-the configuration column and new RPCs. The existing `create_world` RPC remains
-available to older clients; such empty worlds follow lazy backfill on a later
-authorized visit. Do not reset a shared/production database to apply migrations.
+**Apply the W4 migrations, including the generated catalog and inheritance
+migrations, before deploying the client.** The new client requires
+the configuration column, inheritance state, trusted default catalog, and mutation
+RPC. When changing defaults, regenerate the SQL catalog from TypeScript and ship
+its migration alongside the app so validation and UI agree. Keep existing default
+keys stable; type changes, removal, and GM-visibility changes require an explicit
+data-compatibility review because values may already reference inherited fields.
+Do not reset a shared/production database to apply migrations.
+
+For future default changes, generate a **new** migration from the repository root:
+
+```sh
+node supabase/tests/generate-static-world-catalog.mjs --output 'supabase/migrations/<timestamp>_world_static_catalog.sql'
+```
+
+Replace `<timestamp>` with a new migration timestamp. Keep the
+`_world_static_catalog.sql` suffix so the drift check discovers the latest catalog.
+Do not overwrite an applied migration. `npm run check:world-defaults` verifies
+that the latest generated catalog matches TypeScript; `npm run build` includes
+this gate.
 
 Run these checks from the repository root; this is a verification checklist,
 not a claim that this checkout has passed all checks:
@@ -175,26 +220,31 @@ not a claim that this checkout has passed all checks:
 ```sh
 npm run tsc
 npx eslint . --quiet
+npm run check:world-defaults
 npx vitest run src/lib/__tests__/worldTemplates.test.ts src/lib/__tests__/worldFieldRules.test.ts src/lib/__tests__/worldOracleCatalog.test.ts src/components/worlds/categories/__tests__
 supabase test db
+npm run build
 ```
 
 Database tests require a local Supabase instance with the migrations applied.
-[SQL coverage](../supabase/tests/world_category_templates.test.sql) exercises
-atomic creation/backfill, receipts, permissions, validation, field identity,
-value/category boundaries, deletion guards, and reordering. The template test
-checks every seed binding against installed Datasworn packages; rerun it when
-changing defaults. Rule/catalog tests cover ancestor fallback, cycles, missing
-targets, replacement collisions, exact selection, and frozen divergence. UI
+SQL verification should cover creation without materialization, atomic first-edit
+forks and rollback, concurrency, receipts, permissions, validation before/after
+fork, preserved field
+identity and values, value/category boundaries, deletion guards, and reordering.
+The template test checks every default binding against installed Datasworn
+packages; rerun it when changing defaults. Rule/catalog tests cover ancestor
+fallback, cycles, missing targets, replacement collisions, exact selection, and
+frozen divergence. UI
 tests cover permissions, confirmations, ordering, repeated labels, subtitles,
 and type changes. Review standalone and in-game category surfaces as well.
 
 ## Follow-ups
 
 - **W5:** entry list/filter/detail, scalar and Yjs value controls, suggestion
-  controls, stored-target rolling, images, notes, and a simple parent Location
+  controls, effective-binding rolling, images, notes, and a simple parent Location
   selector. Validate same-world/category parents and cycles, and audit existing
-  links before adding constraints. Decide entry-name rollers separately.
+  links before adding constraints. Include oracle buttons for generating the
+  intrinsic entry name, separate from field-value rollers.
 - **W6:** design Truths as a separate world feature with its own persistence
   and migration contract; no Truths category.
 - **W7:** hierarchy/maps and type-specific icons; preserve W5's parent relation

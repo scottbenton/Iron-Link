@@ -12,12 +12,23 @@ import { category, translate } from "./fixtures";
 const state = vi.hoisted(() => ({
   categories: {},
   fieldDefinitions: {},
+  configurationCustomized: false,
+  defaultBindingsReady: true,
+  reorderCategories: vi.fn(),
   loading: false,
   error: undefined,
   createCategory: vi.fn(),
   updateCategory: vi.fn(),
   deleteCategory: vi.fn(),
   confirm: vi.fn(),
+  oracle: {
+    loading: false,
+    error: undefined as string | undefined,
+    retry: vi.fn(),
+  },
+}));
+vi.mock("components/worlds/worldOracleContext", () => ({
+  useWorldOracleContext: () => state.oracle,
 }));
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("react-i18next", async (importOriginal) => ({
@@ -30,22 +41,44 @@ vi.mock("stores/worldCategories.store", () => ({
   useWorldCategoriesStore: (selector: (store: typeof state) => unknown) =>
     selector(state),
 }));
-vi.mock("hooks/worlds/useWorldTemplateBackfill", () => ({
-  useWorldTemplateBackfill: () => ({
-    loading: false,
-    error: undefined,
-    retry: vi.fn(),
-  }),
-}));
 vi.mock("../WorldCategoryFields", () => ({ WorldCategoryFields: () => null }));
 
 beforeEach(() => {
   vi.restoreAllMocks();
   vi.clearAllMocks();
   state.categories = { [category.id]: category };
+  state.oracle.loading = false;
+  state.oracle.error = undefined;
 });
 
 describe("WorldCategoryManager", () => {
+  it("blocks inherited edits during oracle refresh and exposes retry after failure", async () => {
+    const user = userEvent.setup();
+    state.oracle.loading = true;
+    const view = render(
+      <WorldCategoryManager
+        worldId={category.worldId}
+        permission={WorldPermission.Owner}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Add category" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Edit category" }),
+    ).toBeDisabled();
+    state.oracle.loading = false;
+    state.oracle.error = "Catalog unavailable";
+    view.rerender(
+      <WorldCategoryManager
+        worldId={category.worldId}
+        permission={WorldPermission.Owner}
+      />,
+    );
+    expect(screen.getByText("Catalog unavailable")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add category" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    expect(state.oracle.retry).toHaveBeenCalledOnce();
+  });
+
   it("shows ordered categories, excludes other worlds, and atomically moves the selection", async () => {
     const user = userEvent.setup();
     const second = { ...category, id: "second", name: "NPCs", sortOrder: 1 };
@@ -59,9 +92,7 @@ describe("WorldCategoryManager", () => {
         name: "Foreign",
       },
     };
-    const reorder = vi
-      .spyOn(WorldCategoriesService, "reorderCategories")
-      .mockResolvedValue(undefined);
+    const reorder = state.reorderCategories.mockResolvedValue(undefined);
     render(
       <WorldCategoryManager
         worldId={category.worldId}
@@ -75,10 +106,7 @@ describe("WorldCategoryManager", () => {
     await user.click(screen.getByRole("option", { name: "NPCs" }));
     await user.click(screen.getByRole("button", { name: "Move category up" }));
     await waitFor(() =>
-      expect(reorder).toHaveBeenCalledWith(category.worldId, [
-        second.id,
-        category.id,
-      ]),
+      expect(reorder).toHaveBeenCalledWith([second.id, category.id]),
     );
   });
 
@@ -95,9 +123,7 @@ describe("WorldCategoryManager", () => {
       />,
     );
     await user.click(screen.getByRole("button", { name: "Delete category" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "contains 2 entries",
-    );
+    expect(await screen.findByText(/contains 2 entries/)).toBeInTheDocument();
     expect(state.confirm).not.toHaveBeenCalled();
     expect(state.deleteCategory).not.toHaveBeenCalled();
   });
