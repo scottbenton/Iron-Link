@@ -24,14 +24,20 @@ const planetClasses = [
   "Vital",
 ];
 const regions = ["Terminus", "Outlands", "Expanse"];
-const settlementTypes = ["Planetside Settlement", "Orbital Settlement"];
+const settlementSuggestions = [
+  "Planetside Settlement",
+  "Non-Planetary Settlement",
+];
+// Earlier inherited worlds may still store this text. Keep it working without
+// presenting the old label as a suggested choice for new entries.
+const settlementTypes = [...settlementSuggestions, "Orbital Settlement"];
 export function forgeLocations(): TemplateField[] {
   const fields = [
     field("locationType", "Location Type", {
       suggestions: [
         "Sector",
         "Planet",
-        ...settlementTypes,
+        ...settlementSuggestions,
         "Star",
         "Derelict",
         "Vault",

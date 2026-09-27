@@ -108,8 +108,10 @@ Location is also plain text with a binding so its stored value can drive Type.
 | Sundered Isles (`world:sundered_isles/sundered_isles`) | Location Type, Area Region, site-dependent fields below | Pronouns; GM First Look, Role, Disposition, Goal |
 | Santa Maria (`world:elegy/santa_maria`) | Location Type, Tags; GM Description | Pronouns, Tags; GM Traits, Occupation, Goal, Disposition |
 
-Ironlands suggests Settlement, Tower, Ruin, Camp. Species suggests Human, Elf,
-Giant, Varou, Troll. The three location bindings are classic place descriptor,
+Location Type suggestions follow the actual Iron Fellowship/Crew Link autocomplete
+(`OpenLocation.tsx` and the Ironlands/Forge location configs). Ironlands suggests
+Settlement, Tower, Ruin, Camp; its Place oracle is a separate field binding.
+Species suggests Human, Elf, Giant, Varou, Troll. The three location bindings are classic place descriptor,
 settlement trouble, and place location; NPC bindings are classic character
 descriptor/role/goal. Delve Disposition and Activity are omitted. Blank and
 Santa Maria invent no Location Type suggestions. Elegy Description binds to
@@ -126,7 +128,7 @@ are public; other location fields in this table are GM-only.
 | --- | --- |
 | Sector | Region (Terminus, Outlands, Expanse, Void); Sector Trouble |
 | Planet | Planet Class; Description; Feature, Atmosphere, Life, Observed From Space keyed by class; Settlements keyed by class and nearest Sector Region |
-| Planetside Settlement / Orbital Settlement | Location, First Look, Initial Contact, Authority, Projects, Trouble; Population keyed by nearest Sector Region |
+| Planetside Settlement / Non-Planetary Settlement | Location, First Look, Initial Contact, Authority, Projects, Trouble; Population keyed by nearest Sector Region |
 | Star | Description (`starforged/space/stellar_object`) |
 | Derelict | Location (Planetside, Orbital, Deep Space suggestions); Type keyed by Location; Condition, Outer First Look, Inner First Look |
 | Vault | Location, Scale, Form, Shape, Material, Outer First Look; Interior First Look, Feature, Peril, Opportunity; Sanctum Purpose, Feature, Peril, Opportunity |
@@ -144,6 +146,10 @@ Formidable, Extreme, Epic. Vault's label is **Outer First Look**. Without a
 recognized class/region, including Void, applicable fields remain editable and
 unbound where no valid oracle exists. NPC Disposition uses
 `starforged/character/initial_disposition`; Callsign is public and bound.
+
+Existing `Orbital Settlement` values remain supported as a legacy alias in all
+settlement conditions and regional Population bindings. Only the suggested label
+changes to Crew Link's `Non-Planetary Settlement`; no stored values are rewritten.
 
 ### Sundered Isles
 
@@ -306,6 +312,10 @@ the new category. Apply the new catalog migration before deploying this client.
 Category UUID remapping uses the client-exported `WORLD_TEMPLATE_CATEGORY_KEYS`
 registry, including `factions`, rather than a separate generator list.
 
+The 20260927030000 release aligns Forge's suggested settlement label with Crew
+Link while preserving Orbital Settlement as a conditional alias. Apply this
+catalog with the client; no stored values or customized configurations change.
+
 `npm run check:world-defaults` verifies that the latest generated catalog
 matches TypeScript; `npm run build` includes
 this gate.
@@ -330,6 +340,7 @@ roll back. Use `-f` so its relative migration includes resolve correctly:
 ```sh
 psql --dbname=<isolated-test-database> -v ON_ERROR_STOP=1 -f supabase/upgrade-tests/world_catalog_upgrade.sql
 psql --dbname=<isolated-test-database> -v ON_ERROR_STOP=1 -f supabase/upgrade-tests/world_factions_catalog_upgrade.sql
+psql --dbname=<isolated-test-database> -v ON_ERROR_STOP=1 -f supabase/upgrade-tests/world_settlement_alias_upgrade.sql
 ```
 
 The Factions upgrade regression verifies the existing categories and custom

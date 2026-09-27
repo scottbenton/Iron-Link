@@ -328,6 +328,97 @@ describe("world templates", () => {
     });
   });
 
+  it("matches Iron Fellowship and Crew Link location suggestions exactly", () => {
+    expect(
+      domainField(
+        buildWorldTemplate("world:classic/ironlands", worldId),
+        "locationType",
+      ).configuration.suggestions,
+    ).toEqual(["Settlement", "Tower", "Ruin", "Camp"]);
+    expect(
+      domainField(
+        buildWorldTemplate("world:starforged/forge", worldId),
+        "locationType",
+      ).configuration.suggestions,
+    ).toEqual([
+      "Sector",
+      "Planet",
+      "Planetside Settlement",
+      "Non-Planetary Settlement",
+      "Star",
+      "Derelict",
+      "Vault",
+    ]);
+  });
+
+  it.each([
+    "Planetside Settlement",
+    "Non-Planetary Settlement",
+    "Orbital Settlement",
+  ])(
+    "keeps all settlement fields and regional population available for %s",
+    (locationType) => {
+      const template = buildWorldTemplate("world:starforged/forge", worldId);
+      const settlement = entry(
+        template,
+        "settlement",
+        { locationType },
+        "sector",
+      );
+      for (const [key, oracle] of [
+        ["settlementLocation", "location"],
+        ["settlementFirstLook", "first_look"],
+        ["settlementInitialContact", "initial_contact"],
+        ["settlementAuthority", "authority"],
+        ["settlementProjects", "projects"],
+        ["settlementTrouble", "trouble"],
+      ]) {
+        expect(
+          resolveFieldDefinition(domainField(template, key), {
+            entry: settlement,
+            entries: {},
+          }),
+        ).toMatchObject({
+          visible: true,
+          binding: {
+            oracleId: `oracle_rollable:starforged/settlement/${oracle}`,
+          },
+        });
+      }
+      const population = domainField(template, "settlementPopulation");
+      for (const region of ["Terminus", "Outlands", "Expanse"]) {
+        const sector = entry(template, "sector", {
+          locationType: "Sector",
+          region,
+        });
+        expect(
+          resolveFieldDefinition(population, {
+            entry: settlement,
+            entries: { sector },
+          }),
+        ).toMatchObject({
+          visible: true,
+          binding: {
+            oracleId: `oracle_rollable:starforged/settlement/population/${region.toLowerCase()}`,
+          },
+        });
+      }
+      const voidSector = entry(template, "sector", {
+        locationType: "Sector",
+        region: "Void",
+      });
+      const unboundContexts: Record<string, WorldFieldEntrySnapshot>[] = [
+        {},
+        { sector: voidSector },
+      ];
+      for (const entries of unboundContexts) {
+        expect(
+          resolveFieldDefinition(population, { entry: settlement, entries }),
+        ).toMatchObject({ visible: true, binding: null });
+      }
+    },
+  );
+
   it("has no Blank bindings, Delve defaults, Elegy type suggestions, or misleading Vault label", () => {
     expect(getWorldTemplateBindings(buildWorldTemplate(null, worldId))).toEqual(
       [],
