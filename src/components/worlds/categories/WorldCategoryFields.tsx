@@ -1,13 +1,4 @@
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
+import { Alert, Button, Paper, Stack, Typography } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { v4 as uuid } from "uuid";
@@ -25,13 +16,16 @@ import {
   WorldFieldType,
 } from "services/worldFieldDefinitions.service";
 
+import { WorldCategoryFieldRow } from "./WorldCategoryFieldRow";
+import { WorldConfigurationDeleteDialog } from "./WorldConfigurationDeleteDialog";
+import { WorldConfigurationSortList } from "./WorldConfigurationSortList";
 import { FieldDraft, WorldFieldEditor } from "./WorldFieldEditor";
 import {
-  FIELD_TYPE_LABELS,
   editorError,
   fieldChoiceLabel,
   getReferencingFields,
 } from "./categoryEditor.utils";
+import { useWorldConfigurationDeleteConfirmation } from "./useWorldConfigurationDeleteConfirmation";
 
 export function WorldCategoryFields({
   category,
@@ -48,7 +42,11 @@ export function WorldCategoryFields({
 }) {
   const { t } = useTranslation();
   const reorderFields = useWorldCategoriesStore((store) => store.reorderFields);
-  const confirm = useConfirm();
+  const {
+    confirm,
+    request: deleteRequest,
+    answer: answerDelete,
+  } = useWorldConfigurationDeleteConfirmation();
   const createField = useWorldCategoriesStore(
     (store) => store.createFieldDefinition,
   );
@@ -127,15 +125,7 @@ export function WorldCategoryFields({
       });
       if (confirmed) await deleteField(field.id);
     });
-  const move = (index: number, offset: number) =>
-    run(async () => {
-      const next = [...fields];
-      [next[index], next[index + offset]] = [next[index + offset], next[index]];
-      await reorderFields(
-        category.id,
-        next.map((field) => field.id),
-      );
-    });
+  const reorder = (ids: string[]) => run(() => reorderFields(category.id, ids));
   const save = async (draft: FieldDraft, createNew: boolean) => {
     const normalized = {
       ...draft,
@@ -190,104 +180,54 @@ export function WorldCategoryFields({
       )}
       {fields.length === 0 && (
         <Typography color="text.secondary">
-          {t("worlds.fields.empty-state", "This category has no fields yet.")}
+          {t(
+            "worlds.fields.empty-state",
+            "This category has no additional fields yet.",
+          )}
         </Typography>
       )}
-      {fields.map((field, index) => (
-        <Paper variant="outlined" sx={{ p: 2 }} key={field.id}>
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            gap={1}
-            justifyContent="space-between"
-          >
-            <Box>
-              <Typography fontWeight="bold">
-                {fieldChoiceLabel(field, fields)}
-              </Typography>
-              <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
-                <Chip
-                  size="small"
-                  label={t(
-                    `worlds.fields.type-${field.type}`,
-                    FIELD_TYPE_LABELS[field.type],
-                  )}
-                />
-                {field.configuration.rules.length > 0 && (
-                  <Chip
-                    size="small"
-                    label={
-                      field.configuration.rules.length === 1
-                        ? t("worlds.fields.rule-count-one", "1 rule")
-                        : t("worlds.fields.rule-count", "{{count}} rules", {
-                            count: field.configuration.rules.length,
-                          })
-                    }
-                  />
-                )}
-                {field.gmOnly && (
-                  <Chip
-                    size="small"
-                    label={t("worlds.fields.gm-badge", "GM only")}
-                  />
-                )}
-                {category.subtitleFieldDefinitionId === field.id && (
-                  <Chip
-                    size="small"
-                    label={t("worlds.fields.subtitle-badge", "Subtitle")}
-                  />
-                )}
-              </Stack>
-            </Box>
-            <Stack direction="row" flexWrap="wrap">
-              {canEdit && (
-                <>
-                  <Button
-                    aria-label={t(
-                      "worlds.fields.move-up-label",
-                      "Move {{label}} up",
-                      { label: fieldChoiceLabel(field, fields) },
-                    )}
-                    disabled={busy || !configurationReady || index === 0}
-                    onClick={() => move(index, -1)}
-                  >
-                    {t("common.move-up", "Move up")}
-                  </Button>
-                  <Button
-                    aria-label={t(
-                      "worlds.fields.move-down-label",
-                      "Move {{label}} down",
-                      { label: fieldChoiceLabel(field, fields) },
-                    )}
-                    disabled={
-                      busy || !configurationReady || index === fields.length - 1
-                    }
-                    onClick={() => move(index, 1)}
-                  >
-                    {t("common.move-down", "Move down")}
-                  </Button>
-                </>
-              )}
-              <Button
-                disabled={busy || (canEdit && !configurationReady)}
-                onClick={() => edit(field)}
-              >
-                {canEdit
-                  ? t("common.edit", "Edit")
-                  : t("worlds.fields.view", "Field configuration")}
-              </Button>
-              {canDelete && (
-                <Button
-                  color="error"
-                  disabled={busy || !configurationReady}
-                  onClick={() => remove(field)}
-                >
-                  {t("worlds.fields.delete", "Delete field")}
-                </Button>
-              )}
-            </Stack>
-          </Stack>
-        </Paper>
-      ))}
+      <WorldConfigurationSortList
+        items={fields.map((field) => ({
+          id: field.id,
+          label: fieldChoiceLabel(field, fields),
+        }))}
+        onReorder={reorder}
+      >
+        <Stack spacing={1}>
+          {fields.map((field) => (
+            <WorldCategoryFieldRow
+              key={field.id}
+              field={field}
+              label={fieldChoiceLabel(field, fields)}
+              subtitle={category.subtitleFieldDefinitionId === field.id}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              disabled={busy || !configurationReady}
+              busy={busy}
+              onEdit={() => edit(field)}
+              onDelete={() => remove(field)}
+            />
+          ))}
+        </Stack>
+      </WorldConfigurationSortList>
+      <Paper
+        variant="outlined"
+        sx={{ p: 2, color: "text.secondary", bgcolor: "action.hover" }}
+      >
+        <Typography fontWeight="bold">
+          {t("worlds.fields.intrinsic-notes", "Notes")}
+        </Typography>
+        <Typography variant="body2">
+          {t(
+            "worlds.fields.intrinsic-notes-help",
+            "Included with every entry. Notes cannot be removed or reordered.",
+          )}
+        </Typography>
+      </Paper>
+      <WorldConfigurationDeleteDialog
+        request={deleteRequest}
+        onAnswer={answerDelete}
+      />
       {editor && (
         <WorldFieldEditor
           key={editor.field?.id ?? "new"}

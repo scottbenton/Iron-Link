@@ -59,7 +59,7 @@ describe("WorldCategoryEditor", () => {
     await user.click(
       screen.getByRole("combobox", { name: "Entry subtitle field" }),
     );
-    await user.click(screen.getByRole("option", { name: "Type (bbbbbbbb)" }));
+    await user.click(screen.getByRole("option", { name: "Type (Text, 2)" }));
     await user.click(screen.getByRole("checkbox", { name: "Supports maps" }));
     await user.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() =>

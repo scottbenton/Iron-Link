@@ -36,7 +36,10 @@ export function WorldFieldConditionEditor({
     (condition.source === "ancestor" &&
       !fields.some((field) => field.id === condition.ancestor?.fieldId));
   return (
-    <Stack spacing={2} sx={{ borderLeft: 2, borderColor: "divider", pl: 2 }}>
+    <Stack
+      spacing={2}
+      sx={{ border: 1, borderRadius: 1, borderColor: "divider", p: 2 }}
+    >
       {missingSource && (
         <Alert severity="warning">
           {t(
@@ -50,6 +53,10 @@ export function WorldFieldConditionEditor({
         label={t("worlds.fields.source", "Read value from")}
         value={condition.source}
         disabled={disabled}
+        helperText={t(
+          "worlds.fields.condition-source-help",
+          "Use this entry’s value, or search upward through its parents for the nearest matching ancestor.",
+        )}
         onChange={(event) =>
           onChange({
             ...condition,
@@ -124,6 +131,10 @@ export function WorldFieldConditionEditor({
       <TextField
         select
         label={t("worlds.fields.source-field", "Source field")}
+        helperText={t(
+          "worlds.fields.condition-field-help",
+          "Choose a text, number, or tag field. Text supports value comparisons; number and tag fields support empty/not-empty checks. GM-only sources require this field to be GM only too.",
+        )}
         value={condition.fieldId}
         disabled={disabled}
         onChange={(event) => {

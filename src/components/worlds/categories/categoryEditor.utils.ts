@@ -19,10 +19,34 @@ export function fieldChoiceLabel(
   field: IWorldFieldDefinition,
   fields: IWorldFieldDefinition[],
 ) {
-  return fields.filter((candidate) => candidate.label === field.label).length >
-    1
-    ? `${field.label} (${field.id.slice(0, 8)})`
-    : field.label;
+  const duplicates = fields.filter(
+    (candidate) => candidate.label === field.label,
+  );
+  if (duplicates.length < 2) return field.label;
+  // Prefer the human-readable subtype from a visibility rule. Otherwise use
+  // the field type and list position, never a storage identity.
+  const subtype = (candidate: IWorldFieldDefinition) =>
+    candidate.configuration.rules
+      .filter((rule) => rule.visible === true)
+      .flatMap((rule) => rule.conditions)
+      .find(
+        (condition) =>
+          condition.source === "entry" &&
+          condition.operator === "equals" &&
+          fields.some(
+            (source) =>
+              source.id === condition.fieldId && source.key === "locationType",
+          ),
+      )?.value;
+  const context = subtype(field);
+  if (
+    context &&
+    duplicates.filter((candidate) => subtype(candidate) === context).length ===
+      1
+  ) {
+    return `${field.label} (${context})`;
+  }
+  return `${field.label} (${FIELD_TYPE_LABELS[field.type]}, ${duplicates.findIndex((candidate) => candidate.id === field.id) + 1})`;
 }
 
 export function isConditionField(field: IWorldFieldDefinition) {

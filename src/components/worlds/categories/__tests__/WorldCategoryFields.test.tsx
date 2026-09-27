@@ -11,7 +11,6 @@ const actions = vi.hoisted(() => ({
   createFieldDefinition: vi.fn(),
   updateFieldDefinition: vi.fn(),
   deleteFieldDefinition: vi.fn(),
-  confirm: vi.fn(),
   reorderFields: vi.fn(),
 }));
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
@@ -19,7 +18,6 @@ vi.mock("react-i18next", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-i18next")>()),
   useTranslation: () => ({ t: translate }),
 }));
-vi.mock("material-ui-confirm", () => ({ useConfirm: () => actions.confirm }));
 vi.mock("stores/worldCategories.store", () => ({
   useWorldCategoriesStore: (selector: (store: typeof actions) => unknown) =>
     selector(actions),
@@ -45,9 +43,11 @@ describe("WorldCategoryFields", () => {
       />,
     );
     expect(screen.getByRole("button", { name: "Add field" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Edit" })).toBeEnabled();
     expect(
-      screen.queryByRole("button", { name: "Delete field" }),
+      screen.getByRole("button", { name: "Edit Description" }),
+    ).toBeEnabled();
+    expect(
+      screen.queryByRole("button", { name: "Delete Description" }),
     ).not.toBeInTheDocument();
     view.rerender(
       <WorldCategoryFields
@@ -62,10 +62,10 @@ describe("WorldCategoryFields", () => {
       screen.queryByRole("button", { name: "Add field" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Edit" }),
+      screen.queryByRole("button", { name: "Edit Description" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Field configuration" }),
+      screen.getByRole("button", { name: "Configure Description" }),
     ).toBeEnabled();
   });
 
@@ -76,7 +76,6 @@ describe("WorldCategoryFields", () => {
       entryCount: 3,
       valueCounts: { [definition.id]: 3 },
     });
-    actions.confirm.mockResolvedValue({ confirmed: false });
     render(
       <WorldCategoryFields
         configurationReady
@@ -86,17 +85,19 @@ describe("WorldCategoryFields", () => {
         canDelete
       />,
     );
-    await user.click(screen.getByRole("button", { name: "Delete field" }));
+    await user.click(
+      screen.getByRole("button", { name: "Delete Description" }),
+    );
+    expect(await screen.findByText(/3 stored values/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Close Dialog" }));
     await waitFor(() =>
-      expect(actions.confirm).toHaveBeenCalledWith(
-        expect.objectContaining({
-          description: expect.stringContaining("3 stored values"),
-        }),
-      ),
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
     expect(actions.deleteFieldDefinition).not.toHaveBeenCalled();
-    actions.confirm.mockResolvedValue({ confirmed: true });
-    await user.click(screen.getByRole("button", { name: "Delete field" }));
+    await user.click(
+      screen.getByRole("button", { name: "Delete Description" }),
+    );
+    await user.click(await screen.findByRole("button", { name: "Delete" }));
     await waitFor(() =>
       expect(actions.deleteFieldDefinition).toHaveBeenCalledWith(definition.id),
     );
@@ -127,13 +128,11 @@ describe("WorldCategoryFields", () => {
         canDelete
       />,
     );
-    await user.click(
-      screen.getAllByRole("button", { name: "Delete field" })[0],
-    );
+    await user.click(screen.getByRole("button", { name: "Delete Type" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "conditions in Region",
     );
-    expect(actions.confirm).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(actions.deleteFieldDefinition).not.toHaveBeenCalled();
   });
 
@@ -151,8 +150,26 @@ describe("WorldCategoryFields", () => {
         canDelete
       />,
     );
-    expect(screen.getByRole("button", { name: "Move Type up" })).toBeDisabled();
-    await user.click(screen.getByRole("button", { name: "Move Region up" }));
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
+      function (this: HTMLElement) {
+        const top = this.closest('[aria-label="Region field"]') ? 100 : 0;
+        return {
+          top,
+          bottom: top + 80,
+          left: 0,
+          right: 400,
+          width: 400,
+          height: 80,
+          x: 0,
+          y: top,
+          toJSON: () => ({}),
+        };
+      },
+    );
+    screen.getByRole("button", { name: "Reorder Region" }).focus();
+    await user.keyboard("[Space]");
+    await user.keyboard("[ArrowUp]");
+    await user.keyboard("[Space]");
     await waitFor(() =>
       expect(reorder).toHaveBeenCalledWith(category.id, [second.id, first.id]),
     );

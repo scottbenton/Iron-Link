@@ -28,7 +28,7 @@ separate from configuration inheritance.
 | Package loading, merged choices, stored roll target | [worldOracleCatalog.ts](../src/lib/worldOracleCatalog.ts) |
 | Atomic configuration mutation boundary | [worldConfiguration.repository.ts](../src/repositories/worldConfiguration.repository.ts) |
 | Shared category/field management | [WorldCategoryManager.tsx](../src/components/worlds/categories/WorldCategoryManager.tsx), [WorldCategoryFields.tsx](../src/components/worlds/categories/WorldCategoryFields.tsx) |
-| Generated trusted defaults | [catalog generator](../supabase/tests/generate-static-world-catalog.mjs), [initial catalog migration](../supabase/migrations/20260926010000_world_static_catalog.sql) |
+| Generated trusted defaults | [catalog generator](../supabase/tests/generate-static-world-catalog.mjs), [initial catalog migration](../supabase/migrations/20260926010000_world_static_catalog.sql), [simplified catalog release](../supabase/migrations/20260927010000_world_static_catalog.sql) |
 | Database validation and atomic operations | [W4 migration](../supabase/migrations/20260926000000_world_category_templates.sql), [inheritance migration](../supabase/migrations/20260926020000_world_configuration_inheritance.sql) |
 
 Custom definitions and all values remain separate database rows. Inherited
@@ -69,24 +69,41 @@ condition sources. A target that depends on GM-only source data must also be
 GM-only. A source cannot be deleted while another definition references it.
 Existing GM-value mirroring/RLS continues to protect stored values.
 
+## Configuration editor
+
+The world panel shows category tabs. **Configure** opens category and field
+settings; **Add category** is available alongside it. Category and field drag
+handles support pointer and keyboard ordering. Entry lists and editing remain W5.
+
+Category icons use the Game Icons collection and theme-aware color shades.
+Field settings group basic details, fallback behavior, and conditional overrides.
+Internal UUIDs and keys are hidden; duplicate labels use readable subtype or
+field-type descriptions. Every entry has intrinsic rich-text Notes, displayed
+as a muted built-in row rather than an editable field definition.
+
+GM-only targets may use GM-only text, number, and tag condition sources. Rich-text
+and oracle-text content is a Yjs document, so it is not currently a condition
+source. Public targets cannot depend on GM data.
+
 ## Initial templates
 
 Every choice provides **Locations, NPCs, Lore**, including Blank. No template includes
 Truths. Locations support hierarchy, maps, and bonds; NPCs support bonds; Lore
-has no capability flags. Locations use Location Type as subtitle. All categories
-include GM Notes (`richText`, GM-only); Lore always has Tags and GM Notes.
+has no capability flags. Locations use Location Type as subtitle. Extra GM Notes
+fields are omitted; entry Notes remain intrinsic. Lore has Tags.
 
 Most bound fields are `oracleText`; Pronouns, Location Type, Region, Species,
-Difficulty, Planet Class, and Planet Description are plain text. Forge Derelict
+Difficulty, and Planet Class are plain text. Forge Description is public
+`oracleText`, shared by Planet and Star. Forge Derelict
 Location is also plain text with a binding so its stored value can drive Type.
 
 | Setting | Initial Locations fields | Initial NPC fields |
 | --- | --- | --- |
-| Blank (`null`) | Location Type, Tags, GM Notes; no bindings | Pronouns, Tags, GM Notes; no bindings |
-| Ironlands (`world:classic/ironlands`) | Location Type; GM Description, Trouble, Location Features; GM Notes | Pronouns, Species; GM Descriptor, Role, Goal; GM Notes |
-| Forge (`world:starforged/forge`) | Location Type, subtype-dependent fields below, GM Notes | Pronouns, Callsign, Difficulty; GM First Look, Role, Disposition, Goal, Revealed Aspect; GM Notes |
-| Sundered Isles (`world:sundered_isles/sundered_isles`) | Location Type, Area Region, site-dependent fields below, GM Notes | Pronouns; GM First Look, Role, Disposition, Goal; GM Notes |
-| Santa Maria (`world:elegy/santa_maria`) | Location Type, Tags; GM Description; GM Notes | Pronouns, Tags; GM Traits, Occupation, Goal, Disposition; GM Notes |
+| Blank (`null`) | Location Type, Tags; no bindings | Pronouns, Tags; no bindings |
+| Ironlands (`world:classic/ironlands`) | Location Type; GM Description, Trouble, Location Features | Pronouns, Species; GM Descriptor, Role, Goal |
+| Forge (`world:starforged/forge`) | Location Type, subtype-dependent fields below | Pronouns, Callsign, Difficulty; GM First Look, Role, Disposition, Goal, Revealed Aspect |
+| Sundered Isles (`world:sundered_isles/sundered_isles`) | Location Type, Area Region, site-dependent fields below | Pronouns; GM First Look, Role, Disposition, Goal |
+| Santa Maria (`world:elegy/santa_maria`) | Location Type, Tags; GM Description | Pronouns, Tags; GM Traits, Occupation, Goal, Disposition |
 
 Ironlands suggests Settlement, Tower, Ruin, Camp. Species suggests Human, Elf,
 Giant, Varou, Troll. The three location bindings are classic place descriptor,
@@ -99,7 +116,7 @@ Santa Maria invent no Location Type suggestions. Elegy Description binds to
 ### Forge
 
 All subtypes are suggestions on the same Location Type field in one category.
-Location Type, Region, Planet Class, Planet Description, and Star Description
+Location Type, Region, Planet Class, and the shared Description
 are public; other location fields in this table are GM-only.
 
 | Location Type | Fields and oracle behavior |
@@ -110,6 +127,13 @@ are public; other location fields in this table are GM-only.
 | Star | Description (`starforged/space/stellar_object`) |
 | Derelict | Location (Planetside, Orbital, Deep Space suggestions); Type keyed by Location; Condition, Outer First Look, Inner First Look |
 | Vault | Location, Scale, Form, Shape, Material, Outer First Look; Interior First Look, Feature, Peril, Opportunity; Sanctum Purpose, Feature, Peril, Opportunity |
+
+Description uses the existing `starDescription` identity and OracleText storage:
+Planet has no roll binding; Star uses the stellar-object oracle. Location shares
+`settlementLocation` between settlements and Vault; Outer First Look shares
+`derelictOuterFirstLook` between Derelict and Vault. Each shared field selects
+its oracle through Location Type conditions. Derelict Location stays separate
+because it is a scalar condition source.
 
 Planet Class suggests Desert, Furnace, Grave, Ice, Jovian, Jungle, Ocean, Rocky,
 Shattered, Tainted, and Vital, each suffixed with “World”. Difficulty suggests Troublesome, Dangerous,
@@ -134,6 +158,9 @@ nearest Area's Region, including nested Areas. Site-specific fields are GM-only.
 | Cave | Cave Type, Threshold, Lurking Threat |
 | Ruin | Location, First Look, Condition |
 
+Location, First Look, Details, and Size each use one definition across their
+applicable site types, with conditional oracle bindings. Retained keys are
+`settlementLocation`, `settlementFirstLook`, `settlementDetails`, and `islandSize`.
 Island Vitality and Settlement Size select Myriads/Margins/Reaches oracle
 variants; missing Area context leaves them editable without a roll button.
 NPC Role and Goal use the plural paths `character/roles` and `character/goals`.
@@ -144,7 +171,9 @@ The standalone package scope includes **Starforged plus Sundered Isles**.
 The picker defaults to the world's effective playset: the union of linked-game
 playsets, or setting packages plus existing binding packages when standalone.
 Inherited defaults follow the current effective playset. The catalog applies
-replacements and surfaces deterministic replacement collisions.
+replacements and surfaces deterministic replacement collisions. The picker
+presents a searchable collection tree, merging expansion enhancements into
+their base collections rather than listing separate package sections.
 **All packages** expands choices to currently registered packages. Selecting an
 outside package does not modify game curation. **Exact** permits the original
 oracle despite replacement rules. Private homebrew read grants remain H work.
@@ -210,8 +239,25 @@ node supabase/tests/generate-static-world-catalog.mjs --output 'supabase/migrati
 
 Replace `<timestamp>` with a new migration timestamp. Keep the
 `_world_static_catalog.sql` suffix so the drift check discovers the latest catalog.
-Do not overwrite an applied migration. `npm run check:world-defaults` verifies
-that the latest generated catalog matches TypeScript; `npm run build` includes
+Do not overwrite an applied migration. If a release removes/retypes identities,
+add its preservation prelude at `supabase/world-catalog-releases/<timestamp>.sql`.
+The generator includes that file before replacing the catalog and refreshing
+inherited value visibility. The entire generated migration must execute in one
+transaction; standalone psql runs must use `--single-transaction`.
+
+The 20260927010000 release removes GM Notes and merges equivalent conditional
+fields. Before replacing the catalog, it holds an ACCESS EXCLUSIVE lock on worlds
+(entry/value guards also acquire world locks) and copies the complete old trusted
+configuration only for inherited worlds with values on retired identities.
+Those worlds become independent custom configurations. Value UUIDs, scalar/Yjs
+bytes, storage types, and GM privacy remain intact; no values are converted or
+merged. Existing custom worlds and inherited worlds without affected values
+remain unchanged. The old trusted catalog contains raw oracle bindings, not the
+browser's current linked-playset replacement results. Safety-frozen worlds may
+therefore show pending binding divergence and need deliberate oracle reselection.
+
+`npm run check:world-defaults` verifies that the latest generated catalog
+matches TypeScript; `npm run build` includes
 this gate.
 
 Run these checks from the repository root; this is a verification checklist,
@@ -224,6 +270,15 @@ npm run check:world-defaults
 npx vitest run src/lib/__tests__/worldTemplates.test.ts src/lib/__tests__/worldFieldRules.test.ts src/lib/__tests__/worldOracleCatalog.test.ts src/components/worlds/categories/__tests__
 supabase test db
 npm run build
+```
+
+The old-to-new catalog preservation regression lives outside normal test discovery
+because it temporarily reinstalls the previous catalog. Run it against an isolated
+migrated clone with a role that owns the catalog functions; all fixture changes
+roll back. Use `-f` so its relative migration includes resolve correctly:
+
+```sh
+psql --dbname=<isolated-test-database> -v ON_ERROR_STOP=1 -f supabase/upgrade-tests/world_catalog_upgrade.sql
 ```
 
 Database tests require a local Supabase instance with the migrations applied.

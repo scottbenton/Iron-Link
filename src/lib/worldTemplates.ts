@@ -17,7 +17,6 @@ import {
   type TemplateField,
   type WorldTemplateManifest,
   field,
-  notes,
   pronouns,
   tags,
 } from "./worldTemplates/shared";
@@ -47,9 +46,8 @@ export function buildWorldTemplate(
   let locations: TemplateField[] = [
     field("locationType", "Location Type"),
     tags(),
-    notes(),
   ];
-  let npcs: TemplateField[] = [pronouns(), tags(), notes()];
+  let npcs: TemplateField[] = [pronouns(), tags()];
   switch (settingKey) {
     case "world:classic/ironlands":
       locations = ironlandsLocations();
@@ -99,7 +97,7 @@ export function buildWorldTemplate(
         key: "lore",
         name: "Lore",
         icon: { key: "GiBookCover", color: IconColors.Purple },
-        fields: [tags(), notes()],
+        fields: [tags()],
       },
     ].map((category, categoryIndex) => {
       const ids = Object.fromEntries(

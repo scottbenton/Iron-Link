@@ -4,7 +4,7 @@ import {
   equals,
   field,
   locationField,
-  notes,
+  mergeLocationFields,
   pronouns,
   regionCondition,
   tags,
@@ -27,7 +27,6 @@ export function ironlandsLocations(): TemplateField[] {
       oracle: "classic/place/location",
       gmOnly: true,
     }),
-    notes(),
   ];
 }
 export function ironlandsNpcs(): TemplateField[] {
@@ -43,7 +42,6 @@ export function ironlandsNpcs(): TemplateField[] {
     ].map(([key, label]) =>
       field(key, label, { oracle: `classic/character/${key}`, gmOnly: true }),
     ),
-    notes(),
   ];
 }
 export function islesLocations(): TemplateField[] {
@@ -111,7 +109,12 @@ export function islesLocations(): TemplateField[] {
     );
     fields.push(definition);
   }
-  return [...fields, notes()];
+  return mergeLocationFields(fields, [
+    ["settlementLocation", "shipwreckLocation", "ruinLocation"],
+    ["settlementFirstLook", "shipwreckFirstLook", "ruinFirstLook"],
+    ["settlementDetails", "shipwreckDetails"],
+    ["islandSize", "settlementSize"],
+  ]);
 }
 export function islesNpcs(): TemplateField[] {
   return [
@@ -127,7 +130,6 @@ export function islesNpcs(): TemplateField[] {
         gmOnly: true,
       }),
     ),
-    notes(),
   ];
 }
 export function elegyLocations(): TemplateField[] {
@@ -138,7 +140,6 @@ export function elegyLocations(): TemplateField[] {
       oracle: "elegy/text/generic",
       gmOnly: true,
     }),
-    notes(),
   ];
 }
 export function elegyNpcs(): TemplateField[] {
@@ -153,6 +154,5 @@ export function elegyNpcs(): TemplateField[] {
     ].map(([key, label]) =>
       field(key, label, { oracle: `elegy/character/${key}`, gmOnly: true }),
     ),
-    notes(),
   ];
 }

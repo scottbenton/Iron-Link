@@ -5,7 +5,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
   FormControlLabel,
   MenuItem,
   Stack,
@@ -15,6 +14,8 @@ import {
 import deepEqual from "fast-deep-equal";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 
 import {
   areWorldFieldTypesCompatible,
@@ -28,7 +29,7 @@ import {
 } from "services/worldFieldDefinitions.service";
 
 import { WorldFieldFallbackEditor } from "./WorldFieldFallbackEditor";
-import { WorldFieldRuleEditor } from "./WorldFieldRuleEditor";
+import { WorldFieldRulesEditor } from "./WorldFieldRulesEditor";
 import {
   editorError,
   fieldChoiceLabel,
@@ -83,16 +84,14 @@ export function WorldFieldEditor({
     gmDependency,
     affected,
   } = validateFieldDraft(draft, fields, field?.id, incompatible);
+  const selectableSources = sourceFields.filter(
+    (source) => draft.gmOnly || !source.gmOnly,
+  );
   const configuration = (changes: Partial<FieldDraft["configuration"]>) =>
     setDraft({
       ...draft,
       configuration: { ...draft.configuration, ...changes },
     });
-  const moveRule = (index: number, offset: number) => {
-    const next = [...rules];
-    [next[index], next[index + offset]] = [next[index + offset], next[index]];
-    configuration({ rules: next });
-  };
   const save = async (createNew = false) => {
     if (!createNew && !hasChanges) return;
     setSaving(true);
@@ -116,174 +115,150 @@ export function WorldFieldEditor({
   };
   return (
     <Dialog open fullWidth maxWidth="md" onClose={saving ? undefined : onClose}>
-      <DialogTitle>
+      <DialogTitleWithCloseButton onClose={() => !saving && onClose()}>
         {readOnly
           ? t("worlds.fields.view", "Field configuration")
           : field
             ? t("worlds.fields.edit", "Edit field")
             : t("worlds.fields.add", "Add field")}
-      </DialogTitle>
+      </DialogTitleWithCloseButton>
       <DialogContent>
-        <Stack spacing={2} sx={{ pt: 1 }}>
+        <Stack spacing={4} sx={{ pt: 1, pb: 1 }}>
           {error && <Alert severity="error">{error}</Alert>}
-          <TextField
-            autoFocus
-            required
-            label={t("worlds.fields.label", "Field label")}
-            value={draft.label}
-            disabled={disabled}
-            onChange={(event) =>
-              setDraft({ ...draft, label: event.target.value })
-            }
-          />
-          <TextField
-            select
-            label={t("worlds.fields.type", "Field type")}
-            value={draft.type}
-            disabled={disabled}
-            onChange={(event) =>
-              setDraft({ ...draft, type: event.target.value as WorldFieldType })
-            }
-          >
-            <MenuItem value={WorldFieldType.Text}>
-              {t("worlds.fields.text", "Text")}
-            </MenuItem>
-            <MenuItem value={WorldFieldType.RichText}>
-              {t("worlds.fields.rich-text", "Rich text")}
-            </MenuItem>
-            <MenuItem value={WorldFieldType.OracleText}>
-              {t("worlds.fields.oracle-text", "Oracle text")}
-            </MenuItem>
-            <MenuItem value={WorldFieldType.Tags}>
-              {t("worlds.fields.tags", "Tags")}
-            </MenuItem>
-            <MenuItem value={WorldFieldType.Number}>
-              {t("worlds.fields.number", "Number")}
-            </MenuItem>
-          </TextField>
-          {incompatible && (
-            <Alert severity="warning">
-              {t(
-                "worlds.fields.incompatible-type",
-                "This field has {{count}} stored values. This type change cannot preserve them. Create a new field to keep the existing field and its values.",
-                { count: valueCount },
-              )}
-            </Alert>
-          )}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={draft.gmOnly}
-                disabled={disabled}
-                onChange={(_, checked) =>
-                  setDraft({ ...draft, gmOnly: checked })
-                }
-              />
-            }
-            label={t(
-              "worlds.fields.gm-only",
-              "GM only (also changes access to existing values)",
+          <Stack spacing={2} component="section">
+            <Typography variant="h6">
+              {t("worlds.fields.details", "Field details")}
+            </Typography>
+            <TextField
+              autoFocus
+              required
+              label={t("worlds.fields.label", "Field label")}
+              value={draft.label}
+              disabled={disabled}
+              onChange={(event) =>
+                setDraft({ ...draft, label: event.target.value })
+              }
+            />
+            <TextField
+              select
+              label={t("worlds.fields.type", "Field type")}
+              value={draft.type}
+              disabled={disabled}
+              onChange={(event) =>
+                setDraft({
+                  ...draft,
+                  type: event.target.value as WorldFieldType,
+                })
+              }
+            >
+              <MenuItem value={WorldFieldType.Text}>
+                {t("worlds.fields.text", "Text")}
+              </MenuItem>
+              <MenuItem value={WorldFieldType.RichText}>
+                {t("worlds.fields.rich-text", "Rich text")}
+              </MenuItem>
+              <MenuItem value={WorldFieldType.OracleText}>
+                {t("worlds.fields.oracle-text", "Oracle text")}
+              </MenuItem>
+              <MenuItem value={WorldFieldType.Tags}>
+                {t("worlds.fields.tags", "Tags")}
+              </MenuItem>
+              <MenuItem value={WorldFieldType.Number}>
+                {t("worlds.fields.number", "Number")}
+              </MenuItem>
+            </TextField>
+            {incompatible && (
+              <Alert severity="warning">
+                {t(
+                  "worlds.fields.incompatible-type",
+                  "This field has {{count}} stored values. This type change cannot preserve them. Create a new field to keep the existing field and its values.",
+                  { count: valueCount },
+                )}
+              </Alert>
             )}
-          />
-          {gmDependency && (
-            <Alert severity="error">
-              {t(
-                "worlds.fields.gm-dependency",
-                "This field uses a GM-only source. Make this field GM only or choose another source.",
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={draft.gmOnly}
+                  disabled={disabled}
+                  onChange={(_, checked) =>
+                    setDraft({ ...draft, gmOnly: checked })
+                  }
+                />
+              }
+              label={t(
+                "worlds.fields.gm-only",
+                "GM only (also changes access to existing values)",
               )}
-            </Alert>
-          )}
-          {affected.length > 0 && (
-            <Alert severity="error">
-              {t(
-                "worlds.fields.affected-dependents",
-                "This change would invalidate conditions in {{fields}}. Update their conditions or GM visibility first.",
-                {
-                  fields: affected
-                    .map((dependent) => fieldChoiceLabel(dependent, fields))
-                    .join(", "),
-                },
-              )}
-            </Alert>
-          )}
+            />
+            {gmDependency && (
+              <Alert severity="error">
+                {t(
+                  "worlds.fields.gm-dependency",
+                  "This field uses a GM-only source. Make this field GM only or choose another source.",
+                )}
+              </Alert>
+            )}
+            {affected.length > 0 && (
+              <Alert severity="error">
+                {t(
+                  "worlds.fields.affected-dependents",
+                  "This change would invalidate conditions in {{fields}}. Update their conditions or GM visibility first.",
+                  {
+                    fields: affected
+                      .map((dependent) => fieldChoiceLabel(dependent, fields))
+                      .join(", "),
+                  },
+                )}
+              </Alert>
+            )}
+          </Stack>
           <WorldFieldFallbackEditor
             worldId={worldId}
             draft={draft}
             disabled={disabled}
             onChange={setDraft}
           />
-          <Typography variant="h6">
-            {t("worlds.fields.rules", "Conditional rules")}
-          </Typography>
-          <Typography color="text.secondary">
-            {t(
-              "worlds.fields.rule-order",
-              "Rules are checked from top to bottom. The first matching rule wins.",
-            )}
-          </Typography>
-          {invalidRuleLabel && (
-            <Alert severity="warning">
-              {t(
-                "worlds.fields.invalid-rule-label",
-                "Enter a label for every enabled label override, or turn off the override.",
-              )}
-            </Alert>
-          )}
-          {invalidCondition && (
-            <Alert severity="warning">
-              {t(
-                "worlds.fields.invalid-conditions",
-                "Every rule needs at least one valid condition. Choose the missing source or ancestor selector before saving.",
-              )}
-            </Alert>
-          )}
-          {rules.map((rule, index) => (
-            <WorldFieldRuleEditor
-              key={index}
-              worldId={worldId}
-              rule={rule}
-              fields={sourceFields}
-              index={index}
-              disabled={disabled}
-              onChange={(next) =>
-                configuration({
-                  rules: rules.map((item, i) => (i === index ? next : item)),
-                })
-              }
-              onRemove={() =>
-                configuration({ rules: rules.filter((_, i) => i !== index) })
-              }
-              onMoveUp={index > 0 ? () => moveRule(index, -1) : undefined}
-              onMoveDown={
-                index < rules.length - 1 ? () => moveRule(index, 1) : undefined
-              }
-            />
-          ))}
-          {!readOnly && (
-            <Button
-              disabled={saving || rules.length >= 64}
-              onClick={() =>
-                configuration({ rules: [...rules, { conditions: [] }] })
-              }
-            >
-              {t("worlds.fields.add-rule", "Add rule")}
-            </Button>
-          )}
-          {field && (
-            <details>
-              <summary>
-                {t("worlds.fields.advanced", "Advanced identity")}
-              </summary>
-              <Typography variant="body2">
-                {t("worlds.fields.stable-key", "Import/export key: {{key}}", {
-                  key: field.key,
-                })}
+          <Stack spacing={2} component="section">
+            <Stack spacing={0.5}>
+              <Typography variant="h6">
+                {t("worlds.fields.rules", "Conditional rules")}
               </Typography>
-            </details>
-          )}
+              <Typography variant="body2" color="text.secondary">
+                {t(
+                  "worlds.fields.rule-order",
+                  "Rules are checked from top to bottom. The first matching rule wins.",
+                )}
+              </Typography>
+            </Stack>
+            {invalidRuleLabel && (
+              <Alert severity="warning">
+                {t(
+                  "worlds.fields.invalid-rule-label",
+                  "Enter a label for every enabled label override, or turn off the override.",
+                )}
+              </Alert>
+            )}
+            {invalidCondition && (
+              <Alert severity="warning">
+                {t(
+                  "worlds.fields.invalid-conditions",
+                  "Every rule needs at least one valid condition. Choose the missing source or ancestor selector before saving.",
+                )}
+              </Alert>
+            )}
+            <WorldFieldRulesEditor
+              worldId={worldId}
+              rules={rules}
+              fields={selectableSources}
+              disabled={disabled}
+              readOnly={readOnly}
+              onChange={(rules) => configuration({ rules })}
+            />
+          </Stack>
         </Stack>
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ px: 3, py: 2 }}>
         <Button disabled={saving} onClick={onClose}>
           {readOnly ? t("common.close", "Close") : t("common.cancel", "Cancel")}
         </Button>

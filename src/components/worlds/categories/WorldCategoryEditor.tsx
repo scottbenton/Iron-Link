@@ -5,7 +5,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
   FormControlLabel,
   MenuItem,
   Stack,
@@ -15,14 +14,15 @@ import deepEqual from "fast-deep-equal";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { IconColors, IconDefinition } from "types/Icon.type";
+import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
+
+import { IconDefinition } from "types/Icon.type";
 
 import { IWorldCategory } from "services/worldCategories.service";
 import { IWorldFieldDefinition } from "services/worldFieldDefinitions.service";
 
-import { WorldCategoryIcon } from "./WorldCategoryIcon";
+import { WorldCategoryIconPicker } from "./WorldCategoryIconPicker";
 import { editorError, fieldChoiceLabel } from "./categoryEditor.utils";
-import { CATEGORY_ICONS } from "./categoryIcons";
 
 export interface CategoryDraft {
   name: string;
@@ -84,13 +84,13 @@ export function WorldCategoryEditor({
   };
   return (
     <Dialog open fullWidth maxWidth="sm" onClose={saving ? undefined : onClose}>
-      <DialogTitle>
+      <DialogTitleWithCloseButton onClose={() => !saving && onClose()}>
         {readOnly
           ? t("worlds.categories.view", "Category configuration")
           : category
             ? t("worlds.categories.edit", "Edit category")
             : t("worlds.categories.add", "Add category")}
-      </DialogTitle>
+      </DialogTitleWithCloseButton>
       <DialogContent>
         <Stack spacing={2} sx={{ pt: 1 }}>
           {error && <Alert severity="error">{error}</Alert>}
@@ -104,58 +104,13 @@ export function WorldCategoryEditor({
             }
             disabled={saving || readOnly}
           />
-          <TextField
-            select
-            label={t("worlds.categories.icon", "Category icon")}
-            value={draft.icon.key ?? ""}
-            onChange={(event) =>
-              setDraft({
-                ...draft,
-                icon: { ...draft.icon, key: event.target.value || null },
-              })
+          <WorldCategoryIconPicker
+            value={draft.icon}
+            onChange={(icon) =>
+              setDraft({ ...draft, icon: icon ?? { key: null, color: null } })
             }
             disabled={saving || readOnly}
-          >
-            <MenuItem value="">{t("common.none", "None")}</MenuItem>
-            {draft.icon.key &&
-              !CATEGORY_ICONS.some(
-                (choice) => choice.key === draft.icon.key,
-              ) && (
-                <MenuItem value={draft.icon.key}>
-                  {t("worlds.categories.custom-icon", "Custom icon")}
-                </MenuItem>
-              )}
-            {CATEGORY_ICONS.map((choice) => (
-              <MenuItem key={choice.key} value={choice.key}>
-                <WorldCategoryIcon
-                  icon={{ key: choice.key, color: draft.icon.color }}
-                />{" "}
-                {t(`worlds.categories.icon-${choice.key}`, choice.label)}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            select
-            label={t("worlds.categories.icon-color", "Icon color")}
-            value={draft.icon.color ?? ""}
-            onChange={(event) =>
-              setDraft({
-                ...draft,
-                icon: {
-                  ...draft.icon,
-                  color: (event.target.value || null) as IconColors | null,
-                },
-              })
-            }
-            disabled={saving || readOnly}
-          >
-            <MenuItem value="">{t("common.default", "Default")}</MenuItem>
-            {Object.values(IconColors).map((color) => (
-              <MenuItem key={color} value={color}>
-                {color}
-              </MenuItem>
-            ))}
-          </TextField>
+          />
           <FormControlLabel
             control={
               <Checkbox
@@ -218,7 +173,7 @@ export function WorldCategoryEditor({
           )}
         </Stack>
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ px: 3, py: 2 }}>
         <Button disabled={saving} onClick={onClose}>
           {readOnly ? t("common.close", "Close") : t("common.cancel", "Cancel")}
         </Button>

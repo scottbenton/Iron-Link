@@ -1,6 +1,7 @@
 import {
   Checkbox,
   FormControlLabel,
+  Stack,
   TextField,
   Typography,
 } from "@mui/material";
@@ -32,16 +33,18 @@ export function WorldFieldFallbackEditor({
       configuration: { ...draft.configuration, ...changes },
     });
   return (
-    <>
-      <Typography variant="h6">
-        {t("worlds.fields.fallback", "Fallback presentation and oracle")}
-      </Typography>
-      <Typography color="text.secondary">
-        {t(
-          "worlds.fields.fallback-description",
-          "These settings apply when no rule matches. A matching rule inherits any setting it does not override.",
-        )}
-      </Typography>
+    <Stack spacing={2} component="section">
+      <Stack spacing={0.5}>
+        <Typography variant="h6">
+          {t("worlds.fields.fallback", "Fallback presentation and oracle")}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {t(
+            "worlds.fields.fallback-description",
+            "These settings apply when no rule matches. A matching rule inherits any setting it does not override.",
+          )}
+        </Typography>
+      </Stack>
       <FormControlLabel
         control={
           <Checkbox
@@ -56,7 +59,12 @@ export function WorldFieldFallbackEditor({
         label={t("worlds.fields.help-text", "Help text")}
         value={draft.configuration.helpText}
         multiline
+        minRows={2}
         disabled={disabled}
+        helperText={t(
+          "worlds.fields.help-text-description",
+          "Guidance shown beneath this field on entries.",
+        )}
         onChange={(event) => configuration({ helpText: event.target.value })}
       />
       {draft.type === WorldFieldType.Text && (
@@ -83,6 +91,6 @@ export function WorldFieldFallbackEditor({
           onChange({ ...draft, binding })
         }
       />
-    </>
+    </Stack>
   );
 }

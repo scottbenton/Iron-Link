@@ -4,7 +4,7 @@ import {
   equals,
   field,
   locationField,
-  notes,
+  mergeLocationFields,
   pronouns,
   ranks,
   regionCondition,
@@ -57,10 +57,16 @@ export function forgeLocations(): TemplateField[] {
         { conditions: [equals("locationType", "Planet")], visible: true },
       ],
     }),
-    field("planetDescription", "Description", {
+    field("starDescription", "Description", {
+      type: "oracleText",
       visible: false,
       rules: [
         { conditions: [equals("locationType", "Planet")], visible: true },
+        {
+          conditions: [equals("locationType", "Star")],
+          visible: true,
+          binding: binding("starforged/space/stellar_object"),
+        },
       ],
     }),
   ];
@@ -138,14 +144,6 @@ export function forgeLocations(): TemplateField[] {
     ),
   );
   fields.push(population);
-  const star = locationField(
-    "starDescription",
-    "Description",
-    ["Star"],
-    "starforged/space/stellar_object",
-  );
-  star.gm_only = false;
-  fields.push(star);
   const derelictLocation = locationField(
     "derelictLocation",
     "Location",
@@ -206,7 +204,10 @@ export function forgeLocations(): TemplateField[] {
         `starforged/precursor_vault/${path}`,
       ),
     );
-  return [...fields, notes()];
+  return mergeLocationFields(fields, [
+    ["settlementLocation", "vaultLocation"],
+    ["derelictOuterFirstLook", "vaultOuterFirstLook"],
+  ]);
 }
 export function forgeNpcs(): TemplateField[] {
   return [
@@ -227,6 +228,5 @@ export function forgeNpcs(): TemplateField[] {
         gmOnly: true,
       }),
     ),
-    notes(),
   ];
 }

@@ -1,24 +1,23 @@
 import {
   Alert,
-  Autocomplete,
   Box,
   Button,
   Checkbox,
   FormControlLabel,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
   getFrozenWorldOracleBinding,
-  getWorldOracleChoices,
   pinWorldOracleChoice,
 } from "lib/worldOracleCatalog";
 
 import type { OracleBinding } from "services/worldFieldDefinitions.service";
 
+import { WorldOracleTreePicker } from "./WorldOracleTreePicker";
 import { useWorldOracleContext } from "./worldOracleContext";
 
 export function WorldOracleBindingPicker({
@@ -38,48 +37,43 @@ export function WorldOracleBindingPicker({
   const selected = catalog?.choices.find(
     (choice) => choice.id === value?.oracleId,
   );
-  const choices = catalog
-    ? getWorldOracleChoices(catalog, context.allPackages, value?.exact)
-    : [];
-  if (selected && !choices.some((choice) => choice.id === selected.id))
-    choices.push(selected);
-  choices.sort(
-    (a, b) =>
-      a.packageName.localeCompare(b.packageName) ||
-      a.label.localeCompare(b.label),
-  );
+  const [choosing, setChoosing] = useState(false);
   const frozen =
     catalog && value ? getFrozenWorldOracleBinding(value, catalog) : null;
   return (
     <Stack spacing={1}>
-      <Autocomplete
-        options={choices}
-        value={selected ?? null}
-        getOptionLabel={(choice) => choice.label}
-        getOptionKey={(choice) => choice.id}
-        isOptionEqualToValue={(a, b) => a.id === b.id}
-        groupBy={(choice) => choice.packageName}
-        loading={context.loading}
+      <Typography variant="subtitle2">
+        {t("worlds.fields.oracle", "Oracle binding")}
+      </Typography>
+      <Typography color="text.secondary">
+        {selected?.label ??
+          (value
+            ? t("worlds.fields.unavailable-oracle", "Unavailable oracle")
+            : t("worlds.fields.no-oracle", "No oracle selected"))}
+      </Typography>
+      <Button
+        variant="outlined"
+        sx={{ alignSelf: "flex-start" }}
         disabled={disabled || context.loading || !!context.error}
-        onChange={(_, choice) => {
-          const resolvedId =
-            choice && !value?.exact
-              ? catalog?.replacementMap[choice.id]
-              : undefined;
-          const resolved = resolvedId
-            ? catalog?.choices.find((candidate) => candidate.id === resolvedId)
-            : choice;
-          onChange(
-            resolved ? pinWorldOracleChoice(resolved, value?.exact) : null,
-          );
-        }}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label={t("worlds.fields.oracle", "Oracle binding")}
-          />
-        )}
-      />
+        onClick={() => setChoosing(!choosing)}
+      >
+        {choosing
+          ? t("worlds.fields.close-oracle-picker", "Close oracle picker")
+          : t("worlds.fields.choose-oracle", "Choose oracle")}
+      </Button>
+      {choosing && catalog && (
+        <WorldOracleTreePicker
+          catalog={catalog}
+          allPackages={context.allPackages}
+          exact={!!value?.exact}
+          selectedId={value?.oracleId}
+          disabled={disabled || context.loading || !!context.error}
+          onSelect={(choice) => {
+            onChange(pinWorldOracleChoice(choice, value?.exact));
+            setChoosing(false);
+          }}
+        />
+      )}
       <FormControlLabel
         control={
           <Checkbox
@@ -92,11 +86,6 @@ export function WorldOracleBindingPicker({
       />
       {value && (
         <>
-          {selected && (
-            <Typography variant="caption" color="text.secondary">
-              {selected.packageName} · {selected.label}
-            </Typography>
-          )}
           <Button
             disabled={disabled}
             onClick={() => onChange(null)}
@@ -132,13 +121,6 @@ export function WorldOracleBindingPicker({
                 "Use this exact oracle (ignore replacements)",
               )}
             />
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              display="block"
-            >
-              {value.resolvedOracleId}
-            </Typography>
           </Box>
         </>
       )}
@@ -188,7 +170,14 @@ export function WorldOracleBindingPicker({
             {t(
               "worlds.fields.replacement-collision",
               "Multiple oracles replace {{id}}. The deterministic choice is {{choice}}.",
-              { id, choice: candidates[0] },
+              {
+                id:
+                  catalog.choices.find((choice) => choice.id === id)?.label ??
+                  id,
+                choice:
+                  catalog.choices.find((choice) => choice.id === candidates[0])
+                    ?.label ?? candidates[0],
+              },
             )}
           </Alert>
         ))}

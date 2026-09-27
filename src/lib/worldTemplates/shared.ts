@@ -107,8 +107,68 @@ export function locationField(
     })),
   });
 }
-export const notes = () =>
-  field("gmNotes", "GM Notes", { type: "richText", gmOnly: true });
+
+/** Explicit groups retain their first key; bindings become conditional on location type. */
+export function mergeLocationFields(
+  fields: TemplateField[],
+  groups: string[][],
+): TemplateField[] {
+  let merged = fields;
+  for (const keys of groups) {
+    const definitions = keys.map((key) => {
+      const definition = merged.find((candidate) => candidate.key === key);
+      if (!definition) throw new Error(`Unknown merged location field: ${key}`);
+      return definition;
+    });
+    const retained = definitions[0];
+    if (
+      definitions.some(
+        (definition) =>
+          definition.label !== retained.label ||
+          definition.type !== retained.type ||
+          definition.gm_only !== retained.gm_only ||
+          definition.configuration.visible ||
+          definition.configuration.helpText !==
+            retained.configuration.helpText ||
+          definition.configuration.suggestions.length > 0,
+      ) ||
+      merged.some((definition) =>
+        definition.configuration.rules.some((rule) =>
+          rule.conditions.some(
+            (condition) =>
+              keys.includes(condition.fieldId) ||
+              (condition.ancestor && keys.includes(condition.ancestor.fieldId)),
+          ),
+        ),
+      )
+    )
+      throw new Error(
+        `Incompatible merged location fields: ${keys.join(", ")}`,
+      );
+    const replacement: TemplateField = {
+      ...retained,
+      binding: null,
+      configuration: {
+        ...retained.configuration,
+        rules: definitions.flatMap((definition) =>
+          definition.configuration.rules.map((rule) => ({
+            ...rule,
+            binding:
+              rule.binding === undefined ? definition.binding : rule.binding,
+          })),
+        ),
+      },
+    };
+    merged = merged.flatMap((definition) =>
+      definition.key === retained.key
+        ? [replacement]
+        : keys.includes(definition.key)
+          ? []
+          : [definition],
+    );
+  }
+  return merged;
+}
 export const tags = () => field("tags", "Tags", { type: "tags" });
 export const pronouns = () => field("pronouns", "Pronouns");
 export const ranks = [

@@ -176,12 +176,163 @@ describe("world templates", () => {
     expect(
       domainField(
         buildWorldTemplate("world:starforged/forge", worldId),
-        "vaultOuterFirstLook",
+        "derelictOuterFirstLook",
       ).label,
     ).toBe("Outer First Look");
     expect(
       getWorldSettingPackageIds("world:sundered_isles/sundered_isles"),
     ).toEqual(["starforged", "sundered_isles"]);
+  });
+
+  it("omits extra GM Notes from every setting and keeps a single conditional Forge Description", () => {
+    for (const setting of settings) {
+      expect(
+        buildWorldTemplate(setting, worldId)
+          .categories.flatMap((category) => category.fields)
+          .some((field) => field.key === "gmNotes"),
+      ).toBe(false);
+    }
+    const template = buildWorldTemplate("world:starforged/forge", worldId);
+    const descriptions = template.categories[0].fields.filter(
+      (field) => field.label === "Description",
+    );
+    expect(descriptions).toHaveLength(1);
+    expect(descriptions[0]).toMatchObject({
+      key: "starDescription",
+      type: "oracleText",
+      gm_only: false,
+    });
+    const definition = domainField(template, "starDescription");
+    expect(
+      resolveFieldDefinition(definition, {
+        entry: entry(template, "planet", { locationType: "Planet" }),
+        entries: {},
+      }),
+    ).toMatchObject({ visible: true, binding: null });
+    expect(
+      resolveFieldDefinition(definition, {
+        entry: entry(template, "star", { locationType: "Star" }),
+        entries: {},
+      }),
+    ).toMatchObject({
+      visible: true,
+      binding: { oracleId: "oracle_rollable:starforged/space/stellar_object" },
+    });
+    expect(
+      resolveFieldDefinition(definition, {
+        entry: entry(template, "sector", { locationType: "Sector" }),
+        entries: {},
+      }).visible,
+    ).toBe(false);
+    // Derelict Location remains a separate scalar because Type conditions read it.
+    expect(domainField(template, "derelictLocation").type).toBe("text");
+    expect(
+      template.categories[0].fields.filter(
+        (field) => field.label === "Location",
+      ),
+    ).toHaveLength(2);
+  });
+
+  it.each([
+    [
+      "world:starforged/forge",
+      "settlementLocation",
+      "Planetside Settlement",
+      "starforged/settlement/location",
+    ],
+    [
+      "world:starforged/forge",
+      "settlementLocation",
+      "Vault",
+      "starforged/precursor_vault/location",
+    ],
+    [
+      "world:starforged/forge",
+      "derelictOuterFirstLook",
+      "Derelict",
+      "starforged/derelict/outer_first_look",
+    ],
+    [
+      "world:starforged/forge",
+      "derelictOuterFirstLook",
+      "Vault",
+      "starforged/precursor_vault/outer_first_look",
+    ],
+    [
+      "world:sundered_isles/sundered_isles",
+      "settlementLocation",
+      "Shipwreck",
+      "sundered_isles/shipwreck/location",
+    ],
+    [
+      "world:sundered_isles/sundered_isles",
+      "settlementLocation",
+      "Ruin",
+      "sundered_isles/ruin/location",
+    ],
+    [
+      "world:sundered_isles/sundered_isles",
+      "settlementFirstLook",
+      "Ruin",
+      "sundered_isles/ruin/first_look",
+    ],
+    [
+      "world:sundered_isles/sundered_isles",
+      "settlementDetails",
+      "Shipwreck",
+      "sundered_isles/shipwreck/details",
+    ],
+    [
+      "world:sundered_isles/sundered_isles",
+      "islandSize",
+      "Island",
+      "sundered_isles/island/landscape/size",
+    ],
+  ])("resolves merged %s %s for %s", (setting, key, locationType, oracle) => {
+    const template = buildWorldTemplate(setting, worldId);
+    expect(
+      resolveFieldDefinition(domainField(template, key), {
+        entry: entry(template, "entry", { locationType }),
+        entries: {},
+      }),
+    ).toMatchObject({
+      visible: true,
+      binding: { oracleId: `oracle_rollable:${oracle}` },
+    });
+  });
+
+  it("preserves regional settlement Size resolution and its editable fallback after merging", () => {
+    const template = buildWorldTemplate(
+      "world:sundered_isles/sundered_isles",
+      worldId,
+    );
+    const area = entry(template, "area", {
+      locationType: "Area",
+      region: "Reaches",
+    });
+    const settlement = entry(
+      template,
+      "settlement",
+      { locationType: "Settlement" },
+      "area",
+    );
+    const size = domainField(template, "islandSize");
+    expect(
+      resolveFieldDefinition(size, { entry: settlement, entries: { area } }),
+    ).toMatchObject({
+      visible: true,
+      binding: {
+        oracleId: "oracle_rollable:sundered_isles/settlement/size/reaches",
+      },
+    });
+    expect(
+      resolveFieldDefinition(size, { entry: settlement, entries: {} }),
+    ).toMatchObject({ visible: true, binding: null });
+    for (const label of ["Location", "First Look", "Details", "Size"]) {
+      expect(
+        template.categories[0].fields.filter((field) => field.label === label),
+      ).toHaveLength(1);
+    }
   });
 
   it("resolves Forge class and nearest Sector region; Void and missing inputs stay editable", () => {

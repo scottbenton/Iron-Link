@@ -42,7 +42,7 @@ describe("WorldFieldConditionEditor", () => {
     await user.click(
       screen.getByRole("combobox", { name: "Ancestor selector field" }),
     );
-    await user.click(screen.getByRole("option", { name: "Type (bbbbbbbb)" }));
+    await user.click(screen.getByRole("option", { name: "Type (Text, 2)" }));
     expect(onChange).toHaveBeenCalledWith({
       ...condition,
       ancestor: { fieldId: second.id, value: "Area" },

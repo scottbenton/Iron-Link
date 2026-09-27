@@ -20,7 +20,6 @@ const state = vi.hoisted(() => ({
   createCategory: vi.fn(),
   updateCategory: vi.fn(),
   deleteCategory: vi.fn(),
-  confirm: vi.fn(),
   oracle: {
     loading: false,
     error: undefined as string | undefined,
@@ -35,11 +34,13 @@ vi.mock("react-i18next", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-i18next")>()),
   useTranslation: () => ({ t: translate }),
 }));
-vi.mock("material-ui-confirm", () => ({ useConfirm: () => state.confirm }));
 vi.mock("stores/worldCategories.store", () => ({
   useListenToWorldCategories: vi.fn(),
   useWorldCategoriesStore: (selector: (store: typeof state) => unknown) =>
     selector(state),
+}));
+vi.mock("../WorldCategoryContents", () => ({
+  WorldCategoryContents: () => null,
 }));
 vi.mock("../WorldCategoryFields", () => ({ WorldCategoryFields: () => null }));
 
@@ -63,8 +64,16 @@ describe("WorldCategoryManager", () => {
     );
     expect(screen.getByRole("button", { name: "Add category" })).toBeDisabled();
     expect(
-      screen.getByRole("button", { name: "Edit category" }),
+      screen.queryByRole("button", { name: "Edit Locations" }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Configure" }));
+    expect(
+      screen.getByRole("button", { name: "Edit Locations" }),
     ).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Close Dialog" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
     state.oracle.loading = false;
     state.oracle.error = "Catalog unavailable";
     view.rerender(
@@ -99,12 +108,32 @@ describe("WorldCategoryManager", () => {
         permission={WorldPermission.Owner}
       />,
     );
-    await user.click(screen.getByRole("combobox", { name: "Category" }));
-    expect(
-      screen.getAllByRole("option").map((option) => option.textContent),
-    ).toEqual(["Locations", "NPCs"]);
-    await user.click(screen.getByRole("option", { name: "NPCs" }));
-    await user.click(screen.getByRole("button", { name: "Move category up" }));
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "Locations",
+      "NPCs",
+    ]);
+    await user.click(screen.getByRole("tab", { name: "NPCs" }));
+    await user.click(screen.getByRole("button", { name: "Configure" }));
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
+      function (this: HTMLElement) {
+        const top = this.closest('[aria-label="NPCs category"]') ? 100 : 0;
+        return {
+          top,
+          bottom: top + 80,
+          left: 0,
+          right: 400,
+          width: 400,
+          height: 80,
+          x: 0,
+          y: top,
+          toJSON: () => ({}),
+        };
+      },
+    );
+    screen.getByRole("button", { name: "Reorder NPCs" }).focus();
+    await user.keyboard("[Space]");
+    await user.keyboard("[ArrowUp]");
+    await user.keyboard("[Space]");
     await waitFor(() =>
       expect(reorder).toHaveBeenCalledWith([second.id, category.id]),
     );
@@ -122,9 +151,12 @@ describe("WorldCategoryManager", () => {
         permission={WorldPermission.Editor}
       />,
     );
-    await user.click(screen.getByRole("button", { name: "Delete category" }));
+    await user.click(screen.getByRole("button", { name: "Configure" }));
+    await user.click(screen.getByRole("button", { name: "Delete Locations" }));
     expect(await screen.findByText(/contains 2 entries/)).toBeInTheDocument();
-    expect(state.confirm).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole("dialog", { name: "Delete category" }),
+    ).not.toBeInTheDocument();
     expect(state.deleteCategory).not.toHaveBeenCalled();
   });
 
@@ -137,7 +169,7 @@ describe("WorldCategoryManager", () => {
     );
     expect(screen.getByRole("button", { name: "Add category" })).toBeEnabled();
     expect(
-      screen.queryByRole("button", { name: "Delete category" }),
+      screen.queryByRole("button", { name: "Delete Locations" }),
     ).not.toBeInTheDocument();
     state.categories = {};
     view.rerender(
