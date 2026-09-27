@@ -11,7 +11,7 @@ const temporary = await mkdtemp(path.join(tmpdir(), "iron-link-static-world-"));
 try {
   const outfile = path.join(temporary, "templates.mjs");
   await build({ absWorkingDir: root, entryPoints: ["src/lib/worldTemplates.ts"], tsconfig: "tsconfig.app.json", bundle: true, platform: "node", format: "esm", outfile });
-  const { buildWorldTemplate } = await import(pathToFileURL(outfile));
+  const { buildWorldTemplate, WORLD_TEMPLATE_CATEGORY_KEYS } = await import(pathToFileURL(outfile));
   const namespace = "00000000-0000-4000-8000-000000000000";
   const settings = [null,"world:classic/ironlands","world:starforged/forge","world:sundered_isles/sundered_isles","world:elegy/santa_maria"];
   const catalog = Object.fromEntries(settings.map(setting => [setting ?? "blank", buildWorldTemplate(setting, namespace)]));
@@ -38,7 +38,7 @@ begin
   template := coalesce(catalog->p_setting_key,catalog->'blank');
   rewritten := template::text;
   for category in select value from jsonb_array_elements(template->'categories') loop
-    category_key := case category->>'id' ${['locations','npcs','lore'].map(key => `when '${uuid('category:'+key,namespace)}' then '${key}'`).join(' ')} end;
+    category_key := case category->>'id' ${WORLD_TEMPLATE_CATEGORY_KEYS.map(key => `when '${uuid('category:'+key,namespace)}' then '${key}'`).join(' ')} end;
     if category_key is null then raise exception 'Unknown static category identity'; end if;
     rewritten := replace(rewritten, category->>'id', extensions.uuid_generate_v5(p_world_id,'category:' || category_key)::text);
     for field in select value from jsonb_array_elements(category->'fields') loop

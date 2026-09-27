@@ -28,8 +28,9 @@ const settings = [
 function domainField(
   template: ReturnType<typeof buildWorldTemplate>,
   key: string,
+  categoryIndex = 0,
 ): IWorldFieldDefinition {
-  const category = template.categories[0];
+  const category = template.categories[categoryIndex];
   const field = category.fields.find((field) => field.key === key)!;
   return {
     ...field,
@@ -44,13 +45,14 @@ function entry(
   id: string,
   values: Record<string, string>,
   parentId?: string,
+  categoryIndex = 0,
 ): WorldFieldEntrySnapshot {
   return {
     id,
     parentId,
     values: Object.fromEntries(
       Object.entries(values).map(([key, value]) => [
-        domainField(template, key).id,
+        domainField(template, key, categoryIndex).id,
         value,
       ]),
     ),
@@ -67,6 +69,12 @@ describe("world templates", () => {
         "Locations",
         "NPCs",
         "Lore",
+        ...([
+          "world:starforged/forge",
+          "world:sundered_isles/sundered_isles",
+        ].includes(setting ?? "")
+          ? ["Factions"]
+          : []),
       ]);
       const ids: string[] = [];
       for (const category of manifest.categories) {
@@ -106,6 +114,178 @@ describe("world templates", () => {
       expect(manifest.categories[0].fields[0].type).toBe("text");
     },
   );
+
+  it.each(["world:starforged/forge", "world:sundered_isles/sundered_isles"])(
+    "appends Factions in %s without inheriting location capabilities",
+    (setting) => {
+      const manifest = buildWorldTemplate(setting, worldId);
+      const factions = manifest.categories[3];
+      expect(
+        manifest.categories.slice(0, 3).map((category) => ({
+          name: category.name,
+          order: category.sort_order,
+          hierarchy: category.supports_hierarchy,
+          map: category.supports_map,
+          bonds: category.supports_bonds,
+        })),
+      ).toEqual([
+        {
+          name: "Locations",
+          order: 0,
+          hierarchy: true,
+          map: true,
+          bonds: true,
+        },
+        { name: "NPCs", order: 1, hierarchy: false, map: false, bonds: true },
+        { name: "Lore", order: 2, hierarchy: false, map: false, bonds: false },
+      ]);
+      expect(factions).toMatchObject({
+        name: "Factions",
+        sort_order: 3,
+        supports_hierarchy: false,
+        supports_map: false,
+        supports_bonds: false,
+      });
+      expect(factions.subtitle_field_definition_id).toBe(
+        domainField(manifest, "factionType", 3).id,
+      );
+      expect(
+        factions.fields
+          .filter((field) => !field.gm_only)
+          .map((field) => field.key),
+      ).toEqual(["factionType", "influence"]);
+      expect(
+        factions.fields.some((field) =>
+          ["name", "notes", "gmNotes"].includes(field.key),
+        ),
+      ).toBe(false);
+    },
+  );
+
+  it.each([
+    ["Dominion", "focus", "dominion", "Focus"],
+    ["Guild", "focus", "guild", "Specialty"],
+    ["Fringe Group", "focus", "fringe_group", "Role"],
+    ["Dominion", "leadership", "dominion_leadership", "Leadership"],
+  ])(
+    "resolves Forge %s %s against its own oracle",
+    (factionType, key, oracle, label) => {
+      const manifest = buildWorldTemplate("world:starforged/forge", worldId);
+      expect(
+        resolveFieldDefinition(domainField(manifest, key, 3), {
+          entry: entry(manifest, "faction", { factionType }, undefined, 3),
+          entries: {},
+        }),
+      ).toMatchObject({
+        visible: true,
+        label,
+        binding: { oracleId: `oracle_rollable:starforged/faction/${oracle}` },
+      });
+    },
+  );
+
+  it.each([
+    ["Society", "chronicles", "society/chronicles"],
+    ["Society", "leadership", "society/overseers"],
+    ["Society", "touchstones", "society/touchstones"],
+    ["Organization", "role", "organization/type"],
+    ["Organization", "methods", "organization/methods"],
+    ["Organization", "secrets", "organization/secrets"],
+    ["Empire", "leadership", "empire/leadership"],
+    ["Empire", "tactics", "empire/tactics"],
+    ["Empire", "vulnerabilities", "empire/vulnerabilities"],
+    ["The Cursed", "role", "cursed/role"],
+  ])(
+    "resolves Isles %s %s against its own oracle",
+    (factionType, key, oracle) => {
+      const manifest = buildWorldTemplate(
+        "world:sundered_isles/sundered_isles",
+        worldId,
+      );
+      expect(
+        resolveFieldDefinition(domainField(manifest, key, 3), {
+          entry: entry(manifest, "faction", { factionType }, undefined, 3),
+          entries: {},
+        }),
+      ).toMatchObject({
+        visible: true,
+        binding: {
+          oracleId: `oracle_rollable:sundered_isles/faction/${oracle}`,
+        },
+      });
+    },
+  );
+
+  it("keeps custom faction types valid without borrowing another type's fields", () => {
+    for (const setting of [
+      "world:starforged/forge",
+      "world:sundered_isles/sundered_isles",
+    ]) {
+      const manifest = buildWorldTemplate(setting, worldId);
+      const custom = entry(
+        manifest,
+        "custom",
+        { factionType: "Free Company" },
+        undefined,
+        3,
+      );
+      const type = domainField(manifest, "factionType", 3);
+      expect(type.type).toBe("text");
+      expect(type.configuration.suggestions.length).toBeGreaterThan(0);
+      for (const field of manifest.categories[3].fields.filter(
+        (field) => field.configuration.rules.length,
+      )) {
+        expect(
+          resolveFieldDefinition(domainField(manifest, field.key, 3), {
+            entry: custom,
+            entries: {},
+          }).visible,
+        ).toBe(false);
+      }
+    }
+  });
+
+  it("distinguishes The Cursed from cursed ordinary factions and keeps its modifier private", () => {
+    const manifest = buildWorldTemplate(
+      "world:sundered_isles/sundered_isles",
+      worldId,
+    );
+    const resolve = (key: string, factionType: string, cursed: string) =>
+      resolveFieldDefinition(domainField(manifest, key, 3), {
+        entry: entry(
+          manifest,
+          "faction",
+          { factionType, cursed },
+          undefined,
+          3,
+        ),
+        entries: {},
+      });
+    expect(domainField(manifest, "cursed", 3)).toMatchObject({
+      type: "text",
+      gmOnly: true,
+      binding: null,
+    });
+    expect(resolve("cursedAspects", "Society", "No").visible).toBe(false);
+    for (const factionType of [
+      "Society",
+      "Organization",
+      "Empire",
+      "Custom type",
+    ]) {
+      expect(resolve("cursedAspects", factionType, "Yes")).toMatchObject({
+        visible: true,
+        binding: {
+          oracleId: "oracle_rollable:sundered_isles/faction/cursed/aspects",
+        },
+      });
+    }
+    expect(resolve("cursedAspects", "The Cursed", "No").visible).toBe(true);
+    for (const key of ["methods", "secrets"]) {
+      expect(resolve(key, "Organization", "Yes").visible).toBe(true);
+      expect(resolve(key, "The Cursed", "Yes").visible).toBe(false);
+    }
+  });
 
   it("validates every seed binding against installed Datasworn packages", async () => {
     const oracleIds = new Set<string>();

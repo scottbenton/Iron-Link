@@ -90,7 +90,10 @@ source. Public targets cannot depend on GM data.
 Every choice provides **Locations, NPCs, Lore**, including Blank. No template includes
 Truths. Locations support hierarchy, maps, and bonds; NPCs support bonds; Lore
 has no capability flags. Locations use Location Type as subtitle. Extra GM Notes
-fields are omitted; entry Notes remain intrinsic. Lore has Tags.
+fields are omitted; entry Notes remain intrinsic. Lore has Tags. Forge and
+Sundered Isles also append **Factions**. Factions uses Faction Type as subtitle
+and starts without hierarchy, map, or bond capabilities; Blank, Ironlands, and
+Elegy do not add this category.
 
 Most bound fields are `oracleText`; Pronouns, Location Type, Region, Species,
 Difficulty, and Planet Class are plain text. Forge Description is public
@@ -165,6 +168,45 @@ Island Vitality and Settlement Size select Myriads/Margins/Reaches oracle
 variants; missing Area context leaves them editable without a roll button.
 NPC Role and Goal use the plural paths `character/roles` and `character/goals`.
 The standalone package scope includes **Starforged plus Sundered Isles**.
+
+### Factions
+
+Forge and Sundered Isles also provide **Factions**, derived from their dedicated
+faction oracle collections. Ironlands, Santa Maria, and Blank keep their existing
+three categories. Factions use Faction Type as their subtitle and have no map,
+hierarchy, or bond capabilities enabled by default. Existing category and field
+identities and order stay unchanged; Factions is appended.
+
+Faction Type is public text with suggestions and a type-oracle binding. Influence
+is public OracleText. The remaining generated details are GM-only and can be
+reconfigured. Every faction still has intrinsic name and Notes. Custom Faction
+Type text is allowed; subtype-specific fields stay hidden unless a rule matches.
+
+| Setting | Faction types | Additional fields |
+| --- | --- | --- |
+| Forge | Dominion, Guild, Fringe Group | Influence; conditional Focus / Specialty / Role; Dominion Leadership; Projects, Relationships, Quirks, Rumors |
+| Sundered Isles | Society, Organization, Empire, The Cursed | Influence, Relationships; Society Chronicles and Touchstones; shared Leadership for Society/Empire; shared Role for Organization/The Cursed; Organization Methods and Secrets; Empire Tactics and Vulnerabilities; Cursed modifier and Cursed Aspects |
+
+Forge uses `starforged/faction/*`; Isles uses `sundered_isles/faction/*` (its
+relationship oracle is singular `relationship`). Focus uses subtype-specific
+bindings; Dominion focus can contain multiple results. Relationship text should
+identify the other faction (or individual in Isles) alongside the rolled result;
+it does not create a relationship link.
+
+Isles supports both a faction of The Cursed and a Society/Organization/Empire
+with cursed aspects. The GM-only Cursed text modifier suggests Yes/No. Cursed
+Aspects appears for The Cursed or Cursed=Yes. A cursed organization uses
+Organization plus Cursed=Yes, retaining its Methods and Secrets.
+
+W5 text-field rollers must store the first-column display label, removing
+Datasworn Markdown link markup (for example, Dominion or Society), so a type
+roll matches the subtype conditions. Do not store linked markup or the explanatory
+second column in Faction Type.
+
+Faction-name oracles compose an intrinsic name from multiple results; they are
+recorded for W5's name-generation work rather than added as duplicate Name fields.
+Forge provides a name template with Legacy/Affiliation/Identity fragments. Isles
+provides Culture, type-specific Identity, and Theme Aspect/Persona tables.
 
 ## Oracle selection and divergence
 
@@ -256,6 +298,14 @@ remain unchanged. The old trusted catalog contains raw oracle bindings, not the
 browser's current linked-playset replacement results. Safety-frozen worlds may
 therefore show pending binding divergence and need deliberate oracle reselection.
 
+The additive 20260927020000 release appends Factions only to inherited Forge and
+Sundered Isles configurations. It preserves the existing three categories and
+their field identities, types, privacy, and capabilities. No preservation copy
+or schema/RPC change is required; existing customized configurations do not gain
+the new category. Apply the new catalog migration before deploying this client.
+Category UUID remapping uses the client-exported `WORLD_TEMPLATE_CATEGORY_KEYS`
+registry, including `factions`, rather than a separate generator list.
+
 `npm run check:world-defaults` verifies that the latest generated catalog
 matches TypeScript; `npm run build` includes
 this gate.
@@ -279,7 +329,14 @@ roll back. Use `-f` so its relative migration includes resolve correctly:
 
 ```sh
 psql --dbname=<isolated-test-database> -v ON_ERROR_STOP=1 -f supabase/upgrade-tests/world_catalog_upgrade.sql
+psql --dbname=<isolated-test-database> -v ON_ERROR_STOP=1 -f supabase/upgrade-tests/world_factions_catalog_upgrade.sql
 ```
+
+The Factions upgrade regression verifies the existing categories and custom
+rows remain unchanged while inherited Forge and Isles worlds gain the virtual
+category. `supabase/tests/world_factions_configuration.test.sql` exercises virtual
+entry/value validation, GM privacy, and first-edit materialization under the
+current catalog; it runs with the normal database test suite.
 
 Database tests require a local Supabase instance with the migrations applied.
 SQL verification should cover creation without materialization, atomic first-edit

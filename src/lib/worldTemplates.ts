@@ -4,6 +4,7 @@ import { IconColors } from "types/Icon.type";
 
 import type { OracleBinding } from "services/worldFieldDefinitions.service";
 
+import { forgeFactions, islesFactions } from "./worldTemplates/factions";
 import { forgeLocations, forgeNpcs } from "./worldTemplates/forge";
 import {
   elegyLocations,
@@ -27,6 +28,14 @@ export type {
   WorldTemplateField,
 } from "./worldTemplates/shared";
 
+// Shared with the SQL catalog generator so every category identity is rebased.
+export const WORLD_TEMPLATE_CATEGORY_KEYS = [
+  "locations",
+  "npcs",
+  "lore",
+  "factions",
+] as const;
+
 export function getWorldSettingPackageIds(settingKey: string | null): string[] {
   const packageId = settingKey?.includes(":")
     ? settingKey.split(":")[1]?.split("/")[0]
@@ -48,6 +57,7 @@ export function buildWorldTemplate(
     tags(),
   ];
   let npcs: TemplateField[] = [pronouns(), tags()];
+  let factions: TemplateField[] | undefined;
   switch (settingKey) {
     case "world:classic/ironlands":
       locations = ironlandsLocations();
@@ -56,10 +66,12 @@ export function buildWorldTemplate(
     case "world:starforged/forge":
       locations = forgeLocations();
       npcs = forgeNpcs();
+      factions = forgeFactions();
       break;
     case "world:sundered_isles/sundered_isles":
       locations = islesLocations();
       npcs = islesNpcs();
+      factions = islesFactions();
       break;
     case "world:elegy/santa_maria":
       locations = elegyLocations();
@@ -99,6 +111,16 @@ export function buildWorldTemplate(
         icon: { key: "GiBookCover", color: IconColors.Purple },
         fields: [tags()],
       },
+      ...(factions
+        ? [
+            {
+              key: "factions",
+              name: "Factions",
+              icon: { key: "GiFlag", color: IconColors.Orange },
+              fields: factions,
+            },
+          ]
+        : []),
     ].map((category, categoryIndex) => {
       const ids = Object.fromEntries(
         category.fields.map((definition) => [
@@ -115,11 +137,15 @@ export function buildWorldTemplate(
         name: category.name,
         icon: category.icon,
         sort_order: categoryIndex,
-        supports_hierarchy: categoryIndex === 0,
-        supports_map: categoryIndex === 0,
-        supports_bonds: categoryIndex !== 2,
+        supports_hierarchy: category.key === "locations",
+        supports_map: category.key === "locations",
+        supports_bonds: category.key === "locations" || category.key === "npcs",
         subtitle_field_definition_id:
-          categoryIndex === 0 ? ids.locationType : null,
+          category.key === "locations"
+            ? ids.locationType
+            : category.key === "factions"
+              ? ids.factionType
+              : null,
         fields: category.fields.map((definition, index) => ({
           ...definition,
           id: ids[definition.key],

@@ -39,7 +39,7 @@ describe("world configuration source", () => {
     const stop = store().listenToWorldCategories(world);
     expect(
       Object.values(store().categories).map((category) => category.name),
-    ).toEqual(["Locations", "NPCs", "Lore"]);
+    ).toEqual(["Locations", "NPCs", "Lore", "Factions"]);
     expect(store().loading).toBe(false);
     expect(store().configurationCustomized).toBe(false);
     expect(categories).not.toHaveBeenCalled();
@@ -167,7 +167,11 @@ describe("world configuration source", () => {
     });
     categoriesChanged!({}, [], true);
     fieldsChanged!({}, [], true);
-    expect(Object.keys(store().categories)).toHaveLength(3);
+    expect(Object.keys(store().categories)).toHaveLength(
+      Object.keys(
+        getWorldDefaultConfiguration(world.id, world.settingKey).categories,
+      ).length,
+    );
     expect(stopCategories).toHaveBeenCalledOnce();
     expect(stopFields).toHaveBeenCalledOnce();
   });
