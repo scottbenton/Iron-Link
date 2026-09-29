@@ -1,7 +1,17 @@
-import { Alert, Button, Paper, Stack, Typography } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import {
+  Alert,
+  Button,
+  Card,
+  List,
+  ListItem,
+  ListItemText,
+} from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { v4 as uuid } from "uuid";
+
+import { WorldSettingsSection } from "components/worlds/WorldSettingsSection";
 
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 
@@ -93,38 +103,39 @@ export function WorldCategoryFields({
       );
       setEditor({ field, valueCount: counts.valueCounts[field.id] ?? 0 });
     });
-  const remove = (field: IWorldFieldDefinition) =>
-    run(async () => {
-      const references = getReferencingFields(field.id, fields);
-      if (references.length) {
-        setError(
-          t(
-            "worlds.fields.referenced-delete",
-            "This field is used by conditions in {{fields}}. Remove or redirect those conditions before deleting it.",
-            {
-              fields: references
-                .map((reference) => fieldChoiceLabel(reference, fields))
-                .join(", "),
-            },
-          ),
-        );
-        return;
-      }
-      const counts = await WorldCategoriesService.getCategoryCounts(
-        category.worldId,
-        category.id,
-      );
-      const { confirmed } = await confirm({
-        title: t("worlds.fields.delete", "Delete field"),
-        description: t(
-          "worlds.fields.delete-confirmation",
-          'Delete "{{label}}"? This permanently deletes {{count}} stored values across this category’s entries. This cannot be undone.',
-          { label: field.label, count: counts.valueCounts[field.id] ?? 0 },
+  // Called from the field editor, which shows any error and closes itself
+  // once the field is gone.
+  const remove = async (field: IWorldFieldDefinition) => {
+    const references = getReferencingFields(field.id, fields);
+    if (references.length) {
+      throw new Error(
+        t(
+          "worlds.fields.referenced-delete",
+          "This field is used by conditions in {{fields}}. Remove or redirect those conditions before deleting it.",
+          {
+            fields: references
+              .map((reference) => fieldChoiceLabel(reference, fields))
+              .join(", "),
+          },
         ),
-        confirmationText: t("common.delete", "Delete"),
-      });
-      if (confirmed) await deleteField(field.id);
+      );
+    }
+    const counts = await WorldCategoriesService.getCategoryCounts(
+      category.worldId,
+      category.id,
+    );
+    const { confirmed } = await confirm({
+      title: t("worlds.fields.delete", "Delete field"),
+      description: t(
+        "worlds.fields.delete-confirmation",
+        'Delete "{{label}}"? This permanently deletes {{count}} stored values across this category’s entries. This cannot be undone.',
+        { label: field.label, count: counts.valueCounts[field.id] ?? 0 },
+      ),
+      confirmationText: t("common.delete", "Delete"),
     });
+    if (confirmed) await deleteField(field.id);
+    return confirmed;
+  };
   const reorder = (ids: string[]) => run(() => reorderFields(category.id, ids));
   const save = async (draft: FieldDraft, createNew: boolean) => {
     const normalized = {
@@ -159,71 +170,76 @@ export function WorldCategoryFields({
     }
   };
   return (
-    <Stack spacing={2}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="h6">
-          {t("worlds.fields.title", "Fields")}
-        </Typography>
-        {canEdit && (
+    <WorldSettingsSection
+      title={t("worlds.fields.title", "Fields")}
+      action={
+        canEdit && (
           <Button
+            size="small"
+            startIcon={<AddIcon />}
             disabled={busy || !configurationReady}
             onClick={() => setEditor({ valueCount: 0 })}
           >
             {t("worlds.fields.add", "Add field")}
           </Button>
-        )}
-      </Stack>
+        )
+      }
+    >
       {error && (
-        <Alert severity="error" onClose={() => setError(undefined)}>
+        <Alert
+          severity="error"
+          onClose={() => setError(undefined)}
+          sx={{ mb: 2 }}
+        >
           {error}
         </Alert>
       )}
-      {fields.length === 0 && (
-        <Typography color="text.secondary">
-          {t(
-            "worlds.fields.empty-state",
-            "This category has no additional fields yet.",
+      <Card variant="outlined">
+        <List disablePadding>
+          <WorldConfigurationSortList
+            items={fields.map((field) => ({
+              id: field.id,
+              label: fieldChoiceLabel(field, fields),
+            }))}
+            onReorder={reorder}
+          >
+            {fields.map((field) => (
+              <WorldCategoryFieldRow
+                key={field.id}
+                field={field}
+                label={fieldChoiceLabel(field, fields)}
+                subtitle={category.subtitleFieldDefinitionId === field.id}
+                canEdit={canEdit}
+                disabled={busy || !configurationReady}
+                busy={busy}
+                divider
+                onEdit={() => edit(field)}
+              />
+            ))}
+          </WorldConfigurationSortList>
+          {fields.length === 0 && (
+            <ListItem divider>
+              <ListItemText
+                secondary={t(
+                  "worlds.fields.empty-state",
+                  "This category has no additional fields yet.",
+                )}
+              />
+            </ListItem>
           )}
-        </Typography>
-      )}
-      <WorldConfigurationSortList
-        items={fields.map((field) => ({
-          id: field.id,
-          label: fieldChoiceLabel(field, fields),
-        }))}
-        onReorder={reorder}
-      >
-        <Stack spacing={1}>
-          {fields.map((field) => (
-            <WorldCategoryFieldRow
-              key={field.id}
-              field={field}
-              label={fieldChoiceLabel(field, fields)}
-              subtitle={category.subtitleFieldDefinitionId === field.id}
-              canEdit={canEdit}
-              canDelete={canDelete}
-              disabled={busy || !configurationReady}
-              busy={busy}
-              onEdit={() => edit(field)}
-              onDelete={() => remove(field)}
+          <ListItem sx={{ bgcolor: "action.hover" }}>
+            <ListItemText
+              sx={{ pl: canEdit ? 5 : 0 }}
+              primary={t("worlds.fields.intrinsic-notes", "Notes")}
+              secondary={t(
+                "worlds.fields.intrinsic-notes-help",
+                "Included with every entry. Notes cannot be removed or reordered.",
+              )}
+              slotProps={{ primary: { color: "text.secondary" } }}
             />
-          ))}
-        </Stack>
-      </WorldConfigurationSortList>
-      <Paper
-        variant="outlined"
-        sx={{ p: 2, color: "text.secondary", bgcolor: "action.hover" }}
-      >
-        <Typography fontWeight="bold">
-          {t("worlds.fields.intrinsic-notes", "Notes")}
-        </Typography>
-        <Typography variant="body2">
-          {t(
-            "worlds.fields.intrinsic-notes-help",
-            "Included with every entry. Notes cannot be removed or reordered.",
-          )}
-        </Typography>
-      </Paper>
+          </ListItem>
+        </List>
+      </Card>
       <WorldConfigurationDeleteDialog
         request={deleteRequest}
         onAnswer={answerDelete}
@@ -238,8 +254,13 @@ export function WorldCategoryFields({
           readOnly={!canEdit}
           onClose={() => setEditor(undefined)}
           onSave={save}
+          onDelete={
+            canDelete && editor.field
+              ? () => remove(editor.field as IWorldFieldDefinition)
+              : undefined
+          }
         />
       )}
-    </Stack>
+    </WorldSettingsSection>
   );
 }

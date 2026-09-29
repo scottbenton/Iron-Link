@@ -69,11 +69,29 @@ beforeEach(() => {
 });
 
 const props = {
-  worldId: category.worldId,
-  worldName: "Ironlands",
+  world: {
+    id: category.worldId,
+    name: "Ironlands",
+    description: null,
+    settingKey: null,
+    configurationCustomized: false,
+    createdBy: "owner",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  layout: "page" as const,
+  rootBreadcrumb: { key: "worlds", label: "Worlds", linkProps: { href: "/" } },
   permission: WorldPermission.Owner,
   generalSettings: <h2>General world settings</h2>,
 };
+
+const settingsLink = (name: string) =>
+  within(
+    screen.getByRole("navigation", { name: "World settings navigation" }),
+  ).getByRole("link", { name });
+
+const categoryName = () =>
+  screen.getByRole("textbox", { name: /Category name/ });
 
 function ManagerHarness({
   permission = WorldPermission.Owner,
@@ -122,7 +140,7 @@ async function openCategorySettings(
   user: ReturnType<typeof userEvent.setup>,
   name = "Locations",
 ) {
-  await user.click(screen.getByRole("link", { name }));
+  await user.click(settingsLink(name));
 }
 
 describe("WorldCategoryManager", () => {
@@ -145,9 +163,7 @@ describe("WorldCategoryManager", () => {
     state.categories = { [category.id]: category };
     state.loading = false;
     view.rerender(managerView(WorldPermission.Owner, destination));
-    expect(
-      screen.getByRole("heading", { name: "Locations", level: 2 }),
-    ).toBeInTheDocument();
+    expect(categoryName()).toHaveValue("Locations");
     expect(
       screen.queryByText("This category is no longer available."),
     ).not.toBeInTheDocument();
@@ -167,24 +183,17 @@ describe("WorldCategoryManager", () => {
       },
     );
     render(<RouterProvider router={router} />);
-    expect(
-      screen.getByRole("heading", { name: "Locations", level: 2 }),
-    ).toBeInTheDocument();
+    expect(categoryName()).toHaveValue("Locations");
     expect(
       screen.queryByRole("heading", { name: "General world settings" }),
     ).not.toBeInTheDocument();
-    await user.click(screen.getByRole("link", { name: "General" }));
+    await user.click(settingsLink("General"));
     expect(
       screen.getByRole("heading", { name: "General world settings" }),
     ).toBeInTheDocument();
     await act(() => router.navigate(-1));
-    expect(
-      screen.getByRole("heading", { name: "Locations", level: 2 }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Locations" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    expect(categoryName()).toHaveValue("Locations");
+    expect(settingsLink("Locations")).toHaveAttribute("aria-current", "page");
   });
 
   it("uses linked destinations for General and category settings", async () => {
@@ -195,7 +204,7 @@ describe("WorldCategoryManager", () => {
     ).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Locations" })).toHaveAttribute(
+    expect(settingsLink("Locations")).toHaveAttribute(
       "href",
       getWorldViewPath(category.worldId, {
         type: "category-settings",
@@ -203,23 +212,16 @@ describe("WorldCategoryManager", () => {
       }),
     );
     await openCategorySettings(user);
-    expect(
-      screen.getByRole("button", { name: "Edit Locations" }),
-    ).toBeEnabled();
+    expect(categoryName()).toBeEnabled();
     expect(
       screen.queryByRole("heading", { name: "General world settings" }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Done" }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Locations", level: 2 }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Locations" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-    await user.click(screen.getByRole("link", { name: "General" }));
+    expect(categoryName()).toHaveValue("Locations");
+    expect(settingsLink("Locations")).toHaveAttribute("aria-current", "page");
+    await user.click(settingsLink("General"));
     expect(
       screen.getByRole("heading", { name: "General world settings" }),
     ).toBeInTheDocument();
@@ -254,9 +256,7 @@ describe("WorldCategoryManager", () => {
     const view = render(managerView());
     expect(screen.getByRole("button", { name: "Add category" })).toBeDisabled();
     await openCategorySettings(user);
-    expect(
-      screen.getByRole("button", { name: "Edit Locations" }),
-    ).toBeDisabled();
+    expect(categoryName()).toBeDisabled();
     state.oracle.loading = false;
     state.oracle.error = "Catalog unavailable";
     view.rerender(managerView());
@@ -266,9 +266,7 @@ describe("WorldCategoryManager", () => {
     expect(state.oracle.retry).toHaveBeenCalledOnce();
     state.oracle.error = undefined;
     view.rerender(managerView());
-    expect(
-      screen.getByRole("button", { name: "Edit Locations" }),
-    ).toBeEnabled();
+    expect(categoryName()).toBeEnabled();
   });
 
   it("shows ordered categories, excludes other worlds, and atomically reorders without losing selection", async () => {
@@ -287,21 +285,18 @@ describe("WorldCategoryManager", () => {
     const reorder = state.reorderCategories.mockResolvedValue(undefined);
     render(managerView());
     await openCategorySettings(user, "NPCs");
-    await user.click(
-      screen.getByRole("button", { name: "Reorder categories" }),
-    );
     const navigation = screen.getByRole("navigation", {
       name: "World settings navigation",
     });
     expect(
       within(navigation)
-        .getAllByRole("group")
-        .map((row) => row.getAttribute("aria-label")),
-    ).toEqual(["Locations category", "NPCs category"]);
+        .getAllByRole("link")
+        .map((link) => link.textContent),
+    ).toEqual(["General", "Locations", "NPCs"]);
     expect(screen.queryByText("Foreign")).not.toBeInTheDocument();
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
       function (this: HTMLElement) {
-        const top = this.closest('[aria-label="NPCs category"]') ? 100 : 0;
+        const top = this.closest("li")?.textContent?.includes("NPCs") ? 100 : 0;
         return {
           top,
           bottom: top + 80,
@@ -322,12 +317,7 @@ describe("WorldCategoryManager", () => {
     await waitFor(() =>
       expect(reorder).toHaveBeenCalledWith([second.id, category.id]),
     );
-    expect(
-      within(screen.getByRole("group", { name: "NPCs category" })).getByRole(
-        "link",
-        { name: "NPCs" },
-      ),
-    ).toHaveAttribute("aria-current", "page");
+    expect(settingsLink("NPCs")).toHaveAttribute("aria-current", "page");
   });
 
   it("blocks deletion of a populated category and names the count", async () => {
@@ -367,32 +357,28 @@ describe("WorldCategoryManager", () => {
     ).toBeInTheDocument();
   });
 
-  it("preserves no-op edit protection and saves an actual category change", async () => {
+  it("saves category details inline without a dialog", async () => {
     const user = userEvent.setup();
     state.updateCategory.mockResolvedValue(undefined);
     render(managerView());
     await openCategorySettings(user);
-    await user.click(screen.getByRole("button", { name: "Edit Locations" }));
-    expect(screen.getAllByRole("dialog")).toHaveLength(1);
-    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
-    await user.type(
-      screen.getByRole("textbox", { name: /Category name/ }),
-      " updated",
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await user.type(categoryName(), " updated");
+    await waitFor(
+      () =>
+        expect(state.updateCategory).toHaveBeenCalledWith(category.id, {
+          name: "Locations updated",
+        }),
+      { timeout: 2000 },
     );
-    await user.click(screen.getByRole("button", { name: "Save" }));
-    await waitFor(() =>
-      expect(state.updateCategory).toHaveBeenCalledWith(
-        category.id,
-        expect.objectContaining({ name: "Locations updated" }),
-      ),
-    );
-    await waitFor(() =>
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
-    );
-    expect(screen.getByRole("link", { name: "Locations" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    await user.click(screen.getByRole("checkbox", { name: "Supports maps" }));
+    expect(state.updateCategory).toHaveBeenCalledWith(category.id, {
+      supportsMap: true,
+    });
+    expect(
+      screen.getByRole("checkbox", { name: "Supports maps" }),
+    ).toBeChecked();
+    expect(settingsLink("Locations")).toHaveAttribute("aria-current", "page");
   });
 
   it("selects a newly created category in settings", async () => {
@@ -413,7 +399,7 @@ describe("WorldCategoryManager", () => {
       screen.getByRole("textbox", { name: /Category name/ }),
       "Creatures",
     );
-    await user.click(screen.getByRole("button", { name: "Save" }));
+    await user.click(screen.getByRole("button", { name: "Create category" }));
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
@@ -421,13 +407,11 @@ describe("WorldCategoryManager", () => {
       category.worldId,
       expect.objectContaining({ name: "Creatures", sortOrder: 1 }),
     );
-    expect(screen.getByRole("link", { name: "Creatures" })).toHaveAttribute(
-      "aria-current",
-      "page",
+    // Router navigation runs in a transition, so wait for it to commit.
+    await waitFor(() =>
+      expect(settingsLink("Creatures")).toHaveAttribute("aria-current", "page"),
     );
-    expect(
-      screen.getByRole("heading", { name: "Creatures", level: 2 }),
-    ).toBeInTheDocument();
+    expect(categoryName()).toHaveValue("Creatures");
   });
 
   it("hides guide deletes and gives viewers read-only settings", async () => {
@@ -445,14 +429,9 @@ describe("WorldCategoryManager", () => {
     expect(
       screen.queryByRole("button", { name: "Reorder Locations" }),
     ).not.toBeInTheDocument();
-    await user.click(
-      screen.getByRole("button", { name: "Category configuration" }),
-    );
+    expect(categoryName()).toBeDisabled();
     expect(
-      screen.getByRole("textbox", { name: /Category name/ }),
+      screen.getByRole("checkbox", { name: "Supports maps" }),
     ).toBeDisabled();
-    expect(
-      screen.queryByRole("button", { name: "Save" }),
-    ).not.toBeInTheDocument();
   });
 });

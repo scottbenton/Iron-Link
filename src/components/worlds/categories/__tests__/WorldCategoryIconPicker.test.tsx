@@ -14,7 +14,7 @@ vi.mock("react-i18next", async (importOriginal) => ({
 
 // Exercise an icon outside the previous hard-coded eight choices.
 describe("WorldCategoryIconPicker", () => {
-  it("searches the full game icon set and preserves the chosen color", async () => {
+  it("searches the full game icon set and saves the choice with its color", async () => {
     const user = userEvent.setup();
     const change = vi.fn();
     render(
@@ -33,6 +33,12 @@ describe("WorldCategoryIconPicker", () => {
     await user.click(
       await screen.findByRole("button", { name: "Viking Longhouse" }),
     );
+    // Picking previews the icon; nothing is saved until Save.
+    expect(change).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("button", { name: "Viking Longhouse" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await user.click(screen.getByRole("button", { name: "Save" }));
     expect(change).toHaveBeenCalledWith({
       key: "GiVikingLonghouse",
       color: IconColors.Blue,
@@ -41,10 +47,11 @@ describe("WorldCategoryIconPicker", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
   });
-  it("uses a square colored preview and keeps color configuration inside the picker", async () => {
+
+  it("uses a square colored preview and picks colors from swatches", async () => {
     const user = userEvent.setup();
     const change = vi.fn();
-    const view = render(
+    render(
       <WorldCategoryIconPicker
         value={{ key: "GiCompass", color: IconColors.Blue }}
         onChange={change}
@@ -53,34 +60,45 @@ describe("WorldCategoryIconPicker", () => {
     const preview = screen.getByRole("button", {
       name: "Choose category icon",
     });
-    expect(preview).toHaveStyle({ width: "64px", height: "64px" });
+    expect(preview).toHaveStyle({ width: "72px", height: "72px" });
     expect(
-      screen.queryByRole("combobox", { name: "Icon color" }),
+      screen.queryByRole("group", { name: "Icon color" }),
     ).not.toBeInTheDocument();
     await user.click(preview);
-    await user.click(screen.getByRole("combobox", { name: "Icon color" }));
-    await user.click(screen.getByRole("option", { name: "Red" }));
+    const red = screen.getByRole("button", { name: "Red" });
+    await user.click(red);
+    expect(red).toHaveAttribute("aria-pressed", "true");
+    await user.click(screen.getByRole("button", { name: "Save" }));
     expect(change).toHaveBeenCalledWith({
       key: "GiCompass",
       color: IconColors.Red,
     });
-    view.rerender(
+  });
+
+  it("removes the icon and discards unsaved changes on cancel", async () => {
+    const user = userEvent.setup();
+    const change = vi.fn();
+    render(
       <WorldCategoryIconPicker
-        value={{ key: "GiCompass", color: IconColors.Red }}
+        value={{ key: "GiCompass", color: IconColors.Blue }}
         onChange={change}
       />,
     );
-    await waitFor(() =>
-      expect(preview.querySelector(".MuiBox-root")).toHaveStyle({
-        color: "rgb(198, 40, 40)",
-      }),
+    await user.click(
+      screen.getByRole("button", { name: "Choose category icon" }),
     );
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "No icon" }));
-    expect(change).toHaveBeenLastCalledWith(null);
+    await user.click(screen.getByRole("button", { name: "Remove icon" }));
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(change).not.toHaveBeenCalled();
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
+    await user.click(
+      screen.getByRole("button", { name: "Choose category icon" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Remove icon" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(change).toHaveBeenLastCalledWith(null);
   });
 
   it("closes an open picker when it becomes read-only and keeps it closed when re-enabled", async () => {

@@ -4,6 +4,8 @@ import { ReactNode, useState } from "react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { BreadcrumbItem } from "components/Layout/BreadcrumbTrail";
+import type { WorldLayout } from "components/worlds/WorldViewLayout";
 import type {
   WorldNavigation,
   WorldView,
@@ -89,20 +91,58 @@ vi.mock("../WorldOracleContextProvider", () => ({
   WorldOracleContextProvider: ({ children }: { children: ReactNode }) =>
     children,
 }));
-vi.mock("../categories/WorldCategoryManager", () => ({
-  WorldCategoryManager: ({
-    navigation,
-    generalSettings,
-  }: {
-    navigation: WorldNavigation;
-    generalSettings: ReactNode;
-  }) =>
-    navigation.view.type === "settings" ? (
-      generalSettings
-    ) : (
-      <p>Category folders</p>
-    ),
-}));
+vi.mock("../categories/WorldCategoryManager", async () => {
+  const { WorldBreadcrumbs } = await import("../WorldBreadcrumbs");
+  const { WorldViewLayout } = await import("../WorldViewLayout");
+  return {
+    // Keeps the real chrome (breadcrumbs, title, settings link) while
+    // replacing the category browser and configuration surfaces.
+    WorldCategoryManager: ({
+      world,
+      navigation,
+      layout,
+      rootBreadcrumb,
+      generalSettings,
+    }: {
+      world: IWorld;
+      navigation: WorldNavigation;
+      layout: WorldLayout;
+      rootBreadcrumb: BreadcrumbItem;
+      generalSettings: ReactNode;
+    }) => {
+      const view = navigation.view;
+      const category =
+        "categoryId" in view ? state.categories[view.categoryId] : undefined;
+      return (
+        <WorldViewLayout
+          layout={layout}
+          title={world.name}
+          breadcrumbs={
+            <WorldBreadcrumbs
+              world={world}
+              category={category}
+              navigation={navigation}
+              root={rootBreadcrumb}
+            />
+          }
+          actions={
+            view.type === "world"
+              ? {
+                  start: (
+                    <a {...navigation.getLinkProps({ type: "settings" })}>
+                      World settings
+                    </a>
+                  ),
+                }
+              : undefined
+          }
+        >
+          {view.type === "settings" ? generalSettings : <p>Category folders</p>}
+        </WorldViewLayout>
+      );
+    },
+  };
+});
 
 const render = (element: ReactNode) =>
   testingRender(element, { wrapper: MemoryRouter });
@@ -253,7 +293,7 @@ describe("World workspace", () => {
       const view = render(
         <TestWorldPanel worldId="world-a" onWorldDeleted={onDeleted} />,
       );
-      await user.click(screen.getByRole("link", { name: "Settings" }));
+      await user.click(screen.getByRole("link", { name: "World settings" }));
       await user.click(screen.getByRole("button", { name: "Delete World" }));
       await user.click(screen.getByRole("button", { name: "Delete" }));
       expect(state.deleteWorld).toHaveBeenCalledWith("world-a");
@@ -307,7 +347,7 @@ describe("World workspace", () => {
       expect(
         screen.queryByRole("button", { name: "Change World" }),
       ).not.toBeInTheDocument();
-      await user.click(screen.getByRole("link", { name: "Settings" }));
+      await user.click(screen.getByRole("link", { name: "World settings" }));
       view.rerender(
         <GameWorldView worldId="world-a" worldView={{ type: "settings" }} />,
       );
@@ -329,7 +369,8 @@ describe("World workspace", () => {
       expect(
         screen.queryByRole("button", { name: "Delete World" }),
       ).not.toBeInTheDocument();
-      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+      for (const textbox of screen.queryAllByRole("textbox"))
+        expect(textbox).toBeDisabled();
     },
   );
 
@@ -343,7 +384,7 @@ describe("World workspace", () => {
     expect(
       screen.queryByRole("button", { name: "Delete World" }),
     ).not.toBeInTheDocument();
-    await user.click(screen.getByRole("link", { name: "Settings" }));
+    await user.click(screen.getByRole("link", { name: "World settings" }));
     const name = screen.getByRole("textbox", { name: "World Name" });
     await user.clear(name);
     await user.type(name, "New name");
@@ -364,8 +405,8 @@ describe("World workspace", () => {
     state.worldPermission = permission;
     const user = userEvent.setup();
     render(<TestWorldPanel worldId={world.id} />);
-    await user.click(screen.getByRole("link", { name: "Settings" }));
-    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("link", { name: "World settings" }));
+    expect(screen.getByRole("textbox", { name: "World Name" })).toBeDisabled();
     expect(
       screen.queryByRole("button", { name: "Delete World" }),
     ).not.toBeInTheDocument();
@@ -375,7 +416,7 @@ describe("World workspace", () => {
     state.worldPermission = WorldPermission.Editor;
     const user = userEvent.setup();
     render(<TestWorldPanel worldId={world.id} />);
-    await user.click(screen.getByRole("link", { name: "Settings" }));
+    await user.click(screen.getByRole("link", { name: "World settings" }));
     expect(
       screen.getByRole("textbox", { name: "World Name" }),
     ).toBeInTheDocument();
@@ -387,7 +428,7 @@ describe("World workspace", () => {
   it("never shows stale world controls and resets settings when the world changes", async () => {
     const user = userEvent.setup();
     const view = render(<TestWorldPanel worldId={world.id} />);
-    await user.click(screen.getByRole("link", { name: "Settings" }));
+    await user.click(screen.getByRole("link", { name: "World settings" }));
     view.rerender(<TestWorldPanel worldId="world-b" />);
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(
@@ -396,7 +437,9 @@ describe("World workspace", () => {
     state.world = { ...world, id: "world-b", name: "Another world" };
     state.worldId = "world-b";
     view.rerender(<TestWorldPanel worldId="world-b" />);
-    expect(screen.getByRole("link", { name: "Settings" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "World settings" }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Another world" }),
     ).toBeInTheDocument();

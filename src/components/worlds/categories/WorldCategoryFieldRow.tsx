@@ -1,17 +1,11 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import {
-  Box,
-  Chip,
   IconButton,
-  Paper,
-  Stack,
-  Tooltip,
-  Typography,
+  ListItem,
+  ListItemButton,
+  ListItemText,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
@@ -24,21 +18,19 @@ export function WorldCategoryFieldRow({
   label,
   subtitle,
   canEdit,
-  canDelete,
   disabled,
   busy,
+  divider,
   onEdit,
-  onDelete,
 }: {
   field: IWorldFieldDefinition;
   label: string;
   subtitle: boolean;
   canEdit: boolean;
-  canDelete: boolean;
   disabled: boolean;
   busy: boolean;
+  divider: boolean;
   onEdit: () => void;
-  onDelete: () => void;
 }) {
   const { t } = useTranslation();
   const {
@@ -53,105 +45,62 @@ export function WorldCategoryFieldRow({
   const editLabel = canEdit
     ? t("worlds.fields.edit-label", "Edit {{label}}", { label })
     : t("worlds.fields.view-label", "Configure {{label}}", { label });
-  const deleteLabel = t("worlds.fields.delete-label", "Delete {{label}}", {
-    label,
-  });
   const dragLabel = t("worlds.fields.reorder-label", "Reorder {{label}}", {
     label,
   });
+  const rules = field.configuration.rules.length;
+  const details = [
+    t(`worlds.fields.type-${field.type}`, FIELD_TYPE_LABELS[field.type]),
+    rules === 1
+      ? t("worlds.fields.rule-count-one", "1 rule")
+      : rules > 1
+        ? t("worlds.fields.rule-count", "{{count}} rules", { count: rules })
+        : undefined,
+    field.gmOnly ? t("worlds.fields.gm-badge", "GM only") : undefined,
+    subtitle ? t("worlds.fields.subtitle-badge", "Subtitle") : undefined,
+  ].filter(Boolean);
   return (
-    <Paper
+    <ListItem
       ref={setNodeRef}
-      role="group"
-      aria-label={`${label} field`}
-      variant="outlined"
+      disablePadding
+      divider={divider}
+      aria-label={t("worlds.fields.field-group", "{{label}} field", { label })}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       sx={{
-        p: 1.5,
         position: "relative",
         zIndex: isDragging ? 1 : undefined,
-        opacity: isDragging ? 0.7 : 1,
+        bgcolor: isDragging ? "background.paper" : undefined,
+        boxShadow: isDragging ? 4 : undefined,
       }}
     >
-      <Stack direction="row" alignItems="center" gap={1}>
-        {canEdit && (
-          <Tooltip title={dragLabel}>
-            <span>
-              <IconButton
-                ref={setActivatorNodeRef}
-                {...attributes}
-                {...listeners}
-                aria-label={dragLabel}
-                disabled={disabled}
-                sx={{ cursor: "grab", touchAction: "none" }}
-              >
-                <DragIndicatorIcon />
-              </IconButton>
-            </span>
-          </Tooltip>
-        )}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography fontWeight="bold">{label}</Typography>
-          <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: 0.5 }}>
-            <Chip
-              size="small"
-              label={t(
-                `worlds.fields.type-${field.type}`,
-                FIELD_TYPE_LABELS[field.type],
-              )}
-            />
-            {field.configuration.rules.length > 0 && (
-              <Chip
-                size="small"
-                label={
-                  field.configuration.rules.length === 1
-                    ? t("worlds.fields.rule-count-one", "1 rule")
-                    : t("worlds.fields.rule-count", "{{count}} rules", {
-                        count: field.configuration.rules.length,
-                      })
-                }
-              />
-            )}
-            {field.gmOnly && (
-              <Chip
-                size="small"
-                label={t("worlds.fields.gm-badge", "GM only")}
-              />
-            )}
-            {subtitle && (
-              <Chip
-                size="small"
-                label={t("worlds.fields.subtitle-badge", "Subtitle")}
-              />
-            )}
-          </Stack>
-        </Box>
-        <Tooltip title={editLabel}>
-          <span>
-            <IconButton
-              aria-label={editLabel}
-              disabled={busy || (canEdit && disabled)}
-              onClick={onEdit}
-            >
-              {canEdit ? <EditOutlinedIcon /> : <SettingsOutlinedIcon />}
-            </IconButton>
-          </span>
-        </Tooltip>
-        {canDelete && (
-          <Tooltip title={deleteLabel}>
-            <span>
-              <IconButton
-                color="error"
-                aria-label={deleteLabel}
-                disabled={disabled}
-                onClick={onDelete}
-              >
-                <DeleteOutlineIcon />
-              </IconButton>
-            </span>
-          </Tooltip>
-        )}
-      </Stack>
-    </Paper>
+      {canEdit && (
+        <IconButton
+          ref={setActivatorNodeRef}
+          {...attributes}
+          {...listeners}
+          size="small"
+          aria-label={dragLabel}
+          title={dragLabel}
+          disabled={disabled}
+          sx={{ ml: 1, cursor: "grab", touchAction: "none" }}
+        >
+          <DragIndicatorIcon fontSize="small" />
+        </IconButton>
+      )}
+      <ListItemButton
+        aria-label={editLabel}
+        disabled={busy || (canEdit && disabled)}
+        onClick={onEdit}
+        sx={{ py: 0.75, pl: canEdit ? 1 : 2 }}
+      >
+        <ListItemText
+          primary={label}
+          secondary={details.join(" · ")}
+          slotProps={{
+            primary: { sx: { overflowWrap: "anywhere" } },
+          }}
+        />
+      </ListItemButton>
+    </ListItem>
   );
 }

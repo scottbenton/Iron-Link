@@ -34,6 +34,7 @@ describe("WorldCategoryContents", () => {
       <WorldCategoryContents
         category={category}
         permission={WorldPermission.Owner}
+        search=""
       />,
     );
     const previous = listen.mock.calls[0][3];
@@ -56,6 +57,7 @@ describe("WorldCategoryContents", () => {
       <WorldCategoryContents
         category={category}
         permission={WorldPermission.Viewer}
+        search=""
       />,
     );
     expect(screen.queryByText("Private location")).not.toBeInTheDocument();
@@ -97,6 +99,7 @@ describe("WorldCategoryContents", () => {
       <WorldCategoryContents
         category={category}
         permission={WorldPermission.Viewer}
+        search=""
       />,
     );
     expect(listen).toHaveBeenCalledWith(

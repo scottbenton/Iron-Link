@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -32,7 +32,12 @@ beforeEach(() => {
 });
 
 describe("WorldCategoryFields", () => {
-  it("lets guides add and edit but hides delete; readers get configuration only", () => {
+  it("lets guides add and edit but hides delete; readers get configuration only", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(WorldCategoriesService, "getCategoryCounts").mockResolvedValue({
+      entryCount: 0,
+      valueCounts: {},
+    });
     const view = render(
       <WorldCategoryFields
         configurationReady
@@ -46,9 +51,15 @@ describe("WorldCategoryFields", () => {
     expect(
       screen.getByRole("button", { name: "Edit Description" }),
     ).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "Edit Description" }));
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Delete Description" }),
+      screen.queryByRole("button", { name: "Delete field" }),
     ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
     view.rerender(
       <WorldCategoryFields
         configurationReady
@@ -85,21 +96,31 @@ describe("WorldCategoryFields", () => {
         canDelete
       />,
     );
+    await user.click(screen.getByRole("button", { name: "Edit Description" }));
     await user.click(
-      screen.getByRole("button", { name: "Delete Description" }),
+      await screen.findByRole("button", { name: "Delete field" }),
     );
     expect(await screen.findByText(/3 stored values/)).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Close Dialog" }));
+    // Only the confirmation is exposed while it sits over the editor.
+    await user.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: "Cancel",
+      }),
+    );
     await waitFor(() =>
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+      expect(screen.queryByText(/3 stored values/)).not.toBeInTheDocument(),
     );
     expect(actions.deleteFieldDefinition).not.toHaveBeenCalled();
-    await user.click(
-      screen.getByRole("button", { name: "Delete Description" }),
+    await waitFor(() =>
+      expect(screen.getByRole("dialog")).toHaveTextContent("Edit field"),
     );
+    await user.click(screen.getByRole("button", { name: "Delete field" }));
     await user.click(await screen.findByRole("button", { name: "Delete" }));
     await waitFor(() =>
       expect(actions.deleteFieldDefinition).toHaveBeenCalledWith(definition.id),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
   });
 
@@ -128,11 +149,19 @@ describe("WorldCategoryFields", () => {
         canDelete
       />,
     );
-    await user.click(screen.getByRole("button", { name: "Delete Type" }));
+    vi.spyOn(WorldCategoriesService, "getCategoryCounts").mockResolvedValue({
+      entryCount: 0,
+      valueCounts: {},
+    });
+    await user.click(screen.getByRole("button", { name: "Edit Type" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Delete field" }),
+    );
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "conditions in Region",
     );
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+    expect(screen.getByRole("dialog")).toHaveTextContent("Edit field");
     expect(actions.deleteFieldDefinition).not.toHaveBeenCalled();
   });
 
@@ -193,8 +222,8 @@ describe("WorldCategoryFields", () => {
       "Description",
     );
     await user.type(
-      screen.getByRole("textbox", { name: "Suggestions (one per line)" }),
-      "Planet\n\nPlanet\n Star ",
+      screen.getByRole("combobox", { name: "Suggestions" }),
+      "Planet{Enter} Star {Enter}",
     );
     await user.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() =>

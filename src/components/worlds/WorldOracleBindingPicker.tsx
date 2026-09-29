@@ -1,14 +1,23 @@
+import ClearIcon from "@mui/icons-material/Clear";
+import SearchIcon from "@mui/icons-material/Search";
 import {
   Alert,
-  Box,
   Button,
-  Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
   FormControlLabel,
+  IconButton,
+  InputAdornment,
   Stack,
-  Typography,
+  Switch,
+  TextField,
+  Tooltip,
 } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 
 import {
   getFrozenWorldOracleBinding,
@@ -20,15 +29,19 @@ import type { OracleBinding } from "services/worldFieldDefinitions.service";
 import { WorldOracleTreePicker } from "./WorldOracleTreePicker";
 import { useWorldOracleContext } from "./worldOracleContext";
 
+// A read-only field showing the bound oracle. Choosing opens a searchable
+// dialog; the clear button removes the binding (and so the roll button).
 export function WorldOracleBindingPicker({
   worldId,
   value,
   onChange,
+  label,
   disabled = false,
 }: {
   worldId: string;
   value: OracleBinding | null;
   onChange: (value: OracleBinding | null) => void;
+  label?: string;
   disabled?: boolean;
 }) {
   const { t } = useTranslation();
@@ -40,89 +53,94 @@ export function WorldOracleBindingPicker({
   const [choosing, setChoosing] = useState(false);
   const frozen =
     catalog && value ? getFrozenWorldOracleBinding(value, catalog) : null;
+  const unavailable = disabled || context.loading || !!context.error;
+  const fieldLabel = label ?? t("worlds.fields.oracle", "Oracle");
+  const chooseLabel = t("worlds.fields.choose-oracle", "Choose oracle");
+  const removeLabel = t("worlds.fields.remove-binding", "Remove oracle");
   return (
-    <Stack spacing={1}>
-      <Typography variant="subtitle2">
-        {t("worlds.fields.oracle", "Oracle binding")}
-      </Typography>
-      <Typography color="text.secondary">
-        {selected?.label ??
+    <Stack spacing={1} useFlexGap>
+      <TextField
+        fullWidth
+        label={fieldLabel}
+        value={
+          selected?.label ??
           (value
             ? t("worlds.fields.unavailable-oracle", "Unavailable oracle")
-            : t("worlds.fields.no-oracle", "No oracle selected"))}
-      </Typography>
-      <Button
-        variant="outlined"
-        sx={{ alignSelf: "flex-start" }}
-        disabled={disabled || context.loading || !!context.error}
-        onClick={() => setChoosing(!choosing)}
-      >
-        {choosing
-          ? t("worlds.fields.close-oracle-picker", "Close oracle picker")
-          : t("worlds.fields.choose-oracle", "Choose oracle")}
-      </Button>
-      {choosing && catalog && (
-        <WorldOracleTreePicker
-          catalog={catalog}
-          allPackages={context.allPackages}
-          exact={!!value?.exact}
-          selectedId={value?.oracleId}
-          disabled={disabled || context.loading || !!context.error}
-          onSelect={(choice) => {
-            onChange(pinWorldOracleChoice(choice, value?.exact));
-            setChoosing(false);
-          }}
-        />
-      )}
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={context.allPackages}
-            disabled={disabled}
-            onChange={(_, checked) => context.setAllPackages(checked)}
-          />
+            : "")
         }
-        label={t("worlds.fields.all-packages", "All packages")}
+        placeholder={t("worlds.fields.no-oracle", "No oracle (no roll button)")}
+        disabled={disabled}
+        error={!context.loading && !!catalog && !!value && !selected}
+        onClick={() => !unavailable && setChoosing(true)}
+        slotProps={{
+          inputLabel: { shrink: true },
+          input: {
+            readOnly: true,
+            sx: { cursor: unavailable ? undefined : "pointer" },
+            endAdornment: (
+              <InputAdornment position="end">
+                {value && !disabled && (
+                  <Tooltip title={removeLabel}>
+                    <IconButton
+                      aria-label={removeLabel}
+                      edge="end"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onChange(null);
+                      }}
+                    >
+                      <ClearIcon />
+                    </IconButton>
+                  </Tooltip>
+                )}
+                <Tooltip title={chooseLabel}>
+                  <span>
+                    <IconButton
+                      aria-label={chooseLabel}
+                      edge="end"
+                      disabled={unavailable}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setChoosing(true);
+                      }}
+                    >
+                      <SearchIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </InputAdornment>
+            ),
+          },
+        }}
       />
       {value && (
-        <>
-          <Button
-            disabled={disabled}
-            onClick={() => onChange(null)}
-            sx={{ alignSelf: "flex-start" }}
-          >
-            {t("worlds.fields.remove-binding", "Remove binding")}
-          </Button>
-          <Box component="details">
-            <Box component="summary" sx={{ cursor: "pointer" }}>
-              {t("worlds.fields.advanced-binding", "Advanced binding options")}
-            </Box>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={!!value.exact}
-                  disabled={disabled || context.loading || !catalog}
-                  onChange={(_, exact) => {
-                    if (!catalog) return;
-                    // A deliberate binding-option edit may change the pin; unrelated edits never do.
-                    onChange({
-                      ...value,
-                      exact,
-                      resolvedOracleId: exact
-                        ? value.oracleId
-                        : (catalog.replacementMap[value.oracleId] ??
-                          value.oracleId),
-                    });
-                  }}
-                />
-              }
-              label={t(
-                "worlds.fields.exact",
-                "Use this exact oracle (ignore replacements)",
-              )}
+        <FormControlLabel
+          sx={{ alignSelf: "flex-start" }}
+          control={
+            <Switch
+              size="small"
+              checked={!!value.exact}
+              disabled={disabled || context.loading || !catalog}
+              onChange={(_, exact) => {
+                if (!catalog) return;
+                // A deliberate binding-option edit may change the pin; unrelated edits never do.
+                onChange({
+                  ...value,
+                  exact,
+                  resolvedOracleId: exact
+                    ? value.oracleId
+                    : (catalog.replacementMap[value.oracleId] ??
+                      value.oracleId),
+                });
+              }}
             />
-          </Box>
-        </>
+          }
+          label={t(
+            "worlds.fields.exact",
+            "Use this exact oracle (ignore replacements)",
+          )}
+          slotProps={{ typography: { variant: "body2" } }}
+        />
       )}
       {context.error && (
         <Alert
@@ -155,32 +173,71 @@ export function WorldOracleBindingPicker({
           )}
         </Alert>
       )}
-      {!!catalog?.missingPackageIds.length && (
-        <Alert severity="warning">
-          {t(
-            "worlds.fields.missing-packages",
-            "Unavailable packages: {{packages}}",
-            { packages: catalog.missingPackageIds.join(", ") },
-          )}
-        </Alert>
+      {choosing && catalog && (
+        <Dialog open fullWidth maxWidth="sm" onClose={() => setChoosing(false)}>
+          <DialogTitleWithCloseButton onClose={() => setChoosing(false)}>
+            {chooseLabel}
+          </DialogTitleWithCloseButton>
+          <DialogContent>
+            <Stack spacing={1.5} useFlexGap sx={{ pt: 1 }}>
+              <WorldOracleTreePicker
+                catalog={catalog}
+                allPackages={context.allPackages}
+                exact={!!value?.exact}
+                selectedId={value?.oracleId}
+                disabled={unavailable}
+                onSelect={(choice) => {
+                  onChange(pinWorldOracleChoice(choice, value?.exact));
+                  setChoosing(false);
+                }}
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={context.allPackages}
+                    onChange={(_, checked) => context.setAllPackages(checked)}
+                  />
+                }
+                label={t(
+                  "worlds.fields.all-packages",
+                  "Include all packages, not just this world's rules",
+                )}
+              />
+              {!!catalog.missingPackageIds.length && (
+                <Alert severity="warning">
+                  {t(
+                    "worlds.fields.missing-packages",
+                    "Unavailable packages: {{packages}}",
+                    { packages: catalog.missingPackageIds.join(", ") },
+                  )}
+                </Alert>
+              )}
+              {Object.entries(catalog.collisions).map(([id, candidates]) => (
+                <Alert key={id} severity="warning">
+                  {t(
+                    "worlds.fields.replacement-collision",
+                    "Multiple oracles replace {{id}}. The deterministic choice is {{choice}}.",
+                    {
+                      id:
+                        catalog.choices.find((choice) => choice.id === id)
+                          ?.label ?? id,
+                      choice:
+                        catalog.choices.find(
+                          (choice) => choice.id === candidates[0],
+                        )?.label ?? candidates[0],
+                    },
+                  )}
+                </Alert>
+              ))}
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button color="inherit" onClick={() => setChoosing(false)}>
+              {t("common.cancel", "Cancel")}
+            </Button>
+          </DialogActions>
+        </Dialog>
       )}
-      {catalog &&
-        Object.entries(catalog.collisions).map(([id, candidates]) => (
-          <Alert key={id} severity="warning">
-            {t(
-              "worlds.fields.replacement-collision",
-              "Multiple oracles replace {{id}}. The deterministic choice is {{choice}}.",
-              {
-                id:
-                  catalog.choices.find((choice) => choice.id === id)?.label ??
-                  id,
-                choice:
-                  catalog.choices.find((choice) => choice.id === candidates[0])
-                    ?.label ?? candidates[0],
-              },
-            )}
-          </Alert>
-        ))}
     </Stack>
   );
 }

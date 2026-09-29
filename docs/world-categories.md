@@ -72,26 +72,35 @@ Existing GM-value mirroring/RLS continues to protect stored values.
 ## Configuration editor
 
 The shared world panel follows the Notes folder/item structure. Categories are
-folder cards; opening one shows breadcrumb navigation, name search, and read-only
-entry rows. Standalone destinations have URLs: `/worlds/:worldId`,
+folder cards styled like Notes folders; opening one shows name search and
+read-only entry rows. Standalone destinations have URLs: `/worlds/:worldId`,
 `/worlds/:worldId/categories/:categoryId`, `/worlds/:worldId/settings`, and
 `/worlds/:worldId/settings/categories/:categoryId`. Entry creation, detail, and
 editing remain W5.
 
-**Settings** opens its own route or Notes tab destination. General contains the
-world name and setting, owner-only deletion, and game connection actions when
-opened by a game guide. Category settings show one category's fields at a time.
-Each category has a settings link. Narrow settings show compact links in place
-of the sidebar. Shared breadcrumb links return to the world or category;
-there are no Done buttons. Category/field edit forms
-remain dialogs with close-button titles. Category and field drag handles support
-pointer and keyboard ordering; narrow settings expose category reordering
-separately. **Add category** is available in both the folder root and settings.
+The panel has two layouts. In a Notes tab (`embedded`) the breadcrumbs name the
+destination and actions sit in the same grey toolbar strip as Notes folders:
+settings and **Add category** at the world root, category settings and entry
+search in a category. The standalone page (`page`) shows an uppercase title
+with the same actions beside it. Settings destinations have no action strip.
+
+**Settings** opens its own route or Notes tab destination. General groups the
+world name and setting, the shared-defaults notice, game connection actions
+when opened by a game guide, and owner-only deletion in banded sections. Each
+category's settings edit its name, icon, subtitle field, and capabilities
+inline; changes save as they are made, with no Edit category dialog. Fields are
+a dense list: a row opens the field editor, whose footer holds **Delete field**.
+Empty-category deletion sits in the category's Danger zone. Wide settings show
+a sidebar list with drag handles; narrow containers (such as the Notes column)
+show a section picker plus reorder and add buttons, and reorder in a dialog.
+Breadcrumbs return to the world or category; there are no Done buttons. **Add
+category** is available in the folder root and settings, and uses a small create
+dialog.
 
 Notes tabs store a world ID and a destination, including the category ID when
 applicable. Normal clicks replace the active tab and its title; Ctrl/Meta and
 middle clicks open background tabs. The breadcrumb trail is Notes → world →
-category → Edit category. URL query state preserves these destinations through
+category → Settings. URL query state preserves these destinations through
 refresh and Back/Forward while retaining unrelated query parameters. A single
 linked-world/category subscription owner keeps dormant tab labels live and
 closes every affected destination on deletion, unlinking, or relinking.
@@ -106,13 +115,16 @@ rules**, or the selected setting's packages as **Setting rules** for standalone
 worlds. These labels do not include extra packages referenced only by field
 oracles. The repeated setting subtitle is removed from world/category headers.
 
-Category icons use a square preview that opens the Game Icons/color picker,
-with theme-aware color shades. Page/category headings use the title font;
-the world-name input uses the normal text font.
-Field settings group basic details, fallback behavior, and conditional overrides.
-Internal UUIDs and keys are hidden; duplicate labels use readable subtype or
-field-type descriptions. Every entry has intrinsic rich-text Notes, displayed
-as a muted built-in row rather than an editable field definition.
+Category icons use a square tile that opens an icon dialog modelled on Crew
+Link's: color swatches, a filterable scrolling Game Icons grid, a live preview,
+and Cancel/Save. Colors use theme-aware shades; "White" is the high-contrast
+default and stays distinct from grey. Page/category headings use the title
+font. The field editor groups details, default behavior (visibility, help text,
+chip-style suggestions, and an oracle field that opens a searchable picker
+dialog), and conditional rules with compact condition rows and override
+switches. Internal UUIDs and keys are hidden; duplicate labels use readable
+subtype or field-type descriptions. Every entry has intrinsic rich-text Notes,
+displayed as a muted built-in row rather than an editable field definition.
 
 GM-only targets may use GM-only text, number, and tag condition sources. Rich-text
 and oracle-text content is a Yjs document, so it is not currently a condition

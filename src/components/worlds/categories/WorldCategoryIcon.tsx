@@ -1,37 +1,23 @@
 import CategoryOutlined from "@mui/icons-material/CategoryOutlined";
 import { Box, SvgIcon } from "@mui/material";
-import {
-  blue,
-  brown,
-  green,
-  grey,
-  orange,
-  pink,
-  purple,
-  red,
-  yellow,
-} from "@mui/material/colors";
 import { useEffect, useState } from "react";
 import type { IconType } from "react-icons";
 
-import { IconColors, IconDefinition } from "types/Icon.type";
+import { IconDefinition } from "types/Icon.type";
 
-import { loadCategoryIcons } from "./categoryIcons";
+import { getCategoryIconColor, loadCategoryIcons } from "./categoryIcons";
 
-const colors = {
-  pink,
-  red,
-  orange,
-  yellow,
-  green,
-  blue,
-  purple,
-  white: grey,
-  grey,
-  brown,
-};
+export type WorldCategoryIconSize = "small" | "medium" | "large" | "xlarge";
 
-export function WorldCategoryIcon({ icon }: { icon: IconDefinition | null }) {
+// Theme-aware category icon. "small" renders the bare glyph for inline use
+// (folder cards, lists); larger sizes sit on a tinted tile.
+export function WorldCategoryIcon({
+  icon,
+  size = "medium",
+}: {
+  icon: IconDefinition | null;
+  size?: WorldCategoryIconSize;
+}) {
   const [icons, setIcons] = useState<Record<string, IconType>>();
   useEffect(() => {
     if (!icon?.key) return;
@@ -47,7 +33,8 @@ export function WorldCategoryIcon({ icon }: { icon: IconDefinition | null }) {
   }, [icon?.key]);
   if (!icon?.key) return null;
   const Icon = icon?.key ? icons?.[icon.key] : undefined;
-  const color = colors[icon?.color ?? IconColors.Grey] ?? grey;
+  const box = { small: 24, medium: 30, large: 48, xlarge: 72 }[size];
+  const glyph = { small: 20, medium: 20, large: 32, xlarge: 48 }[size];
   return (
     <Box
       aria-hidden="true"
@@ -55,18 +42,18 @@ export function WorldCategoryIcon({ icon }: { icon: IconDefinition | null }) {
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        width: 30,
-        height: 30,
+        width: box,
+        height: box,
         flexShrink: 0,
         borderRadius: 1,
-        bgcolor: theme.palette.action.hover,
-        color: color[theme.palette.mode === "dark" ? 200 : 800],
+        bgcolor: size === "small" ? undefined : theme.palette.action.hover,
+        color: getCategoryIconColor(icon.color, theme.palette.mode),
       })}
     >
       {Icon ? (
-        <SvgIcon component={Icon} inheritViewBox fontSize="small" />
+        <SvgIcon component={Icon} inheritViewBox sx={{ fontSize: glyph }} />
       ) : (
-        <CategoryOutlined fontSize="small" />
+        <CategoryOutlined sx={{ fontSize: glyph }} />
       )}
     </Box>
   );

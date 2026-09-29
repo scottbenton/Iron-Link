@@ -61,7 +61,7 @@ export function NoteTabs() {
           ? category.name
           : t("worlds.categories.unknown", "Category");
       return view.type === "category-settings"
-        ? t("worlds.categories.edit-named", "Edit {{name}}", { name })
+        ? t("worlds.categories.settings-named", "{{name}} settings", { name })
         : name;
     }
     return world?.id === item.itemId
@@ -197,12 +197,10 @@ export function NoteTabs() {
             overflow="auto"
           >
             {tabItem.type === "world" ? (
-              <OpenItemWrapper sx={{ flexGrow: 1 }}>
-                <GameWorldView
-                  worldId={tabItem.itemId}
-                  worldView={tabItem.worldView}
-                />
-              </OpenItemWrapper>
+              <GameWorldView
+                worldId={tabItem.itemId}
+                worldView={tabItem.worldView}
+              />
             ) : tabItem.type === "folder" ? (
               <>
                 <FolderViewToolbar folderId={tabItem.itemId} />

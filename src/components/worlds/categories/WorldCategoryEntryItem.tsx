@@ -12,7 +12,7 @@ export function WorldCategoryEntryItem({ entry }: { entry: IWorldEntry }) {
         sx={{ py: 1.5, px: 2, display: "flex", alignItems: "center", gap: 1 }}
       >
         {entry.icon?.key ? (
-          <WorldCategoryIcon icon={entry.icon} />
+          <WorldCategoryIcon icon={entry.icon} size="small" />
         ) : (
           <DescriptionIcon sx={{ color: "primary.light" }} />
         )}

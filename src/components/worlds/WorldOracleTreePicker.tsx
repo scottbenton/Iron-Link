@@ -61,6 +61,8 @@ export function WorldOracleTreePicker({
   return (
     <Stack spacing={1}>
       <TextField
+        autoFocus
+        size="small"
         label={t("worlds.fields.find-oracle", "Find an oracle")}
         value={search}
         disabled={disabled}
@@ -77,7 +79,7 @@ export function WorldOracleTreePicker({
       />
       <Box
         sx={{
-          maxHeight: 320,
+          height: 360,
           overflow: "auto",
           border: 1,
           borderColor: "divider",
@@ -104,7 +106,7 @@ export function WorldOracleTreePicker({
           <Typography color="text.secondary" sx={{ p: 1 }}>
             {t(
               "worlds.fields.no-matching-oracles",
-              "No matching oracles. Try another search or enable All packages.",
+              "No matching oracles. Try another search or include all packages.",
             )}
           </Typography>
         )}

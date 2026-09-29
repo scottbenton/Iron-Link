@@ -1,7 +1,19 @@
-import { Alert, Box, Button, LinearProgress, Stack } from "@mui/material";
+import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
+import SettingsIcon from "@mui/icons-material/Settings";
+import {
+  Alert,
+  Box,
+  Button,
+  IconButton,
+  LinearProgress,
+  Stack,
+  Tooltip,
+} from "@mui/material";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { BreadcrumbItem } from "components/Layout/BreadcrumbTrail";
+import { LinkComponent } from "components/LinkComponent";
 import { useWorldOracleContext } from "components/worlds/worldOracleContext";
 
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
@@ -12,28 +24,41 @@ import {
   IWorldCategory,
   WorldCategoriesService,
 } from "services/worldCategories.service";
+import { IWorld } from "services/worlds.service";
 
+import { WorldBreadcrumbs } from "../WorldBreadcrumbs";
+import {
+  WorldLayout,
+  WorldViewActions,
+  WorldViewLayout,
+} from "../WorldViewLayout";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldCategoryBrowser } from "./WorldCategoryBrowser";
+import { WorldCategoryContents } from "./WorldCategoryContents";
 import { CategoryDraft, WorldCategoryEditor } from "./WorldCategoryEditor";
+import { WorldCategoryIcon } from "./WorldCategoryIcon";
 import { WorldConfigurationDeleteDialog } from "./WorldConfigurationDeleteDialog";
 import { WorldConfigurationView } from "./WorldConfigurationView";
+import { WorldEntrySearch } from "./WorldEntrySearch";
 import { editorError } from "./categoryEditor.utils";
 import { useWorldConfigurationDeleteConfirmation } from "./useWorldConfigurationDeleteConfirmation";
 
 export function WorldCategoryManager({
-  worldId,
-  worldName,
+  world,
   permission,
   navigation,
+  layout,
+  rootBreadcrumb,
   generalSettings,
 }: {
-  worldId: string;
-  worldName: string;
+  world: IWorld;
   permission: WorldPermission | null;
   navigation: WorldNavigation;
+  layout: WorldLayout;
+  rootBreadcrumb: BreadcrumbItem;
   generalSettings: ReactNode;
 }) {
+  const worldId = world.id;
   const { t } = useTranslation();
   const {
     confirm,
@@ -63,20 +88,17 @@ export function WorldCategoryManager({
   const createCategory = useWorldCategoriesStore(
     (store) => store.createCategory,
   );
-  const updateCategory = useWorldCategoriesStore(
-    (store) => store.updateCategory,
-  );
   const deleteCategory = useWorldCategoriesStore(
     (store) => store.deleteCategory,
   );
-  const [editor, setEditor] = useState<{ category?: IWorldCategory }>();
+  const [adding, setAdding] = useState(false);
+  const [search, setSearch] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const view = navigation.view;
   const configuring =
-    navigation.view.type === "settings" ||
-    navigation.view.type === "category-settings";
-  const selectedId =
-    "categoryId" in navigation.view ? navigation.view.categoryId : undefined;
+    view.type === "settings" || view.type === "category-settings";
+  const selectedId = "categoryId" in view ? view.categoryId : undefined;
   const selected = categories.find((category) => category.id === selectedId);
   const fields = Object.values(definitions)
     .filter(
@@ -140,108 +162,180 @@ export function WorldCategoryManager({
           navigation.navigate({ type: "settings" });
       }
     });
-  const save = async (draft: CategoryDraft) => {
-    if (editor?.category) await updateCategory(editor.category.id, draft);
-    else {
-      const id = await createCategory(worldId, {
-        ...draft,
-        sortOrder: categories.length
-          ? Math.max(...categories.map((category) => category.sortOrder)) + 1
-          : 0,
-      });
-      if (configuring)
-        navigation.navigate({ type: "category-settings", categoryId: id });
-    }
+  const create = async (draft: CategoryDraft) => {
+    const id = await createCategory(worldId, {
+      ...draft,
+      sortOrder: categories.length
+        ? Math.max(...categories.map((category) => category.sortOrder)) + 1
+        : 0,
+    });
+    if (configuring)
+      navigation.navigate({ type: "category-settings", categoryId: id });
   };
-  return (
-    <Box
-      component="section"
-      sx={{
-        minWidth: 0,
-        containerType: "inline-size",
-        containerName: "world-configuration",
-      }}
+
+  const addCategoryDisabled = !canEdit || !configurationReady || busy;
+  const addCategoryButton = canEdit ? (
+    <Button
+      variant="contained"
+      startIcon={<CreateNewFolderIcon />}
+      disabled={addCategoryDisabled}
+      onClick={() => setAdding(true)}
     >
-      <Stack spacing={2}>
-        {(loading || (!customized && oracleContext.loading)) && (
-          <LinearProgress />
-        )}
-        {!customized && oracleContext.error && (
-          <Alert
-            severity="error"
-            action={
-              <Button color="inherit" onClick={oracleContext.retry}>
-                {t("common.retry", "Retry")}
-              </Button>
-            }
+      {t("worlds.categories.add", "Add category")}
+    </Button>
+  ) : undefined;
+
+  let title: ReactNode = world.name;
+  let titleIcon: ReactNode;
+  let actions: WorldViewActions | undefined;
+  if (view.type === "world") {
+    actions = {
+      start: (
+        <Tooltip title={t("worlds.settings.title", "World settings")}>
+          <IconButton
+            LinkComponent={LinkComponent}
+            {...navigation.getLinkProps({ type: "settings" })}
+            aria-label={t("worlds.settings.title", "World settings")}
           >
-            {oracleContext.error}
-          </Alert>
-        )}
-        {loadError && <Alert severity="error">{loadError}</Alert>}
-        {error && (
-          <Alert severity="error" onClose={() => setError(undefined)}>
-            {error}
-          </Alert>
-        )}
-        {configuring ? (
-          loading && selectedId && !selected ? null : (
-            <WorldConfigurationView
-              configurationNotice={
-                customized
-                  ? t(
-                      "worlds.categories.customized-summary",
-                      "This world has a custom configuration. Shared default updates do not affect it.",
-                    )
-                  : t(
-                      "worlds.categories.shared-defaults-summary",
-                      "Shared defaults receive updates. Your first configuration change creates an independent copy.",
-                    )
+            <SettingsIcon />
+          </IconButton>
+        </Tooltip>
+      ),
+      end: addCategoryButton,
+    };
+  } else if (view.type === "category") {
+    title = selected?.name ?? title;
+    titleIcon = selected?.icon?.key ? (
+      <WorldCategoryIcon icon={selected.icon} size="large" />
+    ) : undefined;
+    actions = selected
+      ? {
+          start: (
+            <Tooltip
+              title={t(
+                "worlds.categories.settings-named",
+                "{{name}} settings",
+                {
+                  name: selected.name,
+                },
+              )}
+            >
+              <IconButton
+                LinkComponent={LinkComponent}
+                {...navigation.getLinkProps({
+                  type: "category-settings",
+                  categoryId: selected.id,
+                })}
+                aria-label={t(
+                  "worlds.categories.settings-named",
+                  "{{name}} settings",
+                  { name: selected.name },
+                )}
+              >
+                <SettingsIcon />
+              </IconButton>
+            </Tooltip>
+          ),
+          end: <WorldEntrySearch value={search} onChange={setSearch} />,
+        }
+      : undefined;
+  } else {
+    title = t("worlds.settings.title", "World settings");
+  }
+
+  let content: ReactNode = null;
+  if (configuring) {
+    if (!(loading && selectedId && !selected))
+      content = (
+        <WorldConfigurationView
+          categories={categories}
+          navigation={navigation}
+          fields={fields}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          configurationReady={configurationReady && !loading}
+          busy={busy}
+          generalSettings={generalSettings}
+          onAdd={() => setAdding(true)}
+          onDelete={remove}
+          onReorder={(ids) => run(() => reorderCategories(ids))}
+        />
+      );
+  } else if (!loading) {
+    content =
+      view.type === "category" && selected ? (
+        <WorldCategoryContents
+          key={selected.id}
+          category={selected}
+          permission={permission}
+          search={search}
+        />
+      ) : (
+        <WorldCategoryBrowser
+          categories={categories}
+          missingCategory={view.type === "category" && !selected}
+          worldName={world.name}
+          navigation={navigation}
+        />
+      );
+  }
+
+  return (
+    <WorldViewLayout
+      layout={layout}
+      breadcrumbs={
+        <WorldBreadcrumbs
+          world={world}
+          category={selected}
+          categoryLoading={loading}
+          navigation={navigation}
+          root={rootBreadcrumb}
+        />
+      }
+      title={title}
+      titleIcon={titleIcon}
+      actions={actions}
+    >
+      <Box
+        component="section"
+        sx={{
+          minWidth: 0,
+          containerType: "inline-size",
+          containerName: "world-configuration",
+        }}
+      >
+        <Stack spacing={2}>
+          {(loading || (!customized && oracleContext.loading)) && (
+            <LinearProgress />
+          )}
+          {!customized && oracleContext.error && (
+            <Alert
+              severity="error"
+              action={
+                <Button color="inherit" onClick={oracleContext.retry}>
+                  {t("common.retry", "Retry")}
+                </Button>
               }
-              categories={categories}
-              navigation={navigation}
-              fields={fields}
-              canEdit={canEdit}
-              canDelete={canDelete}
-              configurationReady={configurationReady && !loading}
-              busy={busy}
-              generalSettings={generalSettings}
-              onAdd={() => setEditor({})}
-              onEdit={(category) => setEditor({ category })}
-              onDelete={remove}
-              onReorder={(ids) => run(() => reorderCategories(ids))}
-            />
-          )
-        ) : !loading ? (
-          <WorldCategoryBrowser
-            worldId={worldId}
-            worldName={worldName}
-            permission={permission}
-            categories={categories}
-            canAddCategory={canEdit && configurationReady && !busy}
-            onAddCategory={() => setEditor({})}
-            navigation={navigation}
-          />
-        ) : null}
-      </Stack>
+            >
+              {oracleContext.error}
+            </Alert>
+          )}
+          {loadError && <Alert severity="error">{loadError}</Alert>}
+          {error && (
+            <Alert severity="error" onClose={() => setError(undefined)}>
+              {error}
+            </Alert>
+          )}
+          {content}
+        </Stack>
+      </Box>
       <WorldConfigurationDeleteDialog
         request={deleteRequest}
         onAnswer={answerDelete}
       />
-      {editor && (
-        <WorldCategoryEditor
-          key={editor.category?.id ?? "new"}
-          category={editor.category}
-          fields={Object.values(definitions).filter(
-            (field) =>
-              field.worldId === worldId &&
-              field.categoryId === editor.category?.id,
-          )}
-          readOnly={!canEdit}
-          onSave={save}
-          onClose={() => setEditor(undefined)}
-        />
+      {adding && (
+        <WorldCategoryEditor onSave={create} onClose={() => setAdding(false)} />
       )}
-    </Box>
+    </WorldViewLayout>
   );
 }

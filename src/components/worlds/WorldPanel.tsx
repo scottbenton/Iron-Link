@@ -8,6 +8,7 @@ import { EmptyState } from "components/Layout/EmptyState";
 import { useListenToWorld, useWorldStore } from "stores/world.store";
 import { useListenToWorldCategories } from "stores/worldCategories.store";
 
+import type { WorldLayout } from "./WorldViewLayout";
 import { WorldWorkspace } from "./WorldWorkspace";
 import type { WorldNavigation } from "./worldNavigation";
 
@@ -23,6 +24,7 @@ export interface WorldPanelProps {
   // this to false when a surrounding surface already listens to this world.
   manageSubscription?: boolean;
   additionalSettings?: ReactNode;
+  layout?: WorldLayout;
 }
 
 // Owns the world subscription (unless `manageSubscription` is false) and renders the world's content without any
@@ -36,6 +38,7 @@ export function WorldPanel(props: WorldPanelProps) {
     additionalSettings,
     navigation,
     rootBreadcrumb,
+    layout = "page",
   } = props;
 
   const { t } = useTranslation();
@@ -105,6 +108,7 @@ export function WorldPanel(props: WorldPanelProps) {
       additionalSettings={additionalSettings}
       navigation={navigation}
       rootBreadcrumb={rootBreadcrumb}
+      layout={layout}
     />
   );
 }

@@ -1,6 +1,6 @@
 import LinkOffIcon from "@mui/icons-material/LinkOff";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ import { useLocation } from "react-router";
 import type { BreadcrumbItem } from "components/Layout/BreadcrumbTrail";
 import { EmptyState } from "components/Layout/EmptyState";
 import { WorldPanel } from "components/worlds/WorldPanel";
+import { WorldSettingsSection } from "components/worlds/WorldSettingsSection";
 import type {
   WorldNavigation,
   WorldView,
@@ -158,26 +159,31 @@ export function GameWorldView(props: GameWorldViewProps) {
   }
 
   return (
-    <Box>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        flexGrow: 1,
+        minHeight: 0,
+      }}
+    >
       <WorldPanel
         worldId={worldId}
         manageSubscription={false}
         navigation={navigation}
         rootBreadcrumb={rootBreadcrumb}
+        layout="embedded"
         onWorldDeleted={() => closeTabsMatching("world", worldId)}
         additionalSettings={
           isGuide ? (
-            <Box>
-              <Typography variant="h6" component="h3">
-                {t("worlds.game.connection", "Game connection")}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {t(
-                  "worlds.game.connection-help",
-                  "Choose which world this game uses, or unlink it. The world itself is kept.",
-                )}
-              </Typography>
-              <Box sx={{ mt: 2, display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <WorldSettingsSection
+              title={t("worlds.game.connection", "Game connection")}
+              description={t(
+                "worlds.game.connection-help",
+                "Choose which world this game uses, or unlink it. The world itself is kept.",
+              )}
+            >
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                 <Button
                   color="inherit"
                   variant="outlined"
@@ -197,7 +203,7 @@ export function GameWorldView(props: GameWorldViewProps) {
                   {t("worlds.game.unlink-world", "Unlink World")}
                 </Button>
               </Box>
-            </Box>
+            </WorldSettingsSection>
           ) : undefined
         }
       />

@@ -56,13 +56,7 @@ export function WorldBreadcrumbs({
   if (view.type === "settings" || view.type === "category-settings") {
     items.push({
       key: "settings",
-      label:
-        view.type === "settings"
-          ? t("worlds.settings.title", "World settings")
-          : t("worlds.categories.edit-named", "Edit {{name}}", {
-              name:
-                category?.name ?? t("worlds.categories.category", "category"),
-            }),
+      label: t("worlds.settings.open", "Settings"),
     });
   }
   return <BreadcrumbTrail items={items} />;

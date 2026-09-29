@@ -83,7 +83,7 @@ describe("WorldFieldEditor", () => {
       screen.queryByRole("option", { name: "Secret type" }),
     ).not.toBeInTheDocument();
     await user.keyboard("{Escape}");
-    await user.click(screen.getByRole("checkbox", { name: /GM only \(also/ }));
+    await user.click(screen.getByRole("checkbox", { name: "GM only" }));
     await user.click(screen.getByRole("combobox", { name: "Source field" }));
     expect(
       screen.getByRole("option", { name: "Secret number" }),
@@ -99,14 +99,14 @@ describe("WorldFieldEditor", () => {
       screen.getByRole("combobox", { name: "Ancestor selector field" }),
     );
     await user.click(screen.getByRole("option", { name: "Secret type" }));
-    await user.click(screen.getByRole("checkbox", { name: /GM only \(also/ }));
+    await user.click(screen.getByRole("checkbox", { name: "GM only" }));
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     expect(
       screen
         .getAllByRole("alert")
         .some((alert) => alert.textContent?.includes("GM-only source")),
     ).toBe(true);
-    await user.click(screen.getByRole("checkbox", { name: /GM only \(also/ }));
+    await user.click(screen.getByRole("checkbox", { name: "GM only" }));
     await user.click(screen.getByRole("button", { name: "Save" }));
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -253,7 +253,7 @@ describe("WorldFieldEditor", () => {
         onClose={vi.fn()}
       />,
     );
-    await user.click(screen.getByRole("checkbox", { name: /GM only \(also/ }));
+    await user.click(screen.getByRole("checkbox", { name: "GM only" }));
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     expect(screen.getByRole("alert")).toHaveTextContent("conditions in Region");
   });
@@ -445,7 +445,7 @@ describe("WorldFieldEditor", () => {
     );
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     expect(screen.getByRole("alert")).toHaveTextContent("GM-only source");
-    await user.click(screen.getByRole("checkbox", { name: /GM only \(also/ }));
+    await user.click(screen.getByRole("checkbox", { name: "GM only" }));
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
   });
 });

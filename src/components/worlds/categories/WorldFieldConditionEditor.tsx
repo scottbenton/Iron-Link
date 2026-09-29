@@ -1,4 +1,13 @@
-import { Alert, Button, MenuItem, Stack, TextField } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import {
+  Alert,
+  Box,
+  IconButton,
+  MenuItem,
+  Stack,
+  TextField,
+  Tooltip,
+} from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import type { WorldFieldRule } from "lib/worldFieldRules";
@@ -35,11 +44,10 @@ export function WorldFieldConditionEditor({
     !source ||
     (condition.source === "ancestor" &&
       !fields.some((field) => field.id === condition.ancestor?.fieldId));
+  const small = { size: "small" as const, fullWidth: true, disabled };
+  const removeLabel = t("worlds.fields.remove-condition", "Remove condition");
   return (
-    <Stack
-      spacing={2}
-      sx={{ border: 1, borderRadius: 1, borderColor: "divider", p: 2 }}
-    >
+    <Stack spacing={1}>
       {missingSource && (
         <Alert severity="warning">
           {t(
@@ -48,43 +56,158 @@ export function WorldFieldConditionEditor({
           )}
         </Alert>
       )}
-      <TextField
-        select
-        label={t("worlds.fields.source", "Read value from")}
-        value={condition.source}
-        disabled={disabled}
-        helperText={t(
-          "worlds.fields.condition-source-help",
-          "Use this entry’s value, or search upward through its parents for the nearest matching ancestor.",
-        )}
-        onChange={(event) =>
-          onChange({
-            ...condition,
-            source: event.target.value as Condition["source"],
-            ancestor:
-              event.target.value === "ancestor"
-                ? { fieldId: textFields[0]?.id ?? "", value: "" }
-                : undefined,
-          })
-        }
+      <Box
+        sx={{
+          display: "grid",
+          gap: 1,
+          alignItems: "start",
+          gridTemplateColumns: {
+            xs: "1fr auto",
+            sm: "minmax(0, 0.9fr) minmax(0, 1.2fr) minmax(0, 0.9fr) minmax(0, 1fr) auto",
+          },
+          "& > .condition-control": { gridColumn: { xs: "1", sm: "auto" } },
+        }}
       >
-        <MenuItem value="entry">
-          {t("worlds.fields.current-entry", "Current entry")}
-        </MenuItem>
-        <MenuItem value="ancestor">
-          {t("worlds.fields.ancestor", "Nearest matching ancestor")}
-        </MenuItem>
-      </TextField>
-      {condition.source === "ancestor" && (
-        <>
+        <TextField
+          {...small}
+          select
+          className="condition-control"
+          label={t("worlds.fields.source", "Read value from")}
+          value={condition.source}
+          onChange={(event) =>
+            onChange({
+              ...condition,
+              source: event.target.value as Condition["source"],
+              ancestor:
+                event.target.value === "ancestor"
+                  ? { fieldId: textFields[0]?.id ?? "", value: "" }
+                  : undefined,
+            })
+          }
+        >
+          <MenuItem value="entry">
+            {t("worlds.fields.current-entry", "This entry")}
+          </MenuItem>
+          <MenuItem value="ancestor">
+            {t("worlds.fields.ancestor", "Nearest matching ancestor")}
+          </MenuItem>
+        </TextField>
+        <TextField
+          {...small}
+          select
+          className="condition-control"
+          label={t("worlds.fields.source-field", "Source field")}
+          value={condition.fieldId}
+          onChange={(event) => {
+            const field = fields.find(
+              (candidate) => candidate.id === event.target.value,
+            );
+            onChange({
+              ...condition,
+              fieldId: event.target.value,
+              operator:
+                field?.type === WorldFieldType.Text
+                  ? condition.operator
+                  : "isNotEmpty",
+            });
+          }}
+        >
+          {!source && condition.fieldId && (
+            <MenuItem value={condition.fieldId}>
+              {t("worlds.fields.missing-field", "Missing field")}
+            </MenuItem>
+          )}
+          {selectable.map((field) => (
+            <MenuItem key={field.id} value={field.id}>
+              {fieldChoiceLabel(field, fields)}
+            </MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          {...small}
+          select
+          className="condition-control"
+          label={t("worlds.fields.comparison", "Comparison")}
+          value={condition.operator}
+          onChange={(event) =>
+            onChange({
+              ...condition,
+              operator: event.target.value as Condition["operator"],
+            })
+          }
+        >
+          <MenuItem
+            value="equals"
+            disabled={source?.type !== WorldFieldType.Text}
+          >
+            {t("worlds.fields.equals", "Equals")}
+          </MenuItem>
+          <MenuItem
+            value="notEquals"
+            disabled={source?.type !== WorldFieldType.Text}
+          >
+            {t("worlds.fields.not-equals", "Does not equal")}
+          </MenuItem>
+          <MenuItem value="isEmpty">
+            {t("worlds.fields.empty", "Is empty")}
+          </MenuItem>
+          <MenuItem value="isNotEmpty">
+            {t("worlds.fields.not-empty", "Is not empty")}
+          </MenuItem>
+        </TextField>
+        {condition.operator === "equals" ||
+        condition.operator === "notEquals" ? (
           <TextField
+            {...small}
+            className="condition-control"
+            label={t("worlds.fields.comparison-value", "Comparison value")}
+            value={condition.value ?? ""}
+            onChange={(event) =>
+              onChange({ ...condition, value: event.target.value })
+            }
+          />
+        ) : (
+          <Box
+            className="condition-control"
+            sx={{ display: { xs: "none", sm: "block" } }}
+          />
+        )}
+        {!disabled && (
+          <Tooltip title={removeLabel}>
+            <IconButton
+              aria-label={removeLabel}
+              size="small"
+              onClick={onRemove}
+              sx={{
+                mt: 0.5,
+                gridColumn: { xs: 2, sm: "auto" },
+                gridRow: { xs: 1, sm: "auto" },
+              }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
+      </Box>
+      {condition.source === "ancestor" && (
+        <Box
+          sx={{
+            display: "grid",
+            gap: 1,
+            pl: { sm: 2 },
+            borderLeft: { sm: 2 },
+            borderColor: { sm: "divider" },
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+          }}
+        >
+          <TextField
+            {...small}
             select
             label={t(
               "worlds.fields.ancestor-selector",
               "Ancestor selector field",
             )}
             value={condition.ancestor?.fieldId ?? ""}
-            disabled={disabled}
             onChange={(event) =>
               onChange({
                 ...condition,
@@ -110,12 +233,12 @@ export function WorldFieldConditionEditor({
             ))}
           </TextField>
           <TextField
+            {...small}
             label={t(
               "worlds.fields.ancestor-value",
               "Ancestor selector equals",
             )}
             value={condition.ancestor?.value ?? ""}
-            disabled={disabled}
             onChange={(event) =>
               onChange({
                 ...condition,
@@ -126,88 +249,7 @@ export function WorldFieldConditionEditor({
               })
             }
           />
-        </>
-      )}
-      <TextField
-        select
-        label={t("worlds.fields.source-field", "Source field")}
-        helperText={t(
-          "worlds.fields.condition-field-help",
-          "Choose a text, number, or tag field. Text supports value comparisons; number and tag fields support empty/not-empty checks. GM-only sources require this field to be GM only too.",
-        )}
-        value={condition.fieldId}
-        disabled={disabled}
-        onChange={(event) => {
-          const field = fields.find(
-            (candidate) => candidate.id === event.target.value,
-          );
-          onChange({
-            ...condition,
-            fieldId: event.target.value,
-            operator:
-              field?.type === WorldFieldType.Text
-                ? condition.operator
-                : "isNotEmpty",
-          });
-        }}
-      >
-        {!source && condition.fieldId && (
-          <MenuItem value={condition.fieldId}>
-            {t("worlds.fields.missing-field", "Missing field")}
-          </MenuItem>
-        )}
-        {selectable.map((field) => (
-          <MenuItem key={field.id} value={field.id}>
-            {fieldChoiceLabel(field, fields)}
-          </MenuItem>
-        ))}
-      </TextField>
-      <TextField
-        select
-        label={t("worlds.fields.comparison", "Comparison")}
-        value={condition.operator}
-        disabled={disabled}
-        onChange={(event) =>
-          onChange({
-            ...condition,
-            operator: event.target.value as Condition["operator"],
-          })
-        }
-      >
-        <MenuItem
-          value="equals"
-          disabled={source?.type !== WorldFieldType.Text}
-        >
-          {t("worlds.fields.equals", "Equals")}
-        </MenuItem>
-        <MenuItem
-          value="notEquals"
-          disabled={source?.type !== WorldFieldType.Text}
-        >
-          {t("worlds.fields.not-equals", "Does not equal")}
-        </MenuItem>
-        <MenuItem value="isEmpty">
-          {t("worlds.fields.empty", "Is empty")}
-        </MenuItem>
-        <MenuItem value="isNotEmpty">
-          {t("worlds.fields.not-empty", "Is not empty")}
-        </MenuItem>
-      </TextField>
-      {(condition.operator === "equals" ||
-        condition.operator === "notEquals") && (
-        <TextField
-          label={t("worlds.fields.comparison-value", "Comparison value")}
-          value={condition.value ?? ""}
-          disabled={disabled}
-          onChange={(event) =>
-            onChange({ ...condition, value: event.target.value })
-          }
-        />
-      )}
-      {!disabled && (
-        <Button onClick={onRemove}>
-          {t("worlds.fields.remove-condition", "Remove condition")}
-        </Button>
+        </Box>
       )}
     </Stack>
   );

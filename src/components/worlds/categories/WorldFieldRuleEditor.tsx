@@ -1,17 +1,20 @@
+import AddIcon from "@mui/icons-material/Add";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Box,
   Button,
-  Checkbox,
+  Divider,
   FormControlLabel,
-  FormHelperText,
   MenuItem,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from "@mui/material";
+import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { WorldFieldRule } from "lib/worldFieldRules";
@@ -25,6 +28,37 @@ import { WorldOracleBindingPicker } from "../WorldOracleBindingPicker";
 import { WorldFieldConditionEditor } from "./WorldFieldConditionEditor";
 import { fieldChoiceLabel, isConditionField } from "./categoryEditor.utils";
 
+function OverrideToggle({
+  label,
+  checked,
+  disabled,
+  onToggle,
+  children,
+}: {
+  label: string;
+  checked: boolean;
+  disabled: boolean;
+  onToggle: (checked: boolean) => void;
+  children: ReactNode;
+}) {
+  return (
+    <Box>
+      <FormControlLabel
+        control={
+          <Switch
+            size="small"
+            checked={checked}
+            disabled={disabled}
+            onChange={(_, next) => onToggle(next)}
+          />
+        }
+        label={label}
+      />
+      {checked && <Box sx={{ pl: 5, pt: 1 }}>{children}</Box>}
+    </Box>
+  );
+}
+
 export function WorldFieldRuleEditor({
   worldId,
   rule,
@@ -32,7 +66,6 @@ export function WorldFieldRuleEditor({
   index,
   disabled,
   onChange,
-  onRemove,
 }: {
   worldId: string;
   rule: WorldFieldRule;
@@ -40,7 +73,6 @@ export function WorldFieldRuleEditor({
   index: number;
   disabled: boolean;
   onChange: (rule: WorldFieldRule) => void;
-  onRemove: () => void;
 }) {
   const { t } = useTranslation();
   const source = fields.find(isConditionField);
@@ -73,49 +105,65 @@ export function WorldFieldRuleEditor({
       disableGutters
       defaultExpanded={rule.conditions.length === 0}
       slotProps={{ transition: { unmountOnExit: true } }}
+      sx={{ "&::before": { display: "none" } }}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>
-          {t("worlds.fields.rule-number", "Rule {{number}}", {
-            number: index + 1,
-          })}
-          : {summary || t("worlds.fields.new-rule", "Choose conditions")}
+        <Typography sx={{ overflowWrap: "anywhere" }}>
+          <Box component="span" sx={{ fontWeight: 600 }}>
+            {t("worlds.fields.rule-number", "Rule {{number}}", {
+              number: index + 1,
+            })}
+            :
+          </Box>{" "}
+          <Box component="span" sx={{ color: "text.secondary" }}>
+            {summary || t("worlds.fields.new-rule", "Choose conditions")}
+          </Box>
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Stack spacing={2}>
-          <Typography variant="subtitle2">
-            {t("worlds.fields.conditions", "Conditions")}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t("worlds.fields.all-conditions", "All conditions must match.")}
-          </Typography>
-          {rule.conditions.map((condition, conditionIndex) => (
-            <WorldFieldConditionEditor
-              key={conditionIndex}
-              condition={condition}
-              fields={fields}
-              disabled={disabled}
-              onChange={(next) =>
-                onChange({
-                  ...rule,
-                  conditions: rule.conditions.map((item, i) =>
-                    i === conditionIndex ? next : item,
-                  ),
-                })
-              }
-              onRemove={() =>
-                onChange({
-                  ...rule,
-                  conditions: rule.conditions.filter(
-                    (_, i) => i !== conditionIndex,
-                  ),
-                })
-              }
-            />
-          ))}
+          <Box>
+            <Typography variant="subtitle2">
+              {t("worlds.fields.conditions", "When all of these match")}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t(
+                "worlds.fields.condition-field-help",
+                "Text fields can compare values; number and tag fields check whether they are empty. GM-only sources require this field to be GM only too.",
+              )}
+            </Typography>
+          </Box>
+          <Stack spacing={1} divider={<Divider flexItem />}>
+            {rule.conditions.map((condition, conditionIndex) => (
+              <WorldFieldConditionEditor
+                key={conditionIndex}
+                condition={condition}
+                fields={fields}
+                disabled={disabled}
+                onChange={(next) =>
+                  onChange({
+                    ...rule,
+                    conditions: rule.conditions.map((item, i) =>
+                      i === conditionIndex ? next : item,
+                    ),
+                  })
+                }
+                onRemove={() =>
+                  onChange({
+                    ...rule,
+                    conditions: rule.conditions.filter(
+                      (_, i) => i !== conditionIndex,
+                    ),
+                  })
+                }
+              />
+            ))}
+          </Stack>
           {!disabled && (
             <Button
+              size="small"
+              startIcon={<AddIcon />}
+              sx={{ alignSelf: "flex-start" }}
               disabled={!source || rule.conditions.length >= 16}
               onClick={() =>
                 onChange({
@@ -138,153 +186,99 @@ export function WorldFieldRuleEditor({
               {t("worlds.fields.add-condition", "Add condition")}
             </Button>
           )}
-          <Stack
-            spacing={2}
-            sx={{ pt: 3, borderTop: 1, borderColor: "divider" }}
+          <Divider />
+          <Typography variant="subtitle2">
+            {t("worlds.fields.matching-overrides", "Then")}
+          </Typography>
+          <TextField
+            select
+            size="small"
+            label={t("worlds.fields.rule-visibility", "Visibility")}
+            value={
+              rule.visible === undefined ? "inherit" : String(rule.visible)
+            }
+            disabled={disabled}
+            sx={{ maxWidth: 280 }}
+            onChange={(event) =>
+              onChange({
+                ...rule,
+                visible:
+                  event.target.value === "inherit"
+                    ? undefined
+                    : event.target.value === "true",
+              })
+            }
           >
-            <Typography variant="subtitle2">
-              {t(
-                "worlds.fields.matching-overrides",
-                "When these conditions match",
-              )}
-            </Typography>
+            <MenuItem value="inherit">
+              {t("worlds.fields.use-fallback", "Use default")}
+            </MenuItem>
+            <MenuItem value="true">
+              {t("worlds.fields.visible", "Visible")}
+            </MenuItem>
+            <MenuItem value="false">
+              {t("worlds.fields.hidden", "Hidden")}
+            </MenuItem>
+          </TextField>
+          <OverrideToggle
+            label={t("worlds.fields.override-label", "Use a different label")}
+            checked={rule.label !== undefined}
+            disabled={disabled}
+            onToggle={(checked) =>
+              onChange({ ...rule, label: checked ? "" : undefined })
+            }
+          >
             <TextField
-              select
-              label={t("worlds.fields.rule-visibility", "Visibility override")}
-              value={
-                rule.visible === undefined ? "inherit" : String(rule.visible)
-              }
+              size="small"
+              fullWidth
+              required
+              label={t("worlds.fields.rule-label", "Rule label")}
+              value={rule.label ?? ""}
               disabled={disabled}
-              helperText={t(
-                "worlds.fields.visibility-override-help",
-                "Show or hide this field for matching entries, or keep its fallback visibility.",
-              )}
               onChange={(event) =>
-                onChange({
-                  ...rule,
-                  visible:
-                    event.target.value === "inherit"
-                      ? undefined
-                      : event.target.value === "true",
-                })
+                onChange({ ...rule, label: event.target.value })
               }
-            >
-              <MenuItem value="inherit">
-                {t("worlds.fields.use-fallback", "Use fallback")}
-              </MenuItem>
-              <MenuItem value="true">
-                {t("worlds.fields.visible", "Visible")}
-              </MenuItem>
-              <MenuItem value="false">
-                {t("worlds.fields.hidden", "Hidden")}
-              </MenuItem>
-            </TextField>
-            <Stack spacing={0.5}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={rule.label !== undefined}
-                    disabled={disabled}
-                    onChange={(_, checked) =>
-                      onChange({ ...rule, label: checked ? "" : undefined })
-                    }
-                  />
-                }
-                label={t("worlds.fields.override-label", "Override label")}
-              />
-              <FormHelperText sx={{ mx: 1.75 }}>
-                {t(
-                  "worlds.fields.label-override-help",
-                  "Use a different field label for matching entries. Otherwise, keep the field label above.",
-                )}
-              </FormHelperText>
-              {rule.label !== undefined && (
-                <TextField
-                  label={t("worlds.fields.rule-label", "Rule label")}
-                  value={rule.label}
-                  disabled={disabled}
-                  onChange={(event) =>
-                    onChange({ ...rule, label: event.target.value })
-                  }
-                />
+            />
+          </OverrideToggle>
+          <OverrideToggle
+            label={t("worlds.fields.override-help", "Use different help text")}
+            checked={rule.helpText !== undefined}
+            disabled={disabled}
+            onToggle={(checked) =>
+              onChange({ ...rule, helpText: checked ? "" : undefined })
+            }
+          >
+            <TextField
+              size="small"
+              fullWidth
+              multiline
+              label={t("worlds.fields.rule-help", "Rule help text")}
+              helperText={t(
+                "worlds.fields.help-override-help",
+                "Leave empty to show no help text.",
               )}
-            </Stack>
-            <Stack spacing={0.5}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={rule.helpText !== undefined}
-                    disabled={disabled}
-                    onChange={(_, checked) =>
-                      onChange({ ...rule, helpText: checked ? "" : undefined })
-                    }
-                  />
-                }
-                label={t("worlds.fields.override-help", "Override help text")}
-              />
-              <FormHelperText sx={{ mx: 1.75 }}>
-                {t(
-                  "worlds.fields.help-override-help",
-                  "Replace the fallback guidance for matching entries. Leave the override empty to show no help text.",
-                )}
-              </FormHelperText>
-              {rule.helpText !== undefined && (
-                <TextField
-                  label={t("worlds.fields.rule-help", "Rule help text")}
-                  value={rule.helpText}
-                  multiline
-                  minRows={2}
-                  disabled={disabled}
-                  onChange={(event) =>
-                    onChange({ ...rule, helpText: event.target.value })
-                  }
-                />
-              )}
-            </Stack>
-            <Stack spacing={0.5}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={rule.binding !== undefined}
-                    disabled={disabled}
-                    onChange={(_, checked) =>
-                      onChange({ ...rule, binding: checked ? null : undefined })
-                    }
-                  />
-                }
-                label={t(
-                  "worlds.fields.override-oracle",
-                  "Override oracle (leave empty for no roll button)",
-                )}
-              />
-              <FormHelperText sx={{ mx: 1.75 }}>
-                {t(
-                  "worlds.fields.oracle-override-help",
-                  "Choose a different oracle for matching entries, or leave the override empty to remove the roll button. Otherwise, keep the fallback oracle.",
-                )}
-              </FormHelperText>
-              {rule.binding !== undefined && (
-                <WorldOracleBindingPicker
-                  worldId={worldId}
-                  value={rule.binding}
-                  disabled={disabled}
-                  onChange={(binding) => onChange({ ...rule, binding })}
-                />
-              )}
-            </Stack>
-          </Stack>
-          {!disabled && (
-            <Stack
-              direction="row"
-              spacing={1}
-              useFlexGap
-              sx={{ flexWrap: "wrap", pt: 1 }}
-            >
-              <Button color="error" onClick={onRemove}>
-                {t("worlds.fields.remove-rule", "Remove rule")}
-              </Button>
-            </Stack>
-          )}
+              value={rule.helpText ?? ""}
+              disabled={disabled}
+              onChange={(event) =>
+                onChange({ ...rule, helpText: event.target.value })
+              }
+            />
+          </OverrideToggle>
+          <OverrideToggle
+            label={t("worlds.fields.override-oracle", "Use a different oracle")}
+            checked={rule.binding !== undefined}
+            disabled={disabled}
+            onToggle={(checked) =>
+              onChange({ ...rule, binding: checked ? null : undefined })
+            }
+          >
+            <WorldOracleBindingPicker
+              worldId={worldId}
+              label={t("worlds.fields.rule-oracle", "Rule oracle")}
+              value={rule.binding ?? null}
+              disabled={disabled}
+              onChange={(binding) => onChange({ ...rule, binding })}
+            />
+          </OverrideToggle>
         </Stack>
       </AccordionDetails>
     </Accordion>

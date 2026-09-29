@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { WorldPermission } from "repositories/shared.types";
 
+import type { IWorldCategory } from "services/worldCategories.service";
 import {
   IWorldEntry,
   WorldEntriesService,
@@ -13,28 +14,54 @@ import {
 import { WorldBrowserRouteFixture } from "./WorldBrowserRouteFixture";
 import { category, translate } from "./fixtures";
 
+const state = vi.hoisted(() => ({
+  categories: {} as Record<string, IWorldCategory>,
+  fieldDefinitions: {},
+  configurationCustomized: false,
+  defaultBindingsReady: true,
+  loading: false,
+  error: undefined,
+  oracle: { loading: false, error: undefined, retry: () => {} },
+}));
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
+vi.mock("components/worlds/worldOracleContext", () => ({
+  useWorldOracleContext: () => state.oracle,
+}));
+vi.mock("../WorldCategoryFields", () => ({ WorldCategoryFields: () => null }));
+vi.mock("stores/worldCategories.store", () => ({
+  useWorldCategoriesStore: (selector: (store: typeof state) => unknown) =>
+    selector(state),
+}));
 vi.mock("stores/auth.store", () => ({ useUID: () => "reader" }));
 vi.mock("react-i18next", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-i18next")>()),
   useTranslation: () => ({ t: translate }),
 }));
-beforeEach(() => vi.restoreAllMocks());
+beforeEach(() => {
+  vi.restoreAllMocks();
+  state.oracle.loading = false;
+});
 
 function renderBrowser(
   path = `/worlds/${category.worldId}`,
-  props: Parameters<typeof WorldBrowserRouteFixture>[0] = {},
+  props: Parameters<typeof WorldBrowserRouteFixture>[0] & {
+    categories?: IWorldCategory[];
+  } = {},
 ) {
+  const { categories = [category], ...fixtureProps } = props;
+  state.categories = Object.fromEntries(
+    categories.map((item) => [item.id, item]),
+  );
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route
           path="/worlds/:worldId"
-          element={<WorldBrowserRouteFixture {...props} />}
+          element={<WorldBrowserRouteFixture {...fixtureProps} />}
         />
         <Route
           path="/worlds/:worldId/categories/:categoryId"
-          element={<WorldBrowserRouteFixture {...props} />}
+          element={<WorldBrowserRouteFixture {...fixtureProps} />}
         />
       </Routes>
     </MemoryRouter>,
@@ -62,7 +89,9 @@ describe("WorldCategoryBrowser routes", () => {
     expect(
       screen.getByRole("heading", { name: "Locations" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute(
+    expect(
+      screen.getByRole("link", { name: "Locations settings" }),
+    ).toHaveAttribute(
       "href",
       `/worlds/${category.worldId}/settings/categories/${category.id}`,
     );
@@ -118,7 +147,9 @@ describe("WorldCategoryBrowser routes", () => {
     renderBrowser(`/worlds/${category.worldId}/categories/foreign`, {
       categories: [{ ...category, id: "foreign", worldId: "other-world" }],
     });
-    expect(screen.getByRole("alert")).toHaveTextContent("Category unavailable");
+    expect(
+      screen.getByText("This category is no longer available."),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to world" })).toHaveAttribute(
       "href",
       `/worlds/${category.worldId}`,
@@ -128,6 +159,7 @@ describe("WorldCategoryBrowser routes", () => {
     ).not.toBeInTheDocument();
   });
   it("keeps add disabled during unavailable editor configuration and hides it for readers", () => {
+    state.oracle.loading = true;
     const view = renderBrowser(undefined, {
       permission: WorldPermission.Owner,
     });

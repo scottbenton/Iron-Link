@@ -78,7 +78,7 @@ vi.mock("components/worlds/WorldPanel", () => ({
           categoryId: "locations",
         })}
       >
-        Edit Locations
+        Locations settings
       </a>
       {rootBreadcrumb && <a {...rootBreadcrumb.linkProps}>Notes root</a>}
     </>
@@ -140,7 +140,7 @@ describe("World Notes navigation", () => {
     expect(useNotesStore.getState().openTabId).toBe(original);
   });
 
-  it("replaces category titles and gives settings, edit-category and Notes breadcrumbs their own destinations", async () => {
+  it("replaces category titles and gives settings, category settings and Notes breadcrumbs their own destinations", async () => {
     const user = userEvent.setup();
     useNotesStore.getState().openItemTab({ type: "world", id: "world-a" });
     const original = useNotesStore.getState().openTabId;
@@ -161,7 +161,7 @@ describe("World Notes navigation", () => {
     ).toBeInTheDocument();
     expect(useNotesStore.getState().openTabId).toBe(original);
     fireEvent(
-      screen.getByRole("link", { name: "Edit Locations" }),
+      screen.getByRole("link", { name: "Locations settings" }),
       new MouseEvent("auxclick", {
         button: 1,
         bubbles: true,
@@ -169,7 +169,7 @@ describe("World Notes navigation", () => {
       }),
     );
     expect(
-      screen.getByRole("tab", { name: "Edit Locations" }),
+      screen.getByRole("tab", { name: "Locations settings" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Notes root" })).toHaveAttribute(
       "href",

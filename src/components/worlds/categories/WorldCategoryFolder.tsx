@@ -1,4 +1,4 @@
-import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
+import FolderIcon from "@mui/icons-material/Folder";
 import { Card, CardActionArea, Typography } from "@mui/material";
 
 import { LinkComponent } from "components/LinkComponent";
@@ -8,6 +8,7 @@ import { IWorldCategory } from "services/worldCategories.service";
 import type { WorldLinkProps } from "../worldNavigation";
 import { WorldCategoryIcon } from "./WorldCategoryIcon";
 
+// Matches the Notes FolderItem card so categories read as folders.
 export function WorldCategoryFolder({
   category,
   linkProps,
@@ -34,15 +35,11 @@ export function WorldCategoryFolder({
         }}
       >
         {category.icon?.key ? (
-          <WorldCategoryIcon icon={category.icon} />
+          <WorldCategoryIcon icon={category.icon} size="small" />
         ) : (
-          <FolderOutlinedIcon color="action" />
+          <FolderIcon color="action" />
         )}
-        <Typography
-          fontFamily={(theme) => theme.typography.fontFamilyTitle}
-          variant="h6"
-          sx={{ minWidth: 0, overflowWrap: "anywhere" }}
-        >
+        <Typography sx={{ flexGrow: 1, minWidth: 0, overflowWrap: "anywhere" }}>
           {category.name}
         </Typography>
       </CardActionArea>

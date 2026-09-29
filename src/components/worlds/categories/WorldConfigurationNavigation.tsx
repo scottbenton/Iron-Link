@@ -1,4 +1,20 @@
-import { Box, Button, Stack, Typography } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import SettingsIcon from "@mui/icons-material/Settings";
+import SwapVertIcon from "@mui/icons-material/SwapVert";
+import {
+  Box,
+  Card,
+  Divider,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  ListSubheader,
+  MenuItem,
+  TextField,
+  Tooltip,
+} from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -7,9 +23,19 @@ import type { WorldNavigation } from "components/worlds/worldNavigation";
 
 import type { IWorldCategory } from "services/worldCategories.service";
 
-import { WorldCategoryConfigurationRow } from "./WorldCategoryConfigurationRow";
+import { WorldCategoryReorderDialog } from "./WorldCategoryReorderDialog";
 import { WorldConfigurationSortList } from "./WorldConfigurationSortList";
+import { WorldSettingsCategoryItem } from "./WorldSettingsCategoryItem";
 
+// Settings default to a sidebar; narrow containers (such as the Notes
+// column) switch to a section picker.
+export const NARROW_SETTINGS =
+  "@container world-configuration (max-width: 719.98px)";
+
+const GENERAL = "general";
+
+// Wide containers get a sidebar list (with drag reordering); narrow ones get
+// a section picker plus a reorder dialog.
 export function WorldConfigurationNavigation({
   categories,
   navigation,
@@ -31,90 +57,133 @@ export function WorldConfigurationNavigation({
       ? navigation.view.categoryId
       : undefined;
   const [reordering, setReordering] = useState(false);
-  const wide = "@container world-configuration (min-width: 720px)";
+  const addLabel = t("worlds.categories.add", "Add category");
+  const reorderLabel = t("worlds.categories.reorder", "Reorder categories");
   return (
-    <Stack
+    <Box
       component="nav"
       aria-label={t("worlds.settings.navigation", "World settings navigation")}
-      spacing={1.5}
       sx={{
-        width: "100%",
+        width: 260,
         flexShrink: 0,
-        "@container world-configuration (min-width: 720px)": { width: 240 },
+        position: "sticky",
+        top: 0,
+        [NARROW_SETTINGS]: { width: "100%", position: "static" },
       }}
     >
-      <Button
-        component={LinkComponent}
-        {...navigation.getLinkProps({ type: "settings" })}
-        variant={selectedId === undefined ? "contained" : "outlined"}
-        aria-current={selectedId === undefined ? "page" : undefined}
-        sx={{
-          justifyContent: "flex-start",
-        }}
-      >
-        {t("worlds.settings.general", "General")}
-      </Button>
-      <Stack
-        direction="row"
-        useFlexGap
-        sx={{ flexWrap: "wrap", gap: 1, [wide]: { display: "none" } }}
-        aria-label={t(
-          "worlds.settings.category-links",
-          "Category settings links",
-        )}
-      >
-        {categories.map((category) => (
-          <Button
-            key={category.id}
-            component={LinkComponent}
-            {...navigation.getLinkProps({
-              type: "category-settings",
-              categoryId: category.id,
-            })}
-            variant={category.id === selectedId ? "contained" : "outlined"}
-            aria-current={category.id === selectedId ? "page" : undefined}
-            sx={{ minWidth: 0, overflowWrap: "anywhere", textAlign: "left" }}
-          >
-            {category.name}
-          </Button>
-        ))}
-      </Stack>
-      <Typography
-        variant="overline"
-        sx={{ display: "none", [wide]: { display: "block" } }}
-      >
-        {t("worlds.categories.title", "Categories")}
-      </Typography>
-      {canEdit && (
-        <Button
-          aria-expanded={reordering}
-          disabled={disabled}
-          onClick={() => setReordering(!reordering)}
-          sx={{ display: "flex", [wide]: { display: "none" } }}
-        >
-          {t("worlds.categories.reorder", "Reorder categories")}
-        </Button>
-      )}
       <Box
         sx={{
-          display: reordering ? "block" : "none",
-          [wide]: { display: "block" },
+          display: "none",
+          alignItems: "center",
+          gap: 0.5,
+          pt: 1,
+          [NARROW_SETTINGS]: { display: "flex" },
         }}
       >
-        <WorldConfigurationSortList
-          items={categories.map((category) => ({
-            id: category.id,
-            label: category.name,
-          }))}
-          onReorder={onReorder}
+        <TextField
+          select
+          fullWidth
+          size="small"
+          label={t("worlds.settings.section", "Settings section")}
+          value={selectedId ?? GENERAL}
+          onChange={(event) =>
+            navigation.navigate(
+              event.target.value === GENERAL
+                ? { type: "settings" }
+                : {
+                    type: "category-settings",
+                    categoryId: event.target.value,
+                  },
+            )
+          }
         >
-          <Stack spacing={1}>
+          <MenuItem value={GENERAL}>
+            {t("worlds.settings.general", "General")}
+          </MenuItem>
+          <ListSubheader>
+            {t("worlds.categories.title", "Categories")}
+          </ListSubheader>
+          {categories.map((category) => (
+            <MenuItem key={category.id} value={category.id}>
+              {category.name}
+            </MenuItem>
+          ))}
+        </TextField>
+        {canEdit && (
+          <>
+            <Tooltip title={reorderLabel}>
+              <span>
+                <IconButton
+                  aria-label={reorderLabel}
+                  disabled={disabled || categories.length < 2}
+                  onClick={() => setReordering(true)}
+                >
+                  <SwapVertIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title={addLabel}>
+              <span>
+                <IconButton
+                  aria-label={addLabel}
+                  disabled={disabled}
+                  onClick={onAdd}
+                >
+                  <AddIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </>
+        )}
+      </Box>
+      <Card
+        variant="outlined"
+        sx={{
+          bgcolor: "background.default",
+          [NARROW_SETTINGS]: { display: "none" },
+        }}
+      >
+        <List disablePadding>
+          <ListItemButton
+            LinkComponent={LinkComponent}
+            {...navigation.getLinkProps({ type: "settings" })}
+            selected={selectedId === undefined}
+            aria-current={selectedId === undefined ? "page" : undefined}
+          >
+            <ListItemIcon sx={{ minWidth: 36 }}>
+              <SettingsIcon />
+            </ListItemIcon>
+            <ListItemText primary={t("worlds.settings.general", "General")} />
+          </ListItemButton>
+        </List>
+        <Divider />
+        <List
+          disablePadding
+          subheader={
+            <ListSubheader
+              sx={(theme) => ({
+                bgcolor: "transparent",
+                fontFamily: theme.typography.fontFamilyTitle,
+                fontSize: theme.typography.body1.fontSize,
+              })}
+            >
+              {t("worlds.categories.title", "Categories")}
+            </ListSubheader>
+          }
+        >
+          <WorldConfigurationSortList
+            items={categories.map((category) => ({
+              id: category.id,
+              label: category.name,
+            }))}
+            onReorder={onReorder}
+          >
             {categories.map((category) => (
-              <WorldCategoryConfigurationRow
+              <WorldSettingsCategoryItem
                 key={category.id}
                 category={category}
                 selected={category.id === selectedId}
-                canEdit={canEdit}
+                sortable={canEdit}
                 disabled={disabled}
                 linkProps={navigation.getLinkProps({
                   type: "category-settings",
@@ -122,14 +191,30 @@ export function WorldConfigurationNavigation({
                 })}
               />
             ))}
-          </Stack>
-        </WorldConfigurationSortList>
-      </Box>
-      {canEdit && (
-        <Button variant="outlined" disabled={disabled} onClick={onAdd}>
-          {t("worlds.categories.add", "Add category")}
-        </Button>
+          </WorldConfigurationSortList>
+          {canEdit && (
+            <ListItemButton
+              component="button"
+              disabled={disabled}
+              onClick={onAdd}
+              sx={{ width: "100%", textAlign: "left" }}
+            >
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                <AddIcon />
+              </ListItemIcon>
+              <ListItemText primary={addLabel} />
+            </ListItemButton>
+          )}
+        </List>
+      </Card>
+      {reordering && (
+        <WorldCategoryReorderDialog
+          categories={categories}
+          disabled={disabled}
+          onReorder={onReorder}
+          onClose={() => setReordering(false)}
+        />
       )}
-    </Stack>
+    </Box>
   );
 }
