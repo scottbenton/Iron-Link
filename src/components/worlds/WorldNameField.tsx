@@ -40,15 +40,6 @@ export function WorldNameField(props: WorldNameFieldProps) {
       onChange={(evt) => setValue(evt.currentTarget.value)}
       variant="standard"
       fullWidth
-      slotProps={{
-        htmlInput: {
-          sx: (theme) => ({
-            ...theme.typography.h4,
-            fontFamily: theme.typography.fontFamilyTitle,
-            textTransform: "uppercase",
-          }),
-        },
-      }}
     />
   );
 }

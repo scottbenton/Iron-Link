@@ -1,27 +1,42 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, screen, render as testingRender } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
+import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type {
+  WorldNavigation,
+  WorldView,
+} from "components/worlds/worldNavigation";
 
 import { GameWorldView } from "pages/games/characterSheet/components/NotesSection/WorldView/GameWorldView";
 
 import { WorldPermission } from "repositories/shared.types";
 
+import type { IWorldCategory } from "services/worldCategories.service";
 import { IWorld } from "services/worlds.service";
 
+import type { WorldPanelProps } from "../WorldPanel";
 import { WorldPanel } from "../WorldPanel";
+import { category as sampleCategory } from "../categories/__tests__/fixtures";
 import { translate } from "../categories/__tests__/fixtures";
 
 const state = vi.hoisted(() => ({
+  worldId: "world-a",
   world: undefined as IWorld | undefined,
   gamePermissions: "guide",
   gameWorldId: "world-a",
+  gameId: "game-a",
   confirm: vi.fn(),
   unlink: vi.fn(),
   closeTabsMatching: vi.fn(),
+  openItemTab: vi.fn(),
+  folderState: { folders: {} },
+  categories: {} as Record<string, IWorldCategory>,
+  rootFolderId: undefined as string | undefined,
   worldPermission: "owner" as WorldPermission,
   loading: false,
-  error: undefined,
+  error: undefined as string | undefined,
   worldDeleted: false,
   updateWorldName: vi.fn().mockResolvedValue(undefined),
   deleteWorld: vi.fn(),
@@ -44,13 +59,21 @@ vi.mock("services/worlds.service", () => ({
 }));
 vi.mock("material-ui-confirm", () => ({ useConfirm: () => state.confirm }));
 vi.mock("pages/games/gamePageLayout/hooks/useGameId", () => ({
-  useGameId: () => "game-a",
+  useGameId: () => state.gameId,
 }));
 vi.mock("stores/game.store", () => ({
   GamePermission: { Guide: "guide" },
   useGameStore: (selector: (store: typeof state) => unknown) => selector(state),
 }));
+vi.mock("stores/auth.store", () => ({ useUID: () => "reader" }));
+vi.mock("stores/worldCategories.store", () => ({
+  useListenToWorldCategories: vi.fn(),
+  useWorldCategoriesStore: (selector: (store: typeof state) => unknown) =>
+    selector(state),
+}));
 vi.mock("stores/notes.store", () => ({
+  getPlayerNotesFolder: () =>
+    state.rootFolderId ? { id: state.rootFolderId } : undefined,
   useNotesStore: (selector: (store: typeof state) => unknown) =>
     selector(state),
 }));
@@ -68,23 +91,48 @@ vi.mock("../WorldOracleContextProvider", () => ({
 }));
 vi.mock("../categories/WorldCategoryManager", () => ({
   WorldCategoryManager: ({
-    configuring,
-    onDone,
+    navigation,
     generalSettings,
   }: {
-    configuring: boolean;
-    onDone: () => void;
+    navigation: WorldNavigation;
     generalSettings: ReactNode;
   }) =>
-    configuring ? (
-      <>
-        <button onClick={onDone}>Done</button>
-        {generalSettings}
-      </>
+    navigation.view.type === "settings" ? (
+      generalSettings
     ) : (
       <p>Category folders</p>
     ),
 }));
+
+const render = (element: ReactNode) =>
+  testingRender(element, { wrapper: MemoryRouter });
+
+function TestWorldPanel(props: Omit<WorldPanelProps, "navigation">) {
+  const [selection, setSelection] = useState<{
+    worldId: string;
+    view: WorldView;
+  }>({ worldId: props.worldId, view: { type: "world" } });
+  const view: WorldView =
+    selection.worldId === props.worldId ? selection.view : { type: "world" };
+  const setView = (next: WorldView) =>
+    setSelection({ worldId: props.worldId, view: next });
+  return (
+    <WorldPanel
+      {...props}
+      navigation={{
+        view,
+        navigate: setView,
+        getLinkProps: (destination) => ({
+          href: "#world",
+          onClick: (event) => {
+            event.preventDefault();
+            setView(destination);
+          },
+        }),
+      }}
+    />
+  );
+}
 
 const world: IWorld = {
   id: "world-a",
@@ -99,14 +147,98 @@ const world: IWorld = {
 beforeEach(() => {
   vi.clearAllMocks();
   state.world = world;
+  state.worldId = world.id;
+  state.error = undefined;
   state.worldPermission = WorldPermission.Owner;
   state.gamePermissions = "guide";
   state.gameWorldId = "world-a";
+  state.gameId = "game-a";
   state.worldDeleted = false;
+  state.rootFolderId = undefined;
+  state.categories = {};
   state.count.mockResolvedValue(0);
 });
 
 describe("World workspace", () => {
+  it.each(["deleted", "error"])(
+    "shows loading instead of an old world's %s state while switching routes",
+    (stale) => {
+      const view = render(<TestWorldPanel worldId="world-a" />);
+      state.worldDeleted = stale === "deleted";
+      state.error = stale === "error" ? "Old world error" : undefined;
+      view.rerender(<TestWorldPanel worldId="world-b" />);
+      expect(screen.getByRole("progressbar")).toBeInTheDocument();
+      expect(screen.queryByText("World Deleted")).not.toBeInTheDocument();
+      expect(screen.queryByText("Old world error")).not.toBeInTheDocument();
+      state.worldId = "world-b";
+      state.world = { ...world, id: "world-b", name: "New world" };
+      state.worldDeleted = false;
+      state.error = undefined;
+      view.rerender(<TestWorldPanel worldId="world-b" />);
+      expect(
+        screen.getByRole("heading", { name: "New world" }),
+      ).toBeInTheDocument();
+    },
+  );
+
+  it("does not close another game's tabs after an old game's unlink request completes", async () => {
+    let complete!: () => void;
+    state.confirm.mockResolvedValue({ confirmed: true });
+    state.unlink.mockReturnValue(
+      new Promise<void>((resolve) => {
+        complete = resolve;
+      }),
+    );
+    const user = userEvent.setup();
+    const view = render(
+      <GameWorldView worldId="world-a" worldView={{ type: "settings" }} />,
+    );
+    await user.click(screen.getByRole("button", { name: "Unlink World" }));
+    expect(state.unlink).toHaveBeenCalledWith("game-a");
+    state.gameId = "game-b";
+    view.rerender(
+      <GameWorldView worldId="world-a" worldView={{ type: "settings" }} />,
+    );
+    await act(async () => complete());
+    expect(state.closeTabsMatching).not.toHaveBeenCalled();
+  });
+
+  it("renders the actual shared Notes → world → category breadcrumb with same-game destination links", async () => {
+    state.rootFolderId = "reader-notes";
+    state.categories = {
+      locations: { ...sampleCategory, id: "locations", worldId: "world-a" },
+    };
+    const user = userEvent.setup();
+    render(
+      <GameWorldView
+        worldId="world-a"
+        worldView={{ type: "category", categoryId: "locations" }}
+      />,
+    );
+    const trail = screen.getByRole("navigation", { name: "Breadcrumbs" });
+    expect(trail).toHaveTextContent("Notes");
+    expect(trail).toHaveTextContent("Our world");
+    expect(trail).toHaveTextContent("Locations");
+    expect(
+      screen.queryByRole("link", { name: "Worlds" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Notes" })).toHaveAttribute(
+      "href",
+      "/?note-type=folder&note-id=reader-notes",
+    );
+    expect(screen.getByRole("link", { name: "Our world" })).toHaveAttribute(
+      "href",
+      "/?note-type=world&note-id=world-a",
+    );
+    await user.click(screen.getByRole("link", { name: "Notes" }));
+    expect(state.openItemTab).toHaveBeenCalledWith({
+      type: "folder",
+      id: "reader-notes",
+      replaceCurrent: true,
+      openInBackground: false,
+    });
+  });
+
   it.each(["deleted event", "world switch"])(
     "handles delete completion after %s without stale navigation",
     async (change) => {
@@ -119,21 +251,23 @@ describe("World workspace", () => {
       const onDeleted = vi.fn();
       const user = userEvent.setup();
       const view = render(
-        <WorldPanel worldId="world-a" onWorldDeleted={onDeleted} />,
+        <TestWorldPanel worldId="world-a" onWorldDeleted={onDeleted} />,
       );
-      await user.click(screen.getByRole("button", { name: "Settings" }));
+      await user.click(screen.getByRole("link", { name: "Settings" }));
       await user.click(screen.getByRole("button", { name: "Delete World" }));
       await user.click(screen.getByRole("button", { name: "Delete" }));
       expect(state.deleteWorld).toHaveBeenCalledWith("world-a");
       if (change === "deleted event") {
         state.worldDeleted = true;
         view.rerender(
-          <WorldPanel worldId="world-a" onWorldDeleted={onDeleted} />,
+          <TestWorldPanel worldId="world-a" onWorldDeleted={onDeleted} />,
         );
+        expect(screen.getByText("World Deleted")).toBeInTheDocument();
       } else {
         state.world = { ...world, id: "world-b" };
+        state.worldId = "world-b";
         view.rerender(
-          <WorldPanel worldId="world-b" onWorldDeleted={onDeleted} />,
+          <TestWorldPanel worldId="world-b" onWorldDeleted={onDeleted} />,
         );
       }
       await act(async () => complete());
@@ -150,11 +284,14 @@ describe("World workspace", () => {
       }),
     );
     const user = userEvent.setup();
-    const view = render(<GameWorldView worldId="world-a" />);
-    await user.click(screen.getByRole("button", { name: "Settings" }));
+    const view = render(
+      <GameWorldView worldId="world-a" worldView={{ type: "settings" }} />,
+    );
     await user.click(screen.getByRole("button", { name: "Unlink World" }));
     state.gameWorldId = "world-b";
-    view.rerender(<GameWorldView worldId="world-a" />);
+    view.rerender(
+      <GameWorldView worldId="world-a" worldView={{ type: "settings" }} />,
+    );
     await act(async () => answer({ confirmed: true }));
     expect(state.unlink).not.toHaveBeenCalled();
     expect(screen.getByText("World Unlinked")).toBeInTheDocument();
@@ -166,11 +303,14 @@ describe("World workspace", () => {
       state.gamePermissions = role;
       state.worldPermission = WorldPermission.Guide;
       const user = userEvent.setup();
-      render(<GameWorldView worldId="world-a" />);
+      const view = render(<GameWorldView worldId="world-a" />);
       expect(
         screen.queryByRole("button", { name: "Change World" }),
       ).not.toBeInTheDocument();
-      await user.click(screen.getByRole("button", { name: "Settings" }));
+      await user.click(screen.getByRole("link", { name: "Settings" }));
+      view.rerender(
+        <GameWorldView worldId="world-a" worldView={{ type: "settings" }} />,
+      );
       if (role === "guide") {
         expect(
           screen.getByRole("button", { name: "Change World" }),
@@ -193,9 +333,9 @@ describe("World workspace", () => {
     },
   );
 
-  it("keeps administration in settings and flushes a name change when Done closes settings", async () => {
+  it("keeps administration in settings and flushes a name change when the world breadcrumb returns to browsing", async () => {
     const user = userEvent.setup();
-    render(<WorldPanel worldId={world.id} />);
+    render(<TestWorldPanel worldId={world.id} />);
     expect(
       screen.getByRole("heading", { name: world.name }),
     ).toBeInTheDocument();
@@ -203,14 +343,14 @@ describe("World workspace", () => {
     expect(
       screen.queryByRole("button", { name: "Delete World" }),
     ).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("link", { name: "Settings" }));
     const name = screen.getByRole("textbox", { name: "World Name" });
     await user.clear(name);
     await user.type(name, "New name");
     expect(
       screen.getByRole("button", { name: "Delete World" }),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Done" }));
+    await user.click(screen.getByRole("link", { name: world.name }));
     expect(state.updateWorldName).toHaveBeenCalledWith(world.id, "New name");
     expect(screen.getByText("Category folders")).toBeInTheDocument();
   });
@@ -223,8 +363,8 @@ describe("World workspace", () => {
   ])("keeps general settings read only for %s", async (permission) => {
     state.worldPermission = permission;
     const user = userEvent.setup();
-    render(<WorldPanel worldId={world.id} />);
-    await user.click(screen.getByRole("button", { name: "Settings" }));
+    render(<TestWorldPanel worldId={world.id} />);
+    await user.click(screen.getByRole("link", { name: "Settings" }));
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Delete World" }),
@@ -234,8 +374,8 @@ describe("World workspace", () => {
   it("lets editors rename but not delete", async () => {
     state.worldPermission = WorldPermission.Editor;
     const user = userEvent.setup();
-    render(<WorldPanel worldId={world.id} />);
-    await user.click(screen.getByRole("button", { name: "Settings" }));
+    render(<TestWorldPanel worldId={world.id} />);
+    await user.click(screen.getByRole("link", { name: "Settings" }));
     expect(
       screen.getByRole("textbox", { name: "World Name" }),
     ).toBeInTheDocument();
@@ -246,18 +386,17 @@ describe("World workspace", () => {
 
   it("never shows stale world controls and resets settings when the world changes", async () => {
     const user = userEvent.setup();
-    const view = render(<WorldPanel worldId={world.id} />);
-    await user.click(screen.getByRole("button", { name: "Settings" }));
-    view.rerender(<WorldPanel worldId="world-b" />);
+    const view = render(<TestWorldPanel worldId={world.id} />);
+    await user.click(screen.getByRole("link", { name: "Settings" }));
+    view.rerender(<TestWorldPanel worldId="world-b" />);
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Delete World" }),
     ).not.toBeInTheDocument();
     state.world = { ...world, id: "world-b", name: "Another world" };
-    view.rerender(<WorldPanel worldId="world-b" />);
-    expect(
-      screen.getByRole("button", { name: "Settings" }),
-    ).toBeInTheDocument();
+    state.worldId = "world-b";
+    view.rerender(<TestWorldPanel worldId="world-b" />);
+    expect(screen.getByRole("link", { name: "Settings" })).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Another world" }),
     ).toBeInTheDocument();

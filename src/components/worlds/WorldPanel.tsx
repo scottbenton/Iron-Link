@@ -2,14 +2,19 @@ import { LinearProgress } from "@mui/material";
 import { ReactNode, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { BreadcrumbItem } from "components/Layout/BreadcrumbTrail";
 import { EmptyState } from "components/Layout/EmptyState";
 
 import { useListenToWorld, useWorldStore } from "stores/world.store";
+import { useListenToWorldCategories } from "stores/worldCategories.store";
 
 import { WorldWorkspace } from "./WorldWorkspace";
+import type { WorldNavigation } from "./worldNavigation";
 
 export interface WorldPanelProps {
   worldId: string;
+  navigation: WorldNavigation;
+  rootBreadcrumb?: BreadcrumbItem;
   // Called after the world has been deleted, so the surrounding surface can
   // navigate away (the standalone page goes back to the world list).
   onWorldDeleted?: () => void;
@@ -29,6 +34,8 @@ export function WorldPanel(props: WorldPanelProps) {
     onWorldDeleted,
     manageSubscription = true,
     additionalSettings,
+    navigation,
+    rootBreadcrumb,
   } = props;
 
   const { t } = useTranslation();
@@ -49,12 +56,16 @@ export function WorldPanel(props: WorldPanelProps) {
   }, [worldId]);
 
   useListenToWorld(manageSubscription ? worldId : undefined);
+  useListenToWorldCategories(manageSubscription ? worldId : undefined);
 
+  const storedWorldId = useWorldStore((store) => store.worldId);
   const world = useWorldStore((store) => store.world);
   const loading = useWorldStore((store) => store.loading);
   const error = useWorldStore((store) => store.error);
   const worldDeleted = useWorldStore((store) => store.worldDeleted);
   const worldPermission = useWorldStore((store) => store.worldPermission);
+
+  if (storedWorldId !== worldId) return <LinearProgress />;
 
   if (worldDeleted) {
     return (
@@ -92,6 +103,8 @@ export function WorldPanel(props: WorldPanelProps) {
       permission={worldPermission}
       onWorldDeleted={handleWorldDeleted}
       additionalSettings={additionalSettings}
+      navigation={navigation}
+      rootBreadcrumb={rootBreadcrumb}
     />
   );
 }

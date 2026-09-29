@@ -1,6 +1,9 @@
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Alert, Button, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+
+import { LinkComponent } from "components/LinkComponent";
+import type { WorldNavigation } from "components/worlds/worldNavigation";
 
 import type { IWorldCategory } from "services/worldCategories.service";
 import type { IWorldFieldDefinition } from "services/worldFieldDefinitions.service";
@@ -11,37 +14,37 @@ import { WorldConfigurationNavigation } from "./WorldConfigurationNavigation";
 export function WorldConfigurationView({
   configurationNotice,
   categories,
-  selectedId,
+  navigation,
   fields,
   canEdit,
   canDelete,
   configurationReady,
   busy,
   generalSettings,
-  onSelect,
   onAdd,
   onEdit,
   onDelete,
   onReorder,
-  onDone,
 }: {
   configurationNotice: string;
   categories: IWorldCategory[];
-  selectedId?: string;
+  navigation: WorldNavigation;
   fields: IWorldFieldDefinition[];
   canEdit: boolean;
   canDelete: boolean;
   configurationReady: boolean;
   busy: boolean;
   generalSettings: ReactNode;
-  onSelect: (id: string | undefined) => void;
   onAdd: () => void;
   onEdit: (category: IWorldCategory) => void;
   onDelete: (category: IWorldCategory) => void;
   onReorder: (ids: string[]) => void;
-  onDone: () => void;
 }) {
   const { t } = useTranslation();
+  const selectedId =
+    navigation.view.type === "category-settings"
+      ? navigation.view.categoryId
+      : undefined;
   const selected = categories.find((category) => category.id === selectedId);
   return (
     <Stack
@@ -49,21 +52,14 @@ export function WorldConfigurationView({
       aria-label={t("worlds.settings.title", "World settings")}
       spacing={3}
     >
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        gap={2}
+      <Typography
+        component="h1"
+        variant="h5"
+        fontFamily={(theme) => theme.typography.fontFamilyTitle}
+        sx={{ overflowWrap: "anywhere" }}
       >
-        <Box sx={{ minWidth: 0 }}>
-          <Typography component="h2" variant="h5">
-            {t("worlds.settings.title", "World settings")}
-          </Typography>
-        </Box>
-        <Button variant="outlined" onClick={onDone} disabled={busy}>
-          {t("common.done", "Done")}
-        </Button>
-      </Stack>
+        {t("worlds.settings.title", "World settings")}
+      </Typography>
       <Stack
         alignItems="flex-start"
         sx={{
@@ -76,10 +72,9 @@ export function WorldConfigurationView({
       >
         <WorldConfigurationNavigation
           categories={categories}
-          selectedId={selectedId}
+          navigation={navigation}
           canEdit={canEdit}
           disabled={busy || !configurationReady}
-          onSelect={onSelect}
           onAdd={onAdd}
           onReorder={onReorder}
         />
@@ -87,8 +82,24 @@ export function WorldConfigurationView({
           <Typography color="text.secondary" variant="body2">
             {configurationNotice}
           </Typography>
-          {!selected ? (
+          {selectedId === undefined ? (
             generalSettings
+          ) : !selected ? (
+            <Stack spacing={2}>
+              <Alert severity="warning">
+                {t(
+                  "worlds.categories.not-found",
+                  "This category is no longer available.",
+                )}
+              </Alert>
+              <Button
+                component={LinkComponent}
+                {...navigation.getLinkProps({ type: "world" })}
+                sx={{ alignSelf: "flex-start" }}
+              >
+                {t("worlds.categories.back-to-world", "Back to world")}
+              </Button>
+            </Stack>
           ) : (
             <Stack spacing={3}>
               <Stack
@@ -98,7 +109,12 @@ export function WorldConfigurationView({
                 useFlexGap
                 sx={{ flexWrap: "wrap", gap: 1 }}
               >
-                <Typography variant="h6" sx={{ overflowWrap: "anywhere" }}>
+                <Typography
+                  component="h2"
+                  variant="h6"
+                  fontFamily={(theme) => theme.typography.fontFamilyTitle}
+                  sx={{ overflowWrap: "anywhere" }}
+                >
                   {selected.name}
                 </Typography>
                 <Stack
@@ -150,13 +166,6 @@ export function WorldConfigurationView({
           )}
         </Stack>
       </Stack>
-      {selected && (
-        <Box>
-          <Button variant="outlined" onClick={onDone} disabled={busy}>
-            {t("common.done", "Done")}
-          </Button>
-        </Box>
-      )}
     </Stack>
   );
 }

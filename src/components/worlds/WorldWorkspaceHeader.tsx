@@ -2,23 +2,20 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import { Box, Button, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { getWorldSettingLabel } from "lib/worldSettings";
+import { LinkComponent } from "components/LinkComponent";
 
 import { IWorld } from "services/worlds.service";
 
+import type { WorldNavigation } from "./worldNavigation";
+
 export function WorldWorkspaceHeader({
   world,
-  configuring,
-  onConfigure,
+  navigation,
 }: {
   world: IWorld;
-  configuring: boolean;
-  onConfigure: () => void;
+  navigation: WorldNavigation;
 }) {
   const { t } = useTranslation();
-  const settingLabel = world.settingKey
-    ? getWorldSettingLabel(world.settingKey)
-    : t("worlds.panel.no-setting", "No setting");
   return (
     <Box
       sx={{
@@ -39,19 +36,15 @@ export function WorldWorkspaceHeader({
         >
           {world.name}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {settingLabel}
-        </Typography>
       </Box>
-      {!configuring && (
-        <Button
-          variant="outlined"
-          startIcon={<SettingsIcon />}
-          onClick={onConfigure}
-        >
-          {t("worlds.settings.open", "Settings")}
-        </Button>
-      )}
+      <Button
+        LinkComponent={LinkComponent}
+        {...navigation.getLinkProps({ type: "settings" })}
+        variant="outlined"
+        startIcon={<SettingsIcon />}
+      >
+        {t("worlds.settings.open", "Settings")}
+      </Button>
     </Box>
   );
 }

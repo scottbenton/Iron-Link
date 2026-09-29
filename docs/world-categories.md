@@ -73,19 +73,42 @@ Existing GM-value mirroring/RLS continues to protect stored values.
 
 The shared world panel follows the Notes folder/item structure. Categories are
 folder cards; opening one shows breadcrumb navigation, name search, and read-only
-entry rows. The open category is remembered per world across Notes-tab switches,
-without retaining entry data. Entry creation, detail, and editing remain W5.
+entry rows. Standalone destinations have URLs: `/worlds/:worldId`,
+`/worlds/:worldId/categories/:categoryId`, `/worlds/:worldId/settings`, and
+`/worlds/:worldId/settings/categories/:categoryId`. Entry creation, detail, and
+editing remain W5.
 
-**Settings** opens a dedicated view inside the same panel. General contains the
+**Settings** opens its own route or Notes tab destination. General contains the
 world name and setting, owner-only deletion, and game connection actions when
 opened by a game guide. Category settings show one category's fields at a time.
-The category sidebar becomes a compact selector in narrow containers, including
-embedded Notes panels. **Done** returns to the browser. Category/field edit forms
+Each category has a settings link. Narrow settings show compact links in place
+of the sidebar. Shared breadcrumb links return to the world or category;
+there are no Done buttons. Category/field edit forms
 remain dialogs with close-button titles. Category and field drag handles support
 pointer and keyboard ordering; narrow settings expose category reordering
 separately. **Add category** is available in both the folder root and settings.
 
-Category icons use the Game Icons collection and theme-aware color shades.
+Notes tabs store a world ID and a destination, including the category ID when
+applicable. Normal clicks replace the active tab and its title; Ctrl/Meta and
+middle clicks open background tabs. The breadcrumb trail is Notes → world →
+category → Edit category. URL query state preserves these destinations through
+refresh and Back/Forward while retaining unrelated query parameters. A single
+linked-world/category subscription owner keeps dormant tab labels live and
+closes every affected destination on deletion, unlinking, or relinking.
+
+Ordering is optimistic for categories and fields. Pending orders overlay stale
+realtime snapshots, same-scope saves are serialized, and failures restore only
+sort order while retaining newer content. A successful order stays visible until
+the server echoes it; an unconfirmed echo times out with a refresh message.
+
+World cards show the union of active linked-game rulesets/expansions as **Game
+rules**, or the selected setting's packages as **Setting rules** for standalone
+worlds. These labels do not include extra packages referenced only by field
+oracles. The repeated setting subtitle is removed from world/category headers.
+
+Category icons use a square preview that opens the Game Icons/color picker,
+with theme-aware color shades. Page/category headings use the title font;
+the world-name input uses the normal text font.
 Field settings group basic details, fallback behavior, and conditional overrides.
 Internal UUIDs and keys are hidden; duplicate labels use readable subtype or
 field-type descriptions. Every entry has intrinsic rich-text Notes, displayed

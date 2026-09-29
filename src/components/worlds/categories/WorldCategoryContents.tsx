@@ -1,7 +1,9 @@
 import SearchIcon from "@mui/icons-material/Search";
+import SettingsIcon from "@mui/icons-material/Settings";
 import {
   Alert,
   Box,
+  Button,
   CircularProgress,
   InputAdornment,
   Paper,
@@ -11,6 +13,8 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { LinkComponent } from "components/LinkComponent";
 
 import { useUID } from "stores/auth.store";
 
@@ -22,14 +26,17 @@ import {
   WorldEntriesService,
 } from "services/worldEntries.service";
 
+import type { WorldLinkProps } from "../worldNavigation";
 import { WorldCategoryEntryItem } from "./WorldCategoryEntryItem";
 
 export function WorldCategoryContents({
   category,
   permission,
+  settingsLinkProps,
 }: {
   category: IWorldCategory;
   permission: WorldPermission | null;
+  settingsLinkProps?: WorldLinkProps;
 }) {
   const { t } = useTranslation();
   const uid = useUID();
@@ -84,21 +91,66 @@ export function WorldCategoryContents({
         category: category.name,
       })}
     >
-      <TextField
-        label={t("worlds.categories.search", "Search entries")}
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-        fullWidth
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr) auto",
+          alignItems: "center",
+          gap: 2,
+          "@container world-configuration (min-width: 720px)": {
+            gridTemplateColumns: "minmax(0, 1fr) minmax(200px, 300px) auto",
           },
         }}
-      />
+      >
+        <Typography
+          component="h1"
+          variant="h5"
+          fontFamily={(theme) => theme.typography.fontFamilyTitle}
+          sx={{ overflowWrap: "anywhere" }}
+        >
+          {category.name}
+        </Typography>
+        <TextField
+          label={t("worlds.categories.search", "Search entries")}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          sx={{
+            width: "100%",
+            gridColumn: "1 / -1",
+            gridRow: 2,
+            "@container world-configuration (min-width: 720px)": {
+              gridColumn: 2,
+              gridRow: 1,
+            },
+          }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+        {settingsLinkProps && (
+          <Button
+            LinkComponent={LinkComponent}
+            {...settingsLinkProps}
+            variant="outlined"
+            startIcon={<SettingsIcon />}
+            sx={{
+              gridColumn: 2,
+              gridRow: 1,
+              "@container world-configuration (min-width: 720px)": {
+                gridColumn: 3,
+              },
+            }}
+          >
+            {t("worlds.settings.open", "Settings")}
+          </Button>
+        )}
+      </Box>
       {error ? (
         <Alert severity="error">
           {t(

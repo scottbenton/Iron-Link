@@ -3,6 +3,9 @@ import { CSS } from "@dnd-kit/utilities";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { Button, IconButton, Paper, Stack, Tooltip } from "@mui/material";
 
+import { LinkComponent } from "components/LinkComponent";
+import type { WorldLinkProps } from "components/worlds/worldNavigation";
+
 import { IWorldCategory } from "services/worldCategories.service";
 
 import { WorldCategoryIcon } from "./WorldCategoryIcon";
@@ -12,13 +15,13 @@ export function WorldCategoryConfigurationRow({
   selected,
   canEdit,
   disabled,
-  onSelect,
+  linkProps,
 }: {
   category: IWorldCategory;
   selected: boolean;
   canEdit: boolean;
   disabled: boolean;
-  onSelect: () => void;
+  linkProps: WorldLinkProps;
 }) {
   const {
     setNodeRef,
@@ -61,8 +64,9 @@ export function WorldCategoryConfigurationRow({
           </Tooltip>
         )}
         <Button
-          onClick={onSelect}
-          aria-pressed={selected}
+          component={LinkComponent}
+          {...linkProps}
+          aria-current={selected ? "page" : undefined}
           startIcon={<WorldCategoryIcon icon={category.icon} />}
           sx={{
             flex: 1,

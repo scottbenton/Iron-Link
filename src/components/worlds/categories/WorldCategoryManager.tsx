@@ -1,13 +1,10 @@
-import { Alert, Button, LinearProgress, Paper, Stack } from "@mui/material";
+import { Alert, Box, Button, LinearProgress, Stack } from "@mui/material";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useWorldOracleContext } from "components/worlds/worldOracleContext";
 
-import {
-  useListenToWorldCategories,
-  useWorldCategoriesStore,
-} from "stores/worldCategories.store";
+import { useWorldCategoriesStore } from "stores/worldCategories.store";
 
 import { WorldPermission, isGuideEquivalent } from "repositories/shared.types";
 
@@ -16,6 +13,7 @@ import {
   WorldCategoriesService,
 } from "services/worldCategories.service";
 
+import type { WorldNavigation } from "../worldNavigation";
 import { WorldCategoryBrowser } from "./WorldCategoryBrowser";
 import { CategoryDraft, WorldCategoryEditor } from "./WorldCategoryEditor";
 import { WorldConfigurationDeleteDialog } from "./WorldConfigurationDeleteDialog";
@@ -27,15 +25,13 @@ export function WorldCategoryManager({
   worldId,
   worldName,
   permission,
-  configuring,
-  onDone,
+  navigation,
   generalSettings,
 }: {
   worldId: string;
   worldName: string;
   permission: WorldPermission | null;
-  configuring: boolean;
-  onDone: () => void;
+  navigation: WorldNavigation;
   generalSettings: ReactNode;
 }) {
   const { t } = useTranslation();
@@ -45,7 +41,6 @@ export function WorldCategoryManager({
     answer: answerDelete,
   } = useWorldConfigurationDeleteConfirmation();
   const oracleContext = useWorldOracleContext(worldId);
-  useListenToWorldCategories(worldId);
   const customized = useWorldCategoriesStore(
     (store) => store.configurationCustomized,
   );
@@ -74,10 +69,14 @@ export function WorldCategoryManager({
   const deleteCategory = useWorldCategoriesStore(
     (store) => store.deleteCategory,
   );
-  const [selectedId, setSelectedId] = useState<string>();
   const [editor, setEditor] = useState<{ category?: IWorldCategory }>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const configuring =
+    navigation.view.type === "settings" ||
+    navigation.view.type === "category-settings";
+  const selectedId =
+    "categoryId" in navigation.view ? navigation.view.categoryId : undefined;
   const selected = categories.find((category) => category.id === selectedId);
   const fields = Object.values(definitions)
     .filter(
@@ -137,9 +136,8 @@ export function WorldCategoryManager({
       });
       if (confirmed) {
         await deleteCategory(category.id);
-        setSelectedId((current) =>
-          current === category.id ? undefined : current,
-        );
+        if (selectedId === category.id)
+          navigation.navigate({ type: "settings" });
       }
     });
   const save = async (draft: CategoryDraft) => {
@@ -151,15 +149,14 @@ export function WorldCategoryManager({
           ? Math.max(...categories.map((category) => category.sortOrder)) + 1
           : 0,
       });
-      if (configuring) setSelectedId(id);
+      if (configuring)
+        navigation.navigate({ type: "category-settings", categoryId: id });
     }
   };
   return (
-    <Paper
+    <Box
       component="section"
-      variant="outlined"
       sx={{
-        p: 2,
         minWidth: 0,
         containerType: "inline-size",
         containerName: "world-configuration",
@@ -188,36 +185,33 @@ export function WorldCategoryManager({
           </Alert>
         )}
         {configuring ? (
-          <WorldConfigurationView
-            configurationNotice={
-              customized
-                ? t(
-                    "worlds.categories.customized-summary",
-                    "This world has a custom configuration. Shared default updates do not affect it.",
-                  )
-                : t(
-                    "worlds.categories.shared-defaults-summary",
-                    "Shared defaults receive updates. Your first configuration change creates an independent copy.",
-                  )
-            }
-            categories={categories}
-            selectedId={selected?.id}
-            fields={fields}
-            canEdit={canEdit}
-            canDelete={canDelete}
-            configurationReady={configurationReady && !loading}
-            busy={busy}
-            generalSettings={generalSettings}
-            onSelect={setSelectedId}
-            onAdd={() => setEditor({})}
-            onEdit={(category) => setEditor({ category })}
-            onDelete={remove}
-            onReorder={(ids) => run(() => reorderCategories(ids))}
-            onDone={() => {
-              setSelectedId(undefined);
-              onDone();
-            }}
-          />
+          loading && selectedId && !selected ? null : (
+            <WorldConfigurationView
+              configurationNotice={
+                customized
+                  ? t(
+                      "worlds.categories.customized-summary",
+                      "This world has a custom configuration. Shared default updates do not affect it.",
+                    )
+                  : t(
+                      "worlds.categories.shared-defaults-summary",
+                      "Shared defaults receive updates. Your first configuration change creates an independent copy.",
+                    )
+              }
+              categories={categories}
+              navigation={navigation}
+              fields={fields}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              configurationReady={configurationReady && !loading}
+              busy={busy}
+              generalSettings={generalSettings}
+              onAdd={() => setEditor({})}
+              onEdit={(category) => setEditor({ category })}
+              onDelete={remove}
+              onReorder={(ids) => run(() => reorderCategories(ids))}
+            />
+          )
         ) : !loading ? (
           <WorldCategoryBrowser
             worldId={worldId}
@@ -226,6 +220,7 @@ export function WorldCategoryManager({
             categories={categories}
             canAddCategory={canEdit && configurationReady && !busy}
             onAddCategory={() => setEditor({})}
+            navigation={navigation}
           />
         ) : null}
       </Stack>
@@ -247,6 +242,6 @@ export function WorldCategoryManager({
           onClose={() => setEditor(undefined)}
         />
       )}
-    </Paper>
+    </Box>
   );
 }

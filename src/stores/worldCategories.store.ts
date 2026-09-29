@@ -24,6 +24,7 @@ import {
 import type { IWorld } from "services/worlds.service";
 
 import { useWorldStore } from "./world.store";
+import { createWorldConfigurationOrder } from "./worldConfigurationOrder";
 
 interface WorldCategoriesStoreState {
   worldId: string;
@@ -106,198 +107,364 @@ const defaultWorldCategoriesState: WorldCategoriesStoreState = {
 export const useWorldCategoriesStore = createWithEqualityFn<
   WorldCategoriesStoreState & WorldCategoriesStoreActions
 >()(
-  immer((set, get) => ({
-    ...defaultWorldCategoriesState,
-
-    invalidateDefaultBindings: (worldId) => {
-      if (get().worldId === worldId && !get().configurationCustomized)
-        set({ defaultBindingsReady: false });
-    },
-
-    applyDefaultReplacementMap: (worldId, replacementMap) => {
-      const state = get();
-      if (state.worldId !== worldId || state.configurationCustomized) return;
-      const defaults = getWorldDefaultConfiguration(
-        worldId,
-        state.settingKey,
-        replacementMap,
-      );
-      if (
-        !state.defaultBindingsReady ||
-        !deepEqual(defaults.fieldDefinitions, state.fieldDefinitions)
-      ) {
-        set({ ...defaults, defaultBindingsReady: true });
-      }
-    },
-
-    listenToWorldCategories: (world) => {
-      const worldId = world.id;
-      set({
-        ...defaultWorldCategoriesState,
-        worldId,
-        settingKey: world.settingKey,
-        configurationCustomized: world.configurationCustomized,
+  immer((set, get) => {
+    const order = createWorldConfigurationOrder();
+    const newCategorySession = (worldId = "") => ({
+      worldId,
+      observed: new Set<string>(),
+      removed: new Set<string>(),
+    });
+    let categorySession = newCategorySession();
+    const overlayOrders = (state: WorldCategoriesStoreState) => {
+      state.categories = order.overlay("categories", state.categories);
+      for (const categoryId of new Set(
+        Object.values(state.fieldDefinitions).map((field) => field.categoryId),
+      ))
+        state.fieldDefinitions = order.overlay(
+          `fields:${categoryId}`,
+          state.fieldDefinitions,
+        );
+    };
+    const applyOrders = (
+      worldId: string,
+      kind: "categories" | "fieldDefinitions",
+      orders: Record<string, number>,
+    ) =>
+      set((state) => {
+        if (state.worldId !== worldId) return;
+        for (const [id, sortOrder] of Object.entries(orders))
+          if (state[kind][id]?.worldId === worldId)
+            state[kind][id].sortOrder = sortOrder;
       });
-      if (!world.configurationCustomized) {
+    return {
+      ...defaultWorldCategoriesState,
+
+      invalidateDefaultBindings: (worldId) => {
+        if (get().worldId === worldId && !get().configurationCustomized)
+          set({ defaultBindingsReady: false });
+      },
+
+      applyDefaultReplacementMap: (worldId, replacementMap) => {
+        const state = get();
+        if (state.worldId !== worldId || state.configurationCustomized) return;
+        const defaults = getWorldDefaultConfiguration(
+          worldId,
+          state.settingKey,
+          replacementMap,
+        );
+        if (
+          !state.defaultBindingsReady ||
+          !deepEqual(defaults.fieldDefinitions, state.fieldDefinitions)
+        ) {
+          set((state) => {
+            Object.assign(state, defaults, { defaultBindingsReady: true });
+            overlayOrders(state);
+          });
+        }
+      },
+
+      listenToWorldCategories: (world) => {
+        const worldId = world.id;
+        order.reset(worldId);
+        if (categorySession.worldId !== worldId)
+          categorySession = newCategorySession(worldId);
+        const previous = get();
+        const materializingDefaults =
+          previous.worldId === worldId &&
+          !previous.configurationCustomized &&
+          world.configurationCustomized;
         set({
-          ...getWorldDefaultConfiguration(worldId, world.settingKey),
-          loading: false,
+          ...defaultWorldCategoriesState,
+          ...(materializingDefaults
+            ? {
+                categories: previous.categories,
+                fieldDefinitions: previous.fieldDefinitions,
+              }
+            : {}),
+          worldId,
+          settingKey: world.settingKey,
+          configurationCustomized: world.configurationCustomized,
         });
-        return () => {};
-      }
-      let active = true;
-      let categoriesReady = false;
-      let definitionsReady = false;
-      let categoriesError: string | undefined;
-      let definitionsError: string | undefined;
-      const categoriesUnsubscribe =
-        WorldCategoriesService.listenToWorldCategories(
-          worldId,
-          (changedCategories, removedCategoryIds, replaceState) => {
-            if (!active) return;
-            categoriesReady ||= !!replaceState;
-            categoriesError = undefined;
-            set((state) => {
-              if (state.worldId !== worldId) return;
+        if (!world.configurationCustomized) {
+          set((state) => {
+            Object.assign(
+              state,
+              getWorldDefaultConfiguration(worldId, world.settingKey),
+              { loading: false },
+            );
+            overlayOrders(state);
+          });
+          return () => {};
+        }
+        let active = true;
+        let categoriesReady = false;
+        let definitionsReady = false;
+        let categoriesError: string | undefined;
+        let definitionsError: string | undefined;
+        const categoriesUnsubscribe =
+          WorldCategoriesService.listenToWorldCategories(
+            worldId,
+            (changedCategories, removedCategoryIds, replaceState) => {
+              if (!active) return;
+              if (get().worldId !== worldId) return;
+              // Remember authoritative absence across same-world first-fork
+              // handover: an RPC response may arrive after INSERT + DELETE.
               if (replaceState) {
-                state.categories = changedCategories;
-              } else {
-                state.categories = {
-                  ...state.categories,
-                  ...changedCategories,
-                };
-                removedCategoryIds.forEach((categoryId) => {
-                  delete state.categories[categoryId];
-                });
+                for (const id of categorySession.observed) {
+                  if (!changedCategories[id]) categorySession.removed.add(id);
+                }
               }
-              state.loading =
-                !definitionsError && !(categoriesReady && definitionsReady);
-              state.error = definitionsError;
-            });
-          },
-          (error) => {
-            if (!active) return;
-            categoriesError = error.message;
-            console.error(error);
-            set((state) => {
-              if (state.worldId !== worldId) return;
-              state.loading = false;
-              state.error = error.message;
-            });
+              for (const id of Object.keys(changedCategories)) {
+                categorySession.observed.add(id);
+                categorySession.removed.delete(id);
+              }
+              removedCategoryIds.forEach((id) =>
+                categorySession.removed.add(id),
+              );
+              order.observe(
+                "categories",
+                changedCategories,
+                removedCategoryIds,
+                replaceState,
+              );
+              categoriesReady ||= !!replaceState;
+              categoriesError = undefined;
+              set((state) => {
+                if (state.worldId !== worldId) return;
+                if (replaceState) {
+                  state.categories = changedCategories;
+                } else {
+                  state.categories = {
+                    ...state.categories,
+                    ...changedCategories,
+                  };
+                  removedCategoryIds.forEach((categoryId) => {
+                    delete state.categories[categoryId];
+                  });
+                }
+                state.categories = order.overlay(
+                  "categories",
+                  state.categories,
+                );
+                state.loading =
+                  !definitionsError && !(categoriesReady && definitionsReady);
+                state.error = definitionsError;
+              });
+            },
+            (error) => {
+              if (!active) return;
+              categoriesError = error.message;
+              console.error(error);
+              set((state) => {
+                if (state.worldId !== worldId) return;
+                state.loading = false;
+                state.error = error.message;
+              });
+            },
+          );
+
+        const definitionsUnsubscribe =
+          WorldFieldDefinitionsService.listenToWorldFieldDefinitions(
+            worldId,
+            (changedDefinitions, removedDefinitionIds, replaceState) => {
+              if (!active) return;
+              if (get().worldId !== worldId) return;
+              for (const categoryId of new Set(
+                [
+                  ...Object.values(get().fieldDefinitions),
+                  ...Object.values(changedDefinitions),
+                ].map((field) => field.categoryId),
+              )) {
+                order.observe(
+                  `fields:${categoryId}`,
+                  Object.fromEntries(
+                    Object.entries(changedDefinitions).filter(
+                      ([, field]) => field.categoryId === categoryId,
+                    ),
+                  ),
+                  removedDefinitionIds,
+                  replaceState,
+                );
+              }
+              definitionsReady ||= !!replaceState;
+              definitionsError = undefined;
+              set((state) => {
+                if (state.worldId !== worldId) return;
+                state.loading =
+                  !categoriesError && !(categoriesReady && definitionsReady);
+                state.error = categoriesError;
+                if (replaceState) {
+                  state.fieldDefinitions = changedDefinitions;
+                } else {
+                  state.fieldDefinitions = {
+                    ...state.fieldDefinitions,
+                    ...changedDefinitions,
+                  };
+                  removedDefinitionIds.forEach((definitionId) => {
+                    delete state.fieldDefinitions[definitionId];
+                  });
+                }
+                overlayOrders(state);
+              });
+            },
+            (error) => {
+              if (!active) return;
+              definitionsError = error.message;
+              console.error(error);
+              set((state) => {
+                if (state.worldId !== worldId) return;
+                state.loading = false;
+                state.error = error.message;
+              });
+            },
+          );
+
+        return () => {
+          active = false;
+          categoriesUnsubscribe();
+          definitionsUnsubscribe();
+        };
+      },
+
+      createCategory: async (worldId, category) => {
+        const session = categorySession;
+        const id = await WorldCategoriesService.addWorldCategory(
+          worldId,
+          category,
+          getDefaultBindings(get()),
+        );
+        // A successful create can resolve before its realtime INSERT. Seed
+        // the known definition so navigating to its settings never looks like
+        // a missing category; a record already received from the server wins.
+        set((state) => {
+          if (
+            session !== categorySession ||
+            state.worldId !== worldId ||
+            state.categories[id] ||
+            session.removed.has(id)
+          )
+            return;
+          state.categories[id] = {
+            id,
+            worldId,
+            name: category.name,
+            icon: category.icon ?? null,
+            sortOrder: category.sortOrder,
+            supportsHierarchy: category.supportsHierarchy ?? false,
+            supportsMap: category.supportsMap ?? false,
+            supportsBonds: category.supportsBonds ?? false,
+            subtitleFieldDefinitionId: null,
+          };
+        });
+        return id;
+      },
+      updateCategory: (categoryId, category) => {
+        return WorldCategoriesService.updateWorldCategory(
+          get().worldId,
+          categoryId,
+          category,
+          getDefaultBindings(get()),
+        );
+      },
+      // Cascades through the category's field definitions, its entries, and
+      // their values. Callers must confirm with the entry count first.
+      deleteCategory: (categoryId) => {
+        return WorldCategoriesService.deleteWorldCategory(
+          get().worldId,
+          categoryId,
+          getDefaultBindings(get()),
+        );
+      },
+
+      createFieldDefinition: (worldId, categoryId, definition) => {
+        return WorldFieldDefinitionsService.addWorldFieldDefinition(
+          worldId,
+          categoryId,
+          definition,
+          getDefaultBindings(get()),
+        );
+      },
+      updateFieldDefinition: (definitionId, definition) => {
+        return WorldFieldDefinitionsService.updateWorldFieldDefinition(
+          get().worldId,
+          definitionId,
+          definition,
+          getDefaultBindings(get()),
+        );
+      },
+      deleteFieldDefinition: (definitionId) => {
+        return WorldFieldDefinitionsService.deleteWorldFieldDefinition(
+          get().worldId,
+          definitionId,
+          getDefaultBindings(get()),
+        );
+      },
+
+      reorderCategories: (ids) => {
+        const state = get();
+        const bindings = getDefaultBindings(state);
+        return order.reorder(
+          "categories",
+          Object.fromEntries(
+            Object.entries(state.categories).filter(
+              ([, category]) => category.worldId === state.worldId,
+            ),
+          ),
+          ids,
+          () =>
+            WorldCategoriesService.reorderCategories(
+              state.worldId,
+              ids,
+              bindings,
+            ),
+          (orders) => applyOrders(state.worldId, "categories", orders),
+          () => {
+            if (get().worldId === state.worldId)
+              set({
+                error:
+                  "The saved category order could not be confirmed. Please refresh and try again.",
+              });
           },
         );
-
-      const definitionsUnsubscribe =
-        WorldFieldDefinitionsService.listenToWorldFieldDefinitions(
-          worldId,
-          (changedDefinitions, removedDefinitionIds, replaceState) => {
-            if (!active) return;
-            definitionsReady ||= !!replaceState;
-            definitionsError = undefined;
-            set((state) => {
-              if (state.worldId !== worldId) return;
-              state.loading =
-                !categoriesError && !(categoriesReady && definitionsReady);
-              state.error = categoriesError;
-              if (replaceState) {
-                state.fieldDefinitions = changedDefinitions;
-              } else {
-                state.fieldDefinitions = {
-                  ...state.fieldDefinitions,
-                  ...changedDefinitions,
-                };
-                removedDefinitionIds.forEach((definitionId) => {
-                  delete state.fieldDefinitions[definitionId];
-                });
-              }
-            });
-          },
-          (error) => {
-            if (!active) return;
-            definitionsError = error.message;
-            console.error(error);
-            set((state) => {
-              if (state.worldId !== worldId) return;
-              state.loading = false;
-              state.error = error.message;
-            });
+      },
+      reorderFields: (categoryId, ids) => {
+        const state = get();
+        const bindings = getDefaultBindings(state);
+        return order.reorder(
+          `fields:${categoryId}`,
+          Object.fromEntries(
+            Object.entries(state.fieldDefinitions).filter(
+              ([, field]) =>
+                field.worldId === state.worldId &&
+                field.categoryId === categoryId,
+            ),
+          ),
+          ids,
+          () =>
+            WorldCategoriesService.reorderFields(
+              state.worldId,
+              categoryId,
+              ids,
+              bindings,
+            ),
+          (orders) => applyOrders(state.worldId, "fieldDefinitions", orders),
+          () => {
+            if (get().worldId === state.worldId)
+              set({
+                error:
+                  "The saved field order could not be confirmed. Please refresh and try again.",
+              });
           },
         );
+      },
 
-      return () => {
-        active = false;
-        categoriesUnsubscribe();
-        definitionsUnsubscribe();
-      };
-    },
-
-    createCategory: (worldId, category) => {
-      return WorldCategoriesService.addWorldCategory(
-        worldId,
-        category,
-        getDefaultBindings(get()),
-      );
-    },
-    updateCategory: (categoryId, category) => {
-      return WorldCategoriesService.updateWorldCategory(
-        get().worldId,
-        categoryId,
-        category,
-        getDefaultBindings(get()),
-      );
-    },
-    // Cascades through the category's field definitions, its entries, and
-    // their values. Callers must confirm with the entry count first.
-    deleteCategory: (categoryId) => {
-      return WorldCategoriesService.deleteWorldCategory(
-        get().worldId,
-        categoryId,
-        getDefaultBindings(get()),
-      );
-    },
-
-    createFieldDefinition: (worldId, categoryId, definition) => {
-      return WorldFieldDefinitionsService.addWorldFieldDefinition(
-        worldId,
-        categoryId,
-        definition,
-        getDefaultBindings(get()),
-      );
-    },
-    updateFieldDefinition: (definitionId, definition) => {
-      return WorldFieldDefinitionsService.updateWorldFieldDefinition(
-        get().worldId,
-        definitionId,
-        definition,
-        getDefaultBindings(get()),
-      );
-    },
-    deleteFieldDefinition: (definitionId) => {
-      return WorldFieldDefinitionsService.deleteWorldFieldDefinition(
-        get().worldId,
-        definitionId,
-        getDefaultBindings(get()),
-      );
-    },
-
-    reorderCategories: (ids) =>
-      WorldCategoriesService.reorderCategories(
-        get().worldId,
-        ids,
-        getDefaultBindings(get()),
-      ),
-    reorderFields: (categoryId, ids) =>
-      WorldCategoriesService.reorderFields(
-        get().worldId,
-        categoryId,
-        ids,
-        getDefaultBindings(get()),
-      ),
-
-    reset: () => {
-      set((store) => ({ ...store, ...defaultWorldCategoriesState }));
-    },
-  })),
+      reset: () => {
+        order.reset();
+        categorySession = newCategorySession();
+        set((store) => ({ ...store, ...defaultWorldCategoriesState }));
+      },
+    };
+  }),
   deepEqual,
 );
 
@@ -358,6 +525,7 @@ export function useListenToWorldCategories(worldId: string | undefined) {
   ]);
 
   useEffect(() => {
+    if (!worldId) return;
     return () => {
       resetStore();
     };

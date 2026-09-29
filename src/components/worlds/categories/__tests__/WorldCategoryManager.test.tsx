@@ -1,6 +1,19 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import {
+  MemoryRouter,
+  RouterProvider,
+  createMemoryRouter,
+  useLocation,
+  useNavigate,
+} from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  type WorldNavigation,
+  type WorldView,
+  getWorldViewPath,
+} from "components/worlds/worldNavigation";
 
 import { WorldPermission } from "repositories/shared.types";
 
@@ -59,85 +72,200 @@ const props = {
   worldId: category.worldId,
   worldName: "Ironlands",
   permission: WorldPermission.Owner,
-  configuring: true,
-  onDone: vi.fn(),
   generalSettings: <h2>General world settings</h2>,
 };
 
+function ManagerHarness({
+  permission = WorldPermission.Owner,
+}: {
+  permission?: WorldPermission;
+}) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const categoryMatch = location.pathname.match(
+    /\/settings\/categories\/([^/]+)$/,
+  );
+  const navigation: WorldNavigation = {
+    view: categoryMatch
+      ? { type: "category-settings", categoryId: categoryMatch[1] }
+      : location.pathname.endsWith("/settings")
+        ? { type: "settings" }
+        : { type: "world" },
+    getLinkProps: (view) => ({
+      href: getWorldViewPath(category.worldId, view),
+    }),
+    navigate: (view) => navigate(getWorldViewPath(category.worldId, view)),
+  };
+  return (
+    <WorldCategoryManager
+      {...props}
+      permission={permission}
+      navigation={navigation}
+    />
+  );
+}
+
+function managerView(
+  permission = WorldPermission.Owner,
+  initialView: WorldView = { type: "settings" },
+) {
+  return (
+    <MemoryRouter
+      initialEntries={[getWorldViewPath(category.worldId, initialView)]}
+    >
+      <ManagerHarness permission={permission} />
+    </MemoryRouter>
+  );
+}
+
+async function openCategorySettings(
+  user: ReturnType<typeof userEvent.setup>,
+  name = "Locations",
+) {
+  await user.click(screen.getByRole("link", { name }));
+}
+
 describe("WorldCategoryManager", () => {
-  it("starts on General, keeps browsing separate, and returns there after Done", async () => {
+  it("waits for custom category snapshots without flashing an unavailable category", () => {
+    state.configurationCustomized = true;
+    state.loading = true;
+    state.categories = {};
+    const destination: WorldView = {
+      type: "category-settings",
+      categoryId: category.id,
+    };
+    const view = render(managerView(WorldPermission.Owner, destination));
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    expect(
+      screen.queryByText("This category is no longer available."),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "General world settings" }),
+    ).not.toBeInTheDocument();
+    state.categories = { [category.id]: category };
+    state.loading = false;
+    view.rerender(managerView(WorldPermission.Owner, destination));
+    expect(
+      screen.getByRole("heading", { name: "Locations", level: 2 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("This category is no longer available."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens category settings directly and restores its destination with browser Back", async () => {
     const user = userEvent.setup();
-    const view = render(<WorldCategoryManager {...props} />);
+    const router = createMemoryRouter(
+      [{ path: "*", element: <ManagerHarness /> }],
+      {
+        initialEntries: [
+          getWorldViewPath(category.worldId, {
+            type: "category-settings",
+            categoryId: category.id,
+          }),
+        ],
+      },
+    );
+    render(<RouterProvider router={router} />);
+    expect(
+      screen.getByRole("heading", { name: "Locations", level: 2 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "General world settings" }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("link", { name: "General" }));
+    expect(
+      screen.getByRole("heading", { name: "General world settings" }),
+    ).toBeInTheDocument();
+    await act(() => router.navigate(-1));
+    expect(
+      screen.getByRole("heading", { name: "Locations", level: 2 }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Locations" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
+  it("uses linked destinations for General and category settings", async () => {
+    const user = userEvent.setup();
+    render(managerView());
     expect(
       screen.getByRole("heading", { name: "General world settings" }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Settings section" }),
-      category.id,
+    expect(screen.getByRole("link", { name: "Locations" })).toHaveAttribute(
+      "href",
+      getWorldViewPath(category.worldId, {
+        type: "category-settings",
+        categoryId: category.id,
+      }),
     );
+    await openCategorySettings(user);
     expect(
       screen.getByRole("button", { name: "Edit Locations" }),
     ).toBeEnabled();
     expect(
       screen.queryByRole("heading", { name: "General world settings" }),
     ).not.toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Done" })).toHaveLength(2);
-    await user.click(screen.getAllByRole("button", { name: "Done" })[0]);
-    expect(props.onDone).toHaveBeenCalledOnce();
-    view.rerender(<WorldCategoryManager {...props} configuring={false} />);
     expect(
-      screen.getByRole("region", { name: "Ironlands categories" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("navigation", { name: "World settings navigation" }),
+      screen.queryByRole("button", { name: "Done" }),
     ).not.toBeInTheDocument();
-    view.rerender(<WorldCategoryManager {...props} />);
+    expect(
+      screen.getByRole("heading", { name: "Locations", level: 2 }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Locations" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await user.click(screen.getByRole("link", { name: "General" }));
     expect(
       screen.getByRole("heading", { name: "General world settings" }),
     ).toBeInTheDocument();
   });
 
-  it("shows General when another client removes the selected category", async () => {
+  it("keeps a removed category destination explicit and offers a root link", async () => {
     const user = userEvent.setup();
-    const view = render(<WorldCategoryManager {...props} />);
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Settings section" }),
-      category.id,
-    );
+    const view = render(managerView());
+    await openCategorySettings(user);
     state.categories = {};
-    view.rerender(<WorldCategoryManager {...props} />);
+    view.rerender(managerView());
     expect(
-      screen.getByRole("heading", { name: "General world settings" }),
+      screen.getByText("This category is no longer available."),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("combobox", { name: "Settings section" }),
-    ).toHaveValue("");
+      screen.queryByRole("heading", { name: "General world settings" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to world" })).toHaveAttribute(
+      "href",
+      getWorldViewPath(category.worldId, { type: "world" }),
+    );
+    await user.click(screen.getByRole("link", { name: "Back to world" }));
+    expect(
+      screen.getByRole("region", { name: "Ironlands categories" }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });
 
   it("blocks inherited edits during oracle refresh and exposes retry after failure", async () => {
     const user = userEvent.setup();
     state.oracle.loading = true;
-    const view = render(<WorldCategoryManager {...props} />);
+    const view = render(managerView());
     expect(screen.getByRole("button", { name: "Add category" })).toBeDisabled();
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Settings section" }),
-      category.id,
-    );
+    await openCategorySettings(user);
     expect(
       screen.getByRole("button", { name: "Edit Locations" }),
     ).toBeDisabled();
     state.oracle.loading = false;
     state.oracle.error = "Catalog unavailable";
-    view.rerender(<WorldCategoryManager {...props} />);
+    view.rerender(managerView());
     expect(screen.getByText("Catalog unavailable")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Add category" })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "Retry" }));
     expect(state.oracle.retry).toHaveBeenCalledOnce();
     state.oracle.error = undefined;
-    view.rerender(<WorldCategoryManager {...props} />);
+    view.rerender(managerView());
     expect(
       screen.getByRole("button", { name: "Edit Locations" }),
     ).toBeEnabled();
@@ -157,7 +285,8 @@ describe("WorldCategoryManager", () => {
       },
     };
     const reorder = state.reorderCategories.mockResolvedValue(undefined);
-    render(<WorldCategoryManager {...props} />);
+    render(managerView());
+    await openCategorySettings(user, "NPCs");
     await user.click(
       screen.getByRole("button", { name: "Reorder categories" }),
     );
@@ -170,10 +299,6 @@ describe("WorldCategoryManager", () => {
         .map((row) => row.getAttribute("aria-label")),
     ).toEqual(["Locations category", "NPCs category"]);
     expect(screen.queryByText("Foreign")).not.toBeInTheDocument();
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Settings section" }),
-      second.id,
-    );
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
       function (this: HTMLElement) {
         const top = this.closest('[aria-label="NPCs category"]') ? 100 : 0;
@@ -197,10 +322,12 @@ describe("WorldCategoryManager", () => {
     await waitFor(() =>
       expect(reorder).toHaveBeenCalledWith([second.id, category.id]),
     );
-    expect(screen.getByRole("button", { name: "NPCs" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    expect(
+      within(screen.getByRole("group", { name: "NPCs category" })).getByRole(
+        "link",
+        { name: "NPCs" },
+      ),
+    ).toHaveAttribute("aria-current", "page");
   });
 
   it("blocks deletion of a populated category and names the count", async () => {
@@ -209,13 +336,8 @@ describe("WorldCategoryManager", () => {
       entryCount: 2,
       valueCounts: {},
     });
-    render(
-      <WorldCategoryManager {...props} permission={WorldPermission.Editor} />,
-    );
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Settings section" }),
-      category.id,
-    );
+    render(managerView(WorldPermission.Editor));
+    await openCategorySettings(user);
     await user.click(screen.getByRole("button", { name: "Delete Locations" }));
     expect(await screen.findByText(/contains 2 entries/)).toBeInTheDocument();
     expect(
@@ -231,11 +353,8 @@ describe("WorldCategoryManager", () => {
       valueCounts: {},
     });
     state.deleteCategory.mockResolvedValue(undefined);
-    render(<WorldCategoryManager {...props} />);
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Settings section" }),
-      category.id,
-    );
+    render(managerView());
+    await openCategorySettings(user);
     await user.click(screen.getByRole("button", { name: "Delete Locations" }));
     const dialog = await screen.findByRole("dialog");
     expect(state.deleteCategory).not.toHaveBeenCalled();
@@ -251,11 +370,8 @@ describe("WorldCategoryManager", () => {
   it("preserves no-op edit protection and saves an actual category change", async () => {
     const user = userEvent.setup();
     state.updateCategory.mockResolvedValue(undefined);
-    render(<WorldCategoryManager {...props} />);
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Settings section" }),
-      category.id,
-    );
+    render(managerView());
+    await openCategorySettings(user);
     await user.click(screen.getByRole("button", { name: "Edit Locations" }));
     expect(screen.getAllByRole("dialog")).toHaveLength(1);
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
@@ -273,9 +389,10 @@ describe("WorldCategoryManager", () => {
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
-    expect(
-      screen.getByRole("combobox", { name: "Settings section" }),
-    ).toHaveValue(category.id);
+    expect(screen.getByRole("link", { name: "Locations" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 
   it("selects a newly created category in settings", async () => {
@@ -290,7 +407,7 @@ describe("WorldCategoryManager", () => {
       state.categories = { [category.id]: category, [created.id]: created };
       return created.id;
     });
-    render(<WorldCategoryManager {...props} />);
+    render(managerView());
     await user.click(screen.getByRole("button", { name: "Add category" }));
     await user.type(
       screen.getByRole("textbox", { name: /Category name/ }),
@@ -304,27 +421,24 @@ describe("WorldCategoryManager", () => {
       category.worldId,
       expect.objectContaining({ name: "Creatures", sortOrder: 1 }),
     );
+    expect(screen.getByRole("link", { name: "Creatures" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
     expect(
-      screen.getByRole("combobox", { name: "Settings section" }),
-    ).toHaveValue(created.id);
+      screen.getByRole("heading", { name: "Creatures", level: 2 }),
+    ).toBeInTheDocument();
   });
 
   it("hides guide deletes and gives viewers read-only settings", async () => {
     const user = userEvent.setup();
-    const view = render(
-      <WorldCategoryManager {...props} permission={WorldPermission.Guide} />,
-    );
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Settings section" }),
-      category.id,
-    );
+    const view = render(managerView(WorldPermission.Guide));
+    await openCategorySettings(user);
     expect(screen.getByRole("button", { name: "Add category" })).toBeEnabled();
     expect(
       screen.queryByRole("button", { name: "Delete Locations" }),
     ).not.toBeInTheDocument();
-    view.rerender(
-      <WorldCategoryManager {...props} permission={WorldPermission.Viewer} />,
-    );
+    view.rerender(managerView(WorldPermission.Viewer));
     expect(
       screen.queryByRole("button", { name: "Add category" }),
     ).not.toBeInTheDocument();

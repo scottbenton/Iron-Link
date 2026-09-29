@@ -1,3 +1,4 @@
+import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import {
   Alert,
   Box,
@@ -53,47 +54,44 @@ export function WorldCategoryIconPicker({
       active = false;
     };
   }, [open]);
+  useEffect(() => {
+    if (disabled) setOpen(false);
+  }, [disabled]);
   const matches = Object.entries(icons ?? {}).filter(([key]) =>
     categoryIconName(key).toLowerCase().includes(search.trim().toLowerCase()),
   );
   return (
     <>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        gap={2}
-        alignItems={{ sm: "center" }}
+      <Tooltip
+        title={
+          value?.key ? categoryIconName(value.key) : "Choose category icon"
+        }
       >
-        <Button
-          variant="outlined"
-          disabled={disabled}
-          onClick={() => setOpen(true)}
-          startIcon={<WorldCategoryIcon icon={value} />}
-          sx={{ flex: 1 }}
-        >
-          {value?.key ? categoryIconName(value.key) : "Choose icon"}
-        </Button>
-        <TextField
-          select
-          label="Icon color"
-          value={value?.color ?? IconColors.Grey}
-          disabled={disabled}
-          onChange={(event) =>
-            onChange({
-              key: value?.key ?? null,
-              color: event.target.value as IconColors,
-            })
-          }
-          sx={{ minWidth: 150 }}
-        >
-          {Object.values(IconColors).map((color) => (
-            <MenuItem key={color} value={color}>
-              {color.charAt(0).toUpperCase() + color.slice(1)}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Stack>
+        <span>
+          <Button
+            variant="outlined"
+            aria-label="Choose category icon"
+            disabled={disabled}
+            onClick={() => setOpen(true)}
+            sx={{
+              width: 64,
+              height: 64,
+              minWidth: 64,
+              p: 1,
+              "& .MuiBox-root": { width: 40, height: 40 },
+              "& .MuiSvgIcon-root": { fontSize: 32 },
+            }}
+          >
+            {value?.key ? (
+              <WorldCategoryIcon icon={value} />
+            ) : (
+              <CategoryOutlinedIcon />
+            )}
+          </Button>
+        </span>
+      </Tooltip>
       <Dialog
-        open={open}
+        open={open && !disabled}
         onClose={() => setOpen(false)}
         fullWidth
         maxWidth="sm"
@@ -103,8 +101,32 @@ export function WorldCategoryIconPicker({
         </DialogTitleWithCloseButton>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
+            <Stack direction="row" gap={2} alignItems="center">
+              {value?.key && <WorldCategoryIcon icon={value} />}
+              <TextField
+                fullWidth
+                disabled={disabled}
+                select
+                label="Icon color"
+                value={value?.color ?? IconColors.Grey}
+                onChange={(event) =>
+                  !disabled &&
+                  onChange({
+                    key: value?.key ?? null,
+                    color: event.target.value as IconColors,
+                  })
+                }
+              >
+                {Object.values(IconColors).map((color) => (
+                  <MenuItem key={color} value={color}>
+                    {color.charAt(0).toUpperCase() + color.slice(1)}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
             <TextField
               autoFocus
+              disabled={disabled}
               label="Search icons"
               value={search}
               onChange={(event) => {
@@ -132,6 +154,7 @@ export function WorldCategoryIconPicker({
                     .map(([key, Icon]) => (
                       <Tooltip key={key} title={categoryIconName(key)}>
                         <Button
+                          disabled={disabled}
                           aria-label={categoryIconName(key)}
                           aria-pressed={value?.key === key}
                           onClick={() => {
@@ -163,6 +186,7 @@ export function WorldCategoryIconPicker({
                 )}
                 {matches.length > PAGE_SIZE && (
                   <Pagination
+                    disabled={disabled}
                     count={Math.ceil(matches.length / PAGE_SIZE)}
                     page={page}
                     onChange={(_, next) => setPage(next)}
@@ -171,6 +195,7 @@ export function WorldCategoryIconPicker({
               </>
             )}
             <Button
+              disabled={disabled}
               onClick={() => {
                 onChange(null);
                 setOpen(false);

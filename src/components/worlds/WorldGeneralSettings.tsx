@@ -28,7 +28,11 @@ export function WorldGeneralSettings({
     permission === WorldPermission.Editor;
   return (
     <Stack spacing={3}>
-      <Typography variant="h6" component="h3">
+      <Typography
+        variant="h6"
+        component="h3"
+        sx={{ fontFamily: (theme) => theme.typography.fontFamilyTitle }}
+      >
         {t("worlds.settings.general", "General")}
       </Typography>
       <Box>
@@ -83,7 +87,12 @@ export function WorldGeneralSettings({
         <>
           <Divider />
           <Box>
-            <Typography variant="h6" component="h3" color="error.main">
+            <Typography
+              variant="h6"
+              component="h3"
+              sx={{ fontFamily: (theme) => theme.typography.fontFamilyTitle }}
+              color="error.main"
+            >
               {t("worlds.settings.danger-zone", "Danger zone")}
             </Typography>
             <Typography color="text.secondary" variant="body2" sx={{ mb: 2 }}>

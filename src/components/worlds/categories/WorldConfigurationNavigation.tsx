@@ -1,6 +1,9 @@
-import { Box, Button, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { LinkComponent } from "components/LinkComponent";
+import type { WorldNavigation } from "components/worlds/worldNavigation";
 
 import type { IWorldCategory } from "services/worldCategories.service";
 
@@ -9,22 +12,24 @@ import { WorldConfigurationSortList } from "./WorldConfigurationSortList";
 
 export function WorldConfigurationNavigation({
   categories,
-  selectedId,
+  navigation,
   canEdit,
   disabled,
-  onSelect,
   onAdd,
   onReorder,
 }: {
   categories: IWorldCategory[];
-  selectedId?: string;
+  navigation: WorldNavigation;
   canEdit: boolean;
   disabled: boolean;
-  onSelect: (id: string | undefined) => void;
   onAdd: () => void;
   onReorder: (ids: string[]) => void;
 }) {
   const { t } = useTranslation();
+  const selectedId =
+    navigation.view.type === "category-settings"
+      ? navigation.view.categoryId
+      : undefined;
   const [reordering, setReordering] = useState(false);
   const wide = "@container world-configuration (min-width: 720px)";
   return (
@@ -38,34 +43,42 @@ export function WorldConfigurationNavigation({
         "@container world-configuration (min-width: 720px)": { width: 240 },
       }}
     >
-      <TextField
-        fullWidth
-        select
-        label={t("worlds.settings.section", "Settings section")}
-        value={selectedId ?? ""}
-        onChange={(event) => onSelect(event.target.value || undefined)}
-        slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
-        sx={{ width: "100%", [wide]: { display: "none" } }}
-      >
-        <option value="">{t("worlds.settings.general", "General")}</option>
-        {categories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.name}
-          </option>
-        ))}
-      </TextField>
       <Button
+        component={LinkComponent}
+        {...navigation.getLinkProps({ type: "settings" })}
         variant={selectedId === undefined ? "contained" : "outlined"}
-        aria-pressed={selectedId === undefined}
-        onClick={() => onSelect(undefined)}
+        aria-current={selectedId === undefined ? "page" : undefined}
         sx={{
           justifyContent: "flex-start",
-          display: "none",
-          [wide]: { display: "flex" },
         }}
       >
         {t("worlds.settings.general", "General")}
       </Button>
+      <Stack
+        direction="row"
+        useFlexGap
+        sx={{ flexWrap: "wrap", gap: 1, [wide]: { display: "none" } }}
+        aria-label={t(
+          "worlds.settings.category-links",
+          "Category settings links",
+        )}
+      >
+        {categories.map((category) => (
+          <Button
+            key={category.id}
+            component={LinkComponent}
+            {...navigation.getLinkProps({
+              type: "category-settings",
+              categoryId: category.id,
+            })}
+            variant={category.id === selectedId ? "contained" : "outlined"}
+            aria-current={category.id === selectedId ? "page" : undefined}
+            sx={{ minWidth: 0, overflowWrap: "anywhere", textAlign: "left" }}
+          >
+            {category.name}
+          </Button>
+        ))}
+      </Stack>
       <Typography
         variant="overline"
         sx={{ display: "none", [wide]: { display: "block" } }}
@@ -75,6 +88,7 @@ export function WorldConfigurationNavigation({
       {canEdit && (
         <Button
           aria-expanded={reordering}
+          disabled={disabled}
           onClick={() => setReordering(!reordering)}
           sx={{ display: "flex", [wide]: { display: "none" } }}
         >
@@ -102,7 +116,10 @@ export function WorldConfigurationNavigation({
                 selected={category.id === selectedId}
                 canEdit={canEdit}
                 disabled={disabled}
-                onSelect={() => onSelect(category.id)}
+                linkProps={navigation.getLinkProps({
+                  type: "category-settings",
+                  categoryId: category.id,
+                })}
               />
             ))}
           </Stack>
