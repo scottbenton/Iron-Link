@@ -27,6 +27,8 @@ export enum WorldFieldType {
   OracleText = "oracleText",
   Tags = "tags",
   Number = "number",
+  CategorySelect = "categorySelect",
+  CategoryMultiSelect = "categoryMultiSelect",
 }
 
 export interface IWorldFieldDefinition {
@@ -166,6 +168,12 @@ export class WorldFieldDefinitionsService {
         break;
       case "number":
         type = WorldFieldType.Number;
+        break;
+      case "categorySelect":
+        type = WorldFieldType.CategorySelect;
+        break;
+      case "categoryMultiSelect":
+        type = WorldFieldType.CategoryMultiSelect;
         break;
       default:
         type = WorldFieldType.Text;

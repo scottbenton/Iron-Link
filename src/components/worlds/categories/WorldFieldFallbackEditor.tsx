@@ -2,11 +2,15 @@ import {
   Autocomplete,
   Chip,
   FormControlLabel,
+  MenuItem,
   Switch,
   TextField,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { isWorldCategoryReferenceType } from "lib/worldFieldRules";
+
+import type { IWorldCategory } from "services/worldCategories.service";
 import {
   OracleBinding,
   WorldFieldType,
@@ -19,11 +23,15 @@ import type { FieldDraft } from "./WorldFieldEditor";
 export function WorldFieldFallbackEditor({
   worldId,
   draft,
+  categories,
+  invalidTarget,
   disabled,
   onChange,
 }: {
   worldId: string;
   draft: FieldDraft;
+  categories: IWorldCategory[];
+  invalidTarget: boolean;
   disabled: boolean;
   onChange: (draft: FieldDraft) => void;
 }) {
@@ -97,14 +105,56 @@ export function WorldFieldFallbackEditor({
           )}
         />
       )}
-      <WorldOracleBindingPicker
-        worldId={worldId}
-        value={draft.binding}
-        disabled={disabled}
-        onChange={(binding: OracleBinding | null) =>
-          onChange({ ...draft, binding })
-        }
-      />
+      {isWorldCategoryReferenceType(draft.type) ? (
+        <TextField
+          select
+          required
+          fullWidth
+          label={t("worlds.fields.target-category", "Target category")}
+          value={
+            categories.some(
+              (category) =>
+                category.id === draft.configuration.targetCategoryId,
+            )
+              ? draft.configuration.targetCategoryId
+              : ""
+          }
+          disabled={disabled}
+          error={invalidTarget}
+          helperText={
+            draft.configuration.targetCategoryId && invalidTarget
+              ? t(
+                  "worlds.fields.target-category-unavailable",
+                  "This category is no longer available in this world. Choose another.",
+                )
+              : t(
+                  "worlds.fields.target-category-help",
+                  "Entries can link to an entry in this category.",
+                )
+          }
+          onChange={(event) =>
+            configuration({ targetCategoryId: event.target.value })
+          }
+        >
+          <MenuItem value="" disabled>
+            {t("worlds.fields.choose-category", "Choose a category")}
+          </MenuItem>
+          {categories.map((category) => (
+            <MenuItem key={category.id} value={category.id}>
+              {category.name}
+            </MenuItem>
+          ))}
+        </TextField>
+      ) : (
+        <WorldOracleBindingPicker
+          worldId={worldId}
+          value={draft.binding}
+          disabled={disabled}
+          onChange={(binding: OracleBinding | null) =>
+            onChange({ ...draft, binding })
+          }
+        />
+      )}
     </WorldEditorSection>
   );
 }

@@ -56,7 +56,7 @@ export function WorldCategoryFieldRow({
       : rules > 1
         ? t("worlds.fields.rule-count", "{{count}} rules", { count: rules })
         : undefined,
-    field.gmOnly ? t("worlds.fields.gm-badge", "GM only") : undefined,
+    field.gmOnly ? t("worlds.fields.gm-badge", "Guide only") : undefined,
     subtitle ? t("worlds.fields.subtitle-badge", "Subtitle") : undefined,
   ].filter(Boolean);
   return (

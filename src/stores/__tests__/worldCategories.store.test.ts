@@ -1,15 +1,15 @@
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getWorldDefaultConfiguration } from "lib/worldDefaultConfiguration";
-
 import { WorldCategoriesService } from "services/worldCategories.service";
+import { WorldConfigurationReadService } from "services/worldConfigurationRead.service";
 import { WorldFieldDefinitionsService } from "services/worldFieldDefinitions.service";
 
 import {
   useListenToWorldCategories,
   useWorldCategoriesStore,
 } from "../worldCategories.store";
+import { getWorldDefaultConfiguration } from "./worldDefaultConfiguration.fixture";
 
 const mocks = vi.hoisted(() => ({ rpc: vi.fn() }));
 vi.mock("lib/supabase.lib", () => ({ supabase: { rpc: mocks.rpc } }));
@@ -28,10 +28,23 @@ beforeEach(() => {
     .mockReset()
     .mockResolvedValue({ data: null, error: null, status: 200 });
   store().reset();
+  vi.spyOn(
+    WorldConfigurationReadService,
+    "getWorldConfiguration",
+  ).mockImplementation(async (worldId) => ({
+    ...getWorldDefaultConfiguration(worldId, world.settingKey),
+    configurationCustomized: false,
+  }));
 });
 
+async function listenToDefaults(worldToLoad = world) {
+  const stop = store().listenToWorldCategories(worldToLoad);
+  await vi.waitFor(() => expect(store().configurationLoaded).toBe(true));
+  return stop;
+}
+
 describe("world configuration source", () => {
-  it("reads defaults without subscribing or writing, including for readers", () => {
+  it("reads database defaults without subscribing or writing, including for readers", async () => {
     const categories = vi.spyOn(
       WorldCategoriesService,
       "listenToWorldCategories",
@@ -40,7 +53,7 @@ describe("world configuration source", () => {
       WorldFieldDefinitionsService,
       "listenToWorldFieldDefinitions",
     );
-    const stop = store().listenToWorldCategories(world);
+    const stop = await listenToDefaults();
     expect(
       Object.values(store().categories).map((category) => category.name),
     ).toEqual(["Locations", "NPCs", "Lore", "Factions"]);
@@ -48,12 +61,15 @@ describe("world configuration source", () => {
     expect(store().configurationCustomized).toBe(false);
     expect(categories).not.toHaveBeenCalled();
     expect(fields).not.toHaveBeenCalled();
+    expect(
+      WorldConfigurationReadService.getWorldConfiguration,
+    ).toHaveBeenCalledWith(world.id);
     expect(mocks.rpc).not.toHaveBeenCalled();
     stop();
   });
 
-  it("resolves defaults afresh without changing identities or mutating shared definitions", () => {
-    store().listenToWorldCategories(world);
+  it("resolves database defaults afresh without changing identities or mutating source definitions", async () => {
+    await listenToDefaults();
     const original = getWorldDefaultConfiguration(world.id, world.settingKey);
     const source = "oracle_rollable:starforged/character/goal";
     const target = "oracle_rollable:starsmith/character/goal";
@@ -65,9 +81,7 @@ describe("world configuration source", () => {
       (field) => field.key === "goal",
     )!;
     expect(goal.binding?.resolvedOracleId).toBe(target);
-    expect(getWorldDefaultConfiguration(world.id, world.settingKey)).toEqual(
-      original,
-    );
+    expect(store().sourceFieldDefinitions).toEqual(original.fieldDefinitions);
     store().applyDefaultReplacementMap(world.id, {});
     expect(store().fieldDefinitions[goal.id].binding?.resolvedOracleId).toBe(
       source,
@@ -75,7 +89,7 @@ describe("world configuration source", () => {
   });
 
   it("keeps read-only counts separate and sends first edit plus resolved binding snapshot atomically", async () => {
-    store().listenToWorldCategories(world);
+    await listenToDefaults();
     store().applyDefaultReplacementMap(world.id, {});
     const category = Object.values(store().categories)[0];
     mocks.rpc.mockResolvedValueOnce({
@@ -111,8 +125,53 @@ describe("world configuration source", () => {
     expect(store().configurationCustomized).toBe(false);
   });
 
+  it("preserves a rule's explicit unbound fallback through resolution and the first edit", async () => {
+    const defaults = getWorldDefaultConfiguration(world.id, world.settingKey);
+    const goal = Object.values(defaults.fieldDefinitions).find(
+      (field) => field.key === "goal",
+    )!;
+    const source = Object.values(defaults.fieldDefinitions).find(
+      (field) => field.categoryId === goal.categoryId && field.type === "text",
+    )!;
+    goal.configuration.rules = [
+      {
+        conditions: [
+          { source: "entry", fieldId: source.id, operator: "isEmpty" },
+        ],
+        binding: null,
+      },
+    ];
+    vi.mocked(
+      WorldConfigurationReadService.getWorldConfiguration,
+    ).mockResolvedValueOnce({
+      ...defaults,
+      configurationCustomized: false,
+    });
+    await listenToDefaults();
+    store().applyDefaultReplacementMap(world.id, {});
+    expect(
+      store().fieldDefinitions[goal.id].configuration.rules[0].binding,
+    ).toBeNull();
+    await store().updateCategory(Object.keys(defaults.categories)[0], {
+      name: "Places",
+    });
+    expect(mocks.rpc).toHaveBeenLastCalledWith(
+      "mutate_world_configuration",
+      expect.objectContaining({
+        p_default_bindings: expect.arrayContaining([
+          expect.objectContaining({
+            id: goal.id,
+            rule_bindings: [
+              expect.objectContaining({ index: 0, binding: null }),
+            ],
+          }),
+        ]),
+      }),
+    );
+  });
+
   it("routes a first reorder through the same atomic fork, and blocks edits with stale binding resolution", async () => {
-    store().listenToWorldCategories(world);
+    await listenToDefaults();
     store().applyDefaultReplacementMap(world.id, {});
     const ids = Object.keys(store().categories).reverse();
     await store().reorderCategories(ids);
@@ -128,7 +187,7 @@ describe("world configuration source", () => {
     expect(mocks.rpc).toHaveBeenCalledTimes(1);
   });
 
-  it("waits for both custom snapshots and never resurrects deleted defaults", () => {
+  it("waits for both custom snapshots and never resurrects deleted defaults", async () => {
     let categoriesChanged: Parameters<
       typeof WorldCategoriesService.listenToWorldCategories
     >[1];
@@ -165,7 +224,7 @@ describe("world configuration source", () => {
     store().applyDefaultReplacementMap(world.id, {});
     expect(store().categories).toEqual({});
     stop();
-    store().listenToWorldCategories({
+    await listenToDefaults({
       ...world,
       id: "3325bfc5-2c3d-41e2-8068-70b61d4bccdd",
     });
@@ -179,6 +238,71 @@ describe("world configuration source", () => {
     expect(stopCategories).toHaveBeenCalledOnce();
     expect(stopFields).toHaveBeenCalledOnce();
   });
+
+  it("discards a database response after switching worlds", async () => {
+    let resolveOld!: (
+      snapshot: Awaited<
+        ReturnType<typeof WorldConfigurationReadService.getWorldConfiguration>
+      >,
+    ) => void;
+    vi.mocked(
+      WorldConfigurationReadService.getWorldConfiguration,
+    ).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveOld = resolve;
+        }),
+    );
+    const stopOld = store().listenToWorldCategories(world);
+    const next = { ...world, id: "3325bfc5-2c3d-41e2-8068-70b61d4bccdd" };
+    await listenToDefaults(next);
+    const nextCategories = store().categories;
+    resolveOld({
+      ...getWorldDefaultConfiguration(world.id, world.settingKey),
+      configurationCustomized: false,
+    });
+    await Promise.resolve();
+    expect(store().worldId).toBe(next.id);
+    expect(store().categories).toEqual(nextCategories);
+    stopOld();
+  });
+
+  it.each(["success", "failure"])(
+    "ignores a late inherited request %s after customization",
+    async (outcome) => {
+      let resolveOld!: (
+        snapshot: Awaited<
+          ReturnType<typeof WorldConfigurationReadService.getWorldConfiguration>
+        >,
+      ) => void;
+      let rejectOld!: (cause: Error) => void;
+      vi.mocked(
+        WorldConfigurationReadService.getWorldConfiguration,
+      ).mockImplementationOnce(
+        () =>
+          new Promise((resolve, reject) => {
+            resolveOld = resolve;
+            rejectOld = reject;
+          }),
+      );
+      const stopOld = store().listenToWorldCategories(world);
+      const custom = customWorld();
+      custom.categoriesChanged({}, [], true);
+      custom.fieldsChanged({}, [], true);
+      if (outcome === "success")
+        resolveOld({
+          ...getWorldDefaultConfiguration(world.id, world.settingKey),
+          configurationCustomized: true,
+        });
+      else rejectOld(new Error("Old read failed"));
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(store().configurationCustomized).toBe(true);
+      expect(store().categories).toEqual({});
+      expect(store().error).toBeUndefined();
+      stopOld();
+    },
+  );
 });
 
 afterEach(() => {
@@ -251,7 +375,7 @@ const fieldIds = (categoryId: string) =>
 describe("successful category creation before realtime", () => {
   it("makes the returned category available immediately and retains it through first-fork subscription handover", async () => {
     const fixture = customWorld();
-    store().listenToWorldCategories(world);
+    await listenToDefaults();
     store().applyDefaultReplacementMap(world.id, {});
     let complete!: (id: string) => void;
     vi.spyOn(WorldCategoriesService, "addWorldCategory").mockReturnValue(
@@ -319,7 +443,7 @@ describe("successful category creation before realtime", () => {
     async (removal) => {
       const fixture = customWorld();
       if (removal === "first-fork handover") {
-        store().listenToWorldCategories(world);
+        await listenToDefaults();
         store().applyDefaultReplacementMap(world.id, {});
       }
       let complete!: (id: string) => void;
@@ -609,7 +733,7 @@ describe("optimistic configuration ordering", () => {
 
   it("preserves an inherited drag through resolved defaults and the customized subscription transition", async () => {
     const fixture = customWorld();
-    store().listenToWorldCategories(world);
+    await listenToDefaults();
     store().applyDefaultReplacementMap(world.id, {});
     const request = deferred();
     const reorder = vi
@@ -641,6 +765,7 @@ describe("optimistic configuration ordering", () => {
     await Promise.resolve();
     const next = { ...world, id: "3325bfc5-2c3d-41e2-8068-70b61d4bccdd" };
     store().listenToWorldCategories(next);
+    await vi.waitFor(() => expect(store().configurationLoaded).toBe(true));
     const nextCategories = store().categories;
     fixture.categoriesChanged(fixture.defaults.categories, [], true);
     request.reject(new Error("Old world failed"));
@@ -665,8 +790,8 @@ describe("optimistic configuration ordering", () => {
     expect(store().error).toMatch(/could not be confirmed/);
   });
 
-  it("does not reset the shared store when a non-subscribing panel unmounts", () => {
-    store().listenToWorldCategories(world);
+  it("does not reset the shared store when a non-subscribing panel unmounts", async () => {
+    await listenToDefaults();
     const categories = store().categories;
     const hook = renderHook(() => useListenToWorldCategories(undefined));
     hook.unmount();

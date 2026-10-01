@@ -36,17 +36,7 @@ export const WORLD_TEMPLATE_CATEGORY_KEYS = [
   "factions",
 ] as const;
 
-export function getWorldSettingPackageIds(settingKey: string | null): string[] {
-  const packageId = settingKey?.includes(":")
-    ? settingKey.split(":")[1]?.split("/")[0]
-    : settingKey;
-  if (!packageId) return [];
-  return packageId === "sundered_isles"
-    ? ["starforged", "sundered_isles"]
-    : [packageId];
-}
-
-/** Defaults are rebuilt from code with identities stable for the lifetime of a world. */
+/** Migration authoring source. The database catalog serves defaults at runtime. */
 export function buildWorldTemplate(
   settingKey: string | null,
   worldId: string,
@@ -57,11 +47,15 @@ export function buildWorldTemplate(
     tags(),
   ];
   let npcs: TemplateField[] = [pronouns(), tags()];
-  let factions: TemplateField[] | undefined;
+  let factions: TemplateField[] | undefined = [
+    field("factionType", "Faction Type"),
+    tags(),
+  ];
   switch (settingKey) {
     case "world:classic/ironlands":
       locations = ironlandsLocations();
       npcs = ironlandsNpcs();
+      factions = undefined;
       break;
     case "world:starforged/forge":
       locations = forgeLocations();
@@ -76,8 +70,16 @@ export function buildWorldTemplate(
     case "world:elegy/santa_maria":
       locations = elegyLocations();
       npcs = elegyNpcs();
+      factions = undefined;
       break;
   }
+  npcs = [
+    field("location", "Location", {
+      type: "categorySelect",
+      targetCategoryId: uuid("category:locations", worldId),
+    }),
+    ...npcs,
+  ];
   const pinBinding = (binding: OracleBinding | null): OracleBinding | null => {
     if (!binding) return null;
     const oracleId = binding.exact
@@ -96,19 +98,27 @@ export function buildWorldTemplate(
       {
         key: "locations",
         name: "Locations",
-        icon: { key: "GiCompass", color: IconColors.Green },
+        icon: {
+          key:
+            settingKey === "world:starforged/forge"
+              ? "GiRingedPlanet"
+              : settingKey === "world:sundered_isles/sundered_isles"
+                ? "GiCompass"
+                : "GiWorld",
+          color: IconColors.Green,
+        },
         fields: locations,
       },
       {
         key: "npcs",
         name: "NPCs",
-        icon: { key: "GiPerson", color: IconColors.Blue },
+        icon: { key: "mui:Groups2", color: IconColors.Blue },
         fields: npcs,
       },
       {
         key: "lore",
         name: "Lore",
-        icon: { key: "GiBookCover", color: IconColors.Purple },
+        icon: { key: "GiBookmarklet", color: IconColors.Purple },
         fields: [tags()],
       },
       ...(factions
@@ -116,7 +126,7 @@ export function buildWorldTemplate(
             {
               key: "factions",
               name: "Factions",
-              icon: { key: "GiFlag", color: IconColors.Orange },
+              icon: { key: "GiBlackFlag", color: IconColors.Red },
               fields: factions,
             },
           ]
@@ -143,9 +153,13 @@ export function buildWorldTemplate(
         subtitle_field_definition_id:
           category.key === "locations"
             ? ids.locationType
-            : category.key === "factions"
-              ? ids.factionType
-              : null,
+            : category.key === "npcs"
+              ? ids.location
+              : category.key === "lore"
+                ? ids.tags
+                : category.key === "factions"
+                  ? ids.factionType
+                  : null,
         fields: category.fields.map((definition, index) => ({
           ...definition,
           id: ids[definition.key],

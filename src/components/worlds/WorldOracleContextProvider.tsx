@@ -7,10 +7,6 @@ import {
   type WorldOracleCatalog,
   loadWorldOracleCatalog,
 } from "lib/worldOracleCatalog";
-import {
-  buildWorldTemplate,
-  getWorldTemplateBindings,
-} from "lib/worldTemplates";
 
 import { WorldTemplatesRepository } from "repositories/worldTemplates.repository";
 
@@ -28,6 +24,15 @@ export function WorldOracleContextProvider({
   const world = useWorldStore((store) => store.world);
   const definitions = useWorldCategoriesStore(
     (store) => store.fieldDefinitions,
+  );
+  const sourceDefinitions = useWorldCategoriesStore(
+    (store) => store.sourceFieldDefinitions,
+  );
+  const configurationLoaded = useWorldCategoriesStore(
+    (store) => store.configurationLoaded,
+  );
+  const configurationCustomized = useWorldCategoriesStore(
+    (store) => store.configurationCustomized,
   );
   const applyDefaultReplacementMap = useWorldCategoriesStore(
     (store) => store.applyDefaultReplacementMap,
@@ -47,27 +52,18 @@ export function WorldOracleContextProvider({
     loading: boolean;
     error?: string;
   }>({ worldId, catalog: null, loading: true });
-  const bindings = useMemo(
-    () =>
-      world?.id === worldId && !world.configurationCustomized
-        ? getWorldTemplateBindings(
-            buildWorldTemplate(world.settingKey, worldId),
-          )
-        : Object.values(definitions)
-            .filter((definition) => definition.worldId === worldId)
-            .flatMap((definition) => [
-              definition.binding,
-              ...definition.configuration.rules.map((rule) => rule.binding),
-            ])
-            .filter((binding): binding is OracleBinding => !!binding),
-    [
-      definitions,
-      worldId,
-      world?.id,
-      world?.settingKey,
-      world?.configurationCustomized,
-    ],
-  );
+  const bindings = useMemo(() => {
+    const activeDefinitions = !configurationCustomized
+      ? sourceDefinitions
+      : definitions;
+    return Object.values(activeDefinitions)
+      .filter((definition) => definition.worldId === worldId)
+      .flatMap((definition) => [
+        definition.binding,
+        ...definition.configuration.rules.map((rule) => rule.binding),
+      ])
+      .filter((binding): binding is OracleBinding => !!binding);
+  }, [definitions, sourceDefinitions, worldId, configurationCustomized]);
   // Only package changes require reloading the catalog; label edits do not.
   const bindingKey = JSON.stringify(
     bindings
@@ -79,7 +75,12 @@ export function WorldOracleContextProvider({
       ])
       .sort(),
   );
-  const settingKey = world?.id === worldId ? world.settingKey : undefined;
+  const settingKey =
+    world?.id === worldId &&
+    configurationWorldId === worldId &&
+    configurationLoaded
+      ? world.settingKey
+      : undefined;
   const updatedAt =
     world?.id === worldId ? world.updatedAt.getTime() : undefined;
 
@@ -108,12 +109,12 @@ export function WorldOracleContextProvider({
       loading: true,
     }));
     const storedBindings: OracleBinding[] = (
-      JSON.parse(bindingKey) as [string, string, string, boolean?][]
+      JSON.parse(bindingKey) as [string, string, string, boolean | null][]
     ).map(([packageId, oracleId, resolvedOracleId, exact]) => ({
       packageId,
       oracleId,
       resolvedOracleId,
-      exact,
+      exact: exact ?? undefined,
     }));
     WorldTemplatesRepository.getLinkedGamePlaysets(worldId)
       .then((linkedGames) =>

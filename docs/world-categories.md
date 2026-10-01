@@ -7,9 +7,12 @@ with the change, not certified by this document. Entry editing is W5.
 
 ## Configuration inheritance
 
-Default configurations live in TypeScript. An uncustomized world reads the
-current defaults for its setting without storing category or field-definition
-rows. Corrections to those defaults reach uncustomized worlds on deployment.
+The trusted database catalog is the runtime source for default configurations.
+An uncustomized world reads its current setting's defaults through
+`get_world_configuration` without storing category or field-definition rows.
+Corrections to those defaults reach uncustomized worlds when a catalog migration
+is applied. Checked-in TypeScript manifests are migration authoring input only;
+the client does not build a second runtime copy.
 
 The first category/field configuration edit copies the entire effective
 configuration and applies the edit in one database transaction. Later edits
@@ -23,16 +26,17 @@ separate from configuration inheritance.
 
 | Area | Implementation |
 | --- | --- |
-| Static manifests and world-scoped UUIDv5 identities | [worldTemplates.ts](../src/lib/worldTemplates.ts), [shared helpers](../src/lib/worldTemplates/shared.ts), [Forge](../src/lib/worldTemplates/forge.ts), [other settings](../src/lib/worldTemplates/otherSettings.ts) |
+| Catalog authoring and world-scoped UUIDv5 identities | [worldTemplates.ts](../src/lib/worldTemplates.ts), [shared helpers](../src/lib/worldTemplates/shared.ts), [Forge](../src/lib/worldTemplates/forge.ts), [other settings](../src/lib/worldTemplates/otherSettings.ts) |
+| Runtime configuration read | [database read and references migration](../supabase/migrations/20260930010000_world_configuration_read_and_references.sql), [read repository](../src/repositories/worldConfigurationRead.repository.ts), [category store](../src/stores/worldCategories.store.ts) |
 | Pure rule evaluation and type compatibility | [worldFieldRules.ts](../src/lib/worldFieldRules.ts) |
 | Package loading, merged choices, stored roll target | [worldOracleCatalog.ts](../src/lib/worldOracleCatalog.ts) |
 | Atomic configuration mutation boundary | [worldConfiguration.repository.ts](../src/repositories/worldConfiguration.repository.ts) |
 | Shared category/field management | [WorldCategoryManager.tsx](../src/components/worlds/categories/WorldCategoryManager.tsx), [WorldCategoryFields.tsx](../src/components/worlds/categories/WorldCategoryFields.tsx) |
-| Generated trusted defaults | [catalog generator](../supabase/tests/generate-static-world-catalog.mjs), [initial catalog migration](../supabase/migrations/20260926010000_world_static_catalog.sql), [simplified catalog release](../supabase/migrations/20260927010000_world_static_catalog.sql) |
+| Generated trusted defaults | [catalog generator](../supabase/tests/generate-static-world-catalog.mjs), [initial catalog migration](../supabase/migrations/20260926010000_world_static_catalog.sql), [latest catalog release](../supabase/migrations/20260930020000_world_static_catalog.sql) |
 | Database validation and atomic operations | [W4 migration](../supabase/migrations/20260926000000_world_category_templates.sql), [inheritance migration](../supabase/migrations/20260926020000_world_configuration_inheritance.sql) |
 
 Custom definitions and all values remain separate database rows. Inherited
-definitions are built from code. Both use the same definition contract. Default
+definitions are read from the database catalog. Both use the same definition contract. Default
 category and field IDs are deterministic UUIDv5 values derived from the world
 UUID and stable template keys. Materialization preserves those IDs, so existing
 values and conditional references survive the first configuration edit.
@@ -65,8 +69,8 @@ The visual rule editor exposes conditions, ordering, overrides, and fallback.
 Text suggestions allow both picking a suggestion and entering any custom value.
 
 Database checks keep references within a category and reject incompatible
-condition sources. A target that depends on GM-only source data must also be
-GM-only. A source cannot be deleted while another definition references it.
+condition sources. A target that depends on Guide-only source data must also be
+Guide-only. A source cannot be deleted while another definition references it.
 Existing GM-value mirroring/RLS continues to protect stored values.
 
 ## Configuration editor
@@ -126,19 +130,21 @@ switches. Internal UUIDs and keys are hidden; duplicate labels use readable
 subtype or field-type descriptions. Every entry has intrinsic rich-text Notes,
 displayed as a muted built-in row rather than an editable field definition.
 
-GM-only targets may use GM-only text, number, and tag condition sources. Rich-text
+Guide-only targets may use Guide-only text, number, and tag condition sources. Rich-text
 and oracle-text content is a Yjs document, so it is not currently a condition
-source. Public targets cannot depend on GM data.
+source. Public targets cannot depend on Guide-only data.
 
 ## Initial templates
 
-Every choice provides **Locations, NPCs, Lore**, including Blank. No template includes
+Every choice provides **Locations, NPCs, Lore**, including Blank. Blank, Forge,
+and Sundered Isles also provide **Factions**. No template includes
 Truths. Locations support hierarchy, maps, and bonds; NPCs support bonds; Lore
-has no capability flags. Locations use Location Type as subtitle. Extra GM Notes
-fields are omitted; entry Notes remain intrinsic. Lore has Tags. Forge and
-Sundered Isles also append **Factions**. Factions uses Faction Type as subtitle
-and starts without hierarchy, map, or bond capabilities; Blank, Ironlands, and
-Elegy do not add this category.
+has no capability flags. Locations use Location Type as subtitle; NPCs use their
+single linked Location; Lore uses Tags. Extra GM Notes fields are omitted; entry
+Notes remain intrinsic. Existing customized GM Notes values are preserved but
+their retired field is hidden from configuration. Factions uses Faction Type as
+subtitle and starts without hierarchy, map, or bond capabilities. Blank
+Factions have Faction Type and Tags without oracle bindings.
 
 Most bound fields are `oracleText`; Pronouns, Location Type, Region, Species,
 Difficulty, and Planet Class are plain text. Forge Description is public
@@ -147,11 +153,11 @@ Location is also plain text with a binding so its stored value can drive Type.
 
 | Setting | Initial Locations fields | Initial NPC fields |
 | --- | --- | --- |
-| Blank (`null`) | Location Type, Tags; no bindings | Pronouns, Tags; no bindings |
-| Ironlands (`world:classic/ironlands`) | Location Type; GM Description, Trouble, Location Features | Pronouns, Species; GM Descriptor, Role, Goal |
-| Forge (`world:starforged/forge`) | Location Type, subtype-dependent fields below | Pronouns, Callsign, Difficulty; GM First Look, Role, Disposition, Goal, Revealed Aspect |
-| Sundered Isles (`world:sundered_isles/sundered_isles`) | Location Type, Area Region, site-dependent fields below | Pronouns; GM First Look, Role, Disposition, Goal |
-| Santa Maria (`world:elegy/santa_maria`) | Location Type, Tags; GM Description | Pronouns, Tags; GM Traits, Occupation, Goal, Disposition |
+| Blank (`null`) | Location Type, Tags; no bindings | Location, Pronouns, Tags; no bindings |
+| Ironlands (`world:classic/ironlands`) | Location Type; Guide-only Description, Trouble, Location Features | Location, Pronouns, Species; Guide-only Descriptor, Role, Goal |
+| Forge (`world:starforged/forge`) | Location Type, subtype-dependent fields below | Location, Pronouns, Callsign, Difficulty; Guide-only First Look, Role, Disposition, Goal, Revealed Aspect |
+| Sundered Isles (`world:sundered_isles/sundered_isles`) | Location Type, Area Region, site-dependent fields below | Location, Pronouns; Guide-only First Look, Role, Disposition, Goal |
+| Santa Maria (`world:elegy/santa_maria`) | Location Type, Tags; Guide-only Description | Location, Pronouns, Tags; Guide-only Traits, Occupation, Goal, Disposition |
 
 Location Type suggestions follow the actual Iron Fellowship/Crew Link autocomplete
 (`OpenLocation.tsx` and the Ironlands/Forge location configs). Ironlands suggests
@@ -167,7 +173,7 @@ Santa Maria invent no Location Type suggestions. Elegy Description binds to
 
 All subtypes are suggestions on the same Location Type field in one category.
 Location Type, Region, Planet Class, and the shared Description
-are public; other location fields in this table are GM-only.
+are public; other location fields in this table are Guide-only.
 
 | Location Type | Fields and oracle behavior |
 | --- | --- |
@@ -201,7 +207,7 @@ changes to Crew Link's `Non-Planetary Settlement`; no stored values are rewritte
 Location Type has exactly six suggestions: **Area, Island, Settlement,
 Shipwreck, Cave, Ruin**. Region is public text shown only on Area and suggests
 Myriads, Margins, Reaches (Central, Outer, Remote Seas). Descendants use the
-nearest Area's Region, including nested Areas. Site-specific fields are GM-only.
+nearest Area's Region, including nested Areas. Site-specific fields are Guide-only.
 
 | Location Type | Initial fields |
 | --- | --- |
@@ -229,7 +235,7 @@ hierarchy, or bond capabilities enabled by default. Existing category and field
 identities and order stay unchanged; Factions is appended.
 
 Faction Type is public text with suggestions and a type-oracle binding. Influence
-is public OracleText. The remaining generated details are GM-only and can be
+is public OracleText. The remaining generated details are Guide-only and can be
 reconfigured. Every faction still has intrinsic name and Notes. Custom Faction
 Type text is allowed; subtype-specific fields stay hidden unless a rule matches.
 
@@ -245,7 +251,7 @@ identify the other faction (or individual in Isles) alongside the rolled result;
 it does not create a relationship link.
 
 Isles supports both a faction of The Cursed and a Society/Organization/Empire
-with cursed aspects. The GM-only Cursed text modifier suggests Yes/No. Cursed
+with cursed aspects. The Guide-only Cursed text modifier suggests Yes/No. Cursed
 Aspects appears for The Cursed or Cursed=Yes. A cursed organization uses
 Organization plus Cursed=Yes, retaining its Methods and Secrets.
 
@@ -301,11 +307,11 @@ duplicate default rows or overwrite an already customized configuration.
 custom configuration; its state is derived from the durable receipt.
 
 Entry/value writes require authoritative category and field lookup even before
-there are definition rows. A trusted SQL function catalog is generated from the
-same TypeScript defaults. Database validation uses that catalog for inherited
-worlds and stored definitions for customized worlds. It enforces category/world
-membership and derives GM visibility from the effective definition. The catalog
-is release code, not an administrator-editable global configuration table.
+there are definition rows. Database validation and the client read from the same
+trusted SQL catalog for inherited worlds and stored definitions for customized
+worlds. The database enforces category/world membership and derives Guide-only
+visibility from the effective definition. The catalog is release code, not an
+administrator-editable global configuration table.
 
 Existing materialized configurations and receipt-bearing worlds are preserved
 as custom: migration does not guess whether their differences were user edits.
@@ -318,8 +324,8 @@ overwrite custom rows.
 **Apply the W4 migrations, including the generated catalog and inheritance
 migrations, before deploying the client.** The new client requires
 the configuration column, inheritance state, trusted default catalog, and mutation
-RPC. When changing defaults, regenerate the SQL catalog from TypeScript and ship
-its migration alongside the app so validation and UI agree. Keep existing default
+RPC. When changing defaults, regenerate the SQL catalog from the authoring
+manifests and apply its migration before the client update. Keep existing default
 keys stable; type changes, removal, and GM-visibility changes require an explicit
 data-compatibility review because values may already reference inherited fields.
 Do not reset a shared/production database to apply migrations.
@@ -360,6 +366,20 @@ registry, including `factions`, rather than a separate generator list.
 The 20260927030000 release aligns Forge's suggested settlement label with Crew
 Link while preserving Orbital Settlement as a conditional alias. Apply this
 catalog with the client; no stored values or customized configurations change.
+
+The 20260930010000 release adds the authenticated atomic configuration read and
+category-reference field validation. A reference value stores one target entry
+UUID or an array of distinct target entry UUIDs. The database verifies that each
+target belongs to the chosen category in the same world and is readable by the
+writer. SELECT policies also suppress a reference value when its target is not
+readable by the current reader. Changing a target category with stored values,
+or deleting a referenced category or entry, is blocked until references are
+removed. Selecting linked entries in the entry editor remains W5.
+
+The 20260930020000 catalog release adds NPC Location references and Blank
+Factions, sets the NPC and Lore subtitle defaults, and updates the category
+icons. Its changes reach inherited worlds; customized worlds retain their
+independent configuration.
 
 `npm run check:world-defaults` verifies that the latest generated catalog
 matches TypeScript; `npm run build` includes

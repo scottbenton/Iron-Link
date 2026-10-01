@@ -9,12 +9,12 @@ import {
   type LinkedGamePlayset,
   getGameActivePackageIds,
 } from "lib/effectivePlayset";
+import { getWorldSettingPackageIds } from "lib/worldSettingPackageIds";
 import {
   WorldCreationOption,
   blankWorldOptionId,
   getWorldSettingCreationOptions,
 } from "lib/worldSettings";
-import { getWorldSettingPackageIds } from "lib/worldTemplates";
 
 import { WorldsService } from "services/worlds.service";
 

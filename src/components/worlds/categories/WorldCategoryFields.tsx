@@ -15,7 +15,11 @@ import { WorldSettingsSection } from "components/worlds/WorldSettingsSection";
 
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 
-import { generateWorldFieldKey } from "lib/worldFieldRules";
+import {
+  generateWorldFieldKey,
+  isWorldCategoryReferenceType,
+  withoutWorldFieldOracleBindings,
+} from "lib/worldFieldRules";
 
 import {
   IWorldCategory,
@@ -34,6 +38,7 @@ import {
   editorError,
   fieldChoiceLabel,
   getReferencingFields,
+  isRetiredGMNotes,
 } from "./categoryEditor.utils";
 import { useWorldConfigurationDeleteConfirmation } from "./useWorldConfigurationDeleteConfirmation";
 
@@ -51,7 +56,15 @@ export function WorldCategoryFields({
   configurationReady: boolean;
 }) {
   const { t } = useTranslation();
+  const visibleFields = fields.filter((field) => !isRetiredGMNotes(field));
   const reorderFields = useWorldCategoriesStore((store) => store.reorderFields);
+  const targetCategories = useWorldCategoriesStore((store) =>
+    Object.values(store.categories)
+      .filter((candidate) => candidate.worldId === category.worldId)
+      .sort(
+        (a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name),
+      ),
+  );
   const {
     confirm,
     request: deleteRequest,
@@ -136,12 +149,26 @@ export function WorldCategoryFields({
     if (confirmed) await deleteField(field.id);
     return confirmed;
   };
-  const reorder = (ids: string[]) => run(() => reorderFields(category.id, ids));
+  const reorder = (ids: string[]) => {
+    let visibleIndex = 0;
+    const completeOrder = fields.map((field) =>
+      isRetiredGMNotes(field) ? field.id : ids[visibleIndex++],
+    );
+    return run(() => reorderFields(category.id, completeOrder));
+  };
   const save = async (draft: FieldDraft, createNew: boolean) => {
+    const categoryReference = isWorldCategoryReferenceType(draft.type);
     const normalized = {
       ...draft,
+      binding: categoryReference ? null : draft.binding,
       configuration: {
         ...draft.configuration,
+        targetCategoryId: categoryReference
+          ? draft.configuration.targetCategoryId
+          : undefined,
+        rules: categoryReference
+          ? withoutWorldFieldOracleBindings(draft.configuration.rules)
+          : draft.configuration.rules,
         suggestions:
           draft.type !== WorldFieldType.Text
             ? []
@@ -175,7 +202,6 @@ export function WorldCategoryFields({
       action={
         canEdit && (
           <Button
-            size="small"
             startIcon={<AddIcon />}
             disabled={busy || !configurationReady}
             onClick={() => setEditor({ valueCount: 0 })}
@@ -197,13 +223,13 @@ export function WorldCategoryFields({
       <Card variant="outlined">
         <List disablePadding>
           <WorldConfigurationSortList
-            items={fields.map((field) => ({
+            items={visibleFields.map((field) => ({
               id: field.id,
               label: fieldChoiceLabel(field, fields),
             }))}
             onReorder={reorder}
           >
-            {fields.map((field) => (
+            {visibleFields.map((field) => (
               <WorldCategoryFieldRow
                 key={field.id}
                 field={field}
@@ -217,7 +243,7 @@ export function WorldCategoryFields({
               />
             ))}
           </WorldConfigurationSortList>
-          {fields.length === 0 && (
+          {visibleFields.length === 0 && (
             <ListItem divider>
               <ListItemText
                 secondary={t(
@@ -249,7 +275,8 @@ export function WorldCategoryFields({
           key={editor.field?.id ?? "new"}
           worldId={category.worldId}
           field={editor.field}
-          fields={fields}
+          fields={visibleFields}
+          categories={targetCategories}
           valueCount={editor.valueCount}
           readOnly={!canEdit}
           onClose={() => setEditor(undefined)}

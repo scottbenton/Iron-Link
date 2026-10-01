@@ -5,11 +5,13 @@ import type { IWorldFieldDefinition } from "services/worldFieldDefinitions.servi
 import {
   type WorldFieldCondition,
   type WorldFieldSnapshot,
+  areWorldFieldDefinitionsCompatible,
   areWorldFieldTypesCompatible,
   canChangeWorldFieldType,
   createWorldFieldConfiguration,
   generateWorldFieldKey,
   getWorldFieldConditionReferences,
+  isWorldCategoryReferenceType,
   isWorldFieldConditionCompatible,
   normalizeWorldFieldConfiguration,
   resolveFieldDefinition,
@@ -146,6 +148,22 @@ describe("field rule resolution", () => {
     one.suggestions.push("custom");
     expect(createWorldFieldConfiguration().suggestions).toEqual([]);
   });
+  it("normalizes a UUID category target while discarding malformed targets", () => {
+    const targetCategoryId = "11111111-1111-4111-8111-111111111111";
+    expect(
+      normalizeWorldFieldConfiguration({
+        version: 1,
+        targetCategoryId,
+      }).targetCategoryId,
+    ).toBe(targetCategoryId);
+    expect(
+      normalizeWorldFieldConfiguration({
+        version: 1,
+        targetCategoryId: "not-a-uuid",
+      }).targetCategoryId,
+    ).toBeUndefined();
+    expect(createWorldFieldConfiguration().targetCategoryId).toBeUndefined();
+  });
 });
 
 describe("field identity and compatibility", () => {
@@ -159,6 +177,37 @@ describe("field identity and compatibility", () => {
     expect(canChangeWorldFieldType("text", "number", 1)).toBe(false);
     expect(isWorldFieldConditionCompatible("oracleText", "equals")).toBe(false);
     expect(isWorldFieldConditionCompatible("number", "isEmpty")).toBe(true);
+    expect(isWorldCategoryReferenceType("categorySelect")).toBe(true);
+    expect(isWorldCategoryReferenceType("categoryMultiSelect")).toBe(true);
+    expect(isWorldFieldConditionCompatible("categorySelect", "isEmpty")).toBe(
+      false,
+    );
+  });
+  it("treats a reference target as part of stored-value compatibility", () => {
+    const sameTarget = {
+      ...definition,
+      type: "categorySelect" as IWorldFieldDefinition["type"],
+      configuration: createWorldFieldConfiguration({
+        targetCategoryId: "11111111-1111-4111-8111-111111111111",
+      }),
+    };
+    expect(areWorldFieldDefinitionsCompatible(sameTarget, sameTarget)).toBe(
+      true,
+    );
+    expect(
+      areWorldFieldDefinitionsCompatible(sameTarget, {
+        ...sameTarget,
+        configuration: createWorldFieldConfiguration({
+          targetCategoryId: "22222222-2222-4222-8222-222222222222",
+        }),
+      }),
+    ).toBe(false);
+    expect(
+      areWorldFieldDefinitionsCompatible(sameTarget, {
+        ...sameTarget,
+        type: "categoryMultiSelect" as IWorldFieldDefinition["type"],
+      }),
+    ).toBe(false);
   });
   it("collects source and ancestor-selector references without duplicates", () => {
     expect(

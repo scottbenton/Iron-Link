@@ -1,3 +1,5 @@
+import { validate as isUuid } from "uuid";
+
 import type {
   IWorldFieldDefinition,
   OracleBinding,
@@ -22,6 +24,9 @@ export interface WorldFieldRule {
 export interface WorldFieldConfiguration {
   version: 1;
   suggestions: string[];
+  // Category-reference fields store entry IDs in their value JSON. The
+  // target is the category from which those entries may be selected.
+  targetCategoryId?: string;
   helpText: string;
   visible: boolean;
   rules: WorldFieldRule[];
@@ -63,6 +68,10 @@ export function normalizeWorldFieldConfiguration(
     suggestions: Array.isArray(configuration.suggestions)
       ? configuration.suggestions
       : [],
+    ...(typeof configuration.targetCategoryId === "string" &&
+    isUuid(configuration.targetCategoryId)
+      ? { targetCategoryId: configuration.targetCategoryId }
+      : {}),
     helpText:
       typeof configuration.helpText === "string" ? configuration.helpText : "",
     visible:
@@ -171,6 +180,32 @@ export function areWorldFieldTypesCompatible(
     from === to ||
     (["richText", "oracleText"].includes(from) &&
       ["richText", "oracleText"].includes(to))
+  );
+}
+
+export function isWorldCategoryReferenceType(type: string): boolean {
+  return type === "categorySelect" || type === "categoryMultiSelect";
+}
+
+export function withoutWorldFieldOracleBindings(
+  rules: WorldFieldRule[],
+): WorldFieldRule[] {
+  return rules.map((rule) => {
+    const withoutBinding = { ...rule };
+    delete withoutBinding.binding;
+    return withoutBinding;
+  });
+}
+
+/** A reference target is part of the value's meaning, even when its JSON shape is unchanged. */
+export function areWorldFieldDefinitionsCompatible(
+  from: Pick<IWorldFieldDefinition, "type" | "configuration">,
+  to: Pick<IWorldFieldDefinition, "type" | "configuration">,
+): boolean {
+  return (
+    areWorldFieldTypesCompatible(from.type, to.type) &&
+    (!isWorldCategoryReferenceType(from.type) ||
+      from.configuration.targetCategoryId === to.configuration.targetCategoryId)
   );
 }
 

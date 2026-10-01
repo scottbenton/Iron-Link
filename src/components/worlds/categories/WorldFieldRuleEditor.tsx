@@ -7,14 +7,11 @@ import {
   Box,
   Button,
   Divider,
-  FormControlLabel,
   MenuItem,
   Stack,
-  Switch,
   TextField,
   Typography,
 } from "@mui/material";
-import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { WorldFieldRule } from "lib/worldFieldRules";
@@ -26,38 +23,8 @@ import {
 
 import { WorldOracleBindingPicker } from "../WorldOracleBindingPicker";
 import { WorldFieldConditionEditor } from "./WorldFieldConditionEditor";
+import { WorldFieldOverrideToggle } from "./WorldFieldOverrideToggle";
 import { fieldChoiceLabel, isConditionField } from "./categoryEditor.utils";
-
-function OverrideToggle({
-  label,
-  checked,
-  disabled,
-  onToggle,
-  children,
-}: {
-  label: string;
-  checked: boolean;
-  disabled: boolean;
-  onToggle: (checked: boolean) => void;
-  children: ReactNode;
-}) {
-  return (
-    <Box>
-      <FormControlLabel
-        control={
-          <Switch
-            size="small"
-            checked={checked}
-            disabled={disabled}
-            onChange={(_, next) => onToggle(next)}
-          />
-        }
-        label={label}
-      />
-      {checked && <Box sx={{ pl: 5, pt: 1 }}>{children}</Box>}
-    </Box>
-  );
-}
 
 export function WorldFieldRuleEditor({
   worldId,
@@ -65,6 +32,7 @@ export function WorldFieldRuleEditor({
   fields,
   index,
   disabled,
+  allowOracleBinding,
   onChange,
 }: {
   worldId: string;
@@ -72,6 +40,7 @@ export function WorldFieldRuleEditor({
   fields: IWorldFieldDefinition[];
   index: number;
   disabled: boolean;
+  allowOracleBinding: boolean;
   onChange: (rule: WorldFieldRule) => void;
 }) {
   const { t } = useTranslation();
@@ -129,7 +98,7 @@ export function WorldFieldRuleEditor({
             <Typography variant="body2" color="text.secondary">
               {t(
                 "worlds.fields.condition-field-help",
-                "Text fields can compare values; number and tag fields check whether they are empty. GM-only sources require this field to be GM only too.",
+                "Text fields can compare values; number and tag fields check whether they are empty. Guide-only sources require this field to be Guide only too.",
               )}
             </Typography>
           </Box>
@@ -219,7 +188,7 @@ export function WorldFieldRuleEditor({
               {t("worlds.fields.hidden", "Hidden")}
             </MenuItem>
           </TextField>
-          <OverrideToggle
+          <WorldFieldOverrideToggle
             label={t("worlds.fields.override-label", "Use a different label")}
             checked={rule.label !== undefined}
             disabled={disabled}
@@ -238,8 +207,8 @@ export function WorldFieldRuleEditor({
                 onChange({ ...rule, label: event.target.value })
               }
             />
-          </OverrideToggle>
-          <OverrideToggle
+          </WorldFieldOverrideToggle>
+          <WorldFieldOverrideToggle
             label={t("worlds.fields.override-help", "Use different help text")}
             checked={rule.helpText !== undefined}
             disabled={disabled}
@@ -262,23 +231,28 @@ export function WorldFieldRuleEditor({
                 onChange({ ...rule, helpText: event.target.value })
               }
             />
-          </OverrideToggle>
-          <OverrideToggle
-            label={t("worlds.fields.override-oracle", "Use a different oracle")}
-            checked={rule.binding !== undefined}
-            disabled={disabled}
-            onToggle={(checked) =>
-              onChange({ ...rule, binding: checked ? null : undefined })
-            }
-          >
-            <WorldOracleBindingPicker
-              worldId={worldId}
-              label={t("worlds.fields.rule-oracle", "Rule oracle")}
-              value={rule.binding ?? null}
+          </WorldFieldOverrideToggle>
+          {allowOracleBinding && (
+            <WorldFieldOverrideToggle
+              label={t(
+                "worlds.fields.override-oracle",
+                "Use a different oracle",
+              )}
+              checked={rule.binding !== undefined}
               disabled={disabled}
-              onChange={(binding) => onChange({ ...rule, binding })}
-            />
-          </OverrideToggle>
+              onToggle={(checked) =>
+                onChange({ ...rule, binding: checked ? null : undefined })
+              }
+            >
+              <WorldOracleBindingPicker
+                worldId={worldId}
+                label={t("worlds.fields.rule-oracle", "Rule oracle")}
+                value={rule.binding ?? null}
+                disabled={disabled}
+                onChange={(binding) => onChange({ ...rule, binding })}
+              />
+            </WorldFieldOverrideToggle>
+          )}
         </Stack>
       </AccordionDetails>
     </Accordion>

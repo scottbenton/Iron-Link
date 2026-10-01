@@ -6,7 +6,6 @@ import { createWithEqualityFn } from "zustand/traditional";
 import { IconDefinition } from "types/Icon.type";
 import type { Json } from "types/supabase-generated.type";
 
-import { getWorldDefaultConfiguration } from "lib/worldDefaultConfiguration";
 import type { WorldFieldConfiguration } from "lib/worldFieldRules";
 
 import type { DefaultWorldFieldBinding } from "repositories/worldConfiguration.repository";
@@ -15,6 +14,7 @@ import {
   IWorldCategory,
   WorldCategoriesService,
 } from "services/worldCategories.service";
+import { WorldConfigurationReadService } from "services/worldConfigurationRead.service";
 import {
   IWorldFieldDefinition,
   OracleBinding,
@@ -31,10 +31,13 @@ interface WorldCategoriesStoreState {
   settingKey: string | null;
   configurationCustomized: boolean;
   defaultBindingsReady: boolean;
+  configurationLoaded: boolean;
   categories: Record<string, IWorldCategory>;
   // Field definitions are the categories' shape and are always needed with
   // them, so they load per world in the same store rather than a parallel one.
   fieldDefinitions: Record<string, IWorldFieldDefinition>;
+  // Unresolved database definitions remain stable while linked playsets load.
+  sourceFieldDefinitions: Record<string, IWorldFieldDefinition>;
   loading: boolean;
   error?: string;
 }
@@ -98,8 +101,10 @@ const defaultWorldCategoriesState: WorldCategoriesStoreState = {
   settingKey: null,
   configurationCustomized: false,
   defaultBindingsReady: false,
+  configurationLoaded: false,
   categories: {},
   fieldDefinitions: {},
+  sourceFieldDefinitions: {},
   loading: true,
   error: undefined,
 };
@@ -115,6 +120,7 @@ export const useWorldCategoriesStore = createWithEqualityFn<
       removed: new Set<string>(),
     });
     let categorySession = newCategorySession();
+    let configurationSession = 0;
     const overlayOrders = (state: WorldCategoriesStoreState) => {
       state.categories = order.overlay("categories", state.categories);
       for (const categoryId of new Set(
@@ -146,18 +152,25 @@ export const useWorldCategoriesStore = createWithEqualityFn<
 
       applyDefaultReplacementMap: (worldId, replacementMap) => {
         const state = get();
-        if (state.worldId !== worldId || state.configurationCustomized) return;
-        const defaults = getWorldDefaultConfiguration(
-          worldId,
-          state.settingKey,
-          replacementMap,
+        if (
+          state.worldId !== worldId ||
+          state.configurationCustomized ||
+          !state.configurationLoaded
+        )
+          return;
+        const fieldDefinitions = Object.fromEntries(
+          Object.entries(state.sourceFieldDefinitions).map(([id, field]) => [
+            id,
+            resolveDefaultFieldBindings(field, replacementMap),
+          ]),
         );
         if (
           !state.defaultBindingsReady ||
-          !deepEqual(defaults.fieldDefinitions, state.fieldDefinitions)
+          !deepEqual(fieldDefinitions, state.fieldDefinitions)
         ) {
           set((state) => {
-            Object.assign(state, defaults, { defaultBindingsReady: true });
+            state.fieldDefinitions = fieldDefinitions;
+            state.defaultBindingsReady = true;
             overlayOrders(state);
           });
         }
@@ -165,6 +178,7 @@ export const useWorldCategoriesStore = createWithEqualityFn<
 
       listenToWorldCategories: (world) => {
         const worldId = world.id;
+        const session = ++configurationSession;
         order.reset(worldId);
         if (categorySession.worldId !== worldId)
           categorySession = newCategorySession(worldId);
@@ -179,6 +193,7 @@ export const useWorldCategoriesStore = createWithEqualityFn<
             ? {
                 categories: previous.categories,
                 fieldDefinitions: previous.fieldDefinitions,
+                sourceFieldDefinitions: previous.sourceFieldDefinitions,
               }
             : {}),
           worldId,
@@ -186,15 +201,53 @@ export const useWorldCategoriesStore = createWithEqualityFn<
           configurationCustomized: world.configurationCustomized,
         });
         if (!world.configurationCustomized) {
-          set((state) => {
-            Object.assign(
-              state,
-              getWorldDefaultConfiguration(worldId, world.settingKey),
-              { loading: false },
-            );
-            overlayOrders(state);
-          });
-          return () => {};
+          let active = true;
+          let customUnsubscribe: (() => void) | undefined;
+          WorldConfigurationReadService.getWorldConfiguration(worldId)
+            .then((snapshot) => {
+              if (
+                !active ||
+                session !== configurationSession ||
+                get().worldId !== worldId
+              )
+                return;
+              if (snapshot.configurationCustomized) {
+                customUnsubscribe = get().listenToWorldCategories({
+                  ...world,
+                  configurationCustomized: true,
+                });
+                return;
+              }
+              set((state) => {
+                if (state.worldId !== worldId || state.configurationCustomized)
+                  return;
+                state.categories = snapshot.categories;
+                state.fieldDefinitions = snapshot.fieldDefinitions;
+                state.sourceFieldDefinitions = snapshot.fieldDefinitions;
+                state.configurationLoaded = true;
+                state.loading = false;
+                overlayOrders(state);
+              });
+            })
+            .catch((cause) => {
+              if (
+                !active ||
+                session !== configurationSession ||
+                get().worldId !== worldId
+              )
+                return;
+              set({
+                loading: false,
+                error:
+                  cause instanceof Error
+                    ? cause.message
+                    : "Could not load world configuration. Please retry.",
+              });
+            });
+          return () => {
+            active = false;
+            customUnsubscribe?.();
+          };
         }
         let active = true;
         let categoriesReady = false;
@@ -205,7 +258,7 @@ export const useWorldCategoriesStore = createWithEqualityFn<
           WorldCategoriesService.listenToWorldCategories(
             worldId,
             (changedCategories, removedCategoryIds, replaceState) => {
-              if (!active) return;
+              if (!active || session !== configurationSession) return;
               if (get().worldId !== worldId) return;
               // Remember authoritative absence across same-world first-fork
               // handover: an RPC response may arrive after INSERT + DELETE.
@@ -248,11 +301,12 @@ export const useWorldCategoriesStore = createWithEqualityFn<
                 );
                 state.loading =
                   !definitionsError && !(categoriesReady && definitionsReady);
+                state.configurationLoaded = categoriesReady && definitionsReady;
                 state.error = definitionsError;
               });
             },
             (error) => {
-              if (!active) return;
+              if (!active || session !== configurationSession) return;
               categoriesError = error.message;
               console.error(error);
               set((state) => {
@@ -267,7 +321,7 @@ export const useWorldCategoriesStore = createWithEqualityFn<
           WorldFieldDefinitionsService.listenToWorldFieldDefinitions(
             worldId,
             (changedDefinitions, removedDefinitionIds, replaceState) => {
-              if (!active) return;
+              if (!active || session !== configurationSession) return;
               if (get().worldId !== worldId) return;
               for (const categoryId of new Set(
                 [
@@ -292,6 +346,7 @@ export const useWorldCategoriesStore = createWithEqualityFn<
                 if (state.worldId !== worldId) return;
                 state.loading =
                   !categoriesError && !(categoriesReady && definitionsReady);
+                state.configurationLoaded = categoriesReady && definitionsReady;
                 state.error = categoriesError;
                 if (replaceState) {
                   state.fieldDefinitions = changedDefinitions;
@@ -308,7 +363,7 @@ export const useWorldCategoriesStore = createWithEqualityFn<
               });
             },
             (error) => {
-              if (!active) return;
+              if (!active || session !== configurationSession) return;
               definitionsError = error.message;
               console.error(error);
               set((state) => {
@@ -459,6 +514,7 @@ export const useWorldCategoriesStore = createWithEqualityFn<
       },
 
       reset: () => {
+        configurationSession++;
         order.reset();
         categorySession = newCategorySession();
         set((store) => ({ ...store, ...defaultWorldCategoriesState }));
@@ -491,6 +547,37 @@ function getDefaultBindings(
           ],
     ),
   }));
+}
+
+function resolveDefaultFieldBindings(
+  field: IWorldFieldDefinition,
+  replacementMap: Record<string, string>,
+): IWorldFieldDefinition {
+  const resolve = (binding: OracleBinding | null): OracleBinding | null => {
+    if (!binding) return null;
+    const oracleId = binding.exact
+      ? binding.oracleId
+      : (replacementMap[binding.oracleId] ?? binding.oracleId);
+    return {
+      ...binding,
+      oracleId,
+      resolvedOracleId: oracleId,
+      packageId: oracleId.split(":")[1].split("/")[0],
+    };
+  };
+  return {
+    ...field,
+    binding: resolve(field.binding),
+    configuration: {
+      ...field.configuration,
+      rules: field.configuration.rules.map((rule) => ({
+        ...rule,
+        ...(rule.binding === undefined
+          ? {}
+          : { binding: resolve(rule.binding) }),
+      })),
+    },
+  };
 }
 
 export function useListenToWorldCategories(worldId: string | undefined) {

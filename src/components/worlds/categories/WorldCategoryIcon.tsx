@@ -1,11 +1,16 @@
 import CategoryOutlined from "@mui/icons-material/CategoryOutlined";
+import Groups2Icon from "@mui/icons-material/Groups2";
 import { Box, SvgIcon } from "@mui/material";
 import { useEffect, useState } from "react";
 import type { IconType } from "react-icons";
 
 import { IconDefinition } from "types/Icon.type";
 
-import { getCategoryIconColor, loadCategoryIcons } from "./categoryIcons";
+import {
+  GROUPS_CATEGORY_ICON_KEY,
+  getCategoryIconColor,
+  loadCategoryIcons,
+} from "./categoryIcons";
 
 export type WorldCategoryIconSize = "small" | "medium" | "large" | "xlarge";
 
@@ -20,7 +25,7 @@ export function WorldCategoryIcon({
 }) {
   const [icons, setIcons] = useState<Record<string, IconType>>();
   useEffect(() => {
-    if (!icon?.key) return;
+    if (!icon?.key || icon.key === GROUPS_CATEGORY_ICON_KEY) return;
     let active = true;
     loadCategoryIcons()
       .then((loaded) => {
@@ -50,7 +55,9 @@ export function WorldCategoryIcon({
         color: getCategoryIconColor(icon.color, theme.palette.mode),
       })}
     >
-      {Icon ? (
+      {icon.key === GROUPS_CATEGORY_ICON_KEY ? (
+        <Groups2Icon sx={{ fontSize: glyph }} />
+      ) : Icon ? (
         <SvgIcon component={Icon} inheritViewBox sx={{ fontSize: glyph }} />
       ) : (
         <CategoryOutlined sx={{ fontSize: glyph }} />

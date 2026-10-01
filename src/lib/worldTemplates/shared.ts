@@ -51,13 +51,21 @@ export function field(
   key: string,
   label: string,
   options: {
-    type?: "text" | "richText" | "oracleText" | "tags" | "number";
+    type?:
+      | "text"
+      | "richText"
+      | "oracleText"
+      | "tags"
+      | "number"
+      | "categorySelect"
+      | "categoryMultiSelect";
     oracle?: string;
     gmOnly?: boolean;
     suggestions?: string[];
     visible?: boolean;
     rules?: WorldFieldRule[];
     helpText?: string;
+    targetCategoryId?: string;
   } = {},
 ): TemplateField {
   return {
@@ -72,6 +80,9 @@ export function field(
       rules: options.rules ?? [],
       visible: options.visible ?? true,
       helpText: options.helpText ?? "",
+      ...(options.targetCategoryId
+        ? { targetCategoryId: options.targetCategoryId }
+        : {}),
     }),
   };
 }

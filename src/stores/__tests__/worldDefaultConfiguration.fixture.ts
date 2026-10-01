@@ -1,7 +1,7 @@
+import { buildWorldTemplate } from "lib/worldTemplates";
+
 import type { IWorldCategory } from "services/worldCategories.service";
 import type { IWorldFieldDefinition } from "services/worldFieldDefinitions.service";
-
-import { buildWorldTemplate } from "./worldTemplates";
 
 /** Fresh objects keep editor drafts and replacement resolution out of shared defaults. */
 export function getWorldDefaultConfiguration(

@@ -18,6 +18,7 @@ export function WorldFieldRulesEditor({
   fields,
   disabled,
   readOnly,
+  allowOracleBinding,
   invalidCondition,
   invalidRuleLabel,
   onChange,
@@ -27,6 +28,7 @@ export function WorldFieldRulesEditor({
   fields: IWorldFieldDefinition[];
   disabled: boolean;
   readOnly: boolean;
+  allowOracleBinding: boolean;
   invalidCondition: boolean;
   invalidRuleLabel: boolean;
   onChange: (rules: WorldFieldRule[]) => void;
@@ -116,6 +118,7 @@ export function WorldFieldRulesEditor({
                   fields={fields}
                   index={index}
                   disabled={disabled}
+                  allowOracleBinding={allowOracleBinding}
                   onChange={(next) =>
                     onChange(
                       rules.map((item, i) => (i === index ? next : item)),

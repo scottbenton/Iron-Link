@@ -16,16 +16,20 @@ import {
 import deepEqual from "fast-deep-equal";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { validate as isUuid } from "uuid";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 
 import { useIsBreakpoint } from "hooks/useIsBreakpoint";
 
 import {
-  areWorldFieldTypesCompatible,
+  areWorldFieldDefinitionsCompatible,
   createWorldFieldConfiguration,
+  isWorldCategoryReferenceType,
+  withoutWorldFieldOracleBindings,
 } from "lib/worldFieldRules";
 
+import type { IWorldCategory } from "services/worldCategories.service";
 import {
   IWorldFieldDefinition,
   OracleBinding,
@@ -50,6 +54,7 @@ export function WorldFieldEditor({
   worldId,
   field,
   fields,
+  categories,
   valueCount,
   readOnly,
   onSave,
@@ -59,6 +64,7 @@ export function WorldFieldEditor({
   worldId: string;
   field?: IWorldFieldDefinition;
   fields: IWorldFieldDefinition[];
+  categories: IWorldCategory[];
   valueCount: number;
   readOnly: boolean;
   onSave: (draft: FieldDraft, createNew: boolean) => Promise<void>;
@@ -82,10 +88,19 @@ export function WorldFieldEditor({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
   const disabled = readOnly || saving;
+  const targetCategories = categories.filter(
+    (category) => category.worldId === worldId && isUuid(category.id),
+  );
+  const categoryReference = isWorldCategoryReferenceType(draft.type);
+  const invalidTarget =
+    categoryReference &&
+    !targetCategories.some(
+      (category) => category.id === draft.configuration.targetCategoryId,
+    );
   const incompatible =
     !!field &&
     valueCount > 0 &&
-    !areWorldFieldTypesCompatible(field.type, draft.type);
+    !areWorldFieldDefinitionsCompatible(field, draft);
   const rules = draft.configuration.rules;
   const {
     sourceFields,
@@ -150,6 +165,7 @@ export function WorldFieldEditor({
     !draft.label.trim() ||
     invalidCondition ||
     invalidRuleLabel ||
+    invalidTarget ||
     gmDependency ||
     affected.length > 0;
   return (
@@ -189,12 +205,31 @@ export function WorldFieldEditor({
                 value={draft.type}
                 disabled={disabled}
                 sx={{ minWidth: { sm: 200 } }}
-                onChange={(event) =>
+                onChange={(event) => {
+                  const type = event.target.value as WorldFieldType;
+                  const reference = isWorldCategoryReferenceType(type);
                   setDraft({
                     ...draft,
-                    type: event.target.value as WorldFieldType,
-                  })
-                }
+                    type,
+                    binding: reference ? null : draft.binding,
+                    configuration: {
+                      ...draft.configuration,
+                      suggestions: reference
+                        ? []
+                        : draft.configuration.suggestions,
+                      targetCategoryId: reference
+                        ? isWorldCategoryReferenceType(draft.type)
+                          ? draft.configuration.targetCategoryId
+                          : undefined
+                        : undefined,
+                      rules: reference
+                        ? withoutWorldFieldOracleBindings(
+                            draft.configuration.rules,
+                          )
+                        : draft.configuration.rules,
+                    },
+                  });
+                }}
               >
                 <MenuItem value={WorldFieldType.Text}>
                   {t("worlds.fields.text", "Text")}
@@ -211,13 +246,22 @@ export function WorldFieldEditor({
                 <MenuItem value={WorldFieldType.Number}>
                   {t("worlds.fields.number", "Number")}
                 </MenuItem>
+                <MenuItem value={WorldFieldType.CategorySelect}>
+                  {t("worlds.fields.category-select", "Category select")}
+                </MenuItem>
+                <MenuItem value={WorldFieldType.CategoryMultiSelect}>
+                  {t(
+                    "worlds.fields.category-multi-select",
+                    "Category multi-select",
+                  )}
+                </MenuItem>
               </TextField>
             </Stack>
             {incompatible && (
               <Alert severity="warning">
                 {t(
                   "worlds.fields.incompatible-type",
-                  "This field has {{count}} stored values. This type change cannot preserve them. Create a new field to keep the existing field and its values.",
+                  "This field has {{count}} stored values. Changing its type or target category cannot preserve them. Create a new field to keep the existing field and its values.",
                   { count: valueCount },
                 )}
               </Alert>
@@ -233,7 +277,7 @@ export function WorldFieldEditor({
                     }
                   />
                 }
-                label={t("worlds.fields.gm-only", "GM only")}
+                label={t("worlds.fields.gm-only", "Guide only")}
               />
               <FormHelperText sx={{ mx: 0 }}>
                 {t(
@@ -246,7 +290,7 @@ export function WorldFieldEditor({
               <Alert severity="error">
                 {t(
                   "worlds.fields.gm-dependency",
-                  "This field uses a GM-only source. Make this field GM only or choose another source.",
+                  "This field uses a Guide-only source. Make this field Guide only or choose another source.",
                 )}
               </Alert>
             )}
@@ -254,7 +298,7 @@ export function WorldFieldEditor({
               <Alert severity="error">
                 {t(
                   "worlds.fields.affected-dependents",
-                  "This change would invalidate conditions in {{fields}}. Update their conditions or GM visibility first.",
+                  "This change would invalidate conditions in {{fields}}. Update their conditions or Guide visibility first.",
                   {
                     fields: affected
                       .map((dependent) => fieldChoiceLabel(dependent, fields))
@@ -267,6 +311,8 @@ export function WorldFieldEditor({
           <WorldFieldFallbackEditor
             worldId={worldId}
             draft={draft}
+            categories={targetCategories}
+            invalidTarget={invalidTarget}
             disabled={disabled}
             onChange={setDraft}
           />
@@ -276,6 +322,7 @@ export function WorldFieldEditor({
             fields={selectableSources}
             disabled={disabled}
             readOnly={readOnly}
+            allowOracleBinding={!categoryReference}
             invalidCondition={invalidCondition}
             invalidRuleLabel={invalidRuleLabel}
             onChange={(rules) => configuration({ rules })}

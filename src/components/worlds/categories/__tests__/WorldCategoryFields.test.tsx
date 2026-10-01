@@ -8,6 +8,7 @@ import { WorldCategoryFields } from "../WorldCategoryFields";
 import { category, field, translate } from "./fixtures";
 
 const actions = vi.hoisted(() => ({
+  categories: {},
   createFieldDefinition: vi.fn(),
   updateFieldDefinition: vi.fn(),
   deleteFieldDefinition: vi.fn(),
@@ -32,6 +33,21 @@ beforeEach(() => {
 });
 
 describe("WorldCategoryFields", () => {
+  it("hides retired GM Notes without deleting private values", () => {
+    render(
+      <WorldCategoryFields
+        configurationReady
+        category={category}
+        fields={[field({ key: "gmNotes", label: "GM Notes", gmOnly: true })]}
+        canEdit
+        canDelete
+      />,
+    );
+    expect(screen.queryByText("GM Notes")).not.toBeInTheDocument();
+    expect(screen.getByText("Notes")).toBeInTheDocument();
+    expect(actions.deleteFieldDefinition).not.toHaveBeenCalled();
+  });
+
   it("lets guides add and edit but hides delete; readers get configuration only", async () => {
     const user = userEvent.setup();
     vi.spyOn(WorldCategoriesService, "getCategoryCounts").mockResolvedValue({

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { allDefaultPackages } from "data/package.config";
 
 import { computeEffectivePlayset } from "lib/effectivePlayset";
-import { getWorldSettingPackageIds } from "lib/worldTemplates";
+import { getWorldSettingPackageIds } from "lib/worldSettingPackageIds";
 
 import { WorldTemplatesRepository } from "repositories/worldTemplates.repository";
 

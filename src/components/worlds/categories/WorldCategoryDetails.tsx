@@ -122,7 +122,13 @@ export function WorldCategoryDetails({
             "worlds.categories.subtitle-help",
             "Shown under each entry's name in lists.",
           )}
-          value={current.subtitleFieldDefinitionId ?? ""}
+          value={
+            fields.some(
+              (field) => field.id === current.subtitleFieldDefinitionId,
+            )
+              ? current.subtitleFieldDefinitionId
+              : ""
+          }
           disabled={inactive}
           onChange={(event) =>
             save({ subtitleFieldDefinitionId: event.target.value || null })

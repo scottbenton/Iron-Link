@@ -12,7 +12,7 @@ import {
   getBindingDivergence,
   getPackageIdFromDataswornId,
 } from "./effectivePlayset";
-import { getWorldSettingPackageIds } from "./worldTemplates";
+import { getWorldSettingPackageIds } from "./worldSettingPackageIds";
 
 export interface WorldOracleChoice {
   id: string;

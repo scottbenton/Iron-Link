@@ -1010,6 +1010,10 @@ export type Database = {
         Args: { p_world_id: string; p_category_id: string }
         Returns: Json
       }
+      get_world_configuration: {
+        Args: { p_world_id: string }
+        Returns: Json
+      }
       get_world_playsets: {
         Args: { p_world_id: string }
         Returns: Json
@@ -1269,4 +1273,3 @@ export const Constants = {
     },
   },
 } as const
-

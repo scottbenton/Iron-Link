@@ -11,7 +11,23 @@ import { describe, expect, it, vi } from "vitest";
 import { WorldFieldType } from "services/worldFieldDefinitions.service";
 
 import { WorldFieldEditor } from "../WorldFieldEditor";
-import { field, translate } from "./fixtures";
+import { category, field, translate } from "./fixtures";
+
+const locations = {
+  ...category,
+  id: "11111111-1111-4111-8111-111111111111",
+};
+const npcs = {
+  ...category,
+  id: "22222222-2222-4222-8222-222222222222",
+  name: "NPCs",
+};
+const otherWorld = {
+  ...category,
+  id: "33333333-3333-4333-8333-333333333333",
+  worldId: "world-2",
+  name: "Other world",
+};
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("react-i18next", async (importOriginal) => ({
@@ -23,7 +39,7 @@ vi.mock("../../WorldOracleBindingPicker", () => ({
 }));
 
 describe("WorldFieldEditor", () => {
-  it("offers compatible GM-only sources and ancestor selectors only for a GM-only target", async () => {
+  it("offers compatible Guide-only sources and ancestor selectors only for a Guide-only target", async () => {
     const user = userEvent.setup();
     const target = field({ label: "Public type" });
     const secret = field({ id: "secret", label: "Secret type", gmOnly: true });
@@ -62,6 +78,7 @@ describe("WorldFieldEditor", () => {
     render(
       <WorldFieldEditor
         worldId="world-1"
+        categories={[category]}
         field={target}
         fields={[target, secret, number, tags, notes]}
         valueCount={0}
@@ -83,7 +100,7 @@ describe("WorldFieldEditor", () => {
       screen.queryByRole("option", { name: "Secret type" }),
     ).not.toBeInTheDocument();
     await user.keyboard("{Escape}");
-    await user.click(screen.getByRole("checkbox", { name: "GM only" }));
+    await user.click(screen.getByRole("checkbox", { name: "Guide only" }));
     await user.click(screen.getByRole("combobox", { name: "Source field" }));
     expect(
       screen.getByRole("option", { name: "Secret number" }),
@@ -99,14 +116,14 @@ describe("WorldFieldEditor", () => {
       screen.getByRole("combobox", { name: "Ancestor selector field" }),
     );
     await user.click(screen.getByRole("option", { name: "Secret type" }));
-    await user.click(screen.getByRole("checkbox", { name: "GM only" }));
+    await user.click(screen.getByRole("checkbox", { name: "Guide only" }));
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     expect(
       screen
         .getAllByRole("alert")
-        .some((alert) => alert.textContent?.includes("GM-only source")),
+        .some((alert) => alert.textContent?.includes("Guide-only source")),
     ).toBe(true);
-    await user.click(screen.getByRole("checkbox", { name: "GM only" }));
+    await user.click(screen.getByRole("checkbox", { name: "Guide only" }));
     await user.click(screen.getByRole("button", { name: "Save" }));
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -147,6 +164,7 @@ describe("WorldFieldEditor", () => {
     render(
       <WorldFieldEditor
         worldId="world-1"
+        categories={[category]}
         field={target}
         fields={[source, target]}
         valueCount={0}
@@ -201,6 +219,7 @@ describe("WorldFieldEditor", () => {
     render(
       <WorldFieldEditor
         worldId="world-1"
+        categories={[category]}
         field={definition}
         fields={[]}
         valueCount={0}
@@ -226,7 +245,7 @@ describe("WorldFieldEditor", () => {
     expect(onSave).toHaveBeenCalledOnce();
   });
 
-  it("names dependent public fields before making their source GM-only", async () => {
+  it("names dependent public fields before making their source Guide-only", async () => {
     const user = userEvent.setup();
     const source = field({ label: "Location Type" });
     const dependent = field({ id: "dependent", label: "Region" });
@@ -245,6 +264,7 @@ describe("WorldFieldEditor", () => {
     render(
       <WorldFieldEditor
         worldId="world-1"
+        categories={[category]}
         field={source}
         fields={[source, dependent]}
         valueCount={0}
@@ -253,7 +273,7 @@ describe("WorldFieldEditor", () => {
         onClose={vi.fn()}
       />,
     );
-    await user.click(screen.getByRole("checkbox", { name: "GM only" }));
+    await user.click(screen.getByRole("checkbox", { name: "Guide only" }));
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     expect(screen.getByRole("alert")).toHaveTextContent("conditions in Region");
   });
@@ -278,6 +298,7 @@ describe("WorldFieldEditor", () => {
     render(
       <WorldFieldEditor
         worldId="world-1"
+        categories={[category]}
         field={source}
         fields={[source, dependent]}
         valueCount={0}
@@ -311,6 +332,7 @@ describe("WorldFieldEditor", () => {
     render(
       <WorldFieldEditor
         worldId="world-1"
+        categories={[category]}
         field={definition}
         fields={[definition]}
         valueCount={0}
@@ -337,6 +359,7 @@ describe("WorldFieldEditor", () => {
     render(
       <WorldFieldEditor
         worldId="world-1"
+        categories={[category]}
         field={field({ type: WorldFieldType.RichText })}
         fields={[]}
         valueCount={7}
@@ -362,6 +385,7 @@ describe("WorldFieldEditor", () => {
     render(
       <WorldFieldEditor
         worldId="world-1"
+        categories={[category]}
         field={field()}
         fields={[]}
         valueCount={7}
@@ -391,6 +415,7 @@ describe("WorldFieldEditor", () => {
     render(
       <WorldFieldEditor
         worldId="world-1"
+        categories={[category]}
         field={field()}
         fields={[]}
         valueCount={0}
@@ -415,7 +440,7 @@ describe("WorldFieldEditor", () => {
     );
   });
 
-  it("requires GM visibility for rules that read a GM-only source", async () => {
+  it("requires Guide visibility for rules that read a Guide-only source", async () => {
     const user = userEvent.setup();
     const source = field({ id: "source", label: "Secret type", gmOnly: true });
     const target = field();
@@ -435,6 +460,7 @@ describe("WorldFieldEditor", () => {
     render(
       <WorldFieldEditor
         worldId="world-1"
+        categories={[category]}
         field={target}
         fields={[target, source]}
         valueCount={0}
@@ -444,8 +470,149 @@ describe("WorldFieldEditor", () => {
       />,
     );
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
-    expect(screen.getByRole("alert")).toHaveTextContent("GM-only source");
-    await user.click(screen.getByRole("checkbox", { name: "GM only" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Guide-only source");
+    await user.click(screen.getByRole("checkbox", { name: "Guide only" }));
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  });
+
+  it("requires a same-world target for category multi-select and hides suggestions", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(
+      <WorldFieldEditor
+        worldId="world-1"
+        categories={[locations, npcs, otherWorld]}
+        fields={[]}
+        valueCount={0}
+        readOnly={false}
+        onSave={onSave}
+        onClose={vi.fn()}
+      />,
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: "Field label" }),
+      "Home",
+    );
+    await user.click(screen.getByRole("combobox", { name: "Field type" }));
+    await user.click(
+      screen.getByRole("option", { name: "Category multi-select" }),
+    );
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    expect(screen.queryByRole("combobox", { name: "Suggestions" })).toBeNull();
+    await user.click(screen.getByRole("combobox", { name: /Target category/ }));
+    expect(screen.queryByRole("option", { name: "Other world" })).toBeNull();
+    await user.click(screen.getByRole("option", { name: "Locations" }));
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: WorldFieldType.CategoryMultiSelect,
+        binding: null,
+        configuration: expect.objectContaining({
+          targetCategoryId: locations.id,
+          suggestions: [],
+        }),
+      }),
+      false,
+    );
+  });
+
+  it("protects stored references when their target category changes", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const reference = field({
+      type: WorldFieldType.CategorySelect,
+      configuration: {
+        ...field().configuration,
+        targetCategoryId: locations.id,
+      },
+    });
+    render(
+      <WorldFieldEditor
+        worldId="world-1"
+        categories={[locations, npcs]}
+        field={reference}
+        fields={[reference]}
+        valueCount={5}
+        readOnly={false}
+        onSave={onSave}
+        onClose={vi.fn()}
+      />,
+    );
+    await user.click(screen.getByRole("combobox", { name: /Target category/ }));
+    await user.click(screen.getByRole("option", { name: "NPCs" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("5 stored values");
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Create new field" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        configuration: expect.objectContaining({ targetCategoryId: npcs.id }),
+      }),
+      true,
+    );
+  });
+
+  it("removes oracle bindings when converting a field to a category reference", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const binding = {
+      packageId: "classic",
+      oracleId: "character/name",
+      resolvedOracleId: "character/name",
+    };
+    const source = field({ id: "source", label: "Type" });
+    const original = field({
+      id: "target",
+      binding,
+      configuration: {
+        ...field().configuration,
+        suggestions: ["Planet"],
+        rules: [
+          {
+            conditions: [
+              {
+                source: "entry",
+                fieldId: source.id,
+                operator: "equals",
+                value: "Planet",
+              },
+            ],
+            binding,
+          },
+        ],
+      },
+    });
+    render(
+      <WorldFieldEditor
+        worldId="world-1"
+        categories={[locations]}
+        field={original}
+        fields={[source, original]}
+        valueCount={0}
+        readOnly={false}
+        onSave={onSave}
+        onClose={vi.fn()}
+      />,
+    );
+    await user.click(screen.getByRole("combobox", { name: "Field type" }));
+    await user.click(screen.getByRole("option", { name: "Category select" }));
+    await user.click(screen.getByRole("combobox", { name: /Target category/ }));
+    await user.click(screen.getByRole("option", { name: "Locations" }));
+    await user.click(screen.getByRole("button", { name: /Rule 1:/ }));
+    expect(
+      screen.queryByRole("checkbox", { name: "Use a different oracle" }),
+    ).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        binding: null,
+        configuration: expect.objectContaining({
+          suggestions: [],
+          targetCategoryId: locations.id,
+          rules: [expect.not.objectContaining({ binding })],
+        }),
+      }),
+      false,
+    );
   });
 });

@@ -1,3 +1,4 @@
+import Groups2Icon from "@mui/icons-material/Groups2";
 import SearchIcon from "@mui/icons-material/Search";
 import {
   Alert,
@@ -28,6 +29,7 @@ import { IconColors, IconDefinition } from "types/Icon.type";
 
 import { WorldCategoryIcon } from "./WorldCategoryIcon";
 import {
+  GROUPS_CATEGORY_ICON_KEY,
   categoryIconName,
   getCategoryIconColor,
   loadCategoryIcons,
@@ -74,9 +76,10 @@ export function WorldCategoryIconDialog({
       active = false;
     };
   }, []);
-  const matches = Object.entries(icons ?? {}).filter(([key]) =>
-    categoryIconName(key).toLowerCase().includes(query),
-  );
+  const matches = [
+    GROUPS_CATEGORY_ICON_KEY,
+    ...Object.keys(icons ?? {}),
+  ].filter((key) => categoryIconName(key).toLowerCase().includes(query));
   const color = draft.color ?? IconColors.Grey;
   return (
     <Dialog open fullWidth maxWidth="sm" onClose={onClose}>
@@ -184,20 +187,27 @@ export function WorldCategoryIconDialog({
                     gridTemplateColumns: "repeat(auto-fill, minmax(44px, 1fr))",
                   }}
                 >
-                  {matches.slice(0, limit).map(([key, Icon]) => (
+                  {matches.slice(0, limit).map((key) => (
                     <Tooltip key={key} title={categoryIconName(key)}>
                       <IconButton
                         aria-label={categoryIconName(key)}
                         aria-pressed={draft.key === key}
                         onClick={() => setDraft({ ...draft, key })}
-                        sx={{
+                        sx={(theme) => ({
                           borderRadius: 1,
-                          color: "text.primary",
+                          color: getCategoryIconColor(
+                            draft.color,
+                            theme.palette.mode,
+                          ),
                           bgcolor:
                             draft.key === key ? "action.selected" : undefined,
-                        }}
+                        })}
                       >
-                        <SvgIcon component={Icon} inheritViewBox />
+                        {key === GROUPS_CATEGORY_ICON_KEY ? (
+                          <Groups2Icon />
+                        ) : (
+                          <SvgIcon component={icons[key]} inheritViewBox />
+                        )}
                       </IconButton>
                     </Tooltip>
                   ))}
@@ -213,13 +223,21 @@ export function WorldCategoryIconDialog({
               >
                 Game Icons
               </Link>
-              ,{" "}
+              {" ("}
               <Link
                 href="https://creativecommons.org/licenses/by/3.0/"
                 target="_blank"
                 rel="noreferrer"
               >
                 CC BY 3.0
+              </Link>
+              {") · "}
+              <Link
+                href="https://fonts.google.com/icons"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Material Icons
               </Link>
             </Typography>
           </Stack>
@@ -242,7 +260,6 @@ export function WorldCategoryIconDialog({
               />
             )}
             <Button
-              size="small"
               color="inherit"
               disabled={!draft.key}
               onClick={() => setDraft({ ...draft, key: null })}

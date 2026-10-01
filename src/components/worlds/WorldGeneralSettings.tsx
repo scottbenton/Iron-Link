@@ -2,8 +2,6 @@ import { Stack, TextField } from "@mui/material";
 import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useWorldCategoriesStore } from "stores/worldCategories.store";
-
 import { getWorldSettingLabel } from "lib/worldSettings";
 
 import { WorldPermission } from "repositories/shared.types";
@@ -26,9 +24,6 @@ export function WorldGeneralSettings({
   additionalSettings?: ReactNode;
 }) {
   const { t } = useTranslation();
-  const customized = useWorldCategoriesStore(
-    (store) => store.configurationCustomized,
-  );
   const canRename =
     permission === WorldPermission.Owner ||
     permission === WorldPermission.Editor;
@@ -58,20 +53,6 @@ export function WorldGeneralSettings({
           />
         </Stack>
       </WorldSettingsSection>
-      <WorldSettingsSection
-        title={t("worlds.settings.configuration", "Categories and fields")}
-        description={
-          customized
-            ? t(
-                "worlds.categories.customized-summary",
-                "This world has a custom configuration. Shared default updates do not affect it.",
-              )
-            : t(
-                "worlds.categories.shared-defaults-summary",
-                "Shared defaults receive updates. Your first configuration change creates an independent copy.",
-              )
-        }
-      />
       {additionalSettings}
       {permission === WorldPermission.Owner && (
         <WorldSettingsSection

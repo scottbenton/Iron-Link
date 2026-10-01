@@ -14,12 +14,15 @@ import {
   MenuItem,
   TextField,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LinkComponent } from "components/LinkComponent";
 import type { WorldNavigation } from "components/worlds/worldNavigation";
+
+import { useWorldCategoriesStore } from "stores/worldCategories.store";
 
 import type { IWorldCategory } from "services/worldCategories.service";
 
@@ -52,6 +55,9 @@ export function WorldConfigurationNavigation({
   onReorder: (ids: string[]) => void;
 }) {
   const { t } = useTranslation();
+  const customized = useWorldCategoriesStore(
+    (store) => store.configurationCustomized,
+  );
   const selectedId =
     navigation.view.type === "category-settings"
       ? navigation.view.categoryId
@@ -207,6 +213,21 @@ export function WorldConfigurationNavigation({
           )}
         </List>
       </Card>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ display: "block", px: 1, pt: 1 }}
+      >
+        {customized
+          ? t(
+              "worlds.categories.customized-summary",
+              "This world has a custom configuration. Shared default updates do not affect it.",
+            )
+          : t(
+              "worlds.categories.shared-defaults-summary",
+              "Shared defaults receive updates. Your first configuration change creates an independent copy.",
+            )}
+      </Typography>
       {reordering && (
         <WorldCategoryReorderDialog
           categories={categories}

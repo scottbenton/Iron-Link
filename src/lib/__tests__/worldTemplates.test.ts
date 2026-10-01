@@ -9,9 +9,9 @@ import {
   type WorldFieldEntrySnapshot,
   resolveFieldDefinition,
 } from "../worldFieldRules";
+import { getWorldSettingPackageIds } from "../worldSettingPackageIds";
 import {
   buildWorldTemplate,
-  getWorldSettingPackageIds,
   getWorldTemplateBindings,
 } from "../worldTemplates";
 
@@ -70,9 +70,10 @@ describe("world templates", () => {
         "NPCs",
         "Lore",
         ...([
+          null,
           "world:starforged/forge",
           "world:sundered_isles/sundered_isles",
-        ].includes(setting ?? "")
+        ].includes(setting)
           ? ["Factions"]
           : []),
       ]);
@@ -432,7 +433,7 @@ describe("world templates", () => {
       buildWorldTemplate(null, worldId).categories.map(
         (category) => category.supports_bonds,
       ),
-    ).toEqual([true, true, false]);
+    ).toEqual([true, true, false, false]);
     expect(
       getWorldTemplateBindings(
         buildWorldTemplate("world:classic/ironlands", worldId),
@@ -502,6 +503,51 @@ describe("world templates", () => {
         (field) => field.label === "Location",
       ),
     ).toHaveLength(2);
+  });
+
+  it.each(settings)(
+    "defines linked NPC locations and Lore tags as subtitles in %s",
+    (setting) => {
+      const template = buildWorldTemplate(setting, worldId);
+      const locations = template.categories[0];
+      const npcs = template.categories[1];
+      const lore = template.categories[2];
+      const location = npcs.fields.find((field) => field.key === "location")!;
+      const tags = lore.fields.find((field) => field.key === "tags")!;
+      expect(location.type).toBe("categorySelect");
+      expect(location.configuration.targetCategoryId).toBe(locations.id);
+      expect(npcs.subtitle_field_definition_id).toBe(location.id);
+      expect(lore.subtitle_field_definition_id).toBe(tags.id);
+    },
+  );
+
+  it("uses the chosen category icons and ships unbound Blank factions", () => {
+    const icons = settings.map((setting) =>
+      buildWorldTemplate(setting, worldId).categories.map(
+        (category) => category.icon,
+      ),
+    );
+    expect(icons.map((setting) => setting[0]?.key)).toEqual([
+      "GiWorld",
+      "GiWorld",
+      "GiRingedPlanet",
+      "GiCompass",
+      "GiWorld",
+    ]);
+    for (const setting of icons) {
+      expect(setting[1]?.key).toBe("mui:Groups2");
+      expect(setting[2]?.key).toBe("GiBookmarklet");
+      if (setting[3])
+        expect(setting[3]).toMatchObject({ key: "GiBlackFlag", color: "red" });
+    }
+    const blankFactions = buildWorldTemplate(null, worldId).categories[3];
+    expect(blankFactions.fields.map((field) => field.key)).toEqual([
+      "factionType",
+      "tags",
+    ]);
+    expect(blankFactions.fields.every((field) => field.binding === null)).toBe(
+      true,
+    );
   });
 
   it.each([

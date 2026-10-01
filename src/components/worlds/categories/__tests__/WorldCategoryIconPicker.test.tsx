@@ -5,6 +5,10 @@ import { describe, expect, it, vi } from "vitest";
 import { IconColors } from "types/Icon.type";
 
 import { WorldCategoryIconPicker } from "../WorldCategoryIconPicker";
+import {
+  GROUPS_CATEGORY_ICON_KEY,
+  getCategoryIconColor,
+} from "../categoryIcons";
 import { translate } from "./fixtures";
 
 vi.mock("react-i18next", async (importOriginal) => ({
@@ -66,12 +70,42 @@ describe("WorldCategoryIconPicker", () => {
     ).not.toBeInTheDocument();
     await user.click(preview);
     const red = screen.getByRole("button", { name: "Red" });
+    await user.type(
+      screen.getByRole("textbox", { name: "Search icons" }),
+      "Compass",
+    );
+    const compass = await screen.findByRole("button", { name: "Compass" });
+    expect(compass).toHaveStyle({
+      color: getCategoryIconColor(IconColors.Blue, "light"),
+    });
     await user.click(red);
     expect(red).toHaveAttribute("aria-pressed", "true");
+    expect(compass).toHaveStyle({
+      color: getCategoryIconColor(IconColors.Red, "light"),
+    });
     await user.click(screen.getByRole("button", { name: "Save" }));
     expect(change).toHaveBeenCalledWith({
       key: "GiCompass",
       color: IconColors.Red,
+    });
+  });
+
+  it("offers the curated Material Groups icon with a stable namespaced key", async () => {
+    const user = userEvent.setup();
+    const change = vi.fn();
+    render(<WorldCategoryIconPicker value={null} onChange={change} />);
+    await user.click(
+      screen.getByRole("button", { name: "Choose category icon" }),
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: "Search icons" }),
+      "Groups",
+    );
+    await user.click(await screen.findByRole("button", { name: "Groups" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(change).toHaveBeenCalledWith({
+      key: GROUPS_CATEGORY_ICON_KEY,
+      color: IconColors.Grey,
     });
   });
 

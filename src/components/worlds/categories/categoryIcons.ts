@@ -13,6 +13,10 @@ import type { IconType } from "react-icons";
 
 import { IconColors } from "types/Icon.type";
 
+// Keep Material icons curated and namespaced so stored keys never collide
+// with game-icons keys. Import individual modules to avoid bundling the set.
+export const GROUPS_CATEGORY_ICON_KEY = "mui:Groups2";
+
 let iconsPromise: Promise<Record<string, IconType>> | undefined;
 export function loadCategoryIcons() {
   iconsPromise ??= import("react-icons/gi").then(
@@ -25,6 +29,7 @@ export function loadCategoryIcons() {
 }
 
 export function categoryIconName(key: string) {
+  if (key === GROUPS_CATEGORY_ICON_KEY) return "Groups";
   return key.replace(/^Gi/, "").replace(/([a-z0-9])([A-Z])/g, "$1 $2");
 }
 

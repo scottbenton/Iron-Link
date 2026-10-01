@@ -13,7 +13,15 @@ export const FIELD_TYPE_LABELS = {
   [WorldFieldType.OracleText]: "Oracle text",
   [WorldFieldType.Tags]: "Tags",
   [WorldFieldType.Number]: "Number",
+  [WorldFieldType.CategorySelect]: "Category select",
+  [WorldFieldType.CategoryMultiSelect]: "Category multi-select",
 };
+
+// Older customized worlds may retain private values for this retired field.
+// Keep those records intact while removing the field from configuration UI.
+export function isRetiredGMNotes(field: IWorldFieldDefinition): boolean {
+  return field.key === "gmNotes";
+}
 
 export function fieldChoiceLabel(
   field: IWorldFieldDefinition,
