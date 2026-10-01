@@ -3,6 +3,9 @@
 -- Preserve data before retiring shared field identities. This prelude and the
 -- catalog replacement MUST execute in one transaction. World entry/value guards
 -- acquire RowShare locks on worlds, so this lock serializes their writes too.
+-- The generator wraps this prelude, replacement, and visibility refresh in one
+-- explicit transaction for the Supabase migration runner.
+begin;
 lock table public.worlds in access exclusive mode;
 
 do $preserve$
@@ -83,3 +86,4 @@ begin
       from public.worlds w where w.id = v.world_id and not w.configuration_customized;
   end if;
 end $refresh$;
+commit;
