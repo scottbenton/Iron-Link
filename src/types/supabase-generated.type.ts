@@ -997,15 +997,6 @@ export type Database = {
         Args: { p_name: string; p_description?: string; p_setting_key?: string }
         Returns: string
       }
-      create_world_with_template: {
-        Args: {
-          p_name: string
-          p_description?: string
-          p_setting_key?: string
-          p_template?: Json
-        }
-        Returns: string
-      }
       get_world_category_counts: {
         Args: { p_world_id: string; p_category_id: string }
         Returns: Json

@@ -71,7 +71,6 @@ select is((select configuration_customized from public.worlds where id=pg_temp.w
 select throws_ok($$insert into public.world_categories(world_id,name) values(pg_temp.world_id('main'),'Bypass')$$,'42501',null,'direct category writes cannot bypass fork transaction');
 select throws_ok($$update public.world_field_definitions set label='Bypass' where world_id=pg_temp.world_id('main')$$,'42501',null,'direct field writes cannot bypass mutation authorization');
 select throws_ok($$select public.seed_world_template(pg_temp.world_id('blank'),'{}')$$,'42501',null,'legacy seed is no longer public');
-select throws_ok($$select public.create_world_with_template('Old client',null,null,'{}')$$,'42501',null,'legacy eager creation is no longer public');
 
 insert into public.world_players(world_id,user_id,role) values
  (pg_temp.world_id('main'),'b1000000-0000-4000-8000-000000000002','viewer');

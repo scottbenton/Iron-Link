@@ -1,5 +1,5 @@
-// Generates a transaction-scoped SQL integration test from the actual client
-// manifests. Pipe stdout into psql against a migrated development/test database.
+// Generates a transaction-scoped SQL integration test from the authoring
+// definitions. Pipe stdout into psql against a migrated development/test database.
 // Example: node supabase/tests/generate-template-manifest-test.mjs > /tmp/w4.sql
 import { build } from "esbuild";
 import { v5 as uuid } from "uuid";
@@ -39,7 +39,7 @@ insert into auth.users(id) values ('f1000000-0000-0000-0000-000000000001');`);
     const worldId = uuid(setting ?? "blank", "f1000000-0000-4000-8000-000000000001");
     const manifest = buildWorldTemplate(setting, worldId);
     console.log(`select is(public.w4_static_world_template('${worldId}',${setting ? quote(setting) : "null"}),
- ${quote(JSON.stringify(manifest))}::jsonb,${quote(`${setting ?? "blank"} server defaults exactly match client`)});
+ ${quote(JSON.stringify(manifest))}::jsonb,${quote(`${setting ?? "blank"} database defaults exactly match authoring`)});
 insert into public.worlds(id,name,created_by,setting_key) values ('${worldId}','Manifest test','f1000000-0000-0000-0000-000000000001',${setting ? quote(setting) : "null"});
 insert into public.world_players(world_id,user_id,role) values ('${worldId}','f1000000-0000-0000-0000-000000000001','owner');
 set local role authenticated;

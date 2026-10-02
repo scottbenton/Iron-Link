@@ -12,6 +12,7 @@
     "format": "eslint . --fix && prettier . --write",
     "preview": "vite preview",
     "test": "vitest",
+    "test:db": "supabase test db",
     "test:watch": "vitest --watch",
     "extract:i18n": "i18next 'src/**/*.{ts,tsx}' [-oc]",
     "supabase:start": "supabase start -x vector",

@@ -29,9 +29,13 @@ select '{"version":1,"categories":[
 ]}'::jsonb $$;
 -- Private test-only fixture helper: production clients cannot seed manifests.
 create function pg_temp.w4_fixture(name text, template jsonb) returns uuid
-language sql security definer set search_path = '' as $$
-  select public.create_world_with_template(name,null,null,template)
-$$;
+language plpgsql security definer set search_path = '' as $$
+declare world_id uuid;
+begin
+  world_id := public.create_world(name);
+  perform public.seed_world_template(world_id,template);
+  return world_id;
+end $$;
 create temporary table w4_worlds (key text primary key, id uuid);
 grant all on w4_worlds to authenticated;
 
@@ -194,7 +198,6 @@ select is((select subtitle_field_definition_id from public.world_categories wher
 reset role;
 
 select ok(not has_function_privilege('anon','public.seed_world_template(uuid,jsonb)','EXECUTE'),'anonymous seed RPC denied');
-select ok(not has_function_privilege('anon','public.create_world_with_template(text,text,text,jsonb)','EXECUTE'),'anonymous create RPC denied');
 select ok(not has_function_privilege('anon','public.get_world_category_counts(uuid,uuid)','EXECUTE'),'anonymous count RPC denied');
 select ok(not has_function_privilege('authenticated','public.w4_validate_category_fields(uuid)','EXECUTE'),'internal dependency validator is not exposed');
 select * from finish();
