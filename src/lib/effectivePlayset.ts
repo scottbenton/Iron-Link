@@ -115,11 +115,11 @@ export function computeEffectivePlayset(
 // included in at least one linked playset. When two included oracles replace
 // the same id, the lexicographically smallest replacing id wins so every
 // client resolves identically.
-export function buildOracleReplacementMap(
+export function buildOracleReplacementCandidates(
   tree: Record<string, Datasworn.RulesPackage>,
   effectivePlayset: EffectivePlayset,
-): Record<string, string> {
-  const replacements: Record<string, string> = {};
+): Record<string, string[]> {
+  const replacements: Record<string, string[]> = {};
 
   const recordReplacement = (replacedId: string, replacingId: string) => {
     const replacingPackageId = getPackageIdFromDataswornId(replacingId);
@@ -129,10 +129,9 @@ export function buildOracleReplacementMap(
     ) {
       return;
     }
-    const existing = replacements[replacedId];
-    if (existing === undefined || replacingId < existing) {
-      replacements[replacedId] = replacingId;
-    }
+    const candidates = replacements[replacedId] ?? [];
+    if (!candidates.includes(replacingId)) candidates.push(replacingId);
+    replacements[replacedId] = candidates.sort();
   };
 
   const getOracleMatches = (pattern: string) => {
@@ -182,6 +181,17 @@ export function buildOracleReplacementMap(
   });
 
   return replacements;
+}
+
+export function buildOracleReplacementMap(
+  tree: Record<string, Datasworn.RulesPackage>,
+  effectivePlayset: EffectivePlayset,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(
+      buildOracleReplacementCandidates(tree, effectivePlayset),
+    ).map(([id, candidates]) => [id, candidates[0]]),
+  );
 }
 
 export interface ResolvableOracleBinding {
