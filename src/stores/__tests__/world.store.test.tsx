@@ -169,6 +169,7 @@ describe("World subscription lifetime", () => {
     useNotesStore.getState().openItemTab({
       type: "world",
       id: "world-b",
+      worldView: { type: "category", categoryId: "npcs" },
     });
     useNotesStore
       .getState()
@@ -192,6 +193,7 @@ describe("World subscription lifetime", () => {
       {
         type: "world",
         itemId: "world-b",
+        worldView: { type: "category", categoryId: "npcs" },
       },
     );
     hook.unmount();
