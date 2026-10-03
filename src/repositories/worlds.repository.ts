@@ -32,7 +32,7 @@ export interface WorldWithRoleDTO {
 
 // Returned by link_game_to_world(). `divergences` reports world oracle
 // bindings whose resolution changes because this game's playset joined the
-// world's effective playset. Always empty until bindings exist (W4).
+// world's effective playset.
 export interface WorldLinkResult {
   divergences: unknown[];
 }
