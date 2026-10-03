@@ -6,7 +6,7 @@ import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
-import { WorldPanel } from "components/worlds/WorldPanel";
+import { LegacyWorldPanel as WorldPanel } from "components/worlds/LegacyWorldPanel";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 
