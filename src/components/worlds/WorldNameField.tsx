@@ -9,12 +9,13 @@ import { useWorldStore } from "stores/world.store";
 export interface WorldNameFieldProps {
   worldId: string;
   name: string;
+  disabled?: boolean;
 }
 
 // Inline, debounced editing of the world name, following the same
 // useDebouncedSync pattern the character sheet fields use.
 export function WorldNameField(props: WorldNameFieldProps) {
-  const { worldId, name } = props;
+  const { worldId, name, disabled } = props;
 
   const { t } = useTranslation();
 
@@ -38,17 +39,17 @@ export function WorldNameField(props: WorldNameFieldProps) {
       label={t("worlds.panel.world-name", "World Name")}
       value={value}
       onChange={(evt) => setValue(evt.currentTarget.value)}
-      variant="standard"
+      disabled={disabled}
+      error={!disabled && !value.trim()}
+      helperText={
+        disabled
+          ? undefined
+          : t(
+              "worlds.settings.name-help",
+              "Name changes save automatically. A world name cannot be blank.",
+            )
+      }
       fullWidth
-      slotProps={{
-        htmlInput: {
-          sx: (theme) => ({
-            ...theme.typography.h4,
-            fontFamily: theme.typography.fontFamilyTitle,
-            textTransform: "uppercase",
-          }),
-        },
-      }}
     />
   );
 }
