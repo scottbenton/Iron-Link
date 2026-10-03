@@ -1,5 +1,5 @@
 -- =============================================================================
--- Worlds schema (task W1)
+-- Worlds schema
 -- Implements: worlds, world_players, world_categories, world_entries,
 --             world_entry_gm_data, world_entry_bonds
 --             + games.world_id FK

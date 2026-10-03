@@ -20,7 +20,8 @@
     "supabase:gen-types": "supabase gen types typescript --local > ./src/types/supabase-generated.type.ts",
     "supabase:create-db-script": "supabase db diff -f changes",
     "supabase:create-empty-script": "supabase migration new changes",
-    "supabase:serve-functions": "supabase functions serve"
+    "supabase:serve-functions": "supabase functions serve",
+    "test:db": "supabase test db"
   },
   "dependencies": {
     "@datasworn-community/core": "^0.3.0",
