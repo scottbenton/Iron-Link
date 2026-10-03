@@ -1,39 +1,28 @@
+import { v4 as uuid } from "uuid";
+
 import { Json } from "types/supabase-generated.type";
+import {
+  WorldFieldType,
+  type IWorldFieldDefinition,
+  type OracleBinding,
+} from "types/worldField.type";
+
+import {
+  WorldFieldConfiguration,
+  createWorldFieldConfiguration,
+  generateWorldFieldKey,
+  normalizeWorldFieldConfiguration,
+} from "lib/worldFieldRules";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
+import type { DefaultWorldFieldBinding } from "repositories/worldConfiguration.repository";
 import {
-  OracleBindingDTO,
   WorldFieldDefinitionDTO,
   WorldFieldDefinitionsRepository,
 } from "repositories/worldFieldDefinitions.repository";
 
-// The stored JSON already uses the domain shape, so this is an alias rather
-// than a conversion.
-export type OracleBinding = OracleBindingDTO;
-
-export enum WorldFieldType {
-  Text = "text",
-  RichText = "richText",
-  OracleText = "oracleText",
-  Tags = "tags",
-  Number = "number",
-}
-
-export interface IWorldFieldDefinition {
-  id: string;
-  categoryId: string;
-  worldId: string;
-  // Stable import/export handle. Values point at `id`, so renaming a field's
-  // label costs nothing and this only matters to the IF importer.
-  key: string;
-  label: string;
-  type: WorldFieldType;
-  binding: OracleBinding | null;
-  // Mirrored onto every value row by a database trigger; flipping it here is
-  // what moves existing values across the RLS boundary.
-  gmOnly: boolean;
-  sortOrder: number;
-}
+export { WorldFieldType } from "types/worldField.type";
+export type { IWorldFieldDefinition, OracleBinding } from "types/worldField.type";
 
 export class WorldFieldDefinitionsService {
   public static listenToWorldFieldDefinitions(
@@ -68,53 +57,74 @@ export class WorldFieldDefinitionsService {
     worldId: string,
     categoryId: string,
     definition: {
-      key: string;
+      id?: string;
+      key?: string;
       label: string;
       type: WorldFieldType;
-      binding?: OracleBinding;
+      binding?: OracleBinding | null;
+      configuration?: WorldFieldConfiguration;
       gmOnly?: boolean;
       sortOrder: number;
     },
+    defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<string> {
-    return WorldFieldDefinitionsRepository.addWorldFieldDefinition({
-      world_id: worldId,
-      category_id: categoryId,
-      key: definition.key,
-      label: definition.label,
-      type: definition.type,
-      binding: (definition.binding ?? null) as unknown as Json,
-      gm_only: definition.gmOnly ?? false,
-      sort_order: definition.sortOrder,
-    });
+    const id = definition.id ?? uuid();
+    return WorldFieldDefinitionsRepository.addWorldFieldDefinition(
+      {
+        id,
+        world_id: worldId,
+        category_id: categoryId,
+        key: definition.key ?? generateWorldFieldKey(id),
+        label: definition.label,
+        type: definition.type,
+        binding: (definition.binding ?? null) as unknown as Json,
+        configuration: (definition.configuration ??
+          createWorldFieldConfiguration()) as unknown as Json,
+        gm_only: definition.gmOnly ?? false,
+        sort_order: definition.sortOrder,
+      },
+      defaultBindings,
+    );
   }
 
   public static updateWorldFieldDefinition(
+    worldId: string,
     definitionId: string,
     definition: Partial<
       Omit<IWorldFieldDefinition, "id" | "worldId" | "categoryId">
     >,
+    defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<void> {
     return WorldFieldDefinitionsRepository.updateWorldFieldDefinition(
+      worldId,
       definitionId,
       {
-        key: definition.key,
         label: definition.label,
         type: definition.type,
         binding:
           definition.binding === undefined
             ? undefined
             : (definition.binding as unknown as Json),
+        configuration:
+          definition.configuration === undefined
+            ? undefined
+            : (definition.configuration as unknown as Json),
         gm_only: definition.gmOnly,
         sort_order: definition.sortOrder,
       },
+      defaultBindings,
     );
   }
 
   public static deleteWorldFieldDefinition(
+    worldId: string,
     definitionId: string,
+    defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<void> {
     return WorldFieldDefinitionsRepository.deleteWorldFieldDefinition(
+      worldId,
       definitionId,
+      defaultBindings,
     );
   }
 
@@ -135,6 +145,12 @@ export class WorldFieldDefinitionsService {
       case "number":
         type = WorldFieldType.Number;
         break;
+      case "categorySelect":
+        type = WorldFieldType.CategorySelect;
+        break;
+      case "categoryMultiSelect":
+        type = WorldFieldType.CategoryMultiSelect;
+        break;
       default:
         type = WorldFieldType.Text;
     }
@@ -147,6 +163,7 @@ export class WorldFieldDefinitionsService {
       label: definition.label,
       type,
       binding: (definition.binding as unknown as OracleBinding) ?? null,
+      configuration: normalizeWorldFieldConfiguration(definition.configuration),
       gmOnly: definition.gm_only,
       sortOrder: definition.sort_order,
     };

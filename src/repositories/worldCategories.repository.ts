@@ -1,4 +1,5 @@
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { v4 as uuid } from "uuid";
 
 import {
   Tables,
@@ -15,6 +16,10 @@ import {
   RepositoryError,
   getRepositoryError,
 } from "./errors/RepositoryErrors";
+import {
+  type DefaultWorldFieldBinding,
+  mutateWorldConfiguration,
+} from "./worldConfiguration.repository";
 
 export type WorldCategoryDTO = Tables<"world_categories">;
 export type WorldCategoryInsertDTO = TablesInsert<"world_categories">;
@@ -22,6 +27,64 @@ export type WorldCategoryUpdateDTO = TablesUpdate<"world_categories">;
 
 export class WorldCategoriesRepository {
   private static worldCategories = () => supabase.from("world_categories");
+
+  public static reorderCategories(
+    worldId: string,
+    ids: string[],
+    defaultBindings?: DefaultWorldFieldBinding[],
+  ): Promise<void> {
+    return mutateWorldConfiguration(
+      worldId,
+      { type: "reorder_categories", ids },
+      defaultBindings,
+    );
+  }
+
+  public static reorderFields(
+    worldId: string,
+    categoryId: string,
+    ids: string[],
+    defaultBindings?: DefaultWorldFieldBinding[],
+  ): Promise<void> {
+    return mutateWorldConfiguration(
+      worldId,
+      { type: "reorder_fields", category_id: categoryId, ids },
+      defaultBindings,
+    );
+  }
+
+  public static async getCategoryCounts(
+    worldId: string,
+    categoryId: string,
+  ): Promise<{
+    entryCount: number;
+    valueCounts: Record<string, number>;
+  }> {
+    const { data, error, status } = await supabase.rpc(
+      "get_world_category_counts",
+      {
+        p_world_id: worldId,
+        p_category_id: categoryId,
+      },
+    );
+    if (error) {
+      throw getRepositoryError(
+        error,
+        ErrorVerb.Read,
+        ErrorNoun.WorldCategory,
+        false,
+        status,
+      );
+    }
+    const counts = data as {
+      entryCount: number;
+      valueCounts: Record<string, number>;
+    };
+    return {
+      entryCount: counts.entryCount,
+      valueCounts: counts.valueCounts ?? {},
+    };
+  }
 
   public static listenToWorldCategories(
     worldId: string,
@@ -95,81 +158,42 @@ export class WorldCategoriesRepository {
     };
   }
 
-  public static addWorldCategory(
+  public static async addWorldCategory(
     category: WorldCategoryInsertDTO,
+    defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<string> {
-    return new Promise((resolve, reject) => {
-      this.worldCategories()
-        .insert(category)
-        .select()
-        .single()
-        .then(({ data, error, status }) => {
-          if (error) {
-            console.error(error);
-            reject(
-              getRepositoryError(
-                error,
-                ErrorVerb.Create,
-                ErrorNoun.WorldCategory,
-                false,
-                status,
-              ),
-            );
-          } else {
-            resolve(data.id);
-          }
-        });
-    });
+    const { world_id: worldId, ...configuration } = category;
+    const id = category.id ?? uuid();
+    await mutateWorldConfiguration(
+      worldId,
+      { type: "create_category", category: { ...configuration, id } },
+      defaultBindings,
+    );
+    return id;
   }
 
   public static updateWorldCategory(
+    worldId: string,
     categoryId: string,
     category: WorldCategoryUpdateDTO,
+    defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.worldCategories()
-        .update(category)
-        .eq("id", categoryId)
-        .then(({ error, status }) => {
-          if (error) {
-            console.error(error);
-            reject(
-              getRepositoryError(
-                error,
-                ErrorVerb.Update,
-                ErrorNoun.WorldCategory,
-                false,
-                status,
-              ),
-            );
-          } else {
-            resolve();
-          }
-        });
-    });
+    return mutateWorldConfiguration(
+      worldId,
+      { type: "update_category", id: categoryId, changes: category },
+      defaultBindings,
+    );
   }
 
-  public static deleteWorldCategory(categoryId: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.worldCategories()
-        .delete()
-        .eq("id", categoryId)
-        .then(({ error, status }) => {
-          if (error) {
-            console.error(error);
-            reject(
-              getRepositoryError(
-                error,
-                ErrorVerb.Delete,
-                ErrorNoun.WorldCategory,
-                false,
-                status,
-              ),
-            );
-          } else {
-            resolve();
-          }
-        });
-    });
+  public static deleteWorldCategory(
+    worldId: string,
+    categoryId: string,
+    defaultBindings?: DefaultWorldFieldBinding[],
+  ): Promise<void> {
+    return mutateWorldConfiguration(
+      worldId,
+      { type: "delete_category", id: categoryId },
+      defaultBindings,
+    );
   }
 }
