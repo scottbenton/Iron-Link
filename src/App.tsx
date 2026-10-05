@@ -67,6 +67,15 @@ export function App() {
                 <Route path="/worlds" Component={WorldSelectPage} />
                 <Route path="/worlds/create" Component={WorldCreatePage} />
                 <Route path="/worlds/:worldId" Component={WorldPage} />
+                <Route
+                  path="/worlds/:worldId/categories/:categoryId"
+                  Component={WorldPage}
+                />
+                <Route path="/worlds/:worldId/settings" Component={WorldPage} />
+                <Route
+                  path="/worlds/:worldId/settings/categories/:categoryId"
+                  Component={WorldPage}
+                />
                 <Route path="/homebrew" Component={HomebrewSelectPage} />
                 <Route path="/auth" Component={AuthPage} />
                 <Route path="/privacy" Component={PrivacyPolicyPage} />
