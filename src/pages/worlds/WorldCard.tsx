@@ -5,9 +5,9 @@ import { LinkComponent } from "components/LinkComponent";
 
 import { pathConfig } from "pages/pathConfig";
 
-import { getWorldSettingLabel } from "lib/worldSettings";
-
 import { IUsersWorld } from "services/worlds.service";
+
+import { useWorldRulesetNames } from "./useWorldRulesetNames";
 
 export interface WorldCardProps {
   worldId: string;
@@ -19,9 +19,7 @@ export function WorldCard(props: WorldCardProps) {
 
   const { t } = useTranslation();
 
-  const settingLabel = world.settingKey
-    ? getWorldSettingLabel(world.settingKey)
-    : t("worlds.list.no-setting", "No setting");
+  const rules = useWorldRulesetNames(worldId, world.settingKey);
 
   return (
     <Card variant="outlined" sx={{ height: "100%" }}>
@@ -45,12 +43,24 @@ export function WorldCard(props: WorldCardProps) {
           >
             {world.name}
           </Typography>
-          <Typography
-            color="text.secondary"
-            fontFamily={(theme) => theme.typography.fontFamilyTitle}
-            textTransform="uppercase"
-          >
-            {settingLabel}
+          <Typography color="text.secondary" variant="body2">
+            {rules
+              ? rules.error
+                ? t("worlds.list.rules-error", "Rules unavailable")
+                : rules.names.length
+                  ? t(
+                      rules.source === "games"
+                        ? "worlds.list.game-rules"
+                        : "worlds.list.setting-rules",
+                      rules.source === "games"
+                        ? "Game rules: {{names}}"
+                        : "Setting rules: {{names}}",
+                      { names: rules.names.join(" · ") },
+                    )
+                  : rules.source === "games"
+                    ? t("worlds.list.no-game-rules", "No game rules")
+                    : t("worlds.list.no-setting-rules", "No setting rules")
+              : t("worlds.list.loading-rules", "Loading rules…")}
           </Typography>
         </Box>
       </CardActionArea>
