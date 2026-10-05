@@ -15,6 +15,8 @@ import {
 import { AuthStatus, useAuthStatus, useUID } from "stores/auth.store";
 import { useUserNameWithStatus } from "stores/users.store";
 
+import { getSafeContinuePath } from "lib/continuePath.lib";
+
 import { UserNameDialog } from "./UserNameDialog";
 
 export function LayoutPathListener() {
@@ -26,7 +28,10 @@ export function LayoutPathListener() {
   const { name, loading } = useUserNameWithStatus(uid ?? null);
 
   const [searchParams] = useSearchParams();
-  const continuePath = searchParams.get("continuePath");
+  const continuePath = getSafeContinuePath(
+    searchParams.get("continuePath"),
+    window.location.origin,
+  );
 
   useEffect(() => {
     if (

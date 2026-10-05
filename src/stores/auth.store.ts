@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
-import { AuthService } from "services/auth.service";
+import { AuthService, OAuthProvider } from "services/auth.service";
 
 export enum AuthStatus {
   Loading,
@@ -20,6 +20,8 @@ interface AuthActions {
   subscribeToAuthStatus: () => () => void;
   sendOTPCodeToEmail: (email: string) => Promise<void>;
   verifyOTPCode: (email: string, otpCode: string) => Promise<void>;
+  signInWithOAuth: (provider: OAuthProvider) => Promise<void>;
+  waitForInitialization: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -52,6 +54,12 @@ export const useAuthStore = createWithEqualityFn<AuthState & AuthActions>()(
     },
     verifyOTPCode: (email, otpCode) => {
       return AuthService.verifyOTPCode(email, otpCode);
+    },
+    signInWithOAuth: (provider) => {
+      return AuthService.signInWithOAuth(provider);
+    },
+    waitForInitialization: () => {
+      return AuthService.waitForInitialization();
     },
     signOut: () => {
       return AuthService.logout();
