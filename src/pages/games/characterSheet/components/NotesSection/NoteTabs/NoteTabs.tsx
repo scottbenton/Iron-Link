@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useUID } from "stores/auth.store";
 import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
 import { useWorldStore } from "stores/world.store";
+import { useWorldCategoriesStore } from "stores/worldCategories.store";
 
 import { FolderView, FolderViewToolbar } from "../FolderView";
 import { getItemName } from "../FolderView/getFolderName";
@@ -46,8 +47,27 @@ export function NoteTabs() {
       }),
     );
   });
-  const worldName = useWorldStore((store) => store.world?.name);
-  const worldTabLabel = worldName ?? t("worlds.tab.world", "World");
+  const world = useWorldStore((store) => store.world);
+  const categories = useWorldCategoriesStore((store) => store.categories);
+  const worldTabLabel = (tabId: string) => {
+    const item = openTabs[tabId];
+    const view = item.worldView ?? { type: "world" };
+    if (view.type === "settings")
+      return t("worlds.settings.title", "World settings");
+    if ("categoryId" in view) {
+      const category = categories[view.categoryId];
+      const name =
+        category?.worldId === item.itemId
+          ? category.name
+          : t("worlds.categories.unknown", "Category");
+      return view.type === "category-settings"
+        ? t("worlds.categories.settings-named", "{{name}} settings", { name })
+        : name;
+    }
+    return world?.id === item.itemId
+      ? world.name
+      : t("worlds.tab.world", "World");
+  };
 
   const activeTab = useNotesStore((store) => store.openTabId);
   const setActiveTab = useNotesStore((store) => store.switchToTab);
@@ -66,7 +86,6 @@ export function NoteTabs() {
     <Box height={"100%"} display="flex" flexDirection="column">
       <Box
         bgcolor="background.default"
-        // borderBottom={1}
         borderColor="divider"
         display="flex"
         flexShrink={0}
@@ -127,7 +146,7 @@ export function NoteTabs() {
               })} // Add border to the left of each tab except the first one
               label={
                 <Box display="flex" alignItems="center" gap={1}>
-                  {itemNames[tabId] ?? worldTabLabel}
+                  {itemNames[tabId] ?? worldTabLabel(tabId)}
                   <IconButton
                     className="close-tab-button"
                     component="span"
@@ -146,7 +165,9 @@ export function NoteTabs() {
               key={tabId}
               id={`note-tab-${tabId}`}
               aria-controls={`note-tabpanel-${tabId}`}
-              onAuxClick={() => closeTab(tabId)}
+              onAuxClick={(event) => {
+                if (event.button === 1) closeTab(tabId);
+              }}
               onMouseDown={(event) => {
                 if (event.button === 1) {
                   event.preventDefault();
@@ -176,9 +197,10 @@ export function NoteTabs() {
             overflow="auto"
           >
             {tabItem.type === "world" ? (
-              <OpenItemWrapper sx={{ flexGrow: 1 }}>
-                <GameWorldView worldId={tabItem.itemId} />
-              </OpenItemWrapper>
+              <GameWorldView
+                worldId={tabItem.itemId}
+                worldView={tabItem.worldView}
+              />
             ) : tabItem.type === "folder" ? (
               <>
                 <FolderViewToolbar folderId={tabItem.itemId} />

@@ -1,7 +1,10 @@
+import { useEffect, useRef } from "react";
+
 import { useAdvancedFeatureToggle } from "hooks/advancedFeatures/advancedFeatures";
 
 import { GamePermission, useGameStore } from "stores/game.store";
-import { useListenToWorld } from "stores/world.store";
+import { useNotesStore } from "stores/notes.store";
+import { useListenToWorld, useWorldStore } from "stores/world.store";
 
 // The world linked to the current game, or undefined when the worlds feature
 // is turned off or the game has no world.
@@ -17,7 +20,22 @@ export function useGameWorldId(): string | undefined {
 // is mounted once at the top of the notes section; everything below it (the
 // world row, the world tab) reads the store instead of subscribing again.
 export function useListenToGameWorld(): void {
-  useListenToWorld(useGameWorldId());
+  const worldId = useGameWorldId();
+  useListenToWorld(worldId);
+  const loadedWorldId = useWorldStore((store) => store.world?.id);
+  const worldDeleted = useWorldStore((store) => store.worldDeleted);
+  const closeTabsMatching = useNotesStore((store) => store.closeTabsMatching);
+  const previousWorldId = useRef(worldId);
+  useEffect(() => {
+    // This owner survives inactive Notes tabs. Close every destination when
+    // deletion or a changed game link makes that world unavailable.
+    const previous = previousWorldId.current;
+    previousWorldId.current = worldId;
+    if (previous && previous !== worldId) closeTabsMatching("world", previous);
+    if (worldId && loadedWorldId === worldId && worldDeleted) {
+      closeTabsMatching("world", worldId);
+    }
+  }, [worldId, loadedWorldId, worldDeleted, closeTabsMatching]);
 }
 
 // Whether the world tile belongs in the folder grid at all. Hoisted out of
