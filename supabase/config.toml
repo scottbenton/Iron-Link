@@ -96,9 +96,16 @@ enabled = true
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
-site_url = "http://127.0.0.1:3000"
-# A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+# The Vite dev server runs on http://localhost:5173 by default.
+site_url = "http://localhost:5173"
+# A list of URLs that auth providers are permitted to redirect to post authentication. Glob
+# patterns are supported; the `/**` entries allow OAuth to return to `/auth?continuePath=...`.
+additional_redirect_urls = [
+  "http://localhost:5173/**",
+  "http://127.0.0.1:5173/**",
+  "http://127.0.0.1:3000",
+  "https://127.0.0.1:3000",
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # If disabled, the refresh token will never expire.
@@ -227,6 +234,36 @@ redirect_uri = ""
 # or any other third-party OIDC providers.
 url = ""
 # If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
+skip_nonce_check = false
+
+# Google and Discord sign in. Disabled by default so `supabase start` works without credentials.
+# To enable locally, create `supabase/.env` (gitignored) with the variables described in SETUP.md,
+# including SUPABASE_AUTH_EXTERNAL_GOOGLE_ENABLED=true / SUPABASE_AUTH_EXTERNAL_DISCORD_ENABLED=true,
+# which override `enabled` below.
+[auth.external.google]
+enabled = false
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+# DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+# Overrides the default auth redirectUrl.
+redirect_uri = ""
+# Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
+# or any other third-party OIDC providers.
+url = ""
+# Only applies to ID token sign in (e.g. Google One Tap), not the redirect flow used by the app.
+skip_nonce_check = false
+
+[auth.external.discord]
+enabled = false
+client_id = "env(SUPABASE_AUTH_EXTERNAL_DISCORD_CLIENT_ID)"
+# DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
+secret = "env(SUPABASE_AUTH_EXTERNAL_DISCORD_SECRET)"
+# Overrides the default auth redirectUrl.
+redirect_uri = ""
+# Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
+# or any other third-party OIDC providers.
+url = ""
+# Only applies to ID token sign in, not the redirect flow used by the app.
 skip_nonce_check = false
 
 # Use Firebase Auth as a third-party provider alongside Supabase Auth.

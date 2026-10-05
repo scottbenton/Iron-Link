@@ -40,6 +40,23 @@ Once supabase has launched, we need to make a couple more configuration changes 
 2. Navigate to `storage` on the lefthand side, and create a new storage bucket called `characters`, using the following settings. ![Character Storage Settings](./readme_assets/StorageBucketSettings.png)
 3. Add a policy to your storage bucket - this policy is not secure for a production environment, but works fine for development ![Storage Policy](./readme_assets/TemporaryStoragePolicy.png)
 
+### Google and Discord Sign In (Optional)
+
+Google and Discord sign in are disabled locally by default, so `npm run supabase:start` works without any extra setup. If you need to work on social sign in, create OAuth apps with Google and/or Discord and set their redirect / callback URL to `http://127.0.0.1:54321/auth/v1/callback`.
+
+Then create a `supabase/.env` file (it is gitignored - never commit these values) with the providers you want to enable:
+
+```
+SUPABASE_AUTH_EXTERNAL_GOOGLE_ENABLED=true
+SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
+SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=YOUR_GOOGLE_CLIENT_SECRET
+SUPABASE_AUTH_EXTERNAL_DISCORD_ENABLED=true
+SUPABASE_AUTH_EXTERNAL_DISCORD_CLIENT_ID=YOUR_DISCORD_CLIENT_ID
+SUPABASE_AUTH_EXTERNAL_DISCORD_SECRET=YOUR_DISCORD_CLIENT_SECRET
+```
+
+Restart supabase (`npm run supabase:stop` then `npm run supabase:start`) to pick up the changes. In the app, turn on "Sign in with Google & Discord (Beta)" from the Advanced Features dialog in the settings menu to see the sign in buttons.
+
 --------------------------------------------------------------------------------
 
 With that, you should be all set up and ready to develop locally!

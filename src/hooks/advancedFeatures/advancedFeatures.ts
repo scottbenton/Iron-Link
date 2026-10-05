@@ -12,7 +12,7 @@ interface AdvancedFeature {
   requiresGuideRole?: boolean;
 }
 
-export type FeatureKey = "secondScreen" | "worlds";
+export type FeatureKey = "secondScreen" | "worlds" | "socialLogin";
 
 export const advancedFeaturesLocalStorageKey =
   "iron-link-advanced-feature-toggles";
@@ -33,6 +33,22 @@ export const advancedFeatures: Record<FeatureKey, AdvancedFeature> = {
       "Enables in-progress worldbuilding features: creating worlds and linking them to your games.",
     ),
   },
+  socialLogin: {
+    name: i18n.t(
+      "advanced-features.social-login",
+      "Sign in with Google & Discord (Beta)",
+    ),
+    description: i18n.t(
+      "advanced-features.social-login-description",
+      "Adds Google and Discord sign in options to the login page. If your Google or Discord account uses the same email as your existing account, you'll be signed in to that account.",
+    ),
+  },
+};
+
+const defaultToggles: Record<FeatureKey, boolean> = {
+  secondScreen: false,
+  worlds: false,
+  socialLogin: false,
 };
 
 export const useAdvancedFeatureToggles = create<{
@@ -41,10 +57,7 @@ export const useAdvancedFeatureToggles = create<{
 }>()(
   persist(
     immer((set) => ({
-      toggles: {
-        secondScreen: false,
-        worlds: false,
-      },
+      toggles: { ...defaultToggles },
       updateToggle: (feature, value) => {
         set((state) => {
           state.toggles[feature] = value;
@@ -54,6 +67,18 @@ export const useAdvancedFeatureToggles = create<{
     {
       name: advancedFeaturesLocalStorageKey,
       storage: createJSONStorage(() => localStorage),
+      // Persisted toggles saved before a feature existed won't contain its
+      // key. Fill any missing keys from the defaults so every feature reads
+      // as a boolean.
+      merge: (persistedState, currentState) => {
+        const persistedToggles =
+          (persistedState as { toggles?: Partial<Record<FeatureKey, boolean>> })
+            ?.toggles ?? {};
+        return {
+          ...currentState,
+          toggles: { ...defaultToggles, ...persistedToggles },
+        };
+      },
     },
   ),
 );
