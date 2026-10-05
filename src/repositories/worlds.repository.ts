@@ -65,14 +65,26 @@ export class WorldsRepository {
     onWorldDeleted: () => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
+    let active = true;
+    let currentRead: object | undefined;
     const getInitialState = () => {
-      this.getWorld(worldId).then(onWorld).catch(onError);
+      const read = {};
+      currentRead = read;
+      this.getWorld(worldId)
+        .then((world) => {
+          if (active && currentRead === read) onWorld(world);
+        })
+        .catch((error) => {
+          if (active && currentRead === read) onError(error);
+        });
     };
 
     const handlePayload = (
       payload: RealtimePostgresChangesPayload<WorldDTO>,
     ) => {
-      if (payload.errors) {
+      if (!active) return;
+      currentRead = undefined;
+      if (payload.errors?.length) {
         console.error(payload.errors);
         onError(
           getRepositoryError(
@@ -98,9 +110,12 @@ export class WorldsRepository {
       `id=eq.${worldId}`,
       getInitialState,
       handlePayload,
+      { refreshOnSubscribe: true },
     );
 
     return () => {
+      active = false;
+      currentRead = undefined;
       unsubscribe();
     };
   }

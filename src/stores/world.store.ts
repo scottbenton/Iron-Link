@@ -13,6 +13,7 @@ import {
 import { IWorld, WorldsService } from "services/worlds.service";
 
 import { useUID } from "./auth.store";
+import { useWorldResourcesStore } from "./worldResources.store";
 
 interface WorldStoreState {
   worldId: string;
@@ -90,9 +91,14 @@ export const useWorldStore = createWithEqualityFn<
         const isCurrent = () => active && currentSubscription === subscription;
         set((state) => ({ ...state, ...defaultWorldStoreState, worldId }));
 
+        const resources = useWorldResourcesStore
+          .getState()
+          .observeWorld(worldId);
         const worldUnsubscribe = WorldsService.listenToWorld(
           worldId,
           (world) => {
+            if (!isCurrent() || world.id !== worldId) return;
+            resources.receiveWorld(world);
             set((state) => {
               if (
                 !isCurrent() ||
@@ -109,6 +115,7 @@ export const useWorldStore = createWithEqualityFn<
           () => {
             set((state) => {
               if (!isCurrent() || state.worldId !== worldId) return;
+              resources.stop();
               state.worldDeleted = true;
               state.loading = false;
             });
@@ -165,6 +172,7 @@ export const useWorldStore = createWithEqualityFn<
                 : state,
             );
           }
+          resources.stop();
           worldUnsubscribe();
           worldPlayersUnsubscribe();
         };

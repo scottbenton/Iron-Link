@@ -1,4 +1,7 @@
-import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import {
+  RealtimeChannel,
+  RealtimePostgresChangesPayload,
+} from "@supabase/supabase-js";
 
 import { supabase } from "lib/supabase.lib";
 
@@ -9,7 +12,11 @@ export function createSubscription<T extends { [key: string]: any }>(
   filter: string | string[],
   startInitialLoad: () => void,
   onPayload: (payload: RealtimePostgresChangesPayload<T>) => void,
+  options: { refreshOnSubscribe?: boolean } = {},
 ) {
+  let disposed = false;
+  let restarting = false;
+  let subscription: RealtimeChannel | undefined;
   startInitialLoad();
 
   const createSubscription = () => {
@@ -26,7 +33,7 @@ export function createSubscription<T extends { [key: string]: any }>(
             filter: f,
           },
           (payload) => {
-            onPayload(payload);
+            if (!disposed && subscription === channel) onPayload(payload);
           },
         );
       });
@@ -40,22 +47,41 @@ export function createSubscription<T extends { [key: string]: any }>(
           filter,
         },
         (payload) => {
-          onPayload(payload);
+          if (!disposed && subscription === channel) onPayload(payload);
         },
       );
     }
-    return channel.subscribe();
+    subscription = channel;
+    channel.subscribe((status) => {
+      if (
+        options.refreshOnSubscribe &&
+        status === "SUBSCRIBED" &&
+        !disposed &&
+        subscription === channel
+      ) {
+        startInitialLoad();
+      }
+    });
   };
 
-  let subscription = createSubscription();
+  createSubscription();
 
   const startListening = async () => {
-    if (!document.hidden) {
-      if (subscription) {
-        await subscription.unsubscribe();
+    if (document.hidden || disposed || restarting) return;
+    restarting = true;
+    const previousSubscription = subscription;
+    subscription = undefined;
+    try {
+      try {
+        await previousSubscription?.unsubscribe();
+      } catch (error) {
+        console.error(error);
       }
+      if (disposed) return;
       startInitialLoad();
-      subscription = createSubscription();
+      if (!disposed) createSubscription();
+    } finally {
+      restarting = false;
     }
   };
 
@@ -63,7 +89,9 @@ export function createSubscription<T extends { [key: string]: any }>(
   window.addEventListener("online", startListening);
 
   return () => {
-    subscription.unsubscribe();
+    disposed = true;
+    subscription?.unsubscribe();
+    subscription = undefined;
     window.removeEventListener("visibilitychange", startListening);
     window.removeEventListener("online", startListening);
   };

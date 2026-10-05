@@ -1,4 +1,3 @@
-import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { v4 as uuid } from "uuid";
 
 import {
@@ -9,7 +8,7 @@ import {
 
 import { supabase } from "lib/supabase.lib";
 
-import { createSubscription } from "./_subscriptionManager";
+import { createCollectionSubscription } from "./_collectionSubscription";
 import {
   ErrorNoun,
   ErrorVerb,
@@ -95,67 +94,29 @@ export class WorldCategoriesRepository {
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
-    const startInitialLoad = () => {
-      this.worldCategories()
-        .select("*")
-        .eq("world_id", worldId)
-        .then(({ data, error, status }) => {
-          if (error) {
-            console.error(error);
-            onError(
-              getRepositoryError(
-                error,
-                ErrorVerb.Read,
-                ErrorNoun.WorldCategory,
-                true,
-                status,
-              ),
-            );
-          } else {
-            onWorldCategoryChanges(
-              Object.fromEntries(
-                data.map((category) => [category.id, category]),
-              ),
-              [],
-              true,
-            );
-          }
-        });
-    };
-
-    const handlePayload = (
-      payload: RealtimePostgresChangesPayload<WorldCategoryDTO>,
-    ) => {
-      if (payload.errors) {
-        onError(
-          getRepositoryError(
-            payload.errors,
-            ErrorVerb.Read,
-            ErrorNoun.WorldCategory,
-            true,
-          ),
-        );
-      } else if (
-        payload.eventType === "INSERT" ||
-        payload.eventType === "UPDATE"
-      ) {
-        onWorldCategoryChanges({ [payload.new.id]: payload.new }, [], false);
-      } else if (payload.eventType === "DELETE" && payload.old.id) {
-        onWorldCategoryChanges({}, [payload.old.id], false);
-      }
-    };
-
-    const unsubscribe = createSubscription(
+    return createCollectionSubscription(
       `world_categories:world_id=eq.${worldId}`,
       "world_categories",
       `world_id=eq.${worldId}`,
-      startInitialLoad,
-      handlePayload,
+      async () => {
+        const { data, error, status } = await this.worldCategories()
+          .select("*")
+          .eq("world_id", worldId);
+        if (error) {
+          throw getRepositoryError(
+            error,
+            ErrorVerb.Read,
+            ErrorNoun.WorldCategory,
+            true,
+            status,
+          );
+        }
+        return data;
+      },
+      onWorldCategoryChanges,
+      onError,
+      ErrorNoun.WorldCategory,
     );
-
-    return () => {
-      unsubscribe();
-    };
   }
 
   public static async addWorldCategory(

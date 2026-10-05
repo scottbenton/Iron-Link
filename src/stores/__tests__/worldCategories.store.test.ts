@@ -1,19 +1,14 @@
-import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { WorldCategoriesService } from "services/worldCategories.service";
 import { WorldConfigurationReadService } from "services/worldConfigurationRead.service";
 import { WorldFieldDefinitionsService } from "services/worldFieldDefinitions.service";
 
-import {
-  useListenToWorldCategories,
-  useWorldCategoriesStore,
-} from "../worldCategories.store";
+import { useWorldCategoriesStore } from "../worldCategories.store";
 import { createStoreConfigurationFixture } from "./worldConfiguration.fixture";
 
 const mocks = vi.hoisted(() => ({ rpc: vi.fn() }));
 vi.mock("lib/supabase.lib", () => ({ supabase: { rpc: mocks.rpc } }));
-vi.mock("../world.store", () => ({ useWorldStore: vi.fn() }));
 
 const world = {
   id: "09c0d230-3f90-4acb-a407-c8b99e074a2c",
@@ -39,7 +34,10 @@ beforeEach(() => {
 
 async function listenToDefaults(worldToLoad = world) {
   const stop = store().listenToWorldCategories(worldToLoad);
-  await vi.waitFor(() => expect(store().configurationLoaded).toBe(true));
+  store().acceptConfigurationSnapshot(
+    worldToLoad.id,
+    await WorldConfigurationReadService.getWorldConfiguration(worldToLoad.id),
+  );
   return stop;
 }
 
@@ -121,7 +119,7 @@ describe("world configuration source", () => {
       }),
     );
     expect(mocks.rpc).toHaveBeenCalledTimes(2);
-    // Only the authoritative world row flips the source after the transaction commits.
+    // The source changes after the committed configuration is observed.
     expect(store().configurationCustomized).toBe(false);
   });
 
@@ -236,71 +234,6 @@ describe("world configuration source", () => {
     expect(stopCategories).toHaveBeenCalledOnce();
     expect(stopFields).toHaveBeenCalledOnce();
   });
-
-  it("discards a database response after switching worlds", async () => {
-    let resolveOld!: (
-      snapshot: Awaited<
-        ReturnType<typeof WorldConfigurationReadService.getWorldConfiguration>
-      >,
-    ) => void;
-    vi.mocked(
-      WorldConfigurationReadService.getWorldConfiguration,
-    ).mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          resolveOld = resolve;
-        }),
-    );
-    const stopOld = store().listenToWorldCategories(world);
-    const next = { ...world, id: "3325bfc5-2c3d-41e2-8068-70b61d4bccdd" };
-    await listenToDefaults(next);
-    const nextCategories = store().categories;
-    resolveOld({
-      ...createStoreConfigurationFixture(world.id),
-      configurationCustomized: false,
-    });
-    await Promise.resolve();
-    expect(store().worldId).toBe(next.id);
-    expect(store().categories).toEqual(nextCategories);
-    stopOld();
-  });
-
-  it.each(["success", "failure"])(
-    "ignores a late inherited request %s after customization",
-    async (outcome) => {
-      let resolveOld!: (
-        snapshot: Awaited<
-          ReturnType<typeof WorldConfigurationReadService.getWorldConfiguration>
-        >,
-      ) => void;
-      let rejectOld!: (cause: Error) => void;
-      vi.mocked(
-        WorldConfigurationReadService.getWorldConfiguration,
-      ).mockImplementationOnce(
-        () =>
-          new Promise((resolve, reject) => {
-            resolveOld = resolve;
-            rejectOld = reject;
-          }),
-      );
-      const stopOld = store().listenToWorldCategories(world);
-      const custom = customWorld();
-      custom.categoriesChanged({}, [], true);
-      custom.fieldsChanged({}, [], true);
-      if (outcome === "success")
-        resolveOld({
-          ...createStoreConfigurationFixture(world.id),
-          configurationCustomized: true,
-        });
-      else rejectOld(new Error("Old read failed"));
-      await Promise.resolve();
-      await Promise.resolve();
-      expect(store().configurationCustomized).toBe(true);
-      expect(store().categories).toEqual({});
-      expect(store().error).toBeUndefined();
-      stopOld();
-    },
-  );
 });
 
 afterEach(() => {
@@ -762,8 +695,7 @@ describe("optimistic configuration ordering", () => {
     const save = store().reorderCategories(categoryIds().reverse());
     await Promise.resolve();
     const next = { ...world, id: "3325bfc5-2c3d-41e2-8068-70b61d4bccdd" };
-    store().listenToWorldCategories(next);
-    await vi.waitFor(() => expect(store().configurationLoaded).toBe(true));
+    await listenToDefaults(next);
     const nextCategories = store().categories;
     fixture.categoriesChanged(fixture.defaults.categories, [], true);
     request.reject(new Error("Old world failed"));
@@ -786,13 +718,5 @@ describe("optimistic configuration ordering", () => {
     await vi.advanceTimersByTimeAsync(10_000);
     expect(categoryIds()).toEqual(original);
     expect(store().error).toMatch(/could not be confirmed/);
-  });
-
-  it("does not reset the shared store when a non-subscribing panel unmounts", async () => {
-    await listenToDefaults();
-    const categories = store().categories;
-    const hook = renderHook(() => useListenToWorldCategories(undefined));
-    hook.unmount();
-    expect(store().categories).toEqual(categories);
   });
 });

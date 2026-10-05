@@ -34,8 +34,15 @@ vi.mock("../game.store", () => ({
   GamePermission: { Guide: "guide" },
   useGameStore: (select: (state: typeof game) => unknown) => select(game),
 }));
-vi.mock("../worldCategories.store", () => ({
-  useListenToWorldCategories: vi.fn(),
+const resource = vi.hoisted(() => ({
+  receiveWorld: vi.fn(),
+  stop: vi.fn(),
+  observeWorld: vi.fn(),
+}));
+vi.mock("../worldResources.store", () => ({
+  useWorldResourcesStore: {
+    getState: () => ({ observeWorld: resource.observeWorld }),
+  },
 }));
 
 let worlds: MockInstance<typeof WorldsService.listenToWorld>;
@@ -56,6 +63,9 @@ const failure = new Error("Late error") as RepositoryError;
 beforeEach(() => {
   vi.restoreAllMocks();
   stops = [];
+  resource.receiveWorld.mockReset();
+  resource.stop.mockReset();
+  resource.observeWorld.mockReset().mockReturnValue(resource);
   worlds = vi.spyOn(WorldsService, "listenToWorld").mockReturnValue(vi.fn());
   players = vi
     .spyOn(WorldPlayersService, "listenToWorldPlayers")
@@ -77,6 +87,17 @@ function listen(id: string) {
 }
 
 describe("World subscription lifetime", () => {
+  it("forwards identical accepted reconnect rows to resources", () => {
+    listen("world-a");
+    const sameWorld = world("world-a");
+    worlds.mock.calls[0][1](sameWorld);
+    worlds.mock.calls[0][1](sameWorld);
+    expect(resource.receiveWorld.mock.calls).toEqual([
+      [sameWorld],
+      [sameWorld],
+    ]);
+  });
+
   it.each(["user switch", "same-world resubscription"])(
     "ignores an outdated same-world role after %s",
     async (change) => {

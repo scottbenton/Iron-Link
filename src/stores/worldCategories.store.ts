@@ -1,5 +1,4 @@
 import deepEqual from "fast-deep-equal";
-import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
@@ -14,7 +13,7 @@ import {
   IWorldCategory,
   WorldCategoriesService,
 } from "services/worldCategories.service";
-import { WorldConfigurationReadService } from "services/worldConfigurationRead.service";
+import type { WorldConfigurationSnapshot } from "services/worldConfigurationRead.service";
 import {
   IWorldFieldDefinition,
   OracleBinding,
@@ -23,7 +22,6 @@ import {
 } from "services/worldFieldDefinitions.service";
 import type { IWorld } from "services/worlds.service";
 
-import { useWorldStore } from "./world.store";
 import { createWorldConfigurationOrder } from "./worldConfigurationOrder";
 
 interface WorldCategoriesStoreState {
@@ -45,6 +43,11 @@ interface WorldCategoriesStoreActions {
   listenToWorldCategories: (
     world: Pick<IWorld, "id" | "settingKey" | "configurationCustomized">,
   ) => () => void;
+  acceptConfigurationSnapshot: (
+    worldId: string,
+    snapshot: WorldConfigurationSnapshot,
+  ) => void;
+  setConfigurationError: (worldId: string, error: string) => void;
   invalidateDefaultBindings: (worldId: string) => void;
   applyDefaultReplacementMap: (
     worldId: string,
@@ -143,6 +146,23 @@ export const useWorldCategoriesStore = createWithEqualityFn<
     return {
       ...defaultWorldCategoriesState,
 
+      acceptConfigurationSnapshot: (worldId, snapshot) => {
+        if (get().worldId !== worldId || get().configurationCustomized) return;
+        set((state) => {
+          state.categories = snapshot.categories;
+          state.fieldDefinitions = snapshot.fieldDefinitions;
+          state.sourceFieldDefinitions = snapshot.fieldDefinitions;
+          state.configurationLoaded = true;
+          state.loading = false;
+          state.error = undefined;
+          overlayOrders(state);
+        });
+      },
+      setConfigurationError: (worldId, error) => {
+        if (get().worldId === worldId && !get().configurationCustomized)
+          set({ loading: false, error });
+      },
+
       invalidateDefaultBindings: (worldId) => {
         if (get().worldId === worldId && !get().configurationCustomized)
           set({ defaultBindingsReady: false });
@@ -197,55 +217,7 @@ export const useWorldCategoriesStore = createWithEqualityFn<
           worldId,
           configurationCustomized: world.configurationCustomized,
         });
-        if (!world.configurationCustomized) {
-          let active = true;
-          let customUnsubscribe: (() => void) | undefined;
-          WorldConfigurationReadService.getWorldConfiguration(worldId)
-            .then((snapshot) => {
-              if (
-                !active ||
-                session !== configurationSession ||
-                get().worldId !== worldId
-              )
-                return;
-              if (snapshot.configurationCustomized) {
-                customUnsubscribe = get().listenToWorldCategories({
-                  ...world,
-                  configurationCustomized: true,
-                });
-                return;
-              }
-              set((state) => {
-                if (state.worldId !== worldId || state.configurationCustomized)
-                  return;
-                state.categories = snapshot.categories;
-                state.fieldDefinitions = snapshot.fieldDefinitions;
-                state.sourceFieldDefinitions = snapshot.fieldDefinitions;
-                state.configurationLoaded = true;
-                state.loading = false;
-                overlayOrders(state);
-              });
-            })
-            .catch((cause) => {
-              if (
-                !active ||
-                session !== configurationSession ||
-                get().worldId !== worldId
-              )
-                return;
-              set({
-                loading: false,
-                error:
-                  cause instanceof Error
-                    ? cause.message
-                    : "Could not load world configuration. Please retry.",
-              });
-            });
-          return () => {
-            active = false;
-            customUnsubscribe?.();
-          };
-        }
+        if (!world.configurationCustomized) return () => {};
         let active = true;
         let categoriesReady = false;
         let definitionsReady = false;
@@ -575,43 +547,4 @@ function resolveDefaultFieldBindings(
       })),
     },
   };
-}
-
-export function useListenToWorldCategories(worldId: string | undefined) {
-  const world = useWorldStore((store) => store.world);
-  const settingKey = world?.settingKey;
-  const configurationCustomized = world?.configurationCustomized;
-  const loadedWorldId = world?.id;
-  const listenToWorldCategories = useWorldCategoriesStore(
-    (store) => store.listenToWorldCategories,
-  );
-  const resetStore = useWorldCategoriesStore((store) => store.reset);
-
-  useEffect(() => {
-    if (
-      worldId &&
-      loadedWorldId === worldId &&
-      settingKey !== undefined &&
-      configurationCustomized !== undefined
-    ) {
-      return listenToWorldCategories({
-        id: worldId,
-        settingKey,
-        configurationCustomized,
-      });
-    }
-  }, [
-    worldId,
-    loadedWorldId,
-    settingKey,
-    configurationCustomized,
-    listenToWorldCategories,
-  ]);
-
-  useEffect(() => {
-    if (!worldId) return;
-    return () => {
-      resetStore();
-    };
-  }, [worldId, resetStore]);
 }
