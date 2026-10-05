@@ -13,12 +13,14 @@ export const pathConfig = {
   homebrewSelect: "/homebrew",
   homebrew: (homebrewId: string) => `/homebrew/${homebrewId}`,
   auth: "/auth",
+  privacy: "/privacy",
 };
 
 // Can be accessed regardless of authentication status
 export const openPaths = [
   pathConfig.auth,
   pathConfig.home,
+  pathConfig.privacy,
   // Homebrew editor
 ];
 
