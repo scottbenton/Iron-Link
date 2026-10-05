@@ -8,8 +8,8 @@ import {
   useSendPageViewEvent,
 } from "hooks/useSendPageViewEvents";
 
-// TODO: replace with the address that should receive privacy requests.
-const CONTACT_EMAIL = "CONTACT_EMAIL_HERE";
+import { SUPPORT_EMAIL } from "lib/support.lib";
+
 const LAST_UPDATED = "October 4, 2026";
 
 // The policy body is intentionally English-only so there is a single
@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
   useSendPageViewEvent(PageCategory.Privacy);
 
   const contactLink = (
-    <Link href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Link>
+    <Link href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</Link>
   );
 
   return (
