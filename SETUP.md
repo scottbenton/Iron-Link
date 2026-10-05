@@ -55,7 +55,7 @@ SUPABASE_AUTH_EXTERNAL_DISCORD_CLIENT_ID=YOUR_DISCORD_CLIENT_ID
 SUPABASE_AUTH_EXTERNAL_DISCORD_SECRET=YOUR_DISCORD_CLIENT_SECRET
 ```
 
-Restart supabase (`npm run supabase:stop` then `npm run supabase:start`) to pick up the changes. In the app, turn on "Sign in with Google & Discord (Beta)" from the Advanced Features dialog in the settings menu to see the sign in buttons.
+Restart supabase (`npm run supabase:stop` then `npm run supabase:start`) to pick up the changes.
 
 --------------------------------------------------------------------------------
 

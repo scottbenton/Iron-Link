@@ -21,7 +21,6 @@ describe("useAdvancedFeatureToggles persistence", () => {
     expect(await loadToggles()).toEqual({
       secondScreen: false,
       worlds: false,
-      socialLogin: false,
     });
   });
 
@@ -36,11 +35,24 @@ describe("useAdvancedFeatureToggles persistence", () => {
     expect(await loadToggles()).toEqual({
       secondScreen: true,
       worlds: false,
-      socialLogin: false,
     });
   });
 
   it("keeps persisted values for known features", async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        state: { toggles: { worlds: true } },
+        version: 0,
+      }),
+    );
+    expect(await loadToggles()).toEqual({
+      secondScreen: false,
+      worlds: true,
+    });
+  });
+
+  it("drops toggles for features that no longer exist", async () => {
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
@@ -51,7 +63,20 @@ describe("useAdvancedFeatureToggles persistence", () => {
     expect(await loadToggles()).toEqual({
       secondScreen: false,
       worlds: true,
-      socialLogin: true,
+    });
+  });
+
+  it("ignores non-boolean persisted values", async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        state: { toggles: { worlds: "yes" } },
+        version: 0,
+      }),
+    );
+    expect(await loadToggles()).toEqual({
+      secondScreen: false,
+      worlds: false,
     });
   });
 });
