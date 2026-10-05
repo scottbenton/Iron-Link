@@ -16,7 +16,6 @@ import { PageContent } from "components/Layout";
 
 import { pathConfig } from "pages/pathConfig";
 
-import { useAdvancedFeatureToggle } from "hooks/advancedFeatures/advancedFeatures";
 import { useIsLocalEnvironment } from "hooks/useIsLocalEnvironment";
 import {
   PageCategory,
@@ -43,7 +42,6 @@ export default function AuthPage() {
   const verifyOtp = useAuthStore((state) => state.verifyOTPCode);
 
   const isLocalEnvironment = useIsLocalEnvironment();
-  const socialLoginEnabled = useAdvancedFeatureToggle("socialLogin");
 
   const handleOTPSend = useCallback(() => {
     if (!email) {
@@ -128,7 +126,7 @@ export default function AuthPage() {
           </Box>
           {!otpSent ? (
             <>
-              {socialLoginEnabled && <SocialLoginOptions />}
+              <SocialLoginOptions />
               <Stack spacing={2}>
                 <Typography variant={"h6"}>
                   {t("auth.passwordless-sign-in", "Sign in with Email")}

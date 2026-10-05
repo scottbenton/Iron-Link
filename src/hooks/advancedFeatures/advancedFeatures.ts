@@ -12,7 +12,7 @@ interface AdvancedFeature {
   requiresGuideRole?: boolean;
 }
 
-export type FeatureKey = "secondScreen" | "worlds" | "socialLogin";
+export type FeatureKey = "secondScreen" | "worlds";
 
 export const advancedFeaturesLocalStorageKey =
   "iron-link-advanced-feature-toggles";
@@ -33,22 +33,11 @@ export const advancedFeatures: Record<FeatureKey, AdvancedFeature> = {
       "Enables in-progress worldbuilding features: creating worlds and linking them to your games.",
     ),
   },
-  socialLogin: {
-    name: i18n.t(
-      "advanced-features.social-login",
-      "Sign in with Google & Discord (Beta)",
-    ),
-    description: i18n.t(
-      "advanced-features.social-login-description",
-      "Adds Google and Discord sign in options to the login page. If your Google or Discord account uses the same email as your existing account, you'll be signed in to that account.",
-    ),
-  },
 };
 
 const defaultToggles: Record<FeatureKey, boolean> = {
   secondScreen: false,
   worlds: false,
-  socialLogin: false,
 };
 
 export const useAdvancedFeatureToggles = create<{
@@ -67,17 +56,21 @@ export const useAdvancedFeatureToggles = create<{
     {
       name: advancedFeaturesLocalStorageKey,
       storage: createJSONStorage(() => localStorage),
-      // Persisted toggles saved before a feature existed won't contain its
-      // key. Fill any missing keys from the defaults so every feature reads
-      // as a boolean.
+      // Persisted toggles may predate a feature (missing key) or outlive it
+      // (feature promoted or removed). Start from the defaults and only keep
+      // persisted booleans for features that still exist.
       merge: (persistedState, currentState) => {
         const persistedToggles =
-          (persistedState as { toggles?: Partial<Record<FeatureKey, boolean>> })
+          (persistedState as { toggles?: Record<string, unknown> } | undefined)
             ?.toggles ?? {};
-        return {
-          ...currentState,
-          toggles: { ...defaultToggles, ...persistedToggles },
-        };
+        const toggles = { ...defaultToggles };
+        (Object.keys(defaultToggles) as FeatureKey[]).forEach((feature) => {
+          const value = persistedToggles[feature];
+          if (typeof value === "boolean") {
+            toggles[feature] = value;
+          }
+        });
+        return { ...currentState, toggles };
       },
     },
   ),
