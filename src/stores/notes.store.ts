@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
+import type { WorldView } from "components/worlds/worldNavigation";
+
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
 import { createId } from "lib/id.lib";
@@ -25,7 +27,11 @@ interface Permissions {
 // linked world. It has no row in the notes tables, so nothing but the tab
 // bookkeeping below knows about it.
 export type IOpenNoteItemType = "note" | "folder" | "world";
-export type IOpenNoteItem = { type: IOpenNoteItemType; itemId: string };
+export type IOpenNoteItem = {
+  type: IOpenNoteItemType;
+  itemId: string;
+  worldView?: WorldView;
+};
 interface NotesStoreState {
   noteState: {
     notes: Record<string, INote>;
@@ -122,6 +128,7 @@ interface NotesStoreActions {
   openItemTab: (params: {
     type: IOpenNoteItemType;
     id: string;
+    worldView?: WorldView;
     replaceCurrent?: boolean;
     openInBackground?: boolean;
     disallowDuplicates?: boolean;
@@ -490,6 +497,7 @@ export const useNotesStore = createWithEqualityFn<
     openItemTab: ({
       type,
       id,
+      worldView,
       replaceCurrent = true,
       openInBackground,
       disallowDuplicates,
@@ -499,12 +507,25 @@ export const useNotesStore = createWithEqualityFn<
         const willOpenInCurrentTab = replaceCurrent && openTabId;
         const tabId = willOpenInCurrentTab ? openTabId : createId();
 
-        const tabItem: IOpenNoteItem = { type, itemId: id };
+        const tabItem: IOpenNoteItem = {
+          type,
+          itemId: id,
+          ...(type === "world"
+            ? { worldView: worldView ?? { type: "world" } }
+            : {}),
+        };
 
         if (
           disallowDuplicates &&
           Object.values(store.noteTabItems).some(
-            (item) => item.type === type && item.itemId === id,
+            (item) =>
+              item.type === type &&
+              item.itemId === id &&
+              (type !== "world" ||
+                deepEqual(
+                  item.worldView ?? { type: "world" },
+                  tabItem.worldView,
+                )),
           )
         ) {
           return;
@@ -548,11 +569,27 @@ export const useNotesStore = createWithEqualityFn<
 
     closeTabsMatching: (type, id) => {
       set((store) => {
-        Object.entries(store.noteTabItems)
-          .filter(([, item]) => item.type === type && item.itemId === id)
-          .forEach(([tabId]) => {
-            store.closeTab(tabId);
-          });
+        const previousOrder = [...store.noteTabOrder];
+        const previousIndex = store.openTabId
+          ? previousOrder.indexOf(store.openTabId)
+          : -1;
+        const matching = new Set(
+          Object.entries(store.noteTabItems)
+            .filter(([, item]) => item.type === type && item.itemId === id)
+            .map(([tabId]) => tabId),
+        );
+        matching.forEach((tabId) => delete store.noteTabItems[tabId]);
+        store.noteTabOrder = store.noteTabOrder.filter(
+          (tabId) => !matching.has(tabId),
+        );
+        if (store.openTabId && matching.has(store.openTabId)) {
+          store.openTabId =
+            store.noteTabOrder.find(
+              (tabId) => previousOrder.indexOf(tabId) > previousIndex,
+            ) ??
+            store.noteTabOrder[store.noteTabOrder.length - 1] ??
+            null;
+        }
       });
     },
   })),

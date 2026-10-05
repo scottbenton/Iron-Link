@@ -2,16 +2,25 @@ import LinkOffIcon from "@mui/icons-material/LinkOff";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import { Box, Button } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router";
 
+import type { BreadcrumbItem } from "components/Layout/BreadcrumbTrail";
 import { EmptyState } from "components/Layout/EmptyState";
-import { LegacyWorldPanel as WorldPanel } from "components/worlds/LegacyWorldPanel";
+import { WorldPanel } from "components/worlds/WorldPanel";
+import { WorldSettingsSection } from "components/worlds/WorldSettingsSection";
+import type {
+  WorldNavigation,
+  WorldView,
+} from "components/worlds/worldNavigation";
 
+import { getNotesItemLinkProps } from "pages/games/gamePageLayout/hooks/notesDestination";
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 
+import { useUID } from "stores/auth.store";
 import { GamePermission, useGameStore } from "stores/game.store";
-import { useNotesStore } from "stores/notes.store";
+import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
 
 import { WorldsService } from "services/worlds.service";
 
@@ -20,23 +29,81 @@ import { LinkWorldDialog } from "./LinkWorldDialog";
 
 export interface GameWorldViewProps {
   worldId: string;
+  worldView?: WorldView;
 }
 
 // The in-game surface for a linked world: the shared WorldPanel plus the
 // actions that only make sense from inside a game. The subscription is owned
 // higher up (see useListenToGameWorld), so the panel does not open its own.
 export function GameWorldView(props: GameWorldViewProps) {
-  const { worldId } = props;
+  const { worldId, worldView = { type: "world" } } = props;
 
   const { t } = useTranslation();
   const confirm = useConfirm();
   const gameId = useGameId();
+  const location = useLocation();
+  const uid = useUID();
+  const openItemTab = useNotesStore((store) => store.openItemTab);
+  const rootFolder = useNotesStore((store) =>
+    uid ? getPlayerNotesFolder(uid, store.folderState.folders) : undefined,
+  );
+  const navigation: WorldNavigation = {
+    view: worldView,
+    navigate: (view) =>
+      openItemTab({ type: "world", id: worldId, worldView: view }),
+    getLinkProps: (view) =>
+      getNotesItemLinkProps(
+        location.pathname,
+        new URLSearchParams(location.search),
+        { type: "world", itemId: worldId, worldView: view },
+        (item, background) =>
+          openItemTab({
+            type: item.type,
+            id: item.itemId,
+            worldView: item.worldView,
+            replaceCurrent: !background,
+            openInBackground: background,
+          }),
+      ),
+  };
+  const rootBreadcrumb: BreadcrumbItem | undefined = rootFolder
+    ? {
+        key: rootFolder.id,
+        label: t("notes.user-folder", "Notes"),
+        linkProps: getNotesItemLinkProps(
+          location.pathname,
+          new URLSearchParams(location.search),
+          { type: "folder", itemId: rootFolder.id },
+          (item, background) =>
+            openItemTab({
+              type: item.type,
+              id: item.itemId,
+              replaceCurrent: !background,
+              openInBackground: background,
+            }),
+        ),
+      }
+    : undefined;
 
   const isGuide = useGameStore(
     (store) => store.gamePermissions === GamePermission.Guide,
   );
   const gameWorldId = useGameWorldId();
   const closeTabsMatching = useNotesStore((store) => store.closeTabsMatching);
+
+  const activeContext = useRef({ gameId, gameWorldId, isGuide, mounted: true });
+  activeContext.current = {
+    ...activeContext.current,
+    gameId,
+    gameWorldId,
+    isGuide,
+  };
+  useEffect(() => {
+    activeContext.current.mounted = true;
+    return () => {
+      activeContext.current.mounted = false;
+    };
+  }, []);
 
   const [unlinking, setUnlinking] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
@@ -52,13 +119,22 @@ export function GameWorldView(props: GameWorldViewProps) {
       confirmationText: t("worlds.game.unlink-world", "Unlink World"),
     })
       .then((result) => {
-        if (!result?.confirmed) {
+        const current = activeContext.current;
+        if (
+          !result?.confirmed ||
+          !current.mounted ||
+          !current.isGuide ||
+          current.gameId !== gameId ||
+          current.gameWorldId !== worldId
+        ) {
           return;
         }
         setUnlinking(true);
         WorldsService.unlinkGameFromWorld(gameId)
           .then(() => {
-            closeTabsMatching("world", worldId);
+            const completed = activeContext.current;
+            if (completed.mounted && completed.gameId === gameId)
+              closeTabsMatching("world", worldId);
           })
           .catch(() => {
             setUnlinking(false);
@@ -83,34 +159,54 @@ export function GameWorldView(props: GameWorldViewProps) {
   }
 
   return (
-    <Box>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        flexGrow: 1,
+        minHeight: 0,
+      }}
+    >
       <WorldPanel
         worldId={worldId}
         manageSubscription={false}
+        navigation={navigation}
+        rootBreadcrumb={rootBreadcrumb}
+        layout="embedded"
         onWorldDeleted={() => closeTabsMatching("world", worldId)}
+        additionalSettings={
+          isGuide ? (
+            <WorldSettingsSection
+              title={t("worlds.game.connection", "Game connection")}
+              description={t(
+                "worlds.game.connection-help",
+                "Choose which world this game uses, or unlink it. The world itself is kept.",
+              )}
+            >
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <Button
+                  color="inherit"
+                  variant="outlined"
+                  startIcon={<SwapHorizIcon />}
+                  disabled={unlinking}
+                  onClick={() => setLinkDialogOpen(true)}
+                >
+                  {t("worlds.game.change-world", "Change World")}
+                </Button>
+                <Button
+                  color="inherit"
+                  variant="outlined"
+                  startIcon={<LinkOffIcon />}
+                  disabled={unlinking}
+                  onClick={handleUnlink}
+                >
+                  {t("worlds.game.unlink-world", "Unlink World")}
+                </Button>
+              </Box>
+            </WorldSettingsSection>
+          ) : undefined
+        }
       />
-      {isGuide && (
-        <Box sx={{ mt: 2, display: "flex", gap: 1, flexWrap: "wrap" }}>
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<SwapHorizIcon />}
-            disabled={unlinking}
-            onClick={() => setLinkDialogOpen(true)}
-          >
-            {t("worlds.game.change-world", "Change World")}
-          </Button>
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<LinkOffIcon />}
-            disabled={unlinking}
-            onClick={handleUnlink}
-          >
-            {t("worlds.game.unlink-world", "Unlink World")}
-          </Button>
-        </Box>
-      )}
       {/* Mounted only while open: the dialog loads the user's worlds on mount. */}
       {linkDialogOpen && (
         <LinkWorldDialog open onClose={() => setLinkDialogOpen(false)} />

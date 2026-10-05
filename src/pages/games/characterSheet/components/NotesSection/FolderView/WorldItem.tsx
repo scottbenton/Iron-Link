@@ -3,6 +3,9 @@ import PushPinIcon from "@mui/icons-material/PushPin";
 import { Card, CardActionArea, Tooltip, Typography } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router";
+
+import { getNotesItemLinkProps } from "pages/games/gamePageLayout/hooks/notesDestination";
 
 import { useNotesStore } from "stores/notes.store";
 import { useWorldPermission, useWorldStore } from "stores/world.store";
@@ -27,6 +30,7 @@ import { useGameWorldId, useShowWorldItem } from "../hooks/useGameWorld";
 // reserve a slot; this component assumes it should render.
 export function WorldItem() {
   const { t } = useTranslation();
+  const location = useLocation();
 
   const worldId = useGameWorldId();
   const show = useShowWorldItem();
@@ -73,19 +77,29 @@ export function WorldItem() {
             justifyContent: "flex-start",
             gap: 1,
           }}
-          onClick={(event) => {
-            if (worldId) {
-              openTab({
-                type: "world",
-                id: worldId,
-                openInBackground: true,
-                replaceCurrent: !(event.ctrlKey || event.metaKey),
-                disallowDuplicates: true,
-              });
-            } else {
-              setLinkDialogOpen(true);
-            }
-          }}
+          {...(worldId
+            ? {
+                component: "a",
+                ...getNotesItemLinkProps(
+                  location.pathname,
+                  new URLSearchParams(location.search),
+                  {
+                    type: "world",
+                    itemId: worldId,
+                    worldView: { type: "world" },
+                  },
+                  (item, background) =>
+                    openTab({
+                      type: item.type,
+                      id: item.itemId,
+                      worldView: item.worldView,
+                      replaceCurrent: !background,
+                      openInBackground: background,
+                      disallowDuplicates: background,
+                    }),
+                ),
+              }
+            : { onClick: () => setLinkDialogOpen(true) })}
         >
           <PublicIcon color="action" />
           <Typography component="span" sx={{ flexGrow: 1 }}>
