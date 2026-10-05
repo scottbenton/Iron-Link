@@ -1,5 +1,5 @@
 import deepEqual from "fast-deep-equal";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
@@ -28,7 +28,6 @@ import { createWorldConfigurationOrder } from "./worldConfigurationOrder";
 
 interface WorldCategoriesStoreState {
   worldId: string;
-  settingKey: string | null;
   configurationCustomized: boolean;
   defaultBindingsReady: boolean;
   configurationLoaded: boolean;
@@ -98,7 +97,6 @@ interface WorldCategoriesStoreActions {
 
 const defaultWorldCategoriesState: WorldCategoriesStoreState = {
   worldId: "",
-  settingKey: null,
   configurationCustomized: false,
   defaultBindingsReady: false,
   configurationLoaded: false,
@@ -197,7 +195,6 @@ export const useWorldCategoriesStore = createWithEqualityFn<
               }
             : {}),
           worldId,
-          settingKey: world.settingKey,
           configurationCustomized: world.configurationCustomized,
         });
         if (!world.configurationCustomized) {
@@ -617,20 +614,4 @@ export function useListenToWorldCategories(worldId: string | undefined) {
       resetStore();
     };
   }, [worldId, resetStore]);
-}
-
-// Ordered field definitions for one category.
-export function useWorldCategoryFieldDefinitions(
-  categoryId: string | undefined,
-): IWorldFieldDefinition[] {
-  const definitions = useWorldCategoriesStore(
-    (store) => store.fieldDefinitions,
-  );
-  return useMemo(
-    () =>
-      Object.values(definitions)
-        .filter((definition) => definition.categoryId === categoryId)
-        .sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id)),
-    [definitions, categoryId],
-  );
 }
