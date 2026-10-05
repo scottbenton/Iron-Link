@@ -4,6 +4,7 @@ import {
   AlertTitle,
   Box,
   Button,
+  Link,
   Stack,
   TextField,
   Typography,
@@ -12,6 +13,8 @@ import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { PageContent } from "components/Layout";
+
+import { pathConfig } from "pages/pathConfig";
 
 import { useIsLocalEnvironment } from "hooks/useIsLocalEnvironment";
 import {
@@ -197,6 +200,11 @@ export default function AuthPage() {
               </Box>
             </>
           )}
+          <Typography variant={"body2"} color={"textSecondary"}>
+            <Link href={pathConfig.privacy}>
+              {t("auth.privacy-policy-link", "Privacy Policy")}
+            </Link>
+          </Typography>
         </Stack>
       </PageContent>
     </>
