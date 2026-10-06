@@ -125,10 +125,9 @@ export const useDataswornTreeStore = createWithEqualityFn<
     setActiveRules: (tree, playset) => {
       set((store) => {
         store.activeRules = {
-          [ironLinkAskTheOracleRulesPackage._id]: JSON.parse(
-            JSON.stringify(ironLinkAskTheOracleRulesPackage),
-          ),
-          ...JSON.parse(JSON.stringify(tree)),
+          [ironLinkAskTheOracleRulesPackage._id]:
+            ironLinkAskTheOracleRulesPackage,
+          ...tree,
         };
         store.autoRollCursedDie = !playset.disableAutomaticCursedDieRolls;
 
