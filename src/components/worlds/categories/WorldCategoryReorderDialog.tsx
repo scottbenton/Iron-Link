@@ -24,7 +24,7 @@ export function WorldCategoryReorderDialog({
 }: {
   categories: IWorldCategory[];
   disabled: boolean;
-  onReorder: (ids: string[]) => void;
+  onReorder: (ids: string[]) => Promise<void>;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
@@ -36,13 +36,10 @@ export function WorldCategoryReorderDialog({
       <DialogContent sx={{ px: 1 }}>
         <List disablePadding>
           <WorldConfigurationSortList
-            items={categories.map((category) => ({
-              id: category.id,
-              label: category.name,
-            }))}
+            items={categories}
+            getLabel={(category) => category.name}
             onReorder={onReorder}
-          >
-            {categories.map((category) => (
+            renderItem={(category) => (
               <WorldSettingsCategoryItem
                 key={category.id}
                 category={category}
@@ -50,8 +47,8 @@ export function WorldCategoryReorderDialog({
                 sortable
                 disabled={disabled}
               />
-            ))}
-          </WorldConfigurationSortList>
+            )}
+          />
         </List>
       </DialogContent>
       <DialogActions>

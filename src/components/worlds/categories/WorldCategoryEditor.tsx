@@ -17,7 +17,7 @@ import { IconDefinition } from "types/Icon.type";
 
 import { WorldCategoryCapabilities } from "./WorldCategoryCapabilities";
 import { WorldCategoryIconPicker } from "./WorldCategoryIconPicker";
-import { editorError } from "./categoryEditor.utils";
+import { getEditorErrorMessage } from "./categoryEditor.utils";
 
 export interface CategoryDraft {
   name: string;
@@ -54,15 +54,7 @@ export function WorldCategoryEditor({
       await onSave({ ...draft, name: draft.name.trim() });
       onClose();
     } catch (cause) {
-      setError(
-        editorError(
-          cause,
-          t(
-            "worlds.categories.save-error",
-            "Could not save this category. Please try again.",
-          ),
-        ),
-      );
+      setError(getEditorErrorMessage(cause));
     } finally {
       setSaving(false);
     }

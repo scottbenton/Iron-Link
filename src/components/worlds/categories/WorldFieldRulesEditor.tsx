@@ -86,24 +86,23 @@ export function WorldFieldRulesEditor({
           )}
         </Typography>
       ) : (
-        <WorldConfigurationSortList
-          items={ids.map((id, index) => ({
-            id,
-            label: t("worlds.fields.rule-number", "Rule {{number}}", {
-              number: index + 1,
-            }),
-          }))}
-          onReorder={(next) => {
-            if (disabled) return;
-            onChange(next.map((id) => rules[ids.indexOf(id)]));
-            setIds(next);
-          }}
-        >
-          <Stack spacing={1}>
-            {rules.map((rule, index) => (
+        <Stack spacing={1}>
+          <WorldConfigurationSortList
+            items={rules.map((rule, index) => ({ id: ids[index], rule }))}
+            getLabel={({ id }) =>
+              t("worlds.fields.rule-number", "Rule {{number}}", {
+                number: ids.indexOf(id) + 1,
+              })
+            }
+            onReorder={(next) => {
+              if (disabled) return;
+              onChange(next.map((id) => rules[ids.indexOf(id)]));
+              setIds(next);
+            }}
+            renderItem={({ id, rule }, index) => (
               <WorldSortableFieldRule
-                key={ids[index]}
-                id={ids[index]}
+                key={id}
+                id={id}
                 index={index}
                 readOnly={readOnly}
                 disabled={disabled}
@@ -126,9 +125,9 @@ export function WorldFieldRulesEditor({
                   }
                 />
               </WorldSortableFieldRule>
-            ))}
-          </Stack>
-        </WorldConfigurationSortList>
+            )}
+          />
+        </Stack>
       )}
     </WorldEditorSection>
   );

@@ -119,7 +119,7 @@ export function WorldFieldConditionEditor({
           )}
           {selectable.map((field) => (
             <MenuItem key={field.id} value={field.id}>
-              {fieldChoiceLabel(field, fields)}
+              {fieldChoiceLabel(field, fields, t)}
             </MenuItem>
           ))}
         </TextField>
@@ -228,7 +228,7 @@ export function WorldFieldConditionEditor({
               )}
             {textFields.map((field) => (
               <MenuItem key={field.id} value={field.id}>
-                {fieldChoiceLabel(field, fields)}
+                {fieldChoiceLabel(field, fields, t)}
               </MenuItem>
             ))}
           </TextField>

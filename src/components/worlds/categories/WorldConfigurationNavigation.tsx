@@ -52,7 +52,7 @@ export function WorldConfigurationNavigation({
   canEdit: boolean;
   disabled: boolean;
   onAdd: () => void;
-  onReorder: (ids: string[]) => void;
+  onReorder: (ids: string[]) => Promise<void>;
 }) {
   const { t } = useTranslation();
   const customized = useWorldCategoriesStore(
@@ -178,13 +178,10 @@ export function WorldConfigurationNavigation({
           }
         >
           <WorldConfigurationSortList
-            items={categories.map((category) => ({
-              id: category.id,
-              label: category.name,
-            }))}
+            items={categories}
+            getLabel={(category) => category.name}
             onReorder={onReorder}
-          >
-            {categories.map((category) => (
+            renderItem={(category) => (
               <WorldSettingsCategoryItem
                 key={category.id}
                 category={category}
@@ -196,8 +193,8 @@ export function WorldConfigurationNavigation({
                   categoryId: category.id,
                 })}
               />
-            ))}
-          </WorldConfigurationSortList>
+            )}
+          />
           {canEdit && (
             <ListItemButton
               component="button"

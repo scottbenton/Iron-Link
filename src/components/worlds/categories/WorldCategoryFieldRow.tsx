@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 
 import { IWorldFieldDefinition } from "services/worldFieldDefinitions.service";
 
-import { FIELD_TYPE_LABELS } from "./categoryEditor.utils";
+import { getFieldTypeLabel } from "./categoryEditor.utils";
 
 export function WorldCategoryFieldRow({
   field,
@@ -50,7 +50,7 @@ export function WorldCategoryFieldRow({
   });
   const rules = field.configuration.rules.length;
   const details = [
-    t(`worlds.fields.type-${field.type}`, FIELD_TYPE_LABELS[field.type]),
+    getFieldTypeLabel(t, field.type),
     rules === 1
       ? t("worlds.fields.rule-count-one", "1 rule")
       : rules > 1

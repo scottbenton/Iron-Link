@@ -1,8 +1,13 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { ConfirmProvider } from "material-ui-confirm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { WorldCategoriesService } from "services/worldCategories.service";
 
 import { WorldCategoryFields } from "../WorldCategoryFields";
 import { category, field, translate } from "./fixtures";
@@ -12,7 +17,8 @@ const actions = vi.hoisted(() => ({
   createFieldDefinition: vi.fn(),
   updateFieldDefinition: vi.fn(),
   deleteFieldDefinition: vi.fn(),
-  reorderFields: vi.fn(),
+  reorderFieldDefinitions: vi.fn(),
+  getCategoryCounts: vi.fn(),
 }));
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("react-i18next", async (importOriginal) => ({
@@ -33,24 +39,9 @@ beforeEach(() => {
 });
 
 describe("WorldCategoryFields", () => {
-  it("hides retired GM Notes without deleting private values", () => {
-    render(
-      <WorldCategoryFields
-        configurationReady
-        category={category}
-        fields={[field({ key: "gmNotes", label: "GM Notes", gmOnly: true })]}
-        canEdit
-        canDelete
-      />,
-    );
-    expect(screen.queryByText("GM Notes")).not.toBeInTheDocument();
-    expect(screen.getByText("Notes")).toBeInTheDocument();
-    expect(actions.deleteFieldDefinition).not.toHaveBeenCalled();
-  });
-
   it("lets guides add and edit but hides delete; readers get configuration only", async () => {
     const user = userEvent.setup();
-    vi.spyOn(WorldCategoriesService, "getCategoryCounts").mockResolvedValue({
+    actions.getCategoryCounts.mockResolvedValue({
       entryCount: 0,
       valueCounts: {},
     });
@@ -62,6 +53,7 @@ describe("WorldCategoryFields", () => {
         canEdit
         canDelete={false}
       />,
+      { wrapper: ConfirmProvider },
     );
     expect(screen.getByRole("button", { name: "Add field" })).toBeEnabled();
     expect(
@@ -99,7 +91,7 @@ describe("WorldCategoryFields", () => {
   it("warns with the stored value count and honors canceled deletion", async () => {
     const user = userEvent.setup();
     const definition = field();
-    vi.spyOn(WorldCategoriesService, "getCategoryCounts").mockResolvedValue({
+    actions.getCategoryCounts.mockResolvedValue({
       entryCount: 3,
       valueCounts: { [definition.id]: 3 },
     });
@@ -111,6 +103,7 @@ describe("WorldCategoryFields", () => {
         canEdit
         canDelete
       />,
+      { wrapper: ConfirmProvider },
     );
     await user.click(screen.getByRole("button", { name: "Edit Description" }));
     await user.click(
@@ -118,7 +111,9 @@ describe("WorldCategoryFields", () => {
     );
     expect(await screen.findByText(/3 stored values/)).toBeInTheDocument();
     // Only the confirmation is exposed while it sits over the editor.
-    await user.click(
+    // Clicks inside it use fireEvent: user-event's synchronous focus patch
+    // makes the two MUI focus traps recurse in jsdom.
+    fireEvent.click(
       within(screen.getByRole("dialog")).getByRole("button", {
         name: "Cancel",
       }),
@@ -131,7 +126,7 @@ describe("WorldCategoryFields", () => {
       expect(screen.getByRole("dialog")).toHaveTextContent("Edit field"),
     );
     await user.click(screen.getByRole("button", { name: "Delete field" }));
-    await user.click(await screen.findByRole("button", { name: "Delete" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Delete" }));
     await waitFor(() =>
       expect(actions.deleteFieldDefinition).toHaveBeenCalledWith(definition.id),
     );
@@ -164,8 +159,9 @@ describe("WorldCategoryFields", () => {
         canEdit
         canDelete
       />,
+      { wrapper: ConfirmProvider },
     );
-    vi.spyOn(WorldCategoriesService, "getCategoryCounts").mockResolvedValue({
+    actions.getCategoryCounts.mockResolvedValue({
       entryCount: 0,
       valueCounts: {},
     });
@@ -185,7 +181,8 @@ describe("WorldCategoryFields", () => {
     const user = userEvent.setup();
     const first = field({ label: "Type" });
     const second = field({ id: "second", label: "Region", sortOrder: 1 });
-    const reorder = actions.reorderFields.mockResolvedValue(undefined);
+    const reorder =
+      actions.reorderFieldDefinitions.mockResolvedValue(undefined);
     render(
       <WorldCategoryFields
         configurationReady
@@ -194,6 +191,7 @@ describe("WorldCategoryFields", () => {
         canEdit
         canDelete
       />,
+      { wrapper: ConfirmProvider },
     );
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
       function (this: HTMLElement) {
@@ -220,7 +218,7 @@ describe("WorldCategoryFields", () => {
     );
   });
 
-  it("creates a fresh UUID-backed key for a repeated label and normalizes suggestions", async () => {
+  it("creates a new field for a repeated label and normalizes suggestions", async () => {
     const user = userEvent.setup();
     actions.createFieldDefinition.mockResolvedValue("created");
     render(
@@ -231,6 +229,7 @@ describe("WorldCategoryFields", () => {
         canEdit
         canDelete
       />,
+      { wrapper: ConfirmProvider },
     );
     await user.click(screen.getByRole("button", { name: "Add field" }));
     await user.type(
@@ -245,10 +244,9 @@ describe("WorldCategoryFields", () => {
     await waitFor(() =>
       expect(actions.createFieldDefinition).toHaveBeenCalled(),
     );
-    const draft = actions.createFieldDefinition.mock.calls[0][2];
-    expect(draft.id).toMatch(/^[a-f0-9-]{36}$/);
-    expect(draft.id).not.toBe(field().id);
-    expect(draft.key).toBe(`field_${draft.id.replace(/-/g, "")}`);
+    const [categoryId, draft] = actions.createFieldDefinition.mock.calls[0];
+    expect(categoryId).toBe(category.id);
+    expect(draft.label).toBe("Description");
     expect(draft.configuration.suggestions).toEqual(["Planet", "Star"]);
   });
 });

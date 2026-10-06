@@ -7,40 +7,33 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
+import { useConfirm } from "material-ui-confirm";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { v4 as uuid } from "uuid";
 
 import { WorldSettingsSection } from "components/worlds/WorldSettingsSection";
 
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 
 import {
-  generateWorldFieldKey,
   isWorldCategoryReferenceType,
   withoutWorldFieldOracleBindings,
 } from "lib/worldFieldRules";
 
-import {
-  IWorldCategory,
-  WorldCategoriesService,
-} from "services/worldCategories.service";
+import { IWorldCategory } from "services/worldCategories.service";
 import {
   IWorldFieldDefinition,
   WorldFieldType,
 } from "services/worldFieldDefinitions.service";
 
 import { WorldCategoryFieldRow } from "./WorldCategoryFieldRow";
-import { WorldConfigurationDeleteDialog } from "./WorldConfigurationDeleteDialog";
 import { WorldConfigurationSortList } from "./WorldConfigurationSortList";
 import { FieldDraft, WorldFieldEditor } from "./WorldFieldEditor";
 import {
-  editorError,
   fieldChoiceLabel,
+  getEditorErrorMessage,
   getReferencingFields,
-  isRetiredGMNotes,
 } from "./categoryEditor.utils";
-import { useWorldConfigurationDeleteConfirmation } from "./useWorldConfigurationDeleteConfirmation";
 
 export function WorldCategoryFields({
   category,
@@ -56,8 +49,13 @@ export function WorldCategoryFields({
   configurationReady: boolean;
 }) {
   const { t } = useTranslation();
-  const visibleFields = fields.filter((field) => !isRetiredGMNotes(field));
-  const reorderFields = useWorldCategoriesStore((store) => store.reorderFields);
+  const confirm = useConfirm();
+  const reorderFields = useWorldCategoriesStore(
+    (store) => store.reorderFieldDefinitions,
+  );
+  const getCategoryCounts = useWorldCategoriesStore(
+    (store) => store.getCategoryCounts,
+  );
   const targetCategories = useWorldCategoriesStore((store) =>
     Object.values(store.categories)
       .filter((candidate) => candidate.worldId === category.worldId)
@@ -65,11 +63,6 @@ export function WorldCategoryFields({
         (a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name),
       ),
   );
-  const {
-    confirm,
-    request: deleteRequest,
-    answer: answerDelete,
-  } = useWorldConfigurationDeleteConfirmation();
   const createField = useWorldCategoriesStore(
     (store) => store.createFieldDefinition,
   );
@@ -91,15 +84,7 @@ export function WorldCategoryFields({
     try {
       await action();
     } catch (cause) {
-      setError(
-        editorError(
-          cause,
-          t(
-            "worlds.fields.action-error",
-            "Could not update these fields. Please try again.",
-          ),
-        ),
-      );
+      setError(getEditorErrorMessage(cause));
     } finally {
       setBusy(false);
     }
@@ -110,10 +95,7 @@ export function WorldCategoryFields({
         setEditor({ field, valueCount: 0 });
         return;
       }
-      const counts = await WorldCategoriesService.getCategoryCounts(
-        category.worldId,
-        category.id,
-      );
+      const counts = await getCategoryCounts(category.id);
       setEditor({ field, valueCount: counts.valueCounts[field.id] ?? 0 });
     });
   // Called from the field editor, which shows any error and closes itself
@@ -127,16 +109,13 @@ export function WorldCategoryFields({
           "This field is used by conditions in {{fields}}. Remove or redirect those conditions before deleting it.",
           {
             fields: references
-              .map((reference) => fieldChoiceLabel(reference, fields))
+              .map((reference) => fieldChoiceLabel(reference, fields, t))
               .join(", "),
           },
         ),
       );
     }
-    const counts = await WorldCategoriesService.getCategoryCounts(
-      category.worldId,
-      category.id,
-    );
+    const counts = await getCategoryCounts(category.id);
     const { confirmed } = await confirm({
       title: t("worlds.fields.delete", "Delete field"),
       description: t(
@@ -149,13 +128,7 @@ export function WorldCategoryFields({
     if (confirmed) await deleteField(field.id);
     return confirmed;
   };
-  const reorder = (ids: string[]) => {
-    let visibleIndex = 0;
-    const completeOrder = fields.map((field) =>
-      isRetiredGMNotes(field) ? field.id : ids[visibleIndex++],
-    );
-    return run(() => reorderFields(category.id, completeOrder));
-  };
+  const reorder = (ids: string[]) => run(() => reorderFields(category.id, ids));
   const save = async (draft: FieldDraft, createNew: boolean) => {
     const categoryReference = isWorldCategoryReferenceType(draft.type);
     const normalized = {
@@ -184,12 +157,8 @@ export function WorldCategoryFields({
     if (editor?.field && !createNew) {
       await updateField(editor.field.id, normalized);
     } else {
-      const id = uuid();
-      await createField(category.worldId, category.id, {
+      await createField(category.id, {
         ...normalized,
-        id,
-        key: generateWorldFieldKey(id),
-        binding: normalized.binding ?? undefined,
         sortOrder: fields.length
           ? Math.max(...fields.map((field) => field.sortOrder)) + 1
           : 0,
@@ -223,17 +192,14 @@ export function WorldCategoryFields({
       <Card variant="outlined">
         <List disablePadding>
           <WorldConfigurationSortList
-            items={visibleFields.map((field) => ({
-              id: field.id,
-              label: fieldChoiceLabel(field, fields),
-            }))}
+            items={fields}
+            getLabel={(field) => fieldChoiceLabel(field, fields, t)}
             onReorder={reorder}
-          >
-            {visibleFields.map((field) => (
+            renderItem={(field) => (
               <WorldCategoryFieldRow
                 key={field.id}
                 field={field}
-                label={fieldChoiceLabel(field, fields)}
+                label={fieldChoiceLabel(field, fields, t)}
                 subtitle={category.subtitleFieldDefinitionId === field.id}
                 canEdit={canEdit}
                 disabled={busy || !configurationReady}
@@ -241,9 +207,9 @@ export function WorldCategoryFields({
                 divider
                 onEdit={() => edit(field)}
               />
-            ))}
-          </WorldConfigurationSortList>
-          {visibleFields.length === 0 && (
+            )}
+          />
+          {fields.length === 0 && (
             <ListItem divider>
               <ListItemText
                 secondary={t(
@@ -266,16 +232,12 @@ export function WorldCategoryFields({
           </ListItem>
         </List>
       </Card>
-      <WorldConfigurationDeleteDialog
-        request={deleteRequest}
-        onAnswer={answerDelete}
-      />
       {editor && (
         <WorldFieldEditor
           key={editor.field?.id ?? "new"}
           worldId={category.worldId}
           field={editor.field}
-          fields={visibleFields}
+          fields={fields}
           categories={targetCategories}
           valueCount={editor.valueCount}
           readOnly={!canEdit}

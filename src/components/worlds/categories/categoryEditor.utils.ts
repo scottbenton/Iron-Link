@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+
 import { isWorldFieldConditionCompatible } from "lib/worldFieldRules";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
@@ -7,25 +9,29 @@ import {
   WorldFieldType,
 } from "services/worldFieldDefinitions.service";
 
-export const FIELD_TYPE_LABELS = {
-  [WorldFieldType.Text]: "Text",
-  [WorldFieldType.RichText]: "Rich text",
-  [WorldFieldType.OracleText]: "Oracle text",
-  [WorldFieldType.Tags]: "Tags",
-  [WorldFieldType.Number]: "Number",
-  [WorldFieldType.CategorySelect]: "Category select",
-  [WorldFieldType.CategoryMultiSelect]: "Category multi-select",
-};
-
-// Older customized worlds may retain private values for this retired field.
-// Keep those records intact while removing the field from configuration UI.
-export function isRetiredGMNotes(field: IWorldFieldDefinition): boolean {
-  return field.key === "gmNotes";
+export function getFieldTypeLabel(t: TFunction, type: WorldFieldType): string {
+  switch (type) {
+    case WorldFieldType.Text:
+      return t("worlds.fields.text", "Text");
+    case WorldFieldType.RichText:
+      return t("worlds.fields.rich-text", "Rich text");
+    case WorldFieldType.OracleText:
+      return t("worlds.fields.oracle-text", "Oracle text");
+    case WorldFieldType.Tags:
+      return t("worlds.fields.tags", "Tags");
+    case WorldFieldType.Number:
+      return t("worlds.fields.number", "Number");
+    case WorldFieldType.CategorySelect:
+      return t("worlds.fields.category-select", "Category select");
+    case WorldFieldType.CategoryMultiSelect:
+      return t("worlds.fields.category-multi-select", "Category multi-select");
+  }
 }
 
 export function fieldChoiceLabel(
   field: IWorldFieldDefinition,
   fields: IWorldFieldDefinition[],
+  t: TFunction,
 ) {
   const duplicates = fields.filter(
     (candidate) => candidate.label === field.label,
@@ -54,7 +60,7 @@ export function fieldChoiceLabel(
   ) {
     return `${field.label} (${context})`;
   }
-  return `${field.label} (${FIELD_TYPE_LABELS[field.type]}, ${duplicates.findIndex((candidate) => candidate.id === field.id) + 1})`;
+  return `${field.label} (${getFieldTypeLabel(t, field.type)}, ${duplicates.findIndex((candidate) => candidate.id === field.id) + 1})`;
 }
 
 export function isConditionField(field: IWorldFieldDefinition) {
@@ -81,10 +87,12 @@ export function getReferencingFields(
   );
 }
 
-export function editorError(error: unknown, fallback: string): string {
+// Repository errors already raise a snackbar, so editors only show their
+// own client-side messages (guards and validation) inline.
+export function getEditorErrorMessage(error: unknown): string | undefined {
   return error instanceof Error && !(error instanceof RepositoryError)
     ? error.message
-    : fallback;
+    : undefined;
 }
 
 export function getInvalidatedDependents(

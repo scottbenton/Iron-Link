@@ -9,7 +9,6 @@ import type { IWorldFieldDefinition } from "services/worldFieldDefinitions.servi
 
 import { WorldCategoryDetails } from "./WorldCategoryDetails";
 import { WorldCategoryFields } from "./WorldCategoryFields";
-import { isRetiredGMNotes } from "./categoryEditor.utils";
 
 export function WorldCategorySettings({
   category,
@@ -31,7 +30,7 @@ export function WorldCategorySettings({
     <Stack spacing={4}>
       <WorldCategoryDetails
         category={category}
-        fields={fields.filter((field) => !isRetiredGMNotes(field))}
+        fields={fields}
         readOnly={!canEdit}
         disabled={!configurationReady}
       />

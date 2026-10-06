@@ -51,7 +51,7 @@ export function WorldFieldRuleEditor({
         (candidate) => candidate.id === condition.fieldId,
       );
       const label = field
-        ? fieldChoiceLabel(field, fields)
+        ? fieldChoiceLabel(field, fields, t)
         : t("worlds.fields.missing-field", "Missing field");
       const comparison = {
         equals: t("worlds.fields.equals", "Equals"),

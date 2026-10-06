@@ -16,7 +16,6 @@ import {
 import deepEqual from "fast-deep-equal";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { validate as isUuid } from "uuid";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 
@@ -40,8 +39,8 @@ import { WorldEditorSection } from "./WorldEditorSection";
 import { WorldFieldFallbackEditor } from "./WorldFieldFallbackEditor";
 import { WorldFieldRulesEditor } from "./WorldFieldRulesEditor";
 import {
-  editorError,
   fieldChoiceLabel,
+  getEditorErrorMessage,
   validateFieldDraft,
 } from "./categoryEditor.utils";
 
@@ -89,7 +88,7 @@ export function WorldFieldEditor({
   const [error, setError] = useState<string>();
   const disabled = readOnly || saving;
   const targetCategories = categories.filter(
-    (category) => category.worldId === worldId && isUuid(category.id),
+    (category) => category.worldId === worldId,
   );
   const categoryReference = isWorldCategoryReferenceType(draft.type);
   const invalidTarget =
@@ -125,15 +124,7 @@ export function WorldFieldEditor({
       await onSave({ ...draft, label: draft.label.trim() }, createNew);
       onClose();
     } catch (cause) {
-      setError(
-        editorError(
-          cause,
-          t(
-            "worlds.fields.save-error",
-            "Could not save this field. Please try again.",
-          ),
-        ),
-      );
+      setError(getEditorErrorMessage(cause));
     } finally {
       setSaving(false);
     }
@@ -146,15 +137,7 @@ export function WorldFieldEditor({
     try {
       if (await onDelete()) onClose();
     } catch (cause) {
-      setError(
-        editorError(
-          cause,
-          t(
-            "worlds.fields.action-error",
-            "Could not update these fields. Please try again.",
-          ),
-        ),
-      );
+      setError(getEditorErrorMessage(cause));
     } finally {
       setDeleting(false);
     }
@@ -301,7 +284,9 @@ export function WorldFieldEditor({
                   "This change would invalidate conditions in {{fields}}. Update their conditions or Guide visibility first.",
                   {
                     fields: affected
-                      .map((dependent) => fieldChoiceLabel(dependent, fields))
+                      .map((dependent) =>
+                        fieldChoiceLabel(dependent, fields, t),
+                      )
                       .join(", "),
                   },
                 )}

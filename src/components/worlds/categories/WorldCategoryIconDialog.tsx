@@ -19,6 +19,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import type { TFunction } from "i18next";
 import { useDeferredValue, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { IconType } from "react-icons";
@@ -37,9 +38,29 @@ import {
 
 const BATCH_SIZE = 240;
 
-function colorLabel(color: IconColors) {
-  if (color === IconColors.White) return "Default";
-  return color.charAt(0).toUpperCase() + color.slice(1);
+function getColorLabel(t: TFunction, color: IconColors): string {
+  switch (color) {
+    case IconColors.White:
+      return t("worlds.categories.color-default", "Default");
+    case IconColors.Pink:
+      return t("worlds.categories.color-pink", "Pink");
+    case IconColors.Red:
+      return t("worlds.categories.color-red", "Red");
+    case IconColors.Orange:
+      return t("worlds.categories.color-orange", "Orange");
+    case IconColors.Yellow:
+      return t("worlds.categories.color-yellow", "Yellow");
+    case IconColors.Green:
+      return t("worlds.categories.color-green", "Green");
+    case IconColors.Blue:
+      return t("worlds.categories.color-blue", "Blue");
+    case IconColors.Purple:
+      return t("worlds.categories.color-purple", "Purple");
+    case IconColors.Grey:
+      return t("worlds.categories.color-grey", "Grey");
+    case IconColors.Brown:
+      return t("worlds.categories.color-brown", "Brown");
+  }
 }
 
 // Follows Crew Link's image editor: color swatches, a filterable scrolling
@@ -109,10 +130,7 @@ export function WorldCategoryIconDialog({
                 <ToggleButton
                   key={option}
                   value={option}
-                  aria-label={t(
-                    `worlds.categories.color-${option}`,
-                    colorLabel(option),
-                  )}
+                  aria-label={getColorLabel(t, option)}
                   sx={{ flexGrow: 1, px: 0.5, py: 1 }}
                 >
                   <Box

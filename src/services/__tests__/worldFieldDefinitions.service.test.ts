@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createWorldFieldConfiguration } from "lib/worldFieldRules";
 
+import { WorldFieldDefinitionsRepository } from "repositories/worldFieldDefinitions.repository";
+
 import {
   WorldFieldDefinitionsService,
   WorldFieldType,
@@ -55,5 +57,34 @@ describe("WorldFieldDefinitionsService", () => {
     expect(
       WorldFieldDefinitionsService.convertInheritedBindingsToDTO(undefined),
     ).toBeUndefined();
+  });
+
+  it("gives every new field its own identity and a key derived from it", async () => {
+    const add = vi
+      .spyOn(WorldFieldDefinitionsRepository, "addWorldFieldDefinition")
+      .mockResolvedValue();
+    const definition = {
+      label: "Description",
+      type: WorldFieldType.Text,
+      sortOrder: 0,
+    };
+
+    const first = await WorldFieldDefinitionsService.addWorldFieldDefinition(
+      "world",
+      "category",
+      definition,
+    );
+    const second = await WorldFieldDefinitionsService.addWorldFieldDefinition(
+      "world",
+      "category",
+      definition,
+    );
+
+    expect(first).not.toBe(second);
+    expect(add.mock.calls[0][2]).toMatchObject({
+      id: first,
+      key: `field_${first.replace(/-/g, "")}`,
+      label: "Description",
+    });
   });
 });

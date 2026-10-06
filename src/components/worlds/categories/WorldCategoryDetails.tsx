@@ -13,7 +13,10 @@ import type { IWorldFieldDefinition } from "services/worldFieldDefinitions.servi
 
 import { WorldCategoryCapabilities } from "./WorldCategoryCapabilities";
 import { WorldCategoryIconPicker } from "./WorldCategoryIconPicker";
-import { editorError, fieldChoiceLabel } from "./categoryEditor.utils";
+import {
+  fieldChoiceLabel,
+  getEditorErrorMessage,
+} from "./categoryEditor.utils";
 
 type CategoryChanges = Partial<Omit<IWorldCategory, "id" | "worldId">>;
 
@@ -54,15 +57,7 @@ export function WorldCategoryDetails({
           );
           return next;
         });
-        setError(
-          editorError(
-            cause,
-            t(
-              "worlds.categories.save-error",
-              "Could not save this category. Please try again.",
-            ),
-          ),
-        );
+        setError(getEditorErrorMessage(cause));
       });
     },
     [category.id, updateCategory, t],
@@ -137,7 +132,7 @@ export function WorldCategoryDetails({
           <MenuItem value="">{t("common.none", "None")}</MenuItem>
           {fields.map((field) => (
             <MenuItem key={field.id} value={field.id}>
-              {fieldChoiceLabel(field, fields)}
+              {fieldChoiceLabel(field, fields, t)}
             </MenuItem>
           ))}
         </TextField>

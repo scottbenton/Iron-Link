@@ -38,7 +38,7 @@ export function WorldConfigurationView({
   generalSettings: ReactNode;
   onAdd: () => void;
   onDelete: (category: IWorldCategory) => void;
-  onReorder: (ids: string[]) => void;
+  onReorder: (ids: string[]) => Promise<void>;
 }) {
   const { t } = useTranslation();
   const selectedId =
