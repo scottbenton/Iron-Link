@@ -2,7 +2,7 @@ import LinkOffIcon from "@mui/icons-material/LinkOff";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import { Box, Button } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 
@@ -91,20 +91,6 @@ export function GameWorldView(props: GameWorldViewProps) {
   const gameWorldId = useGameWorldId();
   const closeTabsMatching = useNotesStore((store) => store.closeTabsMatching);
 
-  const activeContext = useRef({ gameId, gameWorldId, isGuide, mounted: true });
-  activeContext.current = {
-    ...activeContext.current,
-    gameId,
-    gameWorldId,
-    isGuide,
-  };
-  useEffect(() => {
-    activeContext.current.mounted = true;
-    return () => {
-      activeContext.current.mounted = false;
-    };
-  }, []);
-
   const [unlinking, setUnlinking] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
 
@@ -119,22 +105,13 @@ export function GameWorldView(props: GameWorldViewProps) {
       confirmationText: t("worlds.game.unlink-world", "Unlink World"),
     })
       .then((result) => {
-        const current = activeContext.current;
-        if (
-          !result?.confirmed ||
-          !current.mounted ||
-          !current.isGuide ||
-          current.gameId !== gameId ||
-          current.gameWorldId !== worldId
-        ) {
+        if (!result?.confirmed) {
           return;
         }
         setUnlinking(true);
         WorldsService.unlinkGameFromWorld(gameId)
           .then(() => {
-            const completed = activeContext.current;
-            if (completed.mounted && completed.gameId === gameId)
-              closeTabsMatching("world", worldId);
+            closeTabsMatching("world", worldId);
           })
           .catch(() => {
             setUnlinking(false);

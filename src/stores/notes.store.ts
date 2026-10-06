@@ -124,7 +124,7 @@ interface NotesStoreActions {
 
   reset: () => void;
 
-  switchToTab: (tabId: string) => void;
+  switchToTab: (tabId: string | null) => void;
   openItemTab: (params: {
     type: IOpenNoteItemType;
     id: string;
