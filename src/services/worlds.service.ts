@@ -16,7 +16,6 @@ export interface IWorld {
   // ("world:starforged/forge"), or a bare package id when the package ships
   // truths but no worlds, or null for a blank world.
   settingKey: string | null;
-  configurationCustomized: boolean;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
@@ -119,7 +118,6 @@ export class WorldsService {
       name: world.name,
       description: world.description,
       settingKey: world.setting_key,
-      configurationCustomized: world.configuration_customized,
       createdBy: world.created_by,
       createdAt: new Date(world.created_at),
       updatedAt: new Date(world.updated_at),

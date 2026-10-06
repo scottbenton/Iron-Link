@@ -2,9 +2,9 @@ import { v4 as uuid } from "uuid";
 
 import { Json } from "types/supabase-generated.type";
 import {
-  WorldFieldType,
   type IWorldFieldDefinition,
   type OracleBinding,
+  WorldFieldType,
 } from "types/worldField.type";
 
 import {
@@ -14,51 +14,23 @@ import {
   normalizeWorldFieldConfiguration,
 } from "lib/worldFieldRules";
 
-import { RepositoryError } from "repositories/errors/RepositoryErrors";
-import type { DefaultWorldFieldBinding } from "repositories/worldConfiguration.repository";
-import {
-  WorldFieldDefinitionDTO,
-  WorldFieldDefinitionsRepository,
-} from "repositories/worldFieldDefinitions.repository";
+import type {
+  DefaultWorldFieldBinding,
+  WorldConfigurationFieldDTO,
+} from "repositories/worldConfiguration.repository";
+import { WorldFieldDefinitionsRepository } from "repositories/worldFieldDefinitions.repository";
 
 export { WorldFieldType } from "types/worldField.type";
-export type { IWorldFieldDefinition, OracleBinding } from "types/worldField.type";
+export type {
+  IWorldFieldDefinition,
+  OracleBinding,
+} from "types/worldField.type";
 
 export class WorldFieldDefinitionsService {
-  public static listenToWorldFieldDefinitions(
-    worldId: string,
-    onDefinitionChanges: (
-      changedDefinitions: Record<string, IWorldFieldDefinition>,
-      removedDefinitionIds: string[],
-      replaceState: boolean,
-    ) => void,
-    onError: (error: RepositoryError) => void,
-  ): () => void {
-    return WorldFieldDefinitionsRepository.listenToWorldFieldDefinitions(
-      worldId,
-      (changedDefinitions, removedDefinitionIds, replaceState) =>
-        onDefinitionChanges(
-          Object.fromEntries(
-            Object.entries(changedDefinitions).map(
-              ([definitionId, definition]) => [
-                definitionId,
-                this.convertDefinitionDTOToDefinition(definition),
-              ],
-            ),
-          ),
-          removedDefinitionIds,
-          replaceState,
-        ),
-      onError,
-    );
-  }
-
-  public static addWorldFieldDefinition(
+  public static async addWorldFieldDefinition(
     worldId: string,
     categoryId: string,
     definition: {
-      id?: string;
-      key?: string;
       label: string;
       type: WorldFieldType;
       binding?: OracleBinding | null;
@@ -68,13 +40,15 @@ export class WorldFieldDefinitionsService {
     },
     defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<string> {
-    const id = definition.id ?? uuid();
-    return WorldFieldDefinitionsRepository.addWorldFieldDefinition(
+    const id = uuid();
+    await WorldFieldDefinitionsRepository.addWorldFieldDefinition(
+      worldId,
+      categoryId,
       {
         id,
-        world_id: worldId,
-        category_id: categoryId,
-        key: definition.key ?? generateWorldFieldKey(id),
+        // User fields get a stable key tied to their identity, never their
+        // label, so renaming or reusing a label cannot collide.
+        key: generateWorldFieldKey(id),
         label: definition.label,
         type: definition.type,
         binding: (definition.binding ?? null) as unknown as Json,
@@ -85,13 +59,14 @@ export class WorldFieldDefinitionsService {
       },
       defaultBindings,
     );
+    return id;
   }
 
   public static updateWorldFieldDefinition(
     worldId: string,
     definitionId: string,
     definition: Partial<
-      Omit<IWorldFieldDefinition, "id" | "worldId" | "categoryId">
+      Omit<IWorldFieldDefinition, "id" | "worldId" | "categoryId" | "key">
     >,
     defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<void> {
@@ -128,8 +103,22 @@ export class WorldFieldDefinitionsService {
     );
   }
 
-  private static convertDefinitionDTOToDefinition(
-    definition: WorldFieldDefinitionDTO,
+  public static reorderWorldFieldDefinitions(
+    worldId: string,
+    categoryId: string,
+    definitionIds: string[],
+    defaultBindings?: DefaultWorldFieldBinding[],
+  ): Promise<void> {
+    return WorldFieldDefinitionsRepository.reorderWorldFieldDefinitions(
+      worldId,
+      categoryId,
+      definitionIds,
+      defaultBindings,
+    );
+  }
+
+  public static convertDefinitionDTOToDefinition(
+    definition: WorldConfigurationFieldDTO,
   ): IWorldFieldDefinition {
     let type: WorldFieldType;
     switch (definition.type) {

@@ -115,15 +115,15 @@ export function buildWorldOracleCatalog(
 export async function loadWorldOracleCatalog({
   linkedGames,
   settingKey,
-  bindings = [],
+  bindingPackageIds: bindingPackages = [],
   allPackages = false,
 }: {
   linkedGames: LinkedGamePlayset[];
   settingKey: string | null;
-  bindings?: OracleBinding[];
+  // Packages that existing bindings point at; see getBindingPackageIds.
+  bindingPackageIds?: string[];
   allPackages?: boolean;
 }): Promise<WorldOracleCatalog> {
-  const bindingPackages = getBindingPackageIds(bindings);
   const effectivePlayset = computeEffectivePlayset(linkedGames, [
     ...getWorldSettingPackageIds(settingKey),
     ...bindingPackages,

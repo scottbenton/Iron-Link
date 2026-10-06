@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { computeEffectivePlayset } from "../effectivePlayset";
 import {
   buildWorldOracleCatalog,
+  getBindingPackageIds,
   getFrozenWorldOracleBinding,
   getWorldOracleChoices,
   loadWorldOracleCatalog,
@@ -127,13 +128,13 @@ describe("world oracle catalog", () => {
       settingKey: null,
       linkedGames: [],
       allPackages: true,
-      bindings: [
+      bindingPackageIds: getBindingPackageIds([
         {
           packageId: "missing",
           oracleId: "oracle_rollable:missing/a",
           resolvedOracleId: "oracle_rollable:missing/a",
         },
-      ],
+      ]),
     });
     expect(all.choices.length).toBeGreaterThan(100);
     expect(all.missingPackageIds).toEqual(["missing"]);

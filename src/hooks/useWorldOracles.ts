@@ -1,27 +1,18 @@
-import { useCallback } from "react";
+import { useWorldOraclesStore } from "stores/worldOracles.store";
 
-import { useWorldResourcesStore } from "stores/worldResources.store";
-
-/** Reads oracle resources owned by the active world subscription. */
+// The oracle catalog for the world whose oracles are loaded (see
+// useListenToWorldOracles), or a loading state for any other world.
 export function useWorldOracles(worldId: string) {
-  const oracles = useWorldResourcesStore((store) => {
+  const oracles = useWorldOraclesStore((store) => {
     const matchesWorld = store.worldId === worldId;
     return {
-      worldId,
       catalog: matchesWorld ? store.catalog : null,
       loading: !matchesWorld || store.loading,
       error: matchesWorld ? store.error : undefined,
-      allPackages: matchesWorld && store.allPackages,
+      allPackages: store.allPackages,
     };
   });
-  const setAllPackages = useWorldResourcesStore(
-    (store) => store.setAllPackages,
-  );
-  const refresh = useWorldResourcesStore((store) => store.refresh);
-  const updateAllPackages = useCallback(
-    (value: boolean) => setAllPackages(worldId, value),
-    [worldId, setAllPackages],
-  );
-  const retry = useCallback(() => refresh(worldId), [worldId, refresh]);
-  return { ...oracles, setAllPackages: updateAllPackages, retry };
+  const setAllPackages = useWorldOraclesStore((store) => store.setAllPackages);
+  const retry = useWorldOraclesStore((store) => store.retry);
+  return { ...oracles, setAllPackages, retry };
 }

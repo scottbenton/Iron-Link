@@ -1,7 +1,4 @@
-import {
-  RealtimeChannel,
-  RealtimePostgresChangesPayload,
-} from "@supabase/supabase-js";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 import { supabase } from "lib/supabase.lib";
 
@@ -12,11 +9,7 @@ export function createSubscription<T extends { [key: string]: any }>(
   filter: string | string[],
   startInitialLoad: () => void,
   onPayload: (payload: RealtimePostgresChangesPayload<T>) => void,
-  options: { refreshOnSubscribe?: boolean } = {},
 ) {
-  let disposed = false;
-  let restarting = false;
-  let subscription: RealtimeChannel | undefined;
   startInitialLoad();
 
   const createSubscription = () => {
@@ -33,7 +26,7 @@ export function createSubscription<T extends { [key: string]: any }>(
             filter: f,
           },
           (payload) => {
-            if (!disposed && subscription === channel) onPayload(payload);
+            onPayload(payload);
           },
         );
       });
@@ -47,41 +40,22 @@ export function createSubscription<T extends { [key: string]: any }>(
           filter,
         },
         (payload) => {
-          if (!disposed && subscription === channel) onPayload(payload);
+          onPayload(payload);
         },
       );
     }
-    subscription = channel;
-    channel.subscribe((status) => {
-      if (
-        options.refreshOnSubscribe &&
-        status === "SUBSCRIBED" &&
-        !disposed &&
-        subscription === channel
-      ) {
-        startInitialLoad();
-      }
-    });
+    return channel.subscribe();
   };
 
-  createSubscription();
+  let subscription = createSubscription();
 
   const startListening = async () => {
-    if (document.hidden || disposed || restarting) return;
-    restarting = true;
-    const previousSubscription = subscription;
-    subscription = undefined;
-    try {
-      try {
-        await previousSubscription?.unsubscribe();
-      } catch (error) {
-        console.error(error);
+    if (!document.hidden) {
+      if (subscription) {
+        await subscription.unsubscribe();
       }
-      if (disposed) return;
       startInitialLoad();
-      if (!disposed) createSubscription();
-    } finally {
-      restarting = false;
+      subscription = createSubscription();
     }
   };
 
@@ -89,9 +63,7 @@ export function createSubscription<T extends { [key: string]: any }>(
   window.addEventListener("online", startListening);
 
   return () => {
-    disposed = true;
-    subscription?.unsubscribe();
-    subscription = undefined;
+    subscription.unsubscribe();
     window.removeEventListener("visibilitychange", startListening);
     window.removeEventListener("online", startListening);
   };

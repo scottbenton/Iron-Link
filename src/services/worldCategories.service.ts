@@ -1,12 +1,13 @@
+import { v4 as uuid } from "uuid";
+
 import { IconDefinition } from "types/Icon.type";
 import { Json } from "types/supabase-generated.type";
 
-import { RepositoryError } from "repositories/errors/RepositoryErrors";
-import {
-  WorldCategoriesRepository,
-  WorldCategoryDTO,
-} from "repositories/worldCategories.repository";
-import type { DefaultWorldFieldBinding } from "repositories/worldConfiguration.repository";
+import { WorldCategoriesRepository } from "repositories/worldCategories.repository";
+import type {
+  DefaultWorldFieldBinding,
+  WorldConfigurationCategoryDTO,
+} from "repositories/worldConfiguration.repository";
 
 export interface IWorldCategory {
   id: string;
@@ -23,63 +24,7 @@ export interface IWorldCategory {
 }
 
 export class WorldCategoriesService {
-  public static reorderCategories(
-    worldId: string,
-    ids: string[],
-    defaultBindings?: DefaultWorldFieldBinding[],
-  ) {
-    return WorldCategoriesRepository.reorderCategories(
-      worldId,
-      ids,
-      defaultBindings,
-    );
-  }
-
-  public static reorderFields(
-    worldId: string,
-    categoryId: string,
-    ids: string[],
-    defaultBindings?: DefaultWorldFieldBinding[],
-  ) {
-    return WorldCategoriesRepository.reorderFields(
-      worldId,
-      categoryId,
-      ids,
-      defaultBindings,
-    );
-  }
-
-  public static getCategoryCounts(worldId: string, categoryId: string) {
-    return WorldCategoriesRepository.getCategoryCounts(worldId, categoryId);
-  }
-
-  public static listenToWorldCategories(
-    worldId: string,
-    onWorldCategoryChanges: (
-      changedCategories: Record<string, IWorldCategory>,
-      removedCategoryIds: string[],
-      replaceState: boolean,
-    ) => void,
-    onError: (error: RepositoryError) => void,
-  ): () => void {
-    return WorldCategoriesRepository.listenToWorldCategories(
-      worldId,
-      (changedCategories, removedCategoryIds, replaceState) =>
-        onWorldCategoryChanges(
-          Object.fromEntries(
-            Object.entries(changedCategories).map(([categoryId, category]) => [
-              categoryId,
-              this.convertWorldCategoryDTOToWorldCategory(category),
-            ]),
-          ),
-          removedCategoryIds,
-          replaceState,
-        ),
-      onError,
-    );
-  }
-
-  public static addWorldCategory(
+  public static async addWorldCategory(
     worldId: string,
     category: {
       name: string;
@@ -91,9 +36,11 @@ export class WorldCategoriesService {
     },
     defaultBindings?: DefaultWorldFieldBinding[],
   ): Promise<string> {
-    return WorldCategoriesRepository.addWorldCategory(
+    const id = uuid();
+    await WorldCategoriesRepository.addWorldCategory(
+      worldId,
       {
-        world_id: worldId,
+        id,
         name: category.name,
         icon: (category.icon ?? null) as unknown as Json,
         sort_order: category.sortOrder,
@@ -103,6 +50,7 @@ export class WorldCategoriesService {
       },
       defaultBindings,
     );
+    return id;
   }
 
   public static updateWorldCategory(
@@ -142,8 +90,20 @@ export class WorldCategoriesService {
     );
   }
 
-  private static convertWorldCategoryDTOToWorldCategory(
-    category: WorldCategoryDTO,
+  public static reorderWorldCategories(
+    worldId: string,
+    categoryIds: string[],
+    defaultBindings?: DefaultWorldFieldBinding[],
+  ): Promise<void> {
+    return WorldCategoriesRepository.reorderWorldCategories(
+      worldId,
+      categoryIds,
+      defaultBindings,
+    );
+  }
+
+  public static convertWorldCategoryDTOToWorldCategory(
+    category: WorldConfigurationCategoryDTO,
   ): IWorldCategory {
     return {
       id: category.id,

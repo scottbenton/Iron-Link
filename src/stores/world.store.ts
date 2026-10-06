@@ -13,7 +13,6 @@ import {
 import { IWorld, WorldsService } from "services/worlds.service";
 
 import { useUID } from "./auth.store";
-import { useWorldResourcesStore } from "./worldResources.store";
 
 interface WorldStoreState {
   worldId: string;
@@ -65,184 +64,128 @@ const defaultWorldStoreState: WorldStoreState = {
   worldPlayers: null,
   worldPermission: null,
   loading: true,
-  error: undefined,
   worldDeleted: false,
 };
 
 export const useWorldStore = createWithEqualityFn<
   WorldStoreState & WorldStoreActions
 >()(
-  immer((set) => {
-    let currentSubscription: symbol | undefined;
-    let currentPermissionRequest:
-      | {
-          uid: string | undefined;
-          subscription: symbol | undefined;
-        }
-      | undefined;
-    return {
-      ...defaultWorldStoreState,
+  immer((set) => ({
+    ...defaultWorldStoreState,
 
-      listenToWorld: (worldId: string) => {
-        const subscription = Symbol(worldId);
-        currentSubscription = subscription;
-        currentPermissionRequest = undefined;
-        let active = true;
-        const isCurrent = () => active && currentSubscription === subscription;
-        set((state) => ({ ...state, ...defaultWorldStoreState, worldId }));
+    listenToWorld: (worldId: string) => {
+      set((state) => {
+        state.worldId = worldId;
+      });
 
-        const resources = useWorldResourcesStore
-          .getState()
-          .observeWorld(worldId);
-        const worldUnsubscribe = WorldsService.listenToWorld(
-          worldId,
-          (world) => {
-            if (!isCurrent() || world.id !== worldId) return;
-            resources.receiveWorld(world);
-            set((state) => {
-              if (
-                !isCurrent() ||
-                state.worldId !== worldId ||
-                world.id !== worldId
-              )
-                return;
-              state.worldDeleted = false;
-              state.world = world;
-              state.loading = false;
-              state.error = undefined;
-            });
-          },
-          () => {
-            set((state) => {
-              if (!isCurrent() || state.worldId !== worldId) return;
-              resources.stop();
-              state.worldDeleted = true;
-              state.loading = false;
-            });
-          },
-          (error) => {
-            set((state) => {
-              if (!isCurrent() || state.worldId !== worldId) return;
-              console.error(error);
-              state.loading = false;
-              state.error = "Failed to load world";
-            });
-          },
-        );
-
-        const worldPlayersUnsubscribe =
-          WorldPlayersService.listenToWorldPlayers(
-            worldId,
-            (changedPlayers, removedPlayerIds, replaceState) => {
-              set((state) => {
-                if (!isCurrent() || state.worldId !== worldId) return;
-                if (replaceState) {
-                  state.worldPlayers = changedPlayers;
-                } else {
-                  state.worldPlayers = {
-                    ...state.worldPlayers,
-                    ...changedPlayers,
-                  };
-                  removedPlayerIds.forEach((userId) => {
-                    delete state.worldPlayers?.[userId];
-                  });
-                }
-              });
-            },
-            (error) => {
-              set((state) => {
-                if (!isCurrent() || state.worldId !== worldId) return;
-                console.error(error);
-                state.error = "Failed to load world players";
-              });
-            },
-          );
-
-        return () => {
-          if (!active) return;
-          active = false;
-          // An obsolete owner's cleanup must not reset a newer subscription,
-          // even when both subscribed to the same world identity.
-          if (currentSubscription === subscription) {
-            currentSubscription = undefined;
-            currentPermissionRequest = undefined;
-            set((state) =>
-              state.worldId === worldId
-                ? { ...state, ...defaultWorldStoreState }
-                : state,
-            );
-          }
-          resources.stop();
-          worldUnsubscribe();
-          worldPlayersUnsubscribe();
-        };
-      },
-
-      loadWorldPermission: (worldId, uid) => {
-        // A membership refresh or user change supersedes earlier role lookups,
-        // including requests for the same world identity.
-        const previousUID = currentPermissionRequest?.uid;
-        const request = {
-          uid,
-          subscription: currentSubscription,
-        };
-        currentPermissionRequest = request;
-        const isCurrent = () =>
-          currentPermissionRequest === request &&
-          currentSubscription === request.subscription;
-        if (uid && previousUID !== uid) {
+      const worldUnsubscribe = WorldsService.listenToWorld(
+        worldId,
+        (world) => {
           set((state) => {
-            if (isCurrent() && state.worldId === worldId)
-              state.worldPermission = null;
+            state.world = world;
+            state.loading = false;
+            state.error = undefined;
           });
-        }
-        if (!uid) {
+        },
+        () => {
           set((state) => {
-            if (isCurrent() && state.worldId === worldId)
-              state.worldPermission = WorldPermission.None;
+            state.worldDeleted = true;
+            state.loading = false;
           });
-          return;
-        }
-        WorldsService.getWorldPermission(worldId, uid)
-          .then((permission) => {
-            set((state) => {
-              if (isCurrent() && state.worldId === worldId)
-                state.worldPermission = permission;
-            });
-          })
-          .catch((error) => {
-            set((state) => {
-              if (!isCurrent() || state.worldId !== worldId) return;
-              console.error(error);
-              state.worldPermission = WorldPermission.None;
-            });
+        },
+        (error) => {
+          console.error(error);
+          set((state) => {
+            state.loading = false;
+            state.error = "Failed to load world";
           });
-      },
+        },
+      );
 
-      createWorld: (name, description, settingKey) => {
-        return WorldsService.createWorld(name, description, settingKey);
-      },
-      updateWorldName: (worldId, name) => {
-        return WorldsService.updateWorldName(worldId, name);
-      },
-      updateWorldDescription: (worldId, description) => {
-        return WorldsService.updateWorldDescription(worldId, description);
-      },
-      deleteWorld: (worldId) => {
-        return WorldsService.deleteWorld(worldId);
-      },
+      const worldPlayersUnsubscribe = WorldPlayersService.listenToWorldPlayers(
+        worldId,
+        (changedPlayers, removedPlayerIds, replaceState) => {
+          set((state) => {
+            if (replaceState) {
+              state.worldPlayers = changedPlayers;
+            } else {
+              state.worldPlayers = {
+                ...state.worldPlayers,
+                ...changedPlayers,
+              };
+              removedPlayerIds.forEach((userId) => {
+                delete state.worldPlayers?.[userId];
+              });
+            }
+          });
+        },
+        (error) => {
+          console.error(error);
+          set((state) => {
+            state.error = "Failed to load world players";
+          });
+        },
+      );
 
-      addWorldPlayer: (worldId, userId, role) => {
-        return WorldPlayersService.addWorldPlayer(worldId, userId, role);
-      },
-      updateWorldPlayerRole: (worldId, userId, role) => {
-        return WorldPlayersService.updateWorldPlayerRole(worldId, userId, role);
-      },
-      removeWorldPlayer: (worldId, userId) => {
-        return WorldPlayersService.removeWorldPlayer(worldId, userId);
-      },
-    };
-  }),
+      return () => {
+        set((state) => ({
+          ...state,
+          ...defaultWorldStoreState,
+        }));
+        worldUnsubscribe();
+        worldPlayersUnsubscribe();
+      };
+    },
+
+    loadWorldPermission: (worldId, uid) => {
+      if (!uid) {
+        set((state) => {
+          state.worldPermission = WorldPermission.None;
+        });
+        return;
+      }
+      WorldsService.getWorldPermission(worldId, uid)
+        .then((permission) => {
+          set((state) => {
+            // Ignore stale responses after switching worlds
+            if (state.worldId === worldId) {
+              state.worldPermission = permission;
+            }
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+          set((state) => {
+            if (state.worldId === worldId) {
+              state.worldPermission = WorldPermission.None;
+            }
+          });
+        });
+    },
+
+    createWorld: (name, description, settingKey) => {
+      return WorldsService.createWorld(name, description, settingKey);
+    },
+    updateWorldName: (worldId, name) => {
+      return WorldsService.updateWorldName(worldId, name);
+    },
+    updateWorldDescription: (worldId, description) => {
+      return WorldsService.updateWorldDescription(worldId, description);
+    },
+    deleteWorld: (worldId) => {
+      return WorldsService.deleteWorld(worldId);
+    },
+
+    addWorldPlayer: (worldId, userId, role) => {
+      return WorldPlayersService.addWorldPlayer(worldId, userId, role);
+    },
+    updateWorldPlayerRole: (worldId, userId, role) => {
+      return WorldPlayersService.updateWorldPlayerRole(worldId, userId, role);
+    },
+    removeWorldPlayer: (worldId, userId) => {
+      return WorldPlayersService.removeWorldPlayer(worldId, userId);
+    },
+  })),
   deepEqual,
 );
 
