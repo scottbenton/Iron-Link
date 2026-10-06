@@ -130,6 +130,11 @@ export function useListenToWorldOracles(worldId: string | undefined) {
   const settingKey = useWorldStore((store) =>
     store.world?.id === worldId ? store.world?.settingKey : undefined,
   );
+  // The database bumps the world row whenever a linked game's playset changes
+  // or a game is linked or unlinked, so its version marks a stale playset.
+  const worldVersion = useWorldStore((store) =>
+    store.world?.id === worldId ? store.world?.updatedAt.getTime() : undefined,
+  );
   // Bound packages stay loaded even when the playset no longer includes them,
   // so stored bindings can still be shown and repaired.
   const bindingPackageIds = useWorldCategoriesStore((store) =>
@@ -157,6 +162,7 @@ export function useListenToWorldOracles(worldId: string | undefined) {
   }, [
     worldId,
     settingKey,
+    worldVersion,
     bindingPackageIds,
     allPackages,
     attempt,

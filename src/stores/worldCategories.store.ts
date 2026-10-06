@@ -299,10 +299,11 @@ export function useListenToWorldConfiguration(worldId: string | undefined) {
   );
   const resetStore = useWorldCategoriesStore((store) => store.reset);
 
-  // A setting change replaces inherited defaults without touching any
-  // category or field rows, so only the world row announces it.
-  const settingKey = useWorldStore((store) =>
-    store.world?.id === worldId ? store.world?.settingKey : undefined,
+  // Inherited defaults change without touching any category or field rows:
+  // a setting change, or a template update. The database announces those by
+  // bumping the world row's updated_at.
+  const worldVersion = useWorldStore((store) =>
+    store.world?.id === worldId ? store.world?.updatedAt.getTime() : undefined,
   );
 
   useEffect(() => {
@@ -311,14 +312,18 @@ export function useListenToWorldConfiguration(worldId: string | undefined) {
     }
   }, [worldId, listenToWorldConfiguration]);
 
-  const previousSettingKey = useRef(settingKey);
+  const previousWorldVersion = useRef(worldVersion);
   useEffect(() => {
-    const previous = previousSettingKey.current;
-    previousSettingKey.current = settingKey;
-    if (previous !== undefined && settingKey !== undefined) {
+    const previous = previousWorldVersion.current;
+    previousWorldVersion.current = worldVersion;
+    if (
+      previous !== undefined &&
+      worldVersion !== undefined &&
+      previous !== worldVersion
+    ) {
       refreshWorldConfiguration().catch(() => {});
     }
-  }, [settingKey, refreshWorldConfiguration]);
+  }, [worldVersion, refreshWorldConfiguration]);
 
   useEffect(() => {
     return () => {
