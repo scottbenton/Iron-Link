@@ -11,6 +11,12 @@ const queryKeys = [
   "note-category-id",
 ];
 
+// The raw destination query values, so callers can tell when the URL itself
+// changed, including to an invalid destination.
+export function getNotesDestinationQuery(params: URLSearchParams): string {
+  return queryKeys.map((key) => params.get(key) ?? "").join("\u0000");
+}
+
 export function readNotesDestination(
   params: URLSearchParams,
 ): IOpenNoteItem | undefined {

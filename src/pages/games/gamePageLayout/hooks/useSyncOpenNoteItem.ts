@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router";
 import { useNotesStore } from "stores/notes.store";
 
 import {
+  getNotesDestinationQuery,
   notesDestinationKey,
   readNotesDestination,
   writeNotesDestination,
@@ -14,6 +15,7 @@ export function useSyncOpenNoteItem() {
     store.openTabId ? store.noteTabItems[store.openTabId] : null,
   );
   const setOpenItem = useNotesStore((store) => store.openItemTab);
+  const switchToTab = useNotesStore((store) => store.switchToTab);
   const [searchParams, setSearchParams] = useSearchParams();
   const previousURL = useRef<string | undefined>(undefined);
 
@@ -21,14 +23,7 @@ export function useSyncOpenNoteItem() {
   // writes just our query keys. Recording our own write avoids a feedback loop.
   useEffect(() => {
     const destination = readNotesDestination(searchParams);
-    const urlKey = [
-      "note-type",
-      "note-id",
-      "note-world-view",
-      "note-category-id",
-    ]
-      .map((key) => searchParams.get(key) ?? "")
-      .join("\u0000");
+    const urlKey = getNotesDestinationQuery(searchParams);
     const first = previousURL.current === undefined;
     const urlChanged = previousURL.current !== urlKey;
     previousURL.current = urlKey;
@@ -43,21 +38,14 @@ export function useSyncOpenNoteItem() {
           worldView: destination.worldView,
         });
       } else if (!destination && openItem) {
-        useNotesStore.setState({ openTabId: null });
+        switchToTab(null);
       }
       return;
     }
     const next = writeNotesDestination(searchParams, openItem);
     if (next.toString() !== searchParams.toString()) {
-      previousURL.current = [
-        "note-type",
-        "note-id",
-        "note-world-view",
-        "note-category-id",
-      ]
-        .map((key) => next.get(key) ?? "")
-        .join("\u0000");
+      previousURL.current = getNotesDestinationQuery(next);
       setSearchParams(next);
     }
-  }, [openItem, searchParams, setSearchParams, setOpenItem]);
+  }, [openItem, searchParams, setSearchParams, setOpenItem, switchToTab]);
 }

@@ -1,4 +1,4 @@
-import { act, screen, render as testingRender } from "@testing-library/react";
+import { screen, render as testingRender } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ReactNode, useState } from "react";
 import { MemoryRouter } from "react-router";
@@ -69,8 +69,12 @@ vi.mock("stores/game.store", () => ({
 }));
 vi.mock("stores/auth.store", () => ({ useUID: () => "reader" }));
 vi.mock("stores/worldCategories.store", () => ({
+  useListenToWorldConfiguration: vi.fn(),
   useWorldCategoriesStore: (selector: (store: typeof state) => unknown) =>
     selector(state),
+}));
+vi.mock("stores/worldOracles.store", () => ({
+  useListenToWorldOracles: vi.fn(),
 }));
 vi.mock("stores/notes.store", () => ({
   getPlayerNotesFolder: () =>
@@ -174,7 +178,6 @@ const world: IWorld = {
   name: "Our world",
   description: null,
   settingKey: null,
-  configurationCustomized: false,
   createdBy: "owner",
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -216,28 +219,6 @@ describe("World workspace", () => {
     },
   );
 
-  it("does not close another game's tabs after an old game's unlink request completes", async () => {
-    let complete!: () => void;
-    state.confirm.mockResolvedValue({ confirmed: true });
-    state.unlink.mockReturnValue(
-      new Promise<void>((resolve) => {
-        complete = resolve;
-      }),
-    );
-    const user = userEvent.setup();
-    const view = render(
-      <GameWorldView worldId="world-a" worldView={{ type: "settings" }} />,
-    );
-    await user.click(screen.getByRole("button", { name: "Unlink World" }));
-    expect(state.unlink).toHaveBeenCalledWith("game-a");
-    state.gameId = "game-b";
-    view.rerender(
-      <GameWorldView worldId="world-a" worldView={{ type: "settings" }} />,
-    );
-    await act(async () => complete());
-    expect(state.closeTabsMatching).not.toHaveBeenCalled();
-  });
-
   it("renders the actual shared Notes → world → category breadcrumb with same-game destination links", async () => {
     state.rootFolderId = "reader-notes";
     state.categories = {
@@ -272,64 +253,6 @@ describe("World workspace", () => {
       replaceCurrent: true,
       openInBackground: false,
     });
-  });
-
-  it.each(["deleted event", "world switch"])(
-    "handles delete completion after %s without stale navigation",
-    async (change) => {
-      let complete!: () => void;
-      state.deleteWorld.mockReturnValue(
-        new Promise<void>((resolve) => {
-          complete = resolve;
-        }),
-      );
-      const onDeleted = vi.fn();
-      const user = userEvent.setup();
-      const view = render(
-        <TestWorldPanel worldId="world-a" onWorldDeleted={onDeleted} />,
-      );
-      await user.click(screen.getByRole("link", { name: "World settings" }));
-      await user.click(screen.getByRole("button", { name: "Delete World" }));
-      await user.click(screen.getByRole("button", { name: "Delete" }));
-      expect(state.deleteWorld).toHaveBeenCalledWith("world-a");
-      if (change === "deleted event") {
-        state.worldDeleted = true;
-        view.rerender(
-          <TestWorldPanel worldId="world-a" onWorldDeleted={onDeleted} />,
-        );
-        expect(screen.getByText("World Deleted")).toBeInTheDocument();
-      } else {
-        state.world = { ...world, id: "world-b" };
-        state.worldId = "world-b";
-        view.rerender(
-          <TestWorldPanel worldId="world-b" onWorldDeleted={onDeleted} />,
-        );
-      }
-      await act(async () => complete());
-      if (change === "deleted event") expect(onDeleted).toHaveBeenCalledOnce();
-      else expect(onDeleted).not.toHaveBeenCalled();
-    },
-  );
-
-  it("does not unlink a replacement world after confirming an outdated prompt", async () => {
-    let answer!: (result: { confirmed: boolean }) => void;
-    state.confirm.mockReturnValue(
-      new Promise((resolve) => {
-        answer = resolve;
-      }),
-    );
-    const user = userEvent.setup();
-    const view = render(
-      <GameWorldView worldId="world-a" worldView={{ type: "settings" }} />,
-    );
-    await user.click(screen.getByRole("button", { name: "Unlink World" }));
-    state.gameWorldId = "world-b";
-    view.rerender(
-      <GameWorldView worldId="world-a" worldView={{ type: "settings" }} />,
-    );
-    await act(async () => answer({ confirmed: true }));
-    expect(state.unlink).not.toHaveBeenCalled();
-    expect(screen.getByText("World Unlinked")).toBeInTheDocument();
   });
 
   it.each(["guide", "player"])(

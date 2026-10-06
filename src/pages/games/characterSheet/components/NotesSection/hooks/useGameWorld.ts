@@ -5,6 +5,7 @@ import { useAdvancedFeatureToggle } from "hooks/advancedFeatures/advancedFeature
 import { GamePermission, useGameStore } from "stores/game.store";
 import { useNotesStore } from "stores/notes.store";
 import { useListenToWorld, useWorldStore } from "stores/world.store";
+import { useListenToWorldConfiguration } from "stores/worldCategories.store";
 
 // The world linked to the current game, or undefined when the worlds feature
 // is turned off or the game has no world.
@@ -22,6 +23,7 @@ export function useGameWorldId(): string | undefined {
 export function useListenToGameWorld(): void {
   const worldId = useGameWorldId();
   useListenToWorld(worldId);
+  useListenToWorldConfiguration(worldId);
   const loadedWorldId = useWorldStore((store) => store.world?.id);
   const worldDeleted = useWorldStore((store) => store.worldDeleted);
   const closeTabsMatching = useNotesStore((store) => store.closeTabsMatching);
