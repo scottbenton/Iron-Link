@@ -9,6 +9,7 @@ import {
   Stack,
   Tooltip,
 } from "@mui/material";
+import { useConfirm } from "material-ui-confirm";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,10 +22,7 @@ import { useWorldCategoriesStore } from "stores/worldCategories.store";
 
 import { WorldPermission, isGuideEquivalent } from "repositories/shared.types";
 
-import {
-  IWorldCategory,
-  WorldCategoriesService,
-} from "services/worldCategories.service";
+import { IWorldCategory } from "services/worldCategories.service";
 import { IWorld } from "services/worlds.service";
 
 import { WorldBreadcrumbs } from "../WorldBreadcrumbs";
@@ -38,11 +36,9 @@ import { WorldCategoryBrowser } from "./WorldCategoryBrowser";
 import { WorldCategoryContents } from "./WorldCategoryContents";
 import { CategoryDraft, WorldCategoryEditor } from "./WorldCategoryEditor";
 import { WorldCategoryIcon } from "./WorldCategoryIcon";
-import { WorldConfigurationDeleteDialog } from "./WorldConfigurationDeleteDialog";
 import { WorldConfigurationView } from "./WorldConfigurationView";
 import { WorldEntrySearch } from "./WorldEntrySearch";
-import { editorError } from "./categoryEditor.utils";
-import { useWorldConfigurationDeleteConfirmation } from "./useWorldConfigurationDeleteConfirmation";
+import { getEditorErrorMessage } from "./categoryEditor.utils";
 
 export function WorldCategoryManager({
   world,
@@ -61,11 +57,7 @@ export function WorldCategoryManager({
 }) {
   const worldId = world.id;
   const { t } = useTranslation();
-  const {
-    confirm,
-    request: deleteRequest,
-    answer: answerDelete,
-  } = useWorldConfigurationDeleteConfirmation();
+  const confirm = useConfirm();
   const oracles = useWorldOracles(worldId);
   const customized = useWorldCategoriesStore(
     (store) => store.configurationCustomized,
@@ -91,6 +83,9 @@ export function WorldCategoryManager({
   );
   const deleteCategory = useWorldCategoriesStore(
     (store) => store.deleteCategory,
+  );
+  const getCategoryCounts = useWorldCategoriesStore(
+    (store) => store.getCategoryCounts,
   );
   const [adding, setAdding] = useState(false);
   const [search, setSearch] = useState("");
@@ -118,25 +113,14 @@ export function WorldCategoryManager({
     try {
       await action();
     } catch (cause) {
-      setError(
-        editorError(
-          cause,
-          t(
-            "worlds.categories.action-error",
-            "Could not update these categories. Please try again.",
-          ),
-        ),
-      );
+      setError(getEditorErrorMessage(cause));
     } finally {
       setBusy(false);
     }
   };
   const remove = (category: IWorldCategory) =>
     run(async () => {
-      const { entryCount } = await WorldCategoriesService.getCategoryCounts(
-        worldId,
-        category.id,
-      );
+      const { entryCount } = await getCategoryCounts(category.id);
       if (entryCount > 0) {
         setError(
           t(
@@ -147,13 +131,23 @@ export function WorldCategoryManager({
         );
         return;
       }
+      const fieldLabels = Object.values(definitions)
+        .filter((field) => field.categoryId === category.id)
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((field) => field.label);
       const { confirmed } = await confirm({
         title: t("worlds.categories.delete", "Delete category"),
-        description: t(
-          "worlds.categories.delete-confirmation",
-          'Delete "{{name}}"? It contains 0 entries. All its field definitions will be permanently deleted. This cannot be undone.',
-          { name: category.name },
-        ),
+        description: fieldLabels.length
+          ? t(
+              "worlds.categories.delete-confirmation",
+              'Delete "{{name}}"? It has no entries, so no stored values are lost. These fields will also be permanently deleted: {{fields}}. This cannot be undone.',
+              { name: category.name, fields: fieldLabels.join(", ") },
+            )
+          : t(
+              "worlds.categories.delete-confirmation-no-fields",
+              'Delete "{{name}}"? It has no entries or fields. This cannot be undone.',
+              { name: category.name },
+            ),
         confirmationText: t("common.delete", "Delete"),
       });
       if (confirmed) {
@@ -163,7 +157,7 @@ export function WorldCategoryManager({
       }
     });
   const create = async (draft: CategoryDraft) => {
-    const id = await createCategory(worldId, {
+    const id = await createCategory({
       ...draft,
       sortOrder: categories.length
         ? Math.max(...categories.map((category) => category.sortOrder)) + 1
@@ -267,7 +261,6 @@ export function WorldCategoryManager({
         <WorldCategoryContents
           key={selected.id}
           category={selected}
-          permission={permission}
           search={search}
         />
       ) : (
@@ -327,10 +320,6 @@ export function WorldCategoryManager({
           {content}
         </Stack>
       </Box>
-      <WorldConfigurationDeleteDialog
-        request={deleteRequest}
-        onAnswer={answerDelete}
-      />
       {adding && (
         <WorldCategoryEditor onSave={create} onClose={() => setAdding(false)} />
       )}

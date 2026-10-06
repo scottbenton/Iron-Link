@@ -1,5 +1,6 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { ConfirmProvider } from "material-ui-confirm";
 import {
   MemoryRouter,
   RouterProvider,
@@ -17,10 +18,8 @@ import {
 
 import { WorldPermission } from "repositories/shared.types";
 
-import { WorldCategoriesService } from "services/worldCategories.service";
-
 import { WorldCategoryManager } from "../WorldCategoryManager";
-import { category, translate } from "./fixtures";
+import { category, field, translate } from "./fixtures";
 
 const state = vi.hoisted(() => ({
   categories: {},
@@ -33,6 +32,7 @@ const state = vi.hoisted(() => ({
   createCategory: vi.fn(),
   updateCategory: vi.fn(),
   deleteCategory: vi.fn(),
+  getCategoryCounts: vi.fn(),
   oracle: {
     loading: false,
     error: undefined as string | undefined,
@@ -60,6 +60,7 @@ beforeEach(() => {
   vi.restoreAllMocks();
   vi.clearAllMocks();
   state.categories = { [category.id]: category };
+  state.fieldDefinitions = {};
   state.loading = false;
   state.configurationCustomized = false;
   state.defaultBindingsReady = true;
@@ -73,7 +74,6 @@ const props = {
     name: "Ironlands",
     description: null,
     settingKey: null,
-    configurationCustomized: false,
     createdBy: "owner",
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -127,11 +127,13 @@ function managerView(
   initialView: WorldView = { type: "settings" },
 ) {
   return (
-    <MemoryRouter
-      initialEntries={[getWorldViewPath(category.worldId, initialView)]}
-    >
-      <ManagerHarness permission={permission} />
-    </MemoryRouter>
+    <ConfirmProvider>
+      <MemoryRouter
+        initialEntries={[getWorldViewPath(category.worldId, initialView)]}
+      >
+        <ManagerHarness permission={permission} />
+      </MemoryRouter>
+    </ConfirmProvider>
   );
 }
 
@@ -321,7 +323,7 @@ describe("WorldCategoryManager", () => {
 
   it("blocks deletion of a populated category and names the count", async () => {
     const user = userEvent.setup();
-    vi.spyOn(WorldCategoriesService, "getCategoryCounts").mockResolvedValue({
+    state.getCategoryCounts.mockResolvedValue({
       entryCount: 2,
       valueCounts: {},
     });
@@ -335,9 +337,12 @@ describe("WorldCategoryManager", () => {
     expect(state.deleteCategory).not.toHaveBeenCalled();
   });
 
-  it("confirms an empty category deletion and returns to General", async () => {
+  it("names the fields an empty category deletion removes and returns to General", async () => {
     const user = userEvent.setup();
-    vi.spyOn(WorldCategoriesService, "getCategoryCounts").mockResolvedValue({
+    state.fieldDefinitions = {
+      region: field({ id: "region", label: "Region" }),
+    };
+    state.getCategoryCounts.mockResolvedValue({
       entryCount: 0,
       valueCounts: {},
     });
@@ -346,6 +351,7 @@ describe("WorldCategoryManager", () => {
     await openCategorySettings(user);
     await user.click(screen.getByRole("button", { name: "Delete Locations" }));
     const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("permanently deleted: Region");
     expect(state.deleteCategory).not.toHaveBeenCalled();
     await user.click(within(dialog).getByRole("button", { name: "Delete" }));
     await waitFor(() =>
@@ -403,7 +409,6 @@ describe("WorldCategoryManager", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
     expect(state.createCategory).toHaveBeenCalledWith(
-      category.worldId,
       expect.objectContaining({ name: "Creatures", sortOrder: 1 }),
     );
     // Router navigation runs in a transition, so wait for it to commit.

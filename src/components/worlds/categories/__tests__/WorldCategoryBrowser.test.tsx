@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useWorldStore } from "stores/world.store";
+
 import { WorldPermission } from "repositories/shared.types";
 
 import type { IWorldCategory } from "services/worldCategories.service";
@@ -40,6 +42,7 @@ vi.mock("react-i18next", async (importOriginal) => ({
 beforeEach(() => {
   vi.restoreAllMocks();
   state.oracle.loading = false;
+  useWorldStore.setState({ worldPermission: WorldPermission.Viewer });
 });
 
 function renderBrowser(

@@ -1,11 +1,13 @@
 import { LinearProgress } from "@mui/material";
-import { ReactNode, useCallback, useEffect, useRef } from "react";
+import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { BreadcrumbItem } from "components/Layout/BreadcrumbTrail";
 import { EmptyState } from "components/Layout/EmptyState";
 
 import { useListenToWorld, useWorldStore } from "stores/world.store";
+import { useListenToWorldConfiguration } from "stores/worldCategories.store";
+import { useListenToWorldOracles } from "stores/worldOracles.store";
 
 import type { WorldLayout } from "./WorldViewLayout";
 import { WorldWorkspace } from "./WorldWorkspace";
@@ -20,7 +22,8 @@ export interface WorldPanelProps {
   onWorldDeleted?: () => void;
   // `useListenToWorld` does not de-duplicate, and its cleanup resets the whole
   // world store, so only one mounted component may own the subscription. Set
-  // this to false when a surrounding surface already listens to this world.
+  // this to false when a surrounding surface already listens to this world
+  // and its configuration.
   manageSubscription?: boolean;
   additionalSettings?: ReactNode;
   layout?: WorldLayout;
@@ -41,23 +44,11 @@ export function WorldPanel(props: WorldPanelProps) {
   } = props;
 
   const { t } = useTranslation();
-  // The workspace can disappear on the realtime delete event before its
-  // request finishes. Keep completion here, scoped to the panel's current world.
-  const activeWorld = useRef({ worldId, onWorldDeleted, mounted: true });
-  activeWorld.current = { ...activeWorld.current, worldId, onWorldDeleted };
-  useEffect(() => {
-    activeWorld.current.mounted = true;
-    return () => {
-      activeWorld.current.mounted = false;
-    };
-  }, []);
-  const handleWorldDeleted = useCallback(() => {
-    const current = activeWorld.current;
-    if (current.mounted && current.worldId === worldId)
-      current.onWorldDeleted?.();
-  }, [worldId]);
 
   useListenToWorld(manageSubscription ? worldId : undefined);
+  useListenToWorldConfiguration(manageSubscription ? worldId : undefined);
+  // Only needed while configuration is visible, so the panel always owns it.
+  useListenToWorldOracles(worldId);
 
   const storedWorldId = useWorldStore((store) => store.worldId);
   const world = useWorldStore((store) => store.world);
@@ -102,7 +93,7 @@ export function WorldPanel(props: WorldPanelProps) {
       key={worldId}
       world={world}
       permission={worldPermission}
-      onWorldDeleted={handleWorldDeleted}
+      onWorldDeleted={onWorldDeleted}
       additionalSettings={additionalSettings}
       navigation={navigation}
       rootBreadcrumb={rootBreadcrumb}
