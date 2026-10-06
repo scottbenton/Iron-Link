@@ -5,7 +5,7 @@ import { allDefaultPackages } from "data/package.config";
 import { computeEffectivePlayset } from "lib/effectivePlayset";
 import { getWorldSettingPackageIds } from "lib/worldSettingPackageIds";
 
-import { WorldPlaysetsRepository } from "repositories/worldPlaysets.repository";
+import { WorldPlaysetsService } from "services/worldPlaysets.service";
 
 export function useWorldRulesetNames(
   worldId: string,
@@ -20,7 +20,7 @@ export function useWorldRulesetNames(
   }>();
   useEffect(() => {
     let active = true;
-    WorldPlaysetsRepository.getLinkedGamePlaysets(worldId)
+    WorldPlaysetsService.getLinkedGamePlaysets(worldId)
       .then((games) => {
         const ids = computeEffectivePlayset(
           games,

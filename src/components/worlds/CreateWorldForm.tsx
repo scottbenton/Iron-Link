@@ -1,4 +1,4 @@
-import { Alert, Box, Button, TextField, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import { FormEvent, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -62,7 +62,6 @@ export function CreateWorldForm(props: CreateWorldFormProps) {
   // not typed anything of their own, so switching cards may overwrite it.
   const [prefilledName, setPrefilledName] = useState("");
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string>();
 
   const handleSelectOption = useCallback(
     (option: WorldCreationOption) => {
@@ -88,7 +87,6 @@ export function CreateWorldForm(props: CreateWorldFormProps) {
         return;
       }
       setSaving(true);
-      setError(undefined);
       WorldsService.createWorld(
         trimmedName,
         undefined,
@@ -97,19 +95,13 @@ export function CreateWorldForm(props: CreateWorldFormProps) {
         .then((worldId) => {
           onCreated(worldId);
         })
-        .catch((cause) => {
-          setError(
-            cause instanceof Error
-              ? cause.message
-              : t(
-                  "worlds.create.failed",
-                  "Could not create the world. Please try again.",
-                ),
-          );
+        .catch(() => {
+          // RepositoryErrors already raise their own error snackbar as they
+          // are constructed, so this only has to undo the busy state.
           setSaving(false);
         });
     },
-    [name, selectedOption, saving, onCreated, creationGame, t],
+    [name, selectedOption, saving, onCreated],
   );
 
   return (
@@ -135,11 +127,6 @@ export function CreateWorldForm(props: CreateWorldFormProps) {
         )}
         minWidth={220}
       />
-      {error && (
-        <Alert severity="error" sx={{ mt: 2 }}>
-          {error}
-        </Alert>
-      )}
       <TextField
         label={t("worlds.create.world-name", "World Name")}
         value={name}

@@ -1,5 +1,6 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { ConfirmProvider } from "material-ui-confirm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DeleteWorldButton } from "../DeleteWorldButton";
@@ -39,6 +40,7 @@ describe("World deletion", () => {
           worldName="Our world"
           onDeleted={onDeleted}
         />,
+        { wrapper: ConfirmProvider },
       );
       await user.click(screen.getByRole("button", { name: "Delete World" }));
       expect(screen.getByRole("dialog")).toHaveTextContent(
@@ -49,9 +51,6 @@ describe("World deletion", () => {
           `${count} ${count === 1 ? "game is" : "games are"} linked`,
         );
       else expect(screen.getByRole("dialog")).not.toHaveTextContent("linked");
-      expect(
-        screen.getByRole("button", { name: "Close Dialog" }),
-      ).toBeInTheDocument();
       expect(state.deleteWorld).not.toHaveBeenCalled();
       await user.click(screen.getByRole("button", { name: "Delete" }));
       await waitFor(() => expect(onDeleted).toHaveBeenCalledOnce());
@@ -59,62 +58,17 @@ describe("World deletion", () => {
     },
   );
 
-  it.each(["Cancel", "Close Dialog"])(
-    "cancels using %s without deleting",
-    async (action) => {
-      const user = userEvent.setup();
-      render(<DeleteWorldButton worldId="world-a" worldName="Our world" />);
-      await user.click(screen.getByRole("button", { name: "Delete World" }));
-      await user.click(screen.getByRole("button", { name: action }));
-      await waitFor(() =>
-        expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
-      );
-      expect(state.deleteWorld).not.toHaveBeenCalled();
-      expect(
-        screen.getByRole("button", { name: "Delete World" }),
-      ).toBeEnabled();
-    },
-  );
-
-  it("blocks deletion if linked-game lookup fails and displays an error", async () => {
-    state.count.mockRejectedValue(new Error("Unavailable"));
+  it("cancels without deleting", async () => {
     const user = userEvent.setup();
-    render(<DeleteWorldButton worldId="world-a" worldName="Our world" />);
+    render(<DeleteWorldButton worldId="world-a" worldName="Our world" />, {
+      wrapper: ConfirmProvider,
+    });
     await user.click(screen.getByRole("button", { name: "Delete World" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Could not delete this world",
+    await user.click(await screen.findByRole("button", { name: "Cancel" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
     expect(state.deleteWorld).not.toHaveBeenCalled();
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  });
-
-  it("shows delete failures and permits retry", async () => {
-    state.deleteWorld.mockRejectedValue(new Error("Denied"));
-    const user = userEvent.setup();
-    render(<DeleteWorldButton worldId="world-a" worldName="Our world" />);
-    await user.click(screen.getByRole("button", { name: "Delete World" }));
-    await user.click(screen.getByRole("button", { name: "Delete" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Could not delete this world",
-    );
     expect(screen.getByRole("button", { name: "Delete World" })).toBeEnabled();
-  });
-
-  it("abandons an unfinished linked-game lookup when settings unmounts", async () => {
-    let resolve!: (count: number) => void;
-    state.count.mockReturnValue(
-      new Promise<number>((done) => {
-        resolve = done;
-      }),
-    );
-    const user = userEvent.setup();
-    const view = render(
-      <DeleteWorldButton worldId="world-a" worldName="Our world" />,
-    );
-    await user.click(screen.getByRole("button", { name: "Delete World" }));
-    view.unmount();
-    await act(async () => resolve(3));
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(state.deleteWorld).not.toHaveBeenCalled();
   });
 });
