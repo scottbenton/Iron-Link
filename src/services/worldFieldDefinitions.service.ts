@@ -15,7 +15,7 @@ import {
 } from "lib/worldFieldRules";
 
 import type {
-  DefaultWorldFieldBinding,
+  DefaultWorldFieldBindingDTO,
   WorldConfigurationFieldDTO,
 } from "repositories/worldConfiguration.repository";
 import { WorldFieldDefinitionsRepository } from "repositories/worldFieldDefinitions.repository";
@@ -38,7 +38,7 @@ export class WorldFieldDefinitionsService {
       gmOnly?: boolean;
       sortOrder: number;
     },
-    defaultBindings?: DefaultWorldFieldBinding[],
+    inheritedFieldDefinitions?: IWorldFieldDefinition[],
   ): Promise<string> {
     const id = uuid();
     await WorldFieldDefinitionsRepository.addWorldFieldDefinition(
@@ -57,7 +57,7 @@ export class WorldFieldDefinitionsService {
         gm_only: definition.gmOnly ?? false,
         sort_order: definition.sortOrder,
       },
-      defaultBindings,
+      this.convertInheritedBindingsToDTO(inheritedFieldDefinitions),
     );
     return id;
   }
@@ -68,7 +68,7 @@ export class WorldFieldDefinitionsService {
     definition: Partial<
       Omit<IWorldFieldDefinition, "id" | "worldId" | "categoryId" | "key">
     >,
-    defaultBindings?: DefaultWorldFieldBinding[],
+    inheritedFieldDefinitions?: IWorldFieldDefinition[],
   ): Promise<void> {
     return WorldFieldDefinitionsRepository.updateWorldFieldDefinition(
       worldId,
@@ -87,19 +87,19 @@ export class WorldFieldDefinitionsService {
         gm_only: definition.gmOnly,
         sort_order: definition.sortOrder,
       },
-      defaultBindings,
+      this.convertInheritedBindingsToDTO(inheritedFieldDefinitions),
     );
   }
 
   public static deleteWorldFieldDefinition(
     worldId: string,
     definitionId: string,
-    defaultBindings?: DefaultWorldFieldBinding[],
+    inheritedFieldDefinitions?: IWorldFieldDefinition[],
   ): Promise<void> {
     return WorldFieldDefinitionsRepository.deleteWorldFieldDefinition(
       worldId,
       definitionId,
-      defaultBindings,
+      this.convertInheritedBindingsToDTO(inheritedFieldDefinitions),
     );
   }
 
@@ -107,14 +107,31 @@ export class WorldFieldDefinitionsService {
     worldId: string,
     categoryId: string,
     definitionIds: string[],
-    defaultBindings?: DefaultWorldFieldBinding[],
+    inheritedFieldDefinitions?: IWorldFieldDefinition[],
   ): Promise<void> {
     return WorldFieldDefinitionsRepository.reorderWorldFieldDefinitions(
       worldId,
       categoryId,
       definitionIds,
-      defaultBindings,
+      this.convertInheritedBindingsToDTO(inheritedFieldDefinitions),
     );
+  }
+
+  // While a world inherits its defaults, the first edit copies them with the
+  // bindings as they currently resolve. Only rules that override the oracle
+  // carry a binding of their own.
+  public static convertInheritedBindingsToDTO(
+    inheritedFieldDefinitions: IWorldFieldDefinition[] | undefined,
+  ): DefaultWorldFieldBindingDTO[] | undefined {
+    return inheritedFieldDefinitions?.map((field) => ({
+      id: field.id,
+      binding: field.binding,
+      rule_bindings: field.configuration.rules.flatMap((rule, index) =>
+        rule.binding === undefined
+          ? []
+          : [{ index, binding: rule.binding, conditions: rule.conditions }],
+      ),
+    }));
   }
 
   public static convertDefinitionDTOToDefinition(

@@ -6,7 +6,7 @@ import {
 
 import { ErrorNoun } from "./errors/RepositoryErrors";
 import {
-  type DefaultWorldFieldBinding,
+  type DefaultWorldFieldBindingDTO,
   WorldConfigurationRepository,
 } from "./worldConfiguration.repository";
 
@@ -20,7 +20,7 @@ export class WorldCategoriesRepository {
   public static addWorldCategory(
     worldId: string,
     category: Omit<WorldCategoryInsertDTO, "world_id"> & { id: string },
-    defaultBindings?: DefaultWorldFieldBinding[],
+    defaultBindings?: DefaultWorldFieldBindingDTO[],
   ): Promise<void> {
     return WorldConfigurationRepository.mutateWorldConfiguration(
       worldId,
@@ -47,7 +47,7 @@ export class WorldCategoriesRepository {
     worldId: string,
     categoryId: string,
     category: WorldCategoryUpdateDTO,
-    defaultBindings?: DefaultWorldFieldBinding[],
+    defaultBindings?: DefaultWorldFieldBindingDTO[],
   ): Promise<void> {
     return WorldConfigurationRepository.mutateWorldConfiguration(
       worldId,
@@ -62,7 +62,7 @@ export class WorldCategoriesRepository {
   public static deleteWorldCategory(
     worldId: string,
     categoryId: string,
-    defaultBindings?: DefaultWorldFieldBinding[],
+    defaultBindings?: DefaultWorldFieldBindingDTO[],
   ): Promise<void> {
     return WorldConfigurationRepository.mutateWorldConfiguration(
       worldId,
@@ -75,7 +75,7 @@ export class WorldCategoriesRepository {
   public static reorderWorldCategories(
     worldId: string,
     categoryIds: string[],
-    defaultBindings?: DefaultWorldFieldBinding[],
+    defaultBindings?: DefaultWorldFieldBindingDTO[],
   ): Promise<void> {
     return WorldConfigurationRepository.mutateWorldConfiguration(
       worldId,

@@ -120,13 +120,12 @@ describe("world configuration store", () => {
       { name: "People" },
       [
         {
-          id: goal.id,
+          ...goal,
           binding: {
             packageId: "starforged",
             oracleId: goalId,
             resolvedOracleId: replacementId,
           },
-          rule_bindings: [],
         },
       ],
     );

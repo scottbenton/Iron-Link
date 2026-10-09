@@ -1,7 +1,7 @@
 import type { Json } from "types/supabase-generated.type";
+import type { OracleBinding, WorldFieldCondition } from "types/worldField.type";
 
 import { supabase } from "lib/supabase.lib";
-import type { WorldFieldCondition } from "lib/worldFieldRules";
 
 import { createSubscription } from "./_subscriptionManager";
 import {
@@ -57,12 +57,14 @@ export type WorldConfigurationOperation =
 
 // Inherited bindings resolve against the world's current playset, which only
 // the client can compute. The first edit sends them so the copy pins them.
-export interface DefaultWorldFieldBinding {
+export interface DefaultWorldFieldBindingDTO {
   id: string;
-  binding: Json;
+  binding: OracleBinding | null;
+  // Only rules that override the oracle. The server rejects the snapshot when
+  // a rule's conditions no longer match its current defaults.
   rule_bindings: {
     index: number;
-    binding: Json;
+    binding: OracleBinding | null;
     conditions: WorldFieldCondition[];
   }[];
 }
@@ -197,7 +199,7 @@ export class WorldConfigurationRepository {
     worldId: string,
     operation: WorldConfigurationOperation,
     errorNoun: ErrorNoun,
-    defaultBindings?: DefaultWorldFieldBinding[],
+    defaultBindings?: DefaultWorldFieldBindingDTO[],
   ): Promise<void> {
     const { error, status } = await supabase.rpc("mutate_world_configuration", {
       p_world_id: worldId,

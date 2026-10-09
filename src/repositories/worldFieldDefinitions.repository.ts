@@ -6,7 +6,7 @@ import {
 
 import { ErrorNoun } from "./errors/RepositoryErrors";
 import {
-  type DefaultWorldFieldBinding,
+  type DefaultWorldFieldBindingDTO,
   WorldConfigurationRepository,
 } from "./worldConfiguration.repository";
 
@@ -27,7 +27,7 @@ export class WorldFieldDefinitionsRepository {
       "world_id" | "category_id"
     > &
       Required<Pick<WorldFieldDefinitionInsertDTO, "id" | "configuration">>,
-    defaultBindings?: DefaultWorldFieldBinding[],
+    defaultBindings?: DefaultWorldFieldBindingDTO[],
   ): Promise<void> {
     return WorldConfigurationRepository.mutateWorldConfiguration(
       worldId,
@@ -56,7 +56,7 @@ export class WorldFieldDefinitionsRepository {
     worldId: string,
     definitionId: string,
     definition: WorldFieldDefinitionUpdateDTO,
-    defaultBindings?: DefaultWorldFieldBinding[],
+    defaultBindings?: DefaultWorldFieldBindingDTO[],
   ): Promise<void> {
     return WorldConfigurationRepository.mutateWorldConfiguration(
       worldId,
@@ -70,7 +70,7 @@ export class WorldFieldDefinitionsRepository {
   public static deleteWorldFieldDefinition(
     worldId: string,
     definitionId: string,
-    defaultBindings?: DefaultWorldFieldBinding[],
+    defaultBindings?: DefaultWorldFieldBindingDTO[],
   ): Promise<void> {
     return WorldConfigurationRepository.mutateWorldConfiguration(
       worldId,
@@ -84,7 +84,7 @@ export class WorldFieldDefinitionsRepository {
     worldId: string,
     categoryId: string,
     definitionIds: string[],
-    defaultBindings?: DefaultWorldFieldBinding[],
+    defaultBindings?: DefaultWorldFieldBindingDTO[],
   ): Promise<void> {
     return WorldConfigurationRepository.mutateWorldConfiguration(
       worldId,

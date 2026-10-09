@@ -4,15 +4,11 @@ import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
 import { IconDefinition } from "types/Icon.type";
-import type { Json } from "types/supabase-generated.type";
 
 import { resolveOracleBinding } from "lib/effectivePlayset";
 import type { WorldFieldConfiguration } from "lib/worldFieldRules";
 
-import type {
-  DefaultWorldFieldBinding,
-  WorldConfigurationSubscription,
-} from "repositories/worldConfiguration.repository";
+import type { WorldConfigurationSubscription } from "repositories/worldConfiguration.repository";
 
 import {
   IWorldCategory,
@@ -126,11 +122,14 @@ export const useWorldCategoriesStore = createWithEqualityFn<
     const edit = async <T>(
       mutate: (
         worldId: string,
-        defaultBindings: DefaultWorldFieldBinding[] | undefined,
+        inheritedFieldDefinitions: IWorldFieldDefinition[] | undefined,
       ) => Promise<T>,
     ): Promise<T> => {
       const state = get();
-      const result = await mutate(state.worldId, getDefaultBindings(state));
+      const result = await mutate(
+        state.worldId,
+        getInheritedFieldDefinitions(state),
+      );
       await subscription?.refresh();
       return result;
     };
@@ -200,82 +199,82 @@ export const useWorldCategoriesStore = createWithEqualityFn<
       },
 
       createCategory: (category) => {
-        return edit((worldId, defaultBindings) =>
+        return edit((worldId, inheritedFieldDefinitions) =>
           WorldCategoriesService.addWorldCategory(
             worldId,
             category,
-            defaultBindings,
+            inheritedFieldDefinitions,
           ),
         );
       },
       updateCategory: (categoryId, category) => {
-        return edit((worldId, defaultBindings) =>
+        return edit((worldId, inheritedFieldDefinitions) =>
           WorldCategoriesService.updateWorldCategory(
             worldId,
             categoryId,
             category,
-            defaultBindings,
+            inheritedFieldDefinitions,
           ),
         );
       },
       // Cascades through the category's field definitions. The database
       // rejects deleting a category that still has entries.
       deleteCategory: (categoryId) => {
-        return edit((worldId, defaultBindings) =>
+        return edit((worldId, inheritedFieldDefinitions) =>
           WorldCategoriesService.deleteWorldCategory(
             worldId,
             categoryId,
-            defaultBindings,
+            inheritedFieldDefinitions,
           ),
         );
       },
       reorderCategories: (categoryIds) => {
-        return edit((worldId, defaultBindings) =>
+        return edit((worldId, inheritedFieldDefinitions) =>
           WorldCategoriesService.reorderWorldCategories(
             worldId,
             categoryIds,
-            defaultBindings,
+            inheritedFieldDefinitions,
           ),
         );
       },
 
       createFieldDefinition: (categoryId, definition) => {
-        return edit((worldId, defaultBindings) =>
+        return edit((worldId, inheritedFieldDefinitions) =>
           WorldFieldDefinitionsService.addWorldFieldDefinition(
             worldId,
             categoryId,
             definition,
-            defaultBindings,
+            inheritedFieldDefinitions,
           ),
         );
       },
       updateFieldDefinition: (definitionId, definition) => {
-        return edit((worldId, defaultBindings) =>
+        return edit((worldId, inheritedFieldDefinitions) =>
           WorldFieldDefinitionsService.updateWorldFieldDefinition(
             worldId,
             definitionId,
             definition,
-            defaultBindings,
+            inheritedFieldDefinitions,
           ),
         );
       },
       // Cascades to every value row for this definition.
       deleteFieldDefinition: (definitionId) => {
-        return edit((worldId, defaultBindings) =>
+        return edit((worldId, inheritedFieldDefinitions) =>
           WorldFieldDefinitionsService.deleteWorldFieldDefinition(
             worldId,
             definitionId,
-            defaultBindings,
+            inheritedFieldDefinitions,
           ),
         );
       },
       reorderFieldDefinitions: (categoryId, definitionIds) => {
-        return edit((worldId, defaultBindings) =>
+        return edit((worldId, inheritedFieldDefinitions) =>
           WorldFieldDefinitionsService.reorderWorldFieldDefinitions(
             worldId,
             categoryId,
             definitionIds,
-            defaultBindings,
+            inheritedFieldDefinitions,
           ),
         );
       },
@@ -379,30 +378,17 @@ function resolveFieldDefinitions(state: WorldCategoriesStoreState) {
   );
 }
 
-// The first edit of an inherited world pins the bindings as they currently
-// resolve. Customized worlds already store theirs.
-function getDefaultBindings(
+// The first edit of an inherited world pins its bindings as they currently
+// resolve, so it needs the resolved definitions. Customized worlds already
+// store theirs.
+function getInheritedFieldDefinitions(
   state: WorldCategoriesStoreState,
-): DefaultWorldFieldBinding[] | undefined {
+): IWorldFieldDefinition[] | undefined {
   if (state.configurationCustomized) return undefined;
   if (!state.defaultBindingsReady) {
     throw new Error(
       "Wait for this world's oracles to finish loading, then try again.",
     );
   }
-  return Object.values(state.fieldDefinitions).map((field) => ({
-    id: field.id,
-    binding: field.binding as unknown as Json,
-    rule_bindings: field.configuration.rules.flatMap((rule, index) =>
-      rule.binding === undefined
-        ? []
-        : [
-            {
-              index,
-              binding: rule.binding as unknown as Json,
-              conditions: rule.conditions,
-            },
-          ],
-    ),
-  }));
+  return Object.values(state.fieldDefinitions);
 }

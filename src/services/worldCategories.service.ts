@@ -4,10 +4,12 @@ import { IconDefinition } from "types/Icon.type";
 import { Json } from "types/supabase-generated.type";
 
 import { WorldCategoriesRepository } from "repositories/worldCategories.repository";
-import type {
-  DefaultWorldFieldBinding,
-  WorldConfigurationCategoryDTO,
-} from "repositories/worldConfiguration.repository";
+import type { WorldConfigurationCategoryDTO } from "repositories/worldConfiguration.repository";
+
+import {
+  IWorldFieldDefinition,
+  WorldFieldDefinitionsService,
+} from "./worldFieldDefinitions.service";
 
 export interface IWorldCategory {
   id: string;
@@ -34,7 +36,7 @@ export class WorldCategoriesService {
       supportsMap?: boolean;
       supportsBonds?: boolean;
     },
-    defaultBindings?: DefaultWorldFieldBinding[],
+    inheritedFieldDefinitions?: IWorldFieldDefinition[],
   ): Promise<string> {
     const id = uuid();
     await WorldCategoriesRepository.addWorldCategory(
@@ -48,7 +50,9 @@ export class WorldCategoriesService {
         supports_map: category.supportsMap ?? false,
         supports_bonds: category.supportsBonds ?? false,
       },
-      defaultBindings,
+      WorldFieldDefinitionsService.convertInheritedBindingsToDTO(
+        inheritedFieldDefinitions,
+      ),
     );
     return id;
   }
@@ -57,7 +61,7 @@ export class WorldCategoriesService {
     worldId: string,
     categoryId: string,
     category: Partial<Omit<IWorldCategory, "id" | "worldId">>,
-    defaultBindings?: DefaultWorldFieldBinding[],
+    inheritedFieldDefinitions?: IWorldFieldDefinition[],
   ): Promise<void> {
     return WorldCategoriesRepository.updateWorldCategory(
       worldId,
@@ -74,31 +78,37 @@ export class WorldCategoriesService {
         supports_bonds: category.supportsBonds,
         subtitle_field_definition_id: category.subtitleFieldDefinitionId,
       },
-      defaultBindings,
+      WorldFieldDefinitionsService.convertInheritedBindingsToDTO(
+        inheritedFieldDefinitions,
+      ),
     );
   }
 
   public static deleteWorldCategory(
     worldId: string,
     categoryId: string,
-    defaultBindings?: DefaultWorldFieldBinding[],
+    inheritedFieldDefinitions?: IWorldFieldDefinition[],
   ): Promise<void> {
     return WorldCategoriesRepository.deleteWorldCategory(
       worldId,
       categoryId,
-      defaultBindings,
+      WorldFieldDefinitionsService.convertInheritedBindingsToDTO(
+        inheritedFieldDefinitions,
+      ),
     );
   }
 
   public static reorderWorldCategories(
     worldId: string,
     categoryIds: string[],
-    defaultBindings?: DefaultWorldFieldBinding[],
+    inheritedFieldDefinitions?: IWorldFieldDefinition[],
   ): Promise<void> {
     return WorldCategoriesRepository.reorderWorldCategories(
       worldId,
       categoryIds,
-      defaultBindings,
+      WorldFieldDefinitionsService.convertInheritedBindingsToDTO(
+        inheritedFieldDefinitions,
+      ),
     );
   }
 
