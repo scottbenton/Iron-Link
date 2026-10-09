@@ -21,6 +21,7 @@ import { CreateWorldForm } from "components/worlds/CreateWorldForm";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 
+import { useGameStore } from "stores/game.store";
 import { useNotesStore } from "stores/notes.store";
 import { useLoadUsersWorlds, useUsersWorlds } from "stores/users.worlds.store";
 
@@ -44,6 +45,7 @@ export function LinkWorldDialog(props: LinkWorldDialogProps) {
   const { t } = useTranslation();
   const confirm = useConfirm();
   const gameId = useGameId();
+  const game = useGameStore((store) => store.game);
 
   // Not otherwise loaded inside a game.
   useLoadUsersWorlds();
@@ -147,6 +149,7 @@ export function LinkWorldDialog(props: LinkWorldDialogProps) {
       <DialogContent>
         {showCreate ? (
           <CreateWorldForm
+            creationGame={game ?? undefined}
             onCreated={linkWorld}
             onCancel={hasEligibleWorlds ? () => setMode("link") : handleClose}
           />

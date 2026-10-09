@@ -1,49 +1,51 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router";
 
-import { IOpenNoteItemType, useNotesStore } from "stores/notes.store";
+import { useNotesStore } from "stores/notes.store";
 
-const openNoteItemTypes: IOpenNoteItemType[] = ["note", "folder", "world"];
-
-// The search param is user-controlled, so it is validated against the union
-// rather than coerced. Coercing an unrecognized value to "note" would open a
-// note tab pointed at an id that is not a note -- which is what happened to
-// world tabs before "world" joined the union.
-function isOpenNoteItemType(value: string): value is IOpenNoteItemType {
-  return (openNoteItemTypes as string[]).includes(value);
-}
+import {
+  getNotesDestinationQuery,
+  notesDestinationKey,
+  readNotesDestination,
+  writeNotesDestination,
+} from "./notesDestination";
 
 export function useSyncOpenNoteItem() {
   const openItem = useNotesStore((store) =>
     store.openTabId ? store.noteTabItems[store.openTabId] : null,
   );
   const setOpenItem = useNotesStore((store) => store.openItemTab);
-
+  const switchToTab = useNotesStore((store) => store.switchToTab);
   const [searchParams, setSearchParams] = useSearchParams();
+  const previousURL = useRef<string | undefined>(undefined);
 
-  // Sync state to search params
+  // A changed URL (including Back/Forward) wins. Otherwise an active-tab change
+  // writes just our query keys. Recording our own write avoids a feedback loop.
   useEffect(() => {
-    if (openItem) {
-      const { type } = openItem;
-      setSearchParams({
-        "note-type": type,
-        "note-id": openItem.itemId,
-      });
-    } else {
-      setSearchParams({});
+    const destination = readNotesDestination(searchParams);
+    const urlKey = getNotesDestinationQuery(searchParams);
+    const first = previousURL.current === undefined;
+    const urlChanged = previousURL.current !== urlKey;
+    previousURL.current = urlKey;
+    if (urlChanged && (!first || searchParams.has("note-type"))) {
+      if (
+        destination &&
+        notesDestinationKey(destination) !== notesDestinationKey(openItem)
+      ) {
+        setOpenItem({
+          type: destination.type,
+          id: destination.itemId,
+          worldView: destination.worldView,
+        });
+      } else if (!destination && openItem) {
+        switchToTab(null);
+      }
+      return;
     }
-  }, [openItem, setSearchParams]);
-
-  // Sync search params to state
-  useEffect(() => {
-    const openItemType = searchParams.get("note-type");
-    const openItemId = searchParams.get("note-id");
-
-    if (openItemType && openItemId && isOpenNoteItemType(openItemType)) {
-      setOpenItem({
-        type: openItemType,
-        id: openItemId,
-      });
+    const next = writeNotesDestination(searchParams, openItem);
+    if (next.toString() !== searchParams.toString()) {
+      previousURL.current = getNotesDestinationQuery(next);
+      setSearchParams(next);
     }
-  }, [searchParams, setOpenItem]);
+  }, [openItem, searchParams, setSearchParams, setOpenItem, switchToTab]);
 }
