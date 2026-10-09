@@ -1,175 +1,87 @@
-import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-
 import {
   Tables,
   TablesInsert,
   TablesUpdate,
 } from "types/supabase-generated.type";
 
-import { supabase } from "lib/supabase.lib";
-
-import { createSubscription } from "./_subscriptionManager";
+import { ErrorNoun } from "./errors/RepositoryErrors";
 import {
-  ErrorNoun,
-  ErrorVerb,
-  RepositoryError,
-  getRepositoryError,
-} from "./errors/RepositoryErrors";
+  type DefaultWorldFieldBindingDTO,
+  WorldConfigurationRepository,
+} from "./worldConfiguration.repository";
 
 export type WorldCategoryDTO = Tables<"world_categories">;
 export type WorldCategoryInsertDTO = TablesInsert<"world_categories">;
 export type WorldCategoryUpdateDTO = TablesUpdate<"world_categories">;
 
+// Categories are read as part of the world configuration. Every edit goes
+// through the configuration RPC so the first one can fork inherited defaults.
 export class WorldCategoriesRepository {
-  private static worldCategories = () => supabase.from("world_categories");
-
-  public static listenToWorldCategories(
-    worldId: string,
-    onWorldCategoryChanges: (
-      changedCategories: Record<string, WorldCategoryDTO>,
-      removedCategoryIds: string[],
-      replaceState: boolean,
-    ) => void,
-    onError: (error: RepositoryError) => void,
-  ): () => void {
-    const startInitialLoad = () => {
-      this.worldCategories()
-        .select("*")
-        .eq("world_id", worldId)
-        .then(({ data, error, status }) => {
-          if (error) {
-            console.error(error);
-            onError(
-              getRepositoryError(
-                error,
-                ErrorVerb.Read,
-                ErrorNoun.WorldCategory,
-                true,
-                status,
-              ),
-            );
-          } else {
-            onWorldCategoryChanges(
-              Object.fromEntries(
-                data.map((category) => [category.id, category]),
-              ),
-              [],
-              true,
-            );
-          }
-        });
-    };
-
-    const handlePayload = (
-      payload: RealtimePostgresChangesPayload<WorldCategoryDTO>,
-    ) => {
-      if (payload.errors) {
-        onError(
-          getRepositoryError(
-            payload.errors,
-            ErrorVerb.Read,
-            ErrorNoun.WorldCategory,
-            true,
-          ),
-        );
-      } else if (
-        payload.eventType === "INSERT" ||
-        payload.eventType === "UPDATE"
-      ) {
-        onWorldCategoryChanges({ [payload.new.id]: payload.new }, [], false);
-      } else if (payload.eventType === "DELETE" && payload.old.id) {
-        onWorldCategoryChanges({}, [payload.old.id], false);
-      }
-    };
-
-    const unsubscribe = createSubscription(
-      `world_categories:world_id=eq.${worldId}`,
-      "world_categories",
-      `world_id=eq.${worldId}`,
-      startInitialLoad,
-      handlePayload,
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }
-
   public static addWorldCategory(
-    category: WorldCategoryInsertDTO,
-  ): Promise<string> {
-    return new Promise((resolve, reject) => {
-      this.worldCategories()
-        .insert(category)
-        .select()
-        .single()
-        .then(({ data, error, status }) => {
-          if (error) {
-            console.error(error);
-            reject(
-              getRepositoryError(
-                error,
-                ErrorVerb.Create,
-                ErrorNoun.WorldCategory,
-                false,
-                status,
-              ),
-            );
-          } else {
-            resolve(data.id);
-          }
-        });
-    });
+    worldId: string,
+    category: Omit<WorldCategoryInsertDTO, "world_id"> & { id: string },
+    defaultBindings?: DefaultWorldFieldBindingDTO[],
+  ): Promise<void> {
+    return WorldConfigurationRepository.mutateWorldConfiguration(
+      worldId,
+      {
+        type: "create_category",
+        category: {
+          id: category.id,
+          name: category.name,
+          icon: category.icon ?? null,
+          sort_order: category.sort_order ?? 0,
+          supports_hierarchy: category.supports_hierarchy ?? false,
+          supports_map: category.supports_map ?? false,
+          supports_bonds: category.supports_bonds ?? false,
+          subtitle_field_definition_id:
+            category.subtitle_field_definition_id ?? null,
+        },
+      },
+      ErrorNoun.WorldCategory,
+      defaultBindings,
+    );
   }
 
   public static updateWorldCategory(
+    worldId: string,
     categoryId: string,
     category: WorldCategoryUpdateDTO,
+    defaultBindings?: DefaultWorldFieldBindingDTO[],
   ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.worldCategories()
-        .update(category)
-        .eq("id", categoryId)
-        .then(({ error, status }) => {
-          if (error) {
-            console.error(error);
-            reject(
-              getRepositoryError(
-                error,
-                ErrorVerb.Update,
-                ErrorNoun.WorldCategory,
-                false,
-                status,
-              ),
-            );
-          } else {
-            resolve();
-          }
-        });
-    });
+    return WorldConfigurationRepository.mutateWorldConfiguration(
+      worldId,
+      { type: "update_category", id: categoryId, changes: category },
+      ErrorNoun.WorldCategory,
+      defaultBindings,
+    );
   }
 
-  public static deleteWorldCategory(categoryId: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.worldCategories()
-        .delete()
-        .eq("id", categoryId)
-        .then(({ error, status }) => {
-          if (error) {
-            console.error(error);
-            reject(
-              getRepositoryError(
-                error,
-                ErrorVerb.Delete,
-                ErrorNoun.WorldCategory,
-                false,
-                status,
-              ),
-            );
-          } else {
-            resolve();
-          }
-        });
-    });
+  // Cascades through the category's field definitions. The database rejects
+  // deleting a category that still has entries.
+  public static deleteWorldCategory(
+    worldId: string,
+    categoryId: string,
+    defaultBindings?: DefaultWorldFieldBindingDTO[],
+  ): Promise<void> {
+    return WorldConfigurationRepository.mutateWorldConfiguration(
+      worldId,
+      { type: "delete_category", id: categoryId },
+      ErrorNoun.WorldCategory,
+      defaultBindings,
+    );
+  }
+
+  public static reorderWorldCategories(
+    worldId: string,
+    categoryIds: string[],
+    defaultBindings?: DefaultWorldFieldBindingDTO[],
+  ): Promise<void> {
+    return WorldConfigurationRepository.mutateWorldConfiguration(
+      worldId,
+      { type: "reorder_categories", ids: categoryIds },
+      ErrorNoun.WorldCategory,
+      defaultBindings,
+    );
   }
 }

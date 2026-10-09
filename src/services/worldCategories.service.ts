@@ -1,11 +1,15 @@
+import { v4 as uuid } from "uuid";
+
 import { IconDefinition } from "types/Icon.type";
 import { Json } from "types/supabase-generated.type";
 
-import { RepositoryError } from "repositories/errors/RepositoryErrors";
+import { WorldCategoriesRepository } from "repositories/worldCategories.repository";
+import type { WorldConfigurationCategoryDTO } from "repositories/worldConfiguration.repository";
+
 import {
-  WorldCategoriesRepository,
-  WorldCategoryDTO,
-} from "repositories/worldCategories.repository";
+  IWorldFieldDefinition,
+  WorldFieldDefinitionsService,
+} from "./worldFieldDefinitions.service";
 
 export interface IWorldCategory {
   id: string;
@@ -22,33 +26,7 @@ export interface IWorldCategory {
 }
 
 export class WorldCategoriesService {
-  public static listenToWorldCategories(
-    worldId: string,
-    onWorldCategoryChanges: (
-      changedCategories: Record<string, IWorldCategory>,
-      removedCategoryIds: string[],
-      replaceState: boolean,
-    ) => void,
-    onError: (error: RepositoryError) => void,
-  ): () => void {
-    return WorldCategoriesRepository.listenToWorldCategories(
-      worldId,
-      (changedCategories, removedCategoryIds, replaceState) =>
-        onWorldCategoryChanges(
-          Object.fromEntries(
-            Object.entries(changedCategories).map(([categoryId, category]) => [
-              categoryId,
-              this.convertWorldCategoryDTOToWorldCategory(category),
-            ]),
-          ),
-          removedCategoryIds,
-          replaceState,
-        ),
-      onError,
-    );
-  }
-
-  public static addWorldCategory(
+  public static async addWorldCategory(
     worldId: string,
     category: {
       name: string;
@@ -58,42 +36,84 @@ export class WorldCategoriesService {
       supportsMap?: boolean;
       supportsBonds?: boolean;
     },
+    inheritedFieldDefinitions?: IWorldFieldDefinition[],
   ): Promise<string> {
-    return WorldCategoriesRepository.addWorldCategory({
-      world_id: worldId,
-      name: category.name,
-      icon: (category.icon ?? null) as unknown as Json,
-      sort_order: category.sortOrder,
-      supports_hierarchy: category.supportsHierarchy ?? false,
-      supports_map: category.supportsMap ?? false,
-      supports_bonds: category.supportsBonds ?? false,
-    });
+    const id = uuid();
+    await WorldCategoriesRepository.addWorldCategory(
+      worldId,
+      {
+        id,
+        name: category.name,
+        icon: (category.icon ?? null) as unknown as Json,
+        sort_order: category.sortOrder,
+        supports_hierarchy: category.supportsHierarchy ?? false,
+        supports_map: category.supportsMap ?? false,
+        supports_bonds: category.supportsBonds ?? false,
+      },
+      WorldFieldDefinitionsService.convertInheritedBindingsToDTO(
+        inheritedFieldDefinitions,
+      ),
+    );
+    return id;
   }
 
   public static updateWorldCategory(
+    worldId: string,
     categoryId: string,
     category: Partial<Omit<IWorldCategory, "id" | "worldId">>,
+    inheritedFieldDefinitions?: IWorldFieldDefinition[],
   ): Promise<void> {
-    return WorldCategoriesRepository.updateWorldCategory(categoryId, {
-      name: category.name,
-      icon:
-        category.icon === undefined
-          ? undefined
-          : (category.icon as unknown as Json),
-      sort_order: category.sortOrder,
-      supports_hierarchy: category.supportsHierarchy,
-      supports_map: category.supportsMap,
-      supports_bonds: category.supportsBonds,
-      subtitle_field_definition_id: category.subtitleFieldDefinitionId,
-    });
+    return WorldCategoriesRepository.updateWorldCategory(
+      worldId,
+      categoryId,
+      {
+        name: category.name,
+        icon:
+          category.icon === undefined
+            ? undefined
+            : (category.icon as unknown as Json),
+        sort_order: category.sortOrder,
+        supports_hierarchy: category.supportsHierarchy,
+        supports_map: category.supportsMap,
+        supports_bonds: category.supportsBonds,
+        subtitle_field_definition_id: category.subtitleFieldDefinitionId,
+      },
+      WorldFieldDefinitionsService.convertInheritedBindingsToDTO(
+        inheritedFieldDefinitions,
+      ),
+    );
   }
 
-  public static deleteWorldCategory(categoryId: string): Promise<void> {
-    return WorldCategoriesRepository.deleteWorldCategory(categoryId);
+  public static deleteWorldCategory(
+    worldId: string,
+    categoryId: string,
+    inheritedFieldDefinitions?: IWorldFieldDefinition[],
+  ): Promise<void> {
+    return WorldCategoriesRepository.deleteWorldCategory(
+      worldId,
+      categoryId,
+      WorldFieldDefinitionsService.convertInheritedBindingsToDTO(
+        inheritedFieldDefinitions,
+      ),
+    );
   }
 
-  private static convertWorldCategoryDTOToWorldCategory(
-    category: WorldCategoryDTO,
+  public static reorderWorldCategories(
+    worldId: string,
+    categoryIds: string[],
+    inheritedFieldDefinitions?: IWorldFieldDefinition[],
+  ): Promise<void> {
+    return WorldCategoriesRepository.reorderWorldCategories(
+      worldId,
+      categoryIds,
+      WorldFieldDefinitionsService.convertInheritedBindingsToDTO(
+        inheritedFieldDefinitions,
+      ),
+    );
+  }
+
+  public static convertWorldCategoryDTOToWorldCategory(
+    category: WorldConfigurationCategoryDTO,
   ): IWorldCategory {
     return {
       id: category.id,
