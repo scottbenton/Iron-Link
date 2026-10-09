@@ -12,6 +12,7 @@
     "format": "eslint . --fix && prettier . --write",
     "preview": "vite preview",
     "test": "vitest",
+    "test:db": "supabase test db",
     "test:watch": "vitest --watch",
     "extract:i18n": "i18next 'src/**/*.{ts,tsx}' [-oc]",
     "supabase:start": "supabase start -x vector",
@@ -20,8 +21,7 @@
     "supabase:gen-types": "supabase gen types typescript --local > ./src/types/supabase-generated.type.ts",
     "supabase:create-db-script": "supabase db diff -f changes",
     "supabase:create-empty-script": "supabase migration new changes",
-    "supabase:serve-functions": "supabase functions serve",
-    "test:db": "supabase test db"
+    "supabase:serve-functions": "supabase functions serve"
   },
   "dependencies": {
     "@datasworn-community/core": "^0.3.0",
@@ -67,6 +67,7 @@
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.56.1",
     "react-i18next": "^15.5.1",
+    "react-icons": "^5.7.0",
     "react-markdown": "^10.1.0",
     "react-router": "^7.5.3",
     "remark-gfm": "^4.0.1",

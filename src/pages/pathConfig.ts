@@ -10,6 +10,11 @@ export const pathConfig = {
   worldSelect: "/worlds",
   worldCreate: "/worlds/create",
   world: (worldId: string) => `/worlds/${worldId}`,
+  worldSettings: (worldId: string) => `/worlds/${worldId}/settings`,
+  worldCategory: (worldId: string, categoryId: string) =>
+    `/worlds/${worldId}/categories/${categoryId}`,
+  worldCategorySettings: (worldId: string, categoryId: string) =>
+    `/worlds/${worldId}/settings/categories/${categoryId}`,
   homebrewSelect: "/homebrew",
   homebrew: (homebrewId: string) => `/homebrew/${homebrewId}`,
   auth: "/auth",
