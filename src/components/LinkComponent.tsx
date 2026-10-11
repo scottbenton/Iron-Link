@@ -1,8 +1,23 @@
-import { ForwardedRef, PropsWithChildren, forwardRef } from "react";
+import {
+  AnchorHTMLAttributes,
+  ForwardedRef,
+  MouseEventHandler,
+  PropsWithChildren,
+  forwardRef,
+} from "react";
 import { Link } from "react-router";
 
+export interface NavigationLinkProps {
+  href: string;
+  onClick?: MouseEventHandler<HTMLElement>;
+  onAuxClick?: MouseEventHandler<HTMLElement>;
+  onMouseDown?: MouseEventHandler<HTMLElement>;
+}
+
 export const NewLink = (
-  props: PropsWithChildren<{ href: string }>,
+  props: PropsWithChildren<
+    AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }
+  >,
   ref: ForwardedRef<HTMLAnchorElement>,
 ) => {
   const { href, ...rest } = props;
@@ -11,5 +26,5 @@ export const NewLink = (
 
 export const LinkComponent = forwardRef<
   HTMLAnchorElement,
-  PropsWithChildren<{ href: string }>
+  PropsWithChildren<AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }>
 >(NewLink);

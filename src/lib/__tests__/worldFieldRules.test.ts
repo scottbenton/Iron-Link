@@ -8,6 +8,7 @@ import {
   areWorldFieldDefinitionsCompatible,
   areWorldFieldTypesCompatible,
   canChangeWorldFieldType,
+  canWorldFieldTypeBeConditionSource,
   createWorldFieldConfiguration,
   generateWorldFieldKey,
   getWorldFieldConditionReferences,
@@ -271,6 +272,17 @@ describe("field identity and compatibility", () => {
     expect(isWorldFieldConditionCompatible("categorySelect", "isEmpty")).toBe(
       false,
     );
+  });
+  it("lets conditions read only fields with plain comparable values", () => {
+    for (const type of ["text", "tags", "number"])
+      expect(canWorldFieldTypeBeConditionSource(type)).toBe(true);
+    for (const type of [
+      "richText",
+      "oracleText",
+      "categorySelect",
+      "categoryMultiSelect",
+    ])
+      expect(canWorldFieldTypeBeConditionSource(type)).toBe(false);
   });
   it("treats a reference target as part of stored-value compatibility", () => {
     const sameTarget = {
