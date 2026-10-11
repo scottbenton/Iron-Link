@@ -30,10 +30,7 @@ export function WorldCategoryCapabilities({
   }[] = [
     {
       key: "supportsHierarchy",
-      label: t(
-        "worlds.categories.hierarchy",
-        "Supports parent and child entries",
-      ),
+      label: t("worlds.categories.hierarchy", "Supports nesting entries"),
     },
     { key: "supportsMap", label: t("worlds.categories.map", "Supports maps") },
     {

@@ -14,7 +14,10 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import type { WorldFieldRule } from "lib/worldFieldRules";
+import {
+  type WorldFieldRule,
+  canWorldFieldTypeBeConditionSource,
+} from "lib/worldFieldRules";
 
 import {
   IWorldFieldDefinition,
@@ -24,7 +27,7 @@ import {
 import { WorldOracleBindingPicker } from "../WorldOracleBindingPicker";
 import { WorldFieldConditionEditor } from "./WorldFieldConditionEditor";
 import { WorldFieldOverrideToggle } from "./WorldFieldOverrideToggle";
-import { fieldChoiceLabel, isConditionField } from "./categoryEditor.utils";
+import { fieldChoiceLabel } from "./categoryEditor.utils";
 
 export function WorldFieldRuleEditor({
   worldId,
@@ -44,7 +47,9 @@ export function WorldFieldRuleEditor({
   onChange: (rule: WorldFieldRule) => void;
 }) {
   const { t } = useTranslation();
-  const source = fields.find(isConditionField);
+  const source = fields.find((field) =>
+    canWorldFieldTypeBeConditionSource(field.type),
+  );
   const summary = rule.conditions
     .map((condition) => {
       const field = fields.find(

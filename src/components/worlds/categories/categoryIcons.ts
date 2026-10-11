@@ -19,11 +19,10 @@ export const GROUPS_CATEGORY_ICON_KEY = "mui:Groups2";
 
 let iconsPromise: Promise<Record<string, IconType>> | undefined;
 export function loadCategoryIcons() {
+  // The module exports only Game Icons components. Its type also carries a
+  // synthetic default export, which does not exist at runtime.
   iconsPromise ??= import("react-icons/gi").then(
-    (icons) =>
-      Object.fromEntries(
-        Object.entries(icons).filter(([key]) => key.startsWith("Gi")),
-      ) as Record<string, IconType>,
+    (icons): Record<string, IconType> => icons as Omit<typeof icons, "default">,
   );
   return iconsPromise;
 }

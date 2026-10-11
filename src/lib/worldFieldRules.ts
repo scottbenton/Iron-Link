@@ -155,13 +155,20 @@ export function canChangeWorldFieldType(
   return valueCount === 0 || areWorldFieldTypesCompatible(from, to);
 }
 
+// Whether rule conditions can read a field's value. Conditions compare plain
+// values; rich and oracle text are collaborative documents and category
+// references store entry IDs, so neither has a value to compare.
+export function canWorldFieldTypeBeConditionSource(type: string): boolean {
+  return ["text", "tags", "number"].includes(type);
+}
+
 export function isWorldFieldConditionCompatible(
   type: string,
   operator: WorldFieldCondition["operator"],
 ): boolean {
   return operator === "equals" || operator === "notEquals"
     ? type === "text"
-    : ["text", "tags", "number"].includes(type);
+    : canWorldFieldTypeBeConditionSource(type);
 }
 
 export function getWorldFieldConditionReferences(

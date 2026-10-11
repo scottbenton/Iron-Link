@@ -10,14 +10,17 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import type { WorldFieldRule } from "lib/worldFieldRules";
+import {
+  type WorldFieldRule,
+  canWorldFieldTypeBeConditionSource,
+} from "lib/worldFieldRules";
 
 import {
   IWorldFieldDefinition,
   WorldFieldType,
 } from "services/worldFieldDefinitions.service";
 
-import { fieldChoiceLabel, isConditionField } from "./categoryEditor.utils";
+import { fieldChoiceLabel } from "./categoryEditor.utils";
 
 type Condition = WorldFieldRule["conditions"][number];
 
@@ -36,7 +39,9 @@ export function WorldFieldConditionEditor({
 }) {
   const { t } = useTranslation();
   const source = fields.find((field) => field.id === condition.fieldId);
-  const selectable = fields.filter(isConditionField);
+  const selectable = fields.filter((field) =>
+    canWorldFieldTypeBeConditionSource(field.type),
+  );
   const textFields = fields.filter(
     (field) => field.type === WorldFieldType.Text,
   );

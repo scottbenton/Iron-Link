@@ -37,8 +37,10 @@ export function fieldChoiceLabel(
     (candidate) => candidate.label === field.label,
   );
   if (duplicates.length < 2) return field.label;
-  // Prefer the human-readable subtype from a visibility rule. Otherwise use
-  // the field type and list position, never a storage identity.
+  // Fields that share a label usually appear for different subtypes, so
+  // prefer the value that makes one visible (such as "Planet" for a field
+  // shown when Location Type equals Planet). Otherwise use the field type and
+  // list position, never a storage identity.
   const subtype = (candidate: IWorldFieldDefinition) =>
     candidate.configuration.rules
       .filter((rule) => rule.visible === true)
@@ -47,10 +49,8 @@ export function fieldChoiceLabel(
         (condition) =>
           condition.source === "entry" &&
           condition.operator === "equals" &&
-          fields.some(
-            (source) =>
-              source.id === condition.fieldId && source.key === "locationType",
-          ),
+          !!condition.value?.trim() &&
+          fields.some((source) => source.id === condition.fieldId),
       )?.value;
   const context = subtype(field);
   if (
@@ -61,14 +61,6 @@ export function fieldChoiceLabel(
     return `${field.label} (${context})`;
   }
   return `${field.label} (${getFieldTypeLabel(t, field.type)}, ${duplicates.findIndex((candidate) => candidate.id === field.id) + 1})`;
-}
-
-export function isConditionField(field: IWorldFieldDefinition) {
-  return [
-    WorldFieldType.Text,
-    WorldFieldType.Number,
-    WorldFieldType.Tags,
-  ].includes(field.type);
 }
 
 export function getReferencingFields(
@@ -120,15 +112,17 @@ export function getInvalidatedDependents(
 }
 
 export function validateFieldDraft(
-  draft: Pick<IWorldFieldDefinition, "type" | "gmOnly" | "configuration">,
+  draft: Pick<IWorldFieldDefinition, "type" | "gmOnly" | "configuration"> &
+    Partial<Pick<IWorldFieldDefinition, "label" | "binding">>,
   fields: IWorldFieldDefinition[],
   editedId?: string,
   createNew = false,
 ) {
+  // A field's rules may read its own value, so conditions are checked against
+  // the edited field as it will be saved. Creating a new field instead leaves
+  // the original untouched.
   const sourceFields = fields.map((source) =>
-    source.id === editedId && !createNew
-      ? { ...source, type: draft.type, gmOnly: draft.gmOnly }
-      : source,
+    source.id === editedId && !createNew ? { ...source, ...draft } : source,
   );
   const invalidCondition = draft.configuration.rules.some(
     (rule) =>
