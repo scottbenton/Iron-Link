@@ -9,6 +9,7 @@ import {
   IWorldEntry,
   WorldEntriesService,
 } from "services/worldEntries.service";
+import { WorldEntryFieldValuesService } from "services/worldEntryFieldValues.service";
 
 import { WorldCategoryContents } from "../WorldCategoryContents";
 import { category, translate } from "./fixtures";
@@ -22,6 +23,10 @@ vi.mock("react-i18next", async (importOriginal) => ({
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  vi.spyOn(
+    WorldEntryFieldValuesService,
+    "listenToWorldFieldValues",
+  ).mockReturnValue(() => {});
   useWorldStore.setState({ worldPermission: WorldPermission.Viewer });
 });
 

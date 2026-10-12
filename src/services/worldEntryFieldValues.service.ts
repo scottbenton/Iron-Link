@@ -5,6 +5,7 @@ import { byteaToUint8Array, uint8ArrayToBytea } from "lib/bytea.lib";
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import {
   WorldEntryFieldValueDTO,
+  WorldEntryFieldValueKey,
   WorldEntryFieldValuesRepository,
 } from "repositories/worldEntryFieldValues.repository";
 
@@ -22,30 +23,33 @@ export interface IWorldEntryFieldValue {
 }
 
 export class WorldEntryFieldValuesService {
-  public static listenToWorldEntryFieldValues(
-    entryId: string,
+  public static listenToWorldFieldValues(
+    worldId: string,
     onValueChanges: (
-      changedValues: Record<string, IWorldEntryFieldValue>,
-      removedFieldDefinitionIds: string[],
+      changedValues: IWorldEntryFieldValue[],
+      removedValues: WorldEntryFieldValueKey[],
       replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
-    return WorldEntryFieldValuesRepository.listenToWorldEntryFieldValues(
-      entryId,
-      (changedValues, removedFieldDefinitionIds, replaceState) =>
+    return WorldEntryFieldValuesRepository.listenToWorldFieldValues(
+      worldId,
+      (changedValues, removedValues, replaceState) =>
         onValueChanges(
-          Object.fromEntries(
-            Object.entries(changedValues).map(([definitionId, value]) => [
-              definitionId,
-              this.convertValueDTOToValue(value),
-            ]),
-          ),
-          removedFieldDefinitionIds,
+          changedValues.map((value) => this.convertValueDTOToValue(value)),
+          removedValues,
           replaceState,
         ),
       onError,
     );
+  }
+
+  public static async getWorldEntryFieldValues(
+    entryId: string,
+  ): Promise<IWorldEntryFieldValue[]> {
+    const values =
+      await WorldEntryFieldValuesRepository.getWorldEntryFieldValues(entryId);
+    return values.map((value) => this.convertValueDTOToValue(value));
   }
 
   public static setWorldEntryFieldValue(
@@ -100,6 +104,7 @@ export class WorldEntryFieldValuesService {
     );
   }
 
+  // Picks columns explicitly so realtime rows' rich text `content` is dropped.
   private static convertValueDTOToValue(
     value: WorldEntryFieldValueDTO,
   ): IWorldEntryFieldValue {

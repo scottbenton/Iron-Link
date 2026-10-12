@@ -46,11 +46,12 @@ interface WorldEntriesStoreState {
     loading: boolean;
     error?: string;
   };
-  // Values are scoped to the entry currently open, keyed by field definition
-  // id. Subscribing per world would stream every field of every entry.
+  // Every value in the world, keyed by entry id then field definition id.
+  // Rich text content is not held here; it is fetched on demand.
   fieldValueState: {
-    entryId: string | null;
-    values: Record<string, IWorldEntryFieldValue>;
+    // The world being listened to; results for any other world are dropped.
+    worldId: string | null;
+    valuesByEntry: Record<string, Record<string, IWorldEntryFieldValue>>;
     loading: boolean;
     error?: string;
   };
@@ -62,7 +63,7 @@ interface WorldEntriesStoreActions {
     worldId: string,
     permission: WorldPermission,
   ) => () => void;
-  listenToWorldEntryFieldValues: (entryId: string) => () => void;
+  listenToWorldFieldValues: (worldId: string) => () => void;
 
   createEntry: (
     uid: string,
@@ -130,8 +131,8 @@ const defaultWorldEntriesState: WorldEntriesStoreState = {
     loading: true,
   },
   fieldValueState: {
-    entryId: null,
-    values: {},
+    worldId: null,
+    valuesByEntry: {},
     loading: true,
   },
 };
@@ -148,6 +149,14 @@ export const useWorldEntriesStore = createWithEqualityFn<
         worldId,
         permission,
         (changedEntries, removedEntryIds, replaceState) => {
+          // An entry that appears outside a snapshot may be one that just
+          // became readable, whose existing values send no realtime events.
+          const revealedEntryIds = replaceState
+            ? []
+            : Object.keys(changedEntries).filter(
+                (entryId) => !get().entryState.entries[entryId],
+              );
+
           set((store) => {
             if (replaceState) {
               store.entryState.entries = changedEntries;
@@ -160,6 +169,9 @@ export const useWorldEntriesStore = createWithEqualityFn<
               removedEntryIds.forEach((entryId) => {
                 delete store.entryState.entries[entryId];
                 delete store.entryState.permissions[entryId];
+                // Losing read access to an entry sends no value events, so
+                // its values are dropped here rather than awaited.
+                delete store.fieldValueState.valuesByEntry[entryId];
               });
             }
             Object.entries(changedEntries).forEach(([entryId, entry]) => {
@@ -173,6 +185,35 @@ export const useWorldEntriesStore = createWithEqualityFn<
             store.entryState.loading = false;
             store.entryState.error = undefined;
           });
+
+          revealedEntryIds.forEach((entryId) => {
+            const isCurrent = () =>
+              get().fieldValueState.worldId === worldId &&
+              !!get().entryState.entries[entryId];
+            WorldEntryFieldValuesService.getWorldEntryFieldValues(entryId)
+              .then((values) => {
+                if (!isCurrent()) return;
+                set((store) => {
+                  const entryValues = (store.fieldValueState.valuesByEntry[
+                    entryId
+                  ] ??= {});
+                  // Realtime events received during the read are newer, so
+                  // the read only fills fields they have not set.
+                  values.forEach((value) => {
+                    entryValues[value.fieldDefinitionId] ??= value;
+                  });
+                  if (Object.keys(entryValues).length === 0) {
+                    delete store.fieldValueState.valuesByEntry[entryId];
+                  }
+                });
+              })
+              .catch((error) => {
+                if (!isCurrent()) return;
+                set((store) => {
+                  store.fieldValueState.error = error.message;
+                });
+              });
+          });
         },
         (error) => {
           set((store) => {
@@ -183,40 +224,46 @@ export const useWorldEntriesStore = createWithEqualityFn<
       );
     },
 
-    listenToWorldEntryFieldValues: (entryId) => {
+    listenToWorldFieldValues: (worldId) => {
       set((store) => {
-        store.fieldValueState = {
-          entryId,
-          values: {},
-          loading: true,
-        };
+        if (store.fieldValueState.worldId !== worldId) {
+          store.fieldValueState = {
+            worldId,
+            valuesByEntry: {},
+            loading: true,
+          };
+        }
       });
 
-      return WorldEntryFieldValuesService.listenToWorldEntryFieldValues(
-        entryId,
-        (changedValues, removedFieldDefinitionIds, replaceState) => {
+      return WorldEntryFieldValuesService.listenToWorldFieldValues(
+        worldId,
+        (changedValues, removedValues, replaceState) => {
           set((store) => {
-            // A late payload from the previous entry must not leak into the
-            // one now open.
-            if (store.fieldValueState.entryId !== entryId) return;
+            // A late read from a previous world must not land in this one.
+            if (store.fieldValueState.worldId !== worldId) return;
             if (replaceState) {
-              store.fieldValueState.values = changedValues;
-            } else {
-              store.fieldValueState.values = {
-                ...store.fieldValueState.values,
-                ...changedValues,
-              };
-              removedFieldDefinitionIds.forEach((definitionId) => {
-                delete store.fieldValueState.values[definitionId];
-              });
+              store.fieldValueState.valuesByEntry = {};
             }
+            const valuesByEntry = store.fieldValueState.valuesByEntry;
+            changedValues.forEach((value) => {
+              valuesByEntry[value.entryId] ??= {};
+              valuesByEntry[value.entryId][value.fieldDefinitionId] = value;
+            });
+            removedValues.forEach(({ entryId, fieldDefinitionId }) => {
+              const entryValues = valuesByEntry[entryId];
+              if (!entryValues) return;
+              delete entryValues[fieldDefinitionId];
+              if (Object.keys(entryValues).length === 0) {
+                delete valuesByEntry[entryId];
+              }
+            });
             store.fieldValueState.loading = false;
             store.fieldValueState.error = undefined;
           });
         },
         (error) => {
           set((store) => {
-            if (store.fieldValueState.entryId !== entryId) return;
+            if (store.fieldValueState.worldId !== worldId) return;
             store.fieldValueState.loading = false;
             store.fieldValueState.error = error.message;
           });
@@ -323,6 +370,8 @@ export const useWorldEntriesStore = createWithEqualityFn<
   deepEqual,
 );
 
+// Values start and stop with entries so every view of the entries can read
+// their fields too.
 export function useListenToWorldEntries(worldId: string | undefined) {
   const uid = useUID();
   const worldPermission = useWorldStore((store) => store.worldPermission);
@@ -330,13 +379,33 @@ export function useListenToWorldEntries(worldId: string | undefined) {
   const listenToWorldEntries = useWorldEntriesStore(
     (store) => store.listenToWorldEntries,
   );
+  const listenToWorldFieldValues = useWorldEntriesStore(
+    (store) => store.listenToWorldFieldValues,
+  );
   const resetStore = useWorldEntriesStore((store) => store.reset);
 
   useEffect(() => {
     if (worldId && worldPermission) {
-      return listenToWorldEntries(uid, worldId, worldPermission);
+      // Restarted on permission changes too: RLS decides which values (gm_only
+      // ones especially) the snapshot returns.
+      const unsubscribeEntries = listenToWorldEntries(
+        uid,
+        worldId,
+        worldPermission,
+      );
+      const unsubscribeValues = listenToWorldFieldValues(worldId);
+      return () => {
+        unsubscribeEntries();
+        unsubscribeValues();
+      };
     }
-  }, [worldId, uid, worldPermission, listenToWorldEntries]);
+  }, [
+    worldId,
+    uid,
+    worldPermission,
+    listenToWorldEntries,
+    listenToWorldFieldValues,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -345,31 +414,23 @@ export function useListenToWorldEntries(worldId: string | undefined) {
   }, [worldId, resetStore]);
 }
 
-// Field values load for one entry at a time; call this from the entry detail
-// view. RLS omits gmOnly rows for anyone below guide, so no client-side filter
-// is needed here.
-export function useListenToWorldEntryFieldValues(entryId: string | undefined) {
-  const listenToWorldEntryFieldValues = useWorldEntriesStore(
-    (store) => store.listenToWorldEntryFieldValues,
-  );
+const NO_FIELD_VALUES: Record<string, IWorldEntryFieldValue> = {};
 
-  useEffect(() => {
-    if (entryId) {
-      return listenToWorldEntryFieldValues(entryId);
-    }
-  }, [entryId, listenToWorldEntryFieldValues]);
-}
-
-// Values for the entry currently subscribed, keyed by field definition id.
-// Returns empty for any other entry rather than another entry's values.
+// One entry's values, keyed by field definition id.
 export function useWorldEntryFieldValues(
   entryId: string,
 ): Record<string, IWorldEntryFieldValue> {
-  return useWorldEntriesStore((store) =>
-    store.fieldValueState.entryId === entryId
-      ? store.fieldValueState.values
-      : {},
+  return useWorldEntriesStore(
+    (store) => store.fieldValueState.valuesByEntry[entryId] ?? NO_FIELD_VALUES,
   );
+}
+
+// Every entry's values, keyed by entry id then field definition id.
+export function useWorldFieldValuesByEntry(): Record<
+  string,
+  Record<string, IWorldEntryFieldValue>
+> {
+  return useWorldEntriesStore((store) => store.fieldValueState.valuesByEntry);
 }
 
 // Mirrors the world_entries update/delete policies: explicit viewers are

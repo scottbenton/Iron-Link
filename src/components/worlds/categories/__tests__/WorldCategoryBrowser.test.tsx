@@ -12,6 +12,7 @@ import {
   IWorldEntry,
   WorldEntriesService,
 } from "services/worldEntries.service";
+import { WorldEntryFieldValuesService } from "services/worldEntryFieldValues.service";
 
 import { WorldBrowserRouteFixture } from "./WorldBrowserRouteFixture";
 import { category, translate } from "./fixtures";
@@ -42,6 +43,10 @@ vi.mock("react-i18next", async (importOriginal) => ({
 beforeEach(() => {
   vi.restoreAllMocks();
   state.oracle.loading = false;
+  vi.spyOn(
+    WorldEntryFieldValuesService,
+    "listenToWorldFieldValues",
+  ).mockReturnValue(() => {});
   useWorldStore.setState({ worldPermission: WorldPermission.Viewer });
 });
 
