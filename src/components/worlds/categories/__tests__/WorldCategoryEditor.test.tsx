@@ -6,7 +6,10 @@ import { WorldCategoryDetails } from "../WorldCategoryDetails";
 import { WorldCategoryEditor } from "../WorldCategoryEditor";
 import { category, field, translate } from "./fixtures";
 
-const actions = vi.hoisted(() => ({ updateCategory: vi.fn() }));
+const actions = vi.hoisted(() => ({
+  updateCategory: vi.fn(),
+  getCategoryCounts: vi.fn(),
+}));
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("react-i18next", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-i18next")>()),
@@ -17,8 +20,16 @@ vi.mock("stores/worldCategories.store", () => ({
     selector(actions),
 }));
 
+const counts = (nestedEntryCount: number) => ({
+  entryCount: 4,
+  nestedEntryCount,
+  valueCounts: {},
+  multiValueCounts: {},
+});
+
 beforeEach(() => {
   vi.clearAllMocks();
+  actions.getCategoryCounts.mockResolvedValue(counts(0));
 });
 
 describe("WorldCategoryEditor", () => {
@@ -126,6 +137,69 @@ describe("WorldCategoryDetails", () => {
     expect(maps).not.toBeChecked();
   });
 
+  it("keeps nesting on while entries are nested", async () => {
+    actions.getCategoryCounts.mockResolvedValue(counts(3));
+    render(
+      <WorldCategoryDetails
+        category={category}
+        fields={[]}
+        readOnly={false}
+        disabled={false}
+      />,
+    );
+    const nesting = screen.getByRole("checkbox", {
+      name: "Supports nesting entries",
+    });
+    await waitFor(() => expect(nesting).toBeDisabled());
+    expect(nesting).toHaveAccessibleDescription(
+      "Move 3 entries out of their parent entries first.",
+    );
+    expect(
+      screen.getByRole("checkbox", { name: "Supports maps" }),
+    ).toBeEnabled();
+    expect(actions.getCategoryCounts).toHaveBeenCalledWith(category.id);
+  });
+
+  it("allows turning nesting off once no entries are nested", async () => {
+    const user = userEvent.setup();
+    actions.updateCategory.mockResolvedValue(undefined);
+    render(
+      <WorldCategoryDetails
+        category={category}
+        fields={[]}
+        readOnly={false}
+        disabled={false}
+      />,
+    );
+    await waitFor(() => expect(actions.getCategoryCounts).toHaveBeenCalled());
+    await user.click(
+      screen.getByRole("checkbox", { name: "Supports nesting entries" }),
+    );
+    expect(actions.updateCategory).toHaveBeenCalledWith(category.id, {
+      supportsHierarchy: false,
+    });
+  });
+
+  it("does not count entries when nesting is off", async () => {
+    const user = userEvent.setup();
+    actions.updateCategory.mockResolvedValue(undefined);
+    render(
+      <WorldCategoryDetails
+        category={{ ...category, supportsHierarchy: false }}
+        fields={[]}
+        readOnly={false}
+        disabled={false}
+      />,
+    );
+    await user.click(
+      screen.getByRole("checkbox", { name: "Supports nesting entries" }),
+    );
+    expect(actions.updateCategory).toHaveBeenCalledWith(category.id, {
+      supportsHierarchy: true,
+    });
+    expect(actions.getCategoryCounts).not.toHaveBeenCalled();
+  });
+
   it("shows configuration without allowing readers to change it", () => {
     render(
       <WorldCategoryDetails
@@ -144,5 +218,6 @@ describe("WorldCategoryDetails", () => {
     expect(
       screen.getByRole("button", { name: "Choose category icon" }),
     ).toBeDisabled();
+    expect(actions.getCategoryCounts).not.toHaveBeenCalled();
   });
 });

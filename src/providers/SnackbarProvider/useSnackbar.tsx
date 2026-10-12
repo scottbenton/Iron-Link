@@ -35,6 +35,12 @@ export function createErrorSnackbar(message: string) {
 }
 
 export function parseRepositoryErrorAndGetText(error: RepositoryError) {
+  if (error.reason === ErrorReason.InvalidParent) {
+    return i18n.t(
+      "errors.invalidParent",
+      "That entry can't be placed there. Choose an entry in the same category that isn't the entry itself or one of its nested entries.",
+    );
+  }
   const reason = getTranslatedReason(error.reason);
   const noun = getTranslatedNoun(error.noun, error.plural);
   const verb = getTranslatedVerb(error.verb);

@@ -214,6 +214,15 @@ export class WorldEntriesRepository {
     });
   }
 
+  // Moves are validated by the database; a refused parent rejects with
+  // ErrorReason.InvalidParent.
+  public static setWorldEntryParent(
+    entryId: string,
+    parentEntryId: string | null,
+  ): Promise<void> {
+    return this.updateWorldEntry(entryId, { parent_entry_id: parentEntryId });
+  }
+
   public static updateWorldEntryBeaconRequest(
     token: string,
     entryId: string,

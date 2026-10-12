@@ -67,6 +67,12 @@ beforeEach(() => {
   state.defaultBindingsReady = true;
   state.oracle.loading = false;
   state.oracle.error = undefined;
+  state.getCategoryCounts.mockResolvedValue({
+    entryCount: 0,
+    nestedEntryCount: 0,
+    valueCounts: {},
+    multiValueCounts: {},
+  });
 });
 
 const props = {
@@ -368,6 +374,7 @@ describe("WorldCategoryManager", () => {
     const user = userEvent.setup();
     state.getCategoryCounts.mockResolvedValue({
       entryCount: 2,
+      nestedEntryCount: 0,
       valueCounts: {},
       multiValueCounts: {},
     });
@@ -388,6 +395,7 @@ describe("WorldCategoryManager", () => {
     };
     state.getCategoryCounts.mockResolvedValue({
       entryCount: 0,
+      nestedEntryCount: 0,
       valueCounts: {},
       multiValueCounts: {},
     });

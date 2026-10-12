@@ -159,6 +159,68 @@ describe("field rule resolution", () => {
       }).visible,
     ).toBe(false);
   });
+  it("stops at a missing ancestor and at loops above the entry", () => {
+    const configured = {
+      ...definition,
+      configuration: createWorldFieldConfiguration({
+        visible: false,
+        rules: [
+          {
+            conditions: [
+              {
+                source: "ancestor",
+                fieldId: "region",
+                operator: "isNotEmpty",
+                ancestor: { fieldId: "type", value: "Area" },
+              },
+            ],
+            visible: true,
+          },
+        ],
+      }),
+    };
+    const area = {
+      id: "area",
+      parentId: null,
+      values: { type: "Area", region: "Reaches" },
+    };
+    const child = { id: "entry", parentId: "near", values: {} };
+    // Control: the Area two levels up matches when the chain is complete.
+    expect(
+      resolveFieldDefinition(configured, {
+        entry: child,
+        entries: {
+          near: { id: "near", parentId: "hidden", values: {} },
+          area: area,
+          hidden: { id: "hidden", parentId: "area", values: {} },
+          entry: child,
+        },
+      }).visible,
+    ).toBe(true);
+    // The chain breaks at an ancestor this client cannot see.
+    expect(
+      resolveFieldDefinition(configured, {
+        entry: child,
+        entries: {
+          near: { id: "near", parentId: "hidden", values: {} },
+          area: area,
+          entry: child,
+        },
+      }).visible,
+    ).toBe(false);
+    // A loop above the entry ends the walk instead of spinning.
+    expect(
+      resolveFieldDefinition(configured, {
+        entry: child,
+        entries: {
+          near: { id: "near", parentId: "far", values: {} },
+          far: { id: "far", parentId: "near", values: {} },
+          area: area,
+          entry: child,
+        },
+      }).visible,
+    ).toBe(false);
+  });
   it.each([
     ["Reaches", "Island", "Reaches"],
     ["Custom Region", "Island", "Editable fallback"],

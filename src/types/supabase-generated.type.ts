@@ -733,10 +733,10 @@ export type Database = {
           },
           {
             foreignKeyName: "world_entries_parent_entry_id_fkey"
-            columns: ["parent_entry_id"]
+            columns: ["parent_entry_id", "world_id", "category_id"]
             isOneToOne: false
             referencedRelation: "world_entries"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "world_id", "category_id"]
           },
           {
             foreignKeyName: "world_entries_world_id_fkey"
