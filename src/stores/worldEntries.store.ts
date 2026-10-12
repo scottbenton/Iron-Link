@@ -3,6 +3,14 @@ import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
+import { isValidWorldEntryParent } from "lib/worldEntryParents";
+
+import {
+  ErrorNoun,
+  ErrorReason,
+  ErrorVerb,
+  createRepositoryError,
+} from "repositories/errors/RepositoryErrors";
 import {
   EditPermissions,
   ReadPermissions,
@@ -13,6 +21,7 @@ import {
 import {
   IWorldEntry,
   IWorldEntryNotesContent,
+  IWorldEntryUpdate,
   WorldEntriesService,
 } from "services/worldEntries.service";
 import {
@@ -64,14 +73,12 @@ interface WorldEntriesStoreActions {
     editPermissions: EditPermissions,
     parentEntryId?: string,
   ) => Promise<string>;
-  updateEntry: (
+  updateEntry: (entryId: string, entry: IWorldEntryUpdate) => Promise<void>;
+  // Rejects without a request when the loaded entries already show the move
+  // is invalid; the database checks every move regardless.
+  setEntryParent: (
     entryId: string,
-    entry: Partial<
-      Omit<
-        IWorldEntry,
-        "id" | "worldId" | "authorId" | "createdAt" | "updatedAt"
-      >
-    >,
+    parentEntryId: string | null,
   ) => Promise<void>;
   deleteEntry: (entryId: string) => Promise<void>;
 
@@ -132,7 +139,7 @@ const defaultWorldEntriesState: WorldEntriesStoreState = {
 export const useWorldEntriesStore = createWithEqualityFn<
   WorldEntriesStoreState & WorldEntriesStoreActions
 >()(
-  immer((set) => ({
+  immer((set, get) => ({
     ...defaultWorldEntriesState,
 
     listenToWorldEntries: (uid, worldId, permission) => {
@@ -238,6 +245,25 @@ export const useWorldEntriesStore = createWithEqualityFn<
     },
     updateEntry: (entryId, entry) => {
       return WorldEntriesService.updateWorldEntry(entryId, entry);
+    },
+    setEntryParent: (entryId, parentEntryId) => {
+      if (
+        !isValidWorldEntryParent(
+          get().entryState.entries,
+          entryId,
+          parentEntryId,
+        )
+      ) {
+        return Promise.reject(
+          createRepositoryError(
+            ErrorReason.InvalidParent,
+            ErrorVerb.Update,
+            ErrorNoun.WorldEntry,
+            false,
+          ),
+        );
+      }
+      return WorldEntriesService.setWorldEntryParent(entryId, parentEntryId);
     },
     deleteEntry: (entryId) => {
       return WorldEntriesService.deleteWorldEntry(entryId);

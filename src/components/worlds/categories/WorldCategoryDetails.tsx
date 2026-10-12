@@ -37,13 +37,35 @@ export function WorldCategoryDetails({
   const updateCategory = useWorldCategoriesStore(
     (store) => store.updateCategory,
   );
+  const getCategoryCounts = useWorldCategoriesStore(
+    (store) => store.getCategoryCounts,
+  );
   const [pending, setPending] = useState<CategoryChanges>({});
   const [error, setError] = useState<string>();
+  const [nestedEntryCount, setNestedEntryCount] = useState(0);
   useEffect(() => {
     setPending({});
   }, [category]);
   const current = { ...category, ...pending };
   const inactive = readOnly || disabled;
+
+  // Only editors can count, and only turning nesting off needs the count. The
+  // database still refuses the change if entries are nested after this loads.
+  const countNested = !readOnly && category.supportsHierarchy;
+  useEffect(() => {
+    setNestedEntryCount(0);
+    if (!countNested) return;
+    let active = true;
+    getCategoryCounts(category.id)
+      .then((counts) => {
+        if (active) setNestedEntryCount(counts.nestedEntryCount);
+      })
+      // The repository already reports the failure; the switch stays usable.
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [category.id, countNested, getCategoryCounts]);
 
   const save = useCallback(
     (changes: CategoryChanges) => {
@@ -139,6 +161,7 @@ export function WorldCategoryDetails({
         <WorldCategoryCapabilities
           value={current}
           disabled={inactive}
+          nestedEntryCount={nestedEntryCount}
           onChange={save}
         />
       </Stack>

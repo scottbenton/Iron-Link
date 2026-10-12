@@ -43,6 +43,7 @@ describe("WorldCategoryFields", () => {
     const user = userEvent.setup();
     actions.getCategoryCounts.mockResolvedValue({
       entryCount: 0,
+      nestedEntryCount: 0,
       valueCounts: {},
       multiValueCounts: {},
     });
@@ -94,6 +95,7 @@ describe("WorldCategoryFields", () => {
     const definition = field();
     actions.getCategoryCounts.mockResolvedValue({
       entryCount: 3,
+      nestedEntryCount: 0,
       valueCounts: { [definition.id]: 3 },
       multiValueCounts: {},
     });
@@ -165,6 +167,7 @@ describe("WorldCategoryFields", () => {
     );
     actions.getCategoryCounts.mockResolvedValue({
       entryCount: 0,
+      nestedEntryCount: 0,
       valueCounts: {},
       multiValueCounts: {},
     });

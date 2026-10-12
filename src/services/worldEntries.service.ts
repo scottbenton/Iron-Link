@@ -51,6 +51,21 @@ export interface IWorldEntry {
   updatedAt: Date;
 }
 
+// Category membership never changes, and parents move through
+// setWorldEntryParent so they can be validated.
+export type IWorldEntryUpdate = Partial<
+  Omit<
+    IWorldEntry,
+    | "id"
+    | "worldId"
+    | "categoryId"
+    | "parentEntryId"
+    | "authorId"
+    | "createdAt"
+    | "updatedAt"
+  >
+>;
+
 export interface IWorldEntryNotesContent {
   content: Uint8Array;
 }
@@ -108,16 +123,9 @@ export class WorldEntriesService {
 
   public static updateWorldEntry(
     entryId: string,
-    entry: Partial<
-      Omit<
-        IWorldEntry,
-        "id" | "worldId" | "authorId" | "createdAt" | "updatedAt"
-      >
-    >,
+    entry: IWorldEntryUpdate,
   ): Promise<void> {
     return WorldEntriesRepository.updateWorldEntry(entryId, {
-      category_id: entry.categoryId,
-      parent_entry_id: entry.parentEntryId,
       name: entry.name,
       icon:
         entry.icon === undefined ? undefined : (entry.icon as unknown as Json),
@@ -131,6 +139,13 @@ export class WorldEntriesService {
       read_permissions: entry.readPermissions,
       edit_permissions: entry.editPermissions,
     });
+  }
+
+  public static setWorldEntryParent(
+    entryId: string,
+    parentEntryId: string | null,
+  ): Promise<void> {
+    return WorldEntriesRepository.setWorldEntryParent(entryId, parentEntryId);
   }
 
   public static updateWorldEntryNotesContent(

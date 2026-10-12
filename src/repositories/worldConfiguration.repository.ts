@@ -76,6 +76,8 @@ export interface WorldConfigurationSubscription {
 
 export interface WorldCategoryCountsDTO {
   entryCount: number;
+  // Entries with a parent. Turning off nesting is blocked while any exist.
+  nestedEntryCount: number;
   valueCounts: Record<string, number>;
   // Entries storing more than one value, per field. Turning off "Allow more
   // than one" is blocked while any exist.
@@ -240,6 +242,7 @@ export class WorldConfigurationRepository {
     const counts = data as unknown as WorldCategoryCountsDTO;
     return {
       entryCount: counts.entryCount,
+      nestedEntryCount: counts.nestedEntryCount ?? 0,
       valueCounts: counts.valueCounts ?? {},
       multiValueCounts: counts.multiValueCounts ?? {},
     };
