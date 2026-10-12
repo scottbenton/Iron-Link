@@ -17,7 +17,9 @@ export interface WorldViewActions {
 export interface WorldViewLayoutProps extends PropsWithChildren {
   layout: WorldLayout;
   breadcrumbs: ReactNode;
-  title: ReactNode;
+  // Omitted when the destination renders its own header (an entry's name is
+  // edited in place on both surfaces).
+  title?: ReactNode;
   titleIcon?: ReactNode;
   actions?: WorldViewActions;
 }
@@ -62,50 +64,52 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
   return (
     <Box>
       {breadcrumbs}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 2,
-          mb: 3,
-        }}
-      >
+      {(title || hasActions) && (
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 1.5,
-            minWidth: 0,
-            flex: "1 1 240px",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 2,
+            mb: 3,
           }}
         >
-          {titleIcon}
-          <Typography
-            variant="h4"
-            component="h1"
-            textTransform="uppercase"
-            fontFamily={(theme) => theme.typography.fontFamilyTitle}
-            sx={{ overflowWrap: "anywhere" }}
-          >
-            {title}
-          </Typography>
-        </Box>
-        {hasActions && (
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              flexWrap: "wrap",
-              gap: 1,
+              gap: 1.5,
+              minWidth: 0,
+              flex: "1 1 240px",
             }}
           >
-            {actions?.start}
-            {actions?.end}
+            {titleIcon}
+            <Typography
+              variant="h4"
+              component="h1"
+              textTransform="uppercase"
+              fontFamily={(theme) => theme.typography.fontFamilyTitle}
+              sx={{ overflowWrap: "anywhere" }}
+            >
+              {title}
+            </Typography>
           </Box>
-        )}
-      </Box>
+          {hasActions && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 1,
+              }}
+            >
+              {actions?.start}
+              {actions?.end}
+            </Box>
+          )}
+        </Box>
+      )}
       {children}
     </Box>
   );

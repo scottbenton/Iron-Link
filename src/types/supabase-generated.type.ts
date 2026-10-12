@@ -1072,6 +1072,10 @@ export type Database = {
         Args: { p_configuration: Json; p_type: string }
         Returns: undefined
       }
+      world_has_restricted_members: {
+        Args: { p_world_id: string }
+        Returns: boolean
+      }
       world_role: {
         Args: { p_world_id: string; p_uid: string }
         Returns: string

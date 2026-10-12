@@ -1,25 +1,44 @@
-import DescriptionIcon from "@mui/icons-material/Description";
-import { Box, Card, Typography } from "@mui/material";
+import { Box, Card, CardActionArea, Typography } from "@mui/material";
+
+import { LinkComponent } from "components/LinkComponent";
 
 import { IWorldEntry } from "services/worldEntries.service";
 
-import { WorldCategoryIcon } from "./WorldCategoryIcon";
+import { WorldEntryIcon } from "../entries/WorldEntryIcon";
+import type { WorldLinkProps } from "../worldNavigation";
 
-export function WorldCategoryEntryItem({ entry }: { entry: IWorldEntry }) {
+export function WorldCategoryEntryItem({
+  entry,
+  subtitle,
+  linkProps,
+}: {
+  entry: IWorldEntry;
+  subtitle?: string;
+  linkProps: WorldLinkProps;
+}) {
   return (
     <Card component="li" variant="outlined" sx={{ mt: 1 }}>
-      <Box
+      <CardActionArea
+        LinkComponent={LinkComponent}
+        {...linkProps}
         sx={{ py: 1.5, px: 2, display: "flex", alignItems: "center", gap: 1 }}
       >
-        {entry.icon?.key ? (
-          <WorldCategoryIcon icon={entry.icon} size="small" />
-        ) : (
-          <DescriptionIcon sx={{ color: "primary.light" }} />
-        )}
-        <Typography sx={{ minWidth: 0, overflowWrap: "anywhere" }}>
-          {entry.name}
-        </Typography>
-      </Box>
+        <WorldEntryIcon entry={entry} size="small" />
+        <Box component="span" sx={{ flexGrow: 1, minWidth: 0 }}>
+          <Typography sx={{ overflowWrap: "anywhere" }}>
+            {entry.name}
+          </Typography>
+          {subtitle && (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ overflowWrap: "anywhere" }}
+            >
+              {subtitle}
+            </Typography>
+          )}
+        </Box>
+      </CardActionArea>
     </Card>
   );
 }

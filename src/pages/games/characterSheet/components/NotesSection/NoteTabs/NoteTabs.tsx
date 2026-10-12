@@ -7,6 +7,7 @@ import { useUID } from "stores/auth.store";
 import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
 import { useWorldStore } from "stores/world.store";
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
+import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import { FolderView, FolderViewToolbar } from "../FolderView";
 import { getItemName } from "../FolderView/getFolderName";
@@ -49,11 +50,26 @@ export function NoteTabs() {
   });
   const world = useWorldStore((store) => store.world);
   const categories = useWorldCategoriesStore((store) => store.categories);
+  // Entries load only while a category or entry tab is showing.
+  const entryNames = useWorldEntriesStore((store) =>
+    Object.fromEntries(
+      Object.values(openTabs).flatMap((item) => {
+        const entry =
+          item.worldView?.type === "entry"
+            ? store.entryState.entries[item.worldView.entryId]
+            : undefined;
+        return entry?.worldId === item.itemId ? [[entry.id, entry.name]] : [];
+      }),
+    ),
+  );
   const worldTabLabel = (tabId: string) => {
     const item = openTabs[tabId];
     const view = item.worldView ?? { type: "world" };
     if (view.type === "settings")
       return t("worlds.settings.title", "World settings");
+    if (view.type === "entry") {
+      return entryNames[view.entryId] ?? t("worlds.entries.unknown", "Entry");
+    }
     if ("categoryId" in view) {
       const category = categories[view.categoryId];
       const name =

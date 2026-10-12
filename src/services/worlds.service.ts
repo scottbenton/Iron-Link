@@ -112,6 +112,12 @@ export class WorldsService {
     return WorldsRepository.getWorldPermission(worldId, userId);
   }
 
+  public static getWorldHasRestrictedMembers(
+    worldId: string,
+  ): Promise<boolean> {
+    return WorldsRepository.getWorldHasRestrictedMembers(worldId);
+  }
+
   private static convertWorldDTOToWorld(world: WorldDTO): IWorld {
     return {
       id: world.id,

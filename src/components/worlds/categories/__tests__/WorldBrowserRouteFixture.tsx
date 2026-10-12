@@ -11,17 +11,22 @@ import type { IWorld } from "services/worlds.service";
 
 import { WorldCategoryManager } from "../WorldCategoryManager";
 
-// Renders the real manager for the world and category destinations. Tests
+// Renders the real manager for the world, category and entry destinations. Tests
 // supply categories through their worldCategories store mock.
 export function WorldBrowserRouteFixture({
   permission = WorldPermission.Viewer,
 }: {
   permission?: WorldPermission;
 }) {
-  const { worldId = "world-1", categoryId } = useParams();
+  const { worldId = "world-1", categoryId, entryId } = useParams();
   const navigate = useNavigate();
   const navigation: WorldNavigation = {
-    view: categoryId ? { type: "category", categoryId } : { type: "world" },
+    view:
+      categoryId && entryId
+        ? { type: "entry", categoryId, entryId }
+        : categoryId
+          ? { type: "category", categoryId }
+          : { type: "world" },
     getLinkProps: (view) => ({ href: getWorldViewPath(worldId, view) }),
     navigate: (view) => navigate(getWorldViewPath(worldId, view)),
   };

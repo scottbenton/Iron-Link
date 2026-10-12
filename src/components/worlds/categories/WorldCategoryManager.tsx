@@ -1,3 +1,4 @@
+import AddIcon from "@mui/icons-material/Add";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import SettingsIcon from "@mui/icons-material/Settings";
 import {
@@ -19,6 +20,10 @@ import { LinkComponent } from "components/LinkComponent";
 import { useWorldOracles } from "hooks/useWorldOracles";
 
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
+import {
+  useListenToWorldEntries,
+  useWorldEntriesStore,
+} from "stores/worldEntries.store";
 
 import { WorldPermission, isGuideEquivalent } from "repositories/shared.types";
 
@@ -31,6 +36,8 @@ import {
   WorldViewActions,
   WorldViewLayout,
 } from "../WorldViewLayout";
+import { WorldEntryCreateDialog } from "../entries/WorldEntryCreateDialog";
+import { WorldEntryView } from "../entries/WorldEntryView";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldCategoryBrowser } from "./WorldCategoryBrowser";
 import { WorldCategoryContents } from "./WorldCategoryContents";
@@ -88,6 +95,7 @@ export function WorldCategoryManager({
     (store) => store.getCategoryCounts,
   );
   const [adding, setAdding] = useState(false);
+  const [addingEntry, setAddingEntry] = useState(false);
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -95,7 +103,9 @@ export function WorldCategoryManager({
   // The manager stays mounted across destinations so the settings sidebar and
   // its icons do not rebuild on every click. Search text and action errors
   // belong to one destination, so clear them when it changes.
-  const viewKey = `${view.type}:${"categoryId" in view ? view.categoryId : ""}`;
+  const viewKey = `${view.type}:${"categoryId" in view ? view.categoryId : ""}:${
+    "entryId" in view ? view.entryId : ""
+  }`;
   const [previousViewKey, setPreviousViewKey] = useState(viewKey);
   if (previousViewKey !== viewKey) {
     setPreviousViewKey(viewKey);
@@ -106,12 +116,29 @@ export function WorldCategoryManager({
     view.type === "settings" || view.type === "category-settings";
   const selectedId = "categoryId" in view ? view.categoryId : undefined;
   const selected = categories.find((category) => category.id === selectedId);
+  const showsEntries = view.type === "category" || view.type === "entry";
+  // Owned here rather than by the list or the entry so moving between them
+  // keeps the world's entries loaded.
+  useListenToWorldEntries(showsEntries ? worldId : undefined);
+  const entriesLoading = useWorldEntriesStore(
+    (store) => store.entryState.loading,
+  );
+  const entry = useWorldEntriesStore((store) =>
+    view.type === "entry" &&
+    store.entryState.entries[view.entryId]?.categoryId === view.categoryId
+      ? store.entryState.entries[view.entryId]
+      : undefined,
+  );
   const fields = Object.values(definitions)
     .filter(
       (field) => field.worldId === worldId && field.categoryId === selected?.id,
     )
     .sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id));
   const canEdit = permission !== null && isGuideEquivalent(permission);
+  const canCreateEntries =
+    permission !== null &&
+    permission !== WorldPermission.None &&
+    permission !== WorldPermission.Viewer;
   const configurationReady =
     customized || (defaultBindingsReady && !oracles.loading && !oracles.error);
   const canDelete =
@@ -189,7 +216,7 @@ export function WorldCategoryManager({
     </Button>
   ) : undefined;
 
-  let title: ReactNode = world.name;
+  let title: ReactNode | undefined = world.name;
   let titleIcon: ReactNode;
   let actions: WorldViewActions | undefined;
   if (view.type === "world") {
@@ -240,9 +267,25 @@ export function WorldCategoryManager({
               </IconButton>
             </Tooltip>
           ),
-          end: <WorldEntrySearch value={search} onChange={setSearch} />,
+          end: (
+            <>
+              <WorldEntrySearch value={search} onChange={setSearch} />
+              {canCreateEntries && (
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => setAddingEntry(true)}
+                >
+                  {t("worlds.entries.new", "New entry")}
+                </Button>
+              )}
+            </>
+          ),
         }
       : undefined;
+  } else if (view.type === "entry") {
+    // The entry renders its own editable header on both surfaces.
+    title = undefined;
   } else {
     title = t("worlds.settings.title", "World settings");
   }
@@ -272,11 +315,18 @@ export function WorldCategoryManager({
           key={selected.id}
           category={selected}
           search={search}
+          navigation={navigation}
+        />
+      ) : view.type === "entry" && selected ? (
+        <WorldEntryView
+          category={selected}
+          entryId={view.entryId}
+          navigation={navigation}
         />
       ) : (
         <WorldCategoryBrowser
           categories={categories}
-          missingCategory={view.type === "category" && !selected}
+          missingCategory={showsEntries && !selected}
           worldName={world.name}
           navigation={navigation}
         />
@@ -291,6 +341,8 @@ export function WorldCategoryManager({
           world={world}
           category={selected}
           categoryLoading={loading}
+          entry={entry}
+          entryLoading={entriesLoading}
           navigation={navigation}
           root={rootBreadcrumb}
         />
@@ -332,6 +384,20 @@ export function WorldCategoryManager({
           {content}
         </Stack>
       </Box>
+      {addingEntry && selected && (
+        <WorldEntryCreateDialog
+          category={selected}
+          onClose={() => setAddingEntry(false)}
+          onCreated={(entryId) => {
+            setAddingEntry(false);
+            navigation.navigate({
+              type: "entry",
+              categoryId: selected.id,
+              entryId,
+            });
+          }}
+        />
+      )}
       {adding && (
         <WorldCategoryEditor onSave={create} onClose={() => setAdding(false)} />
       )}

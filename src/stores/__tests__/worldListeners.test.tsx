@@ -2,10 +2,15 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { WorldConfigurationService } from "services/worldConfiguration.service";
+import { WorldPlayersService } from "services/worldPlayers.service";
 import { WorldPlaysetsService } from "services/worldPlaysets.service";
-import type { IWorld } from "services/worlds.service";
+import { type IWorld, WorldsService } from "services/worlds.service";
 
-import { useWorldStore } from "../world.store";
+import {
+  useListenToWorld,
+  useWorldPermissionControlsShown,
+  useWorldStore,
+} from "../world.store";
 import {
   useListenToWorldConfiguration,
   useWorldCategoriesStore,
@@ -61,6 +66,39 @@ describe("world row invalidation", () => {
 
     act(() => useWorldStore.setState({ world: world(2) }));
     await waitFor(() => expect(playsets).toHaveBeenCalledTimes(2));
+    hook.unmount();
+  });
+});
+
+describe("permission controls", () => {
+  it("shows them once someone has restricted access, rechecking when linked games change", async () => {
+    let deliverWorld: Parameters<
+      typeof WorldsService.listenToWorld
+    >[1] = () => {};
+    vi.spyOn(WorldsService, "listenToWorld").mockImplementation(
+      (_worldId, onWorld) => {
+        deliverWorld = onWorld;
+        return () => {};
+      },
+    );
+    vi.spyOn(WorldPlayersService, "listenToWorldPlayers").mockReturnValue(
+      () => {},
+    );
+    const restricted = vi
+      .spyOn(WorldsService, "getWorldHasRestrictedMembers")
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+
+    const hook = renderHook(() => {
+      useListenToWorld("world");
+      return useWorldPermissionControlsShown();
+    });
+    // Hidden while loading, and when nobody has restricted access.
+    expect(hook.result.current).toBe(false);
+    await waitFor(() => expect(restricted).toHaveBeenCalledTimes(1));
+    act(() => deliverWorld(world(1)));
+    await waitFor(() => expect(restricted).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(hook.result.current).toBe(true));
     hook.unmount();
   });
 });
