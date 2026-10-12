@@ -26,7 +26,7 @@ const goal: IWorldFieldDefinition = {
   categoryId: "category-npcs",
   key: "goal",
   label: "Goal",
-  type: WorldFieldType.OracleText,
+  type: WorldFieldType.Text,
   binding: {
     packageId: "starforged",
     oracleId: goalId,

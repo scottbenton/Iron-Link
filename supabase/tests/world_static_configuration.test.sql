@@ -33,9 +33,9 @@ select lives_ok($$insert into public.world_entry_field_values(entry_id,field_def
  'public values derive correct world and visibility from static definition');
 select is((select world_id from public.world_entry_field_values where entry_id='b4000000-0000-4000-8000-000000000001'),pg_temp.world_id('main'),'client cannot spoof parent world');
 select is((select gm_only from public.world_entry_field_values where entry_id='b4000000-0000-4000-8000-000000000001'),false,'client cannot spoof public field visibility');
-select lives_ok($$insert into public.world_entry_field_values(entry_id,field_definition_id,world_id,content,gm_only) values
- ('b4000000-0000-4000-8000-000000000001',pg_temp.field_id('main','description'),pg_temp.world_id('main'),'\x010203',false)$$,
- 'GM oracle content can be stored before customization');
+select lives_ok($$insert into public.world_entry_field_values(entry_id,field_definition_id,world_id,value,gm_only) values
+ ('b4000000-0000-4000-8000-000000000001',pg_temp.field_id('main','description'),pg_temp.world_id('main'),'"Hidden detail"',false)$$,
+ 'GM text can be stored before customization');
 select is((select gm_only from public.world_entry_field_values where field_definition_id=pg_temp.field_id('main','description')),true,'GM visibility is derived from trusted defaults');
 select is((select configuration_customized from public.worlds where id=pg_temp.world_id('main')),false,'entry and value writes do not fork');
 select is((select count(*) from public.world_categories where world_id=pg_temp.world_id('main')),0::bigint,'entry and value writes leave categories virtual');
@@ -49,7 +49,7 @@ select throws_ok($$update public.worlds set setting_key='world:starforged/forge'
 update public.worlds set configuration_customized=true where id=pg_temp.world_id('main');
 select is((select configuration_customized from public.worlds where id=pg_temp.world_id('main')),false,'client cannot forge customized state');
 select throws_ok($$select public.mutate_world_configuration(pg_temp.world_id('rollback'),jsonb_build_object('type','update_field','id',pg_temp.field_id('rollback','locationType'),'changes',jsonb_build_object('type','invalid')))$$,
- '23514',null,'invalid first mutation is rejected');
+ 'P0001','Invalid field type','invalid first mutation is rejected');
 select is((select configuration_customized from public.worlds where id=pg_temp.world_id('rollback')),false,'failed first mutation rolls back marker');
 select is((select count(*) from public.world_categories where world_id=pg_temp.world_id('rollback')),0::bigint,'failed first mutation rolls back all copied defaults');
 select throws_ok($$select public.mutate_world_configuration(pg_temp.world_id('main'),jsonb_build_object('type','update_category','id',pg_temp.category_id('blank'),'changes',jsonb_build_object('name','Foreign')))$$,
@@ -61,7 +61,7 @@ select is((select configuration_customized from public.worlds where id=pg_temp.w
 select is((select count(*) from public.world_categories where world_id=pg_temp.world_id('main')),3::bigint,'first edit copies whole configuration');
 select is((select name from public.world_categories where id=pg_temp.category_id('main')),'Places','requested change is applied');
 select is((select value from public.world_entry_field_values where field_definition_id=pg_temp.field_id('main','locationType')),'"Settlement"'::jsonb,'fork preserves public value identity');
-select is((select encode(content,'hex') from public.world_entry_field_values where field_definition_id=pg_temp.field_id('main','description')),'010203','fork preserves Yjs content');
+select is((select value from public.world_entry_field_values where field_definition_id=pg_temp.field_id('main','description')),'"Hidden detail"'::jsonb,'fork preserves GM text');
 select is(public.get_world_category_counts(pg_temp.world_id('main'),pg_temp.category_id('main'))->>'entryCount','1','customized counts retain inherited entries');
 select lives_ok($$select public.mutate_world_configuration(pg_temp.world_id('main'),jsonb_build_object('type','update_category','id',pg_temp.category_id('main','lore'),'changes',jsonb_build_object('name','Knowledge')))$$,
  'later edit updates existing configuration');

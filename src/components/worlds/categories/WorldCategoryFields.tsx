@@ -15,16 +15,10 @@ import { WorldSettingsSection } from "components/worlds/WorldSettingsSection";
 
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 
-import {
-  isWorldCategoryReferenceType,
-  withoutWorldFieldOracleBindings,
-} from "lib/worldFieldRules";
+import { normalizeWorldFieldDefinition } from "lib/worldFieldRules";
 
 import { IWorldCategory } from "services/worldCategories.service";
-import {
-  IWorldFieldDefinition,
-  WorldFieldType,
-} from "services/worldFieldDefinitions.service";
+import { IWorldFieldDefinition } from "services/worldFieldDefinitions.service";
 
 import { WorldCategoryFieldRow } from "./WorldCategoryFieldRow";
 import { WorldConfigurationSortList } from "./WorldConfigurationSortList";
@@ -75,6 +69,7 @@ export function WorldCategoryFields({
   const [editor, setEditor] = useState<{
     field?: IWorldFieldDefinition;
     valueCount: number;
+    multiValueCount: number;
   }>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -92,11 +87,15 @@ export function WorldCategoryFields({
   const edit = (field: IWorldFieldDefinition) =>
     run(async () => {
       if (!canEdit) {
-        setEditor({ field, valueCount: 0 });
+        setEditor({ field, valueCount: 0, multiValueCount: 0 });
         return;
       }
       const counts = await getCategoryCounts(category.id);
-      setEditor({ field, valueCount: counts.valueCounts[field.id] ?? 0 });
+      setEditor({
+        field,
+        valueCount: counts.valueCounts[field.id] ?? 0,
+        multiValueCount: counts.multiValueCounts[field.id] ?? 0,
+      });
     });
   // Called from the field editor, which shows any error and closes itself
   // once the field is gone.
@@ -130,30 +129,7 @@ export function WorldCategoryFields({
   };
   const reorder = (ids: string[]) => run(() => reorderFields(category.id, ids));
   const save = async (draft: FieldDraft, createNew: boolean) => {
-    const categoryReference = isWorldCategoryReferenceType(draft.type);
-    const normalized = {
-      ...draft,
-      binding: categoryReference ? null : draft.binding,
-      configuration: {
-        ...draft.configuration,
-        targetCategoryId: categoryReference
-          ? draft.configuration.targetCategoryId
-          : undefined,
-        rules: categoryReference
-          ? withoutWorldFieldOracleBindings(draft.configuration.rules)
-          : draft.configuration.rules,
-        suggestions:
-          draft.type !== WorldFieldType.Text
-            ? []
-            : [
-                ...new Set(
-                  draft.configuration.suggestions
-                    .map((suggestion) => suggestion.trim())
-                    .filter(Boolean),
-                ),
-              ],
-      },
-    };
+    const normalized = normalizeWorldFieldDefinition(draft);
     if (editor?.field && !createNew) {
       await updateField(editor.field.id, normalized);
     } else {
@@ -173,7 +149,7 @@ export function WorldCategoryFields({
           <Button
             startIcon={<AddIcon />}
             disabled={busy || !configurationReady}
-            onClick={() => setEditor({ valueCount: 0 })}
+            onClick={() => setEditor({ valueCount: 0, multiValueCount: 0 })}
           >
             {t("worlds.fields.add", "Add field")}
           </Button>
@@ -240,6 +216,7 @@ export function WorldCategoryFields({
           fields={fields}
           categories={targetCategories}
           valueCount={editor.valueCount}
+          multiValueCount={editor.multiValueCount}
           readOnly={!canEdit}
           onClose={() => setEditor(undefined)}
           onSave={save}

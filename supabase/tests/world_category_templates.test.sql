@@ -15,13 +15,13 @@ select '{"version":1,"categories":[
   {"id":"a2000000-0000-0000-0000-000000000001","name":"Locations","icon":null,"sort_order":0,
    "supports_hierarchy":true,"supports_map":true,"supports_bonds":false,
    "subtitle_field_definition_id":"a3000000-0000-0000-0000-000000000001","fields":[
-    {"id":"a3000000-0000-0000-0000-000000000002","key":"description","label":"Description","type":"oracleText",
+    {"id":"a3000000-0000-0000-0000-000000000002","key":"description","label":"Description","type":"richText",
      "binding":null,"gm_only":false,"sort_order":1,
      "configuration":{"version":1,"suggestions":[],"helpText":"","visible":true,"rules":[
        {"conditions":[{"source":"entry","fieldId":"a3000000-0000-0000-0000-000000000001","operator":"equals","value":"Area"}],"visible":false}]}},
-    {"id":"a3000000-0000-0000-0000-000000000001","key":"type","label":"Type","type":"text",
+    {"id":"a3000000-0000-0000-0000-000000000001","key":"type","label":"Type","type":"select",
      "binding":null,"gm_only":false,"sort_order":0,
-     "configuration":{"version":1,"suggestions":["Area"],"helpText":"","visible":true,"rules":[]}}
+     "configuration":{"version":1,"suggestions":["Area"],"helpText":"","visible":true,"rules":[],"multiple":false,"allowOther":true}}
    ]},
   {"id":"a2000000-0000-0000-0000-000000000002","name":"Lore","icon":null,"sort_order":1,
    "supports_hierarchy":false,"supports_map":false,"supports_bonds":false,
@@ -71,7 +71,7 @@ select throws_ok($$select public.mutate_world_configuration((select id from worl
   'P0001','A public field cannot depend on a GM-only field','source visibility edits validate incoming dependencies');
 select throws_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','delete_field','id','a3000000-0000-0000-0000-000000000001'))$$,
   'P0001','Remove condition references before deleting this field','referenced source cannot be deleted');
-select throws_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','update_field','id','a3000000-0000-0000-0000-000000000001','changes',(select jsonb_build_object('type','number','configuration',jsonb_set(configuration,'{suggestions}','[]')) from public.world_field_definitions where id='a3000000-0000-0000-0000-000000000001')))$$,
+select throws_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','update_field','id','a3000000-0000-0000-0000-000000000001','changes',(select jsonb_build_object('type','richText','configuration',jsonb_set(configuration-array['multiple','allowOther'],'{suggestions}','[]')) from public.world_field_definitions where id='a3000000-0000-0000-0000-000000000001')))$$,
   'P0001','Condition source has an incompatible field type','source type edits validate incoming dependencies');
 select throws_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','update_field','id','a3000000-0000-0000-0000-000000000002','changes',(select jsonb_build_object('configuration',jsonb_set(configuration,'{rules,0,conditions,0,fieldId}','"a3000000-0000-0000-0000-000000000099"')) from public.world_field_definitions where id='a3000000-0000-0000-0000-000000000002')))$$,
   'P0001','Condition references a missing or foreign-category field','missing condition source is rejected');
@@ -92,9 +92,9 @@ insert into public.world_entry_field_values (entry_id,field_definition_id,world_
 select throws_ok($$insert into public.world_entry_field_values (entry_id,field_definition_id,world_id,value)
  values ('a4000000-0000-0000-0000-000000000002','a3000000-0000-0000-0000-000000000001',(select id from world_configuration_worlds where key='main'),'"forbidden"')$$,
  'P0001','Entry and field definition must belong to the same category and world','cross-category value cannot be inserted');
-select lives_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','update_field','id','a3000000-0000-0000-0000-000000000002','changes',(select jsonb_build_object('type','richText') from public.world_field_definitions where id='a3000000-0000-0000-0000-000000000002')))$$,
-  'compatible Yjs type change succeeds');
-select is((select encode(content,'hex') from public.world_entry_field_values where field_definition_id='a3000000-0000-0000-0000-000000000002'),'010203','compatible type change preserves bytes');
+select lives_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','update_field','id','a3000000-0000-0000-0000-000000000002','changes',(select jsonb_build_object('type','richText','configuration',jsonb_set(configuration,'{helpText}','"Prose"')) from public.world_field_definitions where id='a3000000-0000-0000-0000-000000000002')))$$,
+  'populated rich text accepts configuration-only changes');
+select is((select encode(content,'hex') from public.world_entry_field_values where field_definition_id='a3000000-0000-0000-0000-000000000002'),'010203','configuration-only change preserves bytes');
 select throws_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','update_field','id','a3000000-0000-0000-0000-000000000002','changes',(select jsonb_build_object('type','text') from public.world_field_definitions where id='a3000000-0000-0000-0000-000000000002')))$$,
   'P0001','This type change cannot preserve existing values; create a new field','incompatible populated type change is blocked');
 select throws_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','delete_category','id','a2000000-0000-0000-0000-000000000001'))$$,
@@ -152,10 +152,10 @@ select throws_ok($$select public.mutate_world_configuration((select id from worl
  '42501','Only world owners and editors can delete configuration','guides cannot delete categories');
 
 select set_config('request.jwt.claim.sub','a1000000-0000-0000-0000-000000000001',true);
-select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),'{"type":"create_field","category_id":"a2000000-0000-0000-0000-000000000001","field":{"id":"a3000000-0000-0000-0000-000000000003","key":"selector","label":"Selector","type":"text","gm_only":true}}');
+select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),'{"type":"create_field","category_id":"a2000000-0000-0000-0000-000000000001","field":{"id":"a3000000-0000-0000-0000-000000000003","key":"selector","label":"Selector","type":"select","gm_only":true,"configuration":{"version":1,"suggestions":[],"helpText":"","visible":true,"rules":[],"multiple":false,"allowOther":true}}}');
 select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),'{"type":"create_field","category_id":"a2000000-0000-0000-0000-000000000002","field":{"id":"a3000000-0000-0000-0000-000000000004","key":"foreign","label":"Foreign","type":"text","gm_only":false}}');
 select lives_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','update_field','id','a3000000-0000-0000-0000-000000000002','changes',(select jsonb_build_object('configuration',jsonb_set(configuration,'{rules}',
- '[{"conditions":[{"source":"ancestor","fieldId":"a3000000-0000-0000-0000-000000000001","operator":"equals","value":"Area","ancestor":{"fieldId":"A3000000-0000-0000-0000-000000000003","value":"Area"}}],"binding":null}]')) from public.world_field_definitions where id='a3000000-0000-0000-0000-000000000002')))$$,'nearest ancestor conditions accept a same-category text selector');
+ '[{"conditions":[{"source":"ancestor","fieldId":"a3000000-0000-0000-0000-000000000001","operator":"equals","value":"Area","ancestor":{"fieldId":"A3000000-0000-0000-0000-000000000003","value":"Area"}}],"binding":null}]')) from public.world_field_definitions where id='a3000000-0000-0000-0000-000000000002')))$$,'nearest ancestor conditions accept a same-category single select selector');
 select is((select configuration->'rules'->0->'conditions'->0->'ancestor'->>'fieldId' from public.world_field_definitions
   where id='a3000000-0000-0000-0000-000000000002'),'a3000000-0000-0000-0000-000000000003',
   'ancestor selector references use canonical UUID keys for runtime lookup');
@@ -163,8 +163,10 @@ select throws_ok($$select public.mutate_world_configuration((select id from worl
  'P0001','A public field cannot depend on a GM-only ancestor selector','target visibility edits validate ancestor GM dependency');
 select throws_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','delete_field','id','a3000000-0000-0000-0000-000000000003'))$$,
  'P0001','Remove condition references before deleting this field','ancestor selector cannot be deleted while referenced');
-select throws_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','update_field','id','a3000000-0000-0000-0000-000000000003','changes',(select jsonb_build_object('type','number') from public.world_field_definitions where id='a3000000-0000-0000-0000-000000000003')))$$,
- 'P0001','Ancestor selector must reference a text field in the same category','ancestor selector type changes are checked');
+select throws_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','update_field','id','a3000000-0000-0000-0000-000000000003','changes',(select jsonb_build_object('type','text','configuration',configuration-array['multiple','allowOther']) from public.world_field_definitions where id='a3000000-0000-0000-0000-000000000003')))$$,
+ 'P0001','Ancestor selector must reference a single select field in the same category','ancestor selector type changes are checked');
+select throws_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','update_field','id','a3000000-0000-0000-0000-000000000003','changes',(select jsonb_build_object('configuration',jsonb_set(configuration,'{multiple}','true')) from public.world_field_definitions where id='a3000000-0000-0000-0000-000000000003')))$$,
+ 'P0001','Ancestor selector must reference a single select field in the same category','ancestor selectors cannot allow several values');
 select throws_ok($$select public.mutate_world_configuration((select id from world_configuration_worlds where key='main'),jsonb_build_object('type','update_field','id','a3000000-0000-0000-0000-000000000002','changes',(select jsonb_build_object('configuration',jsonb_set(configuration,'{rules,0,conditions,0,fieldId}','"a3000000-0000-0000-0000-000000000004"')) from public.world_field_definitions where id='a3000000-0000-0000-0000-000000000002')))$$,
  'P0001','Condition references a missing or foreign-category field','foreign-category condition references are rejected');
 insert into world_configuration_worlds values ('legacy',pg_temp.world_configuration_fixture('Existing custom world',

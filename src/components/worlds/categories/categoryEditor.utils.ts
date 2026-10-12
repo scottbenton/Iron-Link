@@ -1,30 +1,83 @@
 import type { TFunction } from "i18next";
 
-import { isWorldFieldConditionCompatible } from "lib/worldFieldRules";
+import {
+  type WorldFieldConditionOperator,
+  type WorldFieldKind,
+  canWorldFieldBeAncestorSelector,
+  doesWorldFieldConditionOperatorTakeValue,
+  getWorldFieldKind,
+  isWorldFieldConditionCompatible,
+  isWorldFieldConditionValueValid,
+  isWorldFieldLinkedEntry,
+} from "lib/worldFieldRules";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 
-import {
-  IWorldFieldDefinition,
-  WorldFieldType,
-} from "services/worldFieldDefinitions.service";
+import { IWorldFieldDefinition } from "services/worldFieldDefinitions.service";
 
-export function getFieldTypeLabel(t: TFunction, type: WorldFieldType): string {
-  switch (type) {
-    case WorldFieldType.Text:
-      return t("worlds.fields.text", "Text");
-    case WorldFieldType.RichText:
-      return t("worlds.fields.rich-text", "Rich text");
-    case WorldFieldType.OracleText:
-      return t("worlds.fields.oracle-text", "Oracle text");
-    case WorldFieldType.Tags:
-      return t("worlds.fields.tags", "Tags");
-    case WorldFieldType.Number:
-      return t("worlds.fields.number", "Number");
-    case WorldFieldType.CategorySelect:
-      return t("worlds.fields.category-select", "Category select");
-    case WorldFieldType.CategoryMultiSelect:
-      return t("worlds.fields.category-multi-select", "Category multi-select");
+// Authors choose fields by purpose, so these are the only type names shown.
+export function getFieldKindLabel(t: TFunction, kind: WorldFieldKind): string {
+  switch (kind) {
+    case "text":
+      return t("worlds.fields.kind-text", "Text");
+    case "longText":
+      return t("worlds.fields.kind-long-text", "Long text");
+    case "optionList":
+      return t("worlds.fields.kind-option-list", "Option list");
+    case "linkedEntry":
+      return t("worlds.fields.kind-linked-entry", "Linked entry");
+  }
+}
+
+export function getFieldKindHint(t: TFunction, kind: WorldFieldKind): string {
+  switch (kind) {
+    case "text":
+      return t(
+        "worlds.fields.kind-text-hint",
+        "A short line, like a name or a rolled result. Can roll from an oracle.",
+      );
+    case "longText":
+      return t(
+        "worlds.fields.kind-long-text-hint",
+        "Formatted paragraphs that several people can edit together.",
+      );
+    case "optionList":
+      return t(
+        "worlds.fields.kind-option-list-hint",
+        "Pick from a list of options, like Location Type or Tags.",
+      );
+    case "linkedEntry":
+      return t(
+        "worlds.fields.kind-linked-entry-hint",
+        "Link to entries in another category, like an NPC's home Location.",
+      );
+  }
+}
+
+export function getFieldTypeLabel(
+  t: TFunction,
+  field: Pick<IWorldFieldDefinition, "type" | "configuration">,
+): string {
+  return getFieldKindLabel(t, getWorldFieldKind(field));
+}
+
+export function getConditionOperatorLabel(
+  t: TFunction,
+  operator: WorldFieldConditionOperator,
+): string {
+  switch (operator) {
+    case "equals":
+      return t("worlds.fields.equals", "Equals");
+    case "notEquals":
+      return t("worlds.fields.not-equals", "Does not equal");
+    case "contains":
+      return t("worlds.fields.contains", "Contains");
+    case "notContains":
+      return t("worlds.fields.not-contains", "Does not contain");
+    case "isEmpty":
+      return t("worlds.fields.empty", "Is empty");
+    case "isNotEmpty":
+      return t("worlds.fields.not-empty", "Is not empty");
   }
 }
 
@@ -39,8 +92,9 @@ export function fieldChoiceLabel(
   if (duplicates.length < 2) return field.label;
   // Fields that share a label usually appear for different subtypes, so
   // prefer the value that makes one visible (such as "Planet" for a field
-  // shown when Location Type equals Planet). Otherwise use the field type and
-  // list position, never a storage identity.
+  // shown when Location Type equals Planet). Linked entries compare entry
+  // IDs, which are no name. Otherwise use the field type and list position,
+  // never a storage identity.
   const subtype = (candidate: IWorldFieldDefinition) =>
     candidate.configuration.rules
       .filter((rule) => rule.visible === true)
@@ -50,7 +104,11 @@ export function fieldChoiceLabel(
           condition.source === "entry" &&
           condition.operator === "equals" &&
           !!condition.value?.trim() &&
-          fields.some((source) => source.id === condition.fieldId),
+          fields.some(
+            (source) =>
+              source.id === condition.fieldId &&
+              !isWorldFieldLinkedEntry(source),
+          ),
       )?.value;
   const context = subtype(field);
   if (
@@ -60,7 +118,7 @@ export function fieldChoiceLabel(
   ) {
     return `${field.label} (${context})`;
   }
-  return `${field.label} (${getFieldTypeLabel(t, field.type)}, ${duplicates.findIndex((candidate) => candidate.id === field.id) + 1})`;
+  return `${field.label} (${getFieldTypeLabel(t, field)}, ${duplicates.findIndex((candidate) => candidate.id === field.id) + 1})`;
 }
 
 export function getReferencingFields(
@@ -89,8 +147,7 @@ export function getEditorErrorMessage(error: unknown): string | undefined {
 
 export function getInvalidatedDependents(
   id: string,
-  type: WorldFieldType,
-  gmOnly: boolean,
+  draft: Pick<IWorldFieldDefinition, "type" | "configuration" | "gmOnly">,
   fields: IWorldFieldDefinition[],
 ) {
   return fields.filter(
@@ -101,10 +158,19 @@ export function getInvalidatedDependents(
           const readsValue = condition.fieldId === id;
           const selectsAncestor = condition.ancestor?.fieldId === id;
           return (
-            ((readsValue || selectsAncestor) && gmOnly && !field.gmOnly) ||
+            ((readsValue || selectsAncestor) &&
+              draft.gmOnly &&
+              !field.gmOnly) ||
             (readsValue &&
-              !isWorldFieldConditionCompatible(type, condition.operator)) ||
-            (selectsAncestor && type !== WorldFieldType.Text)
+              (!isWorldFieldConditionCompatible(draft, condition.operator) ||
+                (doesWorldFieldConditionOperatorTakeValue(condition.operator) &&
+                  !isWorldFieldConditionValueValid(draft, condition.value)))) ||
+            (selectsAncestor &&
+              (!canWorldFieldBeAncestorSelector(draft) ||
+                !isWorldFieldConditionValueValid(
+                  draft,
+                  condition.ancestor?.value,
+                )))
           );
         }),
       ),
@@ -131,15 +197,24 @@ export function validateFieldDraft(
         const source = sourceFields.find(
           (candidate) => candidate.id === condition.fieldId,
         );
-        return (
-          !source ||
-          !isWorldFieldConditionCompatible(source.type, condition.operator) ||
-          (condition.source === "ancestor" &&
-            (!condition.ancestor ||
-              !sourceFields.some(
+        const selector =
+          condition.source === "ancestor"
+            ? sourceFields.find(
                 (candidate) =>
                   candidate.id === condition.ancestor?.fieldId &&
-                  candidate.type === WorldFieldType.Text,
+                  canWorldFieldBeAncestorSelector(candidate),
+              )
+            : undefined;
+        return (
+          !source ||
+          !isWorldFieldConditionCompatible(source, condition.operator) ||
+          (doesWorldFieldConditionOperatorTakeValue(condition.operator) &&
+            !isWorldFieldConditionValueValid(source, condition.value)) ||
+          (condition.source === "ancestor" &&
+            (!selector ||
+              !isWorldFieldConditionValueValid(
+                selector,
+                condition.ancestor?.value,
               )))
         );
       }),
@@ -161,7 +236,7 @@ export function validateFieldDraft(
     );
   const affected =
     editedId && !createNew
-      ? getInvalidatedDependents(editedId, draft.type, draft.gmOnly, fields)
+      ? getInvalidatedDependents(editedId, draft, fields)
       : [];
   return {
     sourceFields,

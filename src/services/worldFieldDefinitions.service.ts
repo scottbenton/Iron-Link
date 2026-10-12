@@ -91,6 +91,18 @@ export class WorldFieldDefinitionsService {
     );
   }
 
+  // Options a field offers: its configured suggestions, then the distinct
+  // values already stored in it that the reader can see.
+  public static getWorldFieldOptions(
+    worldId: string,
+    fieldId: string,
+  ): Promise<string[]> {
+    return WorldFieldDefinitionsRepository.getWorldFieldOptions(
+      worldId,
+      fieldId,
+    );
+  }
+
   public static deleteWorldFieldDefinition(
     worldId: string,
     definitionId: string,
@@ -137,29 +149,12 @@ export class WorldFieldDefinitionsService {
   public static convertDefinitionDTOToDefinition(
     definition: WorldConfigurationFieldDTO,
   ): IWorldFieldDefinition {
-    let type: WorldFieldType;
-    switch (definition.type) {
-      case "richText":
-        type = WorldFieldType.RichText;
-        break;
-      case "oracleText":
-        type = WorldFieldType.OracleText;
-        break;
-      case "tags":
-        type = WorldFieldType.Tags;
-        break;
-      case "number":
-        type = WorldFieldType.Number;
-        break;
-      case "categorySelect":
-        type = WorldFieldType.CategorySelect;
-        break;
-      case "categoryMultiSelect":
-        type = WorldFieldType.CategoryMultiSelect;
-        break;
-      default:
-        type = WorldFieldType.Text;
-    }
+    const type =
+      definition.type === WorldFieldType.RichText
+        ? WorldFieldType.RichText
+        : definition.type === WorldFieldType.Select
+          ? WorldFieldType.Select
+          : WorldFieldType.Text;
 
     return {
       id: definition.id,
@@ -169,7 +164,10 @@ export class WorldFieldDefinitionsService {
       label: definition.label,
       type,
       binding: (definition.binding as unknown as OracleBinding) ?? null,
-      configuration: normalizeWorldFieldConfiguration(definition.configuration),
+      configuration: normalizeWorldFieldConfiguration(
+        definition.configuration,
+        type,
+      ),
       gmOnly: definition.gm_only,
       sortOrder: definition.sort_order,
     };

@@ -74,7 +74,7 @@ export function WorldFieldRulesEditor({
         <Alert severity="warning">
           {t(
             "worlds.fields.invalid-conditions",
-            "Every rule needs at least one valid condition. Choose the missing source or ancestor selector before saving.",
+            "Every rule needs at least one valid condition. Choose the missing source, ancestor selector, or value before saving.",
           )}
         </Alert>
       )}

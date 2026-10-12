@@ -1,17 +1,14 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { getOrderedPackageConfigs } from "data/package.config";
 
-// Read release data directly from the shared template rows' initial values.
-const migrations = resolve("supabase/migrations");
-const catalogMigration = readdirSync(migrations)
-  .filter((name) => name.endsWith("_world_template_defaults.sql"))
-  .sort()
-  .at(-1)!;
-const catalogSource = readFileSync(`${migrations}/${catalogMigration}`, "utf8");
-const catalog = JSON.parse(catalogSource.split("$templates$")[1]) as unknown;
+// The generated snapshot of the migrated shared template rows; CI checks it
+// matches the database (scripts/generate-world-defaults.mjs).
+const catalog = JSON.parse(
+  readFileSync(resolve("supabase/world-defaults.json"), "utf8"),
+) as unknown;
 
 function visitObjects(
   value: unknown,

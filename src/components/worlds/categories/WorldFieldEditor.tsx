@@ -8,7 +8,6 @@ import {
   FormControl,
   FormControlLabel,
   FormHelperText,
-  MenuItem,
   Stack,
   Switch,
   TextField,
@@ -21,11 +20,13 @@ import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButto
 
 import { useIsBreakpoint } from "hooks/useIsBreakpoint";
 
+import { useListenToWorldEntries } from "stores/worldEntries.store";
+
 import {
-  areWorldFieldDefinitionsCompatible,
+  canWorldFieldHaveOracleBinding,
   createWorldFieldConfiguration,
-  isWorldCategoryReferenceType,
-  withoutWorldFieldOracleBindings,
+  getWorldFieldChangeBlocker,
+  isWorldFieldLinkedEntry,
 } from "lib/worldFieldRules";
 
 import type { IWorldCategory } from "services/worldCategories.service";
@@ -38,10 +39,10 @@ import {
 import { WorldEditorSection } from "./WorldEditorSection";
 import { WorldFieldFallbackEditor } from "./WorldFieldFallbackEditor";
 import { WorldFieldRulesEditor } from "./WorldFieldRulesEditor";
+import { WorldFieldTypeSection } from "./WorldFieldTypeSection";
 import {
   fieldChoiceLabel,
   getEditorErrorMessage,
-  getFieldTypeLabel,
   validateFieldDraft,
 } from "./categoryEditor.utils";
 
@@ -56,6 +57,7 @@ export function WorldFieldEditor({
   fields,
   categories,
   valueCount,
+  multiValueCount,
   readOnly,
   onSave,
   onClose,
@@ -66,6 +68,8 @@ export function WorldFieldEditor({
   fields: IWorldFieldDefinition[];
   categories: IWorldCategory[];
   valueCount: number;
+  // Entries storing more than one value in this field.
+  multiValueCount: number;
   readOnly: boolean;
   onSave: (draft: FieldDraft, createNew: boolean) => Promise<void>;
   onClose: () => void;
@@ -91,23 +95,18 @@ export function WorldFieldEditor({
   const targetCategories = categories.filter(
     (category) => category.worldId === worldId,
   );
-  // Oracle text and Number are being folded into Text, so new fields cannot
-  // choose them. A field that already uses one keeps it available.
-  const typeOptions = Object.values(WorldFieldType).filter(
-    (type) =>
-      (type !== WorldFieldType.OracleText && type !== WorldFieldType.Number) ||
-      type === field?.type,
-  );
-  const categoryReference = isWorldCategoryReferenceType(draft.type);
+  const linkedEntry = isWorldFieldLinkedEntry(draft);
+  const bindable = canWorldFieldHaveOracleBinding(draft);
   const invalidTarget =
-    categoryReference &&
+    linkedEntry &&
     !targetCategories.some(
       (category) => category.id === draft.configuration.targetCategoryId,
     );
-  const incompatible =
-    !!field &&
-    valueCount > 0 &&
-    !areWorldFieldDefinitionsCompatible(field, draft);
+  const counts = { valueCount, multiValueCount };
+  const blocker = field
+    ? getWorldFieldChangeBlocker(field, draft, counts)
+    : null;
+  const incompatible = blocker !== null;
   const rules = draft.configuration.rules;
   const {
     sourceFields,
@@ -116,6 +115,10 @@ export function WorldFieldEditor({
     gmDependency,
     affected,
   } = validateFieldDraft(draft, fields, field?.id, incompatible);
+  // Linked-entry conditions pick and name entries from the world.
+  useListenToWorldEntries(
+    sourceFields.some(isWorldFieldLinkedEntry) ? worldId : undefined,
+  );
   const selectableSources = sourceFields.filter(
     (source) => draft.gmOnly || !source.gmOnly,
   );
@@ -178,64 +181,36 @@ export function WorldFieldEditor({
         <Stack spacing={4} sx={{ pt: 1, pb: 1 }}>
           {error && <Alert severity="error">{error}</Alert>}
           <WorldEditorSection title={t("worlds.fields.details", "Details")}>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <TextField
-                autoFocus
-                required
-                fullWidth
-                label={t("worlds.fields.label", "Field label")}
-                value={draft.label}
-                disabled={disabled}
-                onChange={(event) =>
-                  setDraft({ ...draft, label: event.target.value })
-                }
-              />
-              <TextField
-                select
-                label={t("worlds.fields.type", "Field type")}
-                value={draft.type}
-                disabled={disabled}
-                sx={{ minWidth: { sm: 200 } }}
-                onChange={(event) => {
-                  const type = event.target.value as WorldFieldType;
-                  const reference = isWorldCategoryReferenceType(type);
-                  setDraft({
-                    ...draft,
-                    type,
-                    binding: reference ? null : draft.binding,
-                    configuration: {
-                      ...draft.configuration,
-                      suggestions: reference
-                        ? []
-                        : draft.configuration.suggestions,
-                      targetCategoryId: reference
-                        ? isWorldCategoryReferenceType(draft.type)
-                          ? draft.configuration.targetCategoryId
-                          : undefined
-                        : undefined,
-                      rules: reference
-                        ? withoutWorldFieldOracleBindings(
-                            draft.configuration.rules,
-                          )
-                        : draft.configuration.rules,
-                    },
-                  });
-                }}
-              >
-                {typeOptions.map((type) => (
-                  <MenuItem key={type} value={type}>
-                    {getFieldTypeLabel(t, type)}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Stack>
+            <TextField
+              autoFocus
+              required
+              fullWidth
+              label={t("worlds.fields.label", "Field label")}
+              value={draft.label}
+              disabled={disabled}
+              onChange={(event) =>
+                setDraft({ ...draft, label: event.target.value })
+              }
+            />
             {incompatible && (
               <Alert severity="warning">
-                {t(
-                  "worlds.fields.incompatible-type",
-                  "This field has {{count}} stored values. Changing its type or target category cannot preserve them. Create a new field to keep the existing field and its values.",
-                  { count: valueCount },
-                )}
+                {blocker === "multipleValues"
+                  ? t(
+                      "worlds.fields.incompatible-multiple",
+                      "{{count}} entries store more than one value in this field. Turning off Allow more than one cannot preserve them. Create a new field to keep the existing field and its values.",
+                      { count: multiValueCount },
+                    )
+                  : blocker === "targetCategory"
+                    ? t(
+                        "worlds.fields.incompatible-category",
+                        "This field has {{count}} stored values. Changing its category cannot preserve them. Create a new field to keep the existing field and its values.",
+                        { count: valueCount },
+                      )
+                    : t(
+                        "worlds.fields.incompatible-type",
+                        "This field has {{count}} stored values. Changing its type cannot preserve them. Create a new field to keep the existing field and its values.",
+                        { count: valueCount },
+                      )}
               </Alert>
             )}
             <FormControl>
@@ -282,11 +257,20 @@ export function WorldFieldEditor({
               </Alert>
             )}
           </WorldEditorSection>
+          <WorldFieldTypeSection
+            field={field}
+            draft={draft}
+            counts={counts}
+            categories={targetCategories}
+            invalidTarget={invalidTarget}
+            disabled={disabled}
+            readOnly={readOnly}
+            onChange={setDraft}
+          />
           <WorldFieldFallbackEditor
             worldId={worldId}
             draft={draft}
-            categories={targetCategories}
-            invalidTarget={invalidTarget}
+            allowOracleBinding={bindable}
             disabled={disabled}
             onChange={setDraft}
           />
@@ -296,7 +280,7 @@ export function WorldFieldEditor({
             fields={selectableSources}
             disabled={disabled}
             readOnly={readOnly}
-            allowOracleBinding={!categoryReference}
+            allowOracleBinding={bindable}
             invalidCondition={invalidCondition}
             invalidRuleLabel={invalidRuleLabel}
             onChange={(rules) => configuration({ rules })}

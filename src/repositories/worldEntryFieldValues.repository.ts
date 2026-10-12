@@ -16,7 +16,7 @@ export type WorldEntryFieldValueDTO = Tables<"world_entry_field_values">;
 export type WorldEntryFieldValueInsertDTO =
   TablesInsert<"world_entry_field_values">;
 
-// `content` holds richText/oracleText Yjs documents and is fetched on demand,
+// `content` holds rich text Yjs documents and is fetched on demand,
 // exactly as notes_content is on the entry itself.
 const VALUE_LIST_COLUMNS =
   "entry_id, field_definition_id, world_id, gm_only, value, created_at, updated_at";

@@ -34,7 +34,7 @@ describe("WorldFieldDefinitionsService", () => {
           categoryId: "category",
           key: "description",
           label: "Description",
-          type: WorldFieldType.OracleText,
+          type: WorldFieldType.Text,
           binding,
           configuration: {
             ...createWorldFieldConfiguration(),

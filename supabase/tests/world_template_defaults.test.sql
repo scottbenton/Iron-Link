@@ -87,15 +87,16 @@ select ok(not exists(select 1 from catalog_categories c where c.key=w.key and
 select ok(not exists(select 1 from catalog_fields f where f.key=w.key and
  (f.field->>'key' in ('gmNotes','truths') or lower(f.field->>'label') in ('gm notes','truths'))),
  key||' omits GM Notes and truths from category fields') from catalog_worlds w;
-select ok(not exists(select 1 from catalog_fields f where f.key=w.key and f.field->>'type' in ('categorySelect','categoryMultiSelect')
+select ok(not exists(select 1 from catalog_fields f where f.key=w.key and f.field->'configuration' ? 'targetCategoryId'
  and not exists(select 1 from catalog_categories c where c.key=f.key and c.category->>'id'=f.field->'configuration'->>'targetCategoryId')),
  key||' rebases every linked category target') from catalog_worlds w;
 select ok(not exists(select 1 from catalog_rules r,lateral jsonb_array_elements(r.rule->'conditions') condition
  where r.key=w.key and (not exists(select 1 from catalog_fields source where source.key=r.key
  and source.category_key=r.category_key and source.field->>'id'=condition->>'fieldId'
- and source.field->>'type'='text' and (source.field->>'gm_only'='false' or r.field->>'gm_only'='true'))
+ and source.field->>'type' in ('text','select') and (source.field->>'gm_only'='false' or r.field->>'gm_only'='true'))
  or condition ? 'ancestor' and not exists(select 1 from catalog_fields source where source.key=r.key
- and source.category_key=r.category_key and source.field->>'id'=condition->'ancestor'->>'fieldId' and source.field->>'type'='text'))),
+ and source.category_key=r.category_key and source.field->>'id'=condition->'ancestor'->>'fieldId'
+ and source.field->>'type'='select' and source.field->'configuration'->>'multiple'='false'))),
  key||' conditional and ancestor IDs rebase within their category with safe visibility') from catalog_worlds w;
 select lives_ok($$select public.world_configuration_validate_field(field->'configuration',field->>'type'),
  public.world_configuration_validate_binding(field->'binding') from catalog_fields$$,'all authored field configurations and base bindings pass database validation');
@@ -105,12 +106,13 @@ select ok(not exists(select 1 from catalog_bindings where binding->>'resolvedOra
  'base and conditional bindings pin their package oracle as the initial selection');
 select is((select count(*) from catalog_bindings where key='blank'),0::bigint,'Blank has no oracle bindings');
 select is((select count(*) from catalog_bindings where key='classic' and binding->>'packageId'='delve'),0::bigint,'Classic has no Delve defaults');
-select is(field->'configuration'->'suggestions',expected::jsonb,key||' location type suggestions remain editable text')
+select is(field->'configuration'->'suggestions',expected::jsonb,key||' location type keeps its suggested options')
  from catalog_fields join (values
  ('classic','["Settlement","Tower","Ruin","Camp"]'),
  ('forge','["Sector","Planet","Planetside Settlement","Non-Planetary Settlement","Star","Derelict","Vault"]'),
  ('elegy','[]')) s(key,expected) using(key) where category_key='locations' and field->>'key'='locationType';
-select is(field->>'type','text',key||' location type permits custom values') from catalog_fields where field->>'key'='locationType';
+select ok(field->>'type'='select' and field->'configuration'->>'multiple'='false'
+ and field->'configuration'->>'allowOther'='true',key||' location type is an open single select') from catalog_fields where field->>'key'='locationType';
 select is(category->'icon'->>'key',case key when 'forge' then 'GiRingedPlanet' when 'isles' then 'GiCompass' else 'GiWorld' end,
  key||' uses the selected Locations icon') from catalog_categories where category_key='locations';
 select ok(bool_and(category->'icon'=case category_key
@@ -118,7 +120,7 @@ select ok(bool_and(category->'icon'=case category_key
  when 'lore' then '{"key":"GiBookmarklet","color":"purple"}'::jsonb
  else '{"key":"GiBlackFlag","color":"red"}'::jsonb end),'shared category icons are stable')
  from catalog_categories where category_key<>'locations';
-select ok(bool_and(field->>'type'='categorySelect' and field->'configuration'->>'targetCategoryId'=
+select ok(bool_and(field->>'type'='select' and field->'configuration'->>'multiple'='false' and field->'configuration'->>'targetCategoryId'=
  extensions.uuid_generate_v5(world_id,'category:locations')::text and category->>'subtitle_field_definition_id'=field->>'id'),
  'NPC Location links Locations and supplies the NPC subtitle') from catalog_fields where category_key='npcs' and field->>'key'='location';
 select ok(bool_and(category->>'subtitle_field_definition_id'=field->>'id'),
@@ -129,7 +131,7 @@ select is((select field->>'label' from catalog_fields where key='forge' and fiel
  'Outer First Look','Forge names the outer derelict oracle accurately');
 select is((select count(*) from catalog_fields where key='forge' and category_key='locations' and field->>'label'='Description'),
  1::bigint,'Forge has one conditional Description field');
-select ok((select field->>'key'='starDescription' and field->>'type'='oracleText' and field->>'gm_only'='false'
+select ok((select field->>'key'='starDescription' and field->>'type'='text' and field->>'gm_only'='false'
  and field->'binding'='null'::jsonb and field->'configuration'->>'visible'='false'
  from catalog_fields where key='forge' and field->>'label'='Description'),'Forge Description is public, conditional and editable without an oracle');
 select is((select jsonb_agg(rule->'conditions'->0->'value' order by rule->'conditions'->0->>'value')
@@ -137,8 +139,8 @@ select is((select jsonb_agg(rule->'conditions'->0->'value' order by rule->'condi
  'Forge Description is available for Planets and Stars');
 select is((select rule->'binding'->>'oracleId' from catalog_rules where key='forge' and field->>'key'='starDescription'
  and rule->'conditions'->0->>'value'='Star'),'oracle_rollable:starforged/space/stellar_object','Star Description targets its stellar oracle');
-select is((select field->>'type' from catalog_fields where key='forge' and field->>'key'='derelictLocation'),'text',
- 'Derelict Location stays scalar for its Type conditions');
+select is((select field->>'type'||':'||(field->'configuration'->>'multiple') from catalog_fields where key='forge' and field->>'key'='derelictLocation'),'select:false',
+ 'Derelict Location stays a single value for its Type conditions');
 select is((select count(*) from catalog_fields where key='forge' and category_key='locations' and field->>'label'='Location'),2::bigint,
  'Forge keeps Derelict Location separate from merged settlement Location');
 select is((select count(*) from catalog_fields where key='isles' and category_key='locations' and field->>'label'=label),1::bigint,
@@ -213,7 +215,7 @@ from (values
  ('isles','Empire','tactics','sundered_isles/faction/empire/tactics','Tactics'),
  ('isles','Empire','vulnerabilities','sundered_isles/faction/empire/vulnerabilities','Vulnerabilities'),
  ('isles','The Cursed','role','sundered_isles/faction/cursed/role','Role')) expected(key,faction_type,field_key,oracle,label);
-select ok(field->>'type'='text' and jsonb_array_length(field->'configuration'->'suggestions')>0,
+select ok(field->>'type'='select' and field->'configuration'->>'allowOther'='true' and jsonb_array_length(field->'configuration'->'suggestions')>0,
  key||' Faction Type permits suggested and custom values') from catalog_fields
  where key in ('forge','isles') and category_key='factions' and field->>'key'='factionType';
 select ok(not exists(select 1 from catalog_fields f where f.key=w.key and f.category_key='factions'
@@ -226,9 +228,10 @@ select is((select jsonb_agg(field->'key' order by (field->>'sort_order')::int) f
  where key=w.key and category_key='factions' and field->>'gm_only'='false'),
  '["factionType","influence"]'::jsonb,key||' exposes only faction Type and Influence publicly')
  from catalog_worlds w where key in ('forge','isles');
-select ok((select field->>'type'='text' and field->>'gm_only'='true' and field->'binding'='null'::jsonb
+select ok((select field->>'type'='select' and field->'configuration'->>'allowOther'='true'
+ and field->>'gm_only'='true' and field->'binding'='null'::jsonb
  from catalog_fields where key='isles' and category_key='factions' and field->>'key'='cursed'),
- 'Isles Cursed modifier is private editable text without a binding');
+ 'Isles Cursed modifier is a private open option list without a binding');
 select ok((select field->>'gm_only'='true' and field->'configuration'->>'visible'='false'
  and field->'binding'='null'::jsonb and jsonb_array_length(field->'configuration'->'rules')=2
  from catalog_fields where key='isles' and category_key='factions' and field->>'key'='cursedAspects'),

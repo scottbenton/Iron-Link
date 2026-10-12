@@ -1,29 +1,43 @@
-import type {
-  IWorldFieldDefinition,
-  WorldFieldCondition,
-  WorldFieldConfiguration,
-  WorldFieldRule,
+import {
+  type IWorldFieldDefinition,
+  type WorldFieldCondition,
+  type WorldFieldConditionOperator,
+  type WorldFieldConfiguration,
+  WorldFieldType,
 } from "types/worldField.type";
 
-import { normalizeWorldFieldConfiguration } from "./worldFieldConfiguration";
+import {
+  WORLD_FIELD_VALUE_MAX_LENGTH,
+  getWorldFieldKind,
+  isWorldFieldLinkedEntry,
+  isWorldUuid,
+  normalizeWorldFieldConfiguration,
+} from "./worldFieldConfiguration";
 
 export type {
   WorldFieldCondition,
+  WorldFieldConditionOperator,
   WorldFieldConfiguration,
+  WorldFieldKind,
   WorldFieldRule,
 } from "types/worldField.type";
 export {
   DEFAULT_WORLD_FIELD_CONFIGURATION,
+  WORLD_FIELD_KINDS,
+  WORLD_FIELD_VALUE_MAX_LENGTH,
+  canWorldFieldHaveOracleBinding,
+  changeWorldFieldKind,
   createWorldFieldConfiguration,
+  getWorldFieldKind,
+  isWorldFieldLinkedEntry,
+  isWorldUuid,
   normalizeWorldFieldConfiguration,
+  normalizeWorldFieldDefinition,
+  normalizeWorldFieldOptions,
+  withoutWorldFieldOracleBindings,
 } from "./worldFieldConfiguration";
 
-export type WorldFieldSnapshotValue =
-  | string
-  | number
-  | string[]
-  | null
-  | undefined;
+export type WorldFieldSnapshotValue = string | string[] | null | undefined;
 export interface WorldFieldEntrySnapshot {
   id: string;
   parentId?: string | null;
@@ -72,6 +86,10 @@ function matchesCondition(
       return typeof value === "string" && value === condition.value;
     case "notEquals":
       return typeof value === "string" && value !== condition.value;
+    case "contains":
+      return Array.isArray(value) && value.includes(condition.value as string);
+    case "notContains":
+      return Array.isArray(value) && !value.includes(condition.value as string);
     case "isEmpty":
       return empty;
     case "isNotEmpty":
@@ -91,6 +109,7 @@ export function resolveFieldDefinition(
 ): ResolvedWorldFieldDefinition {
   const configuration = normalizeWorldFieldConfiguration(
     definition.configuration,
+    definition.type,
   );
   const rule = configuration.rules.find((candidate) =>
     candidate.conditions.every((condition) =>
@@ -110,65 +129,118 @@ export function generateWorldFieldKey(id: string): string {
   return `field_${id.replace(/-/g, "")}`;
 }
 
-export function areWorldFieldTypesCompatible(
-  from: string,
-  to: string,
-): boolean {
-  return (
-    from === to ||
-    (["richText", "oracleText"].includes(from) &&
-      ["richText", "oracleText"].includes(to))
-  );
+type FieldShape = Pick<IWorldFieldDefinition, "type" | "configuration">;
+
+export type WorldFieldChangeBlocker =
+  // The new type cannot hold the stored values.
+  | "incompatibleType"
+  // Turning off "Allow more than one" while entries store several values.
+  | "multipleValues"
+  // Stored entry IDs belong to the current target category.
+  | "targetCategory";
+
+export interface WorldFieldValueCounts {
+  valueCount: number;
+  multiValueCount: number;
 }
 
-export function isWorldCategoryReferenceType(type: string): boolean {
-  return type === "categorySelect" || type === "categoryMultiSelect";
+/**
+ * Why a definition change would lose stored values, or null when it is safe.
+ * Mirrors the database's type-change guard: only changes that keep every
+ * stored value meaningful are allowed while values exist.
+ */
+export function getWorldFieldChangeBlocker(
+  from: FieldShape,
+  to: FieldShape,
+  { valueCount, multiValueCount }: WorldFieldValueCounts,
+): WorldFieldChangeBlocker | null {
+  if (valueCount === 0) return null;
+  const fromKind = getWorldFieldKind(from);
+  const toKind = getWorldFieldKind(to);
+  const fromMultiple = !!from.configuration.multiple;
+  const toMultiple = !!to.configuration.multiple;
+  if (fromKind === toKind) {
+    if (
+      fromKind === "linkedEntry" &&
+      from.configuration.targetCategoryId !== to.configuration.targetCategoryId
+    )
+      return "targetCategory";
+    if (fromMultiple && !toMultiple && multiValueCount > 0)
+      return "multipleValues";
+    return null;
+  }
+  // A single option is already a plain string.
+  if (fromKind === "optionList" && toKind === "text" && !fromMultiple)
+    return null;
+  // A plain string is already a single option. Strict lists only check
+  // values as they are written, so stored ones stay as they are.
+  if (fromKind === "text" && toKind === "optionList" && !toMultiple)
+    return null;
+  return "incompatibleType";
 }
 
-export function withoutWorldFieldOracleBindings(
-  rules: WorldFieldRule[],
-): WorldFieldRule[] {
-  return rules.map((rule) => {
-    const withoutBinding = { ...rule };
-    delete withoutBinding.binding;
-    return withoutBinding;
-  });
+const SINGLE_VALUE_OPERATORS: WorldFieldConditionOperator[] = [
+  "equals",
+  "notEquals",
+  "isEmpty",
+  "isNotEmpty",
+];
+const MULTI_VALUE_OPERATORS: WorldFieldConditionOperator[] = [
+  "contains",
+  "notContains",
+  "isEmpty",
+  "isNotEmpty",
+];
+
+// Conditions compare plain values: equality on Text and single Selects,
+// membership on multi Selects. Long text is a collaborative document with no
+// value to compare.
+export function getWorldFieldConditionOperators(
+  field: FieldShape,
+): WorldFieldConditionOperator[] {
+  switch (field.type) {
+    case WorldFieldType.Text:
+      return SINGLE_VALUE_OPERATORS;
+    case WorldFieldType.Select:
+      return field.configuration.multiple
+        ? MULTI_VALUE_OPERATORS
+        : SINGLE_VALUE_OPERATORS;
+    default:
+      return [];
+  }
 }
 
-/** A reference target is part of the value's meaning, even when its JSON shape is unchanged. */
-export function areWorldFieldDefinitionsCompatible(
-  from: Pick<IWorldFieldDefinition, "type" | "configuration">,
-  to: Pick<IWorldFieldDefinition, "type" | "configuration">,
-): boolean {
-  return (
-    areWorldFieldTypesCompatible(from.type, to.type) &&
-    (!isWorldCategoryReferenceType(from.type) ||
-      from.configuration.targetCategoryId === to.configuration.targetCategoryId)
-  );
-}
-
-export function canChangeWorldFieldType(
-  from: string,
-  to: string,
-  valueCount: number,
-): boolean {
-  return valueCount === 0 || areWorldFieldTypesCompatible(from, to);
-}
-
-// Whether rule conditions can read a field's value. Conditions compare plain
-// values; rich and oracle text are collaborative documents and category
-// references store entry IDs, so neither has a value to compare.
-export function canWorldFieldTypeBeConditionSource(type: string): boolean {
-  return ["text", "tags", "number"].includes(type);
+export function canWorldFieldBeConditionSource(field: FieldShape): boolean {
+  return getWorldFieldConditionOperators(field).length > 0;
 }
 
 export function isWorldFieldConditionCompatible(
-  type: string,
-  operator: WorldFieldCondition["operator"],
+  field: FieldShape,
+  operator: WorldFieldConditionOperator,
 ): boolean {
-  return operator === "equals" || operator === "notEquals"
-    ? type === "text"
-    : canWorldFieldTypeBeConditionSource(type);
+  return getWorldFieldConditionOperators(field).includes(operator);
+}
+
+// The nearest matching ancestor is found by comparing one picked value.
+export function canWorldFieldBeAncestorSelector(field: FieldShape): boolean {
+  return field.type === WorldFieldType.Select && !field.configuration.multiple;
+}
+
+export function doesWorldFieldConditionOperatorTakeValue(
+  operator: WorldFieldConditionOperator,
+): boolean {
+  return operator !== "isEmpty" && operator !== "isNotEmpty";
+}
+
+// Whether a compared value (or an ancestor selector's value) can match this
+// source at all: it must be picked, and a linked entry compares entry IDs.
+export function isWorldFieldConditionValueValid(
+  source: FieldShape,
+  value: string | undefined,
+): boolean {
+  if (!value?.trim() || value.length > WORLD_FIELD_VALUE_MAX_LENGTH)
+    return false;
+  return !isWorldFieldLinkedEntry(source) || isWorldUuid(value);
 }
 
 export function getWorldFieldConditionReferences(

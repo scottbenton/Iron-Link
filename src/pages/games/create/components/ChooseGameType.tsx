@@ -1,9 +1,9 @@
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import { Box, Card, CardActionArea, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { GameTypeIcon } from "assets/GameTypeIcon";
 
+import { RadioCard, RadioCardGroup } from "components/RadioCard";
 import { SectionHeading } from "components/SectionHeading";
 
 import { useCreateGameStore } from "stores/createGame.store";
@@ -49,72 +49,49 @@ export function ChooseGameType() {
           "How will you be playing your game? Game types help to streamline your experience.",
         )}
       </Typography>
-      <Box
-        mt={2}
-        display="grid"
-        gridTemplateColumns="repeat(auto-fill, minmax(200px, 1fr))"
-        gap={2}
-      >
-        {Object.values(GameType).map((type) => (
-          <Card key={type} variant="outlined">
-            <CardActionArea
-              onClick={() => setGameType(type)}
-              sx={{
-                p: 2,
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "stretch",
-                justifyContent: "flex-start",
-              }}
-            >
+      <RadioCardGroup
+        label={t("game.type.choose-game-type", "Choose Game Type")}
+        options={Object.values(GameType)}
+        value={gameType}
+        onChange={setGameType}
+        sx={{
+          mt: 2,
+          gridTemplateColumns:
+            "repeat(auto-fill, minmax(min(200px, 100%), 1fr))",
+        }}
+        renderCard={(type, control) => (
+          <RadioCard
+            {...control}
+            titleVariant="h5"
+            descriptionVariant="body1"
+            icon={
               <Box
                 display="flex"
-                alignItems="flex-start"
-                justifyContent={"space-between"}
+                flexDirection="column"
+                alignItems="center"
+                borderRadius={1}
+                p={1}
+                bgcolor="primary.main"
+                color="primary.contrastText"
               >
-                <Box display="flex" alignItems="center">
-                  <Box
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center"
-                    borderRadius={1}
-                    p={1}
-                    bgcolor="primary.main"
-                    color="primary.contrastText"
-                  >
-                    <GameTypeIcon
-                      sx={(theme) => ({
-                        width: 32,
-                        height: 32,
-                        strokeWidth: 1,
-                        overflow: "visible",
-                        stroke: theme.palette.common.white,
-                        color: theme.palette.common.white,
-                      })}
-                      gameType={type}
-                    />
-                  </Box>
-                  <Typography
-                    variant="h5"
-                    textTransform="uppercase"
-                    fontFamily={"fontFamilyTitle"}
-                    ml={2}
-                  >
-                    {labels[type]}
-                  </Typography>
-                </Box>
-                <Box width={24} height={24}>
-                  {gameType === type && <CheckCircleIcon color="primary" />}
-                </Box>
+                <GameTypeIcon
+                  sx={(theme) => ({
+                    width: 32,
+                    height: 32,
+                    strokeWidth: 1,
+                    overflow: "visible",
+                    stroke: theme.palette.common.white,
+                    color: theme.palette.common.white,
+                  })}
+                  gameType={type}
+                />
               </Box>
-              <Typography mt={1} color="text.secondary">
-                {descriptions[type]}
-              </Typography>
-            </CardActionArea>
-          </Card>
-        ))}
-      </Box>
+            }
+            title={labels[type]}
+            description={descriptions[type]}
+          />
+        )}
+      />
     </Box>
   );
 }

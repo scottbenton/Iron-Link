@@ -1020,6 +1020,10 @@ export type Database = {
         Args: { p_world_id: string }
         Returns: Json
       }
+      get_world_field_options: {
+        Args: { p_world_id: string; p_field_id: string }
+        Returns: string[]
+      }
       get_world_playsets: {
         Args: { p_world_id: string }
         Returns: Json

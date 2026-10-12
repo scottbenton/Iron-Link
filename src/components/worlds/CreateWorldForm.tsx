@@ -3,7 +3,7 @@ import { FormEvent, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { GradientButton } from "components/GradientButton";
-import { GridLayout } from "components/Layout/GridLayout";
+import { RadioCard, RadioCardGroup } from "components/RadioCard";
 
 import {
   type LinkedGamePlayset,
@@ -17,8 +17,6 @@ import {
 } from "lib/worldSettings";
 
 import { WorldsService } from "services/worlds.service";
-
-import { WorldOptionCard } from "./WorldOptionCard";
 
 export interface CreateWorldFormProps {
   creationGame?: LinkedGamePlayset;
@@ -115,17 +113,40 @@ export function CreateWorldForm(props: CreateWorldFormProps) {
       >
         {t("worlds.create.choose-setting", "Choose a Setting")}
       </Typography>
-      <GridLayout
-        items={options}
-        renderItem={(option) => (
-          <WorldOptionCard
-            option={option}
-            selected={option.id === selectedOptionId}
-            disabled={saving}
-            onSelect={() => handleSelectOption(option)}
-          />
-        )}
-        minWidth={220}
+      <RadioCardGroup
+        label={t("worlds.create.choose-setting", "Choose a Setting")}
+        options={options.map((option) => option.id)}
+        value={selectedOptionId}
+        disabled={saving}
+        onChange={(id) => {
+          const option = options.find((candidate) => candidate.id === id);
+          if (option) handleSelectOption(option);
+        }}
+        sx={{
+          gridTemplateColumns:
+            "repeat(auto-fill, minmax(min(220px, 100%), 1fr))",
+        }}
+        renderCard={(id, control) => {
+          const option = options.find((candidate) => candidate.id === id);
+          return (
+            <RadioCard
+              {...control}
+              title={option?.name}
+              description={
+                (option?.packageName || option?.description) && (
+                  <>
+                    {option.packageName && (
+                      <Typography variant="caption" component="p">
+                        {option.packageName}
+                      </Typography>
+                    )}
+                    {option.description}
+                  </>
+                )
+              }
+            />
+          );
+        }}
       />
       <TextField
         label={t("worlds.create.world-name", "World Name")}

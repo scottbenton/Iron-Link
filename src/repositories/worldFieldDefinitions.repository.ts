@@ -4,7 +4,13 @@ import {
   TablesUpdate,
 } from "types/supabase-generated.type";
 
-import { ErrorNoun } from "./errors/RepositoryErrors";
+import { supabase } from "lib/supabase.lib";
+
+import {
+  ErrorNoun,
+  ErrorVerb,
+  getRepositoryError,
+} from "./errors/RepositoryErrors";
 import {
   type DefaultWorldFieldBindingDTO,
   WorldConfigurationRepository,
@@ -64,6 +70,28 @@ export class WorldFieldDefinitionsRepository {
       ErrorNoun.WorldFieldDefinition,
       defaultBindings,
     );
+  }
+
+  // Suggestions first, then the distinct stored values. It runs as the
+  // caller, so Guide-only fields and per-entry read permissions still apply.
+  public static async getWorldFieldOptions(
+    worldId: string,
+    fieldId: string,
+  ): Promise<string[]> {
+    const { data, error, status } = await supabase.rpc(
+      "get_world_field_options",
+      { p_world_id: worldId, p_field_id: fieldId },
+    );
+    if (error) {
+      throw getRepositoryError(
+        error,
+        ErrorVerb.Read,
+        ErrorNoun.WorldFieldDefinition,
+        false,
+        status,
+      );
+    }
+    return data ?? [];
   }
 
   // Cascades to every value row for this definition.

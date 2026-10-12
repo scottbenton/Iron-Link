@@ -75,9 +75,9 @@ insert into public.world_entries(id,world_id,category_id,name,author_id,read_per
 insert into public.world_entry_field_values(entry_id,field_definition_id,world_id,value) values
  ('e5000000-0000-4000-8000-000000000001',pg_temp.existing_field_id('populated','locationType'),
  pg_temp.existing_world_id('populated'),'"Settlement"');
-insert into public.world_entry_field_values(entry_id,field_definition_id,world_id,content) values
+insert into public.world_entry_field_values(entry_id,field_definition_id,world_id,value) values
  ('e5000000-0000-4000-8000-000000000001',pg_temp.existing_field_id('populated','description'),
- pg_temp.existing_world_id('populated'),'\x010203');
+ pg_temp.existing_world_id('populated'),'"Hidden detail"');
 select is((select count(*) from public.world_entries where world_id=pg_temp.existing_world_id('populated')),
  2::bigint,'owner can read shared and private entries');
 select is((select count(*) from public.world_entry_field_values where world_id=pg_temp.existing_world_id('populated')),

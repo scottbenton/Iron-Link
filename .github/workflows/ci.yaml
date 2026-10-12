@@ -21,6 +21,15 @@ jobs:
       - name: Test database behavior and permissions
         run: supabase test db
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify generated world defaults are checked in
+        run: |
+          node scripts/generate-world-defaults.mjs
+          git diff --exit-code -- supabase/world-defaults.json supabase/world-defaults.md
+
       - name: Verify generated types are checked in
         run: |
           supabase gen types typescript --local > types.gen.ts

@@ -19,6 +19,7 @@
     "supabase:stop": "supabase stop",
     "supabase:reset-db": "supabase db reset",
     "supabase:gen-types": "supabase gen types typescript --local > ./src/types/supabase-generated.type.ts",
+    "generate:world-defaults": "node scripts/generate-world-defaults.mjs",
     "supabase:create-db-script": "supabase db diff -f changes",
     "supabase:create-empty-script": "supabase migration new changes",
     "supabase:serve-functions": "supabase functions serve"

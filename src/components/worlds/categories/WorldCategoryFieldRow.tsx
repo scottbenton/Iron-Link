@@ -50,7 +50,7 @@ export function WorldCategoryFieldRow({
   });
   const rules = field.configuration.rules.length;
   const details = [
-    getFieldTypeLabel(t, field.type),
+    getFieldTypeLabel(t, field),
     rules === 1
       ? t("worlds.fields.rule-count-one", "1 rule")
       : rules > 1

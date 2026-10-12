@@ -56,6 +56,7 @@ interface WorldCategoriesStoreActions {
   ) => void;
 
   getCategoryCounts: (categoryId: string) => Promise<IWorldCategoryCounts>;
+  getFieldOptions: (fieldId: string) => Promise<string[]>;
 
   createCategory: (category: {
     name: string;
@@ -195,6 +196,13 @@ export const useWorldCategoriesStore = createWithEqualityFn<
         return WorldConfigurationService.getCategoryCounts(
           get().worldId,
           categoryId,
+        );
+      },
+
+      getFieldOptions: (fieldId) => {
+        return WorldFieldDefinitionsService.getWorldFieldOptions(
+          get().worldId,
+          fieldId,
         );
       },
 

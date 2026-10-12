@@ -14,20 +14,25 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import {
-  type WorldFieldRule,
-  canWorldFieldTypeBeConditionSource,
-} from "lib/worldFieldRules";
+import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import {
-  IWorldFieldDefinition,
-  WorldFieldType,
-} from "services/worldFieldDefinitions.service";
+  type WorldFieldRule,
+  canWorldFieldBeConditionSource,
+  doesWorldFieldConditionOperatorTakeValue,
+  getWorldFieldConditionOperators,
+  isWorldFieldLinkedEntry,
+} from "lib/worldFieldRules";
+
+import { IWorldFieldDefinition } from "services/worldFieldDefinitions.service";
 
 import { WorldOracleBindingPicker } from "../WorldOracleBindingPicker";
 import { WorldFieldConditionEditor } from "./WorldFieldConditionEditor";
 import { WorldFieldOverrideToggle } from "./WorldFieldOverrideToggle";
-import { fieldChoiceLabel } from "./categoryEditor.utils";
+import {
+  fieldChoiceLabel,
+  getConditionOperatorLabel,
+} from "./categoryEditor.utils";
 
 export function WorldFieldRuleEditor({
   worldId,
@@ -47,9 +52,31 @@ export function WorldFieldRuleEditor({
   onChange: (rule: WorldFieldRule) => void;
 }) {
   const { t } = useTranslation();
-  const source = fields.find((field) =>
-    canWorldFieldTypeBeConditionSource(field.type),
+  const source = fields.find(canWorldFieldBeConditionSource);
+  // Linked entries compare entry IDs; the summary shows their names.
+  const linkedIds = rule.conditions.flatMap((condition) => {
+    const linked = (fieldId: string | undefined, value: string | undefined) =>
+      value &&
+      fields.some(
+        (field) => field.id === fieldId && isWorldFieldLinkedEntry(field),
+      )
+        ? [value]
+        : [];
+    return [
+      ...linked(condition.fieldId, condition.value),
+      ...linked(condition.ancestor?.fieldId, condition.ancestor?.value),
+    ];
+  });
+  const entryNames = useWorldEntriesStore((store) =>
+    Object.fromEntries(
+      linkedIds.map((id) => [id, store.entryState.entries[id]?.name]),
+    ),
   );
+  const displayValue = (value: string) =>
+    value in entryNames
+      ? (entryNames[value] ??
+        t("worlds.fields.missing-entry", "Unavailable entry"))
+      : value;
   const summary = rule.conditions
     .map((condition) => {
       const field = fields.find(
@@ -58,19 +85,14 @@ export function WorldFieldRuleEditor({
       const label = field
         ? fieldChoiceLabel(field, fields, t)
         : t("worlds.fields.missing-field", "Missing field");
-      const comparison = {
-        equals: t("worlds.fields.equals", "Equals"),
-        notEquals: t("worlds.fields.not-equals", "Does not equal"),
-        isEmpty: t("worlds.fields.empty", "Is empty"),
-        isNotEmpty: t("worlds.fields.not-empty", "Is not empty"),
-      }[condition.operator];
+      const comparison = getConditionOperatorLabel(t, condition.operator);
       const ancestor =
         condition.source === "ancestor"
           ? t("worlds.fields.ancestor-summary", "Ancestor {{value}}: ", {
-              value: condition.ancestor?.value ?? "",
+              value: displayValue(condition.ancestor?.value ?? ""),
             })
           : "";
-      return `${ancestor}${label} ${comparison}${condition.operator === "equals" || condition.operator === "notEquals" ? ` “${condition.value ?? ""}”` : ""}`;
+      return `${ancestor}${label} ${comparison}${doesWorldFieldConditionOperatorTakeValue(condition.operator) ? ` “${displayValue(condition.value ?? "")}”` : ""}`;
     })
     .join(t("worlds.fields.condition-and", " and "));
   return (
@@ -103,7 +125,7 @@ export function WorldFieldRuleEditor({
             <Typography variant="body2" color="text.secondary">
               {t(
                 "worlds.fields.condition-field-help",
-                "Text fields can compare values; number and tag fields check whether they are empty. Guide-only sources require this field to be Guide only too.",
+                "Text and option list fields compare values, and fields that allow more than one check whether they contain a value. Guide-only sources require this field to be Guide only too.",
               )}
             </Typography>
           </Box>
@@ -147,10 +169,9 @@ export function WorldFieldRuleEditor({
                     {
                       source: "entry",
                       fieldId: source?.id ?? "",
-                      operator:
-                        source?.type === WorldFieldType.Text
-                          ? "equals"
-                          : "isNotEmpty",
+                      operator: source
+                        ? getWorldFieldConditionOperators(source)[0]
+                        : "isNotEmpty",
                       value: "",
                     },
                   ],
