@@ -308,7 +308,7 @@ describe("WorldFieldEditor", () => {
       />,
     );
     await user.click(screen.getByRole("combobox", { name: "Field type" }));
-    await user.click(screen.getByRole("option", { name: "Number" }));
+    await user.click(screen.getByRole("option", { name: "Tags" }));
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     expect(screen.getByRole("alert")).toHaveTextContent("conditions in Region");
   });
@@ -353,14 +353,14 @@ describe("WorldFieldEditor", () => {
     ).toHaveTextContent("Type");
   });
 
-  it("preserves a compatible rich text to oracle text change", async () => {
+  it("preserves a compatible oracle text to rich text change", async () => {
     const user = userEvent.setup();
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(
       <WorldFieldEditor
         worldId="world-1"
         categories={[category]}
-        field={field({ type: WorldFieldType.RichText })}
+        field={field({ type: WorldFieldType.OracleText })}
         fields={[]}
         valueCount={7}
         readOnly={false}
@@ -369,11 +369,11 @@ describe("WorldFieldEditor", () => {
       />,
     );
     await user.click(screen.getByRole("combobox", { name: "Field type" }));
-    await user.click(screen.getByRole("option", { name: "Oracle text" }));
+    await user.click(screen.getByRole("option", { name: "Rich text" }));
     await user.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith(
-        expect.objectContaining({ type: WorldFieldType.OracleText }),
+        expect.objectContaining({ type: WorldFieldType.RichText }),
         false,
       ),
     );
@@ -395,7 +395,7 @@ describe("WorldFieldEditor", () => {
       />,
     );
     await user.click(screen.getByRole("combobox", { name: "Field type" }));
-    await user.click(screen.getByRole("option", { name: "Number" }));
+    await user.click(screen.getByRole("option", { name: "Tags" }));
     expect(screen.getByRole("alert")).toHaveTextContent("7 stored values");
     expect(
       screen.queryByRole("button", { name: "Save" }),
@@ -403,7 +403,7 @@ describe("WorldFieldEditor", () => {
     await user.click(screen.getByRole("button", { name: "Create new field" }));
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith(
-        expect.objectContaining({ type: WorldFieldType.Number }),
+        expect.objectContaining({ type: WorldFieldType.Tags }),
         true,
       ),
     );
@@ -425,7 +425,7 @@ describe("WorldFieldEditor", () => {
       />,
     );
     await user.click(screen.getByRole("combobox", { name: "Field type" }));
-    await user.click(screen.getByRole("option", { name: "Number" }));
+    await user.click(screen.getByRole("option", { name: "Tags" }));
     expect(
       screen.queryByRole("textbox", { name: /key/i }),
     ).not.toBeInTheDocument();
@@ -434,10 +434,49 @@ describe("WorldFieldEditor", () => {
     await user.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith(
-        expect.objectContaining({ type: WorldFieldType.Number }),
+        expect.objectContaining({ type: WorldFieldType.Tags }),
         false,
       ),
     );
+  });
+
+  it("offers Oracle text and Number only to fields that already use them", async () => {
+    const user = userEvent.setup();
+    const props = {
+      worldId: "world-1",
+      categories: [category],
+      fields: [],
+      valueCount: 0,
+      readOnly: false,
+      onSave: vi.fn(),
+      onClose: vi.fn(),
+    };
+    const view = render(<WorldFieldEditor {...props} />);
+    await user.click(screen.getByRole("combobox", { name: "Field type" }));
+    expect(
+      screen.getAllByRole("option").map((option) => option.textContent),
+    ).toEqual([
+      "Text",
+      "Rich text",
+      "Tags",
+      "Category select",
+      "Category multi-select",
+    ]);
+    await user.keyboard("{Escape}");
+
+    view.rerender(
+      <WorldFieldEditor
+        {...props}
+        field={field({ type: WorldFieldType.OracleText })}
+      />,
+    );
+    await user.click(screen.getByRole("combobox", { name: "Field type" }));
+    expect(
+      screen.getByRole("option", { name: "Oracle text" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("option", { name: "Number" }),
+    ).not.toBeInTheDocument();
   });
 
   it("requires Guide visibility for rules that read a Guide-only source", async () => {

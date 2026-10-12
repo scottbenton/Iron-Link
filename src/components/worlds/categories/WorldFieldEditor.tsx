@@ -41,6 +41,7 @@ import { WorldFieldRulesEditor } from "./WorldFieldRulesEditor";
 import {
   fieldChoiceLabel,
   getEditorErrorMessage,
+  getFieldTypeLabel,
   validateFieldDraft,
 } from "./categoryEditor.utils";
 
@@ -89,6 +90,13 @@ export function WorldFieldEditor({
   const disabled = readOnly || saving;
   const targetCategories = categories.filter(
     (category) => category.worldId === worldId,
+  );
+  // Oracle text and Number are being folded into Text, so new fields cannot
+  // choose them. A field that already uses one keeps it available.
+  const typeOptions = Object.values(WorldFieldType).filter(
+    (type) =>
+      (type !== WorldFieldType.OracleText && type !== WorldFieldType.Number) ||
+      type === field?.type,
   );
   const categoryReference = isWorldCategoryReferenceType(draft.type);
   const invalidTarget =
@@ -214,30 +222,11 @@ export function WorldFieldEditor({
                   });
                 }}
               >
-                <MenuItem value={WorldFieldType.Text}>
-                  {t("worlds.fields.text", "Text")}
-                </MenuItem>
-                <MenuItem value={WorldFieldType.RichText}>
-                  {t("worlds.fields.rich-text", "Rich text")}
-                </MenuItem>
-                <MenuItem value={WorldFieldType.OracleText}>
-                  {t("worlds.fields.oracle-text", "Oracle text")}
-                </MenuItem>
-                <MenuItem value={WorldFieldType.Tags}>
-                  {t("worlds.fields.tags", "Tags")}
-                </MenuItem>
-                <MenuItem value={WorldFieldType.Number}>
-                  {t("worlds.fields.number", "Number")}
-                </MenuItem>
-                <MenuItem value={WorldFieldType.CategorySelect}>
-                  {t("worlds.fields.category-select", "Category select")}
-                </MenuItem>
-                <MenuItem value={WorldFieldType.CategoryMultiSelect}>
-                  {t(
-                    "worlds.fields.category-multi-select",
-                    "Category multi-select",
-                  )}
-                </MenuItem>
+                {typeOptions.map((type) => (
+                  <MenuItem key={type} value={type}>
+                    {getFieldTypeLabel(t, type)}
+                  </MenuItem>
+                ))}
               </TextField>
             </Stack>
             {incompatible && (
