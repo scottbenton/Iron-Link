@@ -117,6 +117,7 @@ export function WorldEntryView({
         category={category}
         canEdit={permissions.canEdit}
         permissionControlsShown={controlsShown}
+        navigation={navigation}
       />
     </Stack>
   );

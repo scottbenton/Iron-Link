@@ -15,11 +15,22 @@ export interface RtcRichTextEditorProps {
   ) => Promise<void>;
   initialValue: Uint8Array;
   Toolbar: React.FC<{ editor: TTEditor }>;
+  // Bordered, with the toolbar inside, for an editor among other inputs.
+  outlined?: boolean;
+  minHeight?: number;
 }
 
 export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
-  const { id, roomPrefix, documentPassword, onSave, initialValue, Toolbar } =
-    props;
+  const {
+    id,
+    roomPrefix,
+    documentPassword,
+    onSave,
+    initialValue,
+    Toolbar,
+    outlined,
+    minHeight,
+  } = props;
 
   const readOnly = !onSave;
   const { editor, saving } = useAutoSaveRtcEditor({
@@ -37,6 +48,8 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
       editor={editor}
       saving={saving}
       Toolbar={Toolbar}
+      outlined={outlined}
+      minHeight={minHeight}
     />
   );
 }

@@ -79,3 +79,40 @@ export function getDefaultWorldEntryPermissions(
     editPermissions: EditPermissions.GuidesAndAuthor,
   };
 }
+
+// An entry created from a linked entry field starts shared like the entry
+// linking to it, and one created from a Guide-only field starts as Guide
+// prep. Settings the creator could not pick for themselves fall back to
+// their defaults, since the database would reject them.
+export function getLinkedWorldEntryPermissions(
+  t: TFunction,
+  source: {
+    readPermissions: ReadPermissions;
+    editPermissions: EditPermissions;
+  },
+  {
+    gmOnly,
+    isGuide,
+    permissionControlsShown,
+  }: { gmOnly: boolean; isGuide: boolean; permissionControlsShown: boolean },
+): { readPermissions: ReadPermissions; editPermissions: EditPermissions } {
+  const wanted = gmOnly
+    ? {
+        readPermissions: ReadPermissions.OnlyGuides,
+        editPermissions: EditPermissions.OnlyGuides,
+      }
+    : {
+        readPermissions: source.readPermissions,
+        editPermissions: source.editPermissions,
+      };
+  const { readOptions, editOptions } = getWorldEntryPermissionOptions(t, {
+    isAuthor: true,
+    isGuide,
+  });
+  const allowed =
+    readOptions.some((option) => option.value === wanted.readPermissions) &&
+    editOptions.some((option) => option.value === wanted.editPermissions);
+  return allowed
+    ? wanted
+    : getDefaultWorldEntryPermissions(isGuide, permissionControlsShown);
+}
