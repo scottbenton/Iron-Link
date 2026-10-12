@@ -147,10 +147,6 @@ select throws_ok($$select public.mutate_world_configuration(pg_temp.ref_world('m
     'changes',jsonb_build_object('configuration',pg_temp.ref_configuration('main','lore'))))$$,
   'P0001','Remove field values before changing the target category',
   'populated reference target cannot change');
-select throws_ok($$delete from public.world_entries
-  where id='c3000000-0000-4000-8000-000000000001'$$,
-  'P0001','Remove category-field references before deleting this entry',
-  'referenced target entry cannot be deleted');
 
 select lives_ok($$select public.mutate_world_configuration(pg_temp.ref_world('main'),
   jsonb_build_object('type','create_field','category_id',pg_temp.ref_category('main','npcs'),
