@@ -92,6 +92,16 @@ export function WorldCategoryManager({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const view = navigation.view;
+  // The manager stays mounted across destinations so the settings sidebar and
+  // its icons do not rebuild on every click. Search text and action errors
+  // belong to one destination, so clear them when it changes.
+  const viewKey = `${view.type}:${"categoryId" in view ? view.categoryId : ""}`;
+  const [previousViewKey, setPreviousViewKey] = useState(viewKey);
+  if (previousViewKey !== viewKey) {
+    setPreviousViewKey(viewKey);
+    setSearch("");
+    setError(undefined);
+  }
   const configuring =
     view.type === "settings" || view.type === "category-settings";
   const selectedId = "categoryId" in view ? view.categoryId : undefined;

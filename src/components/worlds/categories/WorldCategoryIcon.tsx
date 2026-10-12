@@ -2,13 +2,13 @@ import CategoryOutlined from "@mui/icons-material/CategoryOutlined";
 import Groups2Icon from "@mui/icons-material/Groups2";
 import { Box, SvgIcon } from "@mui/material";
 import { useEffect, useState } from "react";
-import type { IconType } from "react-icons";
 
 import { IconDefinition } from "types/Icon.type";
 
 import {
   GROUPS_CATEGORY_ICON_KEY,
   getCategoryIconColor,
+  getLoadedCategoryIcons,
   loadCategoryIcons,
 } from "./categoryIcons";
 
@@ -23,9 +23,9 @@ export function WorldCategoryIcon({
   icon: IconDefinition | null;
   size?: WorldCategoryIconSize;
 }) {
-  const [icons, setIcons] = useState<Record<string, IconType>>();
+  const [icons, setIcons] = useState(getLoadedCategoryIcons);
   useEffect(() => {
-    if (!icon?.key || icon.key === GROUPS_CATEGORY_ICON_KEY) return;
+    if (icons || !icon?.key || icon.key === GROUPS_CATEGORY_ICON_KEY) return;
     let active = true;
     loadCategoryIcons()
       .then((loaded) => {
@@ -35,7 +35,7 @@ export function WorldCategoryIcon({
     return () => {
       active = false;
     };
-  }, [icon?.key]);
+  }, [icons, icon?.key]);
   if (!icon?.key) return null;
   const Icon = icon?.key ? icons?.[icon.key] : undefined;
   const box = { small: 24, medium: 30, large: 48, xlarge: 72 }[size];

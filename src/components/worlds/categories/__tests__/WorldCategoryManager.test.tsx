@@ -18,6 +18,7 @@ import {
 
 import { WorldPermission } from "repositories/shared.types";
 
+import { WorldWorkspace } from "../../WorldWorkspace";
 import { WorldCategoryManager } from "../WorldCategoryManager";
 import { category, field, translate } from "./fixtures";
 
@@ -94,8 +95,11 @@ const categoryName = () =>
 
 function ManagerHarness({
   permission = WorldPermission.Owner,
+  workspace = false,
 }: {
   permission?: WorldPermission;
+  // Render through the shared workspace, as both world surfaces do.
+  workspace?: boolean;
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -113,6 +117,17 @@ function ManagerHarness({
     }),
     navigate: (view) => navigate(getWorldViewPath(category.worldId, view)),
   };
+  if (workspace) {
+    return (
+      <WorldWorkspace
+        world={props.world}
+        permission={permission}
+        navigation={navigation}
+        layout={props.layout}
+        rootBreadcrumb={props.rootBreadcrumb}
+      />
+    );
+  }
   return (
     <WorldCategoryManager
       {...props}
@@ -125,13 +140,14 @@ function ManagerHarness({
 function managerView(
   permission = WorldPermission.Owner,
   initialView: WorldView = { type: "settings" },
+  workspace = false,
 ) {
   return (
     <ConfirmProvider>
       <MemoryRouter
         initialEntries={[getWorldViewPath(category.worldId, initialView)]}
       >
-        <ManagerHarness permission={permission} />
+        <ManagerHarness permission={permission} workspace={workspace} />
       </MemoryRouter>
     </ConfirmProvider>
   );
@@ -268,6 +284,24 @@ describe("WorldCategoryManager", () => {
     state.oracle.error = undefined;
     view.rerender(managerView());
     expect(categoryName()).toBeEnabled();
+  });
+
+  it("keeps the settings sidebar mounted while moving between categories", async () => {
+    const user = userEvent.setup();
+    const second = { ...category, id: "second", name: "NPCs", sortOrder: 1 };
+    state.categories = { [category.id]: category, second };
+    render(managerView(WorldPermission.Owner, { type: "settings" }, true));
+    await openCategorySettings(user);
+    const sidebar = screen.getByRole("navigation", {
+      name: "World settings navigation",
+    });
+
+    await openCategorySettings(user, "NPCs");
+
+    expect(settingsLink("NPCs")).toHaveAttribute("aria-current", "page");
+    expect(
+      screen.getByRole("navigation", { name: "World settings navigation" }),
+    ).toBe(sidebar);
   });
 
   it("shows ordered categories, excludes other worlds, and atomically reorders without losing selection", async () => {

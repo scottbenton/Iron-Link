@@ -32,11 +32,8 @@ export function WorldWorkspace({
   layout: WorldLayout;
 }) {
   const { t } = useTranslation();
-  const categoryId =
-    "categoryId" in navigation.view ? navigation.view.categoryId : undefined;
   return (
     <WorldCategoryManager
-      key={`${navigation.view.type}:${categoryId ?? ""}`}
       world={world}
       permission={permission}
       navigation={navigation}

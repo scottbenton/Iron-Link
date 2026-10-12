@@ -60,7 +60,7 @@ export function WorldCategoryDetails({
         setError(getEditorErrorMessage(cause));
       });
     },
-    [category.id, updateCategory, t],
+    [category.id, updateCategory],
   );
   const persistName = useCallback(
     (name: string) => {

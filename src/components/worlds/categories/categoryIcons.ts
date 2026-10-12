@@ -17,14 +17,22 @@ import { IconColors } from "types/Icon.type";
 // with game-icons keys. Import individual modules to avoid bundling the set.
 export const GROUPS_CATEGORY_ICON_KEY = "mui:Groups2";
 
+let loadedIcons: Record<string, IconType> | undefined;
 let iconsPromise: Promise<Record<string, IconType>> | undefined;
 export function loadCategoryIcons() {
   // The module exports only Game Icons components. Its type also carries a
   // synthetic default export, which does not exist at runtime.
-  iconsPromise ??= import("react-icons/gi").then(
-    (icons): Record<string, IconType> => icons as Omit<typeof icons, "default">,
-  );
+  iconsPromise ??= import("react-icons/gi").then((icons) => {
+    loadedIcons = icons as Omit<typeof icons, "default">;
+    return loadedIcons;
+  });
   return iconsPromise;
+}
+
+// The icon set once any load has finished. Reading it synchronously lets a
+// newly mounted icon render immediately instead of flashing a placeholder.
+export function getLoadedCategoryIcons() {
+  return loadedIcons;
 }
 
 export function categoryIconName(key: string) {

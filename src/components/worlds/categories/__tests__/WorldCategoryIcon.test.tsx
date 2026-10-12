@@ -2,7 +2,7 @@ import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { WorldCategoryIcon } from "../WorldCategoryIcon";
-import { GROUPS_CATEGORY_ICON_KEY } from "../categoryIcons";
+import { GROUPS_CATEGORY_ICON_KEY, loadCategoryIcons } from "../categoryIcons";
 
 describe("WorldCategoryIcon", () => {
   it("renders no placeholder when the user chooses no icon", () => {
@@ -28,5 +28,17 @@ describe("WorldCategoryIcon", () => {
     expect(
       view.container.querySelector('[data-testid="CategoryOutlinedIcon"]'),
     ).toBeNull();
+  });
+
+  it("renders a game icon immediately once the icon set has loaded", async () => {
+    await loadCategoryIcons();
+    const view = render(
+      <WorldCategoryIcon icon={{ key: "GiWorld", color: null }} />,
+    );
+    // No placeholder frame: a remounted icon must not flicker.
+    expect(
+      view.container.querySelector('[data-testid="CategoryOutlinedIcon"]'),
+    ).toBeNull();
+    expect(view.container.querySelector("svg")).not.toBeNull();
   });
 });
