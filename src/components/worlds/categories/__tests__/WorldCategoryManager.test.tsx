@@ -286,6 +286,15 @@ describe("WorldCategoryManager", () => {
     expect(categoryName()).toBeEnabled();
   });
 
+  it("browses without waiting for oracles, which only configuration needs", () => {
+    state.oracle.loading = true;
+    state.oracle.error = "Catalog unavailable";
+    render(managerView(WorldPermission.Owner, { type: "world" }));
+    expect(screen.getByRole("link", { name: "Locations" })).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(screen.queryByText("Catalog unavailable")).not.toBeInTheDocument();
+  });
+
   it("keeps the settings sidebar mounted while moving between categories", async () => {
     const user = userEvent.setup();
     const second = { ...category, id: "second", name: "NPCs", sortOrder: 1 };

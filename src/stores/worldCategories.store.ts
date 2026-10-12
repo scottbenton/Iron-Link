@@ -324,7 +324,10 @@ export function useListenToWorldConfiguration(worldId: string | undefined) {
     }
   }, [worldVersion, refreshWorldConfiguration]);
 
+  // Only the owner resets the store. Surfaces that read a world owned
+  // elsewhere pass no id and must leave its configuration in place.
   useEffect(() => {
+    if (!worldId) return;
     return () => {
       resetStore();
     };

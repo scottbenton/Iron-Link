@@ -1,9 +1,13 @@
-import { Breadcrumbs, Link, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router";
 
+import { BreadcrumbTrail } from "components/Layout/BreadcrumbTrail";
+
+import { getNotesItemLinkProps } from "pages/games/gamePageLayout/hooks/notesDestination";
 import { NOTES_ID } from "pages/games/gamePageLayout/hooks/useGameKeybinds";
 
-import { useNotesStore } from "stores/notes.store";
+import { useUID } from "stores/auth.store";
+import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
 
 import { getItemName } from "../FolderView/getFolderName";
 
@@ -16,14 +20,13 @@ interface BreadcrumbItem {
 
 export function NoteBreadcrumbs() {
   const { t } = useTranslation();
+  const location = useLocation();
+  const uid = useUID();
 
   const setOpenItem = useNotesStore((store) => store.openItemTab);
 
-  const rootPlayerFolderId = useNotesStore(
-    (store) =>
-      Object.values(store.folderState.folders).find(
-        (folder) => folder.isRootPlayerFolder,
-      )?.id,
+  const rootPlayerFolderId = useNotesStore((store) =>
+    uid ? getPlayerNotesFolder(uid, store.folderState.folders)?.id : undefined,
   );
 
   const breadcrumbItems: BreadcrumbItem[] = useNotesStore((store) => {
@@ -34,7 +37,9 @@ export function NoteBreadcrumbs() {
     const breadcrumbs: BreadcrumbItem[] = [];
 
     // The world tab sits outside the notes hierarchy, so it has no trail.
-    while (item && item.type !== "world") {
+    const visited = new Set<string>();
+    while (item && item.type !== "world" && !visited.has(item.itemId)) {
+      visited.add(item.itemId);
       breadcrumbs.push({
         type: item.type,
         id: item.itemId,
@@ -70,50 +75,29 @@ export function NoteBreadcrumbs() {
     return breadcrumbs.reverse();
   });
 
-  if (breadcrumbItems.length > 0) {
-    return (
-      <>
-        <Breadcrumbs>
-          {breadcrumbItems.map((item, index) =>
-            index === breadcrumbItems.length - 1 ? (
-              <Typography key={index}>{item.name}</Typography>
-            ) : (
-              <Link
-                id={index === 0 ? NOTES_ID : undefined}
-                key={index}
-                component={"button"}
-                onClick={(event) =>
+  if (!breadcrumbItems.length) return null;
+  return (
+    <BreadcrumbTrail
+      items={breadcrumbItems.map((item, index) => ({
+        key: `${item.type}:${item.id}`,
+        label: item.name,
+        id: index === 0 ? NOTES_ID : undefined,
+        linkProps:
+          index === breadcrumbItems.length - 1
+            ? undefined
+            : getNotesItemLinkProps(
+                location.pathname,
+                new URLSearchParams(location.search),
+                { type: item.type, itemId: item.id },
+                (destination, background) =>
                   setOpenItem({
-                    type: item.type,
-                    id: item.id,
-                    openInBackground: event.ctrlKey || event.metaKey,
-                    replaceCurrent: !(event.ctrlKey || event.metaKey),
-                  })
-                }
-                onAuxClick={() =>
-                  setOpenItem({
-                    type: item.type,
-                    id: item.id,
-                    openInBackground: true,
-                    replaceCurrent: false,
-                  })
-                }
-                onMouseDown={(event) => {
-                  if (event.button === 1) {
-                    event.preventDefault();
-                    return false;
-                  }
-                }}
-                sx={{ display: "flex" }}
-                color="textPrimary"
-              >
-                {item.name}
-              </Link>
-            ),
-          )}
-        </Breadcrumbs>
-      </>
-    );
-  }
-  return null;
+                    type: destination.type,
+                    id: destination.itemId,
+                    replaceCurrent: !background,
+                    openInBackground: background,
+                  }),
+              ),
+      }))}
+    />
+  );
 }
