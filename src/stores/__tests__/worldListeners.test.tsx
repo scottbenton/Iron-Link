@@ -64,3 +64,38 @@ describe("world row invalidation", () => {
     hook.unmount();
   });
 });
+
+describe("listener ownership", () => {
+  it("keeps an owned configuration when a non-owning view unmounts", () => {
+    let deliver: Parameters<
+      typeof WorldConfigurationService.listenToWorldConfiguration
+    >[1] = () => {};
+    vi.spyOn(
+      WorldConfigurationService,
+      "listenToWorldConfiguration",
+    ).mockImplementation((_worldId, onConfiguration) => {
+      deliver = onConfiguration;
+      return { refresh: () => Promise.resolve(), unsubscribe: vi.fn() };
+    });
+    useWorldStore.setState({ world: world(1) });
+
+    const owner = renderHook(() => useListenToWorldConfiguration("world"));
+    act(() =>
+      deliver({
+        configurationCustomized: true,
+        categories: {},
+        fieldDefinitions: {},
+      }),
+    );
+    // A world tab inside a game reads the store without owning it.
+    const view = renderHook(() => useListenToWorldConfiguration(undefined));
+    view.unmount();
+
+    expect(useWorldCategoriesStore.getState()).toMatchObject({
+      worldId: "world",
+      loading: false,
+    });
+    owner.unmount();
+    expect(useWorldCategoriesStore.getState().worldId).toBe("");
+  });
+});

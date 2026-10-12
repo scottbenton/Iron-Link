@@ -308,8 +308,10 @@ export function WorldCategoryManager({
         }}
       >
         <Stack spacing={2}>
-          {(loading || (!customized && oracles.loading)) && <LinearProgress />}
-          {!customized && oracles.error && (
+          {(loading || (configuring && !customized && oracles.loading)) && (
+            <LinearProgress />
+          )}
+          {configuring && !customized && oracles.error && (
             <Alert
               severity="error"
               action={

@@ -22,8 +22,8 @@ export interface WorldPanelProps {
   onWorldDeleted?: () => void;
   // `useListenToWorld` does not de-duplicate, and its cleanup resets the whole
   // world store, so only one mounted component may own the subscription. Set
-  // this to false when a surrounding surface already listens to this world
-  // and its configuration.
+  // this to false when a surrounding surface already listens to this world,
+  // its configuration, and its oracles.
   manageSubscription?: boolean;
   additionalSettings?: ReactNode;
   layout?: WorldLayout;
@@ -45,10 +45,10 @@ export function WorldPanel(props: WorldPanelProps) {
 
   const { t } = useTranslation();
 
-  useListenToWorld(manageSubscription ? worldId : undefined);
-  useListenToWorldConfiguration(manageSubscription ? worldId : undefined);
-  // Only needed while configuration is visible, so the panel always owns it.
-  useListenToWorldOracles(worldId);
+  const ownedWorldId = manageSubscription ? worldId : undefined;
+  useListenToWorld(ownedWorldId);
+  useListenToWorldConfiguration(ownedWorldId);
+  useListenToWorldOracles(ownedWorldId);
 
   const storedWorldId = useWorldStore((store) => store.worldId);
   const world = useWorldStore((store) => store.world);

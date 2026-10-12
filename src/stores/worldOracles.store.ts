@@ -116,9 +116,9 @@ export const useWorldOraclesStore = createWithEqualityFn<
   deepEqual,
 );
 
-// Loads the oracles that bindings in this world can target. Mount it where
-// the world's configuration is shown or edited; it needs the world and its
-// configuration subscriptions to be running.
+// Loads the oracles that bindings in this world can target. Mount it with the
+// world and configuration subscriptions, so the catalog loads once per world
+// rather than each time a world view opens.
 export function useListenToWorldOracles(worldId: string | undefined) {
   const loadWorldOracles = useWorldOraclesStore(
     (store) => store.loadWorldOracles,
@@ -169,7 +169,9 @@ export function useListenToWorldOracles(worldId: string | undefined) {
     loadWorldOracles,
   ]);
 
+  // Only the owner resets the store; see useListenToWorldConfiguration.
   useEffect(() => {
+    if (!worldId) return;
     return () => {
       resetStore();
     };
