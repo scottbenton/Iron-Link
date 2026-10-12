@@ -22,7 +22,6 @@ import {
 import type { TFunction } from "i18next";
 import { useDeferredValue, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { IconType } from "react-icons";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 
@@ -33,6 +32,7 @@ import {
   GROUPS_CATEGORY_ICON_KEY,
   categoryIconName,
   getCategoryIconColor,
+  getLoadedCategoryIcons,
   loadCategoryIcons,
 } from "./categoryIcons";
 
@@ -82,9 +82,10 @@ export function WorldCategoryIconDialog({
   const [search, setSearch] = useState("");
   const query = useDeferredValue(search.trim().toLowerCase());
   const [limit, setLimit] = useState(BATCH_SIZE);
-  const [icons, setIcons] = useState<Record<string, IconType>>();
+  const [icons, setIcons] = useState(getLoadedCategoryIcons);
   const [error, setError] = useState(false);
   useEffect(() => {
+    if (icons) return;
     let active = true;
     loadCategoryIcons()
       .then((loaded) => {
@@ -96,7 +97,7 @@ export function WorldCategoryIconDialog({
     return () => {
       active = false;
     };
-  }, []);
+  }, [icons]);
   const matches = [
     GROUPS_CATEGORY_ICON_KEY,
     ...Object.keys(icons ?? {}),

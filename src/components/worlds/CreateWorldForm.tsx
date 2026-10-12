@@ -6,6 +6,11 @@ import { GradientButton } from "components/GradientButton";
 import { GridLayout } from "components/Layout/GridLayout";
 
 import {
+  type LinkedGamePlayset,
+  getGameActivePackageIds,
+} from "lib/effectivePlayset";
+import { getWorldSettingPackageIds } from "lib/worldSettingPackageIds";
+import {
   WorldCreationOption,
   blankWorldOptionId,
   getWorldSettingCreationOptions,
@@ -16,6 +21,7 @@ import { WorldsService } from "services/worlds.service";
 import { WorldOptionCard } from "./WorldOptionCard";
 
 export interface CreateWorldFormProps {
+  creationGame?: LinkedGamePlayset;
   onCreated: (worldId: string) => void;
   onCancel?: () => void;
 }
@@ -23,25 +29,31 @@ export interface CreateWorldFormProps {
 // Renders only its own content (no page chrome, no dialog shell) so it can be
 // dropped into the standalone create page or into an in-game dialog.
 export function CreateWorldForm(props: CreateWorldFormProps) {
-  const { onCreated, onCancel } = props;
+  const { onCreated, onCancel, creationGame } = props;
 
   const { t } = useTranslation();
 
   const options = useMemo<WorldCreationOption[]>(
     () => [
-      ...getWorldSettingCreationOptions(),
+      ...getWorldSettingCreationOptions().filter(
+        (option) =>
+          !creationGame ||
+          getWorldSettingPackageIds(option.settingKey).every((id) =>
+            getGameActivePackageIds(creationGame).includes(id),
+          ),
+      ),
       {
         id: blankWorldOptionId,
         name: t("worlds.create.blank-world", "Blank World"),
         description: t(
           "worlds.create.blank-world-description",
-          "No setting truths, nothing pre-configured. Start from an empty world.",
+          "Locations, NPCs, and Lore with neutral fields and no oracle bindings.",
         ),
         settingKey: null,
         prefillName: null,
       },
     ],
-    [t],
+    [t, creationGame],
   );
 
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
