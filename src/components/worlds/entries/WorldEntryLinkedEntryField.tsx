@@ -136,6 +136,7 @@ export function WorldEntryLinkedEntryField({
       t,
       entry,
       {
+        uid,
         gmOnly: field.gmOnly,
         isGuide: !!permission && isGuideEquivalent(permission),
         permissionControlsShown: controlsShown,
@@ -196,11 +197,15 @@ export function WorldEntryLinkedEntryField({
           link(next);
         }
       }}
+      // No chips must render nothing: any start adornment, even an empty
+      // list, keeps the label raised over an empty field.
       renderValue={(values, getItemProps) =>
-        values.map((id, index) => {
-          const { key, onDelete, ...itemProps } = getItemProps({ index });
-          return renderChip(id, key, onDelete, itemProps);
-        })
+        values.length === 0
+          ? null
+          : values.map((id, index) => {
+              const { key, onDelete, ...itemProps } = getItemProps({ index });
+              return renderChip(id, key, onDelete, itemProps);
+            })
       }
       renderInput={(params) => (
         <TextField

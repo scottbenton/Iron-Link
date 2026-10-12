@@ -73,7 +73,7 @@ export function WorldEntryField({
           field={field}
           value={typeof value?.value === "string" ? value.value : ""}
           canEdit={canEdit}
-          onSave={(next) => save(next.trim() || null)}
+          onSave={(next) => save(next || null)}
         />
       );
       break;

@@ -15,6 +15,7 @@ import { GameType } from "repositories/game.repository";
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 
 import { getItemName } from "./FolderView/getFolderName";
+import { isNoteEditPermissionAllowed } from "./notePermissionCompatibility";
 
 export interface ShareDialogProps {
   open: boolean;
@@ -185,6 +186,7 @@ export function ShareDialog(props: ShareDialogProps) {
           editOptions={writeOptions}
           readPermissions={updatedViewPermissions}
           editPermissions={updatedWritePermissions}
+          isEditPermissionAllowed={isNoteEditPermissionAllowed}
           onChange={({ readPermissions, editPermissions }) => {
             if (readPermissions) setUpdatedViewPermissions(readPermissions);
             if (editPermissions) setUpdatedWritePermissions(editPermissions);

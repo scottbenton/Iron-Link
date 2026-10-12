@@ -5,6 +5,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorldStore } from "stores/world.store";
 
 import {
+  ErrorNoun,
+  ErrorReason,
+  ErrorVerb,
+  RepositoryError,
+} from "repositories/errors/RepositoryErrors";
+import {
   EditPermissions,
   ReadPermissions,
   WorldPermission,
@@ -127,5 +133,24 @@ describe("WorldEntryShareDialog", () => {
       editPermissions: EditPermissions.OnlyAuthor,
     });
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("stays open when the save is refused", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(WorldEntriesService, "updateWorldEntry").mockRejectedValue(
+      new RepositoryError(
+        ErrorReason.Forbidden,
+        ErrorVerb.Update,
+        ErrorNoun.WorldEntry,
+        false,
+      ),
+    );
+    const onClose = renderDialog("guide", WorldPermission.Guide);
+
+    await user.click(screen.getByRole("button", { name: "Save Changes" }));
+    expect(onClose).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("button", { name: "Save Changes" }),
+    ).not.toBeDisabled();
   });
 });

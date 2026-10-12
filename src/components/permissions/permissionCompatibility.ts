@@ -19,6 +19,12 @@ const READ_AUDIENCES: Record<ReadPermissions, Set<EditPermissions>> = {
   [ReadPermissions.Public]: new Set(Object.values(EditPermissions)),
 };
 
+// Whether an edit permission may be paired with a read permission.
+export type EditPermissionRule = (
+  readPermission: ReadPermissions,
+  editPermission: EditPermissions,
+) => boolean;
+
 // Edit access can never reach anyone who cannot read the item.
 export function isEditPermissionWithinReadPermission(
   readPermission: ReadPermissions,
@@ -33,12 +39,11 @@ export function getCompatibleEditPermission(
   readPermission: ReadPermissions,
   editPermission: EditPermissions,
   editOptions: PermissionOption<EditPermissions>[],
+  isAllowed: EditPermissionRule = isEditPermissionWithinReadPermission,
 ): EditPermissions {
-  if (isEditPermissionWithinReadPermission(readPermission, editPermission))
-    return editPermission;
+  if (isAllowed(readPermission, editPermission)) return editPermission;
   return (
-    editOptions.find((option) =>
-      isEditPermissionWithinReadPermission(readPermission, option.value),
-    )?.value ?? editPermission
+    editOptions.find((option) => isAllowed(readPermission, option.value))
+      ?.value ?? editPermission
   );
 }

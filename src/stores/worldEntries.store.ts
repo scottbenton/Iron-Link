@@ -436,7 +436,7 @@ export function useWorldFieldValuesByEntry(): Record<
 // Mirrors the world_entries update/delete policies: explicit viewers are
 // read-only, guides/editors/owners can always delete, and edit access follows
 // the entry's edit_permissions.
-function getEntryPermissions(
+export function getEntryPermissions(
   editPermissions: EditPermissions,
   authorId: string,
   uid: string | undefined,
@@ -474,6 +474,8 @@ function getEntryPermissions(
   return {
     canEdit,
     canDelete: isAuthor || isGuide,
-    canChangePermissions: isAuthor || isGuide,
+    // Permissions are columns of the entry, so changing them is an update the
+    // database allows only under the current edit permissions.
+    canChangePermissions: canEdit && (isAuthor || isGuide),
   };
 }

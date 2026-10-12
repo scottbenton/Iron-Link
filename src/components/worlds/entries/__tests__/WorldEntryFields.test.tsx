@@ -519,6 +519,59 @@ describe("WorldEntryFields", () => {
       );
     });
 
+    it("shares an entry a Guide creates from a player's private entry so the player keeps the link", async () => {
+      const user = userEvent.setup();
+      const add = vi
+        .spyOn(WorldEntriesService, "addWorldEntry")
+        .mockResolvedValue("created");
+      defineFields(linkedEntry(PEOPLE, { id: "home", label: "Location" }));
+      const entry = worldEntry({
+        authorId: "player",
+        readPermissions: ReadPermissions.GuidesAndAuthor,
+        editPermissions: EditPermissions.GuidesAndAuthor,
+      });
+      loadEntries(entry);
+      renderFields({ entry });
+
+      await user.type(
+        screen.getByRole("combobox", { name: "Location" }),
+        "Brinehold",
+      );
+      await user.click(
+        screen.getByRole("option", { name: 'Create "Brinehold"' }),
+      );
+      await waitFor(() =>
+        expect(add).toHaveBeenCalledWith(
+          "author",
+          category.worldId,
+          PEOPLE,
+          "Brinehold",
+          ReadPermissions.AllPlayers,
+          EditPermissions.GuidesAndAuthor,
+          undefined,
+        ),
+      );
+    });
+
+    it("lowers the label over an empty field, like other fields", () => {
+      defineFields(
+        linkedEntry(
+          PEOPLE,
+          { id: "residents", label: "Residents" },
+          { multiple: true },
+        ),
+        linkedEntry(PEOPLE, { id: "home", label: "Location", sortOrder: 1 }),
+      );
+      loadEntries(worldEntry(), kell);
+      storeValue("entry-1", "residents", ["kell"]);
+      renderFields();
+
+      const label = (name: string) =>
+        screen.getByText(name, { selector: "label" });
+      expect(label("Location")).toHaveAttribute("data-shrink", "false");
+      expect(label("Residents")).toHaveAttribute("data-shrink", "true");
+    });
+
     it("does not offer to create entries to world viewers", async () => {
       const user = userEvent.setup();
       useWorldStore.setState({ worldPermission: WorldPermission.Viewer });

@@ -84,27 +84,71 @@ export function getDefaultWorldEntryPermissions(
 // linking to it, and one created from a Guide-only field starts as Guide
 // prep. Settings the creator could not pick for themselves fall back to
 // their defaults, since the database would reject them.
+//
+// Copying an author-scoped read permission only works for the entry's own
+// author: anyone else, typically a Guide filling in a player's entry, would
+// author an entry the player cannot read, and a link to an entry someone
+// cannot read hides the whole field value from them and refuses their later
+// saves. Those entries start shared with everyone instead.
 export function getLinkedWorldEntryPermissions(
   t: TFunction,
   source: {
+    authorId: string;
     readPermissions: ReadPermissions;
     editPermissions: EditPermissions;
   },
   {
+    uid,
     gmOnly,
     isGuide,
     permissionControlsShown,
-  }: { gmOnly: boolean; isGuide: boolean; permissionControlsShown: boolean },
+  }: {
+    uid: string;
+    gmOnly: boolean;
+    isGuide: boolean;
+    permissionControlsShown: boolean;
+  },
 ): { readPermissions: ReadPermissions; editPermissions: EditPermissions } {
-  const wanted = gmOnly
-    ? {
+  if (gmOnly) {
+    return getAllowedWorldEntryPermissions(
+      t,
+      {
         readPermissions: ReadPermissions.OnlyGuides,
         editPermissions: EditPermissions.OnlyGuides,
-      }
-    : {
-        readPermissions: source.readPermissions,
-        editPermissions: source.editPermissions,
-      };
+      },
+      isGuide,
+      permissionControlsShown,
+    );
+  }
+  const authorScoped =
+    source.readPermissions === ReadPermissions.OnlyAuthor ||
+    source.readPermissions === ReadPermissions.GuidesAndAuthor;
+  if (authorScoped && source.authorId !== uid) {
+    return {
+      readPermissions: ReadPermissions.AllPlayers,
+      editPermissions: EditPermissions.GuidesAndAuthor,
+    };
+  }
+  return getAllowedWorldEntryPermissions(
+    t,
+    {
+      readPermissions: source.readPermissions,
+      editPermissions: source.editPermissions,
+    },
+    isGuide,
+    permissionControlsShown,
+  );
+}
+
+function getAllowedWorldEntryPermissions(
+  t: TFunction,
+  wanted: {
+    readPermissions: ReadPermissions;
+    editPermissions: EditPermissions;
+  },
+  isGuide: boolean,
+  permissionControlsShown: boolean,
+): { readPermissions: ReadPermissions; editPermissions: EditPermissions } {
   const { readOptions, editOptions } = getWorldEntryPermissionOptions(t, {
     isAuthor: true,
     isGuide,

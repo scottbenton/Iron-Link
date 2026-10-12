@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 
 import {
+  type EditPermissionRule,
   type PermissionOption,
   getCompatibleEditPermission,
   isEditPermissionWithinReadPermission,
@@ -34,10 +35,13 @@ export interface PermissionsSelectorProps {
   hideEditOptions?: boolean;
   readHelperText?: ReactNode;
   editHelperText?: ReactNode;
+  // Which edit permissions fit each read permission. By default, edit access
+  // never reaches anyone who cannot read.
+  isEditPermissionAllowed?: EditPermissionRule;
 }
 
-// Who can view and who can edit, where edit options broader than the chosen
-// read permission are disabled and a read change narrows edit to fit.
+// Who can view and who can edit, where edit options that do not fit the
+// chosen read permission are disabled and a read change narrows edit to fit.
 export function PermissionsSelector(props: PermissionsSelectorProps) {
   const {
     readOptions,
@@ -48,6 +52,7 @@ export function PermissionsSelector(props: PermissionsSelectorProps) {
     hideEditOptions,
     readHelperText,
     editHelperText,
+    isEditPermissionAllowed = isEditPermissionWithinReadPermission,
   } = props;
   const { t } = useTranslation();
   const readLabelId = useId();
@@ -58,7 +63,12 @@ export function PermissionsSelector(props: PermissionsSelectorProps) {
       readPermissions: read,
       editPermissions:
         editPermissions &&
-        getCompatibleEditPermission(read, editPermissions, editOptions),
+        getCompatibleEditPermission(
+          read,
+          editPermissions,
+          editOptions,
+          isEditPermissionAllowed,
+        ),
     });
   };
 
@@ -119,10 +129,7 @@ export function PermissionsSelector(props: PermissionsSelectorProps) {
                   label={option.label}
                   disabled={
                     !!readPermissions &&
-                    !isEditPermissionWithinReadPermission(
-                      readPermissions,
-                      option.value,
-                    )
+                    !isEditPermissionAllowed(readPermissions, option.value)
                   }
                 />
               ))}
