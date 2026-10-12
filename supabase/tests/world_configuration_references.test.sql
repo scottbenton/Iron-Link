@@ -15,9 +15,10 @@ create function pg_temp.ref_world(p_key text) returns uuid language sql as $$
   select id from reference_worlds where key=p_key $$;
 create function pg_temp.ref_category(p_key text,p_category text) returns uuid language sql as $$
   select extensions.uuid_generate_v5(pg_temp.ref_world(p_key),'category:'||p_category) $$;
-create function pg_temp.ref_configuration(p_key text,p_target text) returns jsonb language sql as $$
+create function pg_temp.ref_configuration(p_key text,p_target text,p_multiple boolean default false) returns jsonb language sql as $$
   select jsonb_build_object('version',1,'suggestions','[]'::jsonb,'helpText','',
-    'visible',true,'rules','[]'::jsonb,'targetCategoryId',pg_temp.ref_category(p_key,p_target)) $$;
+    'visible',true,'rules','[]'::jsonb,'targetCategoryId',pg_temp.ref_category(p_key,p_target),
+    'multiple',p_multiple,'allowOther',false) $$;
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub','c1000000-0000-4000-8000-000000000001',true);
@@ -50,7 +51,7 @@ select throws_ok($$select public.get_world_configuration('00000000-0000-4000-800
 select lives_ok($$select public.mutate_world_configuration(pg_temp.ref_world('main'),
   jsonb_build_object('type','create_field','category_id',pg_temp.ref_category('main','npcs'),
     'field',jsonb_build_object('id','c2000000-0000-4000-8000-000000000001',
-      'key','customLocation','label','Custom Location','type','categorySelect',
+      'key','customLocation','label','Custom Location','type','select',
       'configuration',pg_temp.ref_configuration('main','locations'),'sort_order',10)))$$,
   'first customization can add a cross-category reference after seeding');
 set constraints world_field_definitions_configuration_reference_after immediate;
@@ -58,20 +59,20 @@ select is(public.get_world_configuration(pg_temp.ref_world('main'))->>'configura
   'true','customized configuration uses stored definitions');
 select is((select count(*) from jsonb_array_elements(
   public.get_world_configuration(pg_temp.ref_world('main'))->'field_definitions') f
-  where f->>'type'='categorySelect'),2::bigint,
+  where f->>'type'='select' and f->'configuration' ? 'targetCategoryId'),2::bigint,
   'custom field appears in the database projection');
 
 select throws_ok($$select public.mutate_world_configuration(pg_temp.ref_world('main'),
   jsonb_build_object('type','create_field','category_id',pg_temp.ref_category('main','npcs'),
     'field',jsonb_build_object('id','c2000000-0000-4000-8000-000000000002',
-      'key','foreign','label','Foreign','type','categorySelect',
+      'key','foreign','label','Foreign','type','select',
       'configuration',pg_temp.ref_configuration('other','locations'))))$$,
   'P0001','Target category must belong to the same world',
   'foreign-world target category is rejected');
 select throws_ok($$select public.mutate_world_configuration(pg_temp.ref_world('main'),
   jsonb_build_object('type','create_field','category_id',pg_temp.ref_category('main','npcs'),
     'field',jsonb_build_object('id','c2000000-0000-4000-8000-000000000003',
-      'key','bound','label','Bound','type','categorySelect',
+      'key','bound','label','Bound','type','select',
       'binding',jsonb_build_object('packageId','classic','oracleId','oracle_rollable:classic/test',
         'resolvedOracleId','oracle_rollable:classic/test'),
       'configuration',pg_temp.ref_configuration('main','locations'))))$$,
@@ -80,7 +81,7 @@ select throws_ok($$select public.mutate_world_configuration(pg_temp.ref_world('m
 select throws_ok($$select public.mutate_world_configuration(pg_temp.ref_world('main'),
   jsonb_build_object('type','create_field','category_id',pg_temp.ref_category('main','npcs'),
     'field',jsonb_build_object('id','c2000000-0000-4000-8000-000000000006',
-      'key','ruleBound','label','Rule bound','type','categorySelect',
+      'key','ruleBound','label','Rule bound','type','select',
       'configuration',jsonb_set(pg_temp.ref_configuration('main','locations'),
         '{rules}',jsonb_build_array(jsonb_build_object(
           'conditions',jsonb_build_array(jsonb_build_object(
@@ -95,9 +96,24 @@ select throws_ok($$select public.mutate_world_configuration(pg_temp.ref_world('m
 select throws_ok($$select public.mutate_world_configuration(pg_temp.ref_world('main'),
   jsonb_build_object('type','create_field','category_id',pg_temp.ref_category('main','npcs'),
     'field',jsonb_build_object('id','c2000000-0000-4000-8000-000000000004',
-      'key','missingTarget','label','Missing target','type','categorySelect')) )$$,
-  'P0001','Reference fields require a target category',
-  'reference fields require a targetCategoryId');
+      'key','openTarget','label','Open target','type','select',
+      'configuration',jsonb_set(pg_temp.ref_configuration('main','locations'),'{allowOther}','true'))))$$,
+  'P0001','Linked entry fields cannot allow other values',
+  'linked entry fields are always strict');
+select throws_ok($$select public.mutate_world_configuration(pg_temp.ref_world('main'),
+  jsonb_build_object('type','create_field','category_id',pg_temp.ref_category('main','npcs'),
+    'field',jsonb_build_object('id','c2000000-0000-4000-8000-000000000004',
+      'key','listTarget','label','List target','type','select',
+      'configuration',jsonb_set(pg_temp.ref_configuration('main','locations'),'{suggestions}','["Free text"]'))))$$,
+  'P0001','Invalid field suggestions or rule count',
+  'linked entry fields never carry list options');
+select throws_ok($$select public.mutate_world_configuration(pg_temp.ref_world('main'),
+  jsonb_build_object('type','create_field','category_id',pg_temp.ref_category('main','npcs'),
+    'field',jsonb_build_object('id','c2000000-0000-4000-8000-000000000004',
+      'key','textTarget','label','Text target','type','text',
+      'configuration',pg_temp.ref_configuration('main','locations') - array['multiple','allowOther'])))$$,
+  'P0001','Only select fields may target a category',
+  'only select fields may link a category');
 
 insert into public.world_entries(id,world_id,category_id,name,author_id,read_permissions) values
   ('c3000000-0000-4000-8000-000000000001',pg_temp.ref_world('main'),
@@ -139,8 +155,8 @@ select throws_ok($$delete from public.world_entries
 select lives_ok($$select public.mutate_world_configuration(pg_temp.ref_world('main'),
   jsonb_build_object('type','create_field','category_id',pg_temp.ref_category('main','npcs'),
     'field',jsonb_build_object('id','c2000000-0000-4000-8000-000000000005',
-      'key','otherLocations','label','Other locations','type','categoryMultiSelect',
-      'configuration',pg_temp.ref_configuration('main','locations'),'sort_order',11)))$$,
+      'key','otherLocations','label','Other locations','type','select',
+      'configuration',pg_temp.ref_configuration('main','locations',true),'sort_order',11)))$$,
   'multi-select reference field can be defined');
 select throws_ok($$insert into public.world_entry_field_values(entry_id,field_definition_id,world_id,value)
   values ('c3000000-0000-4000-8000-000000000002','c2000000-0000-4000-8000-000000000005',
