@@ -8,8 +8,9 @@ import {
   WorldEntryFieldValuesRepository,
 } from "repositories/worldEntryFieldValues.repository";
 
-// text/number/tags values; richText and oracleText live in `content` instead.
-export type WorldFieldValue = string | string[] | number;
+// Text and single Select values are strings; multi Selects store arrays.
+// Linked Selects store entry IDs. Rich text lives in `content` instead.
+export type WorldFieldValue = string | string[];
 
 export interface IWorldEntryFieldValue {
   entryId: string;

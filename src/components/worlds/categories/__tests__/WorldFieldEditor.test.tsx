@@ -4,14 +4,23 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
+import type { WorldFieldCondition } from "lib/worldFieldRules";
+
 import { WorldFieldType } from "services/worldFieldDefinitions.service";
 
 import { WorldFieldEditor } from "../WorldFieldEditor";
-import { category, field, translate } from "./fixtures";
+import {
+  category,
+  field,
+  linkedEntry,
+  optionList,
+  translate,
+} from "./fixtures";
 
 const locations = {
   ...category,
@@ -35,26 +44,29 @@ vi.mock("react-i18next", async (importOriginal) => ({
   useTranslation: () => ({ t: translate }),
 }));
 vi.mock("../../WorldOracleBindingPicker", () => ({
-  WorldOracleBindingPicker: () => null,
+  WorldOracleBindingPicker: ({ label }: { label?: string }) => (
+    <div>{label ?? "Oracle"} picker</div>
+  ),
 }));
 
 describe("WorldFieldEditor", () => {
   it("offers compatible Guide-only sources and ancestor selectors only for a Guide-only target", async () => {
     const user = userEvent.setup();
-    const target = field({ label: "Public type" });
-    const secret = field({ id: "secret", label: "Secret type", gmOnly: true });
-    const number = field({
-      id: "number",
-      label: "Secret number",
-      type: WorldFieldType.Number,
+    const target = optionList({ label: "Public type" });
+    const secret = optionList({
+      id: "secret",
+      label: "Secret type",
       gmOnly: true,
     });
-    const tags = field({
-      id: "tags",
-      label: "Secret tags",
-      type: WorldFieldType.Tags,
+    const name = field({
+      id: "name",
+      label: "Secret name",
       gmOnly: true,
     });
+    const tags = optionList(
+      { id: "tags", label: "Secret tags", gmOnly: true },
+      { multiple: true },
+    );
     const notes = field({
       id: "notes",
       label: "Secret notes",
@@ -80,8 +92,9 @@ describe("WorldFieldEditor", () => {
         worldId="world-1"
         categories={[category]}
         field={target}
-        fields={[target, secret, number, tags, notes]}
+        fields={[target, secret, name, tags, notes]}
         valueCount={0}
+        multiValueCount={0}
         readOnly={false}
         onSave={onSave}
         onClose={vi.fn()}
@@ -103,7 +116,7 @@ describe("WorldFieldEditor", () => {
     await user.click(screen.getByRole("checkbox", { name: "Guide only" }));
     await user.click(screen.getByRole("combobox", { name: "Source field" }));
     expect(
-      screen.getByRole("option", { name: "Secret number" }),
+      screen.getByRole("option", { name: "Secret name" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("option", { name: "Secret tags" }),
@@ -115,7 +128,25 @@ describe("WorldFieldEditor", () => {
     await user.click(
       screen.getByRole("combobox", { name: "Ancestor selector field" }),
     );
+    // Only single option lists and linked entries can select an ancestor.
+    expect(
+      screen.queryByRole("option", { name: "Secret name" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("option", { name: "Secret tags" }),
+    ).not.toBeInTheDocument();
     await user.click(screen.getByRole("option", { name: "Secret type" }));
+    // Values are picked per field, so they reset with it and must be chosen.
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    await user.type(
+      screen.getByRole("combobox", { name: "Comparison value" }),
+      "Planet{Enter}",
+    );
+    await user.type(
+      screen.getByRole("combobox", { name: "Ancestor selector equals" }),
+      "Area{Enter}",
+    );
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
     await user.click(screen.getByRole("checkbox", { name: "Guide only" }));
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     expect(
@@ -134,6 +165,7 @@ describe("WorldFieldEditor", () => {
               conditions: [
                 expect.objectContaining({
                   fieldId: secret.id,
+                  value: "Planet",
                   ancestor: { fieldId: secret.id, value: "Area" },
                 }),
               ],
@@ -168,6 +200,7 @@ describe("WorldFieldEditor", () => {
         field={target}
         fields={[source, target]}
         valueCount={0}
+        multiValueCount={0}
         readOnly={false}
         onSave={onSave}
         onClose={vi.fn()}
@@ -223,6 +256,7 @@ describe("WorldFieldEditor", () => {
         field={definition}
         fields={[]}
         valueCount={0}
+        multiValueCount={0}
         readOnly={false}
         onSave={onSave}
         onClose={vi.fn()}
@@ -268,6 +302,7 @@ describe("WorldFieldEditor", () => {
         field={source}
         fields={[source, dependent]}
         valueCount={0}
+        multiValueCount={0}
         readOnly={false}
         onSave={vi.fn()}
         onClose={vi.fn()}
@@ -280,7 +315,7 @@ describe("WorldFieldEditor", () => {
 
   it("blocks a source type change that invalidates an ancestor selector", async () => {
     const user = userEvent.setup();
-    const source = field({ label: "Location Type" });
+    const source = optionList({ label: "Location Type" });
     const dependent = field({ id: "dependent", label: "Region" });
     dependent.configuration.rules = [
       {
@@ -302,13 +337,14 @@ describe("WorldFieldEditor", () => {
         field={source}
         fields={[source, dependent]}
         valueCount={0}
+        multiValueCount={0}
         readOnly={false}
         onSave={vi.fn()}
         onClose={vi.fn()}
       />,
     );
-    await user.click(screen.getByRole("combobox", { name: "Field type" }));
-    await user.click(screen.getByRole("option", { name: "Tags" }));
+    await user.click(screen.getByRole("button", { name: "Change type" }));
+    await user.click(screen.getByRole("radio", { name: "Text" }));
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     expect(screen.getByRole("alert")).toHaveTextContent("conditions in Region");
   });
@@ -336,6 +372,7 @@ describe("WorldFieldEditor", () => {
         field={definition}
         fields={[definition]}
         valueCount={0}
+        multiValueCount={0}
         readOnly={false}
         onSave={vi.fn()}
         onClose={vi.fn()}
@@ -351,132 +388,6 @@ describe("WorldFieldEditor", () => {
     expect(
       await screen.findByRole("combobox", { name: "Source field" }),
     ).toHaveTextContent("Type");
-  });
-
-  it("preserves a compatible oracle text to rich text change", async () => {
-    const user = userEvent.setup();
-    const onSave = vi.fn().mockResolvedValue(undefined);
-    render(
-      <WorldFieldEditor
-        worldId="world-1"
-        categories={[category]}
-        field={field({ type: WorldFieldType.OracleText })}
-        fields={[]}
-        valueCount={7}
-        readOnly={false}
-        onSave={onSave}
-        onClose={vi.fn()}
-      />,
-    );
-    await user.click(screen.getByRole("combobox", { name: "Field type" }));
-    await user.click(screen.getByRole("option", { name: "Rich text" }));
-    await user.click(screen.getByRole("button", { name: "Save" }));
-    await waitFor(() =>
-      expect(onSave).toHaveBeenCalledWith(
-        expect.objectContaining({ type: WorldFieldType.RichText }),
-        false,
-      ),
-    );
-  });
-
-  it("blocks incompatible changes with values and offers creation instead", async () => {
-    const user = userEvent.setup();
-    const onSave = vi.fn().mockResolvedValue(undefined);
-    render(
-      <WorldFieldEditor
-        worldId="world-1"
-        categories={[category]}
-        field={field()}
-        fields={[]}
-        valueCount={7}
-        readOnly={false}
-        onSave={onSave}
-        onClose={vi.fn()}
-      />,
-    );
-    await user.click(screen.getByRole("combobox", { name: "Field type" }));
-    await user.click(screen.getByRole("option", { name: "Tags" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("7 stored values");
-    expect(
-      screen.queryByRole("button", { name: "Save" }),
-    ).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Create new field" }));
-    await waitFor(() =>
-      expect(onSave).toHaveBeenCalledWith(
-        expect.objectContaining({ type: WorldFieldType.Tags }),
-        true,
-      ),
-    );
-  });
-
-  it("allows incompatible changes when no values exist and keeps keys out of editable inputs", async () => {
-    const user = userEvent.setup();
-    const onSave = vi.fn().mockResolvedValue(undefined);
-    render(
-      <WorldFieldEditor
-        worldId="world-1"
-        categories={[category]}
-        field={field()}
-        fields={[]}
-        valueCount={0}
-        readOnly={false}
-        onSave={onSave}
-        onClose={vi.fn()}
-      />,
-    );
-    await user.click(screen.getByRole("combobox", { name: "Field type" }));
-    await user.click(screen.getByRole("option", { name: "Tags" }));
-    expect(
-      screen.queryByRole("textbox", { name: /key/i }),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText("Advanced identity")).not.toBeInTheDocument();
-    expect(screen.queryByText(/Import\/export key/)).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Save" }));
-    await waitFor(() =>
-      expect(onSave).toHaveBeenCalledWith(
-        expect.objectContaining({ type: WorldFieldType.Tags }),
-        false,
-      ),
-    );
-  });
-
-  it("offers Oracle text and Number only to fields that already use them", async () => {
-    const user = userEvent.setup();
-    const props = {
-      worldId: "world-1",
-      categories: [category],
-      fields: [],
-      valueCount: 0,
-      readOnly: false,
-      onSave: vi.fn(),
-      onClose: vi.fn(),
-    };
-    const view = render(<WorldFieldEditor {...props} />);
-    await user.click(screen.getByRole("combobox", { name: "Field type" }));
-    expect(
-      screen.getAllByRole("option").map((option) => option.textContent),
-    ).toEqual([
-      "Text",
-      "Rich text",
-      "Tags",
-      "Category select",
-      "Category multi-select",
-    ]);
-    await user.keyboard("{Escape}");
-
-    view.rerender(
-      <WorldFieldEditor
-        {...props}
-        field={field({ type: WorldFieldType.OracleText })}
-      />,
-    );
-    await user.click(screen.getByRole("combobox", { name: "Field type" }));
-    expect(
-      screen.getByRole("option", { name: "Oracle text" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("option", { name: "Number" }),
-    ).not.toBeInTheDocument();
   });
 
   it("requires Guide visibility for rules that read a Guide-only source", async () => {
@@ -503,6 +414,7 @@ describe("WorldFieldEditor", () => {
         field={target}
         fields={[target, source]}
         valueCount={0}
+        multiValueCount={0}
         readOnly={false}
         onSave={vi.fn()}
         onClose={vi.fn()}
@@ -514,84 +426,7 @@ describe("WorldFieldEditor", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
   });
 
-  it("requires a same-world target for category multi-select and hides suggestions", async () => {
-    const user = userEvent.setup();
-    const onSave = vi.fn().mockResolvedValue(undefined);
-    render(
-      <WorldFieldEditor
-        worldId="world-1"
-        categories={[locations, npcs, otherWorld]}
-        fields={[]}
-        valueCount={0}
-        readOnly={false}
-        onSave={onSave}
-        onClose={vi.fn()}
-      />,
-    );
-    await user.type(
-      screen.getByRole("textbox", { name: "Field label" }),
-      "Home",
-    );
-    await user.click(screen.getByRole("combobox", { name: "Field type" }));
-    await user.click(
-      screen.getByRole("option", { name: "Category multi-select" }),
-    );
-    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
-    expect(screen.queryByRole("combobox", { name: "Suggestions" })).toBeNull();
-    await user.click(screen.getByRole("combobox", { name: /Target category/ }));
-    expect(screen.queryByRole("option", { name: "Other world" })).toBeNull();
-    await user.click(screen.getByRole("option", { name: "Locations" }));
-    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
-    await user.click(screen.getByRole("button", { name: "Save" }));
-    expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: WorldFieldType.CategoryMultiSelect,
-        binding: null,
-        configuration: expect.objectContaining({
-          targetCategoryId: locations.id,
-          suggestions: [],
-        }),
-      }),
-      false,
-    );
-  });
-
-  it("protects stored references when their target category changes", async () => {
-    const user = userEvent.setup();
-    const onSave = vi.fn().mockResolvedValue(undefined);
-    const reference = field({
-      type: WorldFieldType.CategorySelect,
-      configuration: {
-        ...field().configuration,
-        targetCategoryId: locations.id,
-      },
-    });
-    render(
-      <WorldFieldEditor
-        worldId="world-1"
-        categories={[locations, npcs]}
-        field={reference}
-        fields={[reference]}
-        valueCount={5}
-        readOnly={false}
-        onSave={onSave}
-        onClose={vi.fn()}
-      />,
-    );
-    await user.click(screen.getByRole("combobox", { name: /Target category/ }));
-    await user.click(screen.getByRole("option", { name: "NPCs" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("5 stored values");
-    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
-    await user.click(screen.getByRole("button", { name: "Create new field" }));
-    expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({
-        configuration: expect.objectContaining({ targetCategoryId: npcs.id }),
-      }),
-      true,
-    );
-  });
-
-  it("removes oracle bindings when converting a field to a category reference", async () => {
+  it("removes oracle bindings when converting a field to a linked entry", async () => {
     const user = userEvent.setup();
     const onSave = vi.fn().mockResolvedValue(undefined);
     const binding = {
@@ -605,7 +440,6 @@ describe("WorldFieldEditor", () => {
       binding,
       configuration: {
         ...field().configuration,
-        suggestions: ["Planet"],
         rules: [
           {
             conditions: [
@@ -628,14 +462,17 @@ describe("WorldFieldEditor", () => {
         field={original}
         fields={[source, original]}
         valueCount={0}
+        multiValueCount={0}
         readOnly={false}
         onSave={onSave}
         onClose={vi.fn()}
       />,
     );
-    await user.click(screen.getByRole("combobox", { name: "Field type" }));
-    await user.click(screen.getByRole("option", { name: "Category select" }));
-    await user.click(screen.getByRole("combobox", { name: /Target category/ }));
+    expect(screen.getByText("Oracle picker")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Change type" }));
+    await user.click(screen.getByRole("radio", { name: "Linked entry" }));
+    expect(screen.queryByText("Oracle picker")).toBeNull();
+    await user.click(screen.getByRole("combobox", { name: /Category/ }));
     await user.click(screen.getByRole("option", { name: "Locations" }));
     await user.click(screen.getByRole("button", { name: /Rule 1:/ }));
     expect(
@@ -644,14 +481,522 @@ describe("WorldFieldEditor", () => {
     await user.click(screen.getByRole("button", { name: "Save" }));
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({
+        type: WorldFieldType.Select,
         binding: null,
         configuration: expect.objectContaining({
           suggestions: [],
           targetCategoryId: locations.id,
+          multiple: false,
+          allowOther: false,
           rules: [expect.not.objectContaining({ binding })],
         }),
       }),
       false,
     );
   });
+});
+
+describe("WorldFieldEditor field types", () => {
+  const props = {
+    worldId: "world-1",
+    categories: [locations, npcs, otherWorld],
+    fields: [],
+    valueCount: 0,
+    multiValueCount: 0,
+    readOnly: false,
+    onClose: vi.fn(),
+  };
+
+  it("offers four purpose cards as a keyboard radio group for a new field", async () => {
+    const user = userEvent.setup();
+    render(<WorldFieldEditor {...props} onSave={vi.fn()} />);
+    const group = screen.getByRole("radiogroup", { name: "Field type" });
+    const radios = within(group).getAllByRole("radio");
+    expect(radios.map((radio) => radio.textContent)).toEqual([
+      expect.stringContaining("Text"),
+      expect.stringContaining("Long text"),
+      expect.stringContaining("Option list"),
+      expect.stringContaining("Linked entry"),
+    ]);
+    expect(
+      screen.getByRole("radio", { name: "Text" }),
+    ).toHaveAccessibleDescription(
+      "A short line, like a name or a rolled result. Can roll from an oracle.",
+    );
+    for (const name of ["Select", "Dropdown", "Link", "Tags", "Rich text"])
+      expect(screen.queryByRole("radio", { name })).toBeNull();
+    expect(screen.getByRole("radio", { name: "Text" })).toBeChecked();
+    // Only the selected card is a Tab stop; arrows move the selection.
+    expect(
+      radios.filter((radio) => radio.getAttribute("tabindex") === "0"),
+    ).toEqual([screen.getByRole("radio", { name: "Text" })]);
+    act(() => screen.getByRole("radio", { name: "Text" }).focus());
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByRole("radio", { name: "Long text" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "Long text" })).toHaveFocus();
+    await user.keyboard("{ArrowLeft}{ArrowLeft}");
+    expect(screen.getByRole("radio", { name: "Linked entry" })).toBeChecked();
+  });
+
+  it("shows only the settings each kind uses", async () => {
+    const user = userEvent.setup();
+    render(<WorldFieldEditor {...props} onSave={vi.fn()} />);
+    expect(screen.getByText("Oracle picker")).toBeInTheDocument();
+    expect(screen.queryByRole("combobox", { name: "Options" })).toBeNull();
+
+    await user.click(screen.getByRole("radio", { name: "Long text" }));
+    expect(screen.queryByText("Oracle picker")).toBeNull();
+    expect(
+      screen.queryByRole("checkbox", { name: "Allow more than one" }),
+    ).toBeNull();
+
+    await user.click(screen.getByRole("radio", { name: "Option list" }));
+    expect(screen.getByText("Oracle picker")).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: "Allow more than one" }),
+    ).not.toBeChecked();
+    expect(
+      screen.getByRole("checkbox", { name: "Allow other values" }),
+    ).toBeChecked();
+    expect(screen.getByRole("combobox", { name: "Options" })).toBeVisible();
+
+    await user.click(screen.getByRole("radio", { name: "Linked entry" }));
+    expect(screen.queryByText("Oracle picker")).toBeNull();
+    expect(screen.queryByRole("combobox", { name: "Options" })).toBeNull();
+    expect(
+      screen.queryByRole("checkbox", { name: "Allow other values" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("checkbox", { name: "Allow more than one" }),
+    ).toBeInTheDocument();
+  });
+
+  it("saves an option list's options and settings", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<WorldFieldEditor {...props} onSave={onSave} />);
+    await user.type(
+      screen.getByRole("textbox", { name: "Field label" }),
+      "Region",
+    );
+    await user.click(screen.getByRole("radio", { name: "Option list" }));
+    await user.click(
+      screen.getByRole("checkbox", { name: "Allow more than one" }),
+    );
+    await user.click(
+      screen.getByRole("checkbox", { name: "Allow other values" }),
+    );
+    await user.type(
+      screen.getByRole("combobox", { name: "Options" }),
+      "Myriads{Enter}Reaches{Enter}",
+    );
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        label: "Region",
+        type: WorldFieldType.Select,
+        configuration: expect.objectContaining({
+          suggestions: ["Myriads", "Reaches"],
+          multiple: true,
+          allowOther: false,
+        }),
+      }),
+      false,
+    );
+  });
+
+  it("requires a same-world category for a linked entry", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<WorldFieldEditor {...props} onSave={onSave} />);
+    await user.type(
+      screen.getByRole("textbox", { name: "Field label" }),
+      "Home",
+    );
+    await user.click(screen.getByRole("radio", { name: "Linked entry" }));
+    await user.click(
+      screen.getByRole("checkbox", { name: "Allow more than one" }),
+    );
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    await user.click(screen.getByRole("combobox", { name: /Category/ }));
+    expect(screen.queryByRole("option", { name: "Other world" })).toBeNull();
+    await user.click(screen.getByRole("option", { name: "Locations" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: WorldFieldType.Select,
+        binding: null,
+        configuration: expect.objectContaining({
+          targetCategoryId: locations.id,
+          multiple: true,
+          allowOther: false,
+          suggestions: [],
+        }),
+      }),
+      false,
+    );
+  });
+
+  it("summarizes an existing field and disables kinds that would lose its values", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(
+      <WorldFieldEditor
+        {...props}
+        field={field()}
+        valueCount={7}
+        onSave={onSave}
+      />,
+    );
+    expect(screen.queryByRole("radiogroup")).toBeNull();
+    expect(
+      screen.getByRole("region", { name: "Field type" }),
+    ).toHaveTextContent("Text");
+    await user.click(screen.getByRole("button", { name: "Change type" }));
+    expect(screen.getByRole("radio", { name: "Text" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "Option list" })).toBeEnabled();
+    for (const name of ["Long text", "Linked entry"]) {
+      const card = screen.getByRole("radio", { name });
+      expect(card).toBeDisabled();
+      expect(card).toHaveAccessibleDescription(
+        expect.stringContaining("Has 7 values. Create a new field instead."),
+      );
+    }
+    // Arrow keys skip the cards that cannot be chosen.
+    act(() => screen.getByRole("radio", { name: "Text" }).focus());
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByRole("radio", { name: "Option list" })).toBeChecked();
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByRole("radio", { name: "Text" })).toBeChecked();
+
+    const longText = screen
+      .getByRole("radio", { name: "Long text" })
+      .closest(".MuiCard-root") as HTMLElement;
+    await user.click(
+      within(longText).getByRole("button", { name: "Create new field" }),
+    );
+    expect(screen.getByRole("radio", { name: "Long text" })).toBeChecked();
+    expect(screen.getByRole("alert")).toHaveTextContent("7 stored values");
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+    // Only the dialog's own action remains once a new field is the outcome.
+    await user.click(screen.getByRole("button", { name: "Create new field" }));
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith(
+        expect.objectContaining({ type: WorldFieldType.RichText }),
+        true,
+      ),
+    );
+  });
+
+  it("changes Text into any single option list in place, but not a multiple one", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(
+      <WorldFieldEditor
+        {...props}
+        field={field()}
+        valueCount={7}
+        onSave={onSave}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Change type" }));
+    await user.click(screen.getByRole("radio", { name: "Option list" }));
+    await user.click(
+      screen.getByRole("checkbox", { name: "Allow other values" }),
+    );
+    expect(screen.queryByRole("alert")).toBeNull();
+    await user.click(
+      screen.getByRole("checkbox", { name: "Allow more than one" }),
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("7 stored values");
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+    await user.click(
+      screen.getByRole("checkbox", { name: "Allow more than one" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: WorldFieldType.Select,
+        configuration: expect.objectContaining({
+          multiple: false,
+          allowOther: false,
+        }),
+      }),
+      false,
+    );
+  });
+
+  it("keeps the current type after looking at the cards", async () => {
+    const user = userEvent.setup();
+    const original = optionList(
+      { label: "Region" },
+      { suggestions: ["Myriads"], allowOther: false },
+    );
+    render(<WorldFieldEditor {...props} field={original} onSave={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "Change type" }));
+    await user.click(screen.getByRole("radio", { name: "Long text" }));
+    await user.click(screen.getByRole("button", { name: "Keep current type" }));
+    expect(screen.queryByRole("radiogroup")).toBeNull();
+    expect(
+      screen.getByRole("region", { name: "Field type" }),
+    ).toHaveTextContent("Option list");
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Myriads" })).toBeInTheDocument();
+  });
+
+  it("limits and cleans up options", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<WorldFieldEditor {...props} onSave={onSave} />);
+    await user.type(
+      screen.getByRole("textbox", { name: "Field label" }),
+      "Type",
+    );
+    await user.click(screen.getByRole("radio", { name: "Option list" }));
+    const options = screen.getByRole("combobox", { name: "Options" });
+    expect(options).toHaveAttribute("maxlength", "1000");
+    await user.type(options, " Ruin {Enter}Ruin{Enter}   {Enter}Wilds{Enter}");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        configuration: expect.objectContaining({
+          suggestions: ["Ruin", "Wilds"],
+        }),
+      }),
+      false,
+    );
+  });
+
+  it("allows any kind while no values are stored", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<WorldFieldEditor {...props} field={field()} onSave={onSave} />);
+    await user.click(screen.getByRole("button", { name: "Change type" }));
+    for (const radio of screen.getAllByRole("radio"))
+      expect(radio).toBeEnabled();
+    await user.click(screen.getByRole("radio", { name: "Long text" }));
+    expect(
+      screen.queryByRole("textbox", { name: /key/i }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ type: WorldFieldType.RichText }),
+      false,
+    );
+  });
+
+  it("keeps Allow more than one while entries store several values", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(
+      <WorldFieldEditor
+        {...props}
+        field={optionList({ label: "Tags" }, { multiple: true })}
+        valueCount={7}
+        multiValueCount={2}
+        onSave={onSave}
+      />,
+    );
+    expect(
+      screen.getByRole("checkbox", { name: "Allow more than one" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByText(
+        "2 entries store more than one value. Create a new field instead.",
+      ),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Create new field" }));
+    expect(
+      screen.getByRole("checkbox", { name: "Allow more than one" }),
+    ).not.toBeChecked();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "2 entries store more than one value",
+    );
+    await user.click(screen.getByRole("button", { name: "Create new field" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        configuration: expect.objectContaining({ multiple: false }),
+      }),
+      true,
+    );
+  });
+
+  it("lets a multi option list become single when no entry stores several values", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(
+      <WorldFieldEditor
+        {...props}
+        field={optionList({ label: "Tags" }, { multiple: true })}
+        valueCount={7}
+        onSave={onSave}
+      />,
+    );
+    await user.click(
+      screen.getByRole("checkbox", { name: "Allow more than one" }),
+    );
+    expect(screen.queryByRole("alert")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        configuration: expect.objectContaining({ multiple: false }),
+      }),
+      false,
+    );
+  });
+
+  it("protects stored links when their category changes", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const reference = linkedEntry(locations.id);
+    render(
+      <WorldFieldEditor
+        {...props}
+        categories={[locations, npcs]}
+        field={reference}
+        fields={[reference]}
+        valueCount={5}
+        onSave={onSave}
+      />,
+    );
+    expect(
+      screen.getByRole("region", { name: "Field type" }),
+    ).toHaveTextContent("Linked entry · Locations");
+    await user.click(screen.getByRole("combobox", { name: /Category/ }));
+    await user.click(screen.getByRole("option", { name: "NPCs" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("5 stored values");
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Create new field" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        configuration: expect.objectContaining({ targetCategoryId: npcs.id }),
+      }),
+      true,
+    );
+  });
+});
+
+describe("WorldFieldEditor condition values", () => {
+  const ENTRY = "44444444-4444-4444-4444-444444444444";
+  const props = {
+    worldId: "world-1",
+    categories: [locations],
+    valueCount: 0,
+    multiValueCount: 0,
+    readOnly: false,
+    onSave: vi.fn(),
+    onClose: vi.fn(),
+  };
+  const ruleWith = (condition: WorldFieldCondition) => [
+    { conditions: [condition], visible: true },
+  ];
+
+  it.each([
+    ["an empty Text value", undefined, ""],
+    ["an empty linked entry", "linked", ""],
+    ["a linked entry that is not an entry ID", "linked", "Brinehold"],
+  ])("blocks saving a condition with %s", (_, kind, value) => {
+    const source =
+      kind === "linked"
+        ? linkedEntry(locations.id, { id: "source", label: "Home" })
+        : field({ id: "source", label: "Name" });
+    const target = field({ id: "target", label: "Notes" });
+    target.configuration.rules = ruleWith({
+      source: "entry",
+      fieldId: source.id,
+      operator: "equals",
+      value,
+    });
+    render(
+      <WorldFieldEditor {...props} field={target} fields={[source, target]} />,
+    );
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    expect(
+      screen.getByText(/Every rule needs at least one valid condition/),
+    ).toBeInTheDocument();
+  });
+
+  it("accepts an entry ID for a linked entry, including a linked ancestor selector", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const home = linkedEntry(locations.id, { id: "home", label: "Home" });
+    const target = field({ id: "target", label: "Notes" });
+    target.configuration.rules = ruleWith({
+      source: "ancestor",
+      fieldId: home.id,
+      operator: "equals",
+      value: ENTRY,
+      ancestor: { fieldId: home.id, value: "" },
+    });
+    const view = render(
+      <WorldFieldEditor
+        {...props}
+        field={target}
+        fields={[home, target]}
+        onSave={onSave}
+      />,
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: "Field label" }),
+      " changed",
+    );
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    view.unmount();
+    target.configuration.rules[0].conditions[0].ancestor = {
+      fieldId: home.id,
+      value: ENTRY,
+    };
+    render(
+      <WorldFieldEditor
+        {...props}
+        field={target}
+        fields={[home, target]}
+        onSave={onSave}
+      />,
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: "Field label" }),
+      " changed",
+    );
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalled();
+  });
+
+  it.each([
+    ["a compared value", "entry"],
+    ["an ancestor selector value", "ancestor"],
+  ])(
+    "flags dependents whose %s a source's new kind cannot match",
+    async (_, source) => {
+      const user = userEvent.setup();
+      const type = optionList({ id: "type", label: "Location Type" });
+      const dependent = field({ id: "dependent", label: "Region" });
+      dependent.configuration.rules = ruleWith(
+        source === "entry"
+          ? {
+              source: "entry",
+              fieldId: type.id,
+              operator: "equals",
+              value: "Planet",
+            }
+          : {
+              source: "ancestor",
+              fieldId: dependent.id,
+              operator: "isNotEmpty",
+              ancestor: { fieldId: type.id, value: "Area" },
+            },
+      );
+      render(
+        <WorldFieldEditor {...props} field={type} fields={[type, dependent]} />,
+      );
+      await user.click(screen.getByRole("button", { name: "Change type" }));
+      await user.click(screen.getByRole("radio", { name: "Linked entry" }));
+      await user.click(screen.getByRole("combobox", { name: /Category/ }));
+      await user.click(screen.getByRole("option", { name: "Locations" }));
+      expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "conditions in Region",
+      );
+    },
+  );
 });

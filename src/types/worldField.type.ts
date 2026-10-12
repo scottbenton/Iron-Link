@@ -1,12 +1,14 @@
+// Storage types. Authors never see these names: they choose a field by
+// purpose (WorldFieldKind), and a Select's kind follows from its source.
 export enum WorldFieldType {
   Text = "text",
   RichText = "richText",
-  OracleText = "oracleText",
-  Tags = "tags",
-  Number = "number",
-  CategorySelect = "categorySelect",
-  CategoryMultiSelect = "categoryMultiSelect",
+  Select = "select",
 }
+
+// What a field is for, as presented in the field editor. A Select reads its
+// options from a list unless it links entries in a target category.
+export type WorldFieldKind = "text" | "longText" | "optionList" | "linkedEntry";
 
 // JSON shape stored in world_field_definitions.binding.
 // Bindings are pinned and concrete: the picker browses the world's effective
@@ -21,10 +23,19 @@ export interface OracleBinding {
   exact?: boolean;
 }
 
+export type WorldFieldConditionOperator =
+  | "equals"
+  | "notEquals"
+  | "contains"
+  | "notContains"
+  | "isEmpty"
+  | "isNotEmpty";
+
 export interface WorldFieldCondition {
   source: "entry" | "ancestor";
   fieldId: string;
-  operator: "equals" | "notEquals" | "isEmpty" | "isNotEmpty";
+  operator: WorldFieldConditionOperator;
+  // A string for Text and option lists, or an entry ID for a linked entry.
   value?: string;
   ancestor?: { fieldId: string; value: string };
 }
@@ -39,10 +50,16 @@ export interface WorldFieldRule {
 
 export interface WorldFieldConfiguration {
   version: 1;
+  // A list Select's options. Always empty on every other field.
   suggestions: string[];
-  // Category-reference fields store entry IDs in their value JSON. The
-  // target is the category from which those entries may be selected.
+  // Present exactly when a Select links entries: its values are entry IDs
+  // from this category instead of strings from the options.
   targetCategoryId?: string;
+  // Required on Select and absent on every other type.
+  multiple?: boolean;
+  // Whether a list accepts values outside its options. Always false when the
+  // Select links entries.
+  allowOther?: boolean;
   helpText: string;
   visible: boolean;
   rules: WorldFieldRule[];

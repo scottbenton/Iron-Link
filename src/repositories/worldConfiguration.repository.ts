@@ -77,6 +77,9 @@ export interface WorldConfigurationSubscription {
 export interface WorldCategoryCountsDTO {
   entryCount: number;
   valueCounts: Record<string, number>;
+  // Entries storing more than one value, per field. Turning off "Allow more
+  // than one" is blocked while any exist.
+  multiValueCounts: Record<string, number>;
 }
 
 export class WorldConfigurationRepository {
@@ -238,6 +241,7 @@ export class WorldConfigurationRepository {
     return {
       entryCount: counts.entryCount,
       valueCounts: counts.valueCounts ?? {},
+      multiValueCounts: counts.multiValueCounts ?? {},
     };
   }
 }

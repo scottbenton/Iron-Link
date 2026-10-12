@@ -369,6 +369,7 @@ describe("WorldCategoryManager", () => {
     state.getCategoryCounts.mockResolvedValue({
       entryCount: 2,
       valueCounts: {},
+      multiValueCounts: {},
     });
     render(managerView(WorldPermission.Editor));
     await openCategorySettings(user);
@@ -388,6 +389,7 @@ describe("WorldCategoryManager", () => {
     state.getCategoryCounts.mockResolvedValue({
       entryCount: 0,
       valueCounts: {},
+      multiValueCounts: {},
     });
     state.deleteCategory.mockResolvedValue(undefined);
     render(managerView());

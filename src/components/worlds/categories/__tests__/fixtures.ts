@@ -45,3 +45,35 @@ export function translate(
     String(options?.[key] ?? ""),
   );
 }
+
+export function optionList(
+  overrides: Partial<IWorldFieldDefinition> = {},
+  configuration: Partial<IWorldFieldDefinition["configuration"]> = {},
+): IWorldFieldDefinition {
+  return field({
+    type: WorldFieldType.Select,
+    configuration: createWorldFieldConfiguration({
+      multiple: false,
+      allowOther: true,
+      ...configuration,
+    }),
+    ...overrides,
+  });
+}
+
+export function linkedEntry(
+  targetCategoryId: string,
+  overrides: Partial<IWorldFieldDefinition> = {},
+  configuration: Partial<IWorldFieldDefinition["configuration"]> = {},
+): IWorldFieldDefinition {
+  return field({
+    type: WorldFieldType.Select,
+    configuration: createWorldFieldConfiguration({
+      targetCategoryId,
+      multiple: false,
+      allowOther: false,
+      ...configuration,
+    }),
+    ...overrides,
+  });
+}

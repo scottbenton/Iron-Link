@@ -12,15 +12,19 @@ import { useTranslation } from "react-i18next";
 
 import {
   type WorldFieldRule,
-  canWorldFieldTypeBeConditionSource,
+  canWorldFieldBeAncestorSelector,
+  canWorldFieldBeConditionSource,
+  doesWorldFieldConditionOperatorTakeValue,
+  getWorldFieldConditionOperators,
 } from "lib/worldFieldRules";
 
-import {
-  IWorldFieldDefinition,
-  WorldFieldType,
-} from "services/worldFieldDefinitions.service";
+import { IWorldFieldDefinition } from "services/worldFieldDefinitions.service";
 
-import { fieldChoiceLabel } from "./categoryEditor.utils";
+import { WorldFieldConditionValueInput } from "./WorldFieldConditionValueInput";
+import {
+  fieldChoiceLabel,
+  getConditionOperatorLabel,
+} from "./categoryEditor.utils";
 
 type Condition = WorldFieldRule["conditions"][number];
 
@@ -39,12 +43,12 @@ export function WorldFieldConditionEditor({
 }) {
   const { t } = useTranslation();
   const source = fields.find((field) => field.id === condition.fieldId);
-  const selectable = fields.filter((field) =>
-    canWorldFieldTypeBeConditionSource(field.type),
+  const selectable = fields.filter(canWorldFieldBeConditionSource);
+  const selectors = fields.filter(canWorldFieldBeAncestorSelector);
+  const selector = selectors.find(
+    (field) => field.id === condition.ancestor?.fieldId,
   );
-  const textFields = fields.filter(
-    (field) => field.type === WorldFieldType.Text,
-  );
+  const operators = source ? getWorldFieldConditionOperators(source) : [];
   const missingSource =
     !source ||
     (condition.source === "ancestor" &&
@@ -85,7 +89,7 @@ export function WorldFieldConditionEditor({
               source: event.target.value as Condition["source"],
               ancestor:
                 event.target.value === "ancestor"
-                  ? { fieldId: textFields[0]?.id ?? "", value: "" }
+                  ? { fieldId: selectors[0]?.id ?? "", value: "" }
                   : undefined,
             })
           }
@@ -107,13 +111,18 @@ export function WorldFieldConditionEditor({
             const field = fields.find(
               (candidate) => candidate.id === event.target.value,
             );
+            const available = field
+              ? getWorldFieldConditionOperators(field)
+              : [];
+            // Values are picked from the source's own options, so they never
+            // carry over to another field.
             onChange({
               ...condition,
               fieldId: event.target.value,
-              operator:
-                field?.type === WorldFieldType.Text
-                  ? condition.operator
-                  : "isNotEmpty",
+              operator: available.includes(condition.operator)
+                ? condition.operator
+                : (available[0] ?? "isNotEmpty"),
+              value: "",
             });
           }}
         >
@@ -141,36 +150,27 @@ export function WorldFieldConditionEditor({
             })
           }
         >
-          <MenuItem
-            value="equals"
-            disabled={source?.type !== WorldFieldType.Text}
-          >
-            {t("worlds.fields.equals", "Equals")}
-          </MenuItem>
-          <MenuItem
-            value="notEquals"
-            disabled={source?.type !== WorldFieldType.Text}
-          >
-            {t("worlds.fields.not-equals", "Does not equal")}
-          </MenuItem>
-          <MenuItem value="isEmpty">
-            {t("worlds.fields.empty", "Is empty")}
-          </MenuItem>
-          <MenuItem value="isNotEmpty">
-            {t("worlds.fields.not-empty", "Is not empty")}
-          </MenuItem>
+          {!operators.includes(condition.operator) && (
+            <MenuItem value={condition.operator} disabled>
+              {getConditionOperatorLabel(t, condition.operator)}
+            </MenuItem>
+          )}
+          {operators.map((operator) => (
+            <MenuItem key={operator} value={operator}>
+              {getConditionOperatorLabel(t, operator)}
+            </MenuItem>
+          ))}
         </TextField>
-        {condition.operator === "equals" ||
-        condition.operator === "notEquals" ? (
-          <TextField
-            {...small}
-            className="condition-control"
-            label={t("worlds.fields.comparison-value", "Comparison value")}
-            value={condition.value ?? ""}
-            onChange={(event) =>
-              onChange({ ...condition, value: event.target.value })
-            }
-          />
+        {doesWorldFieldConditionOperatorTakeValue(condition.operator) ? (
+          <Box className="condition-control">
+            <WorldFieldConditionValueInput
+              field={source}
+              label={t("worlds.fields.comparison-value", "Comparison value")}
+              value={condition.value ?? ""}
+              disabled={disabled}
+              onChange={(value) => onChange({ ...condition, value })}
+            />
+          </Box>
         ) : (
           <Box
             className="condition-control"
@@ -216,40 +216,35 @@ export function WorldFieldConditionEditor({
             onChange={(event) =>
               onChange({
                 ...condition,
-                ancestor: {
-                  fieldId: event.target.value,
-                  value: condition.ancestor?.value ?? "",
-                },
+                ancestor: { fieldId: event.target.value, value: "" },
               })
             }
           >
-            {condition.ancestor?.fieldId &&
-              !textFields.some(
-                (field) => field.id === condition.ancestor?.fieldId,
-              ) && (
-                <MenuItem value={condition.ancestor.fieldId}>
-                  {t("worlds.fields.missing-field", "Missing field")}
-                </MenuItem>
-              )}
-            {textFields.map((field) => (
+            {condition.ancestor?.fieldId && !selector && (
+              <MenuItem value={condition.ancestor.fieldId}>
+                {t("worlds.fields.missing-field", "Missing field")}
+              </MenuItem>
+            )}
+            {selectors.map((field) => (
               <MenuItem key={field.id} value={field.id}>
                 {fieldChoiceLabel(field, fields, t)}
               </MenuItem>
             ))}
           </TextField>
-          <TextField
-            {...small}
+          <WorldFieldConditionValueInput
+            field={selector}
             label={t(
               "worlds.fields.ancestor-value",
               "Ancestor selector equals",
             )}
             value={condition.ancestor?.value ?? ""}
-            onChange={(event) =>
+            disabled={disabled}
+            onChange={(value) =>
               onChange({
                 ...condition,
                 ancestor: {
                   fieldId: condition.ancestor?.fieldId ?? "",
-                  value: event.target.value,
+                  value,
                 },
               })
             }

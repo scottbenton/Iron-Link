@@ -10,7 +10,7 @@ import { ConfirmProvider } from "material-ui-confirm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { WorldCategoryFields } from "../WorldCategoryFields";
-import { category, field, translate } from "./fixtures";
+import { category, field, optionList, translate } from "./fixtures";
 
 const actions = vi.hoisted(() => ({
   categories: {},
@@ -44,6 +44,7 @@ describe("WorldCategoryFields", () => {
     actions.getCategoryCounts.mockResolvedValue({
       entryCount: 0,
       valueCounts: {},
+      multiValueCounts: {},
     });
     const view = render(
       <WorldCategoryFields
@@ -94,6 +95,7 @@ describe("WorldCategoryFields", () => {
     actions.getCategoryCounts.mockResolvedValue({
       entryCount: 3,
       valueCounts: { [definition.id]: 3 },
+      multiValueCounts: {},
     });
     render(
       <WorldCategoryFields
@@ -137,7 +139,7 @@ describe("WorldCategoryFields", () => {
 
   it("blocks deletion when a condition references the field, before prompting", async () => {
     const user = userEvent.setup();
-    const source = field({ label: "Type" });
+    const source = optionList({ label: "Type" });
     const dependent = field({ id: "dependent", label: "Region", sortOrder: 1 });
     dependent.configuration.rules = [
       {
@@ -164,6 +166,7 @@ describe("WorldCategoryFields", () => {
     actions.getCategoryCounts.mockResolvedValue({
       entryCount: 0,
       valueCounts: {},
+      multiValueCounts: {},
     });
     await user.click(screen.getByRole("button", { name: "Edit Type" }));
     await user.click(
@@ -218,7 +221,7 @@ describe("WorldCategoryFields", () => {
     );
   });
 
-  it("creates a new field for a repeated label and normalizes suggestions", async () => {
+  it("creates a new option list for a repeated label and normalizes its options", async () => {
     const user = userEvent.setup();
     actions.createFieldDefinition.mockResolvedValue("created");
     render(
@@ -236,9 +239,10 @@ describe("WorldCategoryFields", () => {
       screen.getByRole("textbox", { name: "Field label" }),
       "Description",
     );
+    await user.click(screen.getByRole("radio", { name: "Option list" }));
     await user.type(
-      screen.getByRole("combobox", { name: "Suggestions" }),
-      "Planet{Enter} Star {Enter}",
+      screen.getByRole("combobox", { name: "Options" }),
+      "Planet{Enter} Star {Enter}Planet{Enter}",
     );
     await user.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() =>
@@ -247,6 +251,11 @@ describe("WorldCategoryFields", () => {
     const [categoryId, draft] = actions.createFieldDefinition.mock.calls[0];
     expect(categoryId).toBe(category.id);
     expect(draft.label).toBe("Description");
-    expect(draft.configuration.suggestions).toEqual(["Planet", "Star"]);
+    expect(draft.type).toBe("select");
+    expect(draft.configuration).toMatchObject({
+      suggestions: ["Planet", "Star"],
+      multiple: false,
+      allowOther: true,
+    });
   });
 });

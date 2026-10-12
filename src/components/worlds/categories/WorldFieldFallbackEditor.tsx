@@ -1,20 +1,7 @@
-import {
-  Autocomplete,
-  Chip,
-  FormControlLabel,
-  MenuItem,
-  Switch,
-  TextField,
-} from "@mui/material";
+import { FormControlLabel, Switch, TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { isWorldCategoryReferenceType } from "lib/worldFieldRules";
-
-import type { IWorldCategory } from "services/worldCategories.service";
-import {
-  OracleBinding,
-  WorldFieldType,
-} from "services/worldFieldDefinitions.service";
+import type { OracleBinding } from "services/worldFieldDefinitions.service";
 
 import { WorldOracleBindingPicker } from "../WorldOracleBindingPicker";
 import { WorldEditorSection } from "./WorldEditorSection";
@@ -23,15 +10,14 @@ import type { FieldDraft } from "./WorldFieldEditor";
 export function WorldFieldFallbackEditor({
   worldId,
   draft,
-  categories,
-  invalidTarget,
+  allowOracleBinding,
   disabled,
   onChange,
 }: {
   worldId: string;
   draft: FieldDraft;
-  categories: IWorldCategory[];
-  invalidTarget: boolean;
+  // Only Text and option lists can roll from an oracle.
+  allowOracleBinding: boolean;
   disabled: boolean;
   onChange: (draft: FieldDraft) => void;
 }) {
@@ -70,82 +56,7 @@ export function WorldFieldFallbackEditor({
         )}
         onChange={(event) => configuration({ helpText: event.target.value })}
       />
-      {draft.type === WorldFieldType.Text && (
-        <Autocomplete
-          multiple
-          freeSolo
-          autoSelect
-          options={[]}
-          value={draft.configuration.suggestions}
-          disabled={disabled}
-          onChange={(_, suggestions) =>
-            configuration({
-              suggestions: suggestions
-                .map((suggestion) => suggestion.trim())
-                .filter(Boolean),
-            })
-          }
-          renderValue={(values, getItemProps) =>
-            values.map((option, index) => {
-              const { key, ...itemProps } = getItemProps({ index });
-              return (
-                <Chip key={key} size="small" label={option} {...itemProps} />
-              );
-            })
-          }
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label={t("worlds.fields.suggestions", "Suggestions")}
-              helperText={t(
-                "worlds.fields.suggestions-help",
-                "Press Enter to add a suggestion. Entries can also use custom text.",
-              )}
-            />
-          )}
-        />
-      )}
-      {isWorldCategoryReferenceType(draft.type) ? (
-        <TextField
-          select
-          required
-          fullWidth
-          label={t("worlds.fields.target-category", "Target category")}
-          value={
-            categories.some(
-              (category) =>
-                category.id === draft.configuration.targetCategoryId,
-            )
-              ? draft.configuration.targetCategoryId
-              : ""
-          }
-          disabled={disabled}
-          error={invalidTarget}
-          helperText={
-            draft.configuration.targetCategoryId && invalidTarget
-              ? t(
-                  "worlds.fields.target-category-unavailable",
-                  "This category is no longer available in this world. Choose another.",
-                )
-              : t(
-                  "worlds.fields.target-category-help",
-                  "Entries can link to an entry in this category.",
-                )
-          }
-          onChange={(event) =>
-            configuration({ targetCategoryId: event.target.value })
-          }
-        >
-          <MenuItem value="" disabled>
-            {t("worlds.fields.choose-category", "Choose a category")}
-          </MenuItem>
-          {categories.map((category) => (
-            <MenuItem key={category.id} value={category.id}>
-              {category.name}
-            </MenuItem>
-          ))}
-        </TextField>
-      ) : (
+      {allowOracleBinding && (
         <WorldOracleBindingPicker
           worldId={worldId}
           value={draft.binding}
