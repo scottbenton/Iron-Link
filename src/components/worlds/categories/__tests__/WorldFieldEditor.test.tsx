@@ -49,57 +49,64 @@ vi.mock("../../WorldOracleBindingPicker", () => ({
   ),
 }));
 
+// A field whose rule reads its own value, beside Guide-only fields of every
+// kind, so tests can check which of them its conditions may read.
+function renderGuideOnlySources(gmOnly: boolean) {
+  const target = optionList({ label: "Public type", gmOnly });
+  const secret = optionList({
+    id: "secret",
+    label: "Secret type",
+    gmOnly: true,
+  });
+  const name = field({
+    id: "name",
+    label: "Secret name",
+    gmOnly: true,
+  });
+  const tags = optionList(
+    { id: "tags", label: "Secret tags", gmOnly: true },
+    { multiple: true },
+  );
+  const notes = field({
+    id: "notes",
+    label: "Secret notes",
+    type: WorldFieldType.RichText,
+    gmOnly: true,
+  });
+  target.configuration.rules = [
+    {
+      conditions: [
+        {
+          source: "ancestor",
+          fieldId: target.id,
+          operator: "equals",
+          value: "Planet",
+          ancestor: { fieldId: target.id, value: "Area" },
+        },
+      ],
+    },
+  ];
+  const onSave = vi.fn().mockResolvedValue(undefined);
+  render(
+    <WorldFieldEditor
+      worldId="world-1"
+      categories={[category]}
+      field={target}
+      fields={[target, secret, name, tags, notes]}
+      valueCount={0}
+      multiValueCount={0}
+      readOnly={false}
+      onSave={onSave}
+      onClose={vi.fn()}
+    />,
+  );
+  return { secret, onSave };
+}
+
 describe("WorldFieldEditor", () => {
-  it("offers compatible Guide-only sources and ancestor selectors only for a Guide-only target", async () => {
+  it("hides Guide-only sources and ancestor selectors from a public field", async () => {
     const user = userEvent.setup();
-    const target = optionList({ label: "Public type" });
-    const secret = optionList({
-      id: "secret",
-      label: "Secret type",
-      gmOnly: true,
-    });
-    const name = field({
-      id: "name",
-      label: "Secret name",
-      gmOnly: true,
-    });
-    const tags = optionList(
-      { id: "tags", label: "Secret tags", gmOnly: true },
-      { multiple: true },
-    );
-    const notes = field({
-      id: "notes",
-      label: "Secret notes",
-      type: WorldFieldType.RichText,
-      gmOnly: true,
-    });
-    target.configuration.rules = [
-      {
-        conditions: [
-          {
-            source: "ancestor",
-            fieldId: target.id,
-            operator: "equals",
-            value: "Planet",
-            ancestor: { fieldId: target.id, value: "Area" },
-          },
-        ],
-      },
-    ];
-    const onSave = vi.fn().mockResolvedValue(undefined);
-    render(
-      <WorldFieldEditor
-        worldId="world-1"
-        categories={[category]}
-        field={target}
-        fields={[target, secret, name, tags, notes]}
-        valueCount={0}
-        multiValueCount={0}
-        readOnly={false}
-        onSave={onSave}
-        onClose={vi.fn()}
-      />,
-    );
+    renderGuideOnlySources(false);
     await user.click(screen.getByRole("button", { name: /Rule 1:/ }));
     await user.click(screen.getByRole("combobox", { name: "Source field" }));
     expect(
@@ -112,8 +119,12 @@ describe("WorldFieldEditor", () => {
     expect(
       screen.queryByRole("option", { name: "Secret type" }),
     ).not.toBeInTheDocument();
-    await user.keyboard("{Escape}");
-    await user.click(screen.getByRole("checkbox", { name: "Guide only" }));
+  });
+
+  it("offers a Guide-only field compatible Guide-only sources and ancestor selectors", async () => {
+    const user = userEvent.setup();
+    renderGuideOnlySources(true);
+    await user.click(screen.getByRole("button", { name: /Rule 1:/ }));
     await user.click(screen.getByRole("combobox", { name: "Source field" }));
     expect(
       screen.getByRole("option", { name: "Secret name" }),
@@ -135,6 +146,17 @@ describe("WorldFieldEditor", () => {
     expect(
       screen.queryByRole("option", { name: "Secret tags" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("saves a Guide-only field's conditions on Guide-only sources", async () => {
+    const user = userEvent.setup();
+    const { secret, onSave } = renderGuideOnlySources(true);
+    await user.click(screen.getByRole("button", { name: /Rule 1:/ }));
+    await user.click(screen.getByRole("combobox", { name: "Source field" }));
+    await user.click(screen.getByRole("option", { name: "Secret type" }));
+    await user.click(
+      screen.getByRole("combobox", { name: "Ancestor selector field" }),
+    );
     await user.click(screen.getByRole("option", { name: "Secret type" }));
     // Values are picked per field, so they reset with it and must be chosen.
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
