@@ -7,7 +7,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useEffect } from "react";
 import { MemoryRouter, useLocation, useNavigate } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -210,6 +210,56 @@ describe("Notes world destinations", () => {
       ).toEqual({ type: "category", categoryId: "locations" }),
     );
     expect(useNotesStore.getState().noteTabOrder).toHaveLength(1);
+  });
+
+  it("lands on the default tab after closing the last tab", async () => {
+    // Mirrors the Notes section reopening its default folder as soon as no
+    // tab is left. It renders below the URL sync, so its effect runs first.
+    function DefaultTabHarness() {
+      const isSomethingOpen = useNotesStore(
+        (store) => store.noteTabOrder.length > 0,
+      );
+      useEffect(() => {
+        if (!isSomethingOpen) {
+          useNotesStore.getState().openItemTab({
+            type: "folder",
+            id: "notes",
+            disallowDuplicates: true,
+          });
+        }
+      }, [isSomethingOpen]);
+      return null;
+    }
+    function Harness() {
+      useSyncOpenNoteItem();
+      const location = useLocation();
+      return (
+        <>
+          <output>{location.search}</output>
+          <DefaultTabHarness />
+        </>
+      );
+    }
+    render(
+      <MemoryRouter initialEntries={["/games/g?note-type=note&note-id=a"]}>
+        <Harness />
+      </MemoryRouter>,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent("note-id=a"),
+    );
+
+    act(() => {
+      const { closeTab, openTabId } = useNotesStore.getState();
+      closeTab(openTabId!);
+    });
+
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent("note-id=notes"),
+    );
+    const { noteTabOrder, openTabId } = useNotesStore.getState();
+    expect(noteTabOrder).toHaveLength(1);
+    expect(openTabId).toBe(noteTabOrder[0]);
   });
 
   it("does not create a tab from an invalid destination on initial load", () => {
