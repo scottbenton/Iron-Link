@@ -36,6 +36,11 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
           flexDirection: "column",
           flexGrow: 1,
           minHeight: 0,
+          // The Notes tab panel adds no room of its own below the tabs, so
+          // match the side padding the standalone page gets from its
+          // container. The page layout leaves padding to that container.
+          pt: 2,
+          px: { xs: 1, sm: 2 },
         }}
       >
         <ActionToolbar breadcrumbs={breadcrumbs}>
@@ -54,7 +59,7 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
             </>
           )}
         </ActionToolbar>
-        <Box sx={{ flexGrow: 1, overflow: "auto", pt: 1, pb: 2 }}>
+        <Box sx={{ flexGrow: 1, overflow: "auto", pt: 2, pb: 2 }}>
           {children}
         </Box>
       </Box>
