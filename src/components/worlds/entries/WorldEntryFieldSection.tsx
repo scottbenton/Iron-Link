@@ -1,5 +1,5 @@
 import LockIcon from "@mui/icons-material/Lock";
-import { Box, Paper, Stack, Typography } from "@mui/material";
+import { Box, Paper, Typography } from "@mui/material";
 import { PropsWithChildren, useId } from "react";
 
 // A marked group of fields, such as those only Guides can see.
@@ -30,7 +30,7 @@ export function WorldEntryFieldSection({
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         {description}
       </Typography>
-      <Stack spacing={2}>{children}</Stack>
+      {children}
     </Paper>
   );
 }

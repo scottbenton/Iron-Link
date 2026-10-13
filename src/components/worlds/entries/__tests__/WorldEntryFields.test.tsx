@@ -749,6 +749,45 @@ describe("WorldEntryFields", () => {
     });
   });
 
+  describe("layout", () => {
+    const gridItem = (name: string) =>
+      screen.getByRole("group", { name }).closest(".MuiGrid-root");
+
+    it("gives long text a full-width row and pairs short fields from md up, in and out of the Guide-only section", () => {
+      vi.spyOn(
+        WorldEntryFieldValuesService,
+        "getWorldEntryFieldContent",
+      ).mockResolvedValue({ content: new Uint8Array() });
+      defineFields(
+        field({ id: "climate", label: "Climate", sortOrder: 0 }),
+        field({
+          id: "history",
+          label: "History",
+          type: WorldFieldType.RichText,
+          sortOrder: 1,
+        }),
+        field({
+          id: "plots",
+          label: "Plots",
+          type: WorldFieldType.RichText,
+          sortOrder: 2,
+          gmOnly: true,
+        }),
+      );
+      loadEntries(worldEntry());
+      renderFields();
+
+      const climate = screen
+        .getByRole("textbox", { name: "Climate" })
+        .closest(".MuiGrid-root");
+      expect(climate).toHaveClass("MuiGrid-grid-xs-12", "MuiGrid-grid-md-6");
+      expect(gridItem("History")).toHaveClass("MuiGrid-grid-md-12");
+      const section = screen.getByRole("region", { name: "Guide only" });
+      expect(section).toContainElement(gridItem("Plots") as HTMLElement);
+      expect(gridItem("Plots")).toHaveClass("MuiGrid-grid-md-12");
+    });
+  });
+
   describe("read-only", () => {
     it("shows stored values without inputs, links linked entries, and leaves out empty fields", async () => {
       vi.spyOn(

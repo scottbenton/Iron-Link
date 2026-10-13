@@ -1,4 +1,4 @@
-import { Stack } from "@mui/material";
+import { Grid, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { useWorldFieldEntrySnapshots } from "hooks/useWorldFieldEntrySnapshots";
@@ -12,6 +12,7 @@ import {
 
 import {
   type ResolvedWorldFieldDefinition,
+  getWorldFieldKind,
   resolveFieldDefinition,
 } from "lib/worldFieldRules";
 import { getWorldFieldSnapshot } from "lib/worldFieldSnapshot";
@@ -40,6 +41,8 @@ export interface WorldEntryFieldsProps {
 
 // The entry's fields in their configured order, each with the visibility,
 // label and help text its rules give it for this entry and its ancestors.
+// Short fields fill a two-column grid from md up, left to right; long text
+// takes a full-width row of its own.
 // A field a rule hides keeps its value. Read-only, empty fields are left out.
 // Guide-only fields are hidden from everyone else, and set apart for Guides
 // only when the world has players they are hidden from.
@@ -84,26 +87,34 @@ export function WorldEntryFields({
   const guideFields = marked ? fields.filter((field) => field.gmOnly) : [];
 
   const renderField = (field: ResolvedWorldFieldDefinition) => (
-    <WorldEntryField
+    <Grid
       // Keyed by entry too, so typing never carries over to another entry.
       key={`${entry.id}-${field.id}`}
-      entry={entry}
-      field={field}
-      value={values[field.id]}
-      canEdit={canEdit}
-      navigation={navigation}
-    />
+      size={{ xs: 12, md: getWorldFieldKind(field) === "longText" ? 12 : 6 }}
+    >
+      <WorldEntryField
+        entry={entry}
+        field={field}
+        value={values[field.id]}
+        canEdit={canEdit}
+        navigation={navigation}
+      />
+    </Grid>
   );
 
   return (
     <Stack
       component="section"
-      spacing={3}
+      spacing={2}
       aria-label={t("worlds.entries.fields", "{{name}} fields", {
         name: entry.name,
       })}
     >
-      {sharedFields.map(renderField)}
+      {sharedFields.length > 0 && (
+        <Grid container spacing={2}>
+          {sharedFields.map(renderField)}
+        </Grid>
+      )}
       {guideFields.length > 0 && (
         <WorldEntryFieldSection
           title={t("worlds.entries.guide-only", "Guide only")}
@@ -112,7 +123,9 @@ export function WorldEntryFields({
             "Players never see these fields.",
           )}
         >
-          {guideFields.map(renderField)}
+          <Grid container spacing={2}>
+            {guideFields.map(renderField)}
+          </Grid>
         </WorldEntryFieldSection>
       )}
     </Stack>
