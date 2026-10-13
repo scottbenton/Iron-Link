@@ -1,16 +1,19 @@
 -- World entries: entry and value permissions per role, inherited configuration
--- staying inherited while content changes, linked entry cleanup on delete, and
--- whether a world has anyone with less than Guide access. Every fixture is
--- rolled back.
+-- staying inherited while content changes, linked entry cleanup on delete,
+-- values with hidden links staying out of reach of blind writes, content
+-- writes sharing the world lock, and whether a world has anyone with less than
+-- Guide access. Every fixture is rolled back.
 begin;
 create extension if not exists pgtap with schema extensions;
+create extension if not exists pgrowlocks with schema extensions;
 set search_path = public,extensions;
 select no_plan();
 
 -- 1 owner, 2 guide, 3 and 4 players, 5 outsider, 6 solo member,
--- 7 and 8 co-op members (8 also plays a guided game), 9 viewer.
+-- 7 and 8 co-op members (8 also plays a guided game), 9 viewer,
+-- 10 a player in one world only.
 insert into auth.users(id)
-  select ('d1000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid from generate_series(1,9) n;
+  select ('d1000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid from generate_series(1,10) n;
 create temporary table entry_worlds(key text primary key,id uuid);
 grant all on entry_worlds to authenticated;
 create function pg_temp.u(p_n integer) returns uuid language sql as $$
@@ -58,6 +61,24 @@ exception when others then
   return v_state||' '||coalesce(nullif(v_hint,''),'-')||' '||v_message;
 end $$;
 grant execute on function pg_temp.outcome(text) to authenticated;
+-- Runs a write, reports how many rows it touched, then undoes it.
+create function pg_temp.blind(p_sql text) returns text language plpgsql as $$
+declare v_rows bigint; v_state text; v_message text;
+begin
+  execute p_sql;
+  get diagnostics v_rows = row_count;
+  raise exception using errcode = 'P0099', message = v_rows::text;
+exception
+  when sqlstate 'P0099' then return 'rows '||sqlerrm;
+  when others then
+    get stacked diagnostics v_state = returned_sqlstate, v_message = message_text;
+    return v_state||' '||v_message;
+end $$;
+grant execute on function pg_temp.blind(text) to authenticated;
+-- Row lock modes this transaction holds on a world; call without a role.
+create function pg_temp.world_locks(p_key text) returns text[] language sql as $$
+  select coalesce((select l.modes from extensions.pgrowlocks('public.worlds') l
+    join public.worlds w on w.ctid = l.locked_row where w.id = pg_temp.w(p_key)),'{}'::text[]) $$;
 
 select ok(not has_function_privilege('authenticated','public.world_entry_remove_links()','EXECUTE')
   and not has_function_privilege('anon','public.world_entry_remove_links()','EXECUTE'),
@@ -79,7 +100,8 @@ insert into entry_worlds values
   ('guide only',public.create_world('Guide only')),
   ('guided',public.create_world('Guided')),
   ('viewer',public.create_world('Viewer')),
-  ('mixed',public.create_world('Mixed'));
+  ('mixed',public.create_world('Mixed')),
+  ('hidden',public.create_world('Hidden',null,'world:classic/ironlands'));
 reset role;
 
 insert into public.games(id,name,game_type,world_id) values
@@ -91,13 +113,15 @@ insert into public.games(id,name,game_type,world_id) values
   ('d5000000-0000-4000-8000-000000000006','Guide only','guided',pg_temp.w('guide only')),
   ('d5000000-0000-4000-8000-000000000007','Guided','guided',pg_temp.w('guided')),
   ('d5000000-0000-4000-8000-000000000008','Mixed guided','guided',pg_temp.w('mixed')),
-  ('d5000000-0000-4000-8000-000000000009','Mixed co-op','co-op',pg_temp.w('mixed'));
+  ('d5000000-0000-4000-8000-000000000009','Mixed co-op','co-op',pg_temp.w('mixed')),
+  ('d5000000-0000-4000-8000-000000000010','Hidden guided','guided',pg_temp.w('hidden'));
 -- Solo and co-op games store no guide row; their members are still Guides.
 insert into public.game_players(game_id,user_id,role)
   select ('d5000000-0000-4000-8000-'||lpad(g::text,12,'0'))::uuid,pg_temp.u(p),r::public.player_role
   from (values (1,2,'guide'),(1,3,'player'),(1,4,'player'),(2,6,'player'),
     (3,2,'guide'),(3,3,'player'),(3,4,'player'),(4,6,'player'),(5,7,'player'),(5,8,'player'),
-    (6,2,'guide'),(7,2,'guide'),(7,3,'player'),(8,2,'guide'),(8,8,'player'),(9,8,'player'),(9,7,'player')) v(g,p,r);
+    (6,2,'guide'),(7,2,'guide'),(7,3,'player'),(8,2,'guide'),(8,8,'player'),(9,8,'player'),(9,7,'player'),
+    (10,2,'guide'),(10,10,'player')) v(g,p,r);
 insert into public.world_players(world_id,user_id,role) values (pg_temp.w('viewer'),pg_temp.u(9),'viewer');
 
 -- Restricted members: anyone whose best role is below Guide.
@@ -276,6 +300,65 @@ reset role;
 select is((select count(*) from public.world_entries where world_id=pg_temp.w('links'))
   +(select count(*) from public.world_entry_field_values where world_id=pg_temp.w('links')),0::bigint,
   'world deletion removes its entries and values');
+
+-- A writer must be able to read a value before updating or deleting it. A
+-- write that reads no columns skips read policies, so without that a player
+-- could tell which hidden entry a value links by whether rewriting it fails.
+set local role authenticated;
+select pg_temp.as_user(2);
+select pg_temp.add(31,'hidden','locations','Camp');
+select pg_temp.add(32,'hidden','locations','Lair','only_guides','only_guides');
+select pg_temp.add(33,'hidden','locations','Vault','only_guides','only_guides');
+select pg_temp.add(34,'hidden','npcs','Sentry');
+select pg_temp.add(35,'hidden','npcs','Scout');
+select pg_temp.put(34,pg_temp.f('hidden','npcs','location'),pg_temp.link(32));
+select pg_temp.put(34,pg_temp.f('hidden','npcs','pronouns'),'"they"');
+select pg_temp.as_user(10);
+select is(pg_temp.value_count(34),1::bigint,'the player reads only the value without a hidden link');
+select is(pg_temp.blind(format('update public.world_entry_field_values set value=%L',pg_temp.link(32))),'rows 1',
+  'an update reading no columns passes over a value linking the hidden entry it names');
+select is(pg_temp.blind(format('update public.world_entry_field_values set value=%L',pg_temp.link(33))),'rows 1',
+  'and over it alike when naming a hidden entry it does not link, so the outcome reveals nothing');
+select is(pg_temp.blind('delete from public.world_entry_field_values'),'rows 1',
+  'a delete reading no columns passes over a value linking a hidden entry');
+select is(split_part(pg_temp.outcome($$select pg_temp.put(34,pg_temp.f('hidden','npcs','location'),pg_temp.link(31))$$),' ',1),
+  '42501','an upsert onto a value linking a hidden entry is refused');
+select is(pg_temp.outcome($$select pg_temp.put(35,pg_temp.f('hidden','npcs','location'),pg_temp.link(33))$$),
+  'P0001 - Selected entry is unavailable in the target category','a player still cannot link a hidden entry');
+select pg_temp.put(35,pg_temp.f('hidden','npcs','location'),pg_temp.link(31));
+select is(pg_temp.outcome($$delete from public.world_entry_field_values
+  where entry_id=pg_temp.e(34) and field_definition_id=pg_temp.f('hidden','npcs','location')$$)
+  ||pg_temp.outcome($$delete from public.world_entry_field_values where entry_id=pg_temp.e(35)$$),'okok',
+  'filtered deletes remove only the readable value');
+reset role;
+select is(pg_temp.stored(34,pg_temp.f('hidden','npcs','location')),pg_temp.link(32),
+  'the value linking a hidden entry is untouched');
+select is(pg_temp.value_count(35),0::bigint,'the readable value was deleted');
+
+-- Content writes, cleanup and parent moves only share the world lock, so they
+-- never wait for one another; configuration changes still lock it exclusively.
+set local role authenticated;
+select pg_temp.as_user(2);
+select pg_temp.put(34,pg_temp.f('hidden','npcs','pronouns'),'"she"');
+update public.world_entries set name='Watch post' where id=pg_temp.e(31);
+update public.world_entries set parent_entry_id=pg_temp.e(32) where id=pg_temp.e(33);
+select is(pg_temp.outcome($$update public.world_entries set parent_entry_id=pg_temp.e(33) where id=pg_temp.e(32)$$),
+  '23514 invalid_parent An entry cannot be placed inside one of its descendants','moves still refuse cycles');
+delete from public.world_entries where id=pg_temp.e(32);
+reset role;
+select is(pg_temp.value_count(34,pg_temp.f('hidden','npcs','location')),0::bigint,'deleting the entry removed the link');
+select ok(cardinality(pg_temp.world_locks('hidden'))>0
+  and pg_temp.world_locks('hidden') <@ array['For Key Share','For Share'],
+  'content writes, link cleanup and parent moves share the world lock');
+set local role authenticated;
+select pg_temp.as_user(1);
+select public.mutate_world_configuration(pg_temp.w('hidden'),jsonb_build_object('type','create_field',
+  'category_id',pg_temp.c('hidden','npcs'),'field',jsonb_build_object('id','d2000000-0000-4000-8000-000000000002',
+    'key','haunts','label','Haunts','type','select','sort_order',10,
+    'configuration',jsonb_build_object('version',1,'suggestions','[]'::jsonb,'helpText','','visible',true,
+      'rules','[]'::jsonb,'targetCategoryId',pg_temp.c('hidden','locations'),'multiple',true,'allowOther',false))));
+reset role;
+select ok('For Update' = any(pg_temp.world_locks('hidden')),'configuration changes lock the world exclusively');
 
 select * from finish();
 rollback;
