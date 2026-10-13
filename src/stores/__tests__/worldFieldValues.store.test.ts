@@ -25,9 +25,12 @@ type Payload = Record<string, unknown>;
 const mocks = vi.hoisted(() => ({
   selects: [] as { columns: string; filters: [string, string][] }[],
   rows: [] as Record<string, unknown>[],
+  // Whether the manager still calls a snapshot read current.
+  current: true,
   subscriptions: [] as {
     table: string;
     filter: string;
+    options: unknown;
     onPayload: (payload: Record<string, unknown>) => void;
     unsubscribe: Mock;
   }[],
@@ -71,12 +74,19 @@ vi.mock("repositories/_subscriptionManager", async () => {
       _channel: string,
       table: string,
       filter: string,
-      startInitialLoad: () => void,
+      startInitialLoad: (isCurrent: () => boolean) => void,
       onPayload: (payload: Record<string, unknown>) => void,
+      options: unknown,
     ) => {
       const unsubscribe = vi.fn();
-      mocks.subscriptions.push({ table, filter, onPayload, unsubscribe });
-      startInitialLoad();
+      mocks.subscriptions.push({
+        table,
+        filter,
+        options,
+        onPayload,
+        unsubscribe,
+      });
+      startInitialLoad(() => mocks.current);
       return unsubscribe;
     },
   };
@@ -138,6 +148,7 @@ beforeEach(() => {
   mocks.selects = [];
   mocks.rows = [];
   mocks.subscriptions = [];
+  mocks.current = true;
 });
 
 afterEach(() => {
@@ -146,6 +157,14 @@ afterEach(() => {
 });
 
 describe("world field values", () => {
+  it("drops a snapshot that a newer read has superseded", () => {
+    mocks.rows = [row("a", "f1", "stale")];
+    mocks.current = false;
+    store().listenToWorldFieldValues("world");
+    expect(values()).toEqual({});
+    expect(store().fieldValueState.loading).toBe(true);
+  });
+
   it("loads every value in the world without rich text content", () => {
     mocks.rows = [row("a", "f1", "one"), row("b", "f1", "two")];
     const unsubscribe = store().listenToWorldFieldValues("world");
@@ -156,6 +175,8 @@ describe("world field values", () => {
       "content",
     );
     expect(mocks.subscriptions[0].filter).toBe("world_id=eq.world");
+    // Values show before the channel joins.
+    expect(mocks.subscriptions[0].options).toEqual({ loadBeforeJoin: true });
     expect(values()).toEqual({
       a: {
         f1: {

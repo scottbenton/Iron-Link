@@ -43,11 +43,12 @@ export class WorldEntryFieldValuesRepository {
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
-    const startInitialLoad = () => {
+    const startInitialLoad = (isCurrent: () => boolean) => {
       this.worldEntryFieldValues()
         .select(VALUE_LIST_COLUMNS)
         .eq("world_id", worldId)
         .then(({ data, error, status }) => {
+          if (!isCurrent()) return;
           if (error) {
             console.error(error);
             onError(
@@ -111,6 +112,7 @@ export class WorldEntryFieldValuesRepository {
       `world_id=eq.${worldId}`,
       startInitialLoad,
       handlePayload,
+      { loadBeforeJoin: true },
     );
 
     return () => {

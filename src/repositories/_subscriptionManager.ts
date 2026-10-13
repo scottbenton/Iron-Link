@@ -5,24 +5,45 @@ import {
 
 import { supabase } from "lib/supabase.lib";
 
+export interface SubscriptionOptions {
+  // Also read the snapshot as soon as the subscription is created, so data
+  // shows without waiting for the channel to join. The post-join read still
+  // happens, and the early result is dropped if it has not arrived by then.
+  loadBeforeJoin?: boolean;
+}
+
 // Realtime never replays changes missed while a channel was not joined. Each
 // time the channel (re)joins, the snapshot is read after the join, so every
 // change is either in that snapshot or arrives as an event. Supabase rejoins
 // on its own after a dropped socket, which is when this matters most.
+//
+// `startInitialLoad` receives `isCurrent`, which is false once the
+// subscription is disposed or a newer read has started. A caller that checks
+// it before applying a result never lets an older snapshot overwrite a newer
+// one, or overwrite events that arrived after the newer read began.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createSubscription<T extends { [key: string]: any }>(
   channelName: string,
   table: string,
   filter: string | string[],
-  startInitialLoad: () => void,
+  startInitialLoad: (isCurrent: () => boolean) => void,
   onPayload: (payload: RealtimePostgresChangesPayload<T>) => void,
+  options: SubscriptionOptions = {},
 ) {
   let subscription: RealtimeChannel;
   let disposed = false;
+  let latestLoad = 0;
 
-  const createSubscription = () => {
+  const load = () => {
+    const thisLoad = ++latestLoad;
+    startInitialLoad(() => !disposed && thisLoad === latestLoad);
+  };
+
+  // `loadedBeforeJoin` stops a failed first join from reading a second time
+  // while the early read is still the newest data.
+  const createSubscription = (loadedBeforeJoin = false) => {
     let channel = supabase.channel(channelName);
-    let loaded = false;
+    let loaded = loadedBeforeJoin;
 
     (Array.isArray(filter) ? filter : [filter]).forEach((f) => {
       channel = channel.on<T>(
@@ -43,7 +64,7 @@ export function createSubscription<T extends { [key: string]: any }>(
       if (disposed || channel !== subscription) return;
       if (status === "SUBSCRIBED") {
         loaded = true;
-        startInitialLoad();
+        load();
       } else if (
         !loaded &&
         (status === "CHANNEL_ERROR" || status === "TIMED_OUT")
@@ -51,12 +72,13 @@ export function createSubscription<T extends { [key: string]: any }>(
         // Show data even when realtime is unavailable. Supabase keeps
         // retrying the join, and a later SUBSCRIBED reads again.
         loaded = true;
-        startInitialLoad();
+        load();
       }
     });
   };
 
-  subscription = createSubscription();
+  subscription = createSubscription(!!options.loadBeforeJoin);
+  if (options.loadBeforeJoin) load();
 
   const startListening = async () => {
     if (!document.hidden) {

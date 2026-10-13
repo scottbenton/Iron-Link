@@ -80,7 +80,7 @@ export class WorldEntriesRepository {
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
-    const startInitialLoad = () => {
+    const startInitialLoad = (isCurrent: () => boolean) => {
       const query = this.worldEntries()
         .select(ENTRY_LIST_COLUMNS)
         .eq("world_id", worldId);
@@ -98,6 +98,7 @@ export class WorldEntriesRepository {
       }
 
       query.then(({ data, error, status }) => {
+        if (!isCurrent()) return;
         if (error) {
           console.error(error);
           onError(
@@ -157,6 +158,7 @@ export class WorldEntriesRepository {
       `world_id=eq.${worldId}`,
       startInitialLoad,
       handlePayload,
+      { loadBeforeJoin: true },
     );
 
     return () => {
