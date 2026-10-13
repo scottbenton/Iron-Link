@@ -371,7 +371,9 @@ export const useWorldEntriesStore = createWithEqualityFn<
 );
 
 // Values start and stop with entries so every view of the entries can read
-// their fields too.
+// their fields too. Mount it with the world and configuration subscriptions
+// (at game open or on the standalone world page), so moving between world
+// views never reloads entries; views read the store instead.
 export function useListenToWorldEntries(worldId: string | undefined) {
   const uid = useUID();
   const worldPermission = useWorldStore((store) => store.worldPermission);
@@ -407,7 +409,9 @@ export function useListenToWorldEntries(worldId: string | undefined) {
     listenToWorldFieldValues,
   ]);
 
+  // Only the owner resets the store; see useListenToWorldConfiguration.
   useEffect(() => {
+    if (!worldId) return;
     return () => {
       resetStore();
     };

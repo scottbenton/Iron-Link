@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useWorldStore } from "stores/world.store";
+import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import { WorldPermission } from "repositories/shared.types";
 
@@ -15,6 +16,7 @@ import {
 import { WorldEntryFieldValuesService } from "services/worldEntryFieldValues.service";
 
 import { WorldBrowserRouteFixture } from "./WorldBrowserRouteFixture";
+import { WorldEntriesOwnerFixture } from "./WorldEntriesOwnerFixture";
 import { category, translate } from "./fixtures";
 
 const state = vi.hoisted(() => ({
@@ -47,6 +49,10 @@ beforeEach(() => {
     WorldEntryFieldValuesService,
     "listenToWorldFieldValues",
   ).mockReturnValue(() => {});
+  // The owner above every route listens as soon as the world opens.
+  vi.spyOn(WorldEntriesService, "listenToWorldEntries").mockReturnValue(
+    () => {},
+  );
   useWorldStore.setState({ worldPermission: WorldPermission.Viewer });
 });
 
@@ -62,20 +68,22 @@ function renderBrowser(
   );
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route
-          path="/worlds/:worldId"
-          element={<WorldBrowserRouteFixture {...fixtureProps} />}
-        />
-        <Route
-          path="/worlds/:worldId/categories/:categoryId"
-          element={<WorldBrowserRouteFixture {...fixtureProps} />}
-        />
-        <Route
-          path="/worlds/:worldId/categories/:categoryId/entries/:entryId"
-          element={<WorldBrowserRouteFixture {...fixtureProps} />}
-        />
-      </Routes>
+      <WorldEntriesOwnerFixture worldId={category.worldId}>
+        <Routes>
+          <Route
+            path="/worlds/:worldId"
+            element={<WorldBrowserRouteFixture {...fixtureProps} />}
+          />
+          <Route
+            path="/worlds/:worldId/categories/:categoryId"
+            element={<WorldBrowserRouteFixture {...fixtureProps} />}
+          />
+          <Route
+            path="/worlds/:worldId/categories/:categoryId/entries/:entryId"
+            element={<WorldBrowserRouteFixture {...fixtureProps} />}
+          />
+        </Routes>
+      </WorldEntriesOwnerFixture>
     </MemoryRouter>,
   );
 }
@@ -88,7 +96,6 @@ describe("WorldCategoryBrowser routes", () => {
       .spyOn(WorldEntriesService, "listenToWorldEntries")
       .mockReturnValue(unsubscribe);
     renderBrowser();
-    expect(listen).not.toHaveBeenCalled();
     const folder = screen.getByRole("link", { name: "Locations" });
     expect(folder).toHaveAttribute(
       "href",
@@ -143,7 +150,7 @@ describe("WorldCategoryBrowser routes", () => {
     expect(screen.queryByText("Winterhall")).not.toBeInTheDocument();
     await user.click(screen.getByRole("link", { name: "Ironlands" }));
     expect(screen.getByRole("link", { name: "Locations" })).toBeInTheDocument();
-    expect(unsubscribe).toHaveBeenCalledOnce();
+    expect(unsubscribe).not.toHaveBeenCalled();
   });
   it("loads a category destination directly and reports deleted or foreign categories", () => {
     vi.spyOn(WorldEntriesService, "listenToWorldEntries").mockReturnValue(
@@ -220,6 +227,42 @@ describe("WorldCategoryBrowser routes", () => {
     // Moving from the list to an entry keeps the same subscription.
     expect(listen).toHaveBeenCalledOnce();
     expect(unsubscribe).not.toHaveBeenCalled();
+  });
+  it("keeps entries loaded when leaving and returning to a category or entry", async () => {
+    const user = userEvent.setup();
+    const unsubscribe = vi.fn();
+    const listen = vi
+      .spyOn(WorldEntriesService, "listenToWorldEntries")
+      .mockReturnValue(unsubscribe);
+    renderBrowser(`/worlds/${category.worldId}/categories/${category.id}`);
+    act(() =>
+      listen.mock.calls[0][3](
+        {
+          one: {
+            id: "one",
+            categoryId: category.id,
+            name: "Frosthaven",
+            parentEntryId: null,
+          } as IWorldEntry,
+        },
+        [],
+        true,
+      ),
+    );
+    await user.click(screen.getByRole("link", { name: "Frosthaven" }));
+    await user.click(screen.getByRole("link", { name: "Ironlands" }));
+    await user.click(screen.getByRole("link", { name: "Locations" }));
+    // Returning shows the loaded entries straight away.
+    expect(
+      screen.getByRole("link", { name: "Frosthaven" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("link", { name: "Frosthaven" }));
+    expect(
+      screen.getByRole("heading", { name: "Frosthaven" }),
+    ).toBeInTheDocument();
+    expect(listen).toHaveBeenCalledOnce();
+    expect(unsubscribe).not.toHaveBeenCalled();
+    expect(useWorldEntriesStore.getState().entryState.loading).toBe(false);
   });
   it("names loading and unavailable entries in the breadcrumbs", () => {
     const listen = vi

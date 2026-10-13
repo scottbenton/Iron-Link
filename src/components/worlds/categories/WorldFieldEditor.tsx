@@ -20,8 +20,6 @@ import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButto
 
 import { useIsBreakpoint } from "hooks/useIsBreakpoint";
 
-import { useListenToWorldEntries } from "stores/worldEntries.store";
-
 import {
   canWorldFieldHaveOracleBinding,
   createWorldFieldConfiguration,
@@ -115,10 +113,6 @@ export function WorldFieldEditor({
     gmDependency,
     affected,
   } = validateFieldDraft(draft, fields, field?.id, incompatible);
-  // Linked-entry conditions pick and name entries from the world.
-  useListenToWorldEntries(
-    sourceFields.some(isWorldFieldLinkedEntry) ? worldId : undefined,
-  );
   const selectableSources = sourceFields.filter(
     (source) => draft.gmOnly || !source.gmOnly,
   );

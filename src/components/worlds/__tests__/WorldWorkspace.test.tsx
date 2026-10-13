@@ -76,6 +76,9 @@ vi.mock("stores/worldCategories.store", () => ({
 vi.mock("stores/worldOracles.store", () => ({
   useListenToWorldOracles: vi.fn(),
 }));
+vi.mock("stores/worldEntries.store", () => ({
+  useListenToWorldEntries: vi.fn(),
+}));
 vi.mock("stores/notes.store", () => ({
   getPlayerNotesFolder: () =>
     state.rootFolderId ? { id: state.rootFolderId } : undefined,

@@ -13,6 +13,7 @@ const state = vi.hoisted(() => ({
   listenWorld: vi.fn(),
   listenConfiguration: vi.fn(),
   listenOracles: vi.fn(),
+  listenEntries: vi.fn(),
 }));
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("hooks/advancedFeatures/advancedFeatures", () => ({
@@ -24,6 +25,9 @@ vi.mock("stores/world.store", () => ({
 }));
 vi.mock("stores/worldCategories.store", () => ({
   useListenToWorldConfiguration: state.listenConfiguration,
+}));
+vi.mock("stores/worldEntries.store", () => ({
+  useListenToWorldEntries: state.listenEntries,
 }));
 vi.mock("stores/worldOracles.store", () => ({
   useListenToWorldOracles: state.listenOracles,
@@ -84,6 +88,7 @@ describe("Persistent game world subscription owner", () => {
     expect(state.listenWorld).toHaveBeenLastCalledWith("world-a");
     expect(state.listenConfiguration).toHaveBeenLastCalledWith("world-a");
     expect(state.listenOracles).toHaveBeenLastCalledWith("world-a");
+    expect(state.listenEntries).toHaveBeenLastCalledWith("world-a");
   });
 
   it("ignores a stale deletion for another loaded world", () => {

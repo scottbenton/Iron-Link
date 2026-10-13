@@ -20,10 +20,7 @@ import { LinkComponent } from "components/LinkComponent";
 import { useWorldOracles } from "hooks/useWorldOracles";
 
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
-import {
-  useListenToWorldEntries,
-  useWorldEntriesStore,
-} from "stores/worldEntries.store";
+import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import { WorldPermission, isGuideEquivalent } from "repositories/shared.types";
 
@@ -117,9 +114,6 @@ export function WorldCategoryManager({
   const selectedId = "categoryId" in view ? view.categoryId : undefined;
   const selected = categories.find((category) => category.id === selectedId);
   const showsEntries = view.type === "category" || view.type === "entry";
-  // Owned here rather than by the list or the entry so moving between them
-  // keeps the world's entries loaded.
-  useListenToWorldEntries(showsEntries ? worldId : undefined);
   const entriesLoading = useWorldEntriesStore(
     (store) => store.entryState.loading,
   );

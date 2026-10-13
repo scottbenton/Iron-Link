@@ -59,7 +59,8 @@ const navigation: WorldNavigation = {
   navigate: () => {},
 };
 
-// The manager owns the entries subscription; the harness stands in for it.
+// The world page or game owns the entries subscription; the harness stands in
+// for it.
 function ListeningContents({ search }: { search: string }) {
   useListenToWorldEntries(category.worldId);
   return (
