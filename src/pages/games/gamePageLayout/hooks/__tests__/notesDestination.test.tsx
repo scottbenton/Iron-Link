@@ -35,8 +35,10 @@ function SyncHarness() {
   const navigate = useNavigate();
   return (
     <>
-      <output>{location.search}</output>
+      <output>{location.pathname + location.search}</output>
       <button onClick={() => navigate(-1)}>Back</button>
+      {/* Like the game's character tabs, links to a path with no query. */}
+      <button onClick={() => navigate("/games/g/c/b")}>Character B</button>
     </>
   );
 }
@@ -234,6 +236,38 @@ describe("Notes world destinations", () => {
       ).toEqual({ type: "category", categoryId: "locations" }),
     );
     expect(useNotesStore.getState().noteTabOrder).toHaveLength(1);
+  });
+
+  it("keeps the open tab when switching character, and Back returns to the previous character", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter
+        initialEntries={["/games/g/c/a?dice=1&note-type=note&note-id=n1"]}
+      >
+        <SyncHarness />
+      </MemoryRouter>,
+    );
+    await waitFor(() =>
+      expect(useNotesStore.getState().openTabId).not.toBeNull(),
+    );
+    const openTabId = useNotesStore.getState().openTabId;
+
+    await user.click(screen.getByRole("button", { name: "Character B" }));
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "/games/g/c/b?note-type=note&note-id=n1",
+      ),
+    );
+    expect(useNotesStore.getState().openTabId).toBe(openTabId);
+    expect(useNotesStore.getState().noteTabOrder).toHaveLength(1);
+
+    await user.click(screen.getByRole("button", { name: "Back" }));
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "/games/g/c/a?dice=1&note-type=note&note-id=n1",
+      ),
+    );
+    expect(useNotesStore.getState().openTabId).toBe(openTabId);
   });
 
   it("lands on the default tab after closing the last tab", async () => {
