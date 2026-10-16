@@ -107,7 +107,6 @@ export function WorldEntryOptionListField({
       label={field.label}
       helpText={field.helpText || undefined}
       inputId={inputId}
-      onClear={selected.length ? () => onSave(null) : undefined}
     >
       {control}
     </WorldEntryFieldShell>

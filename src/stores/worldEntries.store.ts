@@ -33,6 +33,8 @@ import {
 import { useAuthStore, useUID } from "./auth.store";
 import { useWorldStore } from "./world.store";
 
+const ENTRY_ARRIVAL_TIMEOUT_MS = 10000;
+
 interface EntryPermissions {
   canEdit: boolean;
   canDelete: boolean;
@@ -45,7 +47,13 @@ interface WorldEntriesStoreState {
     permissions: Record<string, EntryPermissions>;
     loading: boolean;
     error?: string;
+    // Entries this window created whose insert the listener has not
+    // delivered yet. Their pages show loading rather than "unavailable".
+    arriving: Record<string, true>;
   };
+  // The entry whose name field takes focus when its page opens: one just
+  // created from its category, so its placeholder name can be replaced.
+  focusNameEntryId: string | null;
   // Every value in the world, keyed by entry id then field definition id.
   // Rich text content is not held here; it is fetched on demand.
   fieldValueState: {
@@ -122,6 +130,7 @@ interface WorldEntriesStoreActions {
     filename: string,
   ) => Promise<void>;
 
+  requestNameFocus: (entryId: string | null) => void;
   reset: () => void;
 }
 
@@ -130,7 +139,9 @@ const defaultWorldEntriesState: WorldEntriesStoreState = {
     entries: {},
     permissions: {},
     loading: true,
+    arriving: {},
   },
+  focusNameEntryId: null,
   fieldValueState: {
     worldId: null,
     valuesByEntry: {},
@@ -176,6 +187,7 @@ export const useWorldEntriesStore = createWithEqualityFn<
               });
             }
             Object.entries(changedEntries).forEach(([entryId, entry]) => {
+              delete store.entryState.arriving?.[entryId];
               store.entryState.permissions[entryId] = getEntryPermissions(
                 entry.editPermissions,
                 entry.authorId,
@@ -289,7 +301,22 @@ export const useWorldEntriesStore = createWithEqualityFn<
         readPermissions,
         editPermissions,
         parentEntryId,
-      );
+      ).then((entryId) => {
+        if (!get().entryState.entries[entryId]) {
+          set((store) => {
+            store.entryState.arriving[entryId] = true;
+          });
+          // Stop waiting if the insert never arrives, so the page can say
+          // the entry is unavailable.
+          setTimeout(() => {
+            if (!get().entryState.arriving[entryId]) return;
+            set((store) => {
+              delete store.entryState.arriving[entryId];
+            });
+          }, ENTRY_ARRIVAL_TIMEOUT_MS);
+        }
+        return entryId;
+      });
     },
     updateEntry: (entryId, entry) => {
       return WorldEntriesService.updateWorldEntry(entryId, entry);
@@ -377,6 +404,12 @@ export const useWorldEntriesStore = createWithEqualityFn<
         entryId,
         filename,
       );
+    },
+
+    requestNameFocus: (entryId) => {
+      set((store) => {
+        store.focusNameEntryId = entryId;
+      });
     },
 
     reset: () => {

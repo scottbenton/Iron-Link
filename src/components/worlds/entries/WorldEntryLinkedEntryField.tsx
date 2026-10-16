@@ -171,8 +171,6 @@ export function WorldEntryLinkedEntryField({
       label={field.label}
       helpText={field.helpText || undefined}
       inputId={inputId}
-      // Hidden links are kept, as on every save.
-      onClear={shown.length ? () => link([]) : undefined}
     >
       <Autocomplete
         id={inputId}
