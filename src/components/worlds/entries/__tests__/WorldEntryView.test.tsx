@@ -12,11 +12,15 @@ import {
 import { useWorldStore } from "stores/world.store";
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
+import { useWorldOraclesStore } from "stores/worldOracles.store";
+
+import { catalogOf, oracle } from "lib/__tests__/worldOracleFixtures";
 
 import {
   IWorldEntry,
   WorldEntriesService,
 } from "services/worldEntries.service";
+import { WorldEntryFieldValuesService } from "services/worldEntryFieldValues.service";
 
 import {
   category,
@@ -310,7 +314,7 @@ describe("entry images", () => {
           entry={useWorldEntriesStore.getState().entryState.entries["entry-1"]}
           categoryName="Locations"
           canShare={false}
-          canEditImage
+          canEdit
           canDelete={false}
           onDeleted={vi.fn()}
           onError={vi.fn()}
@@ -528,6 +532,103 @@ describe("WorldEntryView", () => {
         type: "category",
         categoryId: category.id,
       }),
+    );
+  });
+});
+
+describe("rolling an entry", () => {
+  const bound = (id: string) => ({
+    packageId: "starforged",
+    oracleId: id,
+    resolvedOracleId: id,
+  });
+  const goals = oracle("starforged/character/goal", ["Escape the past"]);
+  const roles = oracle("starforged/character/role", ["Navigator"]);
+  const given = oracle("starforged/character/name/given_name", ["Kira"]);
+  const family = oracle("starforged/character/name/family_name", ["Vale"]);
+  const pronouns = field({
+    id: "pronouns",
+    key: "pronouns",
+    label: "Pronouns",
+  });
+  const goal = field({
+    id: "goal",
+    key: "goal",
+    label: "Goal",
+    sortOrder: 1,
+    binding: bound(goals._id),
+  });
+  const role = field({
+    id: "role",
+    key: "role",
+    label: "Role",
+    sortOrder: 2,
+    binding: bound(roles._id),
+  });
+
+  beforeEach(() => {
+    useWorldOraclesStore.setState({
+      worldId: category.worldId,
+      catalog: catalogOf(goals, roles, given, family),
+      loading: false,
+    });
+    useWorldCategoriesStore.setState({
+      fieldDefinitions: { pronouns, goal, role },
+    });
+  });
+
+  it("fills only the empty fields", async () => {
+    const user = userEvent.setup();
+    const setValue = vi
+      .spyOn(WorldEntryFieldValuesService, "setWorldEntryFieldValue")
+      .mockResolvedValue();
+    loadEntries([worldEntry()]);
+    useWorldEntriesStore.setState((store) => {
+      store.fieldValueState.valuesByEntry = {
+        "entry-1": {
+          goal: {
+            entryId: "entry-1",
+            fieldDefinitionId: "goal",
+            worldId: category.worldId,
+            gmOnly: false,
+            value: "Revenge",
+          },
+        },
+      };
+    });
+    render(
+      <ConfirmProvider>
+        <WorldEntryActions
+          entry={useWorldEntriesStore.getState().entryState.entries["entry-1"]}
+          categoryName="People"
+          canShare={false}
+          canEdit
+          canDelete={false}
+          onDeleted={vi.fn()}
+          onError={vi.fn()}
+        />
+      </ConfirmProvider>,
+    );
+    await user.click(screen.getByRole("button", { name: "Roll empty fields" }));
+    await waitFor(() =>
+      expect(setValue).toHaveBeenCalledWith(
+        "entry-1",
+        category.worldId,
+        "role",
+        "Navigator",
+      ),
+    );
+    expect(setValue).toHaveBeenCalledTimes(1);
+  });
+
+  it("rolls a name from the header", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(WorldEntriesService, "updateWorldEntry").mockResolvedValue();
+    loadEntries([worldEntry()]);
+    renderView();
+    await user.click(screen.getByRole("button", { name: "Roll a name" }));
+    expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
+      "Kira Vale",
     );
   });
 });

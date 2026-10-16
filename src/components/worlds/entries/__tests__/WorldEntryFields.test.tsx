@@ -11,7 +11,9 @@ import {
 import { useWorldStore } from "stores/world.store";
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
+import { useWorldOraclesStore } from "stores/worldOracles.store";
 
+import { catalogOf, oracle } from "lib/__tests__/worldOracleFixtures";
 import { createWorldFieldConfiguration } from "lib/worldFieldRules";
 
 import {
@@ -937,5 +939,87 @@ describe("WorldEntryFields", () => {
         screen.queryByRole("button", { name: "Save document" }),
       ).not.toBeInTheDocument();
     });
+  });
+});
+
+describe("oracle rolls", () => {
+  const goals = oracle("starforged/character/goal", ["Escape the past"]);
+  const types = oracle("starforged/faction/type", ["Guild"]);
+  const bound = (id: string) => ({
+    packageId: "starforged",
+    oracleId: id,
+    resolvedOracleId: id,
+  });
+  const goal = field({ id: "goal", label: "Goal", binding: bound(goals._id) });
+  const factionType = optionList(
+    {
+      id: "type",
+      label: "Faction Type",
+      sortOrder: 1,
+      binding: bound(types._id),
+    },
+    { suggestions: ["Dominion", "Guild"], allowOther: false },
+  );
+  const notes = field({ id: "notes", label: "Notes", sortOrder: 2 });
+
+  beforeEach(() => {
+    useWorldOraclesStore.setState({
+      worldId: category.worldId,
+      catalog: catalogOf(goals, types),
+      loading: false,
+    });
+  });
+
+  it("offers dice only on fields bound to an oracle the world can roll", () => {
+    defineFields(goal, factionType, notes);
+    loadEntries(worldEntry());
+    renderFields();
+    expect(screen.getByRole("button", { name: "Roll Goal" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Roll Faction Type" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Roll Notes" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("fills a Text field and picks a list's option", async () => {
+    const user = userEvent.setup();
+    defineFields(goal, factionType);
+    loadEntries(worldEntry());
+    renderFields();
+    await user.click(screen.getByRole("button", { name: "Roll Goal" }));
+    expect(screen.getByRole("textbox", { name: "Goal" })).toHaveValue(
+      "Escape the past",
+    );
+    expect(setValue).toHaveBeenCalledWith(
+      "entry-1",
+      category.worldId,
+      "goal",
+      "Escape the past",
+    );
+    await user.click(screen.getByRole("button", { name: "Roll Faction Type" }));
+    expect(setValue).toHaveBeenCalledWith(
+      "entry-1",
+      category.worldId,
+      "type",
+      "Guild",
+    );
+  });
+
+  it("offers no dice to readers or before the oracles load", () => {
+    defineFields(goal);
+    loadEntries(worldEntry());
+    storeValue("entry-1", "goal", "Revenge");
+    const view = renderFields({ canEdit: false });
+    expect(
+      screen.queryByRole("button", { name: "Roll Goal" }),
+    ).not.toBeInTheDocument();
+    view.unmount();
+    useWorldOraclesStore.setState({ catalog: null });
+    renderFields();
+    expect(
+      screen.queryByRole("button", { name: "Roll Goal" }),
+    ).not.toBeInTheDocument();
   });
 });

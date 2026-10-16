@@ -125,8 +125,7 @@ export function WorldEntryView({
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <WorldEntryNameField
             key={entry.id}
-            entryId={entry.id}
-            name={entry.name}
+            entry={entry}
             canEdit={permissions.canEdit}
           />
           {subtitle && (

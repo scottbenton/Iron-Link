@@ -303,7 +303,7 @@ export function WorldCategoryManager({
                 categoryName={selected?.name ?? ""}
                 canShare={canShareEntry}
                 canMove={canMoveEntry}
-                canEditImage={canEditEntry}
+                canEdit={canEditEntry}
                 canDelete={canDeleteEntry}
                 onDeleted={() =>
                   navigation.navigate({

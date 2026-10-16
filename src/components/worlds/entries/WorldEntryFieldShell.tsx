@@ -1,3 +1,4 @@
+import CasinoIcon from "@mui/icons-material/Casino";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
   Box,
@@ -5,6 +6,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { ReactNode, useId, useState } from "react";
@@ -19,6 +21,10 @@ export interface WorldEntryFieldShellProps {
   inputId?: string;
   // Offers Clear in the field's menu.
   onClear?: () => void;
+  // Shows dice that roll the field's oracle: always while the field is
+  // empty, and on hover or focus once it holds a value.
+  onRoll?: () => void;
+  empty?: boolean;
   children: ReactNode;
 }
 
@@ -30,6 +36,8 @@ export function WorldEntryFieldShell({
   helpText,
   inputId,
   onClear,
+  onRoll,
+  empty,
   children,
 }: WorldEntryFieldShellProps) {
   const { t } = useTranslation();
@@ -37,6 +45,9 @@ export function WorldEntryFieldShell({
   const groupHelpId = useId();
   const helpId = inputId ? getWorldEntryFieldHelpId(inputId) : groupHelpId;
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const rollLabel = t("worlds.entries.roll-field", "Roll {{field}}", {
+    field: label,
+  });
 
   return (
     <Box
@@ -49,15 +60,18 @@ export function WorldEntryFieldShell({
         mx: -1,
         px: 1,
         py: 0.5,
-        "&:hover, &:focus-within": onClear
-          ? { bgcolor: "action.hover" }
-          : undefined,
+        "&:hover, &:focus-within":
+          onClear || onRoll ? { bgcolor: "action.hover" } : undefined,
         // Shown on hover and focus, and always where nothing can hover.
         "& .world-entry-field-menu": {
           opacity: anchor ? 1 : 0,
           "@media (hover: none)": { opacity: 1 },
         },
-        "&:hover .world-entry-field-menu, &:focus-within .world-entry-field-menu":
+        "& .world-entry-field-roll": {
+          opacity: empty ? 1 : 0,
+          "@media (hover: none)": { opacity: 1 },
+        },
+        "&:hover .world-entry-field-menu, &:focus-within .world-entry-field-menu, &:hover .world-entry-field-roll, &:focus-within .world-entry-field-roll":
           { opacity: 1 },
       }}
     >
@@ -72,7 +86,7 @@ export function WorldEntryFieldShell({
           fontSize: 12.5,
           fontWeight: 500,
           lineHeight: 1.5,
-          pr: onClear ? 4 : 0,
+          pr: (onClear ? 4 : 0) + (onRoll ? 4 : 0),
         }}
       >
         {label}
@@ -88,6 +102,19 @@ export function WorldEntryFieldShell({
         >
           {helpText}
         </Typography>
+      )}
+      {onRoll && (
+        <Tooltip title={rollLabel}>
+          <IconButton
+            className="world-entry-field-roll"
+            size="small"
+            aria-label={rollLabel}
+            onClick={onRoll}
+            sx={{ position: "absolute", top: 0, right: onClear ? 32 : 0 }}
+          >
+            <CasinoIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
       )}
       {onClear && (
         <>
