@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfirmProvider } from "material-ui-confirm";
 import { MemoryRouter } from "react-router";
@@ -96,7 +96,7 @@ function renderView(entryId = "entry-1", viewCategory = category) {
 
 function renderActions(
   variant: "strip" | "card",
-  { canShare = true, canDelete = true } = {},
+  { canShare = true, canMove = false, canDelete = true } = {},
 ) {
   const onDeleted = vi.fn();
   render(
@@ -104,7 +104,9 @@ function renderActions(
       <WorldEntryActions
         entry={useWorldEntriesStore.getState().entryState.entries["entry-1"]}
         variant={variant}
+        categoryName="Locations"
         canShare={canShare}
+        canMove={canMove}
         canDelete={canDelete}
         onDeleted={onDeleted}
         onError={vi.fn()}
@@ -187,6 +189,85 @@ describe("WorldEntryActions", () => {
     expect(
       screen.getByRole("menuitem", { name: "Delete" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("Move to", () => {
+  const places = () => [
+    worldEntry({ id: "region", name: "The North" }),
+    worldEntry({ parentEntryId: "region" }),
+    worldEntry({ id: "inn", name: "The Inn", parentEntryId: "entry-1" }),
+    worldEntry({ id: "south", name: "The South" }),
+    worldEntry({ id: "elsewhere", name: "Kell", categoryId: PEOPLE }),
+  ];
+
+  it("offers only valid parents and moves the entry", async () => {
+    const user = userEvent.setup();
+    const move = vi
+      .spyOn(WorldEntriesService, "setWorldEntryParent")
+      .mockResolvedValue();
+    loadEntries(places());
+    renderActions("strip", { canMove: true });
+    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(screen.getByRole("menuitem", { name: "Move to" }));
+    const dialog = await screen.findByRole("dialog", {
+      name: "Move Hollowmere",
+    });
+    const item = (name: string) =>
+      within(dialog).getByRole("treeitem", { name: new RegExp(`^${name}`) });
+    expect(item("The North")).toHaveAttribute("aria-selected", "true");
+    expect(item("Hollowmere")).toHaveAttribute("aria-disabled", "true");
+    expect(item("The Inn")).toHaveAttribute("aria-disabled", "true");
+    expect(within(dialog).queryByText("Kell")).not.toBeInTheDocument();
+    const save = within(dialog).getByRole("button", { name: "Move" });
+    expect(save).toBeDisabled();
+
+    await user.click(within(dialog).getByText("The South"));
+    await user.click(save);
+    expect(move).toHaveBeenCalledWith("entry-1", "south");
+    await waitFor(() => expect(dialog).not.toBeInTheDocument());
+  });
+
+  it("moves an entry to the top of its category", async () => {
+    const user = userEvent.setup();
+    const move = vi
+      .spyOn(WorldEntriesService, "setWorldEntryParent")
+      .mockResolvedValue();
+    loadEntries(places());
+    renderActions("card", { canMove: true });
+    await user.click(
+      screen.getByRole("button", { name: "Hollowmere actions" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Move to" }));
+    await user.click(await screen.findByText("Top of Locations"));
+    await user.click(screen.getByRole("button", { name: "Move" }));
+    expect(move).toHaveBeenCalledWith("entry-1", null);
+  });
+
+  it("keeps the dialog open when the move is refused", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(WorldEntriesService, "setWorldEntryParent").mockRejectedValue(
+      new Error("refused"),
+    );
+    loadEntries(places());
+    renderActions("strip", { canMove: true });
+    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(screen.getByRole("menuitem", { name: "Move to" }));
+    await user.click(await screen.findByText("The South"));
+    const save = screen.getByRole("button", { name: "Move" });
+    await user.click(save);
+    await waitFor(() => expect(save).toBeEnabled());
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("is not offered where the entry cannot move", async () => {
+    const user = userEvent.setup();
+    loadEntries([worldEntry()]);
+    renderActions("strip");
+    await user.click(screen.getByRole("button", { name: "More" }));
+    expect(
+      screen.queryByRole("menuitem", { name: "Move to" }),
+    ).not.toBeInTheDocument();
   });
 });
 

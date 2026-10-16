@@ -8,6 +8,7 @@ import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import { ReadPermissions } from "repositories/shared.types";
 
+import { IWorldCategory } from "services/worldCategories.service";
 import { IWorldEntry } from "services/worldEntries.service";
 
 import { WorldEntryActions } from "../entries/WorldEntryActions";
@@ -19,6 +20,7 @@ import type { WorldLinkProps } from "../worldNavigation";
 // guided world, and a menu with its actions.
 export function WorldCategoryEntryItem({
   entry,
+  category,
   subtitle,
   guided,
   linkProps,
@@ -26,6 +28,7 @@ export function WorldCategoryEntryItem({
   onError,
 }: {
   entry: IWorldEntry;
+  category: Pick<IWorldCategory, "name" | "supportsHierarchy">;
   subtitle?: string;
   guided: boolean;
   linkProps: WorldLinkProps;
@@ -38,7 +41,8 @@ export function WorldCategoryEntryItem({
   );
   const canShare = !!permissions?.canChangePermissions && guided;
   const canDelete = !!permissions?.canDelete;
-  const hasMenu = canShare || canDelete;
+  const canMove = !!permissions?.canEdit && category.supportsHierarchy;
+  const hasMenu = canShare || canMove || canDelete;
   const guidesOnly =
     guided && entry.readPermissions === ReadPermissions.OnlyGuides;
   const guidesOnlyLabel = t(
@@ -124,7 +128,9 @@ export function WorldCategoryEntryItem({
           <WorldEntryActions
             entry={entry}
             variant="card"
+            categoryName={category.name}
             canShare={canShare}
+            canMove={canMove}
             canDelete={canDelete}
             onDeleted={onDeleted}
             onError={onError}
