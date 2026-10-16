@@ -1,41 +1,29 @@
 import CasinoIcon from "@mui/icons-material/Casino";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import {
-  Box,
-  IconButton,
-  ListItemText,
-  Menu,
-  MenuItem,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import { ReactNode, useId, useState } from "react";
+import { Box, IconButton, Tooltip, Typography } from "@mui/material";
+import { ReactNode, useId } from "react";
 import { useTranslation } from "react-i18next";
 
 export interface WorldEntryFieldShellProps {
   label: string;
   helpText?: string;
   // Where the label points. Without one the label names a group, for values
-  // that are not a single input. The input is described by
-  // getWorldEntryFieldHelpId(inputId).
+  // that are not a single input, and the field is read only. The input is
+  // described by getWorldEntryFieldHelpId(inputId).
   inputId?: string;
-  // Offers Clear in the field's menu.
-  onClear?: () => void;
   // Shows dice that roll the field's oracle: always while the field is
-  // empty, and on hover or focus once it holds a value.
+  // empty or on a touchscreen, and on hover or focus once it holds a value.
   onRoll?: () => void;
   empty?: boolean;
   children: ReactNode;
 }
 
-// One field of an entry: its label above its value, help text below, and for
-// editors a menu that appears on hover or focus. The value fills the cell, so
-// an editable field reads like text until it is used.
+// One field of an entry: its label above its value, help text below. The
+// value fills the cell, so an editable field reads like text until it is
+// used, then shows a line under it while it has focus.
 export function WorldEntryFieldShell({
   label,
   helpText,
   inputId,
-  onClear,
   onRoll,
   empty,
   children,
@@ -44,7 +32,6 @@ export function WorldEntryFieldShell({
   const labelId = useId();
   const groupHelpId = useId();
   const helpId = inputId ? getWorldEntryFieldHelpId(inputId) : groupHelpId;
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const rollLabel = t("worlds.entries.roll-field", "Roll {{field}}", {
     field: label,
   });
@@ -54,26 +41,37 @@ export function WorldEntryFieldShell({
       role={inputId ? undefined : "group"}
       aria-labelledby={inputId ? undefined : labelId}
       aria-describedby={!inputId && helpText ? helpId : undefined}
-      sx={{
-        position: "relative",
-        borderRadius: 1,
-        mx: -1,
-        px: 1,
-        py: 0.5,
-        "&:hover, &:focus-within":
-          onClear || onRoll ? { bgcolor: "action.hover" } : undefined,
-        // Shown on hover and focus, and always where nothing can hover.
-        "& .world-entry-field-menu": {
-          opacity: anchor ? 1 : 0,
-          "@media (hover: none)": { opacity: 1 },
-        },
-        "& .world-entry-field-roll": {
-          opacity: empty ? 1 : 0,
-          "@media (hover: none)": { opacity: 1 },
-        },
-        "&:hover .world-entry-field-menu, &:focus-within .world-entry-field-menu, &:hover .world-entry-field-roll, &:focus-within .world-entry-field-roll":
-          { opacity: 1 },
-      }}
+      sx={
+        inputId
+          ? {
+              position: "relative",
+              borderRadius: 1,
+              mx: -1,
+              px: 1,
+              py: 0.5,
+              transition: (theme) =>
+                theme.transitions.create(["background-color", "box-shadow"], {
+                  duration: theme.transitions.duration.shortest,
+                }),
+              // Hover only where something can hover, so a tap never
+              // leaves a field looking active.
+              "@media (hover: hover) and (pointer: fine)": {
+                "&:hover": { bgcolor: "action.hover" },
+                "&:hover .world-entry-field-roll": { opacity: 1 },
+              },
+              "& .world-entry-field-roll": {
+                opacity: empty ? 1 : 0,
+                "@media (hover: none), (pointer: coarse)": { opacity: 1 },
+              },
+              "&:focus-within .world-entry-field-roll": { opacity: 1 },
+              "&:focus-within": {
+                bgcolor: "action.hover",
+                boxShadow: (theme) =>
+                  `inset 0 -2px 0 ${theme.palette.primary.main}`,
+              },
+            }
+          : { position: "relative", mx: -1, px: 1, py: 0.5 }
+      }
     >
       <Typography
         id={labelId}
@@ -86,7 +84,7 @@ export function WorldEntryFieldShell({
           fontSize: 12.5,
           fontWeight: 500,
           lineHeight: 1.5,
-          pr: (onClear ? 4 : 0) + (onRoll ? 4 : 0),
+          pr: onRoll ? 4 : 0,
         }}
       >
         {label}
@@ -110,43 +108,11 @@ export function WorldEntryFieldShell({
             size="small"
             aria-label={rollLabel}
             onClick={onRoll}
-            sx={{ position: "absolute", top: 0, right: onClear ? 32 : 0 }}
+            sx={{ position: "absolute", top: 0, right: 0 }}
           >
             <CasinoIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-      )}
-      {onClear && (
-        <>
-          <IconButton
-            className="world-entry-field-menu"
-            size="small"
-            aria-label={t("worlds.entries.field-actions", "{{field}} actions", {
-              field: label,
-            })}
-            aria-haspopup="menu"
-            onClick={(event) => setAnchor(event.currentTarget)}
-            sx={{ position: "absolute", top: 0, right: 0 }}
-          >
-            <MoreVertIcon fontSize="small" />
-          </IconButton>
-          <Menu
-            anchorEl={anchor}
-            open={!!anchor}
-            onClose={() => setAnchor(null)}
-          >
-            <MenuItem
-              onClick={() => {
-                setAnchor(null);
-                onClear();
-              }}
-            >
-              <ListItemText>
-                {t("worlds.entries.clear-field", "Clear")}
-              </ListItemText>
-            </MenuItem>
-          </Menu>
-        </>
       )}
     </Box>
   );

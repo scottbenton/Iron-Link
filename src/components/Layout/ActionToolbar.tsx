@@ -1,6 +1,8 @@
 import { Box } from "@mui/material";
 import { PropsWithChildren, ReactNode } from "react";
 
+import { ActionToolbarStrip } from "./ActionToolbarStrip";
+
 export interface ActionToolbarProps extends PropsWithChildren {
   breadcrumbs: ReactNode;
 }
@@ -21,22 +23,7 @@ export function ActionToolbar(props: ActionToolbarProps) {
       <Box>{breadcrumbs}</Box>
       {children && (
         <Box mt={0.5} pb={1} overflow="hidden">
-          <Box
-            px={1}
-            pr={0.5}
-            py={0.5}
-            bgcolor={(theme) =>
-              theme.palette.grey[theme.palette.mode === "light" ? "200" : "800"]
-            }
-            borderRadius={1}
-            display={"flex"}
-            alignItems={"center"}
-            gap={0.5}
-            width={"100%"}
-            sx={{ overflowX: "auto" }}
-          >
-            {children}
-          </Box>
+          <ActionToolbarStrip>{children}</ActionToolbarStrip>
         </Box>
       )}
     </Box>

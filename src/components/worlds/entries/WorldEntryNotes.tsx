@@ -105,16 +105,24 @@ export function WorldEntryNotes({
           )}
         </Alert>
       ) : content ? (
-        <RtcRichTextEditor
-          id={entryId}
-          roomPrefix={`world-entry-notes-${worldId}`}
-          documentPassword={worldId}
-          initialValue={content}
-          onSave={canEdit ? save : undefined}
-          Toolbar={Toolbar}
-          outlined={canEdit}
-          minHeight={canEdit ? 160 : undefined}
-        />
+        // Laid out like a note in the Notes tab: the toolbar strip above
+        // plain text, with room to click into while it is empty.
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            "& .ProseMirror": { minHeight: canEdit ? 120 : undefined },
+          }}
+        >
+          <RtcRichTextEditor
+            id={entryId}
+            roomPrefix={`world-entry-notes-${worldId}`}
+            documentPassword={worldId}
+            initialValue={content}
+            onSave={canEdit ? save : undefined}
+            Toolbar={Toolbar}
+          />
+        </Box>
       ) : (
         <Skeleton
           variant="rounded"

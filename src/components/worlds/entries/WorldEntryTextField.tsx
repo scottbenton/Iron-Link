@@ -96,7 +96,6 @@ export function WorldEntryTextField({
       label={field.label}
       helpText={field.helpText || undefined}
       inputId={inputId}
-      onClear={draft ? () => replace("") : undefined}
       onRoll={
         roll
           ? () => {
