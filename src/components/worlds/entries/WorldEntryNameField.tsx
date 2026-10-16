@@ -1,5 +1,5 @@
 import { Box, InputBase, Typography } from "@mui/material";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useDebouncedSync } from "hooks/useDebouncedSync";
@@ -19,6 +19,20 @@ export function WorldEntryNameField({
 }) {
   const { t } = useTranslation();
   const updateEntry = useWorldEntriesStore((store) => store.updateEntry);
+  const focusRequested = useWorldEntriesStore(
+    (store) => store.focusNameEntryId === entryId,
+  );
+  const requestNameFocus = useWorldEntriesStore(
+    (store) => store.requestNameFocus,
+  );
+  const inputRef = useRef<HTMLInputElement>(null);
+  // A just-created entry opens with its placeholder name selected.
+  useEffect(() => {
+    if (!focusRequested || !canEdit || !inputRef.current) return;
+    inputRef.current.focus();
+    inputRef.current.select();
+    requestNameFocus(null);
+  }, [focusRequested, canEdit, requestNameFocus]);
 
   const persistName = useCallback(
     (newName: string) => {
@@ -45,6 +59,7 @@ export function WorldEntryNameField({
             onChange={(event) => setValue(event.currentTarget.value)}
             error={blank}
             fullWidth
+            inputRef={inputRef}
             slotProps={{
               input: { "aria-label": t("worlds.entries.name", "Name") },
             }}

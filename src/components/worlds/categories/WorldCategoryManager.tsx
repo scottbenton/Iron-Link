@@ -19,6 +19,7 @@ import { LinkComponent } from "components/LinkComponent";
 
 import { useWorldOracles } from "hooks/useWorldOracles";
 
+import { useUID } from "stores/auth.store";
 import { useWorldIsGuided } from "stores/world.store";
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
@@ -35,8 +36,8 @@ import {
   WorldViewLayout,
 } from "../WorldViewLayout";
 import { WorldEntryActions } from "../entries/WorldEntryActions";
-import { WorldEntryCreateDialog } from "../entries/WorldEntryCreateDialog";
 import { WorldEntryView } from "../entries/WorldEntryView";
+import { getDefaultWorldEntryPermissions } from "../entries/worldEntryPermissions";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldCategoryBrowser } from "./WorldCategoryBrowser";
 import { WorldCategoryContents } from "./WorldCategoryContents";
@@ -90,11 +91,15 @@ export function WorldCategoryManager({
   const deleteCategory = useWorldCategoriesStore(
     (store) => store.deleteCategory,
   );
+  const uid = useUID();
+  const createEntry = useWorldEntriesStore((store) => store.createEntry);
+  const requestNameFocus = useWorldEntriesStore(
+    (store) => store.requestNameFocus,
+  );
   const getCategoryCounts = useWorldCategoriesStore(
     (store) => store.getCategoryCounts,
   );
   const [adding, setAdding] = useState(false);
-  const [addingEntry, setAddingEntry] = useState(false);
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -116,8 +121,12 @@ export function WorldCategoryManager({
   const selectedId = "categoryId" in view ? view.categoryId : undefined;
   const selected = categories.find((category) => category.id === selectedId);
   const showsEntries = view.type === "category" || view.type === "entry";
+  // A new entry's page opens before the listener delivers it; it counts as
+  // loading until then.
   const entriesLoading = useWorldEntriesStore(
-    (store) => store.entryState.loading,
+    (store) =>
+      store.entryState.loading ||
+      (view.type === "entry" && !!store.entryState.arriving?.[view.entryId]),
   );
   const entry = useWorldEntriesStore((store) =>
     view.type === "entry" &&
@@ -155,6 +164,24 @@ export function WorldCategoryManager({
       setBusy(false);
     }
   };
+  // Creates an entry with a placeholder name and the role's default sharing,
+  // then opens it with the name selected, ready to type over or roll.
+  const createEntryIn = (category: IWorldCategory) =>
+    run(async () => {
+      if (!uid) return;
+      const { readPermissions, editPermissions } =
+        getDefaultWorldEntryPermissions(canEdit, guided);
+      const entryId = await createEntry(
+        uid,
+        category.worldId,
+        category.id,
+        t("worlds.entries.untitled", "Untitled"),
+        readPermissions,
+        editPermissions,
+      );
+      requestNameFocus(entryId);
+      navigation.navigate({ type: "entry", categoryId: category.id, entryId });
+    });
   const remove = (category: IWorldCategory) =>
     run(async () => {
       const { entryCount } = await getCategoryCounts(category.id);
@@ -276,7 +303,8 @@ export function WorldCategoryManager({
                 <Button
                   variant="contained"
                   startIcon={<AddIcon />}
-                  onClick={() => setAddingEntry(true)}
+                  disabled={busy}
+                  onClick={() => selected && createEntryIn(selected)}
                 >
                   {t("worlds.entries.new", "Create entry")}
                 </Button>
@@ -413,20 +441,6 @@ export function WorldCategoryManager({
           {content}
         </Stack>
       </Box>
-      {addingEntry && selected && (
-        <WorldEntryCreateDialog
-          category={selected}
-          onClose={() => setAddingEntry(false)}
-          onCreated={(entryId) => {
-            setAddingEntry(false);
-            navigation.navigate({
-              type: "entry",
-              categoryId: selected.id,
-              entryId,
-            });
-          }}
-        />
-      )}
       {adding && (
         <WorldCategoryEditor onSave={create} onClose={() => setAdding(false)} />
       )}
