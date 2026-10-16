@@ -26,7 +26,7 @@ interface WorldStoreState {
   // Whether anyone in the world has less than Guide access. Null while
   // loading. When nobody does (solo, co-op, or a world without players),
   // permission controls would only offer distinctions nobody can notice.
-  hasRestrictedMembers: boolean | null;
+  isGuided: boolean | null;
 
   loading: boolean;
   error?: string;
@@ -36,7 +36,7 @@ interface WorldStoreState {
 interface WorldStoreActions {
   listenToWorld: (worldId: string) => () => void;
   loadWorldPermission: (worldId: string, uid: string | undefined) => void;
-  loadHasRestrictedMembers: (worldId: string) => void;
+  loadIsGuided: (worldId: string) => void;
 
   createWorld: (
     name: string,
@@ -68,7 +68,7 @@ const defaultWorldStoreState: WorldStoreState = {
   world: null,
   worldPlayers: null,
   worldPermission: null,
-  hasRestrictedMembers: null,
+  isGuided: null,
   loading: true,
   worldDeleted: false,
 };
@@ -169,13 +169,13 @@ export const useWorldStore = createWithEqualityFn<
         });
     },
 
-    loadHasRestrictedMembers: (worldId) => {
-      WorldsService.getWorldHasRestrictedMembers(worldId)
-        .then((hasRestrictedMembers) => {
+    loadIsGuided: (worldId) => {
+      WorldsService.getWorldIsGuided(worldId)
+        .then((isGuided) => {
           set((state) => {
             // Ignore stale responses after switching worlds
             if (state.worldId === worldId) {
-              state.hasRestrictedMembers = hasRestrictedMembers;
+              state.isGuided = isGuided;
             }
           });
         })
@@ -183,7 +183,7 @@ export const useWorldStore = createWithEqualityFn<
           console.error(error);
           set((state) => {
             if (state.worldId === worldId) {
-              state.hasRestrictedMembers = null;
+              state.isGuided = null;
             }
           });
         });
@@ -222,9 +222,7 @@ export function useListenToWorld(worldId: string | undefined) {
   const loadWorldPermission = useWorldStore(
     (state) => state.loadWorldPermission,
   );
-  const loadHasRestrictedMembers = useWorldStore(
-    (state) => state.loadHasRestrictedMembers,
-  );
+  const loadIsGuided = useWorldStore((state) => state.loadIsGuided);
   const worldPlayers = useWorldStore((state) => state.worldPlayers);
 
   useEffect(() => {
@@ -246,14 +244,14 @@ export function useListenToWorld(worldId: string | undefined) {
     }
   }, [worldId, uid, worldPlayers, loadWorldPermission]);
 
-  // Whether anyone has restricted access changes with membership and with
-  // the games linked to the world. Players joining a linked game surface on
-  // the next mount.
+  // Whether the world is guided changes with membership and with the games
+  // linked to the world. Players joining a linked game surface on the next
+  // mount.
   useEffect(() => {
     if (worldId) {
-      loadHasRestrictedMembers(worldId);
+      loadIsGuided(worldId);
     }
-  }, [worldId, uid, worldPlayers, worldUpdatedAt, loadHasRestrictedMembers]);
+  }, [worldId, uid, worldPlayers, worldUpdatedAt, loadIsGuided]);
 }
 
 // Returns null while the role is still being fetched. Collapsing that into
@@ -263,9 +261,9 @@ export function useWorldPermission(): WorldPermission | null {
   return useWorldStore((state) => state.worldPermission);
 }
 
-// Whether entry permission controls (sharing, visibility, Guide-only content)
-// are worth showing: only when someone in the world has less than Guide
-// access. Hidden while that is still loading.
-export function useWorldPermissionControlsShown(): boolean {
-  return useWorldStore((state) => state.hasRestrictedMembers === true);
+// Whether the world is guided: a guided game uses it, or someone in it has
+// less than Guide access. Only guided worlds show sharing and visibility
+// choices and set Guide-only fields apart. False while that is still loading.
+export function useWorldIsGuided(): boolean {
+  return useWorldStore((state) => state.isGuided === true);
 }

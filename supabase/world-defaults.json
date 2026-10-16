@@ -420,6 +420,7 @@
               "resolvedOracleId": "oracle_rollable:classic/character/goal"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -660,6 +661,7 @@
               "resolvedOracleId": "oracle_rollable:elegy/character/goal"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -816,6 +818,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/launching_your_campaign/starting_sector/trouble"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -886,6 +889,7 @@
           {
             "binding": null,
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -930,6 +934,7 @@
           {
             "binding": null,
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -3179,6 +3184,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/settlement/first_look"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -3978,6 +3984,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/scale"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4106,6 +4113,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/interior/first_look"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4138,6 +4146,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/interior/feature"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4170,6 +4179,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/interior/peril"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4202,6 +4212,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/interior/opportunity"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4234,6 +4245,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/sanctum/purpose"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4266,6 +4278,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/sanctum/feature"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4298,6 +4311,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/sanctum/peril"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4330,6 +4344,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/sanctum/opportunity"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4517,6 +4532,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/character/goal"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -4753,6 +4769,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/faction/projects"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -4793,6 +4810,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/faction/quirks"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -4813,6 +4831,7 @@
               "resolvedOracleId": "oracle_rollable:starforged/faction/rumors"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -5068,6 +5087,7 @@
               "resolvedOracleId": "oracle_rollable:sundered_isles/island/offshore_observations"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5161,6 +5181,7 @@
           {
             "binding": null,
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5226,6 +5247,7 @@
           {
             "binding": null,
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5311,6 +5333,7 @@
               "resolvedOracleId": "oracle_rollable:sundered_isles/cave/threshold"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5624,6 +5647,7 @@
               "resolvedOracleId": "oracle_rollable:sundered_isles/character/goals"
             },
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -5757,6 +5781,7 @@
           {
             "binding": null,
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5790,6 +5815,7 @@
           {
             "binding": null,
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5840,6 +5866,7 @@
           {
             "binding": null,
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5873,6 +5900,7 @@
           {
             "binding": null,
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5922,6 +5950,7 @@
           {
             "binding": null,
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5955,6 +5984,7 @@
           {
             "binding": null,
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5988,6 +6018,7 @@
           {
             "binding": null,
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -6021,6 +6052,7 @@
           {
             "binding": null,
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -6075,6 +6107,7 @@
           {
             "binding": null,
             "configuration": {
+              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {

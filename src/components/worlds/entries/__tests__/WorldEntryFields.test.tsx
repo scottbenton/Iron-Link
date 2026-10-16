@@ -41,7 +41,10 @@ import {
   optionList,
   translate,
 } from "../../categories/__tests__/fixtures";
-import { WorldEntryFields } from "../WorldEntryFields";
+import {
+  WorldEntryFields,
+  isWorldEntryFieldFullRow,
+} from "../WorldEntryFields";
 import { worldEntry } from "./fixtures";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
@@ -94,7 +97,7 @@ beforeEach(() => {
   });
   useWorldStore.setState({
     worldPermission: WorldPermission.Guide,
-    hasRestrictedMembers: true,
+    isGuided: true,
   });
   setValue = vi.fn().mockResolvedValue(undefined);
   deleteValue = vi.fn().mockResolvedValue(undefined);
@@ -147,7 +150,7 @@ function storeValue(
 function renderFields({
   entry = worldEntry(),
   canEdit = true,
-  permissionControlsShown = true,
+  guided = true,
 } = {}) {
   return render(
     <MemoryRouter>
@@ -155,7 +158,7 @@ function renderFields({
         entry={entry}
         category={category}
         canEdit={canEdit}
-        permissionControlsShown={permissionControlsShown}
+        guided={guided}
         navigation={navigation}
       />
     </MemoryRouter>,
@@ -553,7 +556,7 @@ describe("WorldEntryFields", () => {
       );
     });
 
-    it("lowers the label over an empty field, like other fields", () => {
+    it("says Empty only while nothing is linked", () => {
       defineFields(
         linkedEntry(
           PEOPLE,
@@ -566,10 +569,12 @@ describe("WorldEntryFields", () => {
       storeValue("entry-1", "residents", ["kell"]);
       renderFields();
 
-      const label = (name: string) =>
-        screen.getByText(name, { selector: "label" });
-      expect(label("Location")).toHaveAttribute("data-shrink", "false");
-      expect(label("Residents")).toHaveAttribute("data-shrink", "true");
+      expect(
+        screen.getByRole("combobox", { name: "Location" }),
+      ).toHaveAttribute("placeholder", "Empty");
+      expect(
+        screen.getByRole("combobox", { name: "Residents" }),
+      ).not.toHaveAttribute("placeholder");
     });
 
     it("does not offer to create entries to world viewers", async () => {
@@ -716,21 +721,50 @@ describe("WorldEntryFields", () => {
       field({ id: "look", label: "Look", sortOrder: 2 }),
     ];
 
-    it("sets them apart for Guides when the world has players to hide them from", () => {
+    it("gives them a Guide only well below Details in a guided world", () => {
       defineFields(...fields());
       loadEntries(worldEntry());
       renderFields();
+      const details = screen.getByRole("region", { name: "Details" });
       const section = screen.getByRole("region", { name: "Guide only" });
+      expect(
+        within(details).getByRole("textbox", { name: "Known as" }),
+      ).toBeInTheDocument();
       expect(
         within(section).getByRole("textbox", { name: "Secret" }),
       ).toBeInTheDocument();
       expect(fieldLabels()).toEqual(["Known as", "Look", "Secret"]);
     });
 
-    it("keeps them in order without a mark when nobody is hidden from", () => {
+    it("collapses each well from its heading", async () => {
+      const user = userEvent.setup();
       defineFields(...fields());
       loadEntries(worldEntry());
-      renderFields({ permissionControlsShown: false });
+      renderFields();
+      const toggle = screen.getByRole("button", { name: /^Guide only/ });
+      expect(toggle).toHaveAttribute("aria-expanded", "true");
+      await user.click(toggle);
+      expect(toggle).toHaveAttribute("aria-expanded", "false");
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("textbox", { name: "Secret" }),
+        ).not.toBeInTheDocument(),
+      );
+      expect(
+        screen.getByRole("textbox", { name: "Known as" }),
+      ).toBeInTheDocument();
+    });
+
+    it("keeps them in order in the Details well when the world is not guided", () => {
+      defineFields(...fields());
+      loadEntries(worldEntry());
+      renderFields({ guided: false });
+      expect(
+        within(screen.getByRole("region", { name: "Details" })).getByRole(
+          "textbox",
+          { name: "Secret" },
+        ),
+      ).toBeInTheDocument();
       expect(
         screen.queryByRole("region", { name: "Guide only" }),
       ).not.toBeInTheDocument();
@@ -750,10 +784,36 @@ describe("WorldEntryFields", () => {
   });
 
   describe("layout", () => {
-    const gridItem = (name: string) =>
-      screen.getByRole("group", { name }).closest(".MuiGrid-root");
+    it("gives a whole row to several values, Full width Text and Long text", () => {
+      const select = (multiple: boolean) =>
+        field({
+          type: WorldFieldType.Select,
+          configuration: createWorldFieldConfiguration({
+            multiple,
+            allowOther: true,
+          }),
+        });
+      expect(isWorldEntryFieldFullRow(field())).toBe(false);
+      expect(
+        isWorldEntryFieldFullRow(
+          field({
+            configuration: createWorldFieldConfiguration({ fullWidth: true }),
+          }),
+        ),
+      ).toBe(true);
+      expect(isWorldEntryFieldFullRow(select(false))).toBe(false);
+      expect(isWorldEntryFieldFullRow(select(true))).toBe(true);
+      expect(
+        isWorldEntryFieldFullRow(
+          linkedEntry(PEOPLE, { id: "home" }, { multiple: true }),
+        ),
+      ).toBe(true);
+      expect(
+        isWorldEntryFieldFullRow(field({ type: WorldFieldType.RichText })),
+      ).toBe(true);
+    });
 
-    it("gives long text a full-width row and pairs short fields from md up, in and out of the Guide-only section", () => {
+    it("keeps Long text in the Guide only well", () => {
       vi.spyOn(
         WorldEntryFieldValuesService,
         "getWorldEntryFieldContent",
@@ -761,30 +821,21 @@ describe("WorldEntryFields", () => {
       defineFields(
         field({ id: "climate", label: "Climate", sortOrder: 0 }),
         field({
-          id: "history",
-          label: "History",
-          type: WorldFieldType.RichText,
-          sortOrder: 1,
-        }),
-        field({
           id: "plots",
           label: "Plots",
           type: WorldFieldType.RichText,
-          sortOrder: 2,
+          sortOrder: 1,
           gmOnly: true,
         }),
       );
       loadEntries(worldEntry());
       renderFields();
-
-      const climate = screen
-        .getByRole("textbox", { name: "Climate" })
-        .closest(".MuiGrid-root");
-      expect(climate).toHaveClass("MuiGrid-grid-xs-12", "MuiGrid-grid-md-6");
-      expect(gridItem("History")).toHaveClass("MuiGrid-grid-md-12");
-      const section = screen.getByRole("region", { name: "Guide only" });
-      expect(section).toContainElement(gridItem("Plots") as HTMLElement);
-      expect(gridItem("Plots")).toHaveClass("MuiGrid-grid-md-12");
+      expect(
+        within(screen.getByRole("region", { name: "Guide only" })).getByRole(
+          "group",
+          { name: "Plots" },
+        ),
+      ).toBeInTheDocument();
     });
   });
 

@@ -10,7 +10,7 @@ import type { ResolvedWorldFieldDefinition } from "lib/worldFieldRules";
 
 import type { IWorldEntry } from "services/worldEntries.service";
 
-import { WorldEntryLabelledField } from "./WorldEntryLabelledField";
+import { WorldEntryFieldShell } from "./WorldEntryFieldShell";
 import { WorldEntryLongTextToolbar } from "./WorldEntryLongTextToolbar";
 
 // A collaborative document, edited and saved like a note. Its content is not
@@ -61,7 +61,7 @@ export function WorldEntryLongTextField({
   );
 
   return (
-    <WorldEntryLabelledField label={field.label} helpText={field.helpText}>
+    <WorldEntryFieldShell label={field.label} helpText={field.helpText}>
       {loadError ? (
         <Alert severity="error">
           {t(
@@ -87,6 +87,6 @@ export function WorldEntryLongTextField({
           aria-label={t("worlds.entries.field-loading", "Loading field…")}
         />
       )}
-    </WorldEntryLabelledField>
+    </WorldEntryFieldShell>
   );
 }

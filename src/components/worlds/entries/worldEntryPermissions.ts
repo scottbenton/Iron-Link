@@ -62,13 +62,13 @@ export function getWorldEntryPermissionOptions(
 }
 
 // A Guide's new entries start as their own prep; a player's start shared with
-// everyone and editable by Guides and themselves. Without permission controls
-// nobody could tell the difference, so entries start shared.
+// everyone and editable by Guides and themselves. A world that is not guided
+// has nobody to hide anything from, so entries start shared.
 export function getDefaultWorldEntryPermissions(
   isGuide: boolean,
-  permissionControlsShown: boolean,
+  guided: boolean,
 ): { readPermissions: ReadPermissions; editPermissions: EditPermissions } {
-  if (permissionControlsShown && isGuide) {
+  if (guided && isGuide) {
     return {
       readPermissions: ReadPermissions.OnlyGuides,
       editPermissions: EditPermissions.OnlyGuides,
@@ -101,12 +101,12 @@ export function getLinkedWorldEntryPermissions(
     uid,
     gmOnly,
     isGuide,
-    permissionControlsShown,
+    guided,
   }: {
     uid: string;
     gmOnly: boolean;
     isGuide: boolean;
-    permissionControlsShown: boolean;
+    guided: boolean;
   },
 ): { readPermissions: ReadPermissions; editPermissions: EditPermissions } {
   if (gmOnly) {
@@ -117,7 +117,7 @@ export function getLinkedWorldEntryPermissions(
         editPermissions: EditPermissions.OnlyGuides,
       },
       isGuide,
-      permissionControlsShown,
+      guided,
     );
   }
   const authorScoped =
@@ -136,7 +136,7 @@ export function getLinkedWorldEntryPermissions(
       editPermissions: source.editPermissions,
     },
     isGuide,
-    permissionControlsShown,
+    guided,
   );
 }
 
@@ -147,7 +147,7 @@ function getAllowedWorldEntryPermissions(
     editPermissions: EditPermissions;
   },
   isGuide: boolean,
-  permissionControlsShown: boolean,
+  guided: boolean,
 ): { readPermissions: ReadPermissions; editPermissions: EditPermissions } {
   const { readOptions, editOptions } = getWorldEntryPermissionOptions(t, {
     isAuthor: true,
@@ -156,7 +156,5 @@ function getAllowedWorldEntryPermissions(
   const allowed =
     readOptions.some((option) => option.value === wanted.readPermissions) &&
     editOptions.some((option) => option.value === wanted.editPermissions);
-  return allowed
-    ? wanted
-    : getDefaultWorldEntryPermissions(isGuide, permissionControlsShown);
+  return allowed ? wanted : getDefaultWorldEntryPermissions(isGuide, guided);
 }

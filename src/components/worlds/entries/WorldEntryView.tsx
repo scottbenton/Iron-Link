@@ -1,18 +1,27 @@
-import { Alert, Box, Button, LinearProgress, Stack } from "@mui/material";
-import { useState } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  LinearProgress,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
 import { LinkComponent } from "components/LinkComponent";
 
-import { useWorldPermissionControlsShown } from "stores/world.store";
+import { useWorldFieldEntrySnapshots } from "hooks/useWorldFieldEntrySnapshots";
+
+import { useWorldIsGuided } from "stores/world.store";
+import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
+
+import { getWorldEntrySubtitle } from "lib/worldEntrySubtitle";
 
 import { IWorldCategory } from "services/worldCategories.service";
 
-import { getEditorErrorMessage } from "../categories/categoryEditor.utils";
 import type { WorldNavigation } from "../worldNavigation";
-import { WorldEntryActionsMenu } from "./WorldEntryActionsMenu";
 import { WorldEntryFields } from "./WorldEntryFields";
 import { WorldEntryIcon } from "./WorldEntryIcon";
 import { WorldEntryNameField } from "./WorldEntryNameField";
@@ -23,8 +32,10 @@ const READ_ONLY = {
   canChangePermissions: false,
 };
 
-// One entry's detail view. The surrounding manager listens to the world's
-// entries, so moving here from the list needs no loading.
+// One entry's page: its icon, name and subtitle, then its fields. Its
+// actions sit in the strip above, which the manager renders. The manager
+// also listens to the world's entries, so moving here from the list needs no
+// loading.
 export function WorldEntryView({
   category,
   entryId,
@@ -44,8 +55,14 @@ export function WorldEntryView({
   const permissions = useWorldEntriesStore(
     (store) => store.entryState.permissions[entryId] ?? READ_ONLY,
   );
-  const controlsShown = useWorldPermissionControlsShown();
-  const [error, setError] = useState<string>();
+  const guided = useWorldIsGuided();
+  const subtitleField = useWorldCategoriesStore((store) =>
+    category.subtitleFieldDefinitionId
+      ? store.fieldDefinitions[category.subtitleFieldDefinitionId]
+      : undefined,
+  );
+  const entries = useWorldEntriesStore((store) => store.entryState.entries);
+  const snapshots = useWorldFieldEntrySnapshots();
 
   if (loadError)
     return (
@@ -87,36 +104,39 @@ export function WorldEntryView({
       />
     );
 
+  const subtitle = getWorldEntrySubtitle(
+    subtitleField,
+    entry.id,
+    snapshots,
+    entries,
+  );
   return (
-    <Stack component="article" spacing={2}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <Stack component="article" spacing={2.5}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <WorldEntryIcon entry={entry} size="large" />
-        <WorldEntryNameField
-          key={entry.id}
-          entryId={entry.id}
-          name={entry.name}
-          canEdit={permissions.canEdit}
-        />
-        <WorldEntryActionsMenu
-          entry={entry}
-          canShare={permissions.canChangePermissions && controlsShown}
-          canDelete={permissions.canDelete}
-          onDeleted={() =>
-            navigation.navigate({ type: "category", categoryId: category.id })
-          }
-          onError={(cause) => setError(getEditorErrorMessage(cause))}
-        />
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+          <WorldEntryNameField
+            key={entry.id}
+            entryId={entry.id}
+            name={entry.name}
+            canEdit={permissions.canEdit}
+          />
+          {subtitle && (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ overflowWrap: "anywhere" }}
+            >
+              {subtitle}
+            </Typography>
+          )}
+        </Box>
       </Box>
-      {error && (
-        <Alert severity="error" onClose={() => setError(undefined)}>
-          {error}
-        </Alert>
-      )}
       <WorldEntryFields
         entry={entry}
         category={category}
         canEdit={permissions.canEdit}
-        permissionControlsShown={controlsShown}
+        guided={guided}
         navigation={navigation}
       />
     </Stack>

@@ -51,7 +51,7 @@ describe("getLinkedWorldEntryPermissions", () => {
   const options = {
     gmOnly: false,
     isGuide: false,
-    permissionControlsShown: true,
+    guided: true,
   };
 
   it("copies the linking entry's permissions for its author", () => {

@@ -26,11 +26,8 @@ beforeEach(() => {
   vi.restoreAllMocks();
 });
 
-function renderDialog(
-  permission: WorldPermission,
-  hasRestrictedMembers: boolean,
-) {
-  useWorldStore.setState({ worldPermission: permission, hasRestrictedMembers });
+function renderDialog(permission: WorldPermission, isGuided: boolean) {
+  useWorldStore.setState({ worldPermission: permission, isGuided });
   const create = vi
     .spyOn(WorldEntriesService, "addWorldEntry")
     .mockResolvedValue("new-entry");
@@ -94,7 +91,7 @@ describe("WorldEntryCreateDialog", () => {
   });
 
   it.each([WorldPermission.Owner, WorldPermission.Player])(
-    "asks only for a name and shares the entry when nobody has restricted access (%s)",
+    "asks only for a name and shares the entry when the world is not guided (%s)",
     async (permission) => {
       const { create } = renderDialog(permission, false);
       expect(screen.queryByRole("radio")).not.toBeInTheDocument();

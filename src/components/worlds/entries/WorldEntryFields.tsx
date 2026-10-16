@@ -1,4 +1,6 @@
-import { Grid, Stack } from "@mui/material";
+import DescriptionIcon from "@mui/icons-material/Description";
+import LockIcon from "@mui/icons-material/Lock";
+import { Box, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { useWorldFieldEntrySnapshots } from "hooks/useWorldFieldEntrySnapshots";
@@ -24,7 +26,7 @@ import { IWorldEntry } from "services/worldEntries.service";
 
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldEntryField } from "./WorldEntryField";
-import { WorldEntryFieldSection } from "./WorldEntryFieldSection";
+import { WorldEntryWell } from "./WorldEntryWell";
 import { hasWorldEntryFieldValue } from "./worldEntryFieldValue";
 
 export interface WorldEntryFieldsProps {
@@ -33,24 +35,24 @@ export interface WorldEntryFieldsProps {
   // False for viewers and anyone the entry's edit permissions exclude; every
   // field then renders read-only.
   canEdit: boolean;
-  // Whether Guide-only fields are marked apart; see
-  // useWorldPermissionControlsShown.
-  permissionControlsShown: boolean;
+  // Whether Guide-only fields get a well of their own; see useWorldIsGuided.
+  guided: boolean;
   navigation: WorldNavigation;
 }
 
 // The entry's fields in their configured order, each with the visibility,
 // label and help text its rules give it for this entry and its ancestors.
-// Short fields fill a two-column grid from md up, left to right; long text
-// takes a full-width row of its own.
+// They fill a grid of up to three columns, as wide as the page allows. A
+// field with several values, a Full width Text field, and Long text each take
+// a whole row.
 // A field a rule hides keeps its value. Read-only, empty fields are left out.
-// Guide-only fields are hidden from everyone else, and set apart for Guides
-// only when the world has players they are hidden from.
+// Fields sit in a Details well. Guide-only fields are hidden from everyone
+// else, and in a guided world they get a dashed Guide only well of their own.
 export function WorldEntryFields({
   entry,
   category,
   canEdit,
-  permissionControlsShown,
+  guided,
   navigation,
 }: WorldEntryFieldsProps) {
   const { t } = useTranslation();
@@ -80,17 +82,19 @@ export function WorldEntryFields({
         field.visible &&
         (canEdit || hasWorldEntryFieldValue(field, values[field.id], entries)),
     );
-  const marked = permissionControlsShown && isGuide;
+  const marked = guided && isGuide;
   const sharedFields = marked
     ? fields.filter((field) => !field.gmOnly)
     : fields;
   const guideFields = marked ? fields.filter((field) => field.gmOnly) : [];
 
   const renderField = (field: ResolvedWorldFieldDefinition) => (
-    <Grid
+    <Box
       // Keyed by entry too, so typing never carries over to another entry.
       key={`${entry.id}-${field.id}`}
-      size={{ xs: 12, md: getWorldFieldKind(field) === "longText" ? 12 : 6 }}
+      sx={
+        isWorldEntryFieldFullRow(field) ? { gridColumn: "1 / -1" } : undefined
+      }
     >
       <WorldEntryField
         entry={entry}
@@ -99,9 +103,30 @@ export function WorldEntryFields({
         canEdit={canEdit}
         navigation={navigation}
       />
-    </Grid>
+    </Box>
+  );
+  const renderGrid = (wellFields: ResolvedWorldFieldDefinition[]) => (
+    <Box sx={{ containerType: "inline-size" }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr)",
+          columnGap: 3,
+          rowGap: 1.5,
+          "@container (min-width: 360px)": {
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          },
+          "@container (min-width: 640px)": {
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          },
+        }}
+      >
+        {wellFields.map(renderField)}
+      </Box>
+    </Box>
   );
 
+  if (sharedFields.length === 0 && guideFields.length === 0) return null;
   return (
     <Stack
       component="section"
@@ -111,23 +136,41 @@ export function WorldEntryFields({
       })}
     >
       {sharedFields.length > 0 && (
-        <Grid container spacing={2}>
-          {sharedFields.map(renderField)}
-        </Grid>
+        <WorldEntryWell
+          variant="details"
+          title={t("worlds.entries.details", "Details")}
+          icon={<DescriptionIcon />}
+        >
+          {renderGrid(sharedFields)}
+        </WorldEntryWell>
       )}
       {guideFields.length > 0 && (
-        <WorldEntryFieldSection
+        <WorldEntryWell
+          variant="guide"
           title={t("worlds.entries.guide-only", "Guide only")}
           description={t(
             "worlds.entries.guide-only-description",
-            "Players never see these fields.",
+            "Players never see these",
           )}
+          icon={<LockIcon />}
         >
-          <Grid container spacing={2}>
-            {guideFields.map(renderField)}
-          </Grid>
-        </WorldEntryFieldSection>
+          {renderGrid(guideFields)}
+        </WorldEntryWell>
       )}
     </Stack>
   );
+}
+
+// Whether a field takes a whole row of the grid rather than one column.
+export function isWorldEntryFieldFullRow(
+  field: Pick<ResolvedWorldFieldDefinition, "type" | "configuration">,
+): boolean {
+  switch (getWorldFieldKind(field)) {
+    case "longText":
+      return true;
+    case "text":
+      return !!field.configuration.fullWidth;
+    default:
+      return !!field.configuration.multiple;
+  }
 }

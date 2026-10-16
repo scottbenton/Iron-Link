@@ -15,7 +15,7 @@ import { type IWorld, WorldsService } from "services/worlds.service";
 
 import {
   useListenToWorld,
-  useWorldPermissionControlsShown,
+  useWorldIsGuided,
   useWorldStore,
 } from "../world.store";
 import {
@@ -81,8 +81,8 @@ describe("world row invalidation", () => {
   });
 });
 
-describe("permission controls", () => {
-  it("shows them once someone has restricted access, rechecking when linked games change", async () => {
+describe("guided worlds", () => {
+  it("reports a guided world, rechecking when linked games change", async () => {
     let deliverWorld: Parameters<
       typeof WorldsService.listenToWorld
     >[1] = () => {};
@@ -95,20 +95,20 @@ describe("permission controls", () => {
     vi.spyOn(WorldPlayersService, "listenToWorldPlayers").mockReturnValue(
       () => {},
     );
-    const restricted = vi
-      .spyOn(WorldsService, "getWorldHasRestrictedMembers")
+    const guided = vi
+      .spyOn(WorldsService, "getWorldIsGuided")
       .mockResolvedValueOnce(false)
       .mockResolvedValueOnce(true);
 
     const hook = renderHook(() => {
       useListenToWorld("world");
-      return useWorldPermissionControlsShown();
+      return useWorldIsGuided();
     });
-    // Hidden while loading, and when nobody has restricted access.
+    // False while loading, and while the world is not guided.
     expect(hook.result.current).toBe(false);
-    await waitFor(() => expect(restricted).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(guided).toHaveBeenCalledTimes(1));
     act(() => deliverWorld(world(1)));
-    await waitFor(() => expect(restricted).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(guided).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(hook.result.current).toBe(true));
     hook.unmount();
   });

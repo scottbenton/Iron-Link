@@ -6,7 +6,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useMemo, useState } from "react";
+import { type ReactNode, useId, useMemo, useState } from "react";
 
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 
@@ -18,7 +18,12 @@ import {
 
 import type { WorldFieldValue } from "services/worldEntryFieldValues.service";
 
-import { WorldEntryLabelledField } from "./WorldEntryLabelledField";
+import {
+  WorldEntryFieldShell,
+  getWorldEntryFieldHelpId,
+  useEmptyFieldText,
+  worldEntryValueInputSx,
+} from "./WorldEntryFieldShell";
 import { getWorldFieldValueList } from "./worldEntryFieldValue";
 
 // Picks from the field's options. An open list also offers values other
@@ -40,6 +45,8 @@ export function WorldEntryOptionListField({
     (store) => store.getFieldOptions,
   );
   const { multiple, allowOther: open, suggestions } = field.configuration;
+  const inputId = useId();
+  const emptyText = useEmptyFieldText();
   const [fetched, setFetched] = useState<string[]>();
   const [loading, setLoading] = useState(false);
   // Stable between renders: the autocomplete clears typed text whenever its
@@ -48,19 +55,19 @@ export function WorldEntryOptionListField({
 
   if (!canEdit) {
     return (
-      <WorldEntryLabelledField label={field.label}>
+      <WorldEntryFieldShell label={field.label}>
         {multiple ? (
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.25 }}>
             {selected.map((option) => (
               <Chip key={option} size="small" label={option} />
             ))}
           </Box>
         ) : (
-          <Typography sx={{ overflowWrap: "anywhere" }}>
+          <Typography sx={{ fontSize: 15, overflowWrap: "anywhere" }}>
             {selected[0]}
           </Typography>
         )}
-      </WorldEntryLabelledField>
+      </WorldEntryFieldShell>
     );
   }
 
@@ -79,18 +86,37 @@ export function WorldEntryOptionListField({
   const input = (params: AutocompleteRenderInputParams) => (
     <TextField
       {...params}
+      variant="standard"
+      placeholder={selected.length ? undefined : emptyText}
       inputProps={{
         ...params.inputProps,
         maxLength: WORLD_FIELD_VALUE_MAX_LENGTH,
+        "aria-describedby": field.helpText
+          ? getWorldEntryFieldHelpId(inputId)
+          : undefined,
       }}
-      label={field.label}
-      helperText={field.helpText || undefined}
+      InputProps={{
+        ...params.InputProps,
+        disableUnderline: true,
+        sx: worldEntryValueInputSx,
+      }}
     />
+  );
+  const shell = (control: ReactNode) => (
+    <WorldEntryFieldShell
+      label={field.label}
+      helpText={field.helpText || undefined}
+      inputId={inputId}
+      onClear={selected.length ? () => onSave(null) : undefined}
+    >
+      {control}
+    </WorldEntryFieldShell>
   );
 
   if (multiple) {
-    return (
+    return shell(
       <Autocomplete
+        id={inputId}
         multiple
         freeSolo={open}
         autoSelect={open}
@@ -109,11 +135,12 @@ export function WorldEntryOptionListField({
           })
         }
         renderInput={input}
-      />
+      />,
     );
   }
-  return (
+  return shell(
     <Autocomplete
+      id={inputId}
       freeSolo={open}
       autoSelect={open}
       options={options}
@@ -122,6 +149,6 @@ export function WorldEntryOptionListField({
       onOpen={loadOptions}
       onChange={(_, next) => onSave(next?.trim() || null)}
       renderInput={input}
-    />
+    />,
   );
 }

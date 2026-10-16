@@ -1,14 +1,11 @@
 import { Autocomplete, Box, Chip, TextField } from "@mui/material";
-import { type Key, type SyntheticEvent, useMemo, useState } from "react";
+import { type Key, type SyntheticEvent, useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LinkComponent } from "components/LinkComponent";
 
 import { useUID } from "stores/auth.store";
-import {
-  useWorldPermission,
-  useWorldPermissionControlsShown,
-} from "stores/world.store";
+import { useWorldIsGuided, useWorldPermission } from "stores/world.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import {
@@ -22,7 +19,12 @@ import type { IWorldEntry } from "services/worldEntries.service";
 import type { WorldFieldValue } from "services/worldEntryFieldValues.service";
 
 import type { WorldNavigation } from "../worldNavigation";
-import { WorldEntryLabelledField } from "./WorldEntryLabelledField";
+import {
+  WorldEntryFieldShell,
+  getWorldEntryFieldHelpId,
+  useEmptyFieldText,
+  worldEntryValueInputSx,
+} from "./WorldEntryFieldShell";
 import { getWorldFieldValueList } from "./worldEntryFieldValue";
 import { getLinkedWorldEntryPermissions } from "./worldEntryPermissions";
 
@@ -53,7 +55,7 @@ export function WorldEntryLinkedEntryField({
   const { t } = useTranslation();
   const uid = useUID();
   const permission = useWorldPermission();
-  const controlsShown = useWorldPermissionControlsShown();
+  const guided = useWorldIsGuided();
   const createEntry = useWorldEntriesStore((store) => store.createEntry);
   const targetCategoryId = field.configuration.targetCategoryId ?? "";
   const targets = useWorldEntriesStore((store) =>
@@ -62,6 +64,8 @@ export function WorldEntryLinkedEntryField({
       .map((target) => ({ id: target.id, name: target.name }))
       .sort((a, b) => a.name.localeCompare(b.name)),
   );
+  const inputId = useId();
+  const emptyText = useEmptyFieldText();
   const [inputValue, setInputValue] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -116,11 +120,11 @@ export function WorldEntryLinkedEntryField({
 
   if (!canEdit) {
     return (
-      <WorldEntryLabelledField label={field.label}>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+      <WorldEntryFieldShell label={field.label}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.25 }}>
           {shown.map((id) => renderChip(id, id))}
         </Box>
-      </WorldEntryLabelledField>
+      </WorldEntryFieldShell>
     );
   }
 
@@ -139,7 +143,7 @@ export function WorldEntryLinkedEntryField({
         uid,
         gmOnly: field.gmOnly,
         isGuide: !!permission && isGuideEquivalent(permission),
-        permissionControlsShown: controlsShown,
+        guided: guided,
       },
     );
     setCreating(true);
@@ -163,61 +167,77 @@ export function WorldEntryLinkedEntryField({
 
   const query = inputValue.trim();
   return (
-    <Autocomplete
-      multiple
-      filterSelectedOptions
-      disabled={creating}
-      options={targets.map((target) => target.id)}
-      value={shown}
-      inputValue={inputValue}
-      onInputChange={(_, next) => setInputValue(next)}
-      getOptionLabel={(id) =>
-        id === CREATE_OPTION
-          ? t("worlds.entries.create-linked", 'Create "{{name}}"', {
-              name: query,
-            })
-          : (names[id] ?? "")
-      }
-      filterOptions={(options) => {
-        const search = query.toLowerCase();
-        const matches = options.filter((id) =>
-          names[id]?.toLowerCase().includes(search),
-        );
-        const exists = targets.some(
-          (target) => target.name.toLowerCase() === search,
-        );
-        return canCreate && search && !exists
-          ? [...matches, CREATE_OPTION]
-          : matches;
-      }}
-      onChange={(_, next) => {
-        if (next.includes(CREATE_OPTION)) {
-          create(query);
-        } else {
-          link(next);
+    <WorldEntryFieldShell
+      label={field.label}
+      helpText={field.helpText || undefined}
+      inputId={inputId}
+      // Hidden links are kept, as on every save.
+      onClear={shown.length ? () => link([]) : undefined}
+    >
+      <Autocomplete
+        id={inputId}
+        multiple
+        filterSelectedOptions
+        disabled={creating}
+        options={targets.map((target) => target.id)}
+        value={shown}
+        inputValue={inputValue}
+        onInputChange={(_, next) => setInputValue(next)}
+        getOptionLabel={(id) =>
+          id === CREATE_OPTION
+            ? t("worlds.entries.create-linked", 'Create "{{name}}"', {
+                name: query,
+              })
+            : (names[id] ?? "")
         }
-      }}
-      // No chips must render nothing: any start adornment, even an empty
-      // list, keeps the label raised over an empty field.
-      renderValue={(values, getItemProps) =>
-        values.length === 0
-          ? null
-          : values.map((id, index) => {
-              const { key, onDelete, ...itemProps } = getItemProps({ index });
-              return renderChip(id, key, onDelete, itemProps);
-            })
-      }
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          inputProps={{
-            ...params.inputProps,
-            maxLength: WORLD_FIELD_VALUE_MAX_LENGTH,
-          }}
-          label={field.label}
-          helperText={field.helpText || undefined}
-        />
-      )}
-    />
+        filterOptions={(options) => {
+          const search = query.toLowerCase();
+          const matches = options.filter((id) =>
+            names[id]?.toLowerCase().includes(search),
+          );
+          const exists = targets.some(
+            (target) => target.name.toLowerCase() === search,
+          );
+          return canCreate && search && !exists
+            ? [...matches, CREATE_OPTION]
+            : matches;
+        }}
+        onChange={(_, next) => {
+          if (next.includes(CREATE_OPTION)) {
+            create(query);
+          } else {
+            link(next);
+          }
+        }}
+        // No chips must render nothing, or the placeholder never shows.
+        renderValue={(values, getItemProps) =>
+          values.length === 0
+            ? null
+            : values.map((id, index) => {
+                const { key, onDelete, ...itemProps } = getItemProps({ index });
+                return renderChip(id, key, onDelete, itemProps);
+              })
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="standard"
+            placeholder={shown.length ? undefined : emptyText}
+            inputProps={{
+              ...params.inputProps,
+              maxLength: WORLD_FIELD_VALUE_MAX_LENGTH,
+              "aria-describedby": field.helpText
+                ? getWorldEntryFieldHelpId(inputId)
+                : undefined,
+            }}
+            InputProps={{
+              ...params.InputProps,
+              disableUnderline: true,
+              sx: worldEntryValueInputSx,
+            }}
+          />
+        )}
+      />
+    </WorldEntryFieldShell>
   );
 }

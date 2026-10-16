@@ -47,15 +47,17 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
           {hasActions && (
             <>
               {actions?.start}
-              <Box
-                flexGrow={1}
-                display="flex"
-                justifyContent="flex-end"
-                alignItems="center"
-                gap={1}
-              >
-                {actions?.end}
-              </Box>
+              {actions?.end && (
+                <Box
+                  flexGrow={1}
+                  display="flex"
+                  justifyContent="flex-end"
+                  alignItems="center"
+                  gap={1}
+                >
+                  {actions.end}
+                </Box>
+              )}
             </>
           )}
         </ActionToolbar>
@@ -80,26 +82,28 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
             mb: 3,
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-              minWidth: 0,
-              flex: "1 1 240px",
-            }}
-          >
-            {titleIcon}
-            <Typography
-              variant="h4"
-              component="h1"
-              textTransform="uppercase"
-              fontFamily={(theme) => theme.typography.fontFamilyTitle}
-              sx={{ overflowWrap: "anywhere" }}
+          {title && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                minWidth: 0,
+                flex: "1 1 240px",
+              }}
             >
-              {title}
-            </Typography>
-          </Box>
+              {titleIcon}
+              <Typography
+                variant="h4"
+                component="h1"
+                textTransform="uppercase"
+                fontFamily={(theme) => theme.typography.fontFamilyTitle}
+                sx={{ overflowWrap: "anywhere" }}
+              >
+                {title}
+              </Typography>
+            </Box>
+          )}
           {hasActions && (
             <Box
               sx={{
@@ -107,6 +111,8 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
                 alignItems: "center",
                 flexWrap: "wrap",
                 gap: 1,
+                // Without a title, the actions are the whole strip.
+                flexGrow: title ? 0 : 1,
               }}
             >
               {actions?.start}

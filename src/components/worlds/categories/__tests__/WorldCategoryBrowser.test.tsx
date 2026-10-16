@@ -143,7 +143,7 @@ describe("WorldCategoryBrowser routes", () => {
       screen.queryByRole("button", { name: "Frosthaven" }),
     ).not.toBeInTheDocument();
     await user.type(
-      screen.getByRole("textbox", { name: "Search entries" }),
+      screen.getByRole("textbox", { name: "Filter Locations" }),
       "FROST",
     );
     expect(screen.getByText("Frosthaven")).toBeInTheDocument();
@@ -174,7 +174,7 @@ describe("WorldCategoryBrowser routes", () => {
       `/worlds/${category.worldId}`,
     );
     expect(
-      screen.queryByRole("textbox", { name: "Search entries" }),
+      screen.queryByRole("textbox", { name: "Filter Locations" }),
     ).not.toBeInTheDocument();
   });
   it("keeps add disabled during unavailable editor configuration and hides it for readers", () => {
@@ -283,19 +283,19 @@ describe("WorldCategoryBrowser routes", () => {
       screen.getByText("Entry unavailable", { selector: "h6" }),
     ).toBeInTheDocument();
   });
-  it("offers New entry to anyone who can write to the world", () => {
+  it("offers Create entry to anyone who can write to the world", () => {
     vi.spyOn(WorldEntriesService, "listenToWorldEntries").mockReturnValue(
       vi.fn(),
     );
     const path = `/worlds/${category.worldId}/categories/${category.id}`;
     const view = renderBrowser(path, { permission: WorldPermission.Player });
     expect(
-      screen.getByRole("button", { name: "New entry" }),
+      screen.getByRole("button", { name: "Create entry" }),
     ).toBeInTheDocument();
     view.unmount();
     renderBrowser(path);
     expect(
-      screen.queryByRole("button", { name: "New entry" }),
+      screen.queryByRole("button", { name: "Create entry" }),
     ).not.toBeInTheDocument();
   });
 });

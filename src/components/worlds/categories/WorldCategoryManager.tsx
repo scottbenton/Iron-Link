@@ -19,6 +19,7 @@ import { LinkComponent } from "components/LinkComponent";
 
 import { useWorldOracles } from "hooks/useWorldOracles";
 
+import { useWorldIsGuided } from "stores/world.store";
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
@@ -33,6 +34,7 @@ import {
   WorldViewActions,
   WorldViewLayout,
 } from "../WorldViewLayout";
+import { WorldEntryActions } from "../entries/WorldEntryActions";
 import { WorldEntryCreateDialog } from "../entries/WorldEntryCreateDialog";
 import { WorldEntryView } from "../entries/WorldEntryView";
 import type { WorldNavigation } from "../worldNavigation";
@@ -123,6 +125,10 @@ export function WorldCategoryManager({
       ? store.entryState.entries[view.entryId]
       : undefined,
   );
+  const entryPermissions = useWorldEntriesStore((store) =>
+    entry ? store.entryState.permissions[entry.id] : undefined,
+  );
+  const guided = useWorldIsGuided();
   const fields = Object.values(definitions)
     .filter(
       (field) => field.worldId === worldId && field.categoryId === selected?.id,
@@ -236,41 +242,43 @@ export function WorldCategoryManager({
     actions = selected
       ? {
           start: (
-            <Tooltip
-              title={t(
-                "worlds.categories.settings-named",
-                "{{name}} settings",
-                {
-                  name: selected.name,
-                },
-              )}
-            >
-              <IconButton
-                LinkComponent={LinkComponent}
-                {...navigation.getLinkProps({
-                  type: "category-settings",
-                  categoryId: selected.id,
-                })}
-                aria-label={t(
+            <WorldEntrySearch
+              categoryName={selected.name}
+              value={search}
+              onChange={setSearch}
+            />
+          ),
+          end: (
+            <>
+              <Tooltip
+                title={t(
                   "worlds.categories.settings-named",
                   "{{name}} settings",
                   { name: selected.name },
                 )}
               >
-                <SettingsIcon />
-              </IconButton>
-            </Tooltip>
-          ),
-          end: (
-            <>
-              <WorldEntrySearch value={search} onChange={setSearch} />
+                <IconButton
+                  LinkComponent={LinkComponent}
+                  {...navigation.getLinkProps({
+                    type: "category-settings",
+                    categoryId: selected.id,
+                  })}
+                  aria-label={t(
+                    "worlds.categories.settings-named",
+                    "{{name}} settings",
+                    { name: selected.name },
+                  )}
+                >
+                  <SettingsIcon />
+                </IconButton>
+              </Tooltip>
               {canCreateEntries && (
                 <Button
                   variant="contained"
                   startIcon={<AddIcon />}
                   onClick={() => setAddingEntry(true)}
                 >
-                  {t("worlds.entries.new", "New entry")}
+                  {t("worlds.entries.new", "Create entry")}
                 </Button>
               )}
             </>
@@ -280,6 +288,29 @@ export function WorldCategoryManager({
   } else if (view.type === "entry") {
     // The entry renders its own editable header on both surfaces.
     title = undefined;
+    const canShareEntry = !!entryPermissions?.canChangePermissions && guided;
+    const canDeleteEntry = !!entryPermissions?.canDelete;
+    // People who can do neither get no strip at all.
+    actions =
+      entry && (canShareEntry || canDeleteEntry)
+        ? {
+            start: (
+              <WorldEntryActions
+                key={entry.id}
+                entry={entry}
+                canShare={canShareEntry}
+                canDelete={canDeleteEntry}
+                onDeleted={() =>
+                  navigation.navigate({
+                    type: "category",
+                    categoryId: entry.categoryId,
+                  })
+                }
+                onError={(cause) => setError(getEditorErrorMessage(cause))}
+              />
+            ),
+          }
+        : undefined;
   } else {
     title = t("worlds.settings.title", "World settings");
   }

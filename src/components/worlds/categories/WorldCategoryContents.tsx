@@ -1,10 +1,12 @@
 import { Alert, Box, LinearProgress } from "@mui/material";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
 
 import { useWorldFieldEntrySnapshots } from "hooks/useWorldFieldEntrySnapshots";
 
+import { useWorldIsGuided } from "stores/world.store";
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
@@ -14,7 +16,9 @@ import { IWorldCategory } from "services/worldCategories.service";
 
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldCategoryEntryItem } from "./WorldCategoryEntryItem";
+import { getEditorErrorMessage } from "./categoryEditor.utils";
 
+// A category opened like a Notes folder: its entries as note cards, by name.
 // Entries are listened to by the surrounding manager, which keeps them loaded
 // while moving between this list and an entry.
 export function WorldCategoryContents({
@@ -27,6 +31,8 @@ export function WorldCategoryContents({
   navigation: WorldNavigation;
 }) {
   const { t } = useTranslation();
+  const guided = useWorldIsGuided();
+  const [actionError, setActionError] = useState<string>();
   const loading = useWorldEntriesStore((store) => store.entryState.loading);
   const error = useWorldEntriesStore((store) => !!store.entryState.error);
   const visible = useWorldEntriesStore((store) =>
@@ -63,6 +69,15 @@ export function WorldCategoryContents({
         category: category.name,
       })}
     >
+      {actionError && (
+        <Alert
+          severity="error"
+          onClose={() => setActionError(undefined)}
+          sx={{ mb: 1 }}
+        >
+          {actionError}
+        </Alert>
+      )}
       {error ? (
         <Alert severity="error">
           {t(
@@ -95,12 +110,15 @@ export function WorldCategoryContents({
           sx={{ py: 4 }}
         />
       ) : (
-        <Box component="ul" sx={{ listStyle: "none", p: 0, m: 0 }}>
+        <Box component="ul" sx={{ listStyle: "none", p: 0, m: 0, mt: -1 }}>
           {filtered.map(({ entry, subtitle }) => (
             <WorldCategoryEntryItem
               key={entry.id}
               entry={entry}
               subtitle={subtitle}
+              guided={guided}
+              onDeleted={() => setActionError(undefined)}
+              onError={(cause) => setActionError(getEditorErrorMessage(cause))}
               linkProps={navigation.getLinkProps({
                 type: "entry",
                 categoryId: category.id,

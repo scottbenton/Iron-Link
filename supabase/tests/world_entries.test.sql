@@ -1,8 +1,8 @@
 -- World entries: entry and value permissions per role, inherited configuration
 -- staying inherited while content changes, linked entry cleanup on delete,
 -- values with hidden links staying out of reach of blind writes, content
--- writes sharing the world lock, and whether a world has anyone with less than
--- Guide access. Every fixture is rolled back.
+-- writes sharing the world lock, and whether a world is guided. Every fixture
+-- is rolled back.
 begin;
 create extension if not exists pgtap with schema extensions;
 create extension if not exists pgrowlocks with schema extensions;
@@ -83,9 +83,11 @@ create function pg_temp.world_locks(p_key text) returns text[] language sql as $
 select ok(not has_function_privilege('authenticated','public.world_entry_remove_links()','EXECUTE')
   and not has_function_privilege('anon','public.world_entry_remove_links()','EXECUTE'),
   'link cleanup is not exposed to clients');
-select ok(has_function_privilege('authenticated','public.world_has_restricted_members(uuid)','EXECUTE')
-  and not has_function_privilege('anon','public.world_has_restricted_members(uuid)','EXECUTE'),
-  'only signed-in clients can ask whether a world has restricted members');
+select ok(has_function_privilege('authenticated','public.world_is_guided(uuid)','EXECUTE')
+  and not has_function_privilege('anon','public.world_is_guided(uuid)','EXECUTE'),
+  'only signed-in clients can ask whether a world is guided');
+select is(to_regprocedure('public.world_has_restricted_members(uuid)'),null::regprocedure,
+  'world_is_guided replaces the restricted members check');
 select is(to_regprocedure('public.world_configuration_guard_referenced_entry_delete()'),null::regprocedure,
   'the guard that refused deleting linked entries is gone');
 
@@ -124,23 +126,23 @@ insert into public.game_players(game_id,user_id,role)
     (10,2,'guide'),(10,10,'player')) v(g,p,r);
 insert into public.world_players(world_id,user_id,role) values (pg_temp.w('viewer'),pg_temp.u(9),'viewer');
 
--- Restricted members: anyone whose best role is below Guide.
+-- Guided: a guided game uses the world, or someone's best role is below Guide.
 set local role authenticated;
 select pg_temp.as_user(1);
-select is(public.world_has_restricted_members(pg_temp.w('standalone')),false,'a world with only its owner has no restricted members');
-select is(public.world_has_restricted_members(pg_temp.w('solo')),false,'a solo game member is a Guide');
-select is(public.world_has_restricted_members(pg_temp.w('coop')),false,'co-op game members are Guides');
-select is(public.world_has_restricted_members(pg_temp.w('guide only')),false,'a guided game with only its guide has no restricted members');
-select is(public.world_has_restricted_members(pg_temp.w('guided')),true,'a guided game player is restricted');
-select is(public.world_has_restricted_members(pg_temp.w('viewer')),true,'an explicit viewer is restricted');
-select is(public.world_has_restricted_members(pg_temp.w('mixed')),false,
-  'a guided game player who also plays a linked co-op game counts as a Guide');
+select is(public.world_is_guided(pg_temp.w('standalone')),false,'a world with only its owner is not guided');
+select is(public.world_is_guided(pg_temp.w('solo')),false,'a world used by a solo game is not guided');
+select is(public.world_is_guided(pg_temp.w('coop')),false,'a world used by a co-op game is not guided');
+select is(public.world_is_guided(pg_temp.w('guide only')),true,'a guided game makes a world guided before its players join');
+select is(public.world_is_guided(pg_temp.w('guided')),true,'a guided game with a player makes a world guided');
+select is(public.world_is_guided(pg_temp.w('viewer')),true,'an explicit viewer makes a world guided');
+select is(public.world_is_guided(pg_temp.w('mixed')),true,
+  'a world used by a guided game is guided even when every player is also a Guide');
 select pg_temp.as_user(3);
-select is(public.world_has_restricted_members(pg_temp.w('guided')),true,'members other than the owner can ask');
+select is(public.world_is_guided(pg_temp.w('guided')),true,'members other than the owner can ask');
 select pg_temp.as_user(5);
-select is(public.world_has_restricted_members(pg_temp.w('guided')),false,'callers outside the world learn nothing');
+select is(public.world_is_guided(pg_temp.w('guided')),false,'callers outside the world learn nothing');
 select pg_temp.as_user(8);
-select is(public.world_has_restricted_members(pg_temp.w('viewer')),false,'members of other worlds learn nothing');
+select is(public.world_is_guided(pg_temp.w('viewer')),false,'members of other worlds learn nothing');
 
 -- Permissions in an inherited Ironlands world.
 select pg_temp.as_user(3);

@@ -1,16 +1,22 @@
-import { TextField, Typography } from "@mui/material";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { InputBase, Typography } from "@mui/material";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import {
   type ResolvedWorldFieldDefinition,
   WORLD_FIELD_VALUE_MAX_LENGTH,
 } from "lib/worldFieldRules";
 
-import { WorldEntryLabelledField } from "./WorldEntryLabelledField";
+import {
+  WorldEntryFieldShell,
+  getWorldEntryFieldHelpId,
+  useEmptyFieldText,
+  worldEntryValueInputSx,
+} from "./WorldEntryFieldShell";
 
 const SAVE_DELAY_MS = 1000;
 
-// One line that saves after a pause in typing, and when it loses focus.
+// Text that wraps like the value it holds and saves after a pause in typing,
+// and when it loses focus. Enter leaves the field rather than adding a line.
 // While it has focus, changes from other people wait until it is left, so
 // they never replace what is being typed. Saved text is trimmed.
 export function WorldEntryTextField({
@@ -24,6 +30,8 @@ export function WorldEntryTextField({
   canEdit: boolean;
   onSave: (value: string) => void;
 }) {
+  const inputId = useId();
+  const emptyText = useEmptyFieldText();
   const [draft, setDraft] = useState(value);
   const [focused, setFocused] = useState(false);
   const [seenValue, setSeenValue] = useState(value);
@@ -63,38 +71,71 @@ export function WorldEntryTextField({
 
   if (!canEdit) {
     return (
-      <WorldEntryLabelledField label={field.label}>
-        <Typography sx={{ overflowWrap: "anywhere" }}>{value}</Typography>
-      </WorldEntryLabelledField>
+      <WorldEntryFieldShell label={field.label}>
+        <Typography sx={{ fontSize: 15, overflowWrap: "anywhere" }}>
+          {value}
+        </Typography>
+      </WorldEntryFieldShell>
     );
   }
 
   return (
-    <TextField
+    <WorldEntryFieldShell
       label={field.label}
-      helperText={field.helpText || undefined}
-      value={draft}
-      fullWidth
-      onFocus={() => setFocused(true)}
-      onBlur={() => {
-        const saving = pending.current?.value.trim();
-        flush();
-        setFocused(false);
-        // Leaving shows what was saved: the text just sent, a save whose
-        // change has not arrived yet, or otherwise the stored value, which
-        // takes in changes made elsewhere while the field had focus.
-        setDraft(saving ?? unconfirmed ?? value);
-      }}
-      onChange={(event) => {
-        const next = event.target.value;
-        setDraft(next);
-        if (pending.current) clearTimeout(pending.current.timeout);
-        pending.current = {
-          value: next,
-          timeout: setTimeout(flush, SAVE_DELAY_MS),
-        };
-      }}
-      slotProps={{ htmlInput: { maxLength: WORLD_FIELD_VALUE_MAX_LENGTH } }}
-    />
+      helpText={field.helpText || undefined}
+      inputId={inputId}
+      onClear={
+        draft
+          ? () => {
+              if (pending.current) clearTimeout(pending.current.timeout);
+              pending.current = undefined;
+              setDraft("");
+              setUnconfirmed("");
+              onSaveRef.current("");
+            }
+          : undefined
+      }
+    >
+      <InputBase
+        id={inputId}
+        value={draft}
+        placeholder={emptyText}
+        multiline
+        fullWidth
+        onFocus={() => setFocused(true)}
+        onBlur={() => {
+          const saving = pending.current?.value.trim();
+          flush();
+          setFocused(false);
+          // Leaving shows what was saved: the text just sent, a save whose
+          // change has not arrived yet, or otherwise the stored value, which
+          // takes in changes made elsewhere while the field had focus.
+          setDraft(saving ?? unconfirmed ?? value);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+            event.preventDefault();
+            (event.target as HTMLElement).blur();
+          }
+        }}
+        onChange={(event) => {
+          // Pasted line breaks become spaces: the value is one line.
+          const next = event.target.value.replace(/\r?\n/g, " ");
+          setDraft(next);
+          if (pending.current) clearTimeout(pending.current.timeout);
+          pending.current = {
+            value: next,
+            timeout: setTimeout(flush, SAVE_DELAY_MS),
+          };
+        }}
+        inputProps={{
+          maxLength: WORLD_FIELD_VALUE_MAX_LENGTH,
+          "aria-describedby": field.helpText
+            ? getWorldEntryFieldHelpId(inputId)
+            : undefined,
+        }}
+        sx={worldEntryValueInputSx}
+      />
+    </WorldEntryFieldShell>
   );
 }

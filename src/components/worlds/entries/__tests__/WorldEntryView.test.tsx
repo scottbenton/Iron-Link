@@ -24,6 +24,7 @@ import {
   linkedEntry,
   translate,
 } from "../../categories/__tests__/fixtures";
+import { WorldEntryActions } from "../WorldEntryActions";
 import { WorldEntryView } from "../WorldEntryView";
 import { worldEntry } from "./fixtures";
 
@@ -40,7 +41,7 @@ beforeEach(() => {
   vi.restoreAllMocks();
   useWorldEntriesStore.getState().reset();
   useWorldCategoriesStore.setState({ fieldDefinitions: {} });
-  useWorldStore.setState({ hasRestrictedMembers: true });
+  useWorldStore.setState({ isGuided: true });
 });
 
 function loadEntries(
@@ -70,7 +71,7 @@ function loadEntries(
   });
 }
 
-function renderView(entryId = "entry-1") {
+function renderView(entryId = "entry-1", viewCategory = category) {
   const navigate = vi.fn();
   const navigation: WorldNavigation = {
     view: { type: "entry", categoryId: category.id, entryId },
@@ -83,7 +84,7 @@ function renderView(entryId = "entry-1") {
     <MemoryRouter>
       <ConfirmProvider>
         <WorldEntryView
-          category={category}
+          category={viewCategory}
           entryId={entryId}
           navigation={navigation}
         />
@@ -93,7 +94,27 @@ function renderView(entryId = "entry-1") {
   return navigate;
 }
 
-describe("WorldEntryView", () => {
+function renderActions(
+  variant: "strip" | "card",
+  { canShare = true, canDelete = true } = {},
+) {
+  const onDeleted = vi.fn();
+  render(
+    <ConfirmProvider>
+      <WorldEntryActions
+        entry={useWorldEntriesStore.getState().entryState.entries["entry-1"]}
+        variant={variant}
+        canShare={canShare}
+        canDelete={canDelete}
+        onDeleted={onDeleted}
+        onError={vi.fn()}
+      />
+    </ConfirmProvider>,
+  );
+  return onDeleted;
+}
+
+describe("WorldEntryActions", () => {
   it("names the visible entries that link here before deleting, then returns to the list", async () => {
     const user = userEvent.setup();
     const home = linkedEntry(category.id, {
@@ -130,9 +151,9 @@ describe("WorldEntryView", () => {
     const remove = vi
       .spyOn(WorldEntriesService, "deleteWorldEntry")
       .mockResolvedValue();
-    const navigate = renderView();
+    const onDeleted = renderActions("strip");
 
-    await user.click(screen.getByRole("button", { name: "Entry actions" }));
+    await user.click(screen.getByRole("button", { name: "More" }));
     await user.click(screen.getByRole("menuitem", { name: "Delete" }));
     expect(
       await screen.findByText(
@@ -140,31 +161,55 @@ describe("WorldEntryView", () => {
       ),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Delete" }));
-    await waitFor(() =>
-      expect(navigate).toHaveBeenCalledWith({
-        type: "category",
-        categoryId: category.id,
-      }),
-    );
+    await waitFor(() => expect(onDeleted).toHaveBeenCalled());
     expect(remove).toHaveBeenCalledWith("entry-1");
   });
 
-  it("offers Share only when permission controls show", async () => {
+  it("shows Share in the strip and keeps the rest in More", async () => {
     const user = userEvent.setup();
     loadEntries([worldEntry()]);
-    renderView();
-    await user.click(screen.getByRole("button", { name: "Entry actions" }));
-    expect(screen.getByRole("menuitem", { name: "Share" })).toBeInTheDocument();
-    await user.keyboard("{Escape}");
+    renderActions("strip");
+    await user.click(screen.getByRole("button", { name: "Share" }));
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+  });
 
-    useWorldStore.setState({ hasRestrictedMembers: false });
-    await user.click(screen.getByRole("button", { name: "Entry actions" }));
+  it("puts every action in one menu on a card", async () => {
+    const user = userEvent.setup();
+    loadEntries([worldEntry()]);
+    renderActions("card");
     expect(
-      screen.queryByRole("menuitem", { name: "Share" }),
+      screen.queryByRole("button", { name: "Share" }),
     ).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Hollowmere actions" }),
+    );
+    expect(screen.getByRole("menuitem", { name: "Share" })).toBeInTheDocument();
     expect(
       screen.getByRole("menuitem", { name: "Delete" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("WorldEntryView", () => {
+  it("shows the subtitle under the name", () => {
+    const role = field({ id: "role", label: "Role" });
+    useWorldCategoriesStore.setState({ fieldDefinitions: { role } });
+    loadEntries([worldEntry()]);
+    useWorldEntriesStore.setState((store) => {
+      store.fieldValueState.valuesByEntry = {
+        "entry-1": {
+          role: {
+            entryId: "entry-1",
+            fieldDefinitionId: "role",
+            worldId: category.worldId,
+            gmOnly: false,
+            value: "Mystic",
+          },
+        },
+      };
+    });
+    renderView(undefined, { ...category, subtitleFieldDefinitionId: "role" });
+    expect(screen.getByText("Mystic", { selector: "p" })).toBeInTheDocument();
   });
 
   it("shows the entry read-only to anyone who cannot edit it", () => {
@@ -180,9 +225,6 @@ describe("WorldEntryView", () => {
       screen.getByRole("heading", { name: "Hollowmere" }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Entry actions" }),
-    ).not.toBeInTheDocument();
   });
 
   it("renames the entry in place", async () => {

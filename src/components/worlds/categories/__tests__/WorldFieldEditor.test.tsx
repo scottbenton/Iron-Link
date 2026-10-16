@@ -529,14 +529,13 @@ describe("WorldFieldEditor field types", () => {
     onClose: vi.fn(),
   };
 
-  it("offers four purpose cards as a keyboard radio group for a new field", async () => {
+  it("offers three purpose cards as a keyboard radio group for a new field", async () => {
     const user = userEvent.setup();
     render(<WorldFieldEditor {...props} onSave={vi.fn()} />);
     const group = screen.getByRole("radiogroup", { name: "Field type" });
     const radios = within(group).getAllByRole("radio");
     expect(radios.map((radio) => radio.textContent)).toEqual([
       expect.stringContaining("Text"),
-      expect.stringContaining("Long text"),
       expect.stringContaining("Option list"),
       expect.stringContaining("Linked entry"),
     ]);
@@ -545,7 +544,14 @@ describe("WorldFieldEditor field types", () => {
     ).toHaveAccessibleDescription(
       "A short line, like a name or a rolled result. Can roll from an oracle.",
     );
-    for (const name of ["Select", "Dropdown", "Link", "Tags", "Rich text"])
+    for (const name of [
+      "Long text",
+      "Select",
+      "Dropdown",
+      "Link",
+      "Tags",
+      "Rich text",
+    ])
       expect(screen.queryByRole("radio", { name })).toBeNull();
     expect(screen.getByRole("radio", { name: "Text" })).toBeChecked();
     // Only the selected card is a Tab stop; arrows move the selection.
@@ -554,10 +560,29 @@ describe("WorldFieldEditor field types", () => {
     ).toEqual([screen.getByRole("radio", { name: "Text" })]);
     act(() => screen.getByRole("radio", { name: "Text" }).focus());
     await user.keyboard("{ArrowRight}");
-    expect(screen.getByRole("radio", { name: "Long text" })).toBeChecked();
-    expect(screen.getByRole("radio", { name: "Long text" })).toHaveFocus();
+    expect(screen.getByRole("radio", { name: "Option list" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "Option list" })).toHaveFocus();
     await user.keyboard("{ArrowLeft}{ArrowLeft}");
     expect(screen.getByRole("radio", { name: "Linked entry" })).toBeChecked();
+  });
+
+  it("keeps Long text on offer for an existing Long text field", async () => {
+    const user = userEvent.setup();
+    render(
+      <WorldFieldEditor
+        {...props}
+        field={field({ type: WorldFieldType.RichText })}
+        onSave={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getByRole("region", { name: "Field type" }),
+    ).toHaveTextContent("Long text");
+    await user.click(screen.getByRole("button", { name: "Change type" }));
+    expect(screen.getByRole("radio", { name: "Long text" })).toBeChecked();
+    expect(
+      screen.queryByRole("checkbox", { name: "Full width" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows only the settings each kind uses", async () => {
@@ -565,14 +590,12 @@ describe("WorldFieldEditor field types", () => {
     render(<WorldFieldEditor {...props} onSave={vi.fn()} />);
     expect(screen.getByText("Oracle picker")).toBeInTheDocument();
     expect(screen.queryByRole("combobox", { name: "Options" })).toBeNull();
-
-    await user.click(screen.getByRole("radio", { name: "Long text" }));
-    expect(screen.queryByText("Oracle picker")).toBeNull();
     expect(
-      screen.queryByRole("checkbox", { name: "Allow more than one" }),
-    ).toBeNull();
+      screen.getByRole("checkbox", { name: "Full width" }),
+    ).not.toBeChecked();
 
     await user.click(screen.getByRole("radio", { name: "Option list" }));
+    expect(screen.queryByRole("checkbox", { name: "Full width" })).toBeNull();
     expect(screen.getByText("Oracle picker")).toBeInTheDocument();
     expect(
       screen.getByRole("checkbox", { name: "Allow more than one" }),
@@ -591,6 +614,25 @@ describe("WorldFieldEditor field types", () => {
     expect(
       screen.getByRole("checkbox", { name: "Allow more than one" }),
     ).toBeInTheDocument();
+  });
+
+  it("saves a full width Text field", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<WorldFieldEditor {...props} onSave={onSave} />);
+    await user.type(
+      screen.getByRole("textbox", { name: "Field label" }),
+      "Goal",
+    );
+    await user.click(screen.getByRole("checkbox", { name: "Full width" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: WorldFieldType.Text,
+        configuration: expect.objectContaining({ fullWidth: true }),
+      }),
+      false,
+    );
   });
 
   it("saves an option list's options and settings", async () => {
@@ -677,13 +719,11 @@ describe("WorldFieldEditor field types", () => {
     await user.click(screen.getByRole("button", { name: "Change type" }));
     expect(screen.getByRole("radio", { name: "Text" })).toBeChecked();
     expect(screen.getByRole("radio", { name: "Option list" })).toBeEnabled();
-    for (const name of ["Long text", "Linked entry"]) {
-      const card = screen.getByRole("radio", { name });
-      expect(card).toBeDisabled();
-      expect(card).toHaveAccessibleDescription(
-        expect.stringContaining("Has 7 values. Create a new field instead."),
-      );
-    }
+    const linked = screen.getByRole("radio", { name: "Linked entry" });
+    expect(linked).toBeDisabled();
+    expect(linked).toHaveAccessibleDescription(
+      expect.stringContaining("Has 7 values. Create a new field instead."),
+    );
     // Arrow keys skip the cards that cannot be chosen.
     act(() => screen.getByRole("radio", { name: "Text" }).focus());
     await user.keyboard("{ArrowRight}");
@@ -691,20 +731,25 @@ describe("WorldFieldEditor field types", () => {
     await user.keyboard("{ArrowRight}");
     expect(screen.getByRole("radio", { name: "Text" })).toBeChecked();
 
-    const longText = screen
-      .getByRole("radio", { name: "Long text" })
-      .closest(".MuiCard-root") as HTMLElement;
+    const linkedCard = linked.closest(".MuiCard-root") as HTMLElement;
     await user.click(
-      within(longText).getByRole("button", { name: "Create new field" }),
+      within(linkedCard).getByRole("button", { name: "Create new field" }),
     );
-    expect(screen.getByRole("radio", { name: "Long text" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "Linked entry" })).toBeChecked();
     expect(screen.getByRole("alert")).toHaveTextContent("7 stored values");
     expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+    await user.click(screen.getByRole("combobox", { name: /Category/ }));
+    await user.click(screen.getByRole("option", { name: "Locations" }));
     // Only the dialog's own action remains once a new field is the outcome.
     await user.click(screen.getByRole("button", { name: "Create new field" }));
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith(
-        expect.objectContaining({ type: WorldFieldType.RichText }),
+        expect.objectContaining({
+          type: WorldFieldType.Select,
+          configuration: expect.objectContaining({
+            targetCategoryId: locations.id,
+          }),
+        }),
         true,
       ),
     );
@@ -756,7 +801,7 @@ describe("WorldFieldEditor field types", () => {
     );
     render(<WorldFieldEditor {...props} field={original} onSave={vi.fn()} />);
     await user.click(screen.getByRole("button", { name: "Change type" }));
-    await user.click(screen.getByRole("radio", { name: "Long text" }));
+    await user.click(screen.getByRole("radio", { name: "Text" }));
     await user.click(screen.getByRole("button", { name: "Keep current type" }));
     expect(screen.queryByRole("radiogroup")).toBeNull();
     expect(
@@ -796,13 +841,20 @@ describe("WorldFieldEditor field types", () => {
     await user.click(screen.getByRole("button", { name: "Change type" }));
     for (const radio of screen.getAllByRole("radio"))
       expect(radio).toBeEnabled();
-    await user.click(screen.getByRole("radio", { name: "Long text" }));
+    await user.click(screen.getByRole("radio", { name: "Linked entry" }));
     expect(
       screen.queryByRole("textbox", { name: /key/i }),
     ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("combobox", { name: /Category/ }));
+    await user.click(screen.getByRole("option", { name: "Locations" }));
     await user.click(screen.getByRole("button", { name: "Save" }));
     expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ type: WorldFieldType.RichText }),
+      expect.objectContaining({
+        type: WorldFieldType.Select,
+        configuration: expect.objectContaining({
+          targetCategoryId: locations.id,
+        }),
+      }),
       false,
     );
   });

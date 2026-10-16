@@ -315,12 +315,10 @@ export class WorldsRepository {
   }
 
   // Whether anyone in the world has less than Guide access. Never says who.
-  public static async getWorldHasRestrictedMembers(
-    worldId: string,
-  ): Promise<boolean> {
+  public static async getWorldIsGuided(worldId: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
       supabase
-        .rpc("world_has_restricted_members", { p_world_id: worldId })
+        .rpc("world_is_guided", { p_world_id: worldId })
         .then(({ data, error, status }) => {
           if (error) {
             console.error(error);

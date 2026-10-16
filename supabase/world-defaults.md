@@ -58,7 +58,7 @@ Supports: bonds. Subtitle: Location.
   - Options: "Human", "Elf", "Giant", "Varou", "Troll"
 - **Descriptor** (`descriptor`): Text; Guide-only; oracle `oracle_rollable:classic/character/descriptor`
 - **Role** (`role`): Text; Guide-only; oracle `oracle_rollable:classic/character/role`
-- **Goal** (`goal`): Text; Guide-only; oracle `oracle_rollable:classic/character/goal`
+- **Goal** (`goal`): Text, full width; Guide-only; oracle `oracle_rollable:classic/character/goal`
 
 ### Lore (`lore`)
 
@@ -85,7 +85,7 @@ Supports: bonds. Subtitle: Location.
 - **Tags** (`tags`): Option list, multiple, allows other values
 - **Traits** (`traits`): Text; Guide-only; oracle `oracle_rollable:elegy/character/traits`
 - **Occupation** (`occupation`): Text; Guide-only; oracle `oracle_rollable:elegy/character/occupation`
-- **Goal** (`goal`): Text; Guide-only; oracle `oracle_rollable:elegy/character/goal`
+- **Goal** (`goal`): Text, full width; Guide-only; oracle `oracle_rollable:elegy/character/goal`
 - **Disposition** (`disposition`): Text; Guide-only; oracle `oracle_rollable:elegy/character/disposition`
 
 ### Lore (`lore`)
@@ -105,15 +105,15 @@ Supports: hierarchy, map, bonds. Subtitle: Location Type.
 - **Region** (`region`): Option list, single, allows other values; hidden unless a rule shows it
   - Options: "Terminus", "Outlands", "Expanse", "Void"
   - when Location Type = "Sector" → show
-- **Sector Trouble** (`sectorTrouble`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/launching_your_campaign/starting_sector/trouble`
+- **Sector Trouble** (`sectorTrouble`): Text, full width; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/launching_your_campaign/starting_sector/trouble`
   - when Location Type = "Sector" → show
 - **Planet Class** (`planetClass`): Option list, single, allows other values; hidden unless a rule shows it
   - Options: "Desert World", "Furnace World", "Grave World", "Ice World", "Jovian World", "Jungle World", "Ocean World", "Rocky World", "Shattered World", "Tainted World", "Vital World"
   - when Location Type = "Planet" → show
-- **Description** (`starDescription`): Text; hidden unless a rule shows it
+- **Description** (`starDescription`): Text, full width; hidden unless a rule shows it
   - when Location Type = "Planet" → show
   - when Location Type = "Star" → show, oracle `oracle_rollable:starforged/space/stellar_object`
-- **Feature** (`planetFeature`): Text; Guide-only; hidden unless a rule shows it
+- **Feature** (`planetFeature`): Text, full width; Guide-only; hidden unless a rule shows it
   - when Location Type = "Planet" and Planet Class = "Desert World" → show, oracle `oracle_rollable:starforged/planet/desert/feature`
   - when Location Type = "Planet" and Planet Class = "Furnace World" → show, oracle `oracle_rollable:starforged/planet/furnace/feature`
   - when Location Type = "Planet" and Planet Class = "Grave World" → show, oracle `oracle_rollable:starforged/planet/grave/feature`
@@ -205,7 +205,7 @@ Supports: hierarchy, map, bonds. Subtitle: Location Type.
   - when Location Type = "Non-Planetary Settlement" → show, oracle `oracle_rollable:starforged/settlement/location`
   - when Location Type = "Orbital Settlement" → show, oracle `oracle_rollable:starforged/settlement/location`
   - when Location Type = "Vault" → show, oracle `oracle_rollable:starforged/precursor_vault/location`
-- **First Look** (`settlementFirstLook`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/settlement/first_look`
+- **First Look** (`settlementFirstLook`): Text, full width; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/settlement/first_look`
   - when Location Type = "Planetside Settlement" → show
   - when Location Type = "Non-Planetary Settlement" → show
   - when Location Type = "Orbital Settlement" → show
@@ -253,7 +253,7 @@ Supports: hierarchy, map, bonds. Subtitle: Location Type.
   - when Location Type = "Vault" → show, oracle `oracle_rollable:starforged/precursor_vault/outer_first_look`
 - **Inner First Look** (`derelictInnerFirstLook`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/derelict/inner_first_look`
   - when Location Type = "Derelict" → show
-- **Scale** (`vaultScale`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/scale`
+- **Scale** (`vaultScale`): Text, full width; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/scale`
   - when Location Type = "Vault" → show
 - **Form** (`vaultForm`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/form`
   - when Location Type = "Vault" → show
@@ -261,21 +261,21 @@ Supports: hierarchy, map, bonds. Subtitle: Location Type.
   - when Location Type = "Vault" → show
 - **Material** (`vaultMaterial`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/material`
   - when Location Type = "Vault" → show
-- **Interior First Look** (`vaultInnerFirstLook`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/interior/first_look`
+- **Interior First Look** (`vaultInnerFirstLook`): Text, full width; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/interior/first_look`
   - when Location Type = "Vault" → show
-- **Interior Feature** (`vaultInnerFeature`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/interior/feature`
+- **Interior Feature** (`vaultInnerFeature`): Text, full width; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/interior/feature`
   - when Location Type = "Vault" → show
-- **Interior Peril** (`vaultInnerPeril`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/interior/peril`
+- **Interior Peril** (`vaultInnerPeril`): Text, full width; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/interior/peril`
   - when Location Type = "Vault" → show
-- **Interior Opportunity** (`vaultInnerOpportunity`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/interior/opportunity`
+- **Interior Opportunity** (`vaultInnerOpportunity`): Text, full width; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/interior/opportunity`
   - when Location Type = "Vault" → show
-- **Sanctum Purpose** (`vaultSanctumPurpose`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/sanctum/purpose`
+- **Sanctum Purpose** (`vaultSanctumPurpose`): Text, full width; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/sanctum/purpose`
   - when Location Type = "Vault" → show
-- **Sanctum Feature** (`vaultSanctumFeature`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/sanctum/feature`
+- **Sanctum Feature** (`vaultSanctumFeature`): Text, full width; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/sanctum/feature`
   - when Location Type = "Vault" → show
-- **Sanctum Peril** (`vaultSanctumPeril`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/sanctum/peril`
+- **Sanctum Peril** (`vaultSanctumPeril`): Text, full width; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/sanctum/peril`
   - when Location Type = "Vault" → show
-- **Sanctum Opportunity** (`vaultSanctumOpportunity`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/sanctum/opportunity`
+- **Sanctum Opportunity** (`vaultSanctumOpportunity`): Text, full width; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/precursor_vault/sanctum/opportunity`
   - when Location Type = "Vault" → show
 
 ### NPCs (`npcs`)
@@ -290,7 +290,7 @@ Supports: bonds. Subtitle: Location.
 - **First Look** (`firstLook`): Text; Guide-only; oracle `oracle_rollable:starforged/character/first_look`
 - **Role** (`role`): Text; Guide-only; oracle `oracle_rollable:starforged/character/role`
 - **Disposition** (`disposition`): Text; Guide-only; oracle `oracle_rollable:starforged/character/initial_disposition`
-- **Goal** (`goal`): Text; Guide-only; oracle `oracle_rollable:starforged/character/goal`
+- **Goal** (`goal`): Text, full width; Guide-only; oracle `oracle_rollable:starforged/character/goal`
 - **Revealed Aspect** (`revealedAspect`): Text; Guide-only; oracle `oracle_rollable:starforged/character/revealed_aspect`
 
 ### Lore (`lore`)
@@ -312,10 +312,10 @@ Supports: none. Subtitle: Faction Type.
   - when Faction Type = "Fringe Group" → show, label "Role", oracle `oracle_rollable:starforged/faction/fringe_group`
 - **Leadership** (`leadership`): Text; Guide-only; hidden unless a rule shows it
   - when Faction Type = "Dominion" → show, oracle `oracle_rollable:starforged/faction/dominion_leadership`
-- **Projects** (`projects`): Text; Guide-only; oracle `oracle_rollable:starforged/faction/projects`
+- **Projects** (`projects`): Text, full width; Guide-only; oracle `oracle_rollable:starforged/faction/projects`
 - **Relationships** (`relationships`): Text; Guide-only; oracle `oracle_rollable:starforged/faction/relationships`
-- **Quirks** (`quirks`): Text; Guide-only; oracle `oracle_rollable:starforged/faction/quirks`
-- **Rumors** (`rumors`): Text; Guide-only; oracle `oracle_rollable:starforged/faction/rumors`
+- **Quirks** (`quirks`): Text, full width; Guide-only; oracle `oracle_rollable:starforged/faction/quirks`
+- **Rumors** (`rumors`): Text, full width; Guide-only; oracle `oracle_rollable:starforged/faction/rumors`
 
 ## world:sundered_isles/sundered_isles
 
@@ -336,22 +336,22 @@ Supports: hierarchy, map, bonds. Subtitle: Location Type.
   - when Location Type = "Settlement" → show
 - **Terrain** (`islandTerrain`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:sundered_isles/island/landscape/terrain`
   - when Location Type = "Island" → show
-- **Offshore Observations** (`islandOffshoreObservations`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:sundered_isles/island/offshore_observations`
+- **Offshore Observations** (`islandOffshoreObservations`): Text, full width; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:sundered_isles/island/offshore_observations`
   - when Location Type = "Island" → show
 - **Location** (`settlementLocation`): Text; Guide-only; hidden unless a rule shows it
   - when Location Type = "Settlement" → show, oracle `oracle_rollable:sundered_isles/settlement/location`
   - when Location Type = "Shipwreck" → show, oracle `oracle_rollable:sundered_isles/shipwreck/location`
   - when Location Type = "Ruin" → show, oracle `oracle_rollable:sundered_isles/ruin/location`
-- **First Look** (`settlementFirstLook`): Text; Guide-only; hidden unless a rule shows it
+- **First Look** (`settlementFirstLook`): Text, full width; Guide-only; hidden unless a rule shows it
   - when Location Type = "Settlement" → show, oracle `oracle_rollable:sundered_isles/settlement/first_look`
   - when Location Type = "Shipwreck" → show, oracle `oracle_rollable:sundered_isles/shipwreck/first_look`
   - when Location Type = "Ruin" → show, oracle `oracle_rollable:sundered_isles/ruin/first_look`
-- **Details** (`settlementDetails`): Text; Guide-only; hidden unless a rule shows it
+- **Details** (`settlementDetails`): Text, full width; Guide-only; hidden unless a rule shows it
   - when Location Type = "Settlement" → show, oracle `oracle_rollable:sundered_isles/settlement/details`
   - when Location Type = "Shipwreck" → show, oracle `oracle_rollable:sundered_isles/shipwreck/details`
 - **Cave Type** (`caveType`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:sundered_isles/cave/type`
   - when Location Type = "Cave" → show
-- **Threshold** (`caveThreshold`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:sundered_isles/cave/threshold`
+- **Threshold** (`caveThreshold`): Text, full width; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:sundered_isles/cave/threshold`
   - when Location Type = "Cave" → show
 - **Lurking Threat** (`caveLurkingThreat`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:sundered_isles/cave/lurking_threat`
   - when Location Type = "Cave" → show
@@ -372,7 +372,7 @@ Supports: bonds. Subtitle: Location.
 - **First Look** (`firstLook`): Text; Guide-only; oracle `oracle_rollable:sundered_isles/character/first_look`
 - **Role** (`role`): Text; Guide-only; oracle `oracle_rollable:sundered_isles/character/roles`
 - **Disposition** (`disposition`): Text; Guide-only; oracle `oracle_rollable:sundered_isles/character/disposition`
-- **Goal** (`goal`): Text; Guide-only; oracle `oracle_rollable:sundered_isles/character/goals`
+- **Goal** (`goal`): Text, full width; Guide-only; oracle `oracle_rollable:sundered_isles/character/goals`
 
 ### Lore (`lore`)
 
@@ -388,26 +388,26 @@ Supports: none. Subtitle: Faction Type.
   - Options: "Society", "Organization", "Empire", "The Cursed"
 - **Influence** (`influence`): Text; oracle `oracle_rollable:sundered_isles/faction/influence`
 - **Relationships** (`relationships`): Text; Guide-only; oracle `oracle_rollable:sundered_isles/faction/relationship`
-- **Chronicles** (`chronicles`): Text; Guide-only; hidden unless a rule shows it
+- **Chronicles** (`chronicles`): Text, full width; Guide-only; hidden unless a rule shows it
   - when Faction Type = "Society" → show, oracle `oracle_rollable:sundered_isles/faction/society/chronicles`
-- **Leadership** (`leadership`): Text; Guide-only; hidden unless a rule shows it
+- **Leadership** (`leadership`): Text, full width; Guide-only; hidden unless a rule shows it
   - when Faction Type = "Society" → show, label "Overseers", oracle `oracle_rollable:sundered_isles/faction/society/overseers`
   - when Faction Type = "Empire" → show, oracle `oracle_rollable:sundered_isles/faction/empire/leadership`
-- **Touchstones** (`touchstones`): Text; Guide-only; hidden unless a rule shows it
+- **Touchstones** (`touchstones`): Text, full width; Guide-only; hidden unless a rule shows it
   - when Faction Type = "Society" → show, oracle `oracle_rollable:sundered_isles/faction/society/touchstones`
-- **Role** (`role`): Text; Guide-only; hidden unless a rule shows it
+- **Role** (`role`): Text, full width; Guide-only; hidden unless a rule shows it
   - when Faction Type = "Organization" → show, oracle `oracle_rollable:sundered_isles/faction/organization/type`
   - when Faction Type = "The Cursed" → show, oracle `oracle_rollable:sundered_isles/faction/cursed/role`
-- **Methods** (`methods`): Text; Guide-only; hidden unless a rule shows it
+- **Methods** (`methods`): Text, full width; Guide-only; hidden unless a rule shows it
   - when Faction Type = "Organization" → show, oracle `oracle_rollable:sundered_isles/faction/organization/methods`
-- **Secrets** (`secrets`): Text; Guide-only; hidden unless a rule shows it
+- **Secrets** (`secrets`): Text, full width; Guide-only; hidden unless a rule shows it
   - when Faction Type = "Organization" → show, oracle `oracle_rollable:sundered_isles/faction/organization/secrets`
-- **Tactics** (`tactics`): Text; Guide-only; hidden unless a rule shows it
+- **Tactics** (`tactics`): Text, full width; Guide-only; hidden unless a rule shows it
   - when Faction Type = "Empire" → show, oracle `oracle_rollable:sundered_isles/faction/empire/tactics`
-- **Vulnerabilities** (`vulnerabilities`): Text; Guide-only; hidden unless a rule shows it
+- **Vulnerabilities** (`vulnerabilities`): Text, full width; Guide-only; hidden unless a rule shows it
   - when Faction Type = "Empire" → show, oracle `oracle_rollable:sundered_isles/faction/empire/vulnerabilities`
 - **Cursed** (`cursed`): Option list, single, allows other values; Guide-only
   - Options: "Yes", "No"
-- **Cursed Aspects** (`cursedAspects`): Text; Guide-only; hidden unless a rule shows it
+- **Cursed Aspects** (`cursedAspects`): Text, full width; Guide-only; hidden unless a rule shows it
   - when Faction Type = "The Cursed" → show, oracle `oracle_rollable:sundered_isles/faction/cursed/aspects`
   - when Cursed = "Yes" → show, oracle `oracle_rollable:sundered_isles/faction/cursed/aspects`

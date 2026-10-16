@@ -14,10 +14,7 @@ import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButto
 import { PermissionsSelector } from "components/permissions/PermissionsSelector";
 
 import { useUID } from "stores/auth.store";
-import {
-  useWorldPermission,
-  useWorldPermissionControlsShown,
-} from "stores/world.store";
+import { useWorldIsGuided, useWorldPermission } from "stores/world.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import { isGuideEquivalent } from "repositories/shared.types";
@@ -44,7 +41,7 @@ export function WorldEntryCreateDialog({
   const { t } = useTranslation();
   const uid = useUID();
   const permission = useWorldPermission();
-  const controlsShown = useWorldPermissionControlsShown();
+  const guided = useWorldIsGuided();
   const createEntry = useWorldEntriesStore((store) => store.createEntry);
   const isGuide = !!permission && isGuideEquivalent(permission);
 
@@ -55,8 +52,7 @@ export function WorldEntryCreateDialog({
     typeof getDefaultWorldEntryPermissions
   > | null>(null);
   const permissions =
-    chosenPermissions ??
-    getDefaultWorldEntryPermissions(isGuide, controlsShown);
+    chosenPermissions ?? getDefaultWorldEntryPermissions(isGuide, guided);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
 
@@ -110,7 +106,7 @@ export function WorldEntryCreateDialog({
             autoFocus
             fullWidth
           />
-          {controlsShown && (
+          {guided && (
             <PermissionsSelector
               readOptions={readOptions}
               editOptions={editOptions}

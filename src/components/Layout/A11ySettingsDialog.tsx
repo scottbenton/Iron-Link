@@ -167,7 +167,7 @@ export function A11ySettingsDialog(props: A11ySettingsDialogProps) {
                   <TableCell>
                     <Button onClick={() => handleSetKey(action.key)}>
                       {action.key === keySetting
-                        ? t("a11y.current-key-setting", "Listening...")
+                        ? t("a11y.current-key-setting", "Listening")
                         : t("a11y.set-key", "Set")}
                     </Button>
                   </TableCell>

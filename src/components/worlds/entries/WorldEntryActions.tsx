@@ -1,12 +1,15 @@
 import DeleteIcon from "@mui/icons-material/Delete";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ShareIcon from "@mui/icons-material/Share";
 import {
+  Box,
   IconButton,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
+  Tooltip,
 } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
 import { useState } from "react";
@@ -21,14 +24,18 @@ import { IWorldEntry } from "services/worldEntries.service";
 
 import { WorldEntryShareDialog } from "./WorldEntryShareDialog";
 
-export function WorldEntryActionsMenu({
+// An entry's actions. In the strip on its page, Share is a button and More
+// holds the rest; on its card in a list, everything is in one menu.
+export function WorldEntryActions({
   entry,
+  variant = "strip",
   canShare,
   canDelete,
   onDeleted,
   onError,
 }: {
   entry: IWorldEntry;
+  variant?: "strip" | "card";
   canShare: boolean;
   canDelete: boolean;
   onDeleted: () => void;
@@ -93,40 +100,70 @@ export function WorldEntryActionsMenu({
     }
   };
 
-  const label = t("worlds.entries.actions", "Entry actions");
+  const shareLabel = t("worlds.entries.share", "Share");
+  const moreLabel = t("worlds.entries.actions", "More");
+  const card = variant === "card";
+  const shareItem = (
+    <MenuItem
+      onClick={() => {
+        setAnchor(null);
+        setSharing(true);
+      }}
+    >
+      <ListItemIcon>
+        <ShareIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>{shareLabel}</ListItemText>
+    </MenuItem>
+  );
+  const deleteItem = (
+    <MenuItem onClick={() => handleDelete().catch(onError)}>
+      <ListItemIcon>
+        <DeleteIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>{t("common.delete", "Delete")}</ListItemText>
+    </MenuItem>
+  );
+  const hasMenu = card || canDelete;
   return (
     <>
-      <IconButton
-        aria-label={label}
-        aria-haspopup="menu"
-        disabled={deleting}
-        onClick={(event) => setAnchor(event.currentTarget)}
-      >
-        <MoreVertIcon />
-      </IconButton>
-      <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)}>
-        {canShare && (
-          <MenuItem
-            onClick={() => {
-              setAnchor(null);
-              setSharing(true);
-            }}
+      {!card && canShare && (
+        <Tooltip title={shareLabel}>
+          <IconButton aria-label={shareLabel} onClick={() => setSharing(true)}>
+            <ShareIcon />
+          </IconButton>
+        </Tooltip>
+      )}
+      {!card && <Box sx={{ flexGrow: 1 }} />}
+      {hasMenu && (
+        <>
+          <Tooltip title={card ? "" : moreLabel}>
+            <IconButton
+              aria-label={
+                card
+                  ? t("worlds.entries.actions-named", "{{name}} actions", {
+                      name: entry.name,
+                    })
+                  : moreLabel
+              }
+              aria-haspopup="menu"
+              size={card ? "small" : "medium"}
+              disabled={deleting}
+              onClick={(event) => setAnchor(event.currentTarget)}
+            >
+              {card ? <MoreHorizIcon /> : <MoreVertIcon />}
+            </IconButton>
+          </Tooltip>
+          <Menu
+            anchorEl={anchor}
+            open={!!anchor}
+            onClose={() => setAnchor(null)}
           >
-            <ListItemIcon>
-              <ShareIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>{t("worlds.entries.share", "Share")}</ListItemText>
-          </MenuItem>
-        )}
-        {canDelete && (
-          <MenuItem onClick={() => handleDelete().catch(onError)}>
-            <ListItemIcon>
-              <DeleteIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>{t("common.delete", "Delete")}</ListItemText>
-          </MenuItem>
-        )}
-      </Menu>
+            {card && canShare && shareItem}
+            {canDelete && deleteItem}
+          </Menu>
+        </>
+      )}
       {sharing && (
         <WorldEntryShareDialog
           entry={entry}

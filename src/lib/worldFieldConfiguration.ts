@@ -24,10 +24,11 @@ export function isWorldUuid(value: unknown): value is string {
 // The longest Text value or option the database accepts.
 export const WORLD_FIELD_VALUE_MAX_LENGTH = 1000;
 
-// In the order the field editor presents them.
+// In the order the field editor presents them. Long text is no longer
+// offered; existing Long text fields keep working until their values move
+// into entry Notes.
 export const WORLD_FIELD_KINDS: WorldFieldKind[] = [
   "text",
-  "longText",
   "optionList",
   "linkedEntry",
 ];
@@ -69,8 +70,8 @@ export function normalizeWorldFieldOptions(values: unknown[]): string[] {
 /**
  * Older definitions have no configuration; their fixed binding stays intact.
  * With a type, the configuration also takes that type's shape: only a list
- * Select keeps options, only a Select has `multiple` and `allowOther`, and
- * only a linked Select has a target category.
+ * Select keeps options, only a Select has `multiple` and `allowOther`, only a
+ * linked Select has a target category, and only Text can be full width.
  */
 export function normalizeWorldFieldConfiguration(
   value: unknown,
@@ -100,6 +101,9 @@ export function normalizeWorldFieldConfiguration(
     ...(typeof configuration.allowOther === "boolean"
       ? { allowOther: configuration.allowOther }
       : {}),
+    ...(typeof configuration.fullWidth === "boolean"
+      ? { fullWidth: configuration.fullWidth }
+      : {}),
     helpText:
       typeof configuration.helpText === "string" ? configuration.helpText : "",
     visible:
@@ -117,6 +121,13 @@ function shapeWorldFieldConfiguration(
   delete shaped.targetCategoryId;
   delete shaped.multiple;
   delete shaped.allowOther;
+  delete shaped.fullWidth;
+  if (type === WorldFieldType.Text)
+    return {
+      ...shaped,
+      suggestions: [],
+      ...(configuration.fullWidth ? { fullWidth: true } : {}),
+    };
   if (type !== WorldFieldType.Select) return { ...shaped, suggestions: [] };
   const linked = configuration.targetCategoryId !== undefined;
   return {
