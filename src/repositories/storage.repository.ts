@@ -79,6 +79,36 @@ export class StorageRepository {
     });
   }
 
+  // Removes every file directly inside a folder, such as an entry's images.
+  public static async deleteFolder(
+    bucket: BucketNames,
+    path: string,
+  ): Promise<void> {
+    const listed = await supabase.storage
+      .from(bucket)
+      .list(path, { limit: 1000 });
+    if (listed.error) {
+      throw getRepositoryError(
+        listed.error,
+        ErrorVerb.Delete,
+        ErrorNoun.Image,
+        true,
+      );
+    }
+    if (!listed.data.length) return;
+    const removed = await supabase.storage
+      .from(bucket)
+      .remove(listed.data.map((file) => `${path}/${file.name}`));
+    if (removed.error) {
+      throw getRepositoryError(
+        removed.error,
+        ErrorVerb.Delete,
+        ErrorNoun.Image,
+        true,
+      );
+    }
+  }
+
   public static getImageUrl(
     bucket: BucketNames,
     path: string,

@@ -23,18 +23,21 @@ import { getWorldEntriesLinkingTo } from "lib/worldEntryLinks";
 
 import { IWorldEntry } from "services/worldEntries.service";
 
+import { WorldEntryImageAction } from "./WorldEntryImageAction";
 import { WorldEntryMoveDialog } from "./WorldEntryMoveDialog";
 import { WorldEntryShareDialog } from "./WorldEntryShareDialog";
 
 // An entry's actions. In the strip on its page, Share is a button and More
 // holds the rest; on its card in a list, everything is in one menu. Move to
-// is offered only in categories that nest entries.
+// is offered only in categories that nest entries; the Image action only in
+// the strip, for people who can edit the entry.
 export function WorldEntryActions({
   entry,
   variant = "strip",
   categoryName,
   canShare,
   canMove = false,
+  canEditImage = false,
   canDelete,
   onDeleted,
   onError,
@@ -44,6 +47,7 @@ export function WorldEntryActions({
   categoryName: string;
   canShare: boolean;
   canMove?: boolean;
+  canEditImage?: boolean;
   canDelete: boolean;
   onDeleted: () => void;
   onError: (cause: unknown) => void;
@@ -59,7 +63,9 @@ export function WorldEntryActions({
   );
   const deleteEntry = useWorldEntriesStore((store) => store.deleteEntry);
 
-  if (!canShare && !canMove && !canDelete) return null;
+  const card = variant === "card";
+  const showImage = !card && canEditImage;
+  if (!canShare && !canMove && !canDelete && !showImage) return null;
 
   const handleDelete = async () => {
     setAnchor(null);
@@ -110,7 +116,6 @@ export function WorldEntryActions({
 
   const shareLabel = t("worlds.entries.share", "Share");
   const moreLabel = t("worlds.entries.actions", "More");
-  const card = variant === "card";
   const shareItem = (
     <MenuItem
       onClick={() => {
@@ -155,6 +160,7 @@ export function WorldEntryActions({
           </IconButton>
         </Tooltip>
       )}
+      {showImage && <WorldEntryImageAction entry={entry} onError={onError} />}
       {!card && <Box sx={{ flexGrow: 1 }} />}
       {hasMenu && (
         <>

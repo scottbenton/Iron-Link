@@ -35,13 +35,40 @@ vi.mock("react-i18next", async (importOriginal) => ({
   useTranslation: () => ({ t: translate }),
 }));
 
+// The collaborative editor needs WebRTC; the stand-in shows what it was given.
+vi.mock("components/RichTextEditor", () => ({
+  RtcRichTextEditor: ({
+    id,
+    roomPrefix,
+    initialValue,
+    onSave,
+  }: {
+    id: string;
+    roomPrefix: string;
+    initialValue: Uint8Array;
+    onSave?: (id: string, value: Uint8Array, text: string) => Promise<void>;
+  }) => (
+    <div data-testid="rich-text">
+      {`${roomPrefix}-${id}: ${initialValue.length} bytes`}
+      {onSave && (
+        <button onClick={() => onSave(id, new Uint8Array([7, 8]), "text")}>
+          Save document
+        </button>
+      )}
+    </div>
+  ),
+}));
+
 const PEOPLE = "people";
 
 beforeEach(() => {
   vi.restoreAllMocks();
   useWorldEntriesStore.getState().reset();
-  useWorldCategoriesStore.setState({ fieldDefinitions: {} });
+  useWorldCategoriesStore.setState({ fieldDefinitions: {}, categories: {} });
   useWorldStore.setState({ isGuided: true });
+  vi.spyOn(WorldEntriesService, "getWorldEntryNotesContent").mockResolvedValue({
+    content: new Uint8Array(),
+  });
 });
 
 function loadEntries(
@@ -153,6 +180,9 @@ describe("WorldEntryActions", () => {
     const remove = vi
       .spyOn(WorldEntriesService, "deleteWorldEntry")
       .mockResolvedValue();
+    const removeFiles = vi
+      .spyOn(WorldEntriesService, "deleteWorldEntryFiles")
+      .mockResolvedValue();
     const onDeleted = renderActions("strip");
 
     await user.click(screen.getByRole("button", { name: "More" }));
@@ -165,6 +195,7 @@ describe("WorldEntryActions", () => {
     await user.click(screen.getByRole("button", { name: "Delete" }));
     await waitFor(() => expect(onDeleted).toHaveBeenCalled());
     expect(remove).toHaveBeenCalledWith("entry-1");
+    expect(removeFiles).toHaveBeenCalledWith(category.worldId, "entry-1");
   });
 
   it("shows Share in the strip and keeps the rest in More", async () => {
@@ -268,6 +299,157 @@ describe("Move to", () => {
     expect(
       screen.queryByRole("menuitem", { name: "Move to" }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("entry images", () => {
+  function renderStrip() {
+    render(
+      <ConfirmProvider>
+        <WorldEntryActions
+          entry={useWorldEntriesStore.getState().entryState.entries["entry-1"]}
+          categoryName="Locations"
+          canShare={false}
+          canEditImage
+          canDelete={false}
+          onDeleted={vi.fn()}
+          onError={vi.fn()}
+        />
+      </ConfirmProvider>,
+    );
+  }
+
+  it("uploads a portrait and removes the one it replaces", async () => {
+    const user = userEvent.setup();
+    loadEntries([worldEntry({ imageFilename: "old.png" })]);
+    const upload = vi
+      .spyOn(WorldEntriesService, "uploadWorldEntryImage")
+      .mockResolvedValue({ filename: "new.png", url: "https://x/new.png" });
+    const update = vi
+      .spyOn(WorldEntriesService, "updateWorldEntry")
+      .mockResolvedValue();
+    const removeImage = vi
+      .spyOn(WorldEntriesService, "deleteWorldEntryImage")
+      .mockResolvedValue();
+    renderStrip();
+    await user.click(screen.getByRole("button", { name: "Image" }));
+    expect(
+      screen.getByRole("menuitem", { name: "Replace image" }),
+    ).toBeInTheDocument();
+    const file = new File(["png"], "map.png", { type: "image/png" });
+    await user.upload(screen.getByTestId("world-entry-image-input"), file);
+    await waitFor(() =>
+      expect(removeImage).toHaveBeenCalledWith(
+        category.worldId,
+        "entry-1",
+        "old.png",
+      ),
+    );
+    expect(upload).toHaveBeenCalledWith(category.worldId, "entry-1", file);
+    expect(update).toHaveBeenCalledWith("entry-1", {
+      imageFilename: "new.png",
+    });
+  });
+
+  it("removes the portrait", async () => {
+    const user = userEvent.setup();
+    loadEntries([worldEntry({ imageFilename: "old.png" })]);
+    const update = vi
+      .spyOn(WorldEntriesService, "updateWorldEntry")
+      .mockResolvedValue();
+    const removeImage = vi
+      .spyOn(WorldEntriesService, "deleteWorldEntryImage")
+      .mockResolvedValue();
+    renderStrip();
+    await user.click(screen.getByRole("button", { name: "Image" }));
+    await user.click(screen.getByRole("menuitem", { name: "Remove image" }));
+    await waitFor(() => expect(removeImage).toHaveBeenCalled());
+    expect(update).toHaveBeenCalledWith("entry-1", { imageFilename: null });
+  });
+});
+
+describe("entry Notes", () => {
+  it("edits Notes collaboratively below the fields", async () => {
+    const user = userEvent.setup();
+    const save = vi
+      .spyOn(WorldEntriesService, "updateWorldEntryNotesContent")
+      .mockResolvedValue();
+    loadEntries([worldEntry()]);
+    renderView();
+    const notes = await screen.findByRole("region", { name: "Notes" });
+    expect(within(notes).getByTestId("rich-text")).toHaveTextContent(
+      `world-entry-notes-${category.worldId}-entry-1: 0 bytes`,
+    );
+    await user.click(
+      within(notes).getByRole("button", { name: "Save document" }),
+    );
+    expect(save).toHaveBeenCalledWith("entry-1", new Uint8Array([7, 8]));
+  });
+
+  it("shows readers the notes without saving", async () => {
+    const readOnly = {
+      canEdit: false,
+      canDelete: false,
+      canChangePermissions: false,
+    };
+    loadEntries([worldEntry()], { "entry-1": readOnly });
+    vi.mocked(WorldEntriesService.getWorldEntryNotesContent).mockResolvedValue({
+      content: new Uint8Array([1, 2, 3]),
+    });
+    renderView();
+    const notes = await screen.findByRole("region", { name: "Notes" });
+    expect(within(notes).getByTestId("rich-text")).toHaveTextContent("3 bytes");
+    expect(
+      within(notes).queryByRole("button", { name: "Save document" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides empty Notes from readers", async () => {
+    const load = vi.mocked(WorldEntriesService.getWorldEntryNotesContent);
+    loadEntries([worldEntry()], {
+      "entry-1": {
+        canEdit: false,
+        canDelete: false,
+        canChangePermissions: false,
+      },
+    });
+    renderView();
+    await waitFor(() => expect(load).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("region", { name: "Notes" }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it("shows the entry's portrait in its header", () => {
+    vi.spyOn(WorldEntriesService, "getWorldEntryImageUrl").mockImplementation(
+      (worldId, entryId, filename) =>
+        `https://x/${worldId}/${entryId}/${filename}`,
+    );
+    loadEntries([worldEntry({ imageFilename: "face.png" })]);
+    const { container } = render(
+      <MemoryRouter>
+        <ConfirmProvider>
+          <WorldEntryView
+            category={category}
+            entryId="entry-1"
+            navigation={{
+              view: {
+                type: "entry",
+                categoryId: category.id,
+                entryId: "entry-1",
+              },
+              getLinkProps: () => ({ href: "/" }),
+              navigate: vi.fn(),
+            }}
+          />
+        </ConfirmProvider>
+      </MemoryRouter>,
+    );
+    expect(container.querySelector("img")?.getAttribute("src")).toContain(
+      `${category.worldId}/entry-1/face.png`,
+    );
   });
 });
 
