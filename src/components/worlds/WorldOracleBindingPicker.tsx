@@ -6,11 +6,9 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  FormControlLabel,
   IconButton,
   InputAdornment,
   Stack,
-  Switch,
   TextField,
   Tooltip,
 } from "@mui/material";
@@ -29,6 +27,7 @@ import {
 import type { OracleBinding } from "services/worldFieldDefinitions.service";
 
 import { WorldOracleTreePicker } from "./WorldOracleTreePicker";
+import { WorldSettingCheckbox } from "./WorldSettingCheckbox";
 
 // A read-only field showing the bound oracle. Choosing opens a searchable
 // dialog; the clear button removes the binding (and so the roll button).
@@ -115,32 +114,24 @@ export function WorldOracleBindingPicker({
         }}
       />
       {value && (
-        <FormControlLabel
-          sx={{ alignSelf: "flex-start" }}
-          control={
-            <Switch
-              size="small"
-              checked={!!value.exact}
-              disabled={disabled || oracles.loading || !catalog}
-              onChange={(_, exact) => {
-                if (!catalog) return;
-                // A deliberate binding-option edit may change the pin; unrelated edits never do.
-                onChange({
-                  ...value,
-                  exact,
-                  resolvedOracleId: exact
-                    ? value.oracleId
-                    : (catalog.replacementMap[value.oracleId] ??
-                      value.oracleId),
-                });
-              }}
-            />
-          }
+        <WorldSettingCheckbox
           label={t(
             "worlds.fields.exact",
             "Use this exact oracle (ignore replacements)",
           )}
-          slotProps={{ typography: { variant: "body2" } }}
+          checked={!!value.exact}
+          disabled={disabled || oracles.loading || !catalog}
+          onChange={(exact) => {
+            if (!catalog) return;
+            // A deliberate binding-option edit may change the pin; unrelated edits never do.
+            onChange({
+              ...value,
+              exact,
+              resolvedOracleId: exact
+                ? value.oracleId
+                : (catalog.replacementMap[value.oracleId] ?? value.oracleId),
+            });
+          }}
         />
       )}
       {oracles.error && (
@@ -192,17 +183,13 @@ export function WorldOracleBindingPicker({
                   setChoosing(false);
                 }}
               />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={oracles.allPackages}
-                    onChange={(_, checked) => oracles.setAllPackages(checked)}
-                  />
-                }
+              <WorldSettingCheckbox
                 label={t(
                   "worlds.fields.all-packages",
                   "Include all packages, not just this world's rules",
                 )}
+                checked={oracles.allPackages}
+                onChange={(checked) => oracles.setAllPackages(checked)}
               />
               {!!catalog.missingPackageIds.length && (
                 <Alert severity="warning">

@@ -1,9 +1,10 @@
-import { FormControlLabel, Switch, TextField } from "@mui/material";
+import { TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import type { OracleBinding } from "services/worldFieldDefinitions.service";
 
 import { WorldOracleBindingPicker } from "../WorldOracleBindingPicker";
+import { WorldSettingCheckbox } from "../WorldSettingCheckbox";
 import { WorldEditorSection } from "./WorldEditorSection";
 import type { FieldDraft } from "./WorldFieldEditor";
 
@@ -35,15 +36,11 @@ export function WorldFieldFallbackEditor({
         "Used when no rule matches. Rules inherit anything they don't override.",
       )}
     >
-      <FormControlLabel
-        control={
-          <Switch
-            checked={draft.configuration.visible}
-            disabled={disabled}
-            onChange={(_, checked) => configuration({ visible: checked })}
-          />
-        }
+      <WorldSettingCheckbox
         label={t("worlds.fields.visible", "Visible")}
+        checked={draft.configuration.visible}
+        disabled={disabled}
+        onChange={(checked) => configuration({ visible: checked })}
       />
       <TextField
         label={t("worlds.fields.help-text", "Help text")}

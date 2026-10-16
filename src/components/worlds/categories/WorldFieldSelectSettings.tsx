@@ -1,13 +1,9 @@
 import {
   Autocomplete,
-  Box,
   Button,
   Chip,
-  FormControl,
-  FormControlLabel,
-  FormHelperText,
   MenuItem,
-  Switch,
+  Stack,
   TextField,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -20,6 +16,7 @@ import {
 
 import type { IWorldCategory } from "services/worldCategories.service";
 
+import { WorldSettingCheckbox } from "../WorldSettingCheckbox";
 import type { FieldDraft } from "./WorldFieldEditor";
 
 // Settings for the two kinds stored as a Select: an option list's options and
@@ -96,64 +93,52 @@ export function WorldFieldSelectSettings({
           ))}
         </TextField>
       )}
-      <FormControl>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={multiple}
-              disabled={disabled || lockedOn}
-              onChange={(_, checked) => configuration({ multiple: checked })}
-            />
-          }
+      <Stack spacing={1}>
+        <WorldSettingCheckbox
           label={t("worlds.fields.allow-multiple", "Allow more than one")}
-        />
-        {lockedOn && (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              flexWrap: "wrap",
-              columnGap: 1,
-            }}
-          >
-            <FormHelperText sx={{ mx: 0 }}>
-              {multipleLockedReason}
-            </FormHelperText>
-            {/* Turning it off anyway leaves a draft only a new field can
-                hold, so the editor then offers to create one. */}
-            {offerCreateNew && !disabled && (
-              <Button
-                size="small"
-                onClick={() => configuration({ multiple: false })}
-              >
-                {t("worlds.fields.create-new", "Create new field")}
-              </Button>
+          description={
+            kind === "optionList"
+              ? t(
+                  "worlds.fields.allow-multiple-options-help",
+                  "Entries can pick several options.",
+                )
+              : t(
+                  "worlds.fields.allow-multiple-links-help",
+                  "Entries can link to several entries.",
+                )
+          }
+          note={lockedOn ? multipleLockedReason : undefined}
+          checked={multiple}
+          disabled={disabled || lockedOn}
+          onChange={(checked) => configuration({ multiple: checked })}
+        >
+          {/* Turning it off anyway leaves a draft only a new field can
+              hold, so the editor then offers to create one. */}
+          {lockedOn && offerCreateNew && !disabled && (
+            <Button
+              size="small"
+              sx={{ ml: -0.5 }}
+              onClick={() => configuration({ multiple: false })}
+            >
+              {t("worlds.fields.create-new", "Create new field")}
+            </Button>
+          )}
+        </WorldSettingCheckbox>
+        {kind === "optionList" && (
+          <WorldSettingCheckbox
+            label={t("worlds.fields.allow-other", "Allow other values")}
+            description={t(
+              "worlds.fields.allow-other-help",
+              "Entries can use values that aren't in the options. Values already used are offered on other entries too.",
             )}
-          </Box>
+            checked={!!draft.configuration.allowOther}
+            disabled={disabled}
+            onChange={(checked) => configuration({ allowOther: checked })}
+          />
         )}
-      </FormControl>
+      </Stack>
       {kind === "optionList" && (
         <>
-          <FormControl>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={!!draft.configuration.allowOther}
-                  disabled={disabled}
-                  onChange={(_, checked) =>
-                    configuration({ allowOther: checked })
-                  }
-                />
-              }
-              label={t("worlds.fields.allow-other", "Allow other values")}
-            />
-            <FormHelperText sx={{ mx: 0 }}>
-              {t(
-                "worlds.fields.allow-other-help",
-                "Entries can use values that aren't in the options. Values already used are offered on other entries too.",
-              )}
-            </FormHelperText>
-          </FormControl>
           <Autocomplete
             multiple
             freeSolo

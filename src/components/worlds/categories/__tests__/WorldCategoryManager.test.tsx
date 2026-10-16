@@ -429,13 +429,11 @@ describe("WorldCategoryManager", () => {
         }),
       { timeout: 2000 },
     );
-    await user.click(screen.getByRole("checkbox", { name: "Supports maps" }));
+    await user.click(screen.getByRole("checkbox", { name: "Maps" }));
     expect(state.updateCategory).toHaveBeenCalledWith(category.id, {
       supportsMap: true,
     });
-    expect(
-      screen.getByRole("checkbox", { name: "Supports maps" }),
-    ).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Maps" })).toBeChecked();
     expect(settingsLink("Locations")).toHaveAttribute("aria-current", "page");
   });
 
@@ -487,8 +485,6 @@ describe("WorldCategoryManager", () => {
       screen.queryByRole("button", { name: "Reorder Locations" }),
     ).not.toBeInTheDocument();
     expect(categoryName()).toBeDisabled();
-    expect(
-      screen.getByRole("checkbox", { name: "Supports maps" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: "Maps" })).toBeDisabled();
   });
 });

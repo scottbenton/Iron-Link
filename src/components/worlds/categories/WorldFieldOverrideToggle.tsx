@@ -1,5 +1,10 @@
-import { Box, FormControlLabel, Switch } from "@mui/material";
+import { Box } from "@mui/material";
 import type { ReactNode } from "react";
+
+import {
+  WORLD_SETTING_INDENT,
+  WorldSettingCheckbox,
+} from "../WorldSettingCheckbox";
 
 export function WorldFieldOverrideToggle({
   label,
@@ -16,18 +21,15 @@ export function WorldFieldOverrideToggle({
 }) {
   return (
     <Box>
-      <FormControlLabel
-        control={
-          <Switch
-            size="small"
-            checked={checked}
-            disabled={disabled}
-            onChange={(_, next) => onToggle(next)}
-          />
-        }
+      <WorldSettingCheckbox
         label={label}
+        checked={checked}
+        disabled={disabled}
+        onChange={onToggle}
       />
-      {checked && <Box sx={{ pl: 5, pt: 1 }}>{children}</Box>}
+      {checked && (
+        <Box sx={{ pl: WORLD_SETTING_INDENT, pt: 1 }}>{children}</Box>
+      )}
     </Box>
   );
 }

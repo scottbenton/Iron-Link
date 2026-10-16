@@ -1,14 +1,9 @@
-import {
-  FormControlLabel,
-  FormGroup,
-  FormHelperText,
-  FormLabel,
-  Switch,
-} from "@mui/material";
-import { Fragment, useId } from "react";
+import { FormGroup, FormHelperText, FormLabel, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import type { IWorldCategory } from "services/worldCategories.service";
+
+import { WorldSettingCheckbox } from "../WorldSettingCheckbox";
 
 export type CategoryCapabilities = Pick<
   IWorldCategory,
@@ -28,15 +23,19 @@ export function WorldCategoryCapabilities({
   onChange: (changes: Partial<CategoryCapabilities>) => void;
 }) {
   const { t } = useTranslation();
-  const blockerId = useId();
   const options: {
     key: keyof CategoryCapabilities;
     label: string;
+    description: string;
     blocker?: string;
   }[] = [
     {
       key: "supportsHierarchy",
-      label: t("worlds.categories.hierarchy", "Supports nesting entries"),
+      label: t("worlds.categories.hierarchy", "Nesting"),
+      description: t(
+        "worlds.categories.hierarchy-help",
+        "Entries can sit inside other entries, like a settlement on a planet.",
+      ),
       blocker:
         value.supportsHierarchy && nestedEntryCount > 0
           ? t(
@@ -46,10 +45,21 @@ export function WorldCategoryCapabilities({
             )
           : undefined,
     },
-    { key: "supportsMap", label: t("worlds.categories.map", "Supports maps") },
+    {
+      key: "supportsMap",
+      label: t("worlds.categories.map", "Maps"),
+      description: t(
+        "worlds.categories.map-help",
+        "Entries can hold a map of their own.",
+      ),
+    },
     {
       key: "supportsBonds",
-      label: t("worlds.categories.bonds", "Supports bonds"),
+      label: t("worlds.categories.bonds", "Bonds"),
+      description: t(
+        "worlds.categories.bonds-help",
+        "Characters can form bonds with entries.",
+      ),
     },
   ];
   return (
@@ -57,35 +67,19 @@ export function WorldCategoryCapabilities({
       <FormLabel component="legend" sx={{ mb: 0.5 }}>
         {t("worlds.categories.capabilities", "Entry features")}
       </FormLabel>
-      {options.map((option) => (
-        <Fragment key={option.key}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={value[option.key]}
-                disabled={disabled || !!option.blocker}
-                onChange={(_, checked) => onChange({ [option.key]: checked })}
-                slotProps={{
-                  input: {
-                    "aria-describedby": option.blocker
-                      ? `${blockerId}-${option.key}`
-                      : undefined,
-                  },
-                }}
-              />
-            }
+      <Stack spacing={1} sx={{ mb: 1 }}>
+        {options.map((option) => (
+          <WorldSettingCheckbox
+            key={option.key}
             label={option.label}
+            description={option.description}
+            note={option.blocker}
+            checked={value[option.key]}
+            disabled={disabled || !!option.blocker}
+            onChange={(checked) => onChange({ [option.key]: checked })}
           />
-          {option.blocker && (
-            <FormHelperText
-              id={`${blockerId}-${option.key}`}
-              sx={{ mx: 0, mt: 0, mb: 1 }}
-            >
-              {option.blocker}
-            </FormHelperText>
-          )}
-        </Fragment>
-      ))}
+        ))}
+      </Stack>
       <FormHelperText sx={{ mx: 0 }}>
         {t(
           "worlds.categories.capabilities-help",
