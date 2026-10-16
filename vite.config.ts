@@ -19,6 +19,9 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/tests/setup.ts"],
     globals: true,
+    // Component tests drive MUI dialogs with userEvent; on the shared
+    // Cloudflare build machines the slower ones pass 5s.
+    testTimeout: 15000,
     // The tree view imports @mui/system by directory, which Node's ESM
     // resolver refuses; inlining lets Vite resolve it.
     server: { deps: { inline: ["@mui/x-tree-view"] } },
