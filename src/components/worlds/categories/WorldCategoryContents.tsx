@@ -110,22 +110,39 @@ export function WorldCategoryContents({
           sx={{ py: 4 }}
         />
       ) : (
-        <Box component="ul" sx={{ listStyle: "none", p: 0, m: 0, mt: -1 }}>
-          {filtered.map(({ entry, subtitle }) => (
-            <WorldCategoryEntryItem
-              key={entry.id}
-              entry={entry}
-              subtitle={subtitle}
-              guided={guided}
-              onDeleted={() => setActionError(undefined)}
-              onError={(cause) => setActionError(getEditorErrorMessage(cause))}
-              linkProps={navigation.getLinkProps({
-                type: "entry",
-                categoryId: category.id,
-                entryId: entry.id,
-              })}
-            />
-          ))}
+        // Cards in columns where there is room, like the folders in Notes,
+        // and one full-width list when there is not.
+        <Box sx={{ containerType: "inline-size" }}>
+          <Box
+            component="ul"
+            sx={{
+              listStyle: "none",
+              p: 0,
+              m: 0,
+              display: "grid",
+              gap: 1,
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              "@container (max-width: 560px)": { gridTemplateColumns: "1fr" },
+            }}
+          >
+            {filtered.map(({ entry, subtitle }) => (
+              <WorldCategoryEntryItem
+                key={entry.id}
+                entry={entry}
+                subtitle={subtitle}
+                guided={guided}
+                onDeleted={() => setActionError(undefined)}
+                onError={(cause) =>
+                  setActionError(getEditorErrorMessage(cause))
+                }
+                linkProps={navigation.getLinkProps({
+                  type: "entry",
+                  categoryId: category.id,
+                  entryId: entry.id,
+                })}
+              />
+            ))}
+          </Box>
         </Box>
       )}
     </Box>

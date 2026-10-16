@@ -46,7 +46,12 @@ export function WorldEntryView({
   navigation: WorldNavigation;
 }) {
   const { t } = useTranslation();
-  const loading = useWorldEntriesStore((store) => store.entryState.loading);
+  // An entry this window just created counts as loading until the listener
+  // delivers it, so its page never flashes as unavailable.
+  const loading = useWorldEntriesStore(
+    (store) =>
+      store.entryState.loading || !!store.entryState.arriving?.[entryId],
+  );
   const loadError = useWorldEntriesStore((store) => !!store.entryState.error);
   const entry = useWorldEntriesStore((store) => {
     const found = store.entryState.entries[entryId];

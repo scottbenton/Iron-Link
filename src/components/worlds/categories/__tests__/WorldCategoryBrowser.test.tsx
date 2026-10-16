@@ -6,7 +6,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorldStore } from "stores/world.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
-import { WorldPermission } from "repositories/shared.types";
+import {
+  EditPermissions,
+  ReadPermissions,
+  WorldPermission,
+} from "repositories/shared.types";
 
 import type { IWorldCategory } from "services/worldCategories.service";
 import {
@@ -282,6 +286,59 @@ describe("WorldCategoryBrowser routes", () => {
     expect(
       screen.getByText("Entry unavailable", { selector: "h6" }),
     ).toBeInTheDocument();
+  });
+  it("creates an entry straight away and opens it with its name selected, never as unavailable", async () => {
+    const user = userEvent.setup();
+    useWorldStore.setState({ worldPermission: WorldPermission.Player });
+    const listen = vi
+      .spyOn(WorldEntriesService, "listenToWorldEntries")
+      .mockReturnValue(vi.fn());
+    const create = vi
+      .spyOn(WorldEntriesService, "addWorldEntry")
+      .mockResolvedValue("fresh");
+    renderBrowser(`/worlds/${category.worldId}/categories/${category.id}`, {
+      permission: WorldPermission.Player,
+    });
+    act(() => listen.mock.calls[0][3]({}, [], true));
+    await user.click(screen.getByRole("button", { name: "Create entry" }));
+    expect(create).toHaveBeenCalledWith(
+      "reader",
+      category.worldId,
+      category.id,
+      "Untitled",
+      ReadPermissions.AllPlayers,
+      EditPermissions.GuidesAndAuthor,
+      undefined,
+    );
+    // The insert has not arrived yet: the page waits rather than saying the
+    // entry is unavailable.
+    expect(
+      await screen.findByRole("progressbar", { name: "Loading entry…" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("navigation", { name: "Breadcrumbs" }),
+    ).toHaveTextContent("Worlds/Ironlands/Locations/Loading entry");
+    expect(screen.queryByText("Entry unavailable")).not.toBeInTheDocument();
+    act(() =>
+      listen.mock.calls[0][3](
+        {
+          fresh: {
+            id: "fresh",
+            categoryId: category.id,
+            name: "Untitled",
+            authorId: "reader",
+            readPermissions: ReadPermissions.AllPlayers,
+            editPermissions: EditPermissions.GuidesAndAuthor,
+          } as IWorldEntry,
+        },
+        [],
+        false,
+      ),
+    );
+    const name = screen.getByRole("textbox", { name: "Name" });
+    expect(name).toHaveFocus();
+    expect((name as HTMLInputElement).selectionStart).toBe(0);
+    expect((name as HTMLInputElement).selectionEnd).toBe("Untitled".length);
   });
   it("offers Create entry to anyone who can write to the world", () => {
     vi.spyOn(WorldEntriesService, "listenToWorldEntries").mockReturnValue(

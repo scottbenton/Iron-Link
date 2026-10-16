@@ -84,17 +84,6 @@ export function WorldEntryTextField({
       label={field.label}
       helpText={field.helpText || undefined}
       inputId={inputId}
-      onClear={
-        draft
-          ? () => {
-              if (pending.current) clearTimeout(pending.current.timeout);
-              pending.current = undefined;
-              setDraft("");
-              setUnconfirmed("");
-              onSaveRef.current("");
-            }
-          : undefined
-      }
     >
       <InputBase
         id={inputId}

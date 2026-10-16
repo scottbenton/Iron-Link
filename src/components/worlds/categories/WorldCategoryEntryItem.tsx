@@ -50,7 +50,7 @@ export function WorldCategoryEntryItem({
     <Card
       component="li"
       variant="outlined"
-      sx={{ mt: 1, position: "relative", display: "flex" }}
+      sx={{ position: "relative", display: "flex", minWidth: 0 }}
     >
       <CardActionArea
         LinkComponent={LinkComponent}

@@ -33,6 +33,7 @@ beforeEach(() => {
       },
       permissions: {},
       loading: false,
+      arriving: {},
     },
   });
 });
