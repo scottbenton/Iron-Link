@@ -41,9 +41,9 @@ export function WorldEntryWell({
           : theme.palette.mode === "light"
             ? theme.palette.grey[50]
             : alpha(theme.palette.grey[800], 0.35),
-        px: 2,
-        pt: 1,
-        pb: open ? 2 : 1,
+        // The header button reaches the well's edges, so the whole band is
+        // the target; the clip keeps its hover and focus inside the corners.
+        overflow: "hidden",
       })}
     >
       <Typography
@@ -65,11 +65,20 @@ export function WorldEntryWell({
           onClick={() => setOpen((current) => !current)}
           sx={{
             width: "100%",
+            minHeight: 44,
             justifyContent: "flex-start",
             gap: 0.75,
-            py: 0.5,
-            borderRadius: 1,
+            px: 2,
+            py: 1,
             color: "text.secondary",
+            "@media (hover: hover) and (pointer: fine)": {
+              "&:hover": { bgcolor: "action.hover" },
+            },
+            "&.Mui-focusVisible": {
+              bgcolor: "action.focus",
+              outline: (theme) => `2px solid ${theme.palette.primary.main}`,
+              outlineOffset: -2,
+            },
             font: "inherit",
             letterSpacing: "inherit",
             textAlign: "left",
@@ -105,7 +114,7 @@ export function WorldEntryWell({
         </ButtonBase>
       </Typography>
       <Collapse in={open} id={contentId}>
-        <Box sx={{ pt: 1.5 }}>{children}</Box>
+        <Box sx={{ px: 2, pt: 0.5, pb: 2 }}>{children}</Box>
       </Collapse>
     </Box>
   );
