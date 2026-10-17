@@ -429,11 +429,11 @@ describe("WorldCategoryManager", () => {
         }),
       { timeout: 2000 },
     );
-    await user.click(screen.getByRole("checkbox", { name: "Maps" }));
+    await user.click(screen.getByRole("checkbox", { name: "Nesting" }));
     expect(state.updateCategory).toHaveBeenCalledWith(category.id, {
-      supportsMap: true,
+      supportsHierarchy: false,
     });
-    expect(screen.getByRole("checkbox", { name: "Maps" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Nesting" })).not.toBeChecked();
     expect(settingsLink("Locations")).toHaveAttribute("aria-current", "page");
   });
 
@@ -485,6 +485,6 @@ describe("WorldCategoryManager", () => {
       screen.queryByRole("button", { name: "Reorder Locations" }),
     ).not.toBeInTheDocument();
     expect(categoryName()).toBeDisabled();
-    expect(screen.getByRole("checkbox", { name: "Maps" })).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: "Nesting" })).toBeDisabled();
   });
 });
