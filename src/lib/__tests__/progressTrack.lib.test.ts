@@ -7,6 +7,7 @@ import {
   MAX_TICKS,
   getProgressRollResult,
   getProgressScore,
+  getSpecialTrackProgressScore,
 } from "../progressTrack.lib";
 
 describe("getProgressScore", () => {
@@ -29,6 +30,29 @@ describe("getProgressScore", () => {
     // Catches callers passing a pre-divided score (e.g. ticks / 4)
     expect(() => getProgressScore(1.75)).toThrow();
     expect(() => getProgressScore(NaN)).toThrow();
+  });
+});
+
+describe("getSpecialTrackProgressScore", () => {
+  it("scores fully-filled boxes when the track is not a legacy", () => {
+    expect(getSpecialTrackProgressScore(0, false)).toBe(0);
+    expect(getSpecialTrackProgressScore(7, false)).toBe(1);
+    expect(getSpecialTrackProgressScore(MAX_TICKS, false)).toBe(
+      MAX_PROGRESS_SCORE,
+    );
+  });
+
+  it("always scores the maximum once the track is a legacy", () => {
+    expect(getSpecialTrackProgressScore(0, true)).toBe(MAX_PROGRESS_SCORE);
+    expect(getSpecialTrackProgressScore(7, true)).toBe(MAX_PROGRESS_SCORE);
+    expect(getSpecialTrackProgressScore(MAX_TICKS, true)).toBe(
+      MAX_PROGRESS_SCORE,
+    );
+  });
+
+  it("still rejects invalid tick counts for legacy tracks", () => {
+    expect(() => getSpecialTrackProgressScore(-1, true)).toThrow();
+    expect(() => getSpecialTrackProgressScore(2.5, true)).toThrow();
   });
 });
 
