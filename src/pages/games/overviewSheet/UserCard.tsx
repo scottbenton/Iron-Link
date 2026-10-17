@@ -82,10 +82,17 @@ export function UserCard(props: UserCardProps) {
           "game.game-overview.remove-user-confirmation-title",
           "Remove User",
         ),
-        description: t(
-          "game.game-overview.remove-user-confirmation-text",
-          "Are you sure you want to remove this user?",
-        ),
+        // Removing someone stops them joining live rooms from now on, but
+        // can't take back what their device already loaded.
+        description: isUser
+          ? t(
+              "game.game-overview.remove-user-confirmation-text",
+              "Are you sure you want to remove this user?",
+            )
+          : t(
+              "game.game-overview.remove-other-user-confirmation-text",
+              "Are you sure you want to remove this user? Anything they have already loaded stays on their device.",
+            ),
         confirmationText: t(
           "game.game-overview.remove-user-confirmation-button",
           "Remove User",
@@ -99,7 +106,7 @@ export function UserCard(props: UserCardProps) {
         })
         .catch(() => {});
     }
-  }, [removePlayerFromGame, gameId, uid, charactersByUser, t, confirm]);
+  }, [removePlayerFromGame, gameId, uid, charactersByUser, isUser, t, confirm]);
 
   return (
     <Card sx={{ mt: 1 }} variant="outlined">

@@ -117,7 +117,7 @@ export function WorldEntryNotes({
           <RtcRichTextEditor
             id={entryId}
             roomPrefix={`world-entry-notes-${worldId}`}
-            documentPassword={worldId}
+            roomKeySource={{ worldEntryId: entryId }}
             initialValue={content}
             onSave={canEdit ? save : undefined}
             Toolbar={Toolbar}

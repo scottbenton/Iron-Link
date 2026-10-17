@@ -87,7 +87,7 @@ export function NoteView(props: NoteViewProps) {
       <RtcRichTextEditor
         id={openNoteId}
         roomPrefix={`notes-${gameId}-`}
-        documentPassword={gameId}
+        roomKeySource={{ noteId: openNoteId }}
         Toolbar={({ editor }) => (
           <>
             <NoteToolbar>

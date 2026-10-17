@@ -33,9 +33,13 @@ export const rtcExtensions = (params: {
     : "#d0d0d0";
 
   const extensions: Extensions = [...defaultExtensions];
+  // Without a provider, nobody else is in the room yet (its key is still
+  // loading, or this user can't read it), and the editor still edits the doc.
+  if (doc) {
+    extensions.push(Collaboration.configure({ document: doc }));
+  }
   if (doc && provider) {
     extensions.push(
-      Collaboration.configure({ document: doc }),
       CollaborationCursor.configure({
         provider: provider,
         user: {

@@ -15,7 +15,9 @@ const AUTOSAVE_INTERVAL_SECONDS = 30;
 export function useAutoSaveRtcEditor(params: {
   documentId: string;
   roomName: string;
-  roomPassword: string;
+  // The room's key. Until it loads, or when this user can't read it, the
+  // editor works on its own; a new key rejoins without touching the doc.
+  roomKey: string | null | undefined;
   initialValue: Uint8Array;
   onSave?: (
     id: string,
@@ -25,13 +27,11 @@ export function useAutoSaveRtcEditor(params: {
   ) => Promise<void>;
   readOnly: boolean;
 }): { editor: ReturnType<typeof useEditor>; saving: boolean } {
-  const { documentId, roomName, roomPassword, initialValue, onSave, readOnly } =
+  const { documentId, roomName, roomKey, initialValue, onSave, readOnly } =
     params;
 
-  const [docAndProvider, setDocAndProvider] = useState<{
-    doc: Y.Doc;
-    provider: WebrtcProvider;
-  } | null>(null);
+  const [doc, setDoc] = useState<Y.Doc | null>(null);
+  const [provider, setProvider] = useState<WebrtcProvider | null>(null);
 
   const uid = useUID();
   const displayName = useUsersStore((store) =>
@@ -53,8 +53,8 @@ export function useAutoSaveRtcEditor(params: {
   const editor = useEditor(
     {
       extensions: rtcExtensions({
-        doc: docAndProvider?.doc,
-        provider: docAndProvider?.provider,
+        doc: doc ?? undefined,
+        provider: provider ?? undefined,
         userId: uid,
         userName: displayName ?? undefined,
       }),
@@ -67,7 +67,7 @@ export function useAutoSaveRtcEditor(params: {
       },
       enablePasteRules: true,
     },
-    [docAndProvider, uid, displayName, readOnly],
+    [doc, provider, uid, displayName, readOnly],
   );
 
   const handleSave = useCallback(
@@ -111,37 +111,55 @@ export function useAutoSaveRtcEditor(params: {
       }
     });
 
-    const newProvider = new WebrtcProvider(roomName, newDoc, {
-      password: roomPassword,
-      signaling: [SIGNALING_SERVER_URL],
-    });
-
     setHasUnsavedChanges(false);
     hasUnsavedChangesRef.current = false;
     setSaving(false);
 
-    setDocAndProvider({ doc: newDoc, provider: newProvider });
+    setDoc(newDoc);
 
     return () => {
       if (hasUnsavedChangesRef.current && textValueRef.current) {
         handleSave(documentId, newDoc, textValueRef.current);
       }
 
-      newProvider.destroy();
+      setDoc(null);
       newDoc.destroy();
     };
-  }, [documentId, roomName, roomPassword, handleSave]);
+  }, [documentId, handleSave]);
+
+  // The live room, joined once its key loads and rejoined after a rotation.
+  // The doc outlives it, so edits made meanwhile are kept and sync on rejoin.
+  useEffect(() => {
+    if (!doc || !roomKey) return;
+    const newProvider = new WebrtcProvider(roomName, doc, {
+      password: roomKey,
+      signaling: [SIGNALING_SERVER_URL],
+    });
+    // Destroying the doc destroys its provider, and y-webrtc's destroy is not
+    // safe to repeat.
+    let docDestroyed = false;
+    const onDocDestroy = () => {
+      docDestroyed = true;
+    };
+    doc.on("destroy", onDocDestroy);
+    setProvider(newProvider);
+    return () => {
+      doc.off("destroy", onDocDestroy);
+      setProvider(null);
+      if (!docDestroyed) newProvider.destroy();
+    };
+  }, [doc, roomName, roomKey]);
 
   // This useEffect handles saving when the tab is closed
   useEffect(() => {
     const onUnload = () => {
       if (
-        docAndProvider &&
+        doc &&
         document.visibilityState === "hidden" &&
         hasUnsavedChangesRef.current &&
         textValueRef.current
       ) {
-        handleSave(documentId, docAndProvider.doc, textValueRef.current, true);
+        handleSave(documentId, doc, textValueRef.current, true);
       }
     };
 
@@ -151,14 +169,13 @@ export function useAutoSaveRtcEditor(params: {
       document.removeEventListener("visibilitychange", onUnload);
       window.removeEventListener("beforeunload", onUnload);
     };
-  }, [docAndProvider, documentId, handleSave]);
+  }, [doc, documentId, handleSave]);
 
   // This useEffect handles saving automatically when changes get made
   useEffect(() => {
     let timeout: NodeJS.Timeout;
 
-    if (hasUnsavedChanges && docAndProvider) {
-      const doc = docAndProvider.doc;
+    if (hasUnsavedChanges && doc) {
       timeout = setTimeout(() => {
         if (!textValueRef.current) {
           console.error("Text value is empty, cannot save");
@@ -171,9 +188,9 @@ export function useAutoSaveRtcEditor(params: {
     return () => {
       clearTimeout(timeout);
     };
-  }, [docAndProvider, hasUnsavedChanges, handleSave, documentId]);
+  }, [doc, hasUnsavedChanges, handleSave, documentId]);
 
-  if (!docAndProvider) {
+  if (!doc) {
     return {
       editor: null,
       saving,

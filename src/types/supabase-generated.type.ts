@@ -468,6 +468,45 @@ export type Database = {
           },
         ]
       }
+      guide_room_keys: {
+        Row: {
+          game_id: string | null
+          id: string
+          key: string
+          rotated_at: string
+          world_id: string | null
+        }
+        Insert: {
+          game_id?: string | null
+          id?: string
+          key?: string
+          rotated_at?: string
+          world_id?: string | null
+        }
+        Update: {
+          game_id?: string | null
+          id?: string
+          key?: string
+          rotated_at?: string
+          world_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guide_room_keys_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: true
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guide_room_keys_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: true
+            referencedRelation: "worlds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       note_folders: {
         Row: {
           author_id: string
@@ -589,6 +628,45 @@ export type Database = {
             columns: ["parent_folder_id"]
             isOneToOne: false
             referencedRelation: "note_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_keys: {
+        Row: {
+          id: string
+          key: string
+          note_id: string | null
+          rotated_at: string
+          world_entry_id: string | null
+        }
+        Insert: {
+          id?: string
+          key?: string
+          note_id?: string | null
+          rotated_at?: string
+          world_entry_id?: string | null
+        }
+        Update: {
+          id?: string
+          key?: string
+          note_id?: string | null
+          rotated_at?: string
+          world_entry_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_keys_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: true
+            referencedRelation: "notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_keys_world_entry_id_fkey"
+            columns: ["world_entry_id"]
+            isOneToOne: true
+            referencedRelation: "world_entries"
             referencedColumns: ["id"]
           },
         ]
@@ -1071,6 +1149,18 @@ export type Database = {
       world_configuration_validate_field: {
         Args: { p_configuration: Json; p_type: string }
         Returns: undefined
+      }
+      is_game_guide: {
+        Args: { p_game_id: string; p_uid: string }
+        Returns: boolean
+      }
+      note_readable: {
+        Args: { p_note_id: string; p_uid: string }
+        Returns: boolean
+      }
+      world_entry_readable: {
+        Args: { p_entry_id: string; p_uid: string }
+        Returns: boolean
       }
       world_is_guided: {
         Args: { p_world_id: string }

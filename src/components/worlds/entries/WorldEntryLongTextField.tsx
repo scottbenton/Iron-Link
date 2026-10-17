@@ -73,7 +73,11 @@ export function WorldEntryLongTextField({
         <RtcRichTextEditor
           id={`${entry.id}-${field.id}`}
           roomPrefix={`world-fields-${entry.worldId}`}
-          documentPassword={entry.worldId}
+          roomKeySource={
+            field.gmOnly
+              ? { guideWorldId: entry.worldId }
+              : { worldEntryId: entry.id }
+          }
           initialValue={content}
           onSave={canEdit ? save : undefined}
           Toolbar={WorldEntryLongTextToolbar}

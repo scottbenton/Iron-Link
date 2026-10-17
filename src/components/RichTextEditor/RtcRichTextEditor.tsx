@@ -1,12 +1,16 @@
 import { Editor as TTEditor } from "@tiptap/react";
 
+import type { RoomKeySource } from "services/roomKeys.service";
+
 import { Editor, EditorProps } from "./Editor";
 import { useAutoSaveRtcEditor } from "./useAutosaveRtcEditor";
+import { useRoomKey } from "./useRoomKey";
 
 export interface RtcRichTextEditorProps {
   id: string;
   roomPrefix: string;
-  documentPassword: string;
+  // Whose key locks the live room: the note's or entry's own, or a Guide key.
+  roomKeySource: RoomKeySource;
   onSave?: (
     documentId: string,
     notes: Uint8Array,
@@ -26,7 +30,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
   const {
     id,
     roomPrefix,
-    documentPassword,
+    roomKeySource,
     onSave,
     initialValue,
     Toolbar,
@@ -36,10 +40,11 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
   } = props;
 
   const readOnly = !onSave;
+  const roomKey = useRoomKey(roomKeySource);
   const { editor, saving } = useAutoSaveRtcEditor({
     documentId: id,
     roomName: `${roomPrefix}-${id}`,
-    roomPassword: documentPassword,
+    roomKey,
     initialValue,
     onSave,
     readOnly,
