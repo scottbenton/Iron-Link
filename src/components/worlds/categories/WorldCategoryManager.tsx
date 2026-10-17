@@ -38,6 +38,7 @@ import {
 import { WorldEntryActions } from "../entries/WorldEntryActions";
 import { WorldEntryView } from "../entries/WorldEntryView";
 import { getDefaultWorldEntryPermissions } from "../entries/worldEntryPermissions";
+import { WorldHomeNotes } from "../notes/WorldHomeNotes";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldCategoryBrowser } from "./WorldCategoryBrowser";
 import { WorldCategoryContents } from "./WorldCategoryContents";
@@ -382,12 +383,21 @@ export function WorldCategoryManager({
           navigation={navigation}
         />
       ) : (
-        <WorldCategoryBrowser
-          categories={categories}
-          missingCategory={showsEntries && !selected}
-          worldName={world.name}
-          navigation={navigation}
-        />
+        <Stack spacing={4}>
+          <WorldCategoryBrowser
+            categories={categories}
+            missingCategory={showsEntries && !selected}
+            worldName={world.name}
+            navigation={navigation}
+          />
+          {view.type === "world" && (
+            <WorldHomeNotes
+              worldId={world.id}
+              canEdit={canEdit}
+              onError={(cause) => setError(getEditorErrorMessage(cause))}
+            />
+          )}
+        </Stack>
       );
   }
 
