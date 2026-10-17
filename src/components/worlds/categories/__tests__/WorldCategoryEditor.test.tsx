@@ -44,7 +44,7 @@ describe("WorldCategoryEditor", () => {
     await user.type(name, " ");
     expect(create).toBeDisabled();
     await user.type(name, "Creatures");
-    await user.click(screen.getByRole("checkbox", { name: "Supports maps" }));
+    await user.click(screen.getByRole("checkbox", { name: "Maps" }));
     await user.click(create);
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({ name: "Creatures", supportsMap: true }),
@@ -129,7 +129,7 @@ describe("WorldCategoryDetails", () => {
         disabled={false}
       />,
     );
-    const maps = screen.getByRole("checkbox", { name: "Supports maps" });
+    const maps = screen.getByRole("checkbox", { name: "Maps" });
     await user.click(maps);
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Please reconnect.",
@@ -148,15 +148,13 @@ describe("WorldCategoryDetails", () => {
       />,
     );
     const nesting = screen.getByRole("checkbox", {
-      name: "Supports nesting entries",
+      name: "Nesting",
     });
     await waitFor(() => expect(nesting).toBeDisabled());
     expect(nesting).toHaveAccessibleDescription(
-      "Move 3 entries out of their parent entries first.",
+      "Entries can sit inside other entries, like a settlement on a planet. Move 3 entries out of their parent entries first.",
     );
-    expect(
-      screen.getByRole("checkbox", { name: "Supports maps" }),
-    ).toBeEnabled();
+    expect(screen.getByRole("checkbox", { name: "Maps" })).toBeEnabled();
     expect(actions.getCategoryCounts).toHaveBeenCalledWith(category.id);
   });
 
@@ -172,9 +170,7 @@ describe("WorldCategoryDetails", () => {
       />,
     );
     await waitFor(() => expect(actions.getCategoryCounts).toHaveBeenCalled());
-    await user.click(
-      screen.getByRole("checkbox", { name: "Supports nesting entries" }),
-    );
+    await user.click(screen.getByRole("checkbox", { name: "Nesting" }));
     expect(actions.updateCategory).toHaveBeenCalledWith(category.id, {
       supportsHierarchy: false,
     });
@@ -191,9 +187,7 @@ describe("WorldCategoryDetails", () => {
         disabled={false}
       />,
     );
-    await user.click(
-      screen.getByRole("checkbox", { name: "Supports nesting entries" }),
-    );
+    await user.click(screen.getByRole("checkbox", { name: "Nesting" }));
     expect(actions.updateCategory).toHaveBeenCalledWith(category.id, {
       supportsHierarchy: true,
     });
@@ -212,9 +206,7 @@ describe("WorldCategoryDetails", () => {
     expect(
       screen.getByRole("textbox", { name: /Category name/ }),
     ).toBeDisabled();
-    expect(
-      screen.getByRole("checkbox", { name: "Supports maps" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: "Maps" })).toBeDisabled();
     expect(
       screen.getByRole("button", { name: "Choose category icon" }),
     ).toBeDisabled();

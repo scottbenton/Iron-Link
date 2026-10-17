@@ -2,15 +2,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import {
   Alert,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
-  FormControl,
-  FormControlLabel,
-  FormHelperText,
   Stack,
-  Switch,
   TextField,
 } from "@mui/material";
 import deepEqual from "fast-deep-equal";
@@ -36,6 +31,7 @@ import {
   WorldFieldType,
 } from "services/worldFieldDefinitions.service";
 
+import { WorldSettingCheckbox } from "../WorldSettingCheckbox";
 import { WorldEditorSection } from "./WorldEditorSection";
 import { WorldFieldFallbackEditor } from "./WorldFieldFallbackEditor";
 import { WorldFieldRulesEditor } from "./WorldFieldRulesEditor";
@@ -209,52 +205,36 @@ export function WorldFieldEditor({
                       )}
               </Alert>
             )}
-            <FormControl>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={draft.gmOnly}
-                    disabled={disabled}
-                    onChange={(_, checked) =>
-                      setDraft({ ...draft, gmOnly: checked })
-                    }
-                  />
-                }
+            <Stack spacing={1}>
+              <WorldSettingCheckbox
                 label={t("worlds.fields.gm-only", "Guide only")}
-              />
-              <FormHelperText sx={{ mx: 0 }}>
-                {t(
+                description={t(
                   "worlds.fields.gm-only-help",
                   "Only guides can see this field. Changing this also changes who can see existing values.",
                 )}
-              </FormHelperText>
-            </FormControl>
-            {getWorldFieldKind(draft) === "text" && (
-              <FormControl>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={!!draft.configuration.fullWidth}
-                      disabled={disabled}
-                      onChange={(_, checked) => {
-                        // Off is stored as no option, as on new fields.
-                        const next = { ...draft.configuration };
-                        if (checked) next.fullWidth = true;
-                        else delete next.fullWidth;
-                        setDraft({ ...draft, configuration: next });
-                      }}
-                    />
-                  }
+                checked={draft.gmOnly}
+                disabled={disabled}
+                onChange={(checked) => setDraft({ ...draft, gmOnly: checked })}
+              />
+              {getWorldFieldKind(draft) === "text" && (
+                <WorldSettingCheckbox
                   label={t("worlds.fields.full-width", "Full width")}
-                />
-                <FormHelperText sx={{ mx: 0 }}>
-                  {t(
+                  description={t(
                     "worlds.fields.full-width-help",
                     "Give the value a whole row on entry pages, for long answers like a goal.",
                   )}
-                </FormHelperText>
-              </FormControl>
-            )}
+                  checked={!!draft.configuration.fullWidth}
+                  disabled={disabled}
+                  onChange={(checked) => {
+                    // Off is stored as no option, as on new fields.
+                    const next = { ...draft.configuration };
+                    if (checked) next.fullWidth = true;
+                    else delete next.fullWidth;
+                    setDraft({ ...draft, configuration: next });
+                  }}
+                />
+              )}
+            </Stack>
             {gmDependency && (
               <Alert severity="error">
                 {t(
