@@ -1,5 +1,5 @@
 import AddPhotoIcon from "@mui/icons-material/AddPhotoAlternate";
-import { IconButton, Tooltip } from "@mui/material";
+import { Box, IconButton, Tooltip } from "@mui/material";
 import { Editor } from "@tiptap/react";
 import { ChangeEvent, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -20,7 +20,8 @@ import { IWorldEntry } from "services/worldEntries.service";
 
 // The Notes tab's toolbar for an entry's Notes: the same grey strip, text
 // type and formatting, with images stored with the entry so they are removed
-// with it. Readers see no toolbar.
+// with it. Readers see no toolbar. It pins to the top of the scroller while
+// the Notes are on screen, and leaves with them.
 export function WorldEntryNotesToolbar({
   editor,
   entry,
@@ -59,26 +60,36 @@ export function WorldEntryNotesToolbar({
 
   const imageLabel = t("note.editor-toolbar.upload-image", "Upload Image");
   return (
-    <ActionToolbarStrip>
-      <TextTypeDropdown editor={editor} />
-      <FormattingToolbarItems editor={editor} />
-      <Tooltip title={imageLabel} enterDelay={300}>
-        <IconButton
-          aria-label={imageLabel}
-          onClick={() => inputRef.current?.click()}
-        >
-          <AddPhotoIcon />
-        </IconButton>
-      </Tooltip>
-      <input
-        ref={inputRef}
-        hidden
-        type="file"
-        accept="image/png,image/jpeg,image/gif,image/webp"
-        onChange={(event) => {
-          handleFile(event).catch(onError);
-        }}
-      />
-    </ActionToolbarStrip>
+    <Box
+      sx={{
+        position: "sticky",
+        top: 0,
+        zIndex: 2,
+        py: 1,
+        bgcolor: "background.paper",
+      }}
+    >
+      <ActionToolbarStrip>
+        <TextTypeDropdown editor={editor} />
+        <FormattingToolbarItems editor={editor} />
+        <Tooltip title={imageLabel} enterDelay={300}>
+          <IconButton
+            aria-label={imageLabel}
+            onClick={() => inputRef.current?.click()}
+          >
+            <AddPhotoIcon />
+          </IconButton>
+        </Tooltip>
+        <input
+          ref={inputRef}
+          hidden
+          type="file"
+          accept="image/png,image/jpeg,image/gif,image/webp"
+          onChange={(event) => {
+            handleFile(event).catch(onError);
+          }}
+        />
+      </ActionToolbarStrip>
+    </Box>
   );
 }
