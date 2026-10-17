@@ -1,6 +1,6 @@
 import { Alert, Box, Skeleton, Typography } from "@mui/material";
 import { Editor as TTEditor } from "@tiptap/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { RtcRichTextEditor } from "components/RichTextEditor";
@@ -27,8 +27,8 @@ export function WorldEntryNotes({
   const getEntryNotesContent = useWorldEntriesStore(
     (store) => store.getEntryNotesContent,
   );
-  const updateEntryNotesContent = useWorldEntriesStore(
-    (store) => store.updateEntryNotesContent,
+  const getEntryNotesContentStore = useWorldEntriesStore(
+    (store) => store.getEntryNotesContentStore,
   );
   const [content, setContent] = useState<Uint8Array>();
   const [loadError, setLoadError] = useState(false);
@@ -50,17 +50,9 @@ export function WorldEntryNotes({
     };
   }, [entryId, getEntryNotesContent]);
 
-  const save = useCallback(
-    (
-      _documentId: string,
-      document: Uint8Array,
-      _text: string,
-      isBeaconRequest?: boolean,
-    ) =>
-      updateEntryNotesContent(entryId, document, isBeaconRequest).catch(
-        onError,
-      ),
-    [entryId, updateEntryNotesContent, onError],
+  const contentStore = useMemo(
+    () => getEntryNotesContentStore(entryId),
+    [entryId, getEntryNotesContentStore],
   );
 
   // The editor takes a component; keep it stable for this entry.
@@ -119,7 +111,8 @@ export function WorldEntryNotes({
             roomPrefix={`world-entry-notes-${worldId}`}
             roomKeySource={{ worldEntryId: entryId }}
             initialValue={content}
-            onSave={canEdit ? save : undefined}
+            contentStore={canEdit ? contentStore : undefined}
+            onSaveError={onError}
             Toolbar={Toolbar}
           />
         </Box>

@@ -33,3 +33,12 @@ that are easy to miss. When you learn a new one, add a line here.
   are not changed by it.
 - Long text fields are no longer offered for new fields; existing ones keep
   working.
+
+## Rich text
+
+- Live editing rooms are locked by room keys (`room_keys` per note and entry,
+  `guide_room_keys` per game and world, readable only by readers or Guides).
+  Give `RtcRichTextEditor` a `roomKeySource`; never use an id as a room password.
+- Rich text saves merge rather than overwrite: the editor takes a
+  `RichTextContentStore` and saves through `saveMergedRichText`, guarded by the
+  row's `updated_at`. A new rich text column needs a versioned row and a store.

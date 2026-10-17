@@ -6,7 +6,7 @@ import {
 } from "types/Locations.type";
 import { Json } from "types/supabase-generated.type";
 
-import { byteaToUint8Array, uint8ArrayToBytea } from "lib/bytea.lib";
+import { byteaToUint8Array } from "lib/bytea.lib";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import {
@@ -19,6 +19,11 @@ import {
   WorldEntriesRepository,
   WorldEntryDTO,
 } from "repositories/worldEntries.repository";
+
+import {
+  RichTextContentService,
+  RichTextContentStore,
+} from "./richTextContent.service";
 
 export interface IWorldEntryMapSettings {
   backgroundImageFit: MapBackgroundImageFit;
@@ -148,26 +153,15 @@ export class WorldEntriesService {
     return WorldEntriesRepository.setWorldEntryParent(entryId, parentEntryId);
   }
 
-  public static updateWorldEntryNotesContent(
+  // Saves merge with the stored state; see saveMergedRichText.
+  public static getWorldEntryNotesContentStore(
     entryId: string,
-    content: Uint8Array,
-  ): Promise<void> {
-    return WorldEntriesRepository.updateWorldEntry(entryId, {
-      notes_content: uint8ArrayToBytea(content),
-    });
-  }
-
-  public static updateWorldEntryNotesContentBeacon(
-    entryId: string,
-    content: Uint8Array,
-    token: string,
-  ): Promise<void> {
-    return WorldEntriesRepository.updateWorldEntryBeaconRequest(
-      token,
+    getToken: () => string | undefined,
+  ): RichTextContentStore {
+    return RichTextContentService.createStore(
+      { table: "world_entries", column: "notes_content" },
       entryId,
-      {
-        notes_content: uint8ArrayToBytea(content),
-      },
+      getToken,
     );
   }
 

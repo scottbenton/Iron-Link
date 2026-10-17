@@ -581,6 +581,7 @@ export type Database = {
           parent_folder_id: string
           read_permissions: Database["public"]["Enums"]["note_read_permissions"]
           title: string | null
+          updated_at: string
         }
         Insert: {
           author_id: string
@@ -594,6 +595,7 @@ export type Database = {
           parent_folder_id: string
           read_permissions: Database["public"]["Enums"]["note_read_permissions"]
           title?: string | null
+          updated_at?: string
         }
         Update: {
           author_id?: string
@@ -607,6 +609,7 @@ export type Database = {
           parent_folder_id?: string
           read_permissions?: Database["public"]["Enums"]["note_read_permissions"]
           title?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
