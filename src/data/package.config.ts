@@ -162,10 +162,30 @@ export const elegyRulesetConfig: IRulesetConfig = {
   },
 };
 
+export const revenantRulesetConfig: IRulesetConfig = {
+  id: "revenant",
+  name: "Revenant",
+  type: "ruleset",
+  load: async () => {
+    const { revenant } = await import("@datasworn-community/revenant");
+    return {
+      ...revenant,
+    };
+  },
+  isHomebrew: true,
+  licenseInfo: {
+    license: "CC BY-SA 4.0",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
+    url: "https://www.drivethrurpg.com/en/product/457762/revenant",
+    author: "Killian Gillespie",
+  },
+};
+
 export const includedRulesets: Record<string, IRulesetConfig> = {
   [ironswornRulesetConfig.id]: ironswornRulesetConfig,
   [starforgedRulesetConfig.id]: starforgedRulesetConfig,
   [elegyRulesetConfig.id]: elegyRulesetConfig,
+  [revenantRulesetConfig.id]: revenantRulesetConfig,
 };
 
 export const includedExpansions: Record<

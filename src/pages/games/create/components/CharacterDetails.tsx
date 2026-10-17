@@ -12,6 +12,7 @@ import { useDataswornTree } from "stores/dataswornTree.store";
 import {
   elegyRulesetConfig,
   ironswornRulesetConfig,
+  revenantRulesetConfig,
   starforgedRulesetConfig,
 } from "data/package.config";
 
@@ -34,6 +35,9 @@ const nameOracles: Record<string, OracleTextFieldOracleConfig> = {
       "oracle_rollable:elegy/name/female",
     ],
     joinTables: false,
+  },
+  [revenantRulesetConfig.id]: {
+    tableIds: ["oracle_rollable:revenant/character/name"],
   },
 };
 
