@@ -42,3 +42,10 @@ that are easy to miss. When you learn a new one, add a line here.
 - Rich text saves merge rather than overwrite: the editor takes a
   `RichTextContentStore` and saves through `saveMergedRichText`, guarded by the
   row's `updated_at`. A new rich text column needs a versioned row and a store.
+
+## Notes
+
+- Note and folder RLS follows the app's `getPermissions` (`notes.store.ts`)
+  through the `note_permission_allows_read|edit|manage` helpers, and the
+  `notes_guard_update`/`note_folders_guard_update` triggers check which columns
+  each editor may change. Change both sides together.
