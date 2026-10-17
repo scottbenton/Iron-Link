@@ -318,15 +318,19 @@ export function WorldCategoryManager({
     title = undefined;
     const canShareEntry = !!entryPermissions?.canChangePermissions && guided;
     const canDeleteEntry = !!entryPermissions?.canDelete;
-    // People who can do neither get no strip at all.
+    const canMoveEntry =
+      !!entryPermissions?.canEdit && !!selected?.supportsHierarchy;
+    // People who can do none of these get no strip at all.
     actions =
-      entry && (canShareEntry || canDeleteEntry)
+      entry && (canShareEntry || canMoveEntry || canDeleteEntry)
         ? {
             start: (
               <WorldEntryActions
                 key={entry.id}
                 entry={entry}
+                categoryName={selected?.name ?? ""}
                 canShare={canShareEntry}
+                canMove={canMoveEntry}
                 canDelete={canDeleteEntry}
                 onDeleted={() =>
                   navigation.navigate({

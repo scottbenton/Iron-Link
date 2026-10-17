@@ -1,4 +1,5 @@
 import DeleteIcon from "@mui/icons-material/Delete";
+import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ShareIcon from "@mui/icons-material/Share";
@@ -22,21 +23,27 @@ import { getWorldEntriesLinkingTo } from "lib/worldEntryLinks";
 
 import { IWorldEntry } from "services/worldEntries.service";
 
+import { WorldEntryMoveDialog } from "./WorldEntryMoveDialog";
 import { WorldEntryShareDialog } from "./WorldEntryShareDialog";
 
 // An entry's actions. In the strip on its page, Share is a button and More
-// holds the rest; on its card in a list, everything is in one menu.
+// holds the rest; on its card in a list, everything is in one menu. Move to
+// is offered only in categories that nest entries.
 export function WorldEntryActions({
   entry,
   variant = "strip",
+  categoryName,
   canShare,
+  canMove = false,
   canDelete,
   onDeleted,
   onError,
 }: {
   entry: IWorldEntry;
   variant?: "strip" | "card";
+  categoryName: string;
   canShare: boolean;
+  canMove?: boolean;
   canDelete: boolean;
   onDeleted: () => void;
   onError: (cause: unknown) => void;
@@ -45,13 +52,14 @@ export function WorldEntryActions({
   const confirm = useConfirm();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [sharing, setSharing] = useState(false);
+  const [moving, setMoving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const definitions = useWorldCategoriesStore(
     (store) => store.fieldDefinitions,
   );
   const deleteEntry = useWorldEntriesStore((store) => store.deleteEntry);
 
-  if (!canShare && !canDelete) return null;
+  if (!canShare && !canMove && !canDelete) return null;
 
   const handleDelete = async () => {
     setAnchor(null);
@@ -116,6 +124,19 @@ export function WorldEntryActions({
       <ListItemText>{shareLabel}</ListItemText>
     </MenuItem>
   );
+  const moveItem = (
+    <MenuItem
+      onClick={() => {
+        setAnchor(null);
+        setMoving(true);
+      }}
+    >
+      <ListItemIcon>
+        <DriveFileMoveIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>{t("worlds.entries.move-to", "Move to")}</ListItemText>
+    </MenuItem>
+  );
   const deleteItem = (
     <MenuItem onClick={() => handleDelete().catch(onError)}>
       <ListItemIcon>
@@ -124,7 +145,7 @@ export function WorldEntryActions({
       <ListItemText>{t("common.delete", "Delete")}</ListItemText>
     </MenuItem>
   );
-  const hasMenu = card || canDelete;
+  const hasMenu = card || canMove || canDelete;
   return (
     <>
       {!card && canShare && (
@@ -160,9 +181,17 @@ export function WorldEntryActions({
             onClose={() => setAnchor(null)}
           >
             {card && canShare && shareItem}
+            {canMove && moveItem}
             {canDelete && deleteItem}
           </Menu>
         </>
+      )}
+      {moving && (
+        <WorldEntryMoveDialog
+          entry={entry}
+          categoryName={categoryName}
+          onClose={() => setMoving(false)}
+        />
       )}
       {sharing && (
         <WorldEntryShareDialog

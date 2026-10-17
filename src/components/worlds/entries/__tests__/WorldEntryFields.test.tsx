@@ -712,6 +712,31 @@ describe("WorldEntryFields", () => {
       expect(deleteValue).not.toHaveBeenCalled();
       expect(setValue).not.toHaveBeenCalled();
     });
+
+    it("follows the entry's new parent after a move", () => {
+      defineFields(kind, population, climate);
+      loadEntries(
+        worldEntry({ parentEntryId: "region" }),
+        worldEntry({ id: "region", name: "The North" }),
+        worldEntry({ id: "south", name: "The South" }),
+      );
+      storeValue("region", "kind", "Region");
+      storeValue("south", "kind", "Region");
+      storeValue("south", "weather", "Frozen");
+      renderFields({ entry: worldEntry({ parentEntryId: "region" }) });
+      expect(
+        screen.getByRole("textbox", { name: "Climate" }),
+      ).toBeInTheDocument();
+
+      act(() =>
+        useWorldEntriesStore.setState((store) => {
+          store.entryState.entries["entry-1"].parentEntryId = "south";
+        }),
+      );
+      expect(
+        screen.getByRole("textbox", { name: "Ice depth" }),
+      ).toBeInTheDocument();
+    });
   });
 
   describe("Guide-only fields", () => {

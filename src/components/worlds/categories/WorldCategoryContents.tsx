@@ -129,6 +129,7 @@ export function WorldCategoryContents({
               <WorldCategoryEntryItem
                 key={entry.id}
                 entry={entry}
+                category={category}
                 subtitle={subtitle}
                 guided={guided}
                 onDeleted={() => setActionError(undefined)}
