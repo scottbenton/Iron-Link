@@ -61,13 +61,15 @@ export function WorldEntryNotesToolbar({
   const imageLabel = t("note.editor-toolbar.upload-image", "Upload Image");
   return (
     <Box
-      sx={{
+      sx={(theme) => ({
         position: "sticky",
-        top: 0,
+        // Pinned, the strip sits right under the breadcrumbs, where the
+        // Notes tab's own strip is; the padding above it scrolls off.
+        top: theme.spacing(-1),
         zIndex: 2,
         py: 1,
         bgcolor: "background.paper",
-      }}
+      })}
     >
       <ActionToolbarStrip>
         <TextTypeDropdown editor={editor} />
