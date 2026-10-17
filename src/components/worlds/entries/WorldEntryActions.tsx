@@ -5,6 +5,7 @@ import HideImageIcon from "@mui/icons-material/HideImage";
 import InterestsIcon from "@mui/icons-material/Interests";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import PresentToAllIcon from "@mui/icons-material/PresentToAll";
 import ShareIcon from "@mui/icons-material/Share";
 import {
   Box,
@@ -31,6 +32,7 @@ import { WorldEntryMoveDialog } from "./WorldEntryMoveDialog";
 import { WorldEntryRollEmptyButton } from "./WorldEntryRollEmptyButton";
 import { WorldEntryShareDialog } from "./WorldEntryShareDialog";
 import { useWorldEntryImage } from "./useWorldEntryImage";
+import { useWorldEntrySecondScreen } from "./useWorldEntrySecondScreen";
 
 // An entry's actions. In the strip on its page, Share is a button and More
 // holds the rest; on its card in a list, everything is in one menu. Move to
@@ -71,10 +73,19 @@ export function WorldEntryActions({
   );
   const deleteEntry = useWorldEntriesStore((store) => store.deleteEntry);
   const image = useWorldEntryImage(entry, onError);
+  const secondScreen = useWorldEntrySecondScreen(entry);
 
   const card = variant === "card";
   const showEditActions = !card && canEdit;
-  if (!canShare && !canMove && !canDelete && !showEditActions) return null;
+  const showSecondScreen = !card && secondScreen.available;
+  if (
+    !canShare &&
+    !canMove &&
+    !canDelete &&
+    !showEditActions &&
+    !showSecondScreen
+  )
+    return null;
 
   const handleDelete = async () => {
     setAnchor(null);
@@ -225,7 +236,26 @@ export function WorldEntryActions({
       </ListItemText>
     </MenuItem>
   );
-  const hasMenu = card || showEditActions || canMove || canDelete;
+  const secondScreenItem = (
+    <MenuItem
+      key="second-screen"
+      onClick={() => {
+        setAnchor(null);
+        secondScreen.toggle().catch(onError);
+      }}
+    >
+      <ListItemIcon>
+        <PresentToAllIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>
+        {secondScreen.shown
+          ? t("worlds.entries.second-screen-hide", "Remove from second screen")
+          : t("worlds.entries.second-screen-show", "Show on second screen")}
+      </ListItemText>
+    </MenuItem>
+  );
+  const hasMenu =
+    card || showEditActions || showSecondScreen || canMove || canDelete;
   return (
     <>
       {!card && canShare && (
@@ -266,6 +296,7 @@ export function WorldEntryActions({
             {card && canShare && shareItem}
             {showEditActions && iconItem}
             {showEditActions && imageItems}
+            {showSecondScreen && secondScreenItem}
             {canMove && moveItem}
             {canDelete && deleteItem}
           </Menu>
