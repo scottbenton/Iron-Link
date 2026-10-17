@@ -25,9 +25,9 @@ select set_config('request.jwt.claim.sub','c1000000-0000-4000-8000-000000000001'
 insert into reference_worlds values
   ('main',public.create_world('Reference test')),
   ('other',public.create_world('Other reference test')),
-  ('ironlands',public.create_world('Ironlands reference test',null,'world:classic/ironlands')),
-  ('forge',public.create_world('Forge reference test',null,'world:starforged/forge')),
-  ('isles',public.create_world('Isles reference test',null,'world:sundered_isles/sundered_isles'));
+  ('ironlands',public.create_world('Ironlands reference test','world:classic/ironlands')),
+  ('forge',public.create_world('Forge reference test','world:starforged/forge')),
+  ('isles',public.create_world('Isles reference test','world:sundered_isles/sundered_isles'));
 select lives_ok($$select public.mutate_world_configuration(id,
   jsonb_build_object('type','update_category',
     'id',extensions.uuid_generate_v5(id,'category:npcs'),

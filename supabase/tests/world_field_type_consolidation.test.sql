@@ -165,7 +165,7 @@ create function pg_temp.with_rule(p_condition jsonb) returns jsonb language sql 
 -- Owner f9..01, editor f9..02, guide f9..03, player f9..04, outsider f9..05.
 select set_config('request.jwt.claim.sub','f9000000-0000-4000-8000-000000000001',true);
 insert into consolidation_worlds values ('main',public.create_world('Consolidated fields')),
-  ('forge',public.create_world('Inherited options',null,'world:starforged/forge'));
+  ('forge',public.create_world('Inherited options','world:starforged/forge'));
 insert into public.world_players(world_id,user_id,role) values (pg_temp.w('main'),'f9000000-0000-4000-8000-000000000002','editor');
 insert into public.games(id,name,game_type,world_id,rulesets,expansions,playset) values
   ('f9500000-0000-4000-8000-000000000001','Options game','guided',pg_temp.w('main'),'["classic"]','[]','{}'),

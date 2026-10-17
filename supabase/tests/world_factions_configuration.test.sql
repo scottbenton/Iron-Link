@@ -10,10 +10,10 @@ select set_config('request.jwt.claim.sub','d2000000-0000-4000-8000-000000000001'
 create temporary table faction_test_worlds(key text primary key,id uuid,category jsonb);
 grant select on faction_test_worlds to authenticated;
 insert into faction_test_worlds(key,id) values
- ('forge',public.create_world('Faction Forge',null,'world:starforged/forge')),
- ('isles',public.create_world('Faction Isles',null,'world:sundered_isles/sundered_isles')),
- ('classic',public.create_world('No classic factions',null,'world:classic/ironlands')),
- ('elegy',public.create_world('No Elegy factions',null,'world:elegy/santa_maria')),
+ ('forge',public.create_world('Faction Forge','world:starforged/forge')),
+ ('isles',public.create_world('Faction Isles','world:sundered_isles/sundered_isles')),
+ ('classic',public.create_world('No classic factions','world:classic/ironlands')),
+ ('elegy',public.create_world('No Elegy factions','world:elegy/santa_maria')),
  ('blank',public.create_world('Blank factions'));
 update faction_test_worlds u set category=c
  from public.worlds w,lateral jsonb_array_elements(public.get_world_template(w.id,w.setting_key)->'categories') c

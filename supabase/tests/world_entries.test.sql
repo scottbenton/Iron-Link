@@ -94,7 +94,7 @@ select is(to_regprocedure('public.world_configuration_guard_referenced_entry_del
 set local role authenticated;
 select pg_temp.as_user(1);
 insert into entry_worlds values
-  ('main',public.create_world('Entries',null,'world:classic/ironlands')),
+  ('main',public.create_world('Entries','world:classic/ironlands')),
   ('links',public.create_world('Links')),
   ('standalone',public.create_world('Standalone')),
   ('solo',public.create_world('Solo')),
@@ -103,7 +103,7 @@ insert into entry_worlds values
   ('guided',public.create_world('Guided')),
   ('viewer',public.create_world('Viewer')),
   ('mixed',public.create_world('Mixed')),
-  ('hidden',public.create_world('Hidden',null,'world:classic/ironlands'));
+  ('hidden',public.create_world('Hidden','world:classic/ironlands'));
 reset role;
 
 insert into public.games(id,name,game_type,world_id) values
