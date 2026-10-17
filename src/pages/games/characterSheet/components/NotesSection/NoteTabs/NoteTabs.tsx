@@ -201,7 +201,6 @@ export function NoteTabs() {
         }
         return (
           <Box
-            px={1}
             key={tabId}
             role="tabpanel"
             hidden={activeTab !== tabId}
@@ -220,7 +219,7 @@ export function NoteTabs() {
             ) : tabItem.type === "folder" ? (
               <>
                 <FolderViewToolbar folderId={tabItem.itemId} />
-                <OpenItemWrapper sx={{ mx: -1, flexGrow: 1 }}>
+                <OpenItemWrapper sx={{ flexGrow: 1 }}>
                   <FolderView folderId={tabItem.itemId} />
                   {rootPlayerFolder?.id === tabItem.itemId && (
                     <FolderView folderId={undefined} />

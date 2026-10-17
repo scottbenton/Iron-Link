@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { EmptyState } from "components/Layout/EmptyState";
+import { NOTES_PANE_GUTTER } from "components/Layout/notesPaneGutter";
 import { RtcRichTextEditor } from "components/RichTextEditor";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
@@ -110,6 +111,7 @@ export function NoteView(props: NoteViewProps) {
           </>
         )}
         initialValue={noteContent}
+        contentPx={NOTES_PANE_GUTTER}
         onSave={loading || !notePermissions.canEdit ? undefined : handleSave}
       />
     </>

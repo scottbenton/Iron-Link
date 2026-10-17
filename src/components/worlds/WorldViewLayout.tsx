@@ -2,6 +2,7 @@ import { Box, Typography } from "@mui/material";
 import { PropsWithChildren, ReactNode } from "react";
 
 import { ActionToolbar } from "components/Layout/ActionToolbar";
+import { NOTES_PANE_GUTTER } from "components/Layout/notesPaneGutter";
 
 // "page" is the standalone /worlds route; "embedded" is a Notes tab, where
 // the breadcrumbs name the destination and actions sit in the Notes toolbar.
@@ -36,11 +37,7 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
           flexDirection: "column",
           flexGrow: 1,
           minHeight: 0,
-          // The Notes tab panel adds no room of its own below the tabs, so
-          // match the side padding the standalone page gets from its
-          // container. The page layout leaves padding to that container.
           pt: 2,
-          px: { xs: 1, sm: 2 },
         }}
       >
         <ActionToolbar breadcrumbs={breadcrumbs}>
@@ -61,7 +58,16 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
             </>
           )}
         </ActionToolbar>
-        <Box sx={{ flexGrow: 1, overflow: "auto", pt: 2, pb: 2 }}>
+        {/* Full width, so the scrollbar sits at the column's edge. */}
+        <Box
+          sx={{
+            flexGrow: 1,
+            overflow: "auto",
+            pt: 2,
+            pb: 2,
+            px: NOTES_PANE_GUTTER,
+          }}
+        >
           {children}
         </Box>
       </Box>
