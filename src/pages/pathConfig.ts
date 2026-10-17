@@ -15,6 +15,8 @@ export const pathConfig = {
     `/worlds/${worldId}/categories/${categoryId}`,
   worldEntry: (worldId: string, categoryId: string, entryId: string) =>
     `/worlds/${worldId}/categories/${categoryId}/entries/${entryId}`,
+  worldEntryPlaces: (worldId: string, categoryId: string, entryId: string) =>
+    `/worlds/${worldId}/categories/${categoryId}/entries/${entryId}/places`,
   worldCategorySettings: (worldId: string, categoryId: string) =>
     `/worlds/${worldId}/settings/categories/${categoryId}`,
   homebrewSelect: "/homebrew",

@@ -17,13 +17,15 @@ import type { WorldLinkProps } from "../worldNavigation";
 
 // An entry in its category folder, drawn like a note card: its icon, its name
 // with the subtitle beside it in grey, a lock when only Guides can see it in a
-// guided world, and a menu with its actions.
+// guided world, and a menu with its actions. An entry holding other entries
+// is drawn as a folder card instead, its subtitle under its name.
 export function WorldCategoryEntryItem({
   entry,
   category,
   subtitle,
   guided,
   linkProps,
+  folder = false,
   onDeleted,
   onError,
 }: {
@@ -32,6 +34,7 @@ export function WorldCategoryEntryItem({
   subtitle?: string;
   guided: boolean;
   linkProps: WorldLinkProps;
+  folder?: boolean;
   onDeleted: () => void;
   onError: (cause: unknown) => void;
 }) {
@@ -54,14 +57,19 @@ export function WorldCategoryEntryItem({
     <Card
       component="li"
       variant="outlined"
-      sx={{ position: "relative", display: "flex", minWidth: 0 }}
+      sx={{
+        position: "relative",
+        display: "flex",
+        minWidth: 0,
+        bgcolor: folder ? "background.default" : undefined,
+      }}
     >
       <CardActionArea
         LinkComponent={LinkComponent}
         {...linkProps}
         sx={{
-          py: 1,
-          pl: 1.5,
+          py: folder ? 1.5 : 1,
+          pl: folder ? 2 : 1.5,
           pr: hasMenu ? 6 : 1.5,
           display: "flex",
           alignItems: "center",
@@ -76,8 +84,9 @@ export function WorldCategoryEntryItem({
             flexGrow: 1,
             minWidth: 0,
             display: "flex",
-            alignItems: "baseline",
-            gap: 1.25,
+            flexDirection: folder ? "column" : "row",
+            alignItems: folder ? "flex-start" : "baseline",
+            gap: folder ? 0 : 1.25,
             overflow: "hidden",
             whiteSpace: "nowrap",
           }}
@@ -96,9 +105,14 @@ export function WorldCategoryEntryItem({
           {subtitle && (
             <Typography
               component="span"
-              variant="body2"
+              variant={folder ? "caption" : "body2"}
               color="text.secondary"
-              sx={{ overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}
+              sx={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                minWidth: 0,
+                maxWidth: "100%",
+              }}
             >
               {subtitle}
             </Typography>

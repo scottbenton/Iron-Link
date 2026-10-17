@@ -107,10 +107,14 @@ function loadEntries(
   });
 }
 
-function renderView(entryId = "entry-1", viewCategory = category) {
+function renderView(
+  entryId = "entry-1",
+  viewCategory = category,
+  section?: "places",
+) {
   const navigate = vi.fn();
   const navigation: WorldNavigation = {
-    view: { type: "entry", categoryId: category.id, entryId },
+    view: { type: "entry", categoryId: category.id, entryId, section },
     getLinkProps: (view) => ({
       href: getWorldViewPath(category.worldId, view),
     }),
@@ -459,6 +463,74 @@ describe("entry header icon", () => {
     await screen.findByRole("article");
     expect(
       screen.queryByRole("button", { name: "Choose icon" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("entry Places", () => {
+  const places = () => [
+    worldEntry({ id: "region", name: "The Hinterlands" }),
+    worldEntry({ id: "town", name: "Kingsmark", parentEntryId: "region" }),
+    worldEntry({ id: "keep", name: "Kingsmark Keep", parentEntryId: "town" }),
+    worldEntry({ id: "ford", name: "Ford of Ashes", parentEntryId: "region" }),
+  ];
+
+  it("offers Details and Places tabs in a category with nesting", () => {
+    loadEntries(places());
+    renderView("region");
+    const tabs = screen.getByRole("tablist", { name: "The Hinterlands views" });
+    const details = within(tabs).getByRole("tab", { name: "Details" });
+    expect(details).toHaveAttribute("aria-selected", "true");
+    const placesTab = within(tabs).getByRole("tab", { name: "Places 2" });
+    expect(placesTab).toHaveAttribute(
+      "href",
+      `/worlds/${category.worldId}/categories/${category.id}/entries/region/places`,
+    );
+  });
+
+  it("lists the places inside, with those holding more as folders", () => {
+    loadEntries(places());
+    renderView("region", category, "places");
+    expect(screen.getByRole("tab", { name: "Places 2" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    const list = screen.getByRole("region", {
+      name: "Places in The Hinterlands",
+    });
+    expect(
+      within(list)
+        .getAllByRole("link")
+        .map((link) => [link.textContent, link.getAttribute("href")]),
+    ).toEqual([
+      [
+        "Kingsmark1 place",
+        `/worlds/${category.worldId}/categories/${category.id}/entries/town/places`,
+      ],
+      [
+        "Ford of Ashes",
+        `/worlds/${category.worldId}/categories/${category.id}/entries/ford`,
+      ],
+    ]);
+    expect(
+      screen.queryByRole("region", { name: "Notes" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("says when nothing is inside yet", () => {
+    loadEntries(places());
+    renderView("ford", category, "places");
+    expect(
+      screen.getByText("Nothing is inside Ford of Ashes yet."),
+    ).toBeInTheDocument();
+  });
+
+  it("has no Places without nesting", () => {
+    loadEntries(places());
+    renderView("region", { ...category, supportsHierarchy: false }, "places");
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Places in The Hinterlands" }),
     ).not.toBeInTheDocument();
   });
 });

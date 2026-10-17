@@ -4,6 +4,8 @@ import {
   Button,
   LinearProgress,
   Stack,
+  Tab,
+  Tabs,
   Typography,
 } from "@mui/material";
 import { useCallback, useState } from "react";
@@ -18,6 +20,7 @@ import { useWorldIsGuided } from "stores/world.store";
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
+import { countWorldEntryChildren } from "lib/worldEntryParents";
 import { getWorldEntrySubtitle } from "lib/worldEntrySubtitle";
 
 import { IWorldCategory } from "services/worldCategories.service";
@@ -28,6 +31,7 @@ import { WorldEntryFields } from "./WorldEntryFields";
 import { WorldEntryHeaderIcon } from "./WorldEntryHeaderIcon";
 import { WorldEntryNameField } from "./WorldEntryNameField";
 import { WorldEntryNotes } from "./WorldEntryNotes";
+import { WorldEntryPlaces } from "./WorldEntryPlaces";
 import { useWorldEntryAudience } from "./worldEntryAudience";
 
 const READ_ONLY = {
@@ -37,7 +41,8 @@ const READ_ONLY = {
 };
 
 // One entry's page: its portrait or icon, name and subtitle, then its
-// fields and Notes. Its actions sit in the strip above, which the manager
+// fields and Notes. In a category with nesting, Details and Places are tabs
+// under the header; Places lists the entries inside this one. Its actions sit in the strip above, which the manager
 // renders. The manager also listens to the world's entries, so moving here
 // from the list needs no loading.
 export function WorldEntryView({
@@ -80,6 +85,9 @@ export function WorldEntryView({
   });
   const entries = useWorldEntriesStore((store) => store.entryState.entries);
   const snapshots = useWorldFieldEntrySnapshots();
+  const placeCount = useWorldEntriesStore(
+    (store) => countWorldEntryChildren(store.entryState.entries)[entryId] ?? 0,
+  );
 
   if (loadError)
     return (
@@ -121,6 +129,16 @@ export function WorldEntryView({
       />
     );
 
+  const hasPlaces = category.supportsHierarchy && !forTable;
+  const section =
+    hasPlaces && navigation.view.type === "entry" && navigation.view.section
+      ? "places"
+      : "details";
+  const detailsView = {
+    type: "entry" as const,
+    categoryId: category.id,
+    entryId: entry.id,
+  };
   const subtitle = getWorldEntrySubtitle(
     subtitleField,
     entry.id,
@@ -152,24 +170,65 @@ export function WorldEntryView({
           )}
         </Box>
       </Box>
-      <WorldEntryFields
-        entry={entry}
-        category={category}
-        canEdit={permissions.canEdit}
-        guided={guided}
-        navigation={navigation}
-      />
-      {notesError && (
-        <Alert severity="error" onClose={() => setNotesError(undefined)}>
-          {notesError}
-        </Alert>
+      {hasPlaces && (
+        <Tabs
+          value={section}
+          aria-label={t("worlds.entries.views", "{{name}} views", {
+            name: entry.name,
+          })}
+          sx={{ borderBottom: 1, borderColor: "divider", minHeight: 40 }}
+        >
+          <Tab
+            value="details"
+            label={t("worlds.entries.details", "Details")}
+            component={LinkComponent}
+            {...navigation.getLinkProps(detailsView)}
+            sx={{ minHeight: 40 }}
+          />
+          <Tab
+            value="places"
+            label={
+              <Box component="span" sx={{ display: "flex", gap: 0.75 }}>
+                {t("worlds.entries.places", "Places")}
+                <Box component="span" sx={{ color: "text.secondary" }}>
+                  {placeCount}
+                </Box>
+              </Box>
+            }
+            component={LinkComponent}
+            {...navigation.getLinkProps({ ...detailsView, section: "places" })}
+            sx={{ minHeight: 40 }}
+          />
+        </Tabs>
       )}
-      <WorldEntryNotes
-        key={entry.id}
-        entry={entry}
-        canEdit={permissions.canEdit}
-        onError={onNotesError}
-      />
+      {section === "places" ? (
+        <WorldEntryPlaces
+          entry={entry}
+          category={category}
+          navigation={navigation}
+        />
+      ) : (
+        <>
+          <WorldEntryFields
+            entry={entry}
+            category={category}
+            canEdit={permissions.canEdit}
+            guided={guided}
+            navigation={navigation}
+          />
+          {notesError && (
+            <Alert severity="error" onClose={() => setNotesError(undefined)}>
+              {notesError}
+            </Alert>
+          )}
+          <WorldEntryNotes
+            key={entry.id}
+            entry={entry}
+            canEdit={permissions.canEdit}
+            onError={onNotesError}
+          />
+        </>
+      )}
     </Stack>
   );
 }

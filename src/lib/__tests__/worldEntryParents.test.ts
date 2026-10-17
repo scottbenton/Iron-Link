@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { isValidWorldEntryParent } from "../worldEntryParents";
+import {
+  countWorldEntryChildren,
+  getWorldEntryAncestors,
+  getWorldEntryPath,
+  isTopLevelWorldEntry,
+  isValidWorldEntryParent,
+} from "../worldEntryParents";
 
 const entry = (
   id: string,
@@ -60,5 +66,46 @@ describe("world entry parents", () => {
   it("stops at an ancestor that is not loaded", () => {
     const broken = { ...entries, orphan: entry("orphan", "hidden") };
     expect(isValidWorldEntryParent(broken, "loose", "orphan")).toBe(true);
+  });
+});
+
+describe("world entry hierarchy", () => {
+  const named = Object.fromEntries(
+    Object.values(entries).map((item) => [
+      item.id,
+      { ...item, name: item.id.toUpperCase() },
+    ]),
+  );
+
+  it("lists visible ancestors outermost first", () => {
+    expect(getWorldEntryAncestors(entries, "site").map((a) => a.id)).toEqual([
+      "region",
+      "area",
+    ]);
+    expect(getWorldEntryAncestors(entries, "region")).toEqual([]);
+    expect(getWorldEntryPath(named, "site")).toBe("REGION / AREA");
+  });
+
+  it("stops at a hidden parent and at a loop", () => {
+    const { region: _hidden, ...withoutRegion } = entries;
+    expect(
+      getWorldEntryAncestors(withoutRegion, "site").map((a) => a.id),
+    ).toEqual(["area"]);
+    const looped = {
+      a: entry("a", "b"),
+      b: entry("b", "a"),
+    };
+    expect(getWorldEntryAncestors(looped, "a").map((x) => x.id)).toEqual(["b"]);
+  });
+
+  it("puts entries with no visible parent at the top level", () => {
+    expect(isTopLevelWorldEntry(entries, entries.region)).toBe(true);
+    expect(isTopLevelWorldEntry(entries, entries.area)).toBe(false);
+    const { region: _hidden, ...withoutRegion } = entries;
+    expect(isTopLevelWorldEntry(withoutRegion, entries.area)).toBe(true);
+  });
+
+  it("counts visible children", () => {
+    expect(countWorldEntryChildren(entries)).toEqual({ region: 1, area: 1 });
   });
 });

@@ -24,6 +24,8 @@ import { useWorldIsGuided } from "stores/world.store";
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
+import { getWorldEntryAncestors } from "lib/worldEntryParents";
+
 import { WorldPermission, isGuideEquivalent } from "repositories/shared.types";
 
 import { IWorldCategory } from "services/worldCategories.service";
@@ -135,6 +137,9 @@ export function WorldCategoryManager({
       ? store.entryState.entries[view.entryId]
       : undefined,
   );
+  const ancestors = useWorldEntriesStore((store) =>
+    entry ? getWorldEntryAncestors(store.entryState.entries, entry.id) : [],
+  );
   const entryPermissions = useWorldEntriesStore((store) =>
     entry ? store.entryState.permissions[entry.id] : undefined,
   );
@@ -166,8 +171,9 @@ export function WorldCategoryManager({
     }
   };
   // Creates an entry with a placeholder name and the role's default sharing,
-  // then opens it with the name selected, ready to type over or roll.
-  const createEntryIn = (category: IWorldCategory) =>
+  // inside a parent when given, then opens it with the name selected, ready
+  // to type over or roll.
+  const createEntryIn = (category: IWorldCategory, parentEntryId?: string) =>
     run(async () => {
       if (!uid) return;
       const { readPermissions, editPermissions } =
@@ -179,6 +185,7 @@ export function WorldCategoryManager({
         t("worlds.entries.untitled", "Untitled"),
         readPermissions,
         editPermissions,
+        parentEntryId,
       );
       requestNameFocus(entryId);
       navigation.navigate({ type: "entry", categoryId: category.id, entryId });
@@ -321,10 +328,24 @@ export function WorldCategoryManager({
     const canDeleteEntry = !!entryPermissions?.canDelete;
     const canEditEntry = !!entryPermissions?.canEdit;
     const canMoveEntry = canEditEntry && !!selected?.supportsHierarchy;
+    const inPlaces = view.section === "places" && !!selected?.supportsHierarchy;
+    const createChildButton =
+      entry && selected && inPlaces && canCreateEntries ? (
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          disabled={busy}
+          onClick={() => createEntryIn(selected, entry.id)}
+        >
+          {t("worlds.entries.new-child", "Create a place here")}
+        </Button>
+      ) : undefined;
+    const parent = ancestors[ancestors.length - 1];
     // People who can do none of these get no strip at all.
     actions =
       entry && (canShareEntry || canEditEntry || canDeleteEntry)
         ? {
+            end: createChildButton,
             start: (
               <WorldEntryActions
                 key={entry.id}
@@ -334,17 +355,25 @@ export function WorldCategoryManager({
                 canMove={canMoveEntry}
                 canEdit={canEditEntry}
                 canDelete={canDeleteEntry}
+                // Back to where the entry was listed: its parent's Places,
+                // or its category.
                 onDeleted={() =>
-                  navigation.navigate({
-                    type: "category",
-                    categoryId: entry.categoryId,
-                  })
+                  navigation.navigate(
+                    parent
+                      ? {
+                          type: "entry",
+                          categoryId: entry.categoryId,
+                          entryId: parent.id,
+                          section: "places",
+                        }
+                      : { type: "category", categoryId: entry.categoryId },
+                  )
                 }
                 onError={(cause) => setError(getEditorErrorMessage(cause))}
               />
             ),
           }
-        : undefined;
+        : createChildButton && { end: createChildButton };
   } else {
     title = t("worlds.settings.title", "World settings");
   }
@@ -411,6 +440,7 @@ export function WorldCategoryManager({
           categoryLoading={loading}
           entry={entry}
           entryLoading={entriesLoading}
+          ancestors={ancestors}
           navigation={navigation}
           root={rootBreadcrumb}
         />
