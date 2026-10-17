@@ -87,7 +87,9 @@ describe("world entry hierarchy", () => {
   });
 
   it("stops at a hidden parent and at a loop", () => {
-    const { region: _hidden, ...withoutRegion } = entries;
+    const withoutRegion = Object.fromEntries(
+      Object.entries(entries).filter(([id]) => id !== "region"),
+    );
     expect(
       getWorldEntryAncestors(withoutRegion, "site").map((a) => a.id),
     ).toEqual(["area"]);
@@ -101,7 +103,9 @@ describe("world entry hierarchy", () => {
   it("puts entries with no visible parent at the top level", () => {
     expect(isTopLevelWorldEntry(entries, entries.region)).toBe(true);
     expect(isTopLevelWorldEntry(entries, entries.area)).toBe(false);
-    const { region: _hidden, ...withoutRegion } = entries;
+    const withoutRegion = Object.fromEntries(
+      Object.entries(entries).filter(([id]) => id !== "region"),
+    );
     expect(isTopLevelWorldEntry(withoutRegion, entries.area)).toBe(true);
   });
 
