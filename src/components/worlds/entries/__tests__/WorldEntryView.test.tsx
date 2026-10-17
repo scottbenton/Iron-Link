@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfirmProvider } from "material-ui-confirm";
-import { MemoryRouter, Route, Routes } from "react-router";
+import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -20,7 +20,6 @@ import { catalogOf, oracle } from "lib/__tests__/worldOracleFixtures";
 
 import { ReadPermissions, WorldPermission } from "repositories/shared.types";
 
-import { GameLogService } from "services/gameLog.service";
 import {
   IWorldEntry,
   WorldEntriesService,
@@ -798,68 +797,6 @@ describe("rolling an entry", () => {
     await user.click(screen.getByRole("button", { name: "Roll a name" }));
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
       "Kira Vale",
-    );
-  });
-
-  it("logs rolls made in a game, for Guides only when the field is", async () => {
-    const user = userEvent.setup();
-    vi.spyOn(
-      WorldEntryFieldValuesService,
-      "setWorldEntryFieldValue",
-    ).mockResolvedValue();
-    const log = vi.spyOn(GameLogService, "setGameLog").mockResolvedValue("");
-    const secretRole = { ...role, gmOnly: true };
-    useWorldCategoriesStore.setState({
-      fieldDefinitions: { goal, role: secretRole },
-    });
-    useWorldStore.setState({ worldPermission: WorldPermission.Guide });
-    goals.name = "Character Goal";
-    roles.name = "Character Role";
-    loadEntries([worldEntry({ name: "Kira" })]);
-    render(
-      <MemoryRouter initialEntries={["/games/game-a"]}>
-        <Routes>
-          <Route
-            path="/games/:gameId"
-            element={
-              <ConfirmProvider>
-                <WorldEntryActions
-                  entry={
-                    useWorldEntriesStore.getState().entryState.entries[
-                      "entry-1"
-                    ]
-                  }
-                  categoryName="People"
-                  canShare={false}
-                  canEdit
-                  canDelete={false}
-                  onDeleted={vi.fn()}
-                  onError={vi.fn()}
-                />
-              </ConfirmProvider>
-            }
-          />
-        </Routes>
-      </MemoryRouter>,
-    );
-    await user.click(screen.getByRole("button", { name: "Roll empty fields" }));
-    await waitFor(() => expect(log).toHaveBeenCalledTimes(2));
-    const logs = log.mock.calls.map(([, entry]) => entry);
-    expect(logs).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          gameId: "game-a",
-          rollLabel: "Character Goal",
-          oracleCategoryName: "Kira",
-          result: "Escape the past",
-          guidesOnly: false,
-        }),
-        expect.objectContaining({
-          rollLabel: "Character Role",
-          result: "Navigator",
-          guidesOnly: true,
-        }),
-      ]),
     );
   });
 });

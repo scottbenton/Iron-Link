@@ -26,7 +26,6 @@ import { WorldEntryLongTextField } from "./WorldEntryLongTextField";
 import { WorldEntryOptionListField } from "./WorldEntryOptionListField";
 import { WorldEntryTextField } from "./WorldEntryTextField";
 import { useWorldOracleRoller } from "./useWorldOracleRoller";
-import { isGuidesOnlyWorldRoll, useWorldRollLog } from "./useWorldRollLog";
 
 // One field of an entry, with the input its kind needs. An emptied field
 // deletes its value rather than storing a blank one.
@@ -75,15 +74,7 @@ export function WorldEntryField({
 
   const { catalog, lookup } = useWorldOracleRoller(entry.worldId);
   const rollable = canEdit && !!getWorldFieldRollTarget(field, catalog);
-  const logRoll = useWorldRollLog(entry.name);
-  const roll = () =>
-    rollWorldFieldValue(
-      field,
-      value?.value,
-      catalog,
-      lookup,
-      logRoll(isGuidesOnlyWorldRoll(entry, field)),
-    );
+  const roll = () => rollWorldFieldValue(field, value?.value, catalog, lookup);
 
   let input;
   switch (getWorldFieldKind(field)) {
