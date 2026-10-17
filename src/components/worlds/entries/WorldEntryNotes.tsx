@@ -1,19 +1,14 @@
-import { Alert, Box, Skeleton, Typography } from "@mui/material";
-import { Editor as TTEditor } from "@tiptap/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-
-import { RtcRichTextEditor } from "components/RichTextEditor";
 
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import type { IWorldEntry } from "services/worldEntries.service";
 
-import { WorldEntryNotesToolbar } from "./WorldEntryNotesToolbar";
+import { WorldNotesEditor } from "../notes/WorldNotesEditor";
 
-// An entry's collaborative Notes, below its fields. Edited and saved like a
-// game note; people who cannot edit the entry read it with no toolbar, and
-// see nothing at all while it is empty.
+// An entry's collaborative Notes, below its fields, with images stored with
+// the entry so they are removed with it.
 export function WorldEntryNotes({
   entry,
   canEdit,
@@ -30,106 +25,40 @@ export function WorldEntryNotes({
   const updateEntryNotesContent = useWorldEntriesStore(
     (store) => store.updateEntryNotesContent,
   );
-  const [content, setContent] = useState<Uint8Array>();
-  const [loadError, setLoadError] = useState(false);
+  const uploadEntryImage = useWorldEntriesStore(
+    (store) => store.uploadEntryImage,
+  );
   const { id: entryId, worldId } = entry;
 
-  useEffect(() => {
-    let active = true;
-    setContent(undefined);
-    setLoadError(false);
-    getEntryNotesContent(entryId)
-      .then((loaded) => {
-        if (active) setContent(loaded.content);
-      })
-      .catch(() => {
-        if (active) setLoadError(true);
-      });
-    return () => {
-      active = false;
-    };
-  }, [entryId, getEntryNotesContent]);
-
+  const load = useCallback(
+    () => getEntryNotesContent(entryId).then(({ content }) => content),
+    [entryId, getEntryNotesContent],
+  );
   const save = useCallback(
-    (
-      _documentId: string,
-      document: Uint8Array,
-      _text: string,
-      isBeaconRequest?: boolean,
-    ) =>
-      updateEntryNotesContent(entryId, document, isBeaconRequest).catch(
-        onError,
-      ),
-    [entryId, updateEntryNotesContent, onError],
+    (content: Uint8Array, isBeaconRequest?: boolean) =>
+      updateEntryNotesContent(entryId, content, isBeaconRequest),
+    [entryId, updateEntryNotesContent],
   );
-
-  // The editor takes a component; keep it stable for this entry.
-  const Toolbar = useMemo(
-    () =>
-      function EntryNotesToolbar({ editor }: { editor: TTEditor }) {
-        return (
-          <WorldEntryNotesToolbar
-            editor={editor}
-            entry={{ id: entryId, worldId }}
-            onError={onError}
-          />
-        );
-      },
-    [entryId, worldId, onError],
+  const uploadImage = useCallback(
+    (file: File) =>
+      uploadEntryImage(worldId, entryId, file).then(({ url }) => url),
+    [worldId, entryId, uploadEntryImage],
   );
-
-  if (!canEdit && content && content.length === 0) return null;
 
   return (
-    <Box component="section" aria-labelledby={`${entryId}-notes`}>
-      <Typography
-        id={`${entryId}-notes`}
-        component="h2"
-        sx={(theme) => ({
-          fontFamily: theme.typography.fontFamilyTitle,
-          fontWeight: 600,
-          fontSize: 15,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: "text.secondary",
-          mb: canEdit ? 0 : 1,
-        })}
-      >
-        {t("worlds.entries.notes", "Notes")}
-      </Typography>
-      {loadError ? (
-        <Alert severity="error">
-          {t(
-            "worlds.entries.notes-load-error",
-            "Could not load these notes. Please reopen the entry to try again.",
-          )}
-        </Alert>
-      ) : content ? (
-        // Laid out like a note in the Notes tab: the toolbar strip above
-        // plain text, with room to click into while it is empty.
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            "& .ProseMirror": { minHeight: canEdit ? 120 : undefined },
-          }}
-        >
-          <RtcRichTextEditor
-            id={entryId}
-            roomPrefix={`world-entry-notes-${worldId}`}
-            documentPassword={worldId}
-            initialValue={content}
-            onSave={canEdit ? save : undefined}
-            Toolbar={Toolbar}
-          />
-        </Box>
-      ) : (
-        <Skeleton
-          variant="rounded"
-          height={canEdit ? 160 : 48}
-          aria-label={t("worlds.entries.notes-loading", "Loading notes")}
-        />
+    <WorldNotesEditor
+      id={entryId}
+      worldId={worldId}
+      roomPrefix={`world-entry-notes-${worldId}`}
+      canEdit={canEdit}
+      load={load}
+      save={save}
+      uploadImage={uploadImage}
+      loadErrorMessage={t(
+        "worlds.entries.notes-load-error",
+        "Could not load these notes. Please reopen the entry to try again.",
       )}
-    </Box>
+      onError={onError}
+    />
   );
 }

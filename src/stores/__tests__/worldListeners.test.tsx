@@ -33,7 +33,6 @@ vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 const world = (updatedAt: number): IWorld => ({
   id: "world",
   name: "World",
-  description: null,
   settingKey: null,
   createdBy: "owner",
   createdAt: new Date(0),
