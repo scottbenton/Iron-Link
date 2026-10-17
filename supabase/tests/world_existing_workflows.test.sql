@@ -29,8 +29,8 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub','e1000000-0000-4000-8000-000000000001',true);
 select lives_ok($$insert into existing_workflow_worlds values
  ('blank',public.create_world('Blank created from existing UI')),
- ('setting',public.create_world('Setting from existing UI',null,'world:classic/ironlands')),
- ('populated',public.create_world('Stored configuration',null,'world:classic/ironlands'))$$,
+ ('setting',public.create_world('Setting from existing UI','world:classic/ironlands')),
+ ('populated',public.create_world('Stored configuration','world:classic/ironlands'))$$,
  'existing create RPC accepts blank and setting worlds');
 select is((select count(*) from public.world_players where world_id in
  (select id from existing_workflow_worlds) and user_id=auth.uid() and role='owner'),3::bigint,
@@ -43,8 +43,8 @@ select lives_ok($$update public.worlds set name='Renamed by existing UI'
  where id=pg_temp.existing_world_id('setting')$$,'existing direct world rename succeeds');
 select is((select name from public.worlds where id=pg_temp.existing_world_id('setting')),
  'Renamed by existing UI','rename updates the world name');
-select lives_ok($$update public.worlds set description='Existing description'
- where id=pg_temp.existing_world_id('setting')$$,'existing world description API succeeds');
+select lives_ok($$select public.update_world_notes(pg_temp.existing_world_id('setting'),'\x00'::bytea)$$,
+ 'world owners save world notes');
 select is(public.link_game_to_world('e6000000-0000-4000-8000-000000000001',
  pg_temp.existing_world_id('setting')),'{"divergences":[]}'::jsonb,'link RPC retains response contract');
 select is((select world_id from public.games where id='e6000000-0000-4000-8000-000000000001'),

@@ -278,7 +278,7 @@ select is((select name from public.world_categories where id=(w.template->'categ
 -- a customized world's complete copy or rebasing existing identities.
 set local role authenticated;
 insert into catalog_worlds(key,setting_key,id) values
- ('inherited','world:starforged/forge',public.create_world('Shared defaults update',null,'world:starforged/forge'));
+ ('inherited','world:starforged/forge',public.create_world('Shared defaults update','world:starforged/forge'));
 reset role;
 update public.world_templates set configuration=jsonb_set(configuration,'{categories,0,fields,0,label}','"Place Type"'::jsonb)
  where setting_key='world:starforged/forge';
@@ -343,7 +343,7 @@ insert into public.world_entry_field_values(entry_id,field_definition_id,world_i
  select extensions.uuid_generate_v5(id,'privacy-entry'),extensions.uuid_generate_v5(id,'field:lore:tags'),
  id,'["privacy"]'::jsonb from catalog_worlds where key='inherited';
 insert into catalog_worlds(key,setting_key,id) values
- ('fallback','unknown',public.create_world('Unknown setting fallback',null,'unknown'));
+ ('fallback','unknown',public.create_world('Unknown setting fallback','unknown'));
 insert into public.world_entries(id,world_id,category_id,name,author_id)
  select extensions.uuid_generate_v5(id,'privacy-entry'),id,extensions.uuid_generate_v5(id,'category:lore'),
  'Blank fallback privacy fixture',auth.uid() from catalog_worlds where key='fallback';
