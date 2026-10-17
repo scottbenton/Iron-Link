@@ -9,6 +9,7 @@ const queryKeys = [
   "note-id",
   "note-world-view",
   "note-category-id",
+  "note-entry-id",
 ];
 
 // The raw destination query values, so callers can tell when the URL itself
@@ -32,6 +33,10 @@ export function readNotesDestination(
   if ((view === "category" || view === "category-settings") && categoryId) {
     return { type, itemId, worldView: { type: view, categoryId } };
   }
+  const entryId = params.get("note-entry-id");
+  if (view === "entry" && categoryId && entryId) {
+    return { type, itemId, worldView: { type: view, categoryId, entryId } };
+  }
   return undefined;
 }
 
@@ -48,6 +53,7 @@ export function writeNotesDestination(
       const view = item.worldView ?? { type: "world" };
       if (view.type !== "world") next.set("note-world-view", view.type);
       if ("categoryId" in view) next.set("note-category-id", view.categoryId);
+      if ("entryId" in view) next.set("note-entry-id", view.entryId);
     }
   }
   return next;

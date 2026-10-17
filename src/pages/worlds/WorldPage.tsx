@@ -24,9 +24,10 @@ export default function WorldPage() {
   const { t } = useTranslation();
   useSendPageViewEvent(PageCategory.World);
 
-  const { worldId, categoryId } = useParams<{
+  const { worldId, categoryId, entryId } = useParams<{
     worldId: string;
     categoryId: string;
+    entryId: string;
   }>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,9 +35,14 @@ export default function WorldPage() {
   const settings =
     !!matchPath("/worlds/:worldId/settings/*", location.pathname) ||
     !!matchPath("/worlds/:worldId/settings", location.pathname);
-  const view: WorldView = categoryId
-    ? { type: settings ? "category-settings" : "category", categoryId }
-    : { type: settings ? "settings" : "world" };
+  let view: WorldView;
+  if (categoryId && entryId) {
+    view = { type: "entry", categoryId, entryId };
+  } else if (categoryId) {
+    view = { type: settings ? "category-settings" : "category", categoryId };
+  } else {
+    view = { type: settings ? "settings" : "world" };
+  }
   const navigation: WorldNavigation = {
     view,
     getLinkProps: (target) => ({

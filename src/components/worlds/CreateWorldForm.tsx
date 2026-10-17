@@ -174,7 +174,7 @@ export function CreateWorldForm(props: CreateWorldFormProps) {
           disabled={!selectedOption || !name.trim() || saving}
         >
           {saving
-            ? t("worlds.create.creating-world", "Creating World...")
+            ? t("worlds.create.creating-world", "Creating World")
             : t("worlds.create.create-world", "Create World")}
         </GradientButton>
       </Box>

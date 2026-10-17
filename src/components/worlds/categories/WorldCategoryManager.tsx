@@ -1,3 +1,4 @@
+import AddIcon from "@mui/icons-material/Add";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import SettingsIcon from "@mui/icons-material/Settings";
 import {
@@ -18,7 +19,10 @@ import { LinkComponent } from "components/LinkComponent";
 
 import { useWorldOracles } from "hooks/useWorldOracles";
 
+import { useUID } from "stores/auth.store";
+import { useWorldIsGuided } from "stores/world.store";
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
+import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import { WorldPermission, isGuideEquivalent } from "repositories/shared.types";
 
@@ -31,6 +35,9 @@ import {
   WorldViewActions,
   WorldViewLayout,
 } from "../WorldViewLayout";
+import { WorldEntryActions } from "../entries/WorldEntryActions";
+import { WorldEntryView } from "../entries/WorldEntryView";
+import { getDefaultWorldEntryPermissions } from "../entries/worldEntryPermissions";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldCategoryBrowser } from "./WorldCategoryBrowser";
 import { WorldCategoryContents } from "./WorldCategoryContents";
@@ -84,6 +91,11 @@ export function WorldCategoryManager({
   const deleteCategory = useWorldCategoriesStore(
     (store) => store.deleteCategory,
   );
+  const uid = useUID();
+  const createEntry = useWorldEntriesStore((store) => store.createEntry);
+  const requestNameFocus = useWorldEntriesStore(
+    (store) => store.requestNameFocus,
+  );
   const getCategoryCounts = useWorldCategoriesStore(
     (store) => store.getCategoryCounts,
   );
@@ -95,7 +107,9 @@ export function WorldCategoryManager({
   // The manager stays mounted across destinations so the settings sidebar and
   // its icons do not rebuild on every click. Search text and action errors
   // belong to one destination, so clear them when it changes.
-  const viewKey = `${view.type}:${"categoryId" in view ? view.categoryId : ""}`;
+  const viewKey = `${view.type}:${"categoryId" in view ? view.categoryId : ""}:${
+    "entryId" in view ? view.entryId : ""
+  }`;
   const [previousViewKey, setPreviousViewKey] = useState(viewKey);
   if (previousViewKey !== viewKey) {
     setPreviousViewKey(viewKey);
@@ -106,12 +120,34 @@ export function WorldCategoryManager({
     view.type === "settings" || view.type === "category-settings";
   const selectedId = "categoryId" in view ? view.categoryId : undefined;
   const selected = categories.find((category) => category.id === selectedId);
+  const showsEntries = view.type === "category" || view.type === "entry";
+  // A new entry's page opens before the listener delivers it; it counts as
+  // loading until then.
+  const entriesLoading = useWorldEntriesStore(
+    (store) =>
+      store.entryState.loading ||
+      (view.type === "entry" && !!store.entryState.arriving?.[view.entryId]),
+  );
+  const entry = useWorldEntriesStore((store) =>
+    view.type === "entry" &&
+    store.entryState.entries[view.entryId]?.categoryId === view.categoryId
+      ? store.entryState.entries[view.entryId]
+      : undefined,
+  );
+  const entryPermissions = useWorldEntriesStore((store) =>
+    entry ? store.entryState.permissions[entry.id] : undefined,
+  );
+  const guided = useWorldIsGuided();
   const fields = Object.values(definitions)
     .filter(
       (field) => field.worldId === worldId && field.categoryId === selected?.id,
     )
     .sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id));
   const canEdit = permission !== null && isGuideEquivalent(permission);
+  const canCreateEntries =
+    permission !== null &&
+    permission !== WorldPermission.None &&
+    permission !== WorldPermission.Viewer;
   const configurationReady =
     customized || (defaultBindingsReady && !oracles.loading && !oracles.error);
   const canDelete =
@@ -128,6 +164,24 @@ export function WorldCategoryManager({
       setBusy(false);
     }
   };
+  // Creates an entry with a placeholder name and the role's default sharing,
+  // then opens it with the name selected, ready to type over or roll.
+  const createEntryIn = (category: IWorldCategory) =>
+    run(async () => {
+      if (!uid) return;
+      const { readPermissions, editPermissions } =
+        getDefaultWorldEntryPermissions(canEdit, guided);
+      const entryId = await createEntry(
+        uid,
+        category.worldId,
+        category.id,
+        t("worlds.entries.untitled", "Untitled"),
+        readPermissions,
+        editPermissions,
+      );
+      requestNameFocus(entryId);
+      navigation.navigate({ type: "entry", categoryId: category.id, entryId });
+    });
   const remove = (category: IWorldCategory) =>
     run(async () => {
       const { entryCount } = await getCategoryCounts(category.id);
@@ -189,7 +243,7 @@ export function WorldCategoryManager({
     </Button>
   ) : undefined;
 
-  let title: ReactNode = world.name;
+  let title: ReactNode | undefined = world.name;
   let titleIcon: ReactNode;
   let actions: WorldViewActions | undefined;
   if (view.type === "world") {
@@ -215,34 +269,76 @@ export function WorldCategoryManager({
     actions = selected
       ? {
           start: (
-            <Tooltip
-              title={t(
-                "worlds.categories.settings-named",
-                "{{name}} settings",
-                {
-                  name: selected.name,
-                },
-              )}
-            >
-              <IconButton
-                LinkComponent={LinkComponent}
-                {...navigation.getLinkProps({
-                  type: "category-settings",
-                  categoryId: selected.id,
-                })}
-                aria-label={t(
+            <WorldEntrySearch
+              categoryName={selected.name}
+              value={search}
+              onChange={setSearch}
+            />
+          ),
+          end: (
+            <>
+              <Tooltip
+                title={t(
                   "worlds.categories.settings-named",
                   "{{name}} settings",
                   { name: selected.name },
                 )}
               >
-                <SettingsIcon />
-              </IconButton>
-            </Tooltip>
+                <IconButton
+                  LinkComponent={LinkComponent}
+                  {...navigation.getLinkProps({
+                    type: "category-settings",
+                    categoryId: selected.id,
+                  })}
+                  aria-label={t(
+                    "worlds.categories.settings-named",
+                    "{{name}} settings",
+                    { name: selected.name },
+                  )}
+                >
+                  <SettingsIcon />
+                </IconButton>
+              </Tooltip>
+              {canCreateEntries && (
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  disabled={busy}
+                  onClick={() => selected && createEntryIn(selected)}
+                >
+                  {t("worlds.entries.new", "Create entry")}
+                </Button>
+              )}
+            </>
           ),
-          end: <WorldEntrySearch value={search} onChange={setSearch} />,
         }
       : undefined;
+  } else if (view.type === "entry") {
+    // The entry renders its own editable header on both surfaces.
+    title = undefined;
+    const canShareEntry = !!entryPermissions?.canChangePermissions && guided;
+    const canDeleteEntry = !!entryPermissions?.canDelete;
+    // People who can do neither get no strip at all.
+    actions =
+      entry && (canShareEntry || canDeleteEntry)
+        ? {
+            start: (
+              <WorldEntryActions
+                key={entry.id}
+                entry={entry}
+                canShare={canShareEntry}
+                canDelete={canDeleteEntry}
+                onDeleted={() =>
+                  navigation.navigate({
+                    type: "category",
+                    categoryId: entry.categoryId,
+                  })
+                }
+                onError={(cause) => setError(getEditorErrorMessage(cause))}
+              />
+            ),
+          }
+        : undefined;
   } else {
     title = t("worlds.settings.title", "World settings");
   }
@@ -272,11 +368,18 @@ export function WorldCategoryManager({
           key={selected.id}
           category={selected}
           search={search}
+          navigation={navigation}
+        />
+      ) : view.type === "entry" && selected ? (
+        <WorldEntryView
+          category={selected}
+          entryId={view.entryId}
+          navigation={navigation}
         />
       ) : (
         <WorldCategoryBrowser
           categories={categories}
-          missingCategory={view.type === "category" && !selected}
+          missingCategory={showsEntries && !selected}
           worldName={world.name}
           navigation={navigation}
         />
@@ -291,6 +394,8 @@ export function WorldCategoryManager({
           world={world}
           category={selected}
           categoryLoading={loading}
+          entry={entry}
+          entryLoading={entriesLoading}
           navigation={navigation}
           root={rootBreadcrumb}
         />

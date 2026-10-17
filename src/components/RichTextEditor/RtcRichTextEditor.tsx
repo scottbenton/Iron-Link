@@ -1,6 +1,6 @@
 import { Editor as TTEditor } from "@tiptap/react";
 
-import { Editor } from "./Editor";
+import { Editor, EditorProps } from "./Editor";
 import { useAutoSaveRtcEditor } from "./useAutosaveRtcEditor";
 
 export interface RtcRichTextEditorProps {
@@ -15,11 +15,25 @@ export interface RtcRichTextEditorProps {
   ) => Promise<void>;
   initialValue: Uint8Array;
   Toolbar: React.FC<{ editor: TTEditor }>;
+  // Bordered, with the toolbar inside, for an editor among other inputs.
+  outlined?: boolean;
+  minHeight?: number;
+  // Side padding for the text, so the editor can scroll at its column's edge.
+  contentPx?: EditorProps["contentPx"];
 }
 
 export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
-  const { id, roomPrefix, documentPassword, onSave, initialValue, Toolbar } =
-    props;
+  const {
+    id,
+    roomPrefix,
+    documentPassword,
+    onSave,
+    initialValue,
+    Toolbar,
+    outlined,
+    minHeight,
+    contentPx,
+  } = props;
 
   const readOnly = !onSave;
   const { editor, saving } = useAutoSaveRtcEditor({
@@ -37,6 +51,9 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
       editor={editor}
       saving={saving}
       Toolbar={Toolbar}
+      outlined={outlined}
+      minHeight={minHeight}
+      contentPx={contentPx}
     />
   );
 }

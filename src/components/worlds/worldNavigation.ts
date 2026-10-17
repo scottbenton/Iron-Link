@@ -5,6 +5,7 @@ import { pathConfig } from "pages/pathConfig";
 export type WorldView =
   | { type: "world" }
   | { type: "category"; categoryId: string }
+  | { type: "entry"; categoryId: string; entryId: string }
   | { type: "settings" }
   | { type: "category-settings"; categoryId: string };
 
@@ -24,6 +25,8 @@ export function getWorldViewPath(worldId: string, view: WorldView): string {
       return pathConfig.world(worldId);
     case "category":
       return pathConfig.worldCategory(worldId, view.categoryId);
+    case "entry":
+      return pathConfig.worldEntry(worldId, view.categoryId, view.entryId);
     case "settings":
       return pathConfig.worldSettings(worldId);
     case "category-settings":

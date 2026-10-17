@@ -95,6 +95,7 @@ describe("Notes world destinations", () => {
     { type: "category", categoryId: "location & sector" },
     { type: "settings" },
     { type: "category-settings", categoryId: "npcs" },
+    { type: "entry", categoryId: "locations", entryId: "hollowmere" },
   ])(
     "roundtrips $type without overwriting unrelated query parameters",
     (worldView) => {
@@ -117,8 +118,31 @@ describe("Notes world destinations", () => {
     "note-type=world&note-id=x&note-world-view=bad",
     "note-type=world&note-id=x&note-world-view=category",
     "note-type=world&note-world-view=settings",
+    "note-type=world&note-id=x&note-world-view=entry&note-category-id=locations",
+    "note-type=world&note-id=x&note-world-view=entry&note-entry-id=hollowmere",
   ])("rejects invalid URL %s", (query) => {
     expect(readNotesDestination(new URLSearchParams(query))).toBeUndefined();
+  });
+
+  it("writes an entry destination's category and entry, and clears a stale entry", () => {
+    const entry = writeNotesDestination(new URLSearchParams(), {
+      type: "world",
+      itemId: "world-a",
+      worldView: {
+        type: "entry",
+        categoryId: "locations",
+        entryId: "hollowmere",
+      },
+    });
+    expect(entry.toString()).toBe(
+      "note-type=world&note-id=world-a&note-world-view=entry&note-category-id=locations&note-entry-id=hollowmere",
+    );
+    const category = writeNotesDestination(entry, {
+      type: "world",
+      itemId: "world-a",
+      worldView: { type: "category", categoryId: "locations" },
+    });
+    expect(category.has("note-entry-id")).toBe(false);
   });
 
   it("intercepts plain, control, meta and middle clicks as real Notes tabs with usable anchor hrefs", () => {

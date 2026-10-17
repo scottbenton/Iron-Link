@@ -1,17 +1,36 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  type WorldNavigation,
+  getWorldViewPath,
+} from "components/worlds/worldNavigation";
+
 import { useWorldStore } from "stores/world.store";
+import { useWorldCategoriesStore } from "stores/worldCategories.store";
+import {
+  useListenToWorldEntries,
+  useWorldEntriesStore,
+} from "stores/worldEntries.store";
+
+import { createWorldFieldConfiguration } from "lib/worldFieldRules";
 
 import { WorldPermission } from "repositories/shared.types";
 
+import type { IWorldCategory } from "services/worldCategories.service";
 import {
   IWorldEntry,
   WorldEntriesService,
 } from "services/worldEntries.service";
+import {
+  IWorldEntryFieldValue,
+  WorldEntryFieldValuesService,
+} from "services/worldEntryFieldValues.service";
+import { IWorldFieldDefinition } from "services/worldFieldDefinitions.service";
 
 import { WorldCategoryContents } from "../WorldCategoryContents";
-import { category, translate } from "./fixtures";
+import { category, field, optionList, translate } from "./fixtures";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("stores/auth.store", () => ({ useUID: () => "reader" }));
@@ -22,11 +41,77 @@ vi.mock("react-i18next", async (importOriginal) => ({
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  vi.spyOn(
+    WorldEntryFieldValuesService,
+    "listenToWorldFieldValues",
+  ).mockReturnValue(() => {});
   useWorldStore.setState({ worldPermission: WorldPermission.Viewer });
+  useWorldCategoriesStore.setState({ fieldDefinitions: {} });
+  useWorldEntriesStore.getState().reset();
 });
 
 const entry = (id: string, categoryId: string, name: string) =>
-  ({ id, categoryId, name }) as IWorldEntry;
+  ({ id, categoryId, name, parentEntryId: null }) as IWorldEntry;
+
+const navigation: WorldNavigation = {
+  view: { type: "category", categoryId: category.id },
+  getLinkProps: (view) => ({ href: getWorldViewPath(category.worldId, view) }),
+  navigate: () => {},
+};
+
+// The world page or game owns the entries subscription; the harness stands in
+// for it.
+function ListeningContents({ search }: { search: string }) {
+  useListenToWorldEntries(category.worldId);
+  return (
+    <WorldCategoryContents
+      category={category}
+      search={search}
+      navigation={navigation}
+    />
+  );
+}
+
+function renderList(search = "", listedCategory: IWorldCategory = category) {
+  return render(
+    <MemoryRouter>
+      <WorldCategoryContents
+        category={listedCategory}
+        search={search}
+        navigation={navigation}
+      />
+    </MemoryRouter>,
+  );
+}
+
+function loadWorld(
+  entries: IWorldEntry[],
+  values: Omit<IWorldEntryFieldValue, "worldId" | "gmOnly">[],
+  definitions: IWorldFieldDefinition[],
+) {
+  useWorldCategoriesStore.setState({
+    fieldDefinitions: Object.fromEntries(
+      definitions.map((definition) => [definition.id, definition]),
+    ),
+  });
+  useWorldEntriesStore.setState((store) => {
+    store.entryState.loading = false;
+    store.entryState.entries = Object.fromEntries(
+      entries.map((item) => [item.id, item]),
+    );
+    store.fieldValueState.valuesByEntry = {};
+    values.forEach((value) => {
+      store.fieldValueState.valuesByEntry[value.entryId] ??= {};
+      store.fieldValueState.valuesByEntry[value.entryId][
+        value.fieldDefinitionId
+      ] = { ...value, worldId: category.worldId, gmOnly: false };
+    });
+  });
+}
+
+// A row's accessible name is the entry name followed by its subtitle.
+const row = (name: string) =>
+  screen.getByRole("link", { name: new RegExp(`^${name}`) });
 
 describe("WorldCategoryContents", () => {
   it("lists this category's permitted entries and filters them by name", () => {
@@ -35,7 +120,9 @@ describe("WorldCategoryContents", () => {
       .spyOn(WorldEntriesService, "listenToWorldEntries")
       .mockReturnValue(unsubscribe);
     const view = render(
-      <WorldCategoryContents category={category} search="" />,
+      <MemoryRouter>
+        <ListeningContents search="" />
+      </MemoryRouter>,
     );
     expect(listen).toHaveBeenCalledWith(
       "reader",
@@ -62,7 +149,11 @@ describe("WorldCategoryContents", () => {
     expect(screen.getByText("Highmount")).toBeInTheDocument();
     expect(screen.queryByText("Other category")).not.toBeInTheDocument();
 
-    view.rerender(<WorldCategoryContents category={category} search="frost" />);
+    view.rerender(
+      <MemoryRouter>
+        <ListeningContents search="frost" />
+      </MemoryRouter>,
+    );
     expect(screen.getByText("Frosthaven")).toBeInTheDocument();
     expect(screen.queryByText("Highmount")).not.toBeInTheDocument();
 
@@ -72,5 +163,96 @@ describe("WorldCategoryContents", () => {
     ).toBeInTheDocument();
     view.unmount();
     expect(unsubscribe).toHaveBeenCalledOnce();
+  });
+
+  it("links each row to its entry", () => {
+    loadWorld([entry("one", category.id, "Frosthaven")], [], []);
+    renderList();
+    expect(row("Frosthaven")).toHaveAttribute(
+      "href",
+      getWorldViewPath(category.worldId, {
+        type: "entry",
+        categoryId: category.id,
+        entryId: "one",
+      }),
+    );
+  });
+
+  it("shows the subtitle field under each name and searches it", () => {
+    const region = optionList(
+      { id: "region", label: "Region" },
+      { multiple: true },
+    );
+    loadWorld(
+      [
+        entry("one", category.id, "Frosthaven"),
+        entry("two", category.id, "Highmount"),
+      ],
+      [
+        { entryId: "one", fieldDefinitionId: "region", value: ["Hinterlands"] },
+        {
+          entryId: "two",
+          fieldDefinitionId: "region",
+          value: ["Havens", "Ragged Coast"],
+        },
+      ],
+      [region],
+    );
+    const view = renderList("", {
+      ...category,
+      subtitleFieldDefinitionId: "region",
+    });
+    expect(
+      within(row("Frosthaven")).getByText("Hinterlands"),
+    ).toBeInTheDocument();
+    expect(
+      within(row("Highmount")).getByText("Havens, Ragged Coast"),
+    ).toBeInTheDocument();
+
+    view.unmount();
+    renderList("  ragged ", {
+      ...category,
+      subtitleFieldDefinitionId: "region",
+    });
+    expect(screen.getByText("Highmount")).toBeInTheDocument();
+    expect(screen.queryByText("Frosthaven")).not.toBeInTheDocument();
+  });
+
+  it("hides a subtitle its field's rules hide for that entry", () => {
+    const kind = optionList({ id: "kind", label: "Kind" });
+    const ruler = field({
+      id: "ruler",
+      label: "Ruler",
+      configuration: createWorldFieldConfiguration({
+        rules: [
+          {
+            conditions: [
+              {
+                source: "entry",
+                fieldId: "kind",
+                operator: "equals",
+                value: "Ruin",
+              },
+            ],
+            visible: false,
+          },
+        ],
+      }),
+    });
+    loadWorld(
+      [
+        entry("one", category.id, "Frosthaven"),
+        entry("two", category.id, "Old Keep"),
+      ],
+      [
+        { entryId: "one", fieldDefinitionId: "ruler", value: "Elder Kell" },
+        { entryId: "two", fieldDefinitionId: "kind", value: "Ruin" },
+        { entryId: "two", fieldDefinitionId: "ruler", value: "Nobody" },
+      ],
+      [kind, ruler],
+    );
+    renderList("", { ...category, subtitleFieldDefinitionId: "ruler" });
+    expect(screen.getByText("Elder Kell")).toBeInTheDocument();
+    expect(screen.queryByText("Nobody")).not.toBeInTheDocument();
   });
 });

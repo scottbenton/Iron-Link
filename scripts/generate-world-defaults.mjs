@@ -86,7 +86,8 @@ const oracle = (binding) =>
 
 function kind(field, categoryNames) {
   const configuration = field.configuration;
-  if (field.type === "text") return "Text";
+  if (field.type === "text")
+    return configuration.fullWidth ? "Text, full width" : "Text";
   if (field.type === "richText") return "Long text";
   if (field.type !== "select") return `Unknown (${field.type})`;
   const count = configuration.multiple ? "multiple" : "single";

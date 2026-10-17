@@ -2,6 +2,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import {
   Alert,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -20,12 +21,11 @@ import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButto
 
 import { useIsBreakpoint } from "hooks/useIsBreakpoint";
 
-import { useListenToWorldEntries } from "stores/worldEntries.store";
-
 import {
   canWorldFieldHaveOracleBinding,
   createWorldFieldConfiguration,
   getWorldFieldChangeBlocker,
+  getWorldFieldKind,
   isWorldFieldLinkedEntry,
 } from "lib/worldFieldRules";
 
@@ -115,10 +115,6 @@ export function WorldFieldEditor({
     gmDependency,
     affected,
   } = validateFieldDraft(draft, fields, field?.id, incompatible);
-  // Linked-entry conditions pick and name entries from the world.
-  useListenToWorldEntries(
-    sourceFields.some(isWorldFieldLinkedEntry) ? worldId : undefined,
-  );
   const selectableSources = sourceFields.filter(
     (source) => draft.gmOnly || !source.gmOnly,
   );
@@ -233,6 +229,32 @@ export function WorldFieldEditor({
                 )}
               </FormHelperText>
             </FormControl>
+            {getWorldFieldKind(draft) === "text" && (
+              <FormControl>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={!!draft.configuration.fullWidth}
+                      disabled={disabled}
+                      onChange={(_, checked) => {
+                        // Off is stored as no option, as on new fields.
+                        const next = { ...draft.configuration };
+                        if (checked) next.fullWidth = true;
+                        else delete next.fullWidth;
+                        setDraft({ ...draft, configuration: next });
+                      }}
+                    />
+                  }
+                  label={t("worlds.fields.full-width", "Full width")}
+                />
+                <FormHelperText sx={{ mx: 0 }}>
+                  {t(
+                    "worlds.fields.full-width-help",
+                    "Give the value a whole row on entry pages, for long answers like a goal.",
+                  )}
+                </FormHelperText>
+              </FormControl>
+            )}
             {gmDependency && (
               <Alert severity="error">
                 {t(

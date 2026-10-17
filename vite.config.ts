@@ -19,5 +19,8 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/tests/setup.ts"],
     globals: true,
+    // Component tests drive MUI dialogs with userEvent; on the shared
+    // Cloudflare build machines the slower ones pass 5s.
+    testTimeout: 15000,
   },
 });

@@ -11,8 +11,10 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, supabase } from "lib/supabase.lib";
 import { createSubscription } from "./_subscriptionManager";
 import {
   ErrorNoun,
+  ErrorReason,
   ErrorVerb,
   RepositoryError,
+  createRepositoryError,
   getRepositoryError,
 } from "./errors/RepositoryErrors";
 import { WorldPermission, isGuideEquivalent } from "./shared.types";
@@ -78,7 +80,7 @@ export class WorldEntriesRepository {
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
-    const startInitialLoad = () => {
+    const startInitialLoad = (isCurrent: () => boolean) => {
       const query = this.worldEntries()
         .select(ENTRY_LIST_COLUMNS)
         .eq("world_id", worldId);
@@ -96,6 +98,7 @@ export class WorldEntriesRepository {
       }
 
       query.then(({ data, error, status }) => {
+        if (!isCurrent()) return;
         if (error) {
           console.error(error);
           onError(
@@ -155,6 +158,7 @@ export class WorldEntriesRepository {
       `world_id=eq.${worldId}`,
       startInitialLoad,
       handlePayload,
+      { loadBeforeJoin: true },
     );
 
     return () => {
@@ -195,7 +199,8 @@ export class WorldEntriesRepository {
       this.worldEntries()
         .update(entry)
         .eq("id", entryId)
-        .then(({ error, status }) => {
+        .select("id")
+        .then(({ data, error, status }) => {
           if (error) {
             console.error(error);
             reject(
@@ -205,6 +210,18 @@ export class WorldEntriesRepository {
                 ErrorNoun.WorldEntry,
                 false,
                 status,
+              ),
+            );
+          } else if (data.length === 0) {
+            // RLS filters refused updates instead of raising, so an update
+            // the edit permissions reject, or of a deleted entry, changes
+            // nothing and returns no rows.
+            reject(
+              createRepositoryError(
+                ErrorReason.Forbidden,
+                ErrorVerb.Update,
+                ErrorNoun.WorldEntry,
+                false,
               ),
             );
           } else {

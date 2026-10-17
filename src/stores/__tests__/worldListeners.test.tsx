@@ -1,15 +1,31 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { WorldConfigurationService } from "services/worldConfiguration.service";
-import { WorldPlaysetsService } from "services/worldPlaysets.service";
-import type { IWorld } from "services/worlds.service";
+import { WorldPermission } from "repositories/shared.types";
 
-import { useWorldStore } from "../world.store";
+import { WorldConfigurationService } from "services/worldConfiguration.service";
+import {
+  type IWorldEntry,
+  WorldEntriesService,
+} from "services/worldEntries.service";
+import { WorldEntryFieldValuesService } from "services/worldEntryFieldValues.service";
+import { WorldPlayersService } from "services/worldPlayers.service";
+import { WorldPlaysetsService } from "services/worldPlaysets.service";
+import { type IWorld, WorldsService } from "services/worlds.service";
+
+import {
+  useListenToWorld,
+  useWorldIsGuided,
+  useWorldStore,
+} from "../world.store";
 import {
   useListenToWorldConfiguration,
   useWorldCategoriesStore,
 } from "../worldCategories.store";
+import {
+  useListenToWorldEntries,
+  useWorldEntriesStore,
+} from "../worldEntries.store";
 import { useListenToWorldOracles } from "../worldOracles.store";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
@@ -65,6 +81,39 @@ describe("world row invalidation", () => {
   });
 });
 
+describe("guided worlds", () => {
+  it("reports a guided world, rechecking when linked games change", async () => {
+    let deliverWorld: Parameters<
+      typeof WorldsService.listenToWorld
+    >[1] = () => {};
+    vi.spyOn(WorldsService, "listenToWorld").mockImplementation(
+      (_worldId, onWorld) => {
+        deliverWorld = onWorld;
+        return () => {};
+      },
+    );
+    vi.spyOn(WorldPlayersService, "listenToWorldPlayers").mockReturnValue(
+      () => {},
+    );
+    const guided = vi
+      .spyOn(WorldsService, "getWorldIsGuided")
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+
+    const hook = renderHook(() => {
+      useListenToWorld("world");
+      return useWorldIsGuided();
+    });
+    // False while loading, and while the world is not guided.
+    expect(hook.result.current).toBe(false);
+    await waitFor(() => expect(guided).toHaveBeenCalledTimes(1));
+    act(() => deliverWorld(world(1)));
+    await waitFor(() => expect(guided).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(hook.result.current).toBe(true));
+    hook.unmount();
+  });
+});
+
 describe("listener ownership", () => {
   it("keeps an owned configuration when a non-owning view unmounts", () => {
     let deliver: Parameters<
@@ -97,5 +146,54 @@ describe("listener ownership", () => {
     });
     owner.unmount();
     expect(useWorldCategoriesStore.getState().worldId).toBe("");
+  });
+
+  it("keeps owned entries and values when a non-owning view unmounts", () => {
+    let deliver: Parameters<
+      typeof WorldEntriesService.listenToWorldEntries
+    >[3] = () => {};
+    const unsubscribeEntries = vi.fn();
+    const listenEntries = vi
+      .spyOn(WorldEntriesService, "listenToWorldEntries")
+      .mockImplementation((_uid, _worldId, _permission, onEntries) => {
+        deliver = onEntries;
+        return unsubscribeEntries;
+      });
+    const listenValues = vi
+      .spyOn(WorldEntryFieldValuesService, "listenToWorldFieldValues")
+      .mockReturnValue(() => {});
+    useWorldStore.setState({ worldPermission: WorldPermission.Player });
+
+    const owner = renderHook(() => useListenToWorldEntries("world"));
+    act(() =>
+      deliver(
+        { one: { id: "one", name: "Frosthaven" } as IWorldEntry },
+        [],
+        true,
+      ),
+    );
+    // Opening and closing a category or entry view must not touch them.
+    for (let visit = 0; visit < 2; visit++) {
+      renderHook(() => useListenToWorldEntries(undefined)).unmount();
+    }
+
+    expect(listenEntries).toHaveBeenCalledOnce();
+    expect(listenValues).toHaveBeenCalledOnce();
+    expect(unsubscribeEntries).not.toHaveBeenCalled();
+    expect(useWorldEntriesStore.getState()).toMatchObject({
+      entryState: { loading: false, entries: { one: { name: "Frosthaven" } } },
+      fieldValueState: { worldId: "world" },
+    });
+
+    // The world's permission still decides what the entries snapshot holds.
+    act(() =>
+      useWorldStore.setState({ worldPermission: WorldPermission.Guide }),
+    );
+    expect(listenEntries).toHaveBeenCalledTimes(2);
+    expect(unsubscribeEntries).toHaveBeenCalledOnce();
+
+    owner.unmount();
+    expect(useWorldEntriesStore.getState().entryState.entries).toEqual({});
+    expect(useWorldEntriesStore.getState().fieldValueState.worldId).toBeNull();
   });
 });

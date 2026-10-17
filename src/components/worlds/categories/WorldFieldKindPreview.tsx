@@ -1,9 +1,4 @@
-import {
-  Box,
-  Chip,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Chip, TextField, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { IconColors, type IconDefinition } from "types/Icon.type";

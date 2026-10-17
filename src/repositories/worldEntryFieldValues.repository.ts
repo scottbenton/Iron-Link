@@ -16,6 +16,11 @@ export type WorldEntryFieldValueDTO = Tables<"world_entry_field_values">;
 export type WorldEntryFieldValueInsertDTO =
   TablesInsert<"world_entry_field_values">;
 
+export interface WorldEntryFieldValueKey {
+  entryId: string;
+  fieldDefinitionId: string;
+}
+
 // `content` holds rich text Yjs documents and is fetched on demand,
 // exactly as notes_content is on the entry itself.
 const VALUE_LIST_COLUMNS =
@@ -27,22 +32,23 @@ export class WorldEntryFieldValuesRepository {
   private static worldEntryFieldValues = () =>
     supabase.from("world_entry_field_values");
 
-  // Scoped to a single entry on purpose: subscribing per world would stream
-  // every field of every entry to every client.
-  public static listenToWorldEntryFieldValues(
-    entryId: string,
+  // Every value in the world, so lists and linked entries can read any entry's
+  // fields. Realtime rows still carry `content`; callers must ignore it.
+  public static listenToWorldFieldValues(
+    worldId: string,
     onValueChanges: (
-      changedValues: Record<string, WorldEntryFieldValueDTO>,
-      removedFieldDefinitionIds: string[],
+      changedValues: WorldEntryFieldValueDTO[],
+      removedValues: WorldEntryFieldValueKey[],
       replaceState: boolean,
     ) => void,
     onError: (error: RepositoryError) => void,
   ): () => void {
-    const startInitialLoad = () => {
+    const startInitialLoad = (isCurrent: () => boolean) => {
       this.worldEntryFieldValues()
         .select(VALUE_LIST_COLUMNS)
-        .eq("entry_id", entryId)
+        .eq("world_id", worldId)
         .then(({ data, error, status }) => {
+          if (!isCurrent()) return;
           if (error) {
             console.error(error);
             onError(
@@ -56,12 +62,7 @@ export class WorldEntryFieldValuesRepository {
             );
           } else {
             onValueChanges(
-              Object.fromEntries(
-                data.map((value) => [
-                  value.field_definition_id,
-                  value as unknown as WorldEntryFieldValueDTO,
-                ]),
-              ),
+              data as unknown as WorldEntryFieldValueDTO[],
               [],
               true,
             );
@@ -85,30 +86,66 @@ export class WorldEntryFieldValuesRepository {
         payload.eventType === "INSERT" ||
         payload.eventType === "UPDATE"
       ) {
-        onValueChanges(
-          { [payload.new.field_definition_id]: payload.new },
-          [],
-          false,
-        );
+        onValueChanges([payload.new], [], false);
       } else if (
         payload.eventType === "DELETE" &&
+        payload.old.entry_id &&
         payload.old.field_definition_id
       ) {
-        onValueChanges({}, [payload.old.field_definition_id], false);
+        // With RLS on, a delete's old record carries only the primary key.
+        onValueChanges(
+          [],
+          [
+            {
+              entryId: payload.old.entry_id,
+              fieldDefinitionId: payload.old.field_definition_id,
+            },
+          ],
+          false,
+        );
       }
     };
 
     const unsubscribe = createSubscription(
-      `world_entry_field_values:entry_id=eq.${entryId}`,
+      `world_entry_field_values:world_id=eq.${worldId}`,
       "world_entry_field_values",
-      `entry_id=eq.${entryId}`,
+      `world_id=eq.${worldId}`,
       startInitialLoad,
       handlePayload,
+      { loadBeforeJoin: true },
     );
 
     return () => {
       unsubscribe();
     };
+  }
+
+  // One entry's values, for an entry that became readable after the world's
+  // values loaded: realtime sends no events for rows that did not change.
+  public static getWorldEntryFieldValues(
+    entryId: string,
+  ): Promise<WorldEntryFieldValueDTO[]> {
+    return new Promise((resolve, reject) => {
+      this.worldEntryFieldValues()
+        .select(VALUE_LIST_COLUMNS)
+        .eq("entry_id", entryId)
+        .then(({ data, error, status }) => {
+          if (error) {
+            console.error(error);
+            reject(
+              getRepositoryError(
+                error,
+                ErrorVerb.Read,
+                ErrorNoun.WorldEntryFieldValue,
+                true,
+                status,
+              ),
+            );
+          } else {
+            resolve(data as unknown as WorldEntryFieldValueDTO[]);
+          }
+        });
+    });
   }
 
   // gm_only is deliberately absent from the payload: a trigger sets it from the

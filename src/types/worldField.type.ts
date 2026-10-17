@@ -60,6 +60,9 @@ export interface WorldFieldConfiguration {
   // Whether a list accepts values outside its options. Always false when the
   // Select links entries.
   allowOther?: boolean;
+  // Whether a Text value takes a whole row on an entry page. Only Text fields
+  // set it; multi-value fields always take a whole row.
+  fullWidth?: boolean;
   helpText: string;
   visible: boolean;
   rules: WorldFieldRule[];

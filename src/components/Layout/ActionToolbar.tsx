@@ -1,6 +1,8 @@
 import { Box } from "@mui/material";
 import { PropsWithChildren, ReactNode } from "react";
 
+import { NOTES_PANE_GUTTER } from "./notesPaneGutter";
+
 export interface ActionToolbarProps extends PropsWithChildren {
   breadcrumbs: ReactNode;
 }
@@ -14,7 +16,8 @@ export function ActionToolbar(props: ActionToolbarProps) {
     <Box
       bgcolor="background.paper"
       zIndex={(theme) => theme.zIndex.appBar - 1}
-      maxWidth={"100%"}
+      mx={NOTES_PANE_GUTTER}
+      pt={2}
       borderBottom={(theme) => `1px solid ${theme.palette.divider}`}
       pb={children ? 0 : 2}
     >

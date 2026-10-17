@@ -19,9 +19,9 @@ import { WorldFieldSelectSettings } from "./WorldFieldSelectSettings";
 import { WorldFieldTypePicker } from "./WorldFieldTypePicker";
 import { getFieldKindHint, getFieldKindLabel } from "./categoryEditor.utils";
 
-// Chooses what the field is for. A new field shows every kind; an existing one
-// summarizes its kind until the author asks to change it, and kinds that
-// would lose stored values say so instead of being selectable.
+// Chooses what the field is for. A new field shows every kind on offer; an
+// existing one summarizes its kind until the author asks to change it, and
+// kinds that would lose stored values say so instead of being selectable.
 export function WorldFieldTypeSection({
   field,
   draft,
@@ -132,6 +132,7 @@ export function WorldFieldTypeSection({
           )}
           <WorldFieldTypePicker
             value={kind}
+            current={fieldKind}
             label={title}
             disabled={disabled}
             getDisabledReason={getDisabledReason}

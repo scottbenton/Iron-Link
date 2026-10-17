@@ -2,14 +2,21 @@ import { enqueueSnackbar } from "notistack";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ErrorReason } from "repositories/errors/RepositoryErrors";
-import { EditPermissions, ReadPermissions } from "repositories/shared.types";
+import {
+  EditPermissions,
+  ReadPermissions,
+  WorldPermission,
+} from "repositories/shared.types";
 
 import {
   IWorldEntry,
   WorldEntriesService,
 } from "services/worldEntries.service";
 
-import { useWorldEntriesStore } from "../worldEntries.store";
+import {
+  getEntryPermissions,
+  useWorldEntriesStore,
+} from "../worldEntries.store";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("notistack", () => ({ enqueueSnackbar: vi.fn() }));
@@ -74,5 +81,53 @@ describe("world entry parents", () => {
       "That entry can't be placed there. Choose an entry in the same category that isn't the entry itself or one of its nested entries.",
       { variant: "error" },
     );
+  });
+});
+
+describe("world entry permissions", () => {
+  it("lets the author and Guides change permissions only while they can edit", () => {
+    expect(
+      getEntryPermissions(
+        EditPermissions.OnlyAuthor,
+        "author",
+        "guide",
+        WorldPermission.Guide,
+      ),
+    ).toEqual({ canEdit: false, canDelete: true, canChangePermissions: false });
+    expect(
+      getEntryPermissions(
+        EditPermissions.OnlyGuides,
+        "author",
+        "author",
+        WorldPermission.Player,
+      ),
+    ).toEqual({ canEdit: false, canDelete: true, canChangePermissions: false });
+    expect(
+      getEntryPermissions(
+        EditPermissions.GuidesAndAuthor,
+        "author",
+        "guide",
+        WorldPermission.Guide,
+      ),
+    ).toEqual({ canEdit: true, canDelete: true, canChangePermissions: true });
+    expect(
+      getEntryPermissions(
+        EditPermissions.OnlyAuthor,
+        "author",
+        "author",
+        WorldPermission.Player,
+      ),
+    ).toEqual({ canEdit: true, canDelete: true, canChangePermissions: true });
+  });
+
+  it("never lets other players change permissions, even when they can edit", () => {
+    expect(
+      getEntryPermissions(
+        EditPermissions.AllPlayers,
+        "author",
+        "player",
+        WorldPermission.Player,
+      ),
+    ).toEqual({ canEdit: true, canDelete: false, canChangePermissions: false });
   });
 });

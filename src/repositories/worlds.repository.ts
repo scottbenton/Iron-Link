@@ -314,6 +314,30 @@ export class WorldsRepository {
     });
   }
 
+  // Whether anyone in the world has less than Guide access. Never says who.
+  public static async getWorldIsGuided(worldId: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      supabase
+        .rpc("world_is_guided", { p_world_id: worldId })
+        .then(({ data, error, status }) => {
+          if (error) {
+            console.error(error);
+            reject(
+              getRepositoryError(
+                error,
+                ErrorVerb.Read,
+                ErrorNoun.World,
+                false,
+                status,
+              ),
+            );
+          } else {
+            resolve(data === true);
+          }
+        });
+    });
+  }
+
   public static async getWorldPermission(
     worldId: string,
     userId: string,

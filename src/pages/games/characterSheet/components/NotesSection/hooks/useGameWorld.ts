@@ -6,6 +6,7 @@ import { GamePermission, useGameStore } from "stores/game.store";
 import { useNotesStore } from "stores/notes.store";
 import { useListenToWorld, useWorldStore } from "stores/world.store";
 import { useListenToWorldConfiguration } from "stores/worldCategories.store";
+import { useListenToWorldEntries } from "stores/worldEntries.store";
 import { useListenToWorldOracles } from "stores/worldOracles.store";
 
 // The world linked to the current game, or undefined when the worlds feature
@@ -17,8 +18,8 @@ export function useGameWorldId(): string | undefined {
   return worldsEnabled ? worldId : undefined;
 }
 
-// The single owner of the world, its configuration, and its oracles inside a
-// game. Their listeners do not de-duplicate and their cleanups reset the
+// The single owner of the world, its configuration, its oracles, and its
+// entries (with their field values) inside a game. Their listeners do not de-duplicate and their cleanups reset the
 // stores, so this is mounted once at the top of the notes section; everything
 // below it (the world row, the world tabs) reads the stores instead, and
 // reopening a world tab needs no loading.
@@ -27,6 +28,7 @@ export function useListenToGameWorld(): void {
   useListenToWorld(worldId);
   useListenToWorldConfiguration(worldId);
   useListenToWorldOracles(worldId);
+  useListenToWorldEntries(worldId);
   const loadedWorldId = useWorldStore((store) => store.world?.id);
   const worldDeleted = useWorldStore((store) => store.worldDeleted);
   const closeTabsMatching = useNotesStore((store) => store.closeTabsMatching);

@@ -7,6 +7,7 @@ import { EmptyState } from "components/Layout/EmptyState";
 
 import { useListenToWorld, useWorldStore } from "stores/world.store";
 import { useListenToWorldConfiguration } from "stores/worldCategories.store";
+import { useListenToWorldEntries } from "stores/worldEntries.store";
 import { useListenToWorldOracles } from "stores/worldOracles.store";
 
 import type { WorldLayout } from "./WorldViewLayout";
@@ -23,7 +24,7 @@ export interface WorldPanelProps {
   // `useListenToWorld` does not de-duplicate, and its cleanup resets the whole
   // world store, so only one mounted component may own the subscription. Set
   // this to false when a surrounding surface already listens to this world,
-  // its configuration, and its oracles.
+  // its configuration, its oracles, and its entries.
   manageSubscription?: boolean;
   additionalSettings?: ReactNode;
   layout?: WorldLayout;
@@ -49,6 +50,7 @@ export function WorldPanel(props: WorldPanelProps) {
   useListenToWorld(ownedWorldId);
   useListenToWorldConfiguration(ownedWorldId);
   useListenToWorldOracles(ownedWorldId);
+  useListenToWorldEntries(ownedWorldId);
 
   const storedWorldId = useWorldStore((store) => store.worldId);
   const world = useWorldStore((store) => store.world);

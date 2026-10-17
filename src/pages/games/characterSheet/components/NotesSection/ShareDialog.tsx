@@ -1,20 +1,10 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  Radio,
-  RadioGroup,
-  Typography,
-} from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
+import { PermissionsSelector } from "components/permissions/PermissionsSelector";
+import type { PermissionOption } from "components/permissions/permissionCompatibility";
 
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
@@ -25,12 +15,7 @@ import { GameType } from "repositories/game.repository";
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 
 import { getItemName } from "./FolderView/getFolderName";
-
-interface PermissionOption {
-  label: string;
-  value: string;
-  disabled: boolean;
-}
+import { isNoteEditPermissionAllowed } from "./notePermissionCompatibility";
 
 export interface ShareDialogProps {
   open: boolean;
@@ -100,85 +85,46 @@ export function ShareDialog(props: ShareDialogProps) {
     }
   }, [currentViewPermissions, currentEditPermissions, open]);
 
-  const handleSetViewPermissions = (type: ReadPermissions) => {
-    setUpdatedViewPermissions(type);
-
-    // Update write permissions if they are more permissive than the new view permissions
-    if (
-      isEditPermissionMorePermissiveThanReadPermission(
-        type,
-        updatedWritePermissions,
-      )
-    ) {
-      setUpdatedWritePermissions(EditPermissions.OnlyAuthor);
-    }
-  };
-  const handleSetEditPermissions = (type: EditPermissions) => {
-    setUpdatedWritePermissions(type);
-  };
-
-  // We need to ensure that write permissions are restricted to the read permissions
-  const readOptions = useMemo<PermissionOption[]>(() => {
-    const options: PermissionOption[] = [];
+  // Notes are shared within a game, so the audiences follow its type. Each
+  // audience can be offered for viewing and for editing.
+  const { readOptions, writeOptions } = useMemo(() => {
+    const readOptions: PermissionOption<ReadPermissions>[] = [];
+    const writeOptions: PermissionOption<EditPermissions>[] = [];
+    const addOption = (
+      label: string,
+      read: ReadPermissions,
+      edit: EditPermissions,
+    ) => {
+      readOptions.push({ label, value: read });
+      writeOptions.push({ label, value: edit });
+    };
 
     if (uid === ownerId) {
-      options.push({
-        label: t("notes.share-permissions.only-you", "Only You"),
-        value: ReadPermissions.OnlyAuthor,
-        disabled: false,
-      });
+      addOption(
+        t("notes.share-permissions.only-you", "Only You"),
+        ReadPermissions.OnlyAuthor,
+        EditPermissions.OnlyAuthor,
+      );
       if (gameType === GameType.Guided) {
-        options.push({
-          label: t(
+        addOption(
+          t(
             "notes.share-permissions.author-and-guides",
             "You and the Guide(s)",
           ),
-          value: ReadPermissions.GuidesAndAuthor,
-          disabled: false,
-        });
+          ReadPermissions.GuidesAndAuthor,
+          EditPermissions.GuidesAndAuthor,
+        );
       }
       if (gameType !== GameType.Solo) {
-        options.push({
-          label: t("notes.share-permissions.all-players", "All Players"),
-          value: ReadPermissions.AllPlayers,
-          disabled: false,
-        });
+        addOption(
+          t("notes.share-permissions.all-players", "All Players"),
+          ReadPermissions.AllPlayers,
+          EditPermissions.AllPlayers,
+        );
       }
     }
-    return options;
+    return { readOptions, writeOptions };
   }, [ownerId, t, uid, gameType]);
-  const writeOptions = useMemo<PermissionOption[]>(() => {
-    const options: PermissionOption[] = [];
-
-    if (uid === ownerId) {
-      options.push({
-        label: t("notes.share-permissions.only-you", "Only You"),
-        value: ReadPermissions.OnlyAuthor,
-        disabled: false,
-      });
-      if (gameType === GameType.Guided) {
-        options.push({
-          label: t(
-            "notes.share-permissions.author-and-guides",
-            "You and the Guide(s)",
-          ),
-          value: ReadPermissions.GuidesAndAuthor,
-          disabled: updatedViewPermissions === ReadPermissions.OnlyAuthor,
-        });
-      }
-      if (gameType !== GameType.Solo) {
-        options.push({
-          label: t("notes.share-permissions.all-players", "All Players"),
-          value: ReadPermissions.AllPlayers,
-          disabled:
-            updatedViewPermissions === ReadPermissions.OnlyAuthor ||
-            updatedViewPermissions === ReadPermissions.OnlyGuides ||
-            updatedViewPermissions === ReadPermissions.GuidesAndAuthor,
-        });
-      }
-    }
-    return options;
-  }, [ownerId, t, uid, updatedViewPermissions, gameType]);
 
   const updateNoteFolderPermissions = useNotesStore(
     (store) => store.updateFolderPermissions,
@@ -212,6 +158,18 @@ export function ShareDialog(props: ShareDialogProps) {
     return null;
   }
 
+  const inheritedText = t(
+    "notes.share-permissions.inherited",
+    "Inherited from {{parentFolderName}}",
+    {
+      parentFolderName: getItemName({
+        name: parentFolder.name,
+        t,
+        isRootPlayerFolder: parentFolder.isRootPlayerFolder,
+      }),
+    },
+  );
+
   const title =
     type === "folder"
       ? t("notes.shareFolder", "Share Folder")
@@ -223,84 +181,27 @@ export function ShareDialog(props: ShareDialogProps) {
         {title}
       </DialogTitleWithCloseButton>
       <DialogContent>
-        <Box>
-          <FormControl>
-            <FormLabel id="read-permissions">
-              {t("notes.share-permissions.view", "Who can view?")}
-            </FormLabel>
-            {updatedViewPermissions === parentFolder.readPermissions && (
-              <Typography variant={"body2"} color="text.secondary" mb={1}>
-                {t(
-                  "notes.share-permissions.inherited",
-                  "Inherited from {{parentFolderName}}",
-                  {
-                    parentFolderName: getItemName({
-                      name: parentFolder.name,
-                      t,
-                      isRootPlayerFolder: parentFolder.isRootPlayerFolder,
-                    }),
-                  },
-                )}
-              </Typography>
-            )}
-            <RadioGroup
-              aria-labelledby="read-permissions"
-              value={updatedViewPermissions}
-              onChange={(_, value) =>
-                handleSetViewPermissions(value as ReadPermissions)
-              }
-            >
-              {readOptions.map((option) => (
-                <FormControlLabel
-                  key={option.value}
-                  value={option.value}
-                  control={<Radio />}
-                  label={option.label}
-                  disabled={option.disabled}
-                />
-              ))}
-            </RadioGroup>
-          </FormControl>
-        </Box>
-        <Box mt={3}>
-          <FormControl>
-            <FormLabel id="write-permissions">
-              {t("notes.share-permissions.write", "Who can edit?")}
-            </FormLabel>
-            {updatedWritePermissions === parentFolder.editPermissions && (
-              <Typography variant={"body2"} color="text.secondary" mb={1}>
-                {t(
-                  "notes.share-permissions.inherited",
-                  "Inherited from {{parentFolderName}}",
-                  {
-                    parentFolderName: getItemName({
-                      name: parentFolder.name,
-                      t,
-                      isRootPlayerFolder: parentFolder.isRootPlayerFolder,
-                    }),
-                  },
-                )}
-              </Typography>
-            )}
-            <RadioGroup
-              aria-labelledby="write-permissions"
-              value={updatedWritePermissions}
-              onChange={(_, value) =>
-                handleSetEditPermissions(value as EditPermissions)
-              }
-            >
-              {writeOptions.map((option) => (
-                <FormControlLabel
-                  key={option.value}
-                  value={option.value}
-                  control={<Radio />}
-                  label={option.label}
-                  disabled={option.disabled}
-                />
-              ))}
-            </RadioGroup>
-          </FormControl>
-        </Box>
+        <PermissionsSelector
+          readOptions={readOptions}
+          editOptions={writeOptions}
+          readPermissions={updatedViewPermissions}
+          editPermissions={updatedWritePermissions}
+          isEditPermissionAllowed={isNoteEditPermissionAllowed}
+          onChange={({ readPermissions, editPermissions }) => {
+            if (readPermissions) setUpdatedViewPermissions(readPermissions);
+            if (editPermissions) setUpdatedWritePermissions(editPermissions);
+          }}
+          readHelperText={
+            updatedViewPermissions === parentFolder.readPermissions
+              ? inheritedText
+              : undefined
+          }
+          editHelperText={
+            updatedWritePermissions === parentFolder.editPermissions
+              ? inheritedText
+              : undefined
+          }
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="inherit">
@@ -312,27 +213,4 @@ export function ShareDialog(props: ShareDialogProps) {
       </DialogActions>
     </Dialog>
   );
-}
-
-function isEditPermissionMorePermissiveThanReadPermission(
-  readPermission: ReadPermissions,
-  editPermission: EditPermissions,
-) {
-  if (editPermission === EditPermissions.AllPlayers) {
-    if (
-      readPermission !== ReadPermissions.AllPlayers &&
-      readPermission !== ReadPermissions.Public
-    ) {
-      return true;
-    }
-    return false;
-  }
-  if (editPermission === EditPermissions.GuidesAndAuthor) {
-    if (readPermission === ReadPermissions.OnlyAuthor) {
-      return true;
-    }
-    return false;
-  }
-
-  return false;
 }

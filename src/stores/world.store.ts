@@ -23,6 +23,10 @@ interface WorldStoreState {
   // roles derived from linked games; fetched from the database so the
   // client never re-implements the derivation.
   worldPermission: WorldPermission | null;
+  // Whether anyone in the world has less than Guide access. Null while
+  // loading. When nobody does (solo, co-op, or a world without players),
+  // permission controls would only offer distinctions nobody can notice.
+  isGuided: boolean | null;
 
   loading: boolean;
   error?: string;
@@ -32,6 +36,7 @@ interface WorldStoreState {
 interface WorldStoreActions {
   listenToWorld: (worldId: string) => () => void;
   loadWorldPermission: (worldId: string, uid: string | undefined) => void;
+  loadIsGuided: (worldId: string) => void;
 
   createWorld: (
     name: string,
@@ -63,6 +68,7 @@ const defaultWorldStoreState: WorldStoreState = {
   world: null,
   worldPlayers: null,
   worldPermission: null,
+  isGuided: null,
   loading: true,
   worldDeleted: false,
 };
@@ -163,6 +169,26 @@ export const useWorldStore = createWithEqualityFn<
         });
     },
 
+    loadIsGuided: (worldId) => {
+      WorldsService.getWorldIsGuided(worldId)
+        .then((isGuided) => {
+          set((state) => {
+            // Ignore stale responses after switching worlds
+            if (state.worldId === worldId) {
+              state.isGuided = isGuided;
+            }
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+          set((state) => {
+            if (state.worldId === worldId) {
+              state.isGuided = null;
+            }
+          });
+        });
+    },
+
     createWorld: (name, description, settingKey) => {
       return WorldsService.createWorld(name, description, settingKey);
     },
@@ -196,6 +222,7 @@ export function useListenToWorld(worldId: string | undefined) {
   const loadWorldPermission = useWorldStore(
     (state) => state.loadWorldPermission,
   );
+  const loadIsGuided = useWorldStore((state) => state.loadIsGuided);
   const worldPlayers = useWorldStore((state) => state.worldPlayers);
 
   useEffect(() => {
@@ -204,6 +231,11 @@ export function useListenToWorld(worldId: string | undefined) {
     }
   }, [worldId, listenToWorld]);
 
+  // The database bumps the world row when a game is linked or unlinked.
+  const worldUpdatedAt = useWorldStore((state) =>
+    state.world?.id === worldId ? state.world?.updatedAt.getTime() : undefined,
+  );
+
   // Refresh the derived role whenever membership changes (covers role edits
   // for the current user; game-link changes surface on the next mount).
   useEffect(() => {
@@ -211,6 +243,15 @@ export function useListenToWorld(worldId: string | undefined) {
       loadWorldPermission(worldId, uid);
     }
   }, [worldId, uid, worldPlayers, loadWorldPermission]);
+
+  // Whether the world is guided changes with membership and with the games
+  // linked to the world. Players joining a linked game surface on the next
+  // mount.
+  useEffect(() => {
+    if (worldId) {
+      loadIsGuided(worldId);
+    }
+  }, [worldId, uid, worldPlayers, worldUpdatedAt, loadIsGuided]);
 }
 
 // Returns null while the role is still being fetched. Collapsing that into
@@ -218,4 +259,11 @@ export function useListenToWorld(worldId: string | undefined) {
 // callers are expected to handle the loading case explicitly.
 export function useWorldPermission(): WorldPermission | null {
   return useWorldStore((state) => state.worldPermission);
+}
+
+// Whether the world is guided: a guided game uses it, or someone in it has
+// less than Guide access. Only guided worlds show sharing and visibility
+// choices and set Guide-only fields apart. False while that is still loading.
+export function useWorldIsGuided(): boolean {
+  return useWorldStore((state) => state.isGuided === true);
 }

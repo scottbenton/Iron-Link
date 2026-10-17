@@ -6,6 +6,7 @@ import {
 } from "components/Layout/BreadcrumbTrail";
 
 import type { IWorldCategory } from "services/worldCategories.service";
+import type { IWorldEntry } from "services/worldEntries.service";
 import type { IWorld } from "services/worlds.service";
 
 import type { WorldNavigation } from "./worldNavigation";
@@ -16,12 +17,16 @@ export function WorldBreadcrumbs({
   navigation,
   root,
   categoryLoading,
+  entry,
+  entryLoading,
 }: {
   world: IWorld;
   category?: IWorldCategory;
   navigation: WorldNavigation;
   root: BreadcrumbItem;
   categoryLoading?: boolean;
+  entry?: IWorldEntry;
+  entryLoading?: boolean;
 }) {
   const { t } = useTranslation();
   const view = navigation.view;
@@ -36,7 +41,11 @@ export function WorldBreadcrumbs({
           : navigation.getLinkProps({ type: "world" }),
     },
   ];
-  if (view.type === "category" || view.type === "category-settings") {
+  if (
+    view.type === "category" ||
+    view.type === "category-settings" ||
+    view.type === "entry"
+  ) {
     items.push({
       key: "category",
       label:
@@ -45,12 +54,22 @@ export function WorldBreadcrumbs({
           ? t("worlds.category.loading", "Loading category…")
           : t("worlds.category.missing", "Category unavailable")),
       linkProps:
-        view.type === "category-settings"
+        view.type === "category-settings" || view.type === "entry"
           ? navigation.getLinkProps({
               type: "category",
               categoryId: view.categoryId,
             })
           : undefined,
+    });
+  }
+  if (view.type === "entry") {
+    items.push({
+      key: "entry",
+      label:
+        entry?.name ??
+        (entryLoading
+          ? t("worlds.entries.loading", "Loading entry…")
+          : t("worlds.entries.missing", "Entry unavailable")),
     });
   }
   if (view.type === "settings" || view.type === "category-settings") {
