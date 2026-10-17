@@ -18,6 +18,7 @@ import { CharacterSidebar } from "./CharacterSidebar";
 import { Default } from "./Default";
 import { NoteImageMain } from "./NoteImageMain";
 import { TrackScreenMain } from "./TrackScreenMain";
+import { WorldEntryMain } from "./WorldEntryMain";
 
 const transition: Transition = {
   duration: 0.5,
@@ -129,6 +130,12 @@ export default function SecondScreenPage() {
                 )}
                 {settings?.type === "track" && (
                   <TrackScreenMain trackId={settings.trackId} />
+                )}
+                {settings?.type === "world_entry" && (
+                  <WorldEntryMain
+                    worldId={settings.worldId}
+                    entryId={settings.entryId}
+                  />
                 )}
               </Box>
             </AnimatePresence>

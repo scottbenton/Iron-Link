@@ -23,6 +23,7 @@ import { IWorldEntry } from "services/worldEntries.service";
 
 import { useResolvedWorldEntryFields } from "./useResolvedWorldEntryFields";
 import { useWorldOracleRoller } from "./useWorldOracleRoller";
+import { isGuidesOnlyWorldRoll, useWorldRollLog } from "./useWorldRollLog";
 
 // The entry's heading. Editors rename it in place; the name saves after a
 // pause, like the world name, and a blank name is never saved. Where the
@@ -37,6 +38,7 @@ export function WorldEntryNameField({
   const { id: entryId, name } = entry;
   const { t } = useTranslation();
   const { lookup } = useWorldOracleRoller(entry.worldId);
+  const logRoll = useWorldRollLog(entry.name);
   const { fields, values } = useResolvedWorldEntryFields(entry);
   const nameGenerator = canEdit
     ? getWorldEntryNameGenerator(
@@ -102,6 +104,7 @@ export function WorldEntryNameField({
                         const rolled = rollWorldEntryName(
                           nameGenerator,
                           lookup,
+                          logRoll(isGuidesOnlyWorldRoll(entry)),
                         );
                         if (rolled) setValue(rolled);
                       }}

@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfirmProvider } from "material-ui-confirm";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -18,6 +18,9 @@ import { useWorldOraclesStore } from "stores/worldOracles.store";
 
 import { catalogOf, oracle } from "lib/__tests__/worldOracleFixtures";
 
+import { ReadPermissions, WorldPermission } from "repositories/shared.types";
+
+import { GameLogService } from "services/gameLog.service";
 import {
   IWorldEntry,
   WorldEntriesService,
@@ -32,6 +35,7 @@ import {
 } from "../../categories/__tests__/fixtures";
 import { WorldEntryActions } from "../WorldEntryActions";
 import { WorldEntryView } from "../WorldEntryView";
+import { WorldEntryAudienceContext } from "../worldEntryAudience";
 import { worldEntry } from "./fixtures";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
@@ -71,7 +75,7 @@ beforeEach(() => {
   vi.restoreAllMocks();
   useWorldEntriesStore.getState().reset();
   useWorldCategoriesStore.setState({ fieldDefinitions: {}, categories: {} });
-  useWorldStore.setState({ isGuided: true });
+  useWorldStore.setState({ isGuided: true, worldPermission: null });
   vi.spyOn(WorldEntriesService, "getWorldEntryNotesContent").mockResolvedValue({
     content: new Uint8Array(),
   });
@@ -582,6 +586,83 @@ describe("WorldEntryView", () => {
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
 
+  it("draws only what the whole table may see on a shared screen", () => {
+    useWorldStore.setState({ worldPermission: WorldPermission.Guide });
+    const look = field({ id: "look", key: "look", label: "Look" });
+    const secret = field({
+      id: "secret",
+      key: "secret",
+      label: "Secret",
+      sortOrder: 1,
+      gmOnly: true,
+    });
+    const allies = linkedEntry(
+      category.id,
+      {
+        id: "allies",
+        key: "allies",
+        label: "Allies",
+        sortOrder: 2,
+      },
+      { multiple: true },
+    );
+    useWorldCategoriesStore.setState({
+      fieldDefinitions: { look, secret, allies },
+    });
+    loadEntries([
+      worldEntry(),
+      worldEntry({ id: "ana", name: "Ana" }),
+      worldEntry({
+        id: "spy",
+        name: "The Spy",
+        readPermissions: ReadPermissions.OnlyGuides,
+      }),
+    ]);
+    const value = (fieldDefinitionId: string, stored: string | string[]) => ({
+      entryId: "entry-1",
+      fieldDefinitionId,
+      worldId: category.worldId,
+      gmOnly: fieldDefinitionId === "secret",
+      value: stored,
+    });
+    useWorldEntriesStore.setState((store) => {
+      store.fieldValueState.valuesByEntry = {
+        "entry-1": {
+          look: value("look", "Grim"),
+          secret: value("secret", "Traitor"),
+          allies: value("allies", ["ana", "spy"]),
+        },
+      };
+    });
+    render(
+      <MemoryRouter>
+        <ConfirmProvider>
+          <WorldEntryAudienceContext.Provider value="table">
+            <WorldEntryView
+              category={category}
+              entryId="entry-1"
+              navigation={{
+                view: {
+                  type: "entry",
+                  categoryId: category.id,
+                  entryId: "entry-1",
+                },
+                getLinkProps: () => ({ href: "#" }),
+                navigate: vi.fn(),
+              }}
+            />
+          </WorldEntryAudienceContext.Provider>
+        </ConfirmProvider>
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("Grim")).toBeInTheDocument();
+    expect(screen.getByText("Ana")).toBeInTheDocument();
+    expect(screen.queryByText("Traitor")).not.toBeInTheDocument();
+    expect(screen.queryByText("The Spy")).not.toBeInTheDocument();
+    expect(screen.queryByText("Guide only")).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+  });
+
   it("renames the entry in place", async () => {
     const user = userEvent.setup();
     const update = vi
@@ -717,6 +798,68 @@ describe("rolling an entry", () => {
     await user.click(screen.getByRole("button", { name: "Roll a name" }));
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
       "Kira Vale",
+    );
+  });
+
+  it("logs rolls made in a game, for Guides only when the field is", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(
+      WorldEntryFieldValuesService,
+      "setWorldEntryFieldValue",
+    ).mockResolvedValue();
+    const log = vi.spyOn(GameLogService, "setGameLog").mockResolvedValue("");
+    const secretRole = { ...role, gmOnly: true };
+    useWorldCategoriesStore.setState({
+      fieldDefinitions: { goal, role: secretRole },
+    });
+    useWorldStore.setState({ worldPermission: WorldPermission.Guide });
+    goals.name = "Character Goal";
+    roles.name = "Character Role";
+    loadEntries([worldEntry({ name: "Kira" })]);
+    render(
+      <MemoryRouter initialEntries={["/games/game-a"]}>
+        <Routes>
+          <Route
+            path="/games/:gameId"
+            element={
+              <ConfirmProvider>
+                <WorldEntryActions
+                  entry={
+                    useWorldEntriesStore.getState().entryState.entries[
+                      "entry-1"
+                    ]
+                  }
+                  categoryName="People"
+                  canShare={false}
+                  canEdit
+                  canDelete={false}
+                  onDeleted={vi.fn()}
+                  onError={vi.fn()}
+                />
+              </ConfirmProvider>
+            }
+          />
+        </Routes>
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole("button", { name: "Roll empty fields" }));
+    await waitFor(() => expect(log).toHaveBeenCalledTimes(2));
+    const logs = log.mock.calls.map(([, entry]) => entry);
+    expect(logs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          gameId: "game-a",
+          rollLabel: "Character Goal",
+          oracleCategoryName: "Kira",
+          result: "Escape the past",
+          guidesOnly: false,
+        }),
+        expect.objectContaining({
+          rollLabel: "Character Role",
+          result: "Navigator",
+          guidesOnly: true,
+        }),
+      ]),
     );
   });
 });

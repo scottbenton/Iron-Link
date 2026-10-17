@@ -1,4 +1,9 @@
-import { type WorldOracleLookup, rollWorldOracleText } from "./worldOracleRoll";
+import {
+  type WorldOracleLookup,
+  type WorldOracleRollListener,
+  type WorldOracleRollRecord,
+  rollWorldOracleText,
+} from "./worldOracleRoll";
 
 // A name built from oracle results joined together. Each part lists
 // alternatives, one of which is rolled.
@@ -95,19 +100,24 @@ export function getWorldEntryNameGenerator(
   );
 }
 
+// onRoll hears each part's roll, and only once the whole name rolled.
 export function rollWorldEntryName(
   nameGenerator: WorldEntryNameGenerator,
   lookup: WorldOracleLookup,
+  onRoll?: WorldOracleRollListener,
 ): string | undefined {
+  const records: WorldOracleRollRecord[] = [];
   const parts = nameGenerator.parts.map((alternatives) => {
     const available = alternatives.filter((oracleId) => lookup(oracleId));
     const oracleId = available[Math.floor(Math.random() * available.length)];
     return oracleId
       ? rollWorldOracleText(oracleId, lookup, {
           expandLinks: nameGenerator.expandLinks,
+          onRoll: (record) => records.push(record),
         })
       : undefined;
   });
   if (parts.some((part) => !part)) return undefined;
+  if (onRoll) records.forEach(onRoll);
   return parts.join(nameGenerator.joiner);
 }
