@@ -3,23 +3,10 @@ import LockIcon from "@mui/icons-material/Lock";
 import { Box, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { useWorldFieldEntrySnapshots } from "hooks/useWorldFieldEntrySnapshots";
-
-import { useWorldPermission } from "stores/world.store";
-import { useWorldCategoriesStore } from "stores/worldCategories.store";
-import {
-  useWorldEntriesStore,
-  useWorldEntryFieldValues,
-} from "stores/worldEntries.store";
-
 import {
   type ResolvedWorldFieldDefinition,
   getWorldFieldKind,
-  resolveFieldDefinition,
 } from "lib/worldFieldRules";
-import { getWorldFieldSnapshot } from "lib/worldFieldSnapshot";
-
-import { isGuideEquivalent } from "repositories/shared.types";
 
 import { IWorldCategory } from "services/worldCategories.service";
 import { IWorldEntry } from "services/worldEntries.service";
@@ -27,6 +14,7 @@ import { IWorldEntry } from "services/worldEntries.service";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldEntryField } from "./WorldEntryField";
 import { WorldEntryWell } from "./WorldEntryWell";
+import { useResolvedWorldEntryFields } from "./useResolvedWorldEntryFields";
 import { hasWorldEntryFieldValue } from "./worldEntryFieldValue";
 
 export interface WorldEntryFieldsProps {
@@ -50,38 +38,21 @@ export interface WorldEntryFieldsProps {
 // else, and in a guided world they get a dashed Guide only well of their own.
 export function WorldEntryFields({
   entry,
-  category,
   canEdit,
   guided,
   navigation,
 }: WorldEntryFieldsProps) {
   const { t } = useTranslation();
-  const permission = useWorldPermission();
-  const isGuide = !!permission && isGuideEquivalent(permission);
-  const definitions = useWorldCategoriesStore((store) =>
-    Object.values(store.fieldDefinitions)
-      .filter(
-        (definition) =>
-          definition.categoryId === category.id &&
-          (isGuide || !definition.gmOnly),
-      )
-      .sort((a, b) => a.sortOrder - b.sortOrder),
+  const {
+    fields: resolved,
+    values,
+    entries,
+    isGuide,
+  } = useResolvedWorldEntryFields(entry);
+  const fields = resolved.filter(
+    (field) =>
+      canEdit || hasWorldEntryFieldValue(field, values[field.id], entries),
   );
-  const entries = useWorldEntriesStore((store) => store.entryState.entries);
-  const values = useWorldEntryFieldValues(entry.id);
-  const snapshots = useWorldFieldEntrySnapshots();
-  const snapshot = getWorldFieldSnapshot(entry.id, snapshots) ?? {
-    entry: { id: entry.id, parentId: entry.parentEntryId, values: {} },
-    entries: snapshots,
-  };
-
-  const fields = definitions
-    .map((definition) => resolveFieldDefinition(definition, snapshot))
-    .filter(
-      (field) =>
-        field.visible &&
-        (canEdit || hasWorldEntryFieldValue(field, values[field.id], entries)),
-    );
   const marked = guided && isGuide;
   const sharedFields = marked
     ? fields.filter((field) => !field.gmOnly)

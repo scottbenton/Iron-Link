@@ -35,11 +35,14 @@ export function WorldEntryOptionListField({
   value,
   canEdit,
   onSave,
+  onRoll,
 }: {
   field: ResolvedWorldFieldDefinition;
   value: WorldFieldValue | null | undefined;
   canEdit: boolean;
   onSave: (value: WorldFieldValue | null) => void;
+  // Rolls the field's oracle; offered only where it has one.
+  onRoll?: () => void;
 }) {
   const getFieldOptions = useWorldCategoriesStore(
     (store) => store.getFieldOptions,
@@ -107,6 +110,8 @@ export function WorldEntryOptionListField({
       label={field.label}
       helpText={field.helpText || undefined}
       inputId={inputId}
+      onRoll={onRoll}
+      empty={!selected.length}
     >
       {control}
     </WorldEntryFieldShell>

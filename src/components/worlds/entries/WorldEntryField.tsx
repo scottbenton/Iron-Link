@@ -1,5 +1,6 @@
 import { Alert, Stack } from "@mui/material";
 import { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
@@ -7,6 +8,10 @@ import {
   type ResolvedWorldFieldDefinition,
   getWorldFieldKind,
 } from "lib/worldFieldRules";
+import {
+  getWorldFieldRollTarget,
+  rollWorldFieldValue,
+} from "lib/worldOracleRoll";
 
 import type { IWorldEntry } from "services/worldEntries.service";
 import type {
@@ -20,6 +25,7 @@ import { WorldEntryLinkedEntryField } from "./WorldEntryLinkedEntryField";
 import { WorldEntryLongTextField } from "./WorldEntryLongTextField";
 import { WorldEntryOptionListField } from "./WorldEntryOptionListField";
 import { WorldEntryTextField } from "./WorldEntryTextField";
+import { useWorldOracleRoller } from "./useWorldOracleRoller";
 
 // One field of an entry, with the input its kind needs. An emptied field
 // deletes its value rather than storing a blank one.
@@ -36,6 +42,7 @@ export function WorldEntryField({
   canEdit: boolean;
   navigation: WorldNavigation;
 }) {
+  const { t } = useTranslation();
   const setFieldValue = useWorldEntriesStore((store) => store.setFieldValue);
   const deleteFieldValue = useWorldEntriesStore(
     (store) => store.deleteFieldValue,
@@ -65,6 +72,10 @@ export function WorldEntryField({
     ],
   );
 
+  const { catalog, lookup } = useWorldOracleRoller(entry.worldId);
+  const rollable = canEdit && !!getWorldFieldRollTarget(field, catalog);
+  const roll = () => rollWorldFieldValue(field, value?.value, catalog, lookup);
+
   let input;
   switch (getWorldFieldKind(field)) {
     case "text":
@@ -74,6 +85,14 @@ export function WorldEntryField({
           value={typeof value?.value === "string" ? value.value : ""}
           canEdit={canEdit}
           onSave={(next) => save(next || null)}
+          roll={
+            rollable
+              ? () => {
+                  const rolled = roll();
+                  return typeof rolled === "string" ? rolled : undefined;
+                }
+              : undefined
+          }
         />
       );
       break;
@@ -94,6 +113,21 @@ export function WorldEntryField({
           value={value?.value}
           canEdit={canEdit}
           onSave={save}
+          onRoll={
+            rollable
+              ? () => {
+                  const rolled = roll();
+                  if (rolled) save(rolled);
+                  else
+                    setError(
+                      t(
+                        "worlds.entries.roll-no-option",
+                        "The oracle didn't give one of this list's options. Try again or pick one.",
+                      ),
+                    );
+                }
+              : undefined
+          }
         />
       );
       break;

@@ -26,13 +26,14 @@ import { getWorldEntriesLinkingTo } from "lib/worldEntryLinks";
 import { IWorldEntry } from "services/worldEntries.service";
 
 import { WorldEntryMoveDialog } from "./WorldEntryMoveDialog";
+import { WorldEntryRollEmptyButton } from "./WorldEntryRollEmptyButton";
 import { WorldEntryShareDialog } from "./WorldEntryShareDialog";
 import { useWorldEntryImage } from "./useWorldEntryImage";
 
 // An entry's actions. In the strip on its page, Share is a button and More
 // holds the rest; on its card in a list, everything is in one menu. Move to
-// is offered only in categories that nest entries; the image items only in
-// the strip's menu, for people who can edit the entry, since clicking the
+// is offered only in categories that nest entries. People who can edit the
+// entry get Roll empty fields and, in More, the image items: clicking the
 // picture itself is for viewing it.
 export function WorldEntryActions({
   entry,
@@ -40,7 +41,7 @@ export function WorldEntryActions({
   categoryName,
   canShare,
   canMove = false,
-  canEditImage = false,
+  canEdit = false,
   canDelete,
   onDeleted,
   onError,
@@ -50,7 +51,7 @@ export function WorldEntryActions({
   categoryName: string;
   canShare: boolean;
   canMove?: boolean;
-  canEditImage?: boolean;
+  canEdit?: boolean;
   canDelete: boolean;
   onDeleted: () => void;
   onError: (cause: unknown) => void;
@@ -68,8 +69,8 @@ export function WorldEntryActions({
   const image = useWorldEntryImage(entry, onError);
 
   const card = variant === "card";
-  const showImage = !card && canEditImage;
-  if (!canShare && !canMove && !canDelete && !showImage) return null;
+  const showEditActions = !card && canEdit;
+  if (!canShare && !canMove && !canDelete && !showEditActions) return null;
 
   const handleDelete = async () => {
     setAnchor(null);
@@ -204,7 +205,7 @@ export function WorldEntryActions({
           </ListItemText>
         </MenuItem>,
       ];
-  const hasMenu = card || showImage || canMove || canDelete;
+  const hasMenu = card || showEditActions || canMove || canDelete;
   return (
     <>
       {!card && canShare && (
@@ -213,6 +214,9 @@ export function WorldEntryActions({
             <ShareIcon />
           </IconButton>
         </Tooltip>
+      )}
+      {showEditActions && (
+        <WorldEntryRollEmptyButton entry={entry} onError={onError} />
       )}
       {!card && <Box sx={{ flexGrow: 1 }} />}
       {hasMenu && (
@@ -240,13 +244,13 @@ export function WorldEntryActions({
             onClose={() => setAnchor(null)}
           >
             {card && canShare && shareItem}
-            {showImage && imageItems}
+            {showEditActions && imageItems}
             {canMove && moveItem}
             {canDelete && deleteItem}
           </Menu>
         </>
       )}
-      {showImage && image.input}
+      {showEditActions && image.input}
       {moving && (
         <WorldEntryMoveDialog
           entry={entry}
