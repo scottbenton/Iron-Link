@@ -79,7 +79,6 @@ const props = {
   world: {
     id: category.worldId,
     name: "Ironlands",
-    description: null,
     settingKey: null,
     createdBy: "owner",
     createdAt: new Date(),

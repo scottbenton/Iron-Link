@@ -19,6 +19,7 @@ export function WorldBreadcrumbs({
   categoryLoading,
   entry,
   entryLoading,
+  ancestors = [],
 }: {
   world: IWorld;
   category?: IWorldCategory;
@@ -27,6 +28,8 @@ export function WorldBreadcrumbs({
   categoryLoading?: boolean;
   entry?: IWorldEntry;
   entryLoading?: boolean;
+  // The entry's visible ancestors, outermost first; each opens its Places.
+  ancestors?: IWorldEntry[];
 }) {
   const { t } = useTranslation();
   const view = navigation.view;
@@ -63,6 +66,18 @@ export function WorldBreadcrumbs({
     });
   }
   if (view.type === "entry") {
+    ancestors.forEach((ancestor) =>
+      items.push({
+        key: `ancestor-${ancestor.id}`,
+        label: ancestor.name,
+        linkProps: navigation.getLinkProps({
+          type: "entry",
+          categoryId: view.categoryId,
+          entryId: ancestor.id,
+          section: "places",
+        }),
+      }),
+    );
     items.push({
       key: "entry",
       label:
