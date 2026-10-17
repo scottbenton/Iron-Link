@@ -1,5 +1,5 @@
 import { Box, Card, GlobalStyles, LinearProgress } from "@mui/material";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, Transition, motion } from "motion/react";
 
 import {
   PageCategory,
@@ -19,7 +19,7 @@ import { Default } from "./Default";
 import { NoteImageMain } from "./NoteImageMain";
 import { TrackScreenMain } from "./TrackScreenMain";
 
-const transition = {
+const transition: Transition = {
   duration: 0.5,
   ease: [0.42, 0, 0.58, 1], // Custom cubic-bezier easing
 };
