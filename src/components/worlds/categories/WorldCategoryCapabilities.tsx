@@ -45,22 +45,26 @@ export function WorldCategoryCapabilities({
             )
           : undefined,
     },
-    {
-      key: "supportsMap",
-      label: t("worlds.categories.map", "Maps"),
-      description: t(
-        "worlds.categories.map-help",
-        "Entries can hold a map of their own.",
-      ),
-    },
-    {
-      key: "supportsBonds",
-      label: t("worlds.categories.bonds", "Bonds"),
-      description: t(
-        "worlds.categories.bonds-help",
-        "Characters can form bonds with entries.",
-      ),
-    },
+    // Maps and Bonds are not in the first release. Their checkboxes come
+    // back with Edit maps for world locations (#237) and Manage character
+    // bonds with world entries (#238); until then categories keep whatever
+    // they have stored, since a change only writes the key it toggles.
+    // {
+    //   key: "supportsMap",
+    //   label: t("worlds.categories.map", "Maps"),
+    //   description: t(
+    //     "worlds.categories.map-help",
+    //     "Entries can hold a map of their own.",
+    //   ),
+    // },
+    // {
+    //   key: "supportsBonds",
+    //   label: t("worlds.categories.bonds", "Bonds"),
+    //   description: t(
+    //     "worlds.categories.bonds-help",
+    //     "Characters can form bonds with entries.",
+    //   ),
+    // },
   ];
   return (
     <FormGroup>
