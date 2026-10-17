@@ -1,5 +1,7 @@
+import AddPhotoIcon from "@mui/icons-material/AddPhotoAlternate";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
+import HideImageIcon from "@mui/icons-material/HideImage";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ShareIcon from "@mui/icons-material/Share";
@@ -23,14 +25,15 @@ import { getWorldEntriesLinkingTo } from "lib/worldEntryLinks";
 
 import { IWorldEntry } from "services/worldEntries.service";
 
-import { WorldEntryImageAction } from "./WorldEntryImageAction";
 import { WorldEntryMoveDialog } from "./WorldEntryMoveDialog";
 import { WorldEntryShareDialog } from "./WorldEntryShareDialog";
+import { useWorldEntryImage } from "./useWorldEntryImage";
 
 // An entry's actions. In the strip on its page, Share is a button and More
 // holds the rest; on its card in a list, everything is in one menu. Move to
-// is offered only in categories that nest entries; the Image action only in
-// the strip, for people who can edit the entry.
+// is offered only in categories that nest entries; the image items only in
+// the strip's menu, for people who can edit the entry, since clicking the
+// picture itself is for viewing it.
 export function WorldEntryActions({
   entry,
   variant = "strip",
@@ -62,6 +65,7 @@ export function WorldEntryActions({
     (store) => store.fieldDefinitions,
   );
   const deleteEntry = useWorldEntriesStore((store) => store.deleteEntry);
+  const image = useWorldEntryImage(entry, onError);
 
   const card = variant === "card";
   const showImage = !card && canEditImage;
@@ -150,7 +154,57 @@ export function WorldEntryActions({
       <ListItemText>{t("common.delete", "Delete")}</ListItemText>
     </MenuItem>
   );
-  const hasMenu = card || canMove || canDelete;
+  const imageItems = image.hasImage
+    ? [
+        <MenuItem
+          key="change-image"
+          disabled={image.busy}
+          onClick={() => {
+            setAnchor(null);
+            image.choose();
+          }}
+        >
+          <ListItemIcon>
+            <AddPhotoIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>
+            {t("worlds.entries.change-image", "Change image")}
+          </ListItemText>
+        </MenuItem>,
+        <MenuItem
+          key="remove-image"
+          disabled={image.busy}
+          onClick={() => {
+            setAnchor(null);
+            image.remove();
+          }}
+        >
+          <ListItemIcon>
+            <HideImageIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>
+            {t("worlds.entries.remove-image", "Remove image")}
+          </ListItemText>
+        </MenuItem>,
+      ]
+    : [
+        <MenuItem
+          key="add-image"
+          disabled={image.busy}
+          onClick={() => {
+            setAnchor(null);
+            image.choose();
+          }}
+        >
+          <ListItemIcon>
+            <AddPhotoIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>
+            {t("worlds.entries.add-image", "Add image")}
+          </ListItemText>
+        </MenuItem>,
+      ];
+  const hasMenu = card || showImage || canMove || canDelete;
   return (
     <>
       {!card && canShare && (
@@ -160,7 +214,6 @@ export function WorldEntryActions({
           </IconButton>
         </Tooltip>
       )}
-      {showImage && <WorldEntryImageAction entry={entry} onError={onError} />}
       {!card && <Box sx={{ flexGrow: 1 }} />}
       {hasMenu && (
         <>
@@ -187,11 +240,13 @@ export function WorldEntryActions({
             onClose={() => setAnchor(null)}
           >
             {card && canShare && shareItem}
+            {showImage && imageItems}
             {canMove && moveItem}
             {canDelete && deleteItem}
           </Menu>
         </>
       )}
+      {showImage && image.input}
       {moving && (
         <WorldEntryMoveDialog
           entry={entry}

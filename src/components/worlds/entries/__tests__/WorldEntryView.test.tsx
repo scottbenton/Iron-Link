@@ -332,9 +332,9 @@ describe("entry images", () => {
       .spyOn(WorldEntriesService, "deleteWorldEntryImage")
       .mockResolvedValue();
     renderStrip();
-    await user.click(screen.getByRole("button", { name: "Image" }));
+    await user.click(screen.getByRole("button", { name: "More" }));
     expect(
-      screen.getByRole("menuitem", { name: "Replace image" }),
+      screen.getByRole("menuitem", { name: "Change image" }),
     ).toBeInTheDocument();
     const file = new File(["png"], "map.png", { type: "image/png" });
     await user.upload(screen.getByTestId("world-entry-image-input"), file);
@@ -351,6 +351,19 @@ describe("entry images", () => {
     });
   });
 
+  it("offers Add image in More when there is no portrait", async () => {
+    const user = userEvent.setup();
+    loadEntries([worldEntry()]);
+    renderStrip();
+    await user.click(screen.getByRole("button", { name: "More" }));
+    expect(
+      screen.getByRole("menuitem", { name: "Add image" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Remove image" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("removes the portrait", async () => {
     const user = userEvent.setup();
     loadEntries([worldEntry({ imageFilename: "old.png" })]);
@@ -361,7 +374,7 @@ describe("entry images", () => {
       .spyOn(WorldEntriesService, "deleteWorldEntryImage")
       .mockResolvedValue();
     renderStrip();
-    await user.click(screen.getByRole("button", { name: "Image" }));
+    await user.click(screen.getByRole("button", { name: "More" }));
     await user.click(screen.getByRole("menuitem", { name: "Remove image" }));
     await waitFor(() => expect(removeImage).toHaveBeenCalled());
     expect(update).toHaveBeenCalledWith("entry-1", { imageFilename: null });

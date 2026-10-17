@@ -31,12 +31,14 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
 
   if (layout === "embedded") {
     return (
+      // One full width scroller, so the scrollbar sits at the column's edge
+      // and the breadcrumbs and actions scroll away with the page; an
+      // entry's Notes bar pins on its own.
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "column",
           flexGrow: 1,
           minHeight: 0,
+          overflow: "auto",
         }}
       >
         <ActionToolbar breadcrumbs={breadcrumbs}>
@@ -57,18 +59,7 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
             </>
           )}
         </ActionToolbar>
-        {/* Full width, so the scrollbar sits at the column's edge. */}
-        <Box
-          sx={{
-            flexGrow: 1,
-            overflow: "auto",
-            pt: 2,
-            pb: 2,
-            px: NOTES_PANE_GUTTER,
-          }}
-        >
-          {children}
-        </Box>
+        <Box sx={{ pt: 2, pb: 2, px: NOTES_PANE_GUTTER }}>{children}</Box>
       </Box>
     );
   }

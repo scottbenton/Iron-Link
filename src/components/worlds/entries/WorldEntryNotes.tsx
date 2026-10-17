@@ -92,7 +92,7 @@ export function WorldEntryNotes({
           letterSpacing: "0.1em",
           textTransform: "uppercase",
           color: "text.secondary",
-          mb: 1,
+          mb: canEdit ? 0 : 1,
         })}
       >
         {t("worlds.entries.notes", "Notes")}
