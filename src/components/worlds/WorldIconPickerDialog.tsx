@@ -27,14 +27,14 @@ import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButto
 
 import { IconColors, IconDefinition } from "types/Icon.type";
 
-import { WorldCategoryIcon } from "./WorldCategoryIcon";
+import { WorldCategoryIcon } from "./categories/WorldCategoryIcon";
 import {
   GROUPS_CATEGORY_ICON_KEY,
   categoryIconName,
   getCategoryIconColor,
   getLoadedCategoryIcons,
   loadCategoryIcons,
-} from "./categoryIcons";
+} from "./categories/categoryIcons";
 
 const BATCH_SIZE = 240;
 
@@ -65,15 +65,15 @@ function getColorLabel(t: TFunction, color: IconColors): string {
 
 // Follows Crew Link's image editor: color swatches, a filterable scrolling
 // icon grid, and a live preview. Nothing is saved until Save.
-// Also chooses an entry's own icon, under its own title.
-export function WorldCategoryIconDialog({
+// Chooses an icon and its color for a world category or entry.
+export function WorldIconPickerDialog({
   value,
   title,
   onSave,
   onClose,
 }: {
   value: IconDefinition | null;
-  title?: string;
+  title: string;
   onSave: (value: IconDefinition | null) => void;
   onClose: () => void;
 }) {
@@ -109,7 +109,7 @@ export function WorldCategoryIconDialog({
   return (
     <Dialog open fullWidth maxWidth="sm" onClose={onClose}>
       <DialogTitleWithCloseButton onClose={onClose}>
-        {title ?? t("worlds.categories.choose-icon", "Choose category icon")}
+        {title}
       </DialogTitleWithCloseButton>
       <DialogContent>
         <Box

@@ -26,7 +26,7 @@ import { getWorldEntriesLinkingTo } from "lib/worldEntryLinks";
 
 import { IWorldEntry } from "services/worldEntries.service";
 
-import { WorldCategoryIconDialog } from "../categories/WorldCategoryIconDialog";
+import { WorldIconPickerDialog } from "../WorldIconPickerDialog";
 import { WorldEntryMoveDialog } from "./WorldEntryMoveDialog";
 import { WorldEntryRollEmptyButton } from "./WorldEntryRollEmptyButton";
 import { WorldEntryShareDialog } from "./WorldEntryShareDialog";
@@ -273,7 +273,7 @@ export function WorldEntryActions({
       )}
       {showEditActions && image.input}
       {choosingIcon && (
-        <WorldCategoryIconDialog
+        <WorldIconPickerDialog
           value={entry.icon}
           title={t("worlds.entries.choose-icon-title", "Choose entry icon")}
           onSave={(icon) => {

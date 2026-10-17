@@ -5,8 +5,8 @@ import { useTranslation } from "react-i18next";
 
 import { IconDefinition } from "types/Icon.type";
 
+import { WorldIconPickerDialog } from "../WorldIconPickerDialog";
 import { WorldCategoryIcon } from "./WorldCategoryIcon";
-import { WorldCategoryIconDialog } from "./WorldCategoryIconDialog";
 import { categoryIconName } from "./categoryIcons";
 
 // The category's icon as a square tile. Clicking it opens the icon dialog.
@@ -55,8 +55,9 @@ export function WorldCategoryIconPicker({
         </span>
       </Tooltip>
       {open && !disabled && (
-        <WorldCategoryIconDialog
+        <WorldIconPickerDialog
           value={value}
+          title={label}
           onSave={onChange}
           onClose={() => setOpen(false)}
         />
