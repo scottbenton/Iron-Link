@@ -14,7 +14,6 @@ import { IWorldEntry } from "services/worldEntries.service";
 
 import { useResolvedWorldEntryFields } from "./useResolvedWorldEntryFields";
 import { useWorldOracleRoller } from "./useWorldOracleRoller";
-import { isGuidesOnlyWorldRoll, useWorldRollLog } from "./useWorldRollLog";
 import { hasWorldEntryFieldValue } from "./worldEntryFieldValue";
 
 // Fills every empty field the entry can roll, and never touches one that
@@ -30,7 +29,6 @@ export function WorldEntryRollEmptyButton({
   const { fields, values, entries } = useResolvedWorldEntryFields(entry);
   const { catalog, lookup } = useWorldOracleRoller(entry.worldId);
   const setFieldValue = useWorldEntriesStore((store) => store.setFieldValue);
-  const logRoll = useWorldRollLog(entry.name);
   const [rolling, setRolling] = useState(false);
 
   const empty = fields.filter(
@@ -45,13 +43,7 @@ export function WorldEntryRollEmptyButton({
     try {
       await Promise.all(
         empty.map((field) => {
-          const value = rollWorldFieldValue(
-            field,
-            null,
-            catalog,
-            lookup,
-            logRoll(isGuidesOnlyWorldRoll(entry, field)),
-          );
+          const value = rollWorldFieldValue(field, null, catalog, lookup);
           return value
             ? setFieldValue(entry.id, entry.worldId, field.id, value)
             : undefined;

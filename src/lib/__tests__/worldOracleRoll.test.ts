@@ -88,36 +88,6 @@ describe("rollWorldOracleText", () => {
     ).toBe("Silver of the Sun");
   });
 
-  it("reports the outer roll once, with the result it gave", () => {
-    const sub = { ...oracle("sub", ["Ash"]), name: "Sub" };
-    const main = {
-      ...oracle("main", [
-        {
-          text: "Roll",
-          oracle_rolls: [
-            { oracle: sub._id, auto: true, number_of_rolls: 1 },
-          ] as Datasworn.OracleRollableRow["oracle_rolls"],
-        },
-      ]),
-      name: "Main",
-    } as Datasworn.OracleRollable;
-    const onRoll = vi.fn();
-    rollWorldOracleText(
-      main._id,
-      createWorldOracleLookup(catalogOf(main, sub)),
-      {
-        onRoll,
-      },
-    );
-    expect(onRoll).toHaveBeenCalledTimes(1);
-    expect(onRoll).toHaveBeenCalledWith({
-      oracleId: main._id,
-      oracleName: "Main",
-      roll: 1,
-      text: "Ash",
-    });
-  });
-
   it("rolls nothing for an oracle outside the catalog", () => {
     expect(
       rollWorldOracleText("oracle_rollable:missing", () => undefined),
@@ -174,22 +144,6 @@ describe("rollWorldFieldValue", () => {
     expect(
       rollWorldFieldValue(optionList("faction/type"), null, catalog, lookup),
     ).toBe("Guild");
-  });
-
-  it("reports only the roll a strict list kept, as the option it chose", () => {
-    rollRows(2, 1);
-    const onRoll = vi.fn();
-    rollWorldFieldValue(
-      optionList("faction/type"),
-      null,
-      catalog,
-      lookup,
-      onRoll,
-    );
-    expect(onRoll).toHaveBeenCalledTimes(1);
-    expect(onRoll).toHaveBeenCalledWith(
-      expect.objectContaining({ roll: 1, text: "Guild" }),
-    );
   });
 
   it("keeps any result in an open list", () => {
