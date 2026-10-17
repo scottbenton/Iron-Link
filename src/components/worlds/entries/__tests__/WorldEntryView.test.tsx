@@ -9,6 +9,8 @@ import {
   getWorldViewPath,
 } from "components/worlds/worldNavigation";
 
+import { IconColors } from "types/Icon.type";
+
 import { useWorldStore } from "stores/world.store";
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
@@ -366,6 +368,29 @@ describe("entry images", () => {
     expect(
       screen.queryByRole("menuitem", { name: "Remove image" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("chooses the entry's own icon from More", async () => {
+    const user = userEvent.setup();
+    loadEntries([
+      worldEntry({ icon: { key: "GiCompass", color: IconColors.Blue } }),
+    ]);
+    const update = vi
+      .spyOn(WorldEntriesService, "updateWorldEntry")
+      .mockResolvedValue();
+    renderStrip();
+    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(screen.getByRole("menuitem", { name: "Choose icon" }));
+    const dialog = await screen.findByRole("dialog", {
+      name: "Choose entry icon",
+    });
+    await user.click(
+      within(dialog).getByRole("button", { name: "Remove icon" }),
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(update).toHaveBeenCalledWith("entry-1", { icon: null }),
+    );
   });
 
   it("removes the portrait", async () => {

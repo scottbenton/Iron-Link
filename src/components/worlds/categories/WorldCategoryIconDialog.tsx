@@ -65,12 +65,15 @@ function getColorLabel(t: TFunction, color: IconColors): string {
 
 // Follows Crew Link's image editor: color swatches, a filterable scrolling
 // icon grid, and a live preview. Nothing is saved until Save.
+// Also chooses an entry's own icon, under its own title.
 export function WorldCategoryIconDialog({
   value,
+  title,
   onSave,
   onClose,
 }: {
   value: IconDefinition | null;
+  title?: string;
   onSave: (value: IconDefinition | null) => void;
   onClose: () => void;
 }) {
@@ -106,7 +109,7 @@ export function WorldCategoryIconDialog({
   return (
     <Dialog open fullWidth maxWidth="sm" onClose={onClose}>
       <DialogTitleWithCloseButton onClose={onClose}>
-        {t("worlds.categories.choose-icon", "Choose category icon")}
+        {title ?? t("worlds.categories.choose-icon", "Choose category icon")}
       </DialogTitleWithCloseButton>
       <DialogContent>
         <Box

@@ -2,6 +2,7 @@ import AddPhotoIcon from "@mui/icons-material/AddPhotoAlternate";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import HideImageIcon from "@mui/icons-material/HideImage";
+import InterestsIcon from "@mui/icons-material/Interests";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ShareIcon from "@mui/icons-material/Share";
@@ -25,6 +26,7 @@ import { getWorldEntriesLinkingTo } from "lib/worldEntryLinks";
 
 import { IWorldEntry } from "services/worldEntries.service";
 
+import { WorldCategoryIconDialog } from "../categories/WorldCategoryIconDialog";
 import { WorldEntryMoveDialog } from "./WorldEntryMoveDialog";
 import { WorldEntryRollEmptyButton } from "./WorldEntryRollEmptyButton";
 import { WorldEntryShareDialog } from "./WorldEntryShareDialog";
@@ -62,6 +64,8 @@ export function WorldEntryActions({
   const [sharing, setSharing] = useState(false);
   const [moving, setMoving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [choosingIcon, setChoosingIcon] = useState(false);
+  const updateEntry = useWorldEntriesStore((store) => store.updateEntry);
   const definitions = useWorldCategoriesStore(
     (store) => store.fieldDefinitions,
   );
@@ -205,6 +209,22 @@ export function WorldEntryActions({
           </ListItemText>
         </MenuItem>,
       ];
+  const iconItem = (
+    <MenuItem
+      key="choose-icon"
+      onClick={() => {
+        setAnchor(null);
+        setChoosingIcon(true);
+      }}
+    >
+      <ListItemIcon>
+        <InterestsIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>
+        {t("worlds.entries.choose-icon", "Choose icon")}
+      </ListItemText>
+    </MenuItem>
+  );
   const hasMenu = card || showEditActions || canMove || canDelete;
   return (
     <>
@@ -244,6 +264,7 @@ export function WorldEntryActions({
             onClose={() => setAnchor(null)}
           >
             {card && canShare && shareItem}
+            {showEditActions && iconItem}
             {showEditActions && imageItems}
             {canMove && moveItem}
             {canDelete && deleteItem}
@@ -251,6 +272,16 @@ export function WorldEntryActions({
         </>
       )}
       {showEditActions && image.input}
+      {choosingIcon && (
+        <WorldCategoryIconDialog
+          value={entry.icon}
+          title={t("worlds.entries.choose-icon-title", "Choose entry icon")}
+          onSave={(icon) => {
+            updateEntry(entry.id, { icon }).catch(onError);
+          }}
+          onClose={() => setChoosingIcon(false)}
+        />
+      )}
       {moving && (
         <WorldEntryMoveDialog
           entry={entry}
