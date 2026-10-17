@@ -1,6 +1,8 @@
 import { Box, SxProps, Theme } from "@mui/material";
 import { PropsWithChildren } from "react";
 
+import { NOTES_PANE_GUTTER } from "components/Layout/notesPaneGutter";
+
 export interface OpenItemWrapperProps {
   sx?: SxProps<Theme>;
 }
@@ -21,7 +23,7 @@ export function OpenItemWrapper(
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     >
-      <Box px={1} pt={1}>
+      <Box px={NOTES_PANE_GUTTER} pt={1}>
         {children}
       </Box>
     </Box>
