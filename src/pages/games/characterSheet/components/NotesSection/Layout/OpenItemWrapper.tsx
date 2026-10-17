@@ -23,7 +23,7 @@ export function OpenItemWrapper(
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     >
-      <Box px={NOTES_PANE_GUTTER} pt={1}>
+      <Box px={NOTES_PANE_GUTTER} pt={2}>
         {children}
       </Box>
     </Box>
