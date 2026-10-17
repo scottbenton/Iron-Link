@@ -14,7 +14,7 @@ export interface WorldEntryFieldShellProps {
 
 // One field of an entry: its label above its value, help text below. The
 // value fills the cell, so an editable field reads like text until it is
-// used, then shows a line under it while it has focus.
+// used, then shows an outline around it while it has focus.
 export function WorldEntryFieldShell({
   label,
   helpText,
@@ -50,7 +50,7 @@ export function WorldEntryFieldShell({
               "&:focus-within": {
                 bgcolor: "action.hover",
                 boxShadow: (theme) =>
-                  `inset 0 -2px 0 ${theme.palette.primary.main}`,
+                  `inset 0 0 0 2px ${theme.palette.primary.main}`,
               },
             }
           : { position: "relative", mx: -1, px: 1, py: 0.5 }
