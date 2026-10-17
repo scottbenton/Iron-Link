@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "components/Layout/EmptyState";
 import { NOTES_PANE_GUTTER } from "components/Layout/notesPaneGutter";
@@ -23,7 +23,9 @@ export function NoteView(props: NoteViewProps) {
   const { openNoteId } = props;
 
   const gameId = useGameId();
-  const updateNoteContent = useNotesStore((store) => store.updateNoteContent);
+  const getNoteContentStore = useNotesStore(
+    (store) => store.getNoteContentStore,
+  );
 
   const [noteContent, setNoteContent] = useState<Uint8Array | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -55,21 +57,9 @@ export function NoteView(props: NoteViewProps) {
 
   const notePermissions = useNotePermission(openNoteId);
 
-  const handleSave = useCallback(
-    (
-      documentId: string,
-      notes: Uint8Array,
-      noteContentString: string,
-      isBeaconRequest?: boolean,
-    ) => {
-      return updateNoteContent(
-        documentId,
-        notes,
-        noteContentString,
-        isBeaconRequest,
-      );
-    },
-    [updateNoteContent],
+  const contentStore = useMemo(
+    () => getNoteContentStore(openNoteId),
+    [getNoteContentStore, openNoteId],
   );
 
   const isMobile = useIsMobile();
@@ -87,7 +77,7 @@ export function NoteView(props: NoteViewProps) {
       <RtcRichTextEditor
         id={openNoteId}
         roomPrefix={`notes-${gameId}-`}
-        documentPassword={gameId}
+        roomKeySource={{ noteId: openNoteId }}
         Toolbar={({ editor }) => (
           <>
             <NoteToolbar>
@@ -112,7 +102,9 @@ export function NoteView(props: NoteViewProps) {
         )}
         initialValue={noteContent}
         contentPx={NOTES_PANE_GUTTER}
-        onSave={loading || !notePermissions.canEdit ? undefined : handleSave}
+        contentStore={
+          loading || !notePermissions.canEdit ? undefined : contentStore
+        }
       />
     </>
   );

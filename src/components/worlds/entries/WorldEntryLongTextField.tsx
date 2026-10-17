@@ -1,5 +1,5 @@
 import { Alert, Skeleton } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { RtcRichTextEditor } from "components/RichTextEditor";
@@ -8,10 +8,13 @@ import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import type { ResolvedWorldFieldDefinition } from "lib/worldFieldRules";
 
+import type { RichTextContentStore } from "services/richTextContent.service";
 import type { IWorldEntry } from "services/worldEntries.service";
 
 import { WorldEntryFieldShell } from "./WorldEntryFieldShell";
 import { WorldEntryLongTextToolbar } from "./WorldEntryLongTextToolbar";
+
+const UNVERSIONED = "unversioned";
 
 // A collaborative document, edited and saved like a note. Its content is not
 // kept with the other values, so it loads when the field appears.
@@ -52,11 +55,21 @@ export function WorldEntryLongTextField({
     };
   }, [entry.id, field.id, getFieldContent]);
 
-  const save = useCallback(
-    (_documentId: string, document: Uint8Array) =>
-      setFieldContent(entry.id, entry.worldId, field.id, document).catch(
-        onError,
-      ),
+  // Long text values have no version to guard a save with, so the last save
+  // wins, as before; Long text is being retired rather than given merges.
+  const contentStore = useMemo<RichTextContentStore>(
+    () => ({
+      read: async () => ({ updatedAt: UNVERSIONED }),
+      write: (document) =>
+        setFieldContent(entry.id, entry.worldId, field.id, document).then(
+          () => UNVERSIONED,
+        ),
+      writeBeacon: (document) => {
+        setFieldContent(entry.id, entry.worldId, field.id, document).catch(
+          onError,
+        );
+      },
+    }),
     [entry.id, entry.worldId, field.id, setFieldContent, onError],
   );
 
@@ -73,9 +86,14 @@ export function WorldEntryLongTextField({
         <RtcRichTextEditor
           id={`${entry.id}-${field.id}`}
           roomPrefix={`world-fields-${entry.worldId}`}
-          documentPassword={entry.worldId}
+          roomKeySource={
+            field.gmOnly
+              ? { guideWorldId: entry.worldId }
+              : { worldEntryId: entry.id }
+          }
           initialValue={content}
-          onSave={canEdit ? save : undefined}
+          contentStore={canEdit ? contentStore : undefined}
+          onSaveError={onError}
           Toolbar={WorldEntryLongTextToolbar}
           outlined
           minHeight={120}

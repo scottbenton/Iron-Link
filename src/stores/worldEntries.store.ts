@@ -18,6 +18,7 @@ import {
   isGuideEquivalent,
 } from "repositories/shared.types";
 
+import type { RichTextContentStore } from "services/richTextContent.service";
 import {
   IWorldEntry,
   IWorldEntryNotesContent,
@@ -92,11 +93,7 @@ interface WorldEntriesStoreActions {
   deleteEntry: (entryId: string) => Promise<void>;
 
   getEntryNotesContent: (entryId: string) => Promise<IWorldEntryNotesContent>;
-  updateEntryNotesContent: (
-    entryId: string,
-    content: Uint8Array,
-    isBeaconRequest?: boolean,
-  ) => Promise<void>;
+  getEntryNotesContentStore: (entryId: string) => RichTextContentStore;
 
   setFieldValue: (
     entryId: string,
@@ -354,16 +351,11 @@ export const useWorldEntriesStore = createWithEqualityFn<
     getEntryNotesContent: (entryId) => {
       return WorldEntriesService.getWorldEntryNotesContent(entryId);
     },
-    updateEntryNotesContent: (entryId, content, isBeaconRequest) => {
-      const token = isBeaconRequest ? useAuthStore.getState().token : undefined;
-      if (token) {
-        return WorldEntriesService.updateWorldEntryNotesContentBeacon(
-          entryId,
-          content,
-          token,
-        );
-      }
-      return WorldEntriesService.updateWorldEntryNotesContent(entryId, content);
+    getEntryNotesContentStore: (entryId) => {
+      return WorldEntriesService.getWorldEntryNotesContentStore(
+        entryId,
+        () => useAuthStore.getState().token,
+      );
     },
 
     setFieldValue: (entryId, worldId, fieldDefinitionId, value) => {

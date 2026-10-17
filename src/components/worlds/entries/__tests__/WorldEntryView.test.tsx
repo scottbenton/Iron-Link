@@ -18,6 +18,9 @@ import { useWorldOraclesStore } from "stores/worldOracles.store";
 
 import { catalogOf, oracle } from "lib/__tests__/worldOracleFixtures";
 
+import { RichTextContentRepository } from "repositories/richTextContent.repository";
+
+import type { RichTextContentStore } from "services/richTextContent.service";
 import {
   IWorldEntry,
   WorldEntriesService,
@@ -47,17 +50,21 @@ vi.mock("components/RichTextEditor", () => ({
     id,
     roomPrefix,
     initialValue,
-    onSave,
+    contentStore,
   }: {
     id: string;
     roomPrefix: string;
     initialValue: Uint8Array;
-    onSave?: (id: string, value: Uint8Array, text: string) => Promise<void>;
+    contentStore?: RichTextContentStore;
   }) => (
     <div data-testid="rich-text">
       {`${roomPrefix}-${id}: ${initialValue.length} bytes`}
-      {onSave && (
-        <button onClick={() => onSave(id, new Uint8Array([7, 8]), "text")}>
+      {contentStore && (
+        <button
+          onClick={() =>
+            contentStore.write(new Uint8Array([7, 8]), "text", "v1")
+          }
+        >
           Save document
         </button>
       )}
@@ -464,8 +471,8 @@ describe("entry Notes", () => {
   it("edits Notes collaboratively below the fields", async () => {
     const user = userEvent.setup();
     const save = vi
-      .spyOn(WorldEntriesService, "updateWorldEntryNotesContent")
-      .mockResolvedValue();
+      .spyOn(RichTextContentRepository, "writeIfUnchanged")
+      .mockResolvedValue("v2");
     loadEntries([worldEntry()]);
     renderView();
     const notes = await screen.findByRole("region", { name: "Notes" });
@@ -475,7 +482,12 @@ describe("entry Notes", () => {
     await user.click(
       within(notes).getByRole("button", { name: "Save document" }),
     );
-    expect(save).toHaveBeenCalledWith("entry-1", new Uint8Array([7, 8]));
+    expect(save).toHaveBeenCalledWith(
+      { table: "world_entries", column: "notes_content" },
+      "entry-1",
+      { notes_content: "\\x0708" },
+      "v1",
+    );
   });
 
   it("shows readers the notes without saving", async () => {
