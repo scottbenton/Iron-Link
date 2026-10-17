@@ -1,27 +1,28 @@
-import AddPhotoIcon from "@mui/icons-material/AddPhotoAlternate";
-import { Box, IconButton, Tooltip } from "@mui/material";
+import { Box } from "@mui/material";
 import { Editor } from "@tiptap/react";
-import { ChangeEvent, useRef } from "react";
-import { useTranslation } from "react-i18next";
+import { useEffect, useRef, useState } from "react";
 
 import { ActionToolbarStrip } from "components/Layout/ActionToolbarStrip";
 
 import { FormattingToolbarItems } from "pages/games/characterSheet/components/NotesSection/NoteView/FormattingToolbarItems";
+import { MobileKeyboardToolbar } from "pages/games/characterSheet/components/NotesSection/NoteView/MobileKeyboardToolbar";
 import { TextTypeDropdown } from "pages/games/characterSheet/components/NotesSection/NoteView/TextTypeDropdown";
+import { TextTypeMenu } from "pages/games/characterSheet/components/NotesSection/NoteView/TextTypeMenu";
+import { UploadImageButton } from "pages/games/characterSheet/components/NotesSection/NoteView/UploadImageButton";
+
+import { useIsMobile } from "hooks/useIsMobile";
 
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
-import {
-  MAX_FILE_SIZE,
-  MAX_FILE_SIZE_LABEL,
-} from "repositories/storage.repository";
-
 import { IWorldEntry } from "services/worldEntries.service";
 
-// The Notes tab's toolbar for an entry's Notes: the same grey strip, text
-// type and formatting, with images stored with the entry so they are removed
-// with it. Readers see no toolbar. It pins to the top of the scroller while
-// the Notes are on screen, and leaves with them.
+const ENTRY_IMAGE_TYPES = "image/png,image/jpeg,image/gif,image/webp";
+
+// The Notes tab's toolbar for an entry's Notes, built from the same pieces,
+// with images stored with the entry so they are removed with it. Readers see
+// no toolbar. On larger screens it pins to the top of the scroller while the
+// Notes are on screen; on a phone it rides above the keyboard, as in Notes,
+// but only while the Notes are being edited, since the page has more on it.
 export function WorldEntryNotesToolbar({
   editor,
   entry,
@@ -31,34 +32,34 @@ export function WorldEntryNotesToolbar({
   entry: Pick<IWorldEntry, "id" | "worldId">;
   onError: (cause: unknown) => void;
 }) {
-  const { t } = useTranslation();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
   const uploadEntryImage = useWorldEntriesStore(
     (store) => store.uploadEntryImage,
   );
   if (!editor.isEditable) return null;
 
-  const handleFile = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.currentTarget.files?.[0];
-    event.currentTarget.value = "";
-    if (!file) return;
-    if (file.size > MAX_FILE_SIZE) {
-      onError(
-        new Error(
-          t(
-            "worlds.entries.image-too-large",
-            "That image is too large. The largest image you can upload is {{size}}.",
-            { size: MAX_FILE_SIZE_LABEL },
-          ),
-        ),
-      );
-      return;
-    }
-    const { url } = await uploadEntryImage(entry.worldId, entry.id, file);
-    editor.chain().focus().setImage({ src: url }).run();
-  };
+  const upload = (file: File) =>
+    uploadEntryImage(entry.worldId, entry.id, file)
+      .then(({ url }) => url)
+      .catch((cause) => {
+        onError(cause);
+        throw cause;
+      });
 
-  const imageLabel = t("note.editor-toolbar.upload-image", "Upload Image");
+  if (isMobile) {
+    return (
+      <MobileEntryNotesToolbar editor={editor}>
+        <TextTypeMenu editor={editor} />
+        <FormattingToolbarItems editor={editor} hideBorders />
+        <UploadImageButton
+          editor={editor}
+          upload={upload}
+          accept={ENTRY_IMAGE_TYPES}
+        />
+      </MobileEntryNotesToolbar>
+    );
+  }
+
   return (
     <Box
       sx={(theme) => ({
@@ -74,24 +75,59 @@ export function WorldEntryNotesToolbar({
       <ActionToolbarStrip>
         <TextTypeDropdown editor={editor} />
         <FormattingToolbarItems editor={editor} />
-        <Tooltip title={imageLabel} enterDelay={300}>
-          <IconButton
-            aria-label={imageLabel}
-            onClick={() => inputRef.current?.click()}
-          >
-            <AddPhotoIcon />
-          </IconButton>
-        </Tooltip>
-        <input
-          ref={inputRef}
-          hidden
-          type="file"
-          accept="image/png,image/jpeg,image/gif,image/webp"
-          onChange={(event) => {
-            handleFile(event).catch(onError);
-          }}
+        <UploadImageButton
+          editor={editor}
+          upload={upload}
+          accept={ENTRY_IMAGE_TYPES}
         />
       </ActionToolbarStrip>
     </Box>
+  );
+}
+
+// Shown while focus is in the editor, the bar, or a menu the bar opened.
+function MobileEntryNotesToolbar({
+  editor,
+  children,
+}: {
+  editor: Editor;
+  children: React.ReactNode;
+}) {
+  const bar = useRef<HTMLDivElement>(null);
+  const [editing, setEditing] = useState(() => editor.isFocused);
+
+  useEffect(() => {
+    const onFocusIn = (event: FocusEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      setEditing(
+        editor.view.dom.contains(target) ||
+          !!bar.current?.contains(target) ||
+          !!target.closest(".MuiPopover-root, .MuiMenu-root"),
+      );
+    };
+    // Tapping the page outside moves focus nowhere, so no focusin follows.
+    const onBlur = ({ event }: { event: FocusEvent }) => {
+      if (!event.relatedTarget) setEditing(false);
+    };
+    document.addEventListener("focusin", onFocusIn);
+    editor.on("blur", onBlur);
+    return () => {
+      document.removeEventListener("focusin", onFocusIn);
+      editor.off("blur", onBlur);
+    };
+  }, [editor]);
+
+  return (
+    <MobileKeyboardToolbar hidden={!editing}>
+      {/* Pressing a button keeps the editor, and the keyboard, focused. */}
+      <Box
+        ref={bar}
+        sx={{ display: "contents" }}
+        onMouseDown={(event) => event.preventDefault()}
+      >
+        {children}
+      </Box>
+    </MobileKeyboardToolbar>
   );
 }
