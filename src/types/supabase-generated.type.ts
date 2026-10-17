@@ -1119,7 +1119,11 @@ export type Database = {
         | "extreme"
         | "epic"
       progress_track_type: "vow" | "journey" | "combat"
-      second_screen_options: "character" | "track" | "note_image"
+      second_screen_options:
+        | "character"
+        | "track"
+        | "note_image"
+        | "world_entry"
       track_type: "progress_track" | "scene_challenge" | "clock"
     }
     CompositeTypes: {
@@ -1282,7 +1286,7 @@ export const Constants = {
         "epic",
       ],
       progress_track_type: ["vow", "journey", "combat"],
-      second_screen_options: ["character", "track", "note_image"],
+      second_screen_options: ["character", "track", "note_image", "world_entry"],
       track_type: ["progress_track", "scene_challenge", "clock"],
     },
   },

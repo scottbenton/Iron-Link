@@ -27,6 +27,17 @@ export function createWorldOracleLookup(
   return (oracleId) => oracles.get(oracleId);
 }
 
+// One oracle roll as a game log shows it: the oracle's name, the die, and
+// the plain result text the field or name received.
+export interface WorldOracleRollRecord {
+  oracleId: string;
+  oracleName: string;
+  roll: number;
+  text: string;
+}
+
+export type WorldOracleRollListener = (record: WorldOracleRollRecord) => void;
+
 const MAX_DEPTH = 4;
 const DATASWORN_LINK = /\[([^\]]*)\]\((datasworn:[^)]*)\)/g;
 
@@ -34,14 +45,28 @@ const DATASWORN_LINK = /\[([^\]]*)\]\((datasworn:[^)]*)\)/g;
  * Rolls an oracle and returns its result as plain text. Results that roll
  * other oracles join those results with commas. With expandLinks, links to
  * other oracles in a result are rolled in place, as the Starforged faction
- * name templates expect; otherwise a link reads as its label.
+ * name templates expect; otherwise a link reads as its label. onRoll hears
+ * the outermost roll once it has a result.
  */
 export function rollWorldOracleText(
   oracleId: string,
   lookup: WorldOracleLookup,
-  options: { expandLinks?: boolean } = {},
+  options: { expandLinks?: boolean; onRoll?: WorldOracleRollListener } = {},
   depth = 0,
 ): string | undefined {
+  const { onRoll, ...nested } = options;
+  const rolled = rollOracleRow(oracleId, lookup, nested, depth);
+  if (rolled === undefined) return undefined;
+  if (depth === 0) onRoll?.({ oracleId, ...rolled });
+  return rolled.text;
+}
+
+function rollOracleRow(
+  oracleId: string,
+  lookup: WorldOracleLookup,
+  options: { expandLinks?: boolean },
+  depth: number,
+): { text: string; roll: number; oracleName: string } | undefined {
   const oracle = lookup(oracleId);
   if (!oracle || depth > MAX_DEPTH || !("rows" in oracle)) return undefined;
   const roll = rollDie(oracle.dice);
@@ -68,7 +93,8 @@ export function rollWorldOracleText(
         if (result) results.push(result);
       }
     }
-    if (results.length) return results.join(", ");
+    if (results.length)
+      return { text: results.join(", "), roll, oracleName: oracle.name };
   }
 
   const text = options.expandLinks
@@ -77,7 +103,7 @@ export function rollWorldOracleText(
         return rollWorldOracleText(linked, lookup, options, depth + 1) ?? label;
       })
     : row.text;
-  return toPlainText(text);
+  return { text: toPlainText(text), roll, oracleName: oracle.name };
 }
 
 // Oracle text is Markdown; a field holds one plain line.
@@ -112,28 +138,33 @@ const OPTION_ATTEMPTS = 10;
  * Rolls a value for a field: the result text for Text, or the matching
  * option for an option list. A strict list rerolls a few times when the
  * result is not one of its options, then gives up. A list that takes several
- * values gains the rolled one.
+ * values gains the rolled one. onRoll hears only the roll that was kept.
  */
 export function rollWorldFieldValue(
   field: Pick<IWorldFieldDefinition, "type" | "configuration" | "binding">,
   current: WorldFieldValue | null | undefined,
   catalog: WorldOracleCatalog | null,
   lookup: WorldOracleLookup,
+  onRoll?: WorldOracleRollListener,
 ): WorldFieldValue | undefined {
   const oracleId = getWorldFieldRollTarget(field, catalog);
   if (!oracleId) return undefined;
   if (getWorldFieldKind(field) === "text") {
-    return rollWorldOracleText(oracleId, lookup);
+    return rollWorldOracleText(oracleId, lookup, { onRoll });
   }
   const { suggestions, allowOther, multiple } = field.configuration;
   for (let attempt = 0; attempt < OPTION_ATTEMPTS; attempt++) {
-    const text = rollWorldOracleText(oracleId, lookup);
+    let record: WorldOracleRollRecord | undefined;
+    const text = rollWorldOracleText(oracleId, lookup, {
+      onRoll: (rolled) => (record = rolled),
+    });
     if (!text) continue;
     const option =
       suggestions.find(
         (candidate) => candidate.toLowerCase() === text.toLowerCase(),
       ) ?? (allowOther ? text : undefined);
     if (!option) continue;
+    if (record) onRoll?.({ ...record, text: option });
     if (!multiple) return option;
     const values = Array.isArray(current) ? current : current ? [current] : [];
     return values.includes(option) ? values : [...values, option];
