@@ -1,6 +1,6 @@
 import LinkOffIcon from "@mui/icons-material/LinkOff";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-import { Box, Button } from "@mui/material";
+import { Box, Button, Stack } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,6 +8,7 @@ import { useLocation } from "react-router";
 
 import type { BreadcrumbItem } from "components/Layout/BreadcrumbTrail";
 import { EmptyState } from "components/Layout/EmptyState";
+import { WorldOracleChangeWarning } from "components/worlds/WorldOracleChangeWarning";
 import { WorldPanel } from "components/worlds/WorldPanel";
 import { WorldSettingsSection } from "components/worlds/WorldSettingsSection";
 import type {
@@ -98,9 +99,17 @@ export function GameWorldView(props: GameWorldViewProps) {
     // Unlinking never deletes the world; it only removes this game's access.
     confirm({
       title: t("worlds.game.unlink-world", "Unlink World"),
-      description: t(
-        "worlds.game.unlink-world-confirmation",
-        "Unlink this world from the game? The world itself is not deleted, but everyone in this game will lose access to it.",
+      description: (
+        <Stack spacing={2}>
+          <span>
+            {t(
+              "worlds.game.unlink-world-confirmation",
+              "Unlink this world from the game? The world itself is not deleted, but everyone in this game will lose access to it.",
+            )}
+          </span>
+          {/* Release guard until #236 previews oracle changes. */}
+          <WorldOracleChangeWarning />
+        </Stack>
       ),
       confirmationText: t("worlds.game.unlink-world", "Unlink World"),
     })

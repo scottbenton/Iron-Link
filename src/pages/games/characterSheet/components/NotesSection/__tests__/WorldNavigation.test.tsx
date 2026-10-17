@@ -14,6 +14,7 @@ import { GameWorldSection } from "../FolderView/GameWorldSection";
 import { NoteTabs } from "../NoteTabs/NoteTabs";
 import { GameWorldView } from "../WorldView/GameWorldView";
 
+const confirm = vi.hoisted(() => vi.fn());
 const context = vi.hoisted(() => ({
   worldId: "world-a",
   world: { id: "world-a", name: "Ironlands" },
@@ -65,7 +66,7 @@ vi.mock("stores/game.store", () => ({
   GamePermission: { Guide: "guide" },
   useGameStore: (select: (value: typeof context) => unknown) => select(context),
 }));
-vi.mock("material-ui-confirm", () => ({ useConfirm: () => vi.fn() }));
+vi.mock("material-ui-confirm", () => ({ useConfirm: () => confirm }));
 vi.mock("pages/games/gamePageLayout/hooks/useGameId", () => ({
   useGameId: () => "game-a",
 }));
@@ -82,8 +83,13 @@ vi.mock("../FolderView", () => ({
 }));
 vi.mock("../NoteView", () => ({ NoteView: () => null }));
 vi.mock("components/worlds/WorldPanel", () => ({
-  WorldPanel: ({ navigation, rootBreadcrumb }: WorldPanelProps) => (
+  WorldPanel: ({
+    navigation,
+    rootBreadcrumb,
+    additionalSettings,
+  }: WorldPanelProps) => (
     <>
+      {additionalSettings}
       <a
         {...navigation.getLinkProps({
           type: "category",
@@ -272,6 +278,23 @@ describe("World Notes navigation", () => {
       type: "folder",
       itemId: "root",
     });
+  });
+
+  // Release guard until #236 previews oracle changes.
+  it("warns that world fields may roll different oracles before unlinking", async () => {
+    const user = userEvent.setup();
+    confirm.mockResolvedValue({ confirmed: false });
+    render(
+      <MemoryRouter>
+        <GameWorldView worldId="world-a" worldView={{ type: "settings" }} />
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole("button", { name: "Unlink World" }));
+    const { description } = confirm.mock.calls[0][0];
+    render(description);
+    expect(
+      screen.getByText("Some world fields may roll different oracles."),
+    ).toBeInTheDocument();
   });
 
   it("rejects a deep destination for a world no longer linked to this game", () => {
