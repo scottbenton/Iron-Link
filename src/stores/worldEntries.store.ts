@@ -30,7 +30,7 @@ import {
   WorldFieldValue,
 } from "services/worldEntryFieldValues.service";
 
-import { useUID } from "./auth.store";
+import { useAuthStore, useUID } from "./auth.store";
 import { useWorldStore } from "./world.store";
 
 const ENTRY_ARRIVAL_TIMEOUT_MS = 10000;
@@ -95,6 +95,7 @@ interface WorldEntriesStoreActions {
   updateEntryNotesContent: (
     entryId: string,
     content: Uint8Array,
+    isBeaconRequest?: boolean,
   ) => Promise<void>;
 
   setFieldValue: (
@@ -339,14 +340,29 @@ export const useWorldEntriesStore = createWithEqualityFn<
       }
       return WorldEntriesService.setWorldEntryParent(entryId, parentEntryId);
     },
-    deleteEntry: (entryId) => {
-      return WorldEntriesService.deleteWorldEntry(entryId);
+    deleteEntry: async (entryId) => {
+      const entry = get().entryState.entries[entryId];
+      await WorldEntriesService.deleteWorldEntry(entryId);
+      // Its stored images go with it, without holding up the delete.
+      if (entry) {
+        WorldEntriesService.deleteWorldEntryFiles(entry.worldId, entryId).catch(
+          () => undefined,
+        );
+      }
     },
 
     getEntryNotesContent: (entryId) => {
       return WorldEntriesService.getWorldEntryNotesContent(entryId);
     },
-    updateEntryNotesContent: (entryId, content) => {
+    updateEntryNotesContent: (entryId, content, isBeaconRequest) => {
+      const token = isBeaconRequest ? useAuthStore.getState().token : undefined;
+      if (token) {
+        return WorldEntriesService.updateWorldEntryNotesContentBeacon(
+          entryId,
+          content,
+          token,
+        );
+      }
       return WorldEntriesService.updateWorldEntryNotesContent(entryId, content);
     },
 

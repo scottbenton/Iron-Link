@@ -1,4 +1,5 @@
-import { Box, Typography } from "@mui/material";
+import CasinoIcon from "@mui/icons-material/Casino";
+import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { ReactNode, useId } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +10,10 @@ export interface WorldEntryFieldShellProps {
   // that are not a single input, and the field is read only. The input is
   // described by getWorldEntryFieldHelpId(inputId).
   inputId?: string;
+  // Shows dice that roll the field's oracle: always while the field is
+  // empty or on a touchscreen, and on hover or focus once it holds a value.
+  onRoll?: () => void;
+  empty?: boolean;
   children: ReactNode;
 }
 
@@ -19,11 +24,17 @@ export function WorldEntryFieldShell({
   label,
   helpText,
   inputId,
+  onRoll,
+  empty,
   children,
 }: WorldEntryFieldShellProps) {
+  const { t } = useTranslation();
   const labelId = useId();
   const groupHelpId = useId();
   const helpId = inputId ? getWorldEntryFieldHelpId(inputId) : groupHelpId;
+  const rollLabel = t("worlds.entries.roll-field", "Roll {{field}}", {
+    field: label,
+  });
 
   return (
     <Box
@@ -46,7 +57,13 @@ export function WorldEntryFieldShell({
               // leaves a field looking active.
               "@media (hover: hover) and (pointer: fine)": {
                 "&:hover": { bgcolor: "action.hover" },
+                "&:hover .world-entry-field-roll": { opacity: 1 },
               },
+              "& .world-entry-field-roll": {
+                opacity: empty ? 1 : 0,
+                "@media (hover: none), (pointer: coarse)": { opacity: 1 },
+              },
+              "&:focus-within .world-entry-field-roll": { opacity: 1 },
               "&:focus-within": {
                 bgcolor: "action.hover",
                 boxShadow: (theme) =>
@@ -67,6 +84,7 @@ export function WorldEntryFieldShell({
           fontSize: 12.5,
           fontWeight: 500,
           lineHeight: 1.5,
+          pr: onRoll ? 4 : 0,
         }}
       >
         {label}
@@ -82,6 +100,19 @@ export function WorldEntryFieldShell({
         >
           {helpText}
         </Typography>
+      )}
+      {onRoll && (
+        <Tooltip title={rollLabel}>
+          <IconButton
+            className="world-entry-field-roll"
+            size="small"
+            aria-label={rollLabel}
+            onClick={onRoll}
+            sx={{ position: "absolute", top: 0, right: 0 }}
+          >
+            <CasinoIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
       )}
     </Box>
   );

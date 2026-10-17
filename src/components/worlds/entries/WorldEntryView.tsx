@@ -6,6 +6,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
@@ -21,10 +22,12 @@ import { getWorldEntrySubtitle } from "lib/worldEntrySubtitle";
 
 import { IWorldCategory } from "services/worldCategories.service";
 
+import { getEditorErrorMessage } from "../categories/categoryEditor.utils";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldEntryFields } from "./WorldEntryFields";
 import { WorldEntryIcon } from "./WorldEntryIcon";
 import { WorldEntryNameField } from "./WorldEntryNameField";
+import { WorldEntryNotes } from "./WorldEntryNotes";
 
 const READ_ONLY = {
   canEdit: false,
@@ -32,10 +35,10 @@ const READ_ONLY = {
   canChangePermissions: false,
 };
 
-// One entry's page: its icon, name and subtitle, then its fields. Its
-// actions sit in the strip above, which the manager renders. The manager
-// also listens to the world's entries, so moving here from the list needs no
-// loading.
+// One entry's page: its portrait or icon, name and subtitle, then its
+// fields and Notes. Its actions sit in the strip above, which the manager
+// renders. The manager also listens to the world's entries, so moving here
+// from the list needs no loading.
 export function WorldEntryView({
   category,
   entryId,
@@ -61,6 +64,11 @@ export function WorldEntryView({
     (store) => store.entryState.permissions[entryId] ?? READ_ONLY,
   );
   const guided = useWorldIsGuided();
+  const [notesError, setNotesError] = useState<string>();
+  const onNotesError = useCallback(
+    (cause: unknown) => setNotesError(getEditorErrorMessage(cause)),
+    [],
+  );
   const subtitleField = useWorldCategoriesStore((store) =>
     category.subtitleFieldDefinitionId
       ? store.fieldDefinitions[category.subtitleFieldDefinitionId]
@@ -122,8 +130,7 @@ export function WorldEntryView({
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <WorldEntryNameField
             key={entry.id}
-            entryId={entry.id}
-            name={entry.name}
+            entry={entry}
             canEdit={permissions.canEdit}
           />
           {subtitle && (
@@ -143,6 +150,17 @@ export function WorldEntryView({
         canEdit={permissions.canEdit}
         guided={guided}
         navigation={navigation}
+      />
+      {notesError && (
+        <Alert severity="error" onClose={() => setNotesError(undefined)}>
+          {notesError}
+        </Alert>
+      )}
+      <WorldEntryNotes
+        key={entry.id}
+        entry={entry}
+        canEdit={permissions.canEdit}
+        onError={onNotesError}
       />
     </Stack>
   );

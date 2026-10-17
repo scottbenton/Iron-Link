@@ -24,11 +24,14 @@ export function WorldEntryTextField({
   value,
   canEdit,
   onSave,
+  roll,
 }: {
   field: ResolvedWorldFieldDefinition;
   value: string;
   canEdit: boolean;
   onSave: (value: string) => void;
+  // Rolls the field's oracle; offered only where it has one.
+  roll?: () => string | undefined;
 }) {
   const inputId = useId();
   const emptyText = useEmptyFieldText();
@@ -69,6 +72,15 @@ export function WorldEntryTextField({
   // Leaving the entry saves what was typed rather than dropping it.
   useEffect(() => flush, [flush]);
 
+  // Saves a whole new value at once, as Clear and a roll do.
+  const replace = (next: string) => {
+    if (pending.current) clearTimeout(pending.current.timeout);
+    pending.current = undefined;
+    setDraft(next);
+    setUnconfirmed(next);
+    onSaveRef.current(next);
+  };
+
   if (!canEdit) {
     return (
       <WorldEntryFieldShell label={field.label}>
@@ -84,6 +96,15 @@ export function WorldEntryTextField({
       label={field.label}
       helpText={field.helpText || undefined}
       inputId={inputId}
+      onRoll={
+        roll
+          ? () => {
+              const rolled = roll();
+              if (rolled) replace(rolled);
+            }
+          : undefined
+      }
+      empty={!draft}
     >
       <InputBase
         id={inputId}

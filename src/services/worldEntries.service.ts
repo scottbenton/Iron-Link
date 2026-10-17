@@ -187,6 +187,25 @@ export class WorldEntriesService {
     return WorldEntriesRepository.deleteWorldEntry(entryId);
   }
 
+  // Removes an entry's portrait, Notes images and map background. Run after
+  // the entry is deleted; the storage policies decide what this person may
+  // remove, so a refusal leaves those files for a later cleanup.
+  public static async deleteWorldEntryFiles(
+    worldId: string,
+    entryId: string,
+  ): Promise<void> {
+    await Promise.allSettled([
+      StorageRepository.deleteFolder(
+        "world_entry_images",
+        `${worldId}/${entryId}`,
+      ),
+      StorageRepository.deleteFolder(
+        "world_map_backgrounds",
+        `${worldId}/${entryId}`,
+      ),
+    ]);
+  }
+
   // Both world buckets use the <worldId>/<entryId>/<filename> convention;
   // storage policies check world_role() against the first path segment.
   public static uploadWorldEntryImage(

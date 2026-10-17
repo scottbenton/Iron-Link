@@ -6,27 +6,27 @@ import { useTranslation } from "react-i18next";
 
 import { useSnackbar } from "providers/SnackbarProvider";
 
-import { useNotesStore } from "stores/notes.store";
-
 import {
   MAX_FILE_SIZE,
   MAX_FILE_SIZE_LABEL,
 } from "repositories/storage.repository";
 
 export interface UploadImageButtonProps {
-  noteId: string;
   editor: Editor;
+  // Stores the image and resolves with its URL. Rejections are the caller's
+  // to report.
+  upload: (file: File) => Promise<string>;
+  accept?: string;
 }
 
 export function UploadImageButton(props: UploadImageButtonProps) {
-  const { noteId, editor } = props;
+  const { editor, upload, accept = "image/*" } = props;
 
   const { t } = useTranslation();
 
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const { error } = useSnackbar();
-  const uploadImage = useNotesStore((store) => store.uploadNoteImage);
   const handleFileInputChange: ChangeEventHandler<HTMLInputElement> = (evt) => {
     const files = evt.currentTarget.files;
 
@@ -38,7 +38,7 @@ export function UploadImageButton(props: UploadImageButtonProps) {
         evt.target.value = "";
         return;
       }
-      uploadImage(noteId, files[0])
+      upload(files[0])
         .then((url) => {
           try {
             editor.commands.setImage({ src: url });
@@ -58,6 +58,7 @@ export function UploadImageButton(props: UploadImageButtonProps) {
         enterDelay={300}
       >
         <IconButton
+          aria-label={t("note.editor-toolbar.upload-image", "Upload Image")}
           onClick={() => {
             if (imageInputRef.current) {
               imageInputRef.current.click();
@@ -70,7 +71,7 @@ export function UploadImageButton(props: UploadImageButtonProps) {
       <input
         ref={imageInputRef}
         hidden
-        accept="image/*"
+        accept={accept}
         type="file"
         onChange={handleFileInputChange}
       />

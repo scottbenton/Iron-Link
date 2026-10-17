@@ -1,7 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import { PropsWithChildren, ReactNode } from "react";
 
-import { ActionToolbar } from "components/Layout/ActionToolbar";
+import { ActionToolbarStrip } from "components/Layout/ActionToolbarStrip";
 import { NOTES_PANE_GUTTER } from "components/Layout/notesPaneGutter";
 
 // "page" is the standalone /worlds route; "embedded" is a Notes tab, where
@@ -39,35 +39,45 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
           minHeight: 0,
         }}
       >
-        <ActionToolbar breadcrumbs={breadcrumbs}>
-          {hasActions && (
-            <>
-              {actions?.start}
-              {actions?.end && (
-                <Box
-                  flexGrow={1}
-                  display="flex"
-                  justifyContent="flex-end"
-                  alignItems="center"
-                  gap={1}
-                >
-                  {actions.end}
-                </Box>
-              )}
-            </>
-          )}
-        </ActionToolbar>
-        {/* Full width, so the scrollbar sits at the column's edge. */}
         <Box
-          sx={{
-            flexGrow: 1,
-            overflow: "auto",
-            pt: 2,
-            pb: 2,
-            px: NOTES_PANE_GUTTER,
-          }}
+          mx={NOTES_PANE_GUTTER}
+          pt={2}
+          pb={hasActions ? 0.5 : 2}
+          borderBottom={
+            hasActions
+              ? undefined
+              : (theme) => `1px solid ${theme.palette.divider}`
+          }
         >
-          {children}
+          {breadcrumbs}
+        </Box>
+        {/* One full width scroller, so the scrollbar sits at the column's
+            edge. The breadcrumbs stay put; the actions scroll away with the
+            page, and an entry's Notes bar pins on its own. */}
+        <Box sx={{ flexGrow: 1, minHeight: 0, overflow: "auto" }}>
+          {hasActions && (
+            <Box
+              mx={NOTES_PANE_GUTTER}
+              pb={1}
+              borderBottom={(theme) => `1px solid ${theme.palette.divider}`}
+            >
+              <ActionToolbarStrip>
+                {actions?.start}
+                {actions?.end && (
+                  <Box
+                    flexGrow={1}
+                    display="flex"
+                    justifyContent="flex-end"
+                    alignItems="center"
+                    gap={1}
+                  >
+                    {actions.end}
+                  </Box>
+                )}
+              </ActionToolbarStrip>
+            </Box>
+          )}
+          <Box sx={{ pt: 2, pb: 2, px: NOTES_PANE_GUTTER }}>{children}</Box>
         </Box>
       </Box>
     );
