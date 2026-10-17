@@ -27,14 +27,14 @@ import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButto
 
 import { IconColors, IconDefinition } from "types/Icon.type";
 
-import { WorldCategoryIcon } from "./WorldCategoryIcon";
+import { WorldCategoryIcon } from "./categories/WorldCategoryIcon";
 import {
   GROUPS_CATEGORY_ICON_KEY,
   categoryIconName,
   getCategoryIconColor,
   getLoadedCategoryIcons,
   loadCategoryIcons,
-} from "./categoryIcons";
+} from "./categories/categoryIcons";
 
 const BATCH_SIZE = 240;
 
@@ -65,12 +65,15 @@ function getColorLabel(t: TFunction, color: IconColors): string {
 
 // Follows Crew Link's image editor: color swatches, a filterable scrolling
 // icon grid, and a live preview. Nothing is saved until Save.
-export function WorldCategoryIconDialog({
+// Chooses an icon and its color for a world category or entry.
+export function WorldIconPickerDialog({
   value,
+  title,
   onSave,
   onClose,
 }: {
   value: IconDefinition | null;
+  title: string;
   onSave: (value: IconDefinition | null) => void;
   onClose: () => void;
 }) {
@@ -82,6 +85,9 @@ export function WorldCategoryIconDialog({
   const [search, setSearch] = useState("");
   const query = useDeferredValue(search.trim().toLowerCase());
   const [limit, setLimit] = useState(BATCH_SIZE);
+  // One tooltip at a time, closed on scroll: the icons move under a still
+  // pointer, which never leaves the one it opened on.
+  const [tooltipKey, setTooltipKey] = useState<string | null>(null);
   const [icons, setIcons] = useState(getLoadedCategoryIcons);
   const [error, setError] = useState(false);
   useEffect(() => {
@@ -106,7 +112,7 @@ export function WorldCategoryIconDialog({
   return (
     <Dialog open fullWidth maxWidth="sm" onClose={onClose}>
       <DialogTitleWithCloseButton onClose={onClose}>
-        {t("worlds.categories.choose-icon", "Choose category icon")}
+        {title}
       </DialogTitleWithCloseButton>
       <DialogContent>
         <Box
@@ -168,6 +174,7 @@ export function WorldCategoryIconDialog({
             />
             <Box
               onScroll={(event) => {
+                setTooltipKey(null);
                 const target = event.currentTarget;
                 if (
                   target.scrollTop + target.clientHeight >
@@ -207,7 +214,15 @@ export function WorldCategoryIconDialog({
                   }}
                 >
                   {matches.slice(0, limit).map((key) => (
-                    <Tooltip key={key} title={categoryIconName(key)}>
+                    <Tooltip
+                      key={key}
+                      title={categoryIconName(key)}
+                      open={tooltipKey === key}
+                      onOpen={() => setTooltipKey(key)}
+                      onClose={() =>
+                        setTooltipKey((open) => (open === key ? null : open))
+                      }
+                    >
                       <IconButton
                         aria-label={categoryIconName(key)}
                         aria-pressed={draft.key === key}
