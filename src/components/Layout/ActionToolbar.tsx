@@ -17,6 +17,7 @@ export function ActionToolbar(props: ActionToolbarProps) {
       bgcolor="background.paper"
       zIndex={(theme) => theme.zIndex.appBar - 1}
       mx={NOTES_PANE_GUTTER}
+      pt={2}
       borderBottom={(theme) => `1px solid ${theme.palette.divider}`}
       pb={children ? 0 : 2}
     >

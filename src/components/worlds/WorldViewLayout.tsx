@@ -37,7 +37,6 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
           flexDirection: "column",
           flexGrow: 1,
           minHeight: 0,
-          pt: 2,
         }}
       >
         <ActionToolbar breadcrumbs={breadcrumbs}>
