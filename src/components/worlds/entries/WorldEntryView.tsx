@@ -25,7 +25,7 @@ import { IWorldCategory } from "services/worldCategories.service";
 import { getEditorErrorMessage } from "../categories/categoryEditor.utils";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldEntryFields } from "./WorldEntryFields";
-import { WorldEntryIcon } from "./WorldEntryIcon";
+import { WorldEntryHeaderIcon } from "./WorldEntryHeaderIcon";
 import { WorldEntryNameField } from "./WorldEntryNameField";
 import { WorldEntryNotes } from "./WorldEntryNotes";
 
@@ -126,7 +126,11 @@ export function WorldEntryView({
   return (
     <Stack component="article" spacing={2.5}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <WorldEntryIcon entry={entry} size="large" />
+        <WorldEntryHeaderIcon
+          entry={entry}
+          canEdit={permissions.canEdit}
+          onError={onNotesError}
+        />
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <WorldEntryNameField
             key={entry.id}

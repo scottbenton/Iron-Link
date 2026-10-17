@@ -410,6 +410,56 @@ describe("entry images", () => {
   });
 });
 
+describe("entry header icon", () => {
+  it("opens the icon picker from the icon for editors", async () => {
+    const user = userEvent.setup();
+    loadEntries([worldEntry()]);
+    renderView();
+    await user.click(
+      await screen.findByRole("button", { name: "Choose icon" }),
+    );
+    expect(
+      await screen.findByRole("dialog", { name: "Choose entry icon" }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens a portrait full size, for readers too", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(WorldEntriesService, "getWorldEntryImageUrl").mockReturnValue(
+      "https://x/map.png",
+    );
+    loadEntries([worldEntry({ imageFilename: "map.png" })], {
+      "entry-1": {
+        canEdit: false,
+        canDelete: false,
+        canChangePermissions: false,
+      },
+    });
+    renderView();
+    await user.click(await screen.findByRole("button", { name: "View image" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("img")).toHaveAttribute(
+      "src",
+      expect.stringContaining("map.png"),
+    );
+  });
+
+  it("shows readers a plain icon", async () => {
+    loadEntries([worldEntry()], {
+      "entry-1": {
+        canEdit: false,
+        canDelete: false,
+        canChangePermissions: false,
+      },
+    });
+    renderView();
+    await screen.findByRole("article");
+    expect(
+      screen.queryByRole("button", { name: "Choose icon" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe("entry Notes", () => {
   it("edits Notes collaboratively below the fields", async () => {
     const user = userEvent.setup();
