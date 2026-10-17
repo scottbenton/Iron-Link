@@ -1,9 +1,21 @@
-import { List, ListItem, ListItemButton, Paper } from "@mui/material";
+import {
+  List,
+  ListItem,
+  ListItemButton,
+  ListSubheader,
+  Paper,
+} from "@mui/material";
 import type { MentionNodeAttrs } from "@tiptap/extension-mention";
 import type { SuggestionOptions, SuggestionProps } from "@tiptap/suggestion";
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import {
+  Fragment,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
 
-import type { MentionSuggestion } from "./otherNoteOptions";
+import type { MentionKind, MentionSuggestion } from "./otherNoteOptions";
 
 export type SuggestionListRef = {
   // For convenience using this SuggestionList from within the
@@ -39,9 +51,13 @@ const SuggestionList = forwardRef<SuggestionListRef, SuggestionListProps>(
       // indicated via SuggestionProps<MentionSuggestion>). We are passing an
       // object of the `MentionNodeAttrs` shape when calling `command` (utilized
       // by the Mention extension to create a Mention Node).
-      const mentionItem: MentionNodeAttrs = {
+      // A world entry's name is never stored in the note: it is read live, so
+      // a rename shows everywhere and a hidden entry never reveals its name.
+      const mentionItem: MentionNodeAttrs & { kind: MentionKind } = {
         id: suggestion.id,
-        label: suggestion.mentionLabel,
+        label:
+          suggestion.kind === "worldEntry" ? null : suggestion.mentionLabel,
+        kind: suggestion.kind,
       };
       props.command(mentionItem);
     };
@@ -95,16 +111,23 @@ const SuggestionList = forwardRef<SuggestionListRef, SuggestionListProps>(
           }}
         >
           {props.items.map((item, index) => (
-            <ListItem key={item.id} disablePadding>
-              <ListItemButton
-                selected={index === selectedIndex}
-                onClick={() => {
-                  selectItem(index);
-                }}
-              >
-                {item.mentionLabel}
-              </ListItemButton>
-            </ListItem>
+            <Fragment key={`${item.kind}:${item.id}`}>
+              {item.group !== props.items[index - 1]?.group && (
+                <ListSubheader sx={{ lineHeight: "32px" }}>
+                  {item.group}
+                </ListSubheader>
+              )}
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={index === selectedIndex}
+                  onClick={() => {
+                    selectItem(index);
+                  }}
+                >
+                  {item.mentionLabel}
+                </ListItemButton>
+              </ListItem>
+            </Fragment>
           ))}
         </List>
       </Paper>

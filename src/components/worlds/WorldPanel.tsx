@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import type { BreadcrumbItem } from "components/Layout/BreadcrumbTrail";
 import { EmptyState } from "components/Layout/EmptyState";
+import { WorldEntryMentionLinksContext } from "components/RichTextEditor/NoteMentionExtension/worldEntryMentionLinks";
 
 import { useListenToWorld, useWorldStore } from "stores/world.store";
 import { useListenToWorldConfiguration } from "stores/worldCategories.store";
@@ -91,15 +92,18 @@ export function WorldPanel(props: WorldPanelProps) {
   }
 
   return (
-    <WorldWorkspace
-      key={worldId}
-      world={world}
-      permission={worldPermission}
-      onWorldDeleted={onWorldDeleted}
-      additionalSettings={additionalSettings}
-      navigation={navigation}
-      rootBreadcrumb={rootBreadcrumb}
-      layout={layout}
-    />
+    // Entry mentions in the world's Notes lead where the world's own links do.
+    <WorldEntryMentionLinksContext.Provider value={navigation.getLinkProps}>
+      <WorldWorkspace
+        key={worldId}
+        world={world}
+        permission={worldPermission}
+        onWorldDeleted={onWorldDeleted}
+        additionalSettings={additionalSettings}
+        navigation={navigation}
+        rootBreadcrumb={rootBreadcrumb}
+        layout={layout}
+      />
+    </WorldEntryMentionLinksContext.Provider>
   );
 }

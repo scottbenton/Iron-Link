@@ -5,7 +5,21 @@ import { MouseEvent, useCallback } from "react";
 
 import { useNotesStore } from "stores/notes.store";
 
+import { WorldEntryMention } from "./WorldEntryMention";
+
 export function NoteMention(props: NodeViewProps) {
+  const { node } = props;
+  if (node.attrs.kind === "worldEntry") {
+    return (
+      <NodeViewWrapper as="span">
+        <WorldEntryMention entryId={node.attrs.id} />
+      </NodeViewWrapper>
+    );
+  }
+  return <NoteMentionChip {...props} />;
+}
+
+function NoteMentionChip(props: NodeViewProps) {
   const { node } = props;
   const label = node.attrs.label;
   const id = node.attrs.id;

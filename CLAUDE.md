@@ -36,3 +36,6 @@ that are easy to miss. When you learn a new one, add a line here.
 - World Notes are Yjs bytes in `worlds.notes_content`, left out of world
   list queries. Guides edit them but may not update `worlds`, so every save
   goes through the `update_world_notes` RPC.
+- A world entry mention stores only the entry id (`kind: "worldEntry"`,
+  `label: null`); its name is read live from the entries store, so renames
+  show at once and an unreadable entry shows "Unavailable entry".
