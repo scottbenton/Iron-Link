@@ -1,4 +1,5 @@
 import { Box, Fade } from "@mui/material";
+import type { ResponsiveStyleValue } from "@mui/system";
 import { EditorContent, Editor as TTEditor } from "@tiptap/react";
 
 import { useIsMobile } from "hooks/useIsMobile";
@@ -10,6 +11,9 @@ export interface EditorProps {
   Toolbar: React.FC<{ editor: TTEditor }>;
   saving?: boolean;
   minHeight?: number;
+  // Side padding for the text. Without it the text only keeps room on the
+  // right.
+  contentPx?: ResponsiveStyleValue<number>;
 }
 
 export function Editor(props: EditorProps) {
@@ -20,6 +24,7 @@ export function Editor(props: EditorProps) {
     Toolbar,
     saving,
     minHeight = 300,
+    contentPx,
   } = props;
 
   const isMobile = useIsMobile();
@@ -89,7 +94,9 @@ export function Editor(props: EditorProps) {
               flexGrow: 1,
 
               py: editable || !outlined ? 2 : 0,
-              pr: isMobile ? 0 : 2,
+              ...(contentPx !== undefined
+                ? { px: contentPx }
+                : { pr: isMobile ? 0 : 2 }),
               pb: isMobile ? 6 : undefined,
 
               mx: !outlined ? "auto" : undefined,
