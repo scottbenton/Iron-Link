@@ -32,7 +32,6 @@ import { WorldEntryHeaderIcon } from "./WorldEntryHeaderIcon";
 import { WorldEntryNameField } from "./WorldEntryNameField";
 import { WorldEntryNotes } from "./WorldEntryNotes";
 import { WorldEntryPlaces } from "./WorldEntryPlaces";
-import { useWorldEntryAudience } from "./worldEntryAudience";
 
 const READ_ONLY = {
   canEdit: false,
@@ -70,23 +69,20 @@ export function WorldEntryView({
     const found = store.entryState.entries[entryId];
     return found?.categoryId === category.id ? found : undefined;
   });
-  const forTable = useWorldEntryAudience() === "table";
-  const storedPermissions = useWorldEntriesStore(
+  const permissions = useWorldEntriesStore(
     (store) => store.entryState.permissions[entryId] ?? READ_ONLY,
   );
-  const permissions = forTable ? READ_ONLY : storedPermissions;
   const guided = useWorldIsGuided();
   const [notesError, setNotesError] = useState<string>();
   const onNotesError = useCallback(
     (cause: unknown) => setNotesError(getEditorErrorMessage(cause)),
     [],
   );
-  const subtitleField = useWorldCategoriesStore((store) => {
-    const found = category.subtitleFieldDefinitionId
+  const subtitleField = useWorldCategoriesStore((store) =>
+    category.subtitleFieldDefinitionId
       ? store.fieldDefinitions[category.subtitleFieldDefinitionId]
-      : undefined;
-    return forTable && found?.gmOnly ? undefined : found;
-  });
+      : undefined,
+  );
   const entries = useWorldEntriesStore((store) => store.entryState.entries);
   const snapshots = useWorldFieldEntrySnapshots();
   const placeCount = useWorldEntriesStore(
@@ -133,7 +129,7 @@ export function WorldEntryView({
       />
     );
 
-  const hasPlaces = category.supportsHierarchy && !forTable;
+  const hasPlaces = category.supportsHierarchy;
   const section =
     hasPlaces && navigation.view.type === "entry" && navigation.view.section
       ? "places"
