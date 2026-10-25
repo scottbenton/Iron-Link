@@ -30,9 +30,9 @@ export interface WorldEntryFieldsProps {
 
 // The entry's fields in their configured order, each with the visibility,
 // label and help text its rules give it for this entry and its ancestors.
-// They fill a grid of up to three columns, as wide as the page allows. A
-// field with several values, a Full width Text field, and Long text each take
-// a whole row.
+// They fill a grid of up to three columns, as wide as the page allows. Every
+// field takes one column, whatever its kind or number of values, except a Text
+// field set to Full width, which takes a whole row.
 // A field a rule hides keeps its value. Read-only, empty fields are left out.
 // Fields sit in a Details well. Guide-only fields are hidden from everyone
 // else, and in a guided world they get a dashed Guide only well of their own.
@@ -132,16 +132,10 @@ export function WorldEntryFields({
   );
 }
 
-// Whether a field takes a whole row of the grid rather than one column.
+// Whether a field takes a whole row of the grid rather than one column. Only
+// a Text field set to Full width does.
 export function isWorldEntryFieldFullRow(
   field: Pick<ResolvedWorldFieldDefinition, "type" | "configuration">,
 ): boolean {
-  switch (getWorldFieldKind(field)) {
-    case "longText":
-      return true;
-    case "text":
-      return !!field.configuration.fullWidth;
-    default:
-      return !!field.configuration.multiple;
-  }
+  return getWorldFieldKind(field) === "text" && !!field.configuration.fullWidth;
 }

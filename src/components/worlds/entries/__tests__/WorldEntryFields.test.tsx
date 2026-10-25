@@ -811,7 +811,7 @@ describe("WorldEntryFields", () => {
   });
 
   describe("layout", () => {
-    it("gives a whole row to several values, Full width Text and Long text", () => {
+    it("gives a whole row only to Full width Text", () => {
       const select = (multiple: boolean) =>
         field({
           type: WorldFieldType.Select,
@@ -829,15 +829,15 @@ describe("WorldEntryFields", () => {
         ),
       ).toBe(true);
       expect(isWorldEntryFieldFullRow(select(false))).toBe(false);
-      expect(isWorldEntryFieldFullRow(select(true))).toBe(true);
+      expect(isWorldEntryFieldFullRow(select(true))).toBe(false);
       expect(
         isWorldEntryFieldFullRow(
           linkedEntry(PEOPLE, { id: "home" }, { multiple: true }),
         ),
-      ).toBe(true);
+      ).toBe(false);
       expect(
         isWorldEntryFieldFullRow(field({ type: WorldFieldType.RichText })),
-      ).toBe(true);
+      ).toBe(false);
     });
 
     it("keeps Long text in the Guide only well", () => {
