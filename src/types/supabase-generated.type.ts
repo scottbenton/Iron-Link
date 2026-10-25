@@ -114,6 +114,7 @@ export type Database = {
           color_scheme: string | null
           condition_meter_values: Json
           created_at: string
+          edit_permissions: Database["public"]["Enums"]["character_edit_permissions"]
           game_id: string
           id: string
           impact_values: Json
@@ -134,6 +135,7 @@ export type Database = {
           color_scheme?: string | null
           condition_meter_values?: Json
           created_at?: string
+          edit_permissions?: Database["public"]["Enums"]["character_edit_permissions"]
           game_id: string
           id?: string
           impact_values?: Json
@@ -154,6 +156,7 @@ export type Database = {
           color_scheme?: string | null
           condition_meter_values?: Json
           created_at?: string
+          edit_permissions?: Database["public"]["Enums"]["character_edit_permissions"]
           game_id?: string
           id?: string
           impact_values?: Json
@@ -1112,6 +1115,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_edit_character: {
+        Args: { p_character_id: string; p_uid: string }
+        Returns: boolean
+      }
       create_world: {
         Args: { p_name: string; p_setting_key?: string }
         Returns: string
@@ -1210,6 +1217,10 @@ export type Database = {
       }
     }
     Enums: {
+      character_edit_permissions:
+        | "only_owner"
+        | "guides_and_owner"
+        | "all_players"
       character_initiative_status:
         | "has_initiative"
         | "no_initiative"
@@ -1371,6 +1382,11 @@ export const Constants = {
   },
   public: {
     Enums: {
+      character_edit_permissions: [
+        "only_owner",
+        "guides_and_owner",
+        "all_players",
+      ],
       character_initiative_status: [
         "has_initiative",
         "no_initiative",
