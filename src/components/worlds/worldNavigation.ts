@@ -5,7 +5,14 @@ import { pathConfig } from "pages/pathConfig";
 export type WorldView =
   | { type: "world" }
   | { type: "category"; categoryId: string }
-  | { type: "entry"; categoryId: string; entryId: string }
+  // An entry opens on its Details; one in a category with nesting also has
+  // a Places section listing the entries inside it.
+  | {
+      type: "entry";
+      categoryId: string;
+      entryId: string;
+      section?: "places";
+    }
   | { type: "settings" }
   | { type: "category-settings"; categoryId: string };
 
@@ -26,7 +33,9 @@ export function getWorldViewPath(worldId: string, view: WorldView): string {
     case "category":
       return pathConfig.worldCategory(worldId, view.categoryId);
     case "entry":
-      return pathConfig.worldEntry(worldId, view.categoryId, view.entryId);
+      return view.section === "places"
+        ? pathConfig.worldEntryPlaces(worldId, view.categoryId, view.entryId)
+        : pathConfig.worldEntry(worldId, view.categoryId, view.entryId);
     case "settings":
       return pathConfig.worldSettings(worldId);
     case "category-settings":

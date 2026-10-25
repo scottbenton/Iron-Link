@@ -1,4 +1,11 @@
-import { Button, Dialog, DialogActions, DialogContent } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+} from "@mui/material";
+import deepEqual from "fast-deep-equal";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -6,6 +13,7 @@ import { useSnackbar } from "providers/SnackbarProvider";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 import { RulesPackageSelector } from "components/datasworn/RulesPackageSelector";
+import { WorldOracleChangeWarning } from "components/worlds/WorldOracleChangeWarning";
 
 import { useGameStore } from "stores/game.store";
 
@@ -32,6 +40,7 @@ export function GameRulesetChooserDialog(props: GameRulesetChooserDialogProps) {
   const initialRulesets = useGameStore((store) => store.game?.rulesets);
   const initialExpansions = useGameStore((store) => store.game?.expansions);
   const initialPlayset = useGameStore((store) => store.game?.playset);
+  const linkedToWorld = useGameStore((store) => !!store.game?.worldId);
 
   const [rulesets, setRulesets] = useState<RulesetConfig>(
     initialRulesets ?? {},
@@ -54,6 +63,11 @@ export function GameRulesetChooserDialog(props: GameRulesetChooserDialogProps) {
   const updateRulesPackages = useGameStore(
     (store) => store.updateGameRulesPackages,
   );
+
+  const changed =
+    !deepEqual(rulesets, initialRulesets ?? {}) ||
+    !deepEqual(expansions, initialExpansions ?? {}) ||
+    !deepEqual(playset, initialPlayset ?? {});
 
   const handleSave = useCallback(() => {
     if (gameId) {
@@ -104,6 +118,12 @@ export function GameRulesetChooserDialog(props: GameRulesetChooserDialogProps) {
           activePlaysetConfig={playset}
           onPlaysetChange={setPlayset}
         />
+        {/* Release guard until #236 previews oracle changes. */}
+        {linkedToWorld && changed && (
+          <Box sx={{ mt: 2 }}>
+            <WorldOracleChangeWarning />
+          </Box>
+        )}
       </DialogContent>
       <DialogActions>
         <Button color="inherit" onClick={onClose}>

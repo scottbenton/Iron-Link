@@ -32,3 +32,60 @@ export function isValidWorldEntryParent(
   }
   return true;
 }
+
+type NamedParentLinkedEntry = ParentLinkedEntry & Pick<IWorldEntry, "name">;
+
+/**
+ * The entry's ancestors this client can see, outermost first. The walk stops
+ * at a parent that is hidden or missing, and at a repeat in existing bad data.
+ */
+export function getWorldEntryAncestors<T extends ParentLinkedEntry>(
+  entries: Readonly<Record<string, T>>,
+  entryId: string,
+): T[] {
+  const ancestors: T[] = [];
+  const visited = new Set<string>([entryId]);
+  let parentId = entries[entryId]?.parentEntryId ?? null;
+  while (parentId && !visited.has(parentId)) {
+    const parent = entries[parentId];
+    if (!parent) break;
+    ancestors.unshift(parent);
+    visited.add(parentId);
+    parentId = parent.parentEntryId;
+  }
+  return ancestors;
+}
+
+/**
+ * Whether an entry sits at its category's top level for this client: it has
+ * no parent, or its parent is hidden, so it would otherwise be unreachable.
+ */
+export function isTopLevelWorldEntry(
+  entries: Readonly<Record<string, ParentLinkedEntry>>,
+  entry: ParentLinkedEntry,
+): boolean {
+  return !entry.parentEntryId || !entries[entry.parentEntryId];
+}
+
+/** How many visible entries sit directly inside each entry. */
+export function countWorldEntryChildren(
+  entries: Readonly<Record<string, ParentLinkedEntry>>,
+): Record<string, number> {
+  const counts: Record<string, number> = {};
+  Object.values(entries).forEach((entry) => {
+    if (entry.parentEntryId && entries[entry.parentEntryId]) {
+      counts[entry.parentEntryId] = (counts[entry.parentEntryId] ?? 0) + 1;
+    }
+  });
+  return counts;
+}
+
+/** The names of an entry's visible ancestors, as a path. */
+export function getWorldEntryPath(
+  entries: Readonly<Record<string, NamedParentLinkedEntry>>,
+  entryId: string,
+): string {
+  return getWorldEntryAncestors(entries, entryId)
+    .map((ancestor) => ancestor.name)
+    .join(" / ");
+}

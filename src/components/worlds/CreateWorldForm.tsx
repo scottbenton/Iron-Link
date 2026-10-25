@@ -87,7 +87,6 @@ export function CreateWorldForm(props: CreateWorldFormProps) {
       setSaving(true);
       WorldsService.createWorld(
         trimmedName,
-        undefined,
         selectedOption.settingKey ?? undefined,
       )
         .then((worldId) => {

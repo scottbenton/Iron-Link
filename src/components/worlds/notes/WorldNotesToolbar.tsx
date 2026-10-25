@@ -12,51 +12,34 @@ import { UploadImageButton } from "pages/games/characterSheet/components/NotesSe
 
 import { useIsMobile } from "hooks/useIsMobile";
 
-import { useWorldEntriesStore } from "stores/worldEntries.store";
+const NOTES_IMAGE_TYPES = "image/png,image/jpeg,image/gif,image/webp";
 
-import { IWorldEntry } from "services/worldEntries.service";
-
-const ENTRY_IMAGE_TYPES = "image/png,image/jpeg,image/gif,image/webp";
-
-// The Notes tab's toolbar for an entry's Notes, built from the same pieces,
-// with images stored with the entry so they are removed with it. Readers see
-// no toolbar. On larger screens it pins to the top of the scroller while the
+// The Notes tab's toolbar for a world's or an entry's Notes, built from the
+// same pieces; `upload` stores an image where its owner keeps them and
+// resolves to its URL. Readers see no toolbar. On larger screens it pins to the top of the scroller while the
 // Notes are on screen; on a phone it rides above the keyboard, as in Notes,
 // but only while the Notes are being edited, since the page has more on it.
-export function WorldEntryNotesToolbar({
+export function WorldNotesToolbar({
   editor,
-  entry,
-  onError,
+  upload,
 }: {
   editor: Editor;
-  entry: Pick<IWorldEntry, "id" | "worldId">;
-  onError: (cause: unknown) => void;
+  upload: (file: File) => Promise<string>;
 }) {
   const isMobile = useIsMobile();
-  const uploadEntryImage = useWorldEntriesStore(
-    (store) => store.uploadEntryImage,
-  );
   if (!editor.isEditable) return null;
-
-  const upload = (file: File) =>
-    uploadEntryImage(entry.worldId, entry.id, file)
-      .then(({ url }) => url)
-      .catch((cause) => {
-        onError(cause);
-        throw cause;
-      });
 
   if (isMobile) {
     return (
-      <MobileEntryNotesToolbar editor={editor}>
+      <MobileNotesToolbar editor={editor}>
         <TextTypeMenu editor={editor} />
         <FormattingToolbarItems editor={editor} hideBorders />
         <UploadImageButton
           editor={editor}
           upload={upload}
-          accept={ENTRY_IMAGE_TYPES}
+          accept={NOTES_IMAGE_TYPES}
         />
-      </MobileEntryNotesToolbar>
+      </MobileNotesToolbar>
     );
   }
 
@@ -78,7 +61,7 @@ export function WorldEntryNotesToolbar({
         <UploadImageButton
           editor={editor}
           upload={upload}
-          accept={ENTRY_IMAGE_TYPES}
+          accept={NOTES_IMAGE_TYPES}
         />
       </ActionToolbarStrip>
     </Box>
@@ -86,7 +69,7 @@ export function WorldEntryNotesToolbar({
 }
 
 // Shown while focus is in the editor, the bar, or a menu the bar opened.
-function MobileEntryNotesToolbar({
+function MobileNotesToolbar({
   editor,
   children,
 }: {

@@ -86,6 +86,10 @@ function renderBrowser(
             path="/worlds/:worldId/categories/:categoryId/entries/:entryId"
             element={<WorldBrowserRouteFixture {...fixtureProps} />}
           />
+          <Route
+            path="/worlds/:worldId/categories/:categoryId/entries/:entryId/places"
+            element={<WorldBrowserRouteFixture {...fixtureProps} />}
+          />
         </Routes>
       </WorldEntriesOwnerFixture>
     </MemoryRouter>,
@@ -328,7 +332,7 @@ describe("WorldCategoryBrowser routes", () => {
             name: "Untitled",
             authorId: "reader",
             readPermissions: ReadPermissions.AllPlayers,
-            editPermissions: EditPermissions.GuidesAndAuthor,
+            editPermissions: EditPermissions.AllPlayers,
           } as IWorldEntry,
         },
         [],
@@ -339,6 +343,61 @@ describe("WorldCategoryBrowser routes", () => {
     expect(name).toHaveFocus();
     expect((name as HTMLInputElement).selectionStart).toBe(0);
     expect((name as HTMLInputElement).selectionEnd).toBe("Untitled".length);
+  });
+  it("browses into places, with each ancestor going back to its Places, and creates a place inside", async () => {
+    const user = userEvent.setup();
+    useWorldStore.setState({ worldPermission: WorldPermission.Player });
+    const listen = vi
+      .spyOn(WorldEntriesService, "listenToWorldEntries")
+      .mockReturnValue(vi.fn());
+    const create = vi
+      .spyOn(WorldEntriesService, "addWorldEntry")
+      .mockResolvedValue("fresh");
+    renderBrowser(`/worlds/${category.worldId}/categories/${category.id}`, {
+      permission: WorldPermission.Player,
+    });
+    const place = (id: string, name: string, parentEntryId: string | null) =>
+      ({ id, categoryId: category.id, name, parentEntryId }) as IWorldEntry;
+    act(() =>
+      listen.mock.calls[0][3](
+        {
+          region: place("region", "The Hinterlands", null),
+          town: place("town", "Kingsmark", "region"),
+          keep: place("keep", "Kingsmark Keep", "town"),
+        },
+        [],
+        true,
+      ),
+    );
+    await user.click(screen.getByRole("link", { name: /^The Hinterlands/ }));
+    await user.click(screen.getByRole("link", { name: /^Kingsmark/ }));
+    expect(screen.getByRole("tab", { name: "Places 1" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await user.click(screen.getByRole("link", { name: "Kingsmark Keep" }));
+    const breadcrumbs = screen.getByRole("navigation", { name: "Breadcrumbs" });
+    expect(breadcrumbs).toHaveTextContent(
+      "Worlds/Ironlands/Locations/The Hinterlands/Kingsmark/Kingsmark Keep",
+    );
+    await user.click(
+      within(breadcrumbs).getByRole("link", { name: "The Hinterlands" }),
+    );
+    expect(
+      screen.getByRole("region", { name: "Places in The Hinterlands" }),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Create a place here" }),
+    );
+    expect(create).toHaveBeenCalledWith(
+      "reader",
+      category.worldId,
+      category.id,
+      "Untitled",
+      ReadPermissions.AllPlayers,
+      EditPermissions.AllPlayers,
+      "region",
+    );
   });
   it("offers Create entry to anyone who can write to the world", () => {
     vi.spyOn(WorldEntriesService, "listenToWorldEntries").mockReturnValue(

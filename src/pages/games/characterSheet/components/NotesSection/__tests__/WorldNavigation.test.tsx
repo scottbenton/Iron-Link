@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -10,16 +10,34 @@ import { useNotesStore } from "stores/notes.store";
 
 import type { INoteFolder } from "services/noteFolders.service";
 
-import { WorldItem } from "../FolderView/WorldItem";
+import { GameWorldSection } from "../FolderView/GameWorldSection";
 import { NoteTabs } from "../NoteTabs/NoteTabs";
 import { GameWorldView } from "../WorldView/GameWorldView";
 
+const confirm = vi.hoisted(() => vi.fn());
 const context = vi.hoisted(() => ({
   worldId: "world-a",
   world: { id: "world-a", name: "Ironlands" },
+  worldPermission: "guide" as string | null,
+  worldDeleted: false,
   gamePermissions: "guide",
+  loading: false,
   categories: {
-    locations: { id: "locations", worldId: "world-a", name: "Locations" },
+    locations: {
+      id: "locations",
+      worldId: "world-a",
+      name: "Locations",
+      sortOrder: 1,
+    },
+    npcs: { id: "npcs", worldId: "world-a", name: "NPCs", sortOrder: 0 },
+  } as Record<string, unknown>,
+  entryState: {
+    loading: false,
+    entries: {
+      a: { id: "a", categoryId: "npcs" },
+      b: { id: "b", categoryId: "npcs" },
+      c: { id: "c", categoryId: "locations" },
+    },
   },
 }));
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
@@ -34,7 +52,11 @@ vi.mock("stores/auth.store", () => ({
 vi.mock("stores/world.store", () => ({
   useWorldStore: (select: (value: typeof context) => unknown) =>
     select(context),
-  useWorldPermission: () => "guide",
+  useWorldPermission: () => context.worldPermission,
+}));
+vi.mock("stores/worldEntries.store", () => ({
+  useWorldEntriesStore: (select: (value: typeof context) => unknown) =>
+    select(context),
 }));
 vi.mock("stores/worldCategories.store", () => ({
   useWorldCategoriesStore: (select: (value: typeof context) => unknown) =>
@@ -44,7 +66,7 @@ vi.mock("stores/game.store", () => ({
   GamePermission: { Guide: "guide" },
   useGameStore: (select: (value: typeof context) => unknown) => select(context),
 }));
-vi.mock("material-ui-confirm", () => ({ useConfirm: () => vi.fn() }));
+vi.mock("material-ui-confirm", () => ({ useConfirm: () => confirm }));
 vi.mock("pages/games/gamePageLayout/hooks/useGameId", () => ({
   useGameId: () => "game-a",
 }));
@@ -61,8 +83,13 @@ vi.mock("../FolderView", () => ({
 }));
 vi.mock("../NoteView", () => ({ NoteView: () => null }));
 vi.mock("components/worlds/WorldPanel", () => ({
-  WorldPanel: ({ navigation, rootBreadcrumb }: WorldPanelProps) => (
+  WorldPanel: ({
+    navigation,
+    rootBreadcrumb,
+    additionalSettings,
+  }: WorldPanelProps) => (
     <>
+      {additionalSettings}
       <a
         {...navigation.getLinkProps({
           type: "category",
@@ -102,20 +129,91 @@ beforeEach(() => {
   });
   context.worldId = "world-a";
   context.world.name = "Ironlands";
+  context.worldPermission = "guide";
+  context.loading = false;
   vi.spyOn(HTMLMediaElement.prototype, "load").mockImplementation(() => {});
 });
 
 describe("World Notes navigation", () => {
-  it("opens the pinned world in the active tab, with modifier and middle clicks creating background tabs", async () => {
+  it("lists the world's categories in order with their entry counts", () => {
+    render(
+      <MemoryRouter initialEntries={["/games/game-a/c/hero"]}>
+        <GameWorldSection />
+      </MemoryRouter>,
+    );
+    const section = screen.getByRole("region", { name: "Ironlands" });
+    const links = within(section).getAllByRole("link");
+    expect(links.map((link) => link.textContent)).toEqual([
+      "Ironlands",
+      "",
+      "NPCs2 entries",
+      "Locations1 entry",
+    ]);
+    expect(screen.getByRole("link", { name: /Locations/ })).toHaveAttribute(
+      "href",
+      "/games/game-a/c/hero?note-type=world&note-id=world-a&note-world-view=category&note-category-id=locations",
+    );
+  });
+
+  it("opens world settings from the cog in a new tab, and hides the cog from players", async () => {
+    const user = userEvent.setup();
+    useNotesStore.getState().openItemTab({ type: "folder", id: "root" });
+    const root = useNotesStore.getState().openTabId;
+    const { unmount } = render(
+      <MemoryRouter>
+        <GameWorldSection />
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole("link", { name: "World settings" }));
+    const state = useNotesStore.getState();
+    expect(state.noteTabOrder).toHaveLength(2);
+    expect(state.openTabId).not.toBe(root);
+    expect(state.noteTabItems[root!]).toEqual({
+      type: "folder",
+      itemId: "root",
+    });
+    expect(state.noteTabItems[state.openTabId!]).toEqual({
+      type: "world",
+      itemId: "world-a",
+      worldView: { type: "settings" },
+    });
+    unmount();
+
+    context.worldPermission = "player";
+    render(
+      <MemoryRouter>
+        <GameWorldSection />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.queryByRole("link", { name: "World settings" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /NPCs/ })).toBeInTheDocument();
+  });
+
+  it("shows progress while the categories load", () => {
+    context.loading = true;
+    render(
+      <MemoryRouter>
+        <GameWorldSection />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /NPCs/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens the world home in the active tab, with modifier and middle clicks creating background tabs", async () => {
     const user = userEvent.setup();
     useNotesStore.getState().openItemTab({ type: "folder", id: "root" });
     const original = useNotesStore.getState().openTabId;
     render(
       <MemoryRouter initialEntries={["/games/game-a/c/hero?dice=1"]}>
-        <WorldItem />
+        <GameWorldSection />
       </MemoryRouter>,
     );
-    const world = screen.getByRole("link", { name: /Ironlands/ });
+    const world = screen.getByRole("link", { name: "Ironlands" });
     await user.click(world);
     expect(useNotesStore.getState().openTabId).toBe(original);
     expect(useNotesStore.getState().noteTabItems[original!]).toEqual({
@@ -180,6 +278,23 @@ describe("World Notes navigation", () => {
       type: "folder",
       itemId: "root",
     });
+  });
+
+  // Release guard until #236 previews oracle changes.
+  it("warns that world fields may roll different oracles before unlinking", async () => {
+    const user = userEvent.setup();
+    confirm.mockResolvedValue({ confirmed: false });
+    render(
+      <MemoryRouter>
+        <GameWorldView worldId="world-a" worldView={{ type: "settings" }} />
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole("button", { name: "Unlink World" }));
+    const { description } = confirm.mock.calls[0][0];
+    render(description);
+    expect(
+      screen.getByText("Some world fields may roll different oracles."),
+    ).toBeInTheDocument();
   });
 
   it("rejects a deep destination for a world no longer linked to this game", () => {

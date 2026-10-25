@@ -45,12 +45,9 @@ export function useListenToGameWorld(): void {
   }, [worldId, loadedWorldId, worldDeleted, closeTabsMatching]);
 }
 
-// Whether the world tile belongs in the folder grid at all. Hoisted out of
-// WorldItem so FolderView can decide whether to reserve a grid slot -- a tile
-// that renders null would otherwise leave a gap as the first item.
-//
-// With no world linked the tile is only an invitation to link one, so players
-// who cannot link would just see an inert advertisement.
+// Whether the root folder shows the world at all: the linked world's section,
+// or, with no world linked, the tile inviting a Guide to link one. Players
+// who cannot link would otherwise see an inert advertisement.
 export function useShowWorldItem(): boolean {
   const worldId = useGameWorldId();
   const worldsEnabled = useAdvancedFeatureToggle("worlds");
