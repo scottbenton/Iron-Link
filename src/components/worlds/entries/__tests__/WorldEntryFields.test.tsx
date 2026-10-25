@@ -426,8 +426,8 @@ describe("WorldEntryFields", () => {
         .mockResolvedValue("created");
       defineFields(linkedEntry(PEOPLE, { id: "home", label: "Location" }));
       const entry = worldEntry({
-        readPermissions: ReadPermissions.GuidesAndAuthor,
-        editPermissions: EditPermissions.OnlyAuthor,
+        readPermissions: ReadPermissions.AllPlayers,
+        editPermissions: EditPermissions.AllPlayers,
       });
       loadEntries(entry, kell);
       storeValue("entry-1", "home", "kell");
@@ -453,13 +453,13 @@ describe("WorldEntryFields", () => {
         category.worldId,
         PEOPLE,
         "Brinehold",
-        ReadPermissions.GuidesAndAuthor,
-        EditPermissions.OnlyAuthor,
+        ReadPermissions.AllPlayers,
+        EditPermissions.AllPlayers,
         undefined,
       );
     });
 
-    it("creates Guide-only entries from a Guide-only field, and falls back to defaults a player cannot pick", async () => {
+    it("creates Guide-only entries from a Guide-only field, and shares what a player creates", async () => {
       const user = userEvent.setup();
       const add = vi
         .spyOn(WorldEntriesService, "addWorldEntry")
@@ -522,13 +522,13 @@ describe("WorldEntryFields", () => {
           PEOPLE,
           "Dock",
           ReadPermissions.AllPlayers,
-          EditPermissions.GuidesAndAuthor,
+          EditPermissions.AllPlayers,
           undefined,
         ),
       );
     });
 
-    it("shares an entry a Guide creates from a player's private entry so the player keeps the link", async () => {
+    it("shares an entry a Guide creates from an older private entry", async () => {
       const user = userEvent.setup();
       const add = vi
         .spyOn(WorldEntriesService, "addWorldEntry")
@@ -556,7 +556,7 @@ describe("WorldEntryFields", () => {
           PEOPLE,
           "Brinehold",
           ReadPermissions.AllPlayers,
-          EditPermissions.GuidesAndAuthor,
+          EditPermissions.AllPlayers,
           undefined,
         ),
       );
@@ -743,6 +743,57 @@ describe("WorldEntryFields", () => {
         screen.getByRole("textbox", { name: "Ice depth" }),
       ).toBeInTheDocument();
     });
+    it("tells editors which parent a field needs before it can roll", () => {
+      const weather = field({ id: "weather", label: "Weather", sortOrder: 3 });
+      const snowfall = field({
+        id: "snowfall",
+        label: "Snowfall",
+        sortOrder: 4,
+        configuration: createWorldFieldConfiguration({
+          rules: [
+            {
+              conditions: [
+                {
+                  source: "ancestor",
+                  ancestor: { fieldId: "kind", value: "Region" },
+                  fieldId: "weather",
+                  operator: "equals",
+                  value: "Frozen",
+                },
+              ],
+              binding: {
+                packageId: "test",
+                oracleId: "oracle_rollable:test/snowfall",
+                resolvedOracleId: "oracle_rollable:test/snowfall",
+              },
+            },
+          ],
+        }),
+      });
+      defineFields(kind, weather, snowfall);
+      loadEntries(
+        worldEntry({ parentEntryId: "region" }),
+        worldEntry({ id: "region", name: "The North" }),
+      );
+      storeValue("region", "kind", "Region");
+      const hint =
+        "To roll Snowfall, move this entry under a Region whose Weather is Frozen.";
+      const { unmount } = renderFields({
+        entry: worldEntry({ parentEntryId: "region" }),
+      });
+      expect(screen.getByText(hint)).toBeInTheDocument();
+
+      storeValue("region", "weather", "Frozen");
+      expect(screen.queryByText(hint)).not.toBeInTheDocument();
+
+      storeValue("region", "weather", "Mild");
+      unmount();
+      renderFields({
+        entry: worldEntry({ parentEntryId: "region" }),
+        canEdit: false,
+      });
+      expect(screen.queryByText(hint)).not.toBeInTheDocument();
+    });
   });
 
   describe("Guide-only fields", () => {
@@ -815,7 +866,7 @@ describe("WorldEntryFields", () => {
   });
 
   describe("layout", () => {
-    it("gives a whole row to several values, Full width Text and Long text", () => {
+    it("gives a whole row only to Full width Text", () => {
       const select = (multiple: boolean) =>
         field({
           type: WorldFieldType.Select,
@@ -833,15 +884,15 @@ describe("WorldEntryFields", () => {
         ),
       ).toBe(true);
       expect(isWorldEntryFieldFullRow(select(false))).toBe(false);
-      expect(isWorldEntryFieldFullRow(select(true))).toBe(true);
+      expect(isWorldEntryFieldFullRow(select(true))).toBe(false);
       expect(
         isWorldEntryFieldFullRow(
           linkedEntry(PEOPLE, { id: "home" }, { multiple: true }),
         ),
-      ).toBe(true);
+      ).toBe(false);
       expect(
         isWorldEntryFieldFullRow(field({ type: WorldFieldType.RichText })),
-      ).toBe(true);
+      ).toBe(false);
     });
 
     it("keeps Long text in the Guide only well", () => {

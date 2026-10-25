@@ -18,6 +18,7 @@ import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 import { CreateWorldForm } from "components/worlds/CreateWorldForm";
+import { WorldOracleChangeWarning } from "components/worlds/WorldOracleChangeWarning";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 
@@ -147,6 +148,10 @@ export function LinkWorldDialog(props: LinkWorldDialogProps) {
             : t("worlds.link.link-world-title", "Link a World")}
       </DialogTitleWithCloseButton>
       <DialogContent>
+        {/* Release guard until #236 previews oracle changes. */}
+        <Box sx={{ mb: 2 }}>
+          <WorldOracleChangeWarning />
+        </Box>
         {showCreate ? (
           <CreateWorldForm
             creationGame={game ?? undefined}

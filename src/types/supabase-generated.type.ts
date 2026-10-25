@@ -967,9 +967,9 @@ export type Database = {
           configuration_customized: boolean
           created_at: string
           created_by: string
-          description: string | null
           id: string
           name: string
+          notes_content: string | null
           setting_key: string | null
           updated_at: string
         }
@@ -977,9 +977,9 @@ export type Database = {
           configuration_customized?: boolean
           created_at?: string
           created_by: string
-          description?: string | null
           id?: string
           name: string
+          notes_content?: string | null
           setting_key?: string | null
           updated_at?: string
         }
@@ -987,9 +987,9 @@ export type Database = {
           configuration_customized?: boolean
           created_at?: string
           created_by?: string
-          description?: string | null
           id?: string
           name?: string
+          notes_content?: string | null
           setting_key?: string | null
           updated_at?: string
         }
@@ -1009,7 +1009,7 @@ export type Database = {
     }
     Functions: {
       create_world: {
-        Args: { p_name: string; p_description?: string; p_setting_key?: string }
+        Args: { p_name: string; p_setting_key?: string }
         Returns: string
       }
       get_world_category_counts: {
@@ -1047,6 +1047,10 @@ export type Database = {
       seed_world_template: {
         Args: { p_world_id: string; p_template: Json }
         Returns: boolean
+      }
+      update_world_notes: {
+        Args: { p_world_id: string; p_notes_content: string }
+        Returns: undefined
       }
       unlink_game_from_world: {
         Args: { p_game_id: string }
@@ -1119,7 +1123,11 @@ export type Database = {
         | "extreme"
         | "epic"
       progress_track_type: "vow" | "journey" | "combat"
-      second_screen_options: "character" | "track" | "note_image"
+      second_screen_options:
+        | "character"
+        | "track"
+        | "note_image"
+        | "world_entry"
       track_type: "progress_track" | "scene_challenge" | "clock"
     }
     CompositeTypes: {
@@ -1282,7 +1290,7 @@ export const Constants = {
         "epic",
       ],
       progress_track_type: ["vow", "journey", "combat"],
-      second_screen_options: ["character", "track", "note_image"],
+      second_screen_options: ["character", "track", "note_image", "world_entry"],
       track_type: ["progress_track", "scene_challenge", "clock"],
     },
   },

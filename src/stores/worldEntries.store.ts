@@ -610,8 +610,9 @@ export function getEntryPermissions(
   return {
     canEdit,
     canDelete: isAuthor || isGuide,
-    // Permissions are columns of the entry, so changing them is an update the
-    // database allows only under the current edit permissions.
-    canChangePermissions: canEdit && (isAuthor || isGuide),
+    // Only Guides choose who sees an entry. Permissions are columns of the
+    // entry, so changing them is an update the database allows only under
+    // the current edit permissions.
+    canChangePermissions: canEdit && isGuide,
   };
 }

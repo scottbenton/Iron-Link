@@ -17,10 +17,17 @@ interface ISecondScreenNoteImageDisplay {
   label: string;
 }
 
+interface ISecondScreenWorldEntryDisplay {
+  type: "world_entry";
+  worldId: string;
+  entryId: string;
+}
+
 export type ISecondScreenDisplay =
   | ISecondScreenCharacterDisplay
   | ISecondScreenTrackDisplay
   | ISecondScreenNoteImageDisplay
+  | ISecondScreenWorldEntryDisplay
   | null;
 
 export class SecondScreenService {
@@ -68,6 +75,11 @@ export class SecondScreenService {
         type: "note_image",
         options: { url: settings.url, label: settings.label },
       });
+    } else if (settings.type === "world_entry") {
+      return SecondScreenRepository.updateSecondScreenSettings(gameId, {
+        type: "world_entry",
+        options: { world_id: settings.worldId, entry_id: settings.entryId },
+      });
     }
   }
 
@@ -101,6 +113,13 @@ export class SecondScreenService {
         type: "note_image",
         url: options.url,
         label: options.label,
+      };
+    } else if (dto.type === "world_entry") {
+      const options = dto.options as { world_id: string; entry_id: string };
+      return {
+        type: "world_entry",
+        worldId: options.world_id,
+        entryId: options.entry_id,
       };
     } else {
       return null;

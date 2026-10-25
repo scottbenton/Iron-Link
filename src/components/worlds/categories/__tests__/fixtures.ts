@@ -41,8 +41,11 @@ export function translate(
   fallback: string,
   options?: Record<string, unknown>,
 ) {
-  return fallback.replace(/{{(\w+)}}/g, (_, key: string) =>
-    String(options?.[key] ?? ""),
+  // Mirrors i18next's English plural fallback.
+  const one = options?.count === 1 ? options.defaultValue_one : undefined;
+  return (typeof one === "string" ? one : fallback).replace(
+    /{{(\w+)}}/g,
+    (_, key: string) => String(options?.[key] ?? ""),
   );
 }
 
