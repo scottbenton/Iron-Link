@@ -362,5 +362,26 @@ select public.mutate_world_configuration(pg_temp.w('hidden'),jsonb_build_object(
 reset role;
 select ok('For Update' = any(pg_temp.world_locks('hidden')),'configuration changes lock the world exclusively');
 
+-- Visibility: shared entries are edited by every player, but only Guides
+-- choose who can see an entry.
+set local role authenticated;
+select pg_temp.as_user(3);
+select is(pg_temp.outcome($$update public.world_entries set name='Shared, noted' where id=pg_temp.e(1)$$),'ok',
+  'a player edits a shared entry someone else wrote');
+select is(split_part(pg_temp.outcome($$update public.world_entries
+    set read_permissions='only_guides',edit_permissions='only_guides' where id=pg_temp.e(1)$$),' ',1),
+  '42501','a player cannot hide a shared entry');
+select is(split_part(pg_temp.outcome($$update public.world_entries
+    set edit_permissions='all_players' where id=pg_temp.e(3)$$),' ',1),
+  '42501','an author who is a player cannot change who edits their entry');
+select pg_temp.as_user(2);
+select is(pg_temp.outcome($$update public.world_entries
+    set read_permissions='only_guides',edit_permissions='only_guides' where id=pg_temp.e(1)$$),'ok',
+  'a guide makes a shared entry Guide prep');
+select is(pg_temp.outcome($$update public.world_entries
+    set read_permissions='all_players',edit_permissions='all_players' where id=pg_temp.e(1)$$),'ok',
+  'a guide shares it again');
+reset role;
+
 select * from finish();
 rollback;

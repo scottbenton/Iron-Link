@@ -41,7 +41,7 @@ select lives_ok($$insert into public.world_entry_field_values(entry_id,field_def
  'public Type values are valid before customization');
 select lives_ok($$insert into public.world_entry_field_values(entry_id,field_definition_id,world_id,value,gm_only) values
  (pg_temp.faction_entry('forge'),pg_temp.faction_field('forge','rumors'),pg_temp.faction_world('forge'),'"A rumor"',false),
- (pg_temp.faction_entry('isles'),pg_temp.faction_field('isles','cursedAspects'),pg_temp.faction_world('isles'),'"An aspect"',false)$$,
+ (pg_temp.faction_entry('isles'),pg_temp.faction_field('isles','chronicles'),pg_temp.faction_world('isles'),'"A chronicle"',false)$$,
  'GM faction details are valid before customization');
 select is((select count(*) from public.world_entry_field_values where world_id in (select id from faction_test_worlds) and gm_only),2::bigint,
  'GM faction value privacy is derived from trusted defaults despite client flags');
