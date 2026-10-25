@@ -5,7 +5,7 @@ import { useWorldStore } from "stores/world.store";
 
 import { WorldNotesEditor } from "./WorldNotesEditor";
 
-// The world's own Notes, below the category cards on the world home.
+// The world's Overview (its own Notes document), below the category cards on the world home.
 // Everyone who can read the world reads them; owners, editors and Guides
 // edit them.
 export function WorldHomeNotes({
@@ -45,6 +45,8 @@ export function WorldHomeNotes({
   return (
     <WorldNotesEditor
       id={worldId}
+      heading={t("worlds.overview", "Overview")}
+      loadingLabel={t("worlds.overview-loading", "Loading overview")}
       worldId={worldId}
       roomPrefix="world-notes"
       canEdit={canEdit}
@@ -52,8 +54,8 @@ export function WorldHomeNotes({
       save={save}
       uploadImage={uploadImage}
       loadErrorMessage={t(
-        "worlds.notes-load-error",
-        "Could not load the world's notes. Please reopen the world to try again.",
+        "worlds.overview-load-error",
+        "Could not load the world's overview. Please reopen the world to try again.",
       )}
       onError={onError}
     />

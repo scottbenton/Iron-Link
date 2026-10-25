@@ -48,6 +48,8 @@ export function WorldEntryNotes({
   return (
     <WorldNotesEditor
       id={entryId}
+      heading={t("worlds.entries.notes", "Notes")}
+      loadingLabel={t("worlds.entries.notes-loading", "Loading notes")}
       worldId={worldId}
       roomPrefix={`world-entry-notes-${worldId}`}
       canEdit={canEdit}

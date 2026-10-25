@@ -1,7 +1,6 @@
 import { Alert, Box, Skeleton, Typography } from "@mui/material";
 import { Editor as TTEditor } from "@tiptap/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { RtcRichTextEditor } from "components/RichTextEditor";
 
@@ -10,6 +9,9 @@ import { WorldNotesToolbar } from "./WorldNotesToolbar";
 export interface WorldNotesEditorProps {
   // The document's id; also names the heading.
   id: string;
+  // The section's heading and its loading label.
+  heading: string;
+  loadingLabel: string;
   worldId: string;
   // Separates live editing rooms: world Notes and entry Notes never share one.
   roomPrefix: string;
@@ -27,6 +29,8 @@ export interface WorldNotesEditorProps {
 export function WorldNotesEditor(props: WorldNotesEditorProps) {
   const {
     id,
+    heading,
+    loadingLabel,
     worldId,
     roomPrefix,
     canEdit,
@@ -36,7 +40,6 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
     loadErrorMessage,
     onError,
   } = props;
-  const { t } = useTranslation();
   const [content, setContent] = useState<Uint8Array>();
   const [loadError, setLoadError] = useState(false);
 
@@ -108,7 +111,7 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
           mb: canEdit ? 0 : 1,
         })}
       >
-        {t("worlds.entries.notes", "Notes")}
+        {heading}
       </Typography>
       {loadError ? (
         <Alert severity="error">{loadErrorMessage}</Alert>
@@ -133,7 +136,7 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
         <Skeleton
           variant="rounded"
           height={canEdit ? 160 : 48}
-          aria-label={t("worlds.entries.notes-loading", "Loading notes")}
+          aria-label={loadingLabel}
         />
       )}
     </Box>
