@@ -1,6 +1,5 @@
--- Full width Text fields: only Text fields may set the option, and the shared
--- templates set it on fields whose oracles have long results. Every fixture is
--- rolled back.
+-- Full width Text fields: only Text fields may set the option, and no shared
+-- template field sets it. Every fixture is rolled back.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public,extensions;
@@ -26,14 +25,15 @@ select throws_ok($$select public.world_configuration_validate_field(
 select throws_ok($$select public.world_configuration_validate_field(pg_temp.cfg('{"fullWidth":true}'),'richText')$$,
   'Only text fields may set fullWidth', 'Long text fields cannot set full width');
 
-select is(pg_temp.template_field('world:classic/ironlands','npcs','goal')->'configuration'->'fullWidth',
-  'true'::jsonb,'an Ironlands NPC Goal takes the full row');
-select is(pg_temp.template_field('world:starforged/forge','factions','rumors')->'configuration'->'fullWidth',
-  'true'::jsonb,'a long oracle result takes the full row');
-select ok(not (pg_temp.template_field('world:classic/ironlands','npcs','role')->'configuration' ? 'fullWidth'),
-  'a short oracle result shares its row');
-select ok(not (pg_temp.template_field('blank','npcs','pronouns')->'configuration' ? 'fullWidth'),
-  'unbound Text fields share their row');
+select ok(not (pg_temp.template_field('world:classic/ironlands','npcs','goal')->'configuration' ? 'fullWidth'),
+  'an Ironlands NPC Goal shares its row');
+select ok(not (pg_temp.template_field('world:starforged/forge','factions','rumors')->'configuration' ? 'fullWidth'),
+  'a long oracle result shares its row');
+select is((select count(*) from public.world_templates t,
+    jsonb_array_elements(t.configuration->'categories') c,
+    jsonb_array_elements(c->'fields') d
+  where d->'configuration' ? 'fullWidth'),0::bigint,
+  'no template field takes the full row');
 select is((select count(*) from public.world_templates t,
     jsonb_array_elements(t.configuration->'categories') c,
     jsonb_array_elements(c->'fields') d
