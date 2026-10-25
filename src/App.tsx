@@ -75,6 +75,10 @@ export function App() {
                   path="/worlds/:worldId/categories/:categoryId/entries/:entryId"
                   Component={WorldPage}
                 />
+                <Route
+                  path="/worlds/:worldId/categories/:categoryId/entries/:entryId/places"
+                  Component={WorldPage}
+                />
                 <Route path="/worlds/:worldId/settings" Component={WorldPage} />
                 <Route
                   path="/worlds/:worldId/settings/categories/:categoryId"
