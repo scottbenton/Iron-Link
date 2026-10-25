@@ -377,6 +377,19 @@ export function WorldCategoryManager({
   } else {
     title = t("worlds.settings.title", "World settings");
   }
+  // On the standalone page an entry's actions sit beside its name, where a
+  // category's or the world's sit beside their title; a Notes tab keeps them
+  // in its toolbar strip.
+  let entryHeaderActions: ReactNode;
+  if (view.type === "entry" && layout === "page" && actions) {
+    entryHeaderActions = (
+      <>
+        {actions.start}
+        {actions.end}
+      </>
+    );
+    actions = undefined;
+  }
 
   let content: ReactNode = null;
   if (configuring) {
@@ -410,6 +423,7 @@ export function WorldCategoryManager({
           category={selected}
           entryId={view.entryId}
           navigation={navigation}
+          headerActions={entryHeaderActions}
         />
       ) : (
         <Stack spacing={4} sx={{ flexGrow: 1 }}>
