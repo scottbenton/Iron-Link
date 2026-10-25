@@ -758,8 +758,7 @@
               "suggestions": [
                 "Sector",
                 "Planet",
-                "Planetside Settlement",
-                "Non-Planetary Settlement",
+                "Settlement",
                 "Star",
                 "Derelict",
                 "Vault"
@@ -3107,23 +3106,7 @@
                       "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
                       "operator": "equals",
                       "source": "entry",
-                      "value": "Planetside Settlement"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "binding": {
-                    "oracleId": "oracle_rollable:starforged/settlement/location",
-                    "packageId": "starforged",
-                    "resolvedOracleId": "oracle_rollable:starforged/settlement/location"
-                  },
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Non-Planetary Settlement"
+                      "value": "Settlement"
                     }
                   ],
                   "visible": true
@@ -3171,18 +3154,7 @@
                       "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
                       "operator": "equals",
                       "source": "entry",
-                      "value": "Planetside Settlement"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Non-Planetary Settlement"
+                      "value": "Settlement"
                     }
                   ],
                   "visible": true
@@ -3214,18 +3186,7 @@
                       "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
                       "operator": "equals",
                       "source": "entry",
-                      "value": "Planetside Settlement"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Non-Planetary Settlement"
+                      "value": "Settlement"
                     }
                   ],
                   "visible": true
@@ -3257,18 +3218,7 @@
                       "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
                       "operator": "equals",
                       "source": "entry",
-                      "value": "Planetside Settlement"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Non-Planetary Settlement"
+                      "value": "Settlement"
                     }
                   ],
                   "visible": true
@@ -3300,18 +3250,7 @@
                       "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
                       "operator": "equals",
                       "source": "entry",
-                      "value": "Planetside Settlement"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Non-Planetary Settlement"
+                      "value": "Settlement"
                     }
                   ],
                   "visible": true
@@ -3343,18 +3282,7 @@
                       "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
                       "operator": "equals",
                       "source": "entry",
-                      "value": "Planetside Settlement"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Non-Planetary Settlement"
+                      "value": "Settlement"
                     }
                   ],
                   "visible": true
@@ -3387,7 +3315,7 @@
                       "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
                       "operator": "equals",
                       "source": "entry",
-                      "value": "Planetside Settlement"
+                      "value": "Settlement"
                     },
                     {
                       "ancestor": {
@@ -3413,7 +3341,7 @@
                       "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
                       "operator": "equals",
                       "source": "entry",
-                      "value": "Planetside Settlement"
+                      "value": "Settlement"
                     },
                     {
                       "ancestor": {
@@ -3439,85 +3367,7 @@
                       "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
                       "operator": "equals",
                       "source": "entry",
-                      "value": "Planetside Settlement"
-                    },
-                    {
-                      "ancestor": {
-                        "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                        "value": "Sector"
-                      },
-                      "fieldId": "1b67a1b9-4b25-5905-b9f4-63f54495851f",
-                      "operator": "equals",
-                      "source": "ancestor",
-                      "value": "Expanse"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "binding": {
-                    "oracleId": "oracle_rollable:starforged/settlement/population/terminus",
-                    "packageId": "starforged",
-                    "resolvedOracleId": "oracle_rollable:starforged/settlement/population/terminus"
-                  },
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Non-Planetary Settlement"
-                    },
-                    {
-                      "ancestor": {
-                        "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                        "value": "Sector"
-                      },
-                      "fieldId": "1b67a1b9-4b25-5905-b9f4-63f54495851f",
-                      "operator": "equals",
-                      "source": "ancestor",
-                      "value": "Terminus"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "binding": {
-                    "oracleId": "oracle_rollable:starforged/settlement/population/outlands",
-                    "packageId": "starforged",
-                    "resolvedOracleId": "oracle_rollable:starforged/settlement/population/outlands"
-                  },
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Non-Planetary Settlement"
-                    },
-                    {
-                      "ancestor": {
-                        "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                        "value": "Sector"
-                      },
-                      "fieldId": "1b67a1b9-4b25-5905-b9f4-63f54495851f",
-                      "operator": "equals",
-                      "source": "ancestor",
-                      "value": "Outlands"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "binding": {
-                    "oracleId": "oracle_rollable:starforged/settlement/population/expanse",
-                    "packageId": "starforged",
-                    "resolvedOracleId": "oracle_rollable:starforged/settlement/population/expanse"
-                  },
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Non-Planetary Settlement"
+                      "value": "Settlement"
                     },
                     {
                       "ancestor": {
@@ -3538,18 +3388,7 @@
                       "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
                       "operator": "equals",
                       "source": "entry",
-                      "value": "Planetside Settlement"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Non-Planetary Settlement"
+                      "value": "Settlement"
                     }
                   ],
                   "visible": true

@@ -101,7 +101,7 @@ Supports: none. Subtitle: Tags.
 Supports: hierarchy, map, bonds. Subtitle: Location Type.
 
 - **Location Type** (`locationType`): Option list, single, allows other values
-  - Options: "Sector", "Planet", "Planetside Settlement", "Non-Planetary Settlement", "Star", "Derelict", "Vault"
+  - Options: "Sector", "Planet", "Settlement", "Star", "Derelict", "Vault"
 - **Region** (`region`): Option list, single, allows other values; hidden unless a rule shows it
   - Options: "Terminus", "Outlands", "Expanse", "Void"
   - when Location Type = "Sector" → show
@@ -201,33 +201,23 @@ Supports: hierarchy, map, bonds. Subtitle: Location Type.
   - when Location Type = "Planet" and Planet Class = "Vital World" and nearest ancestor with Location Type = "Sector": Region = "Expanse" → show, oracle `oracle_rollable:starforged/planet/vital/settlements/expanse`
   - when Location Type = "Planet" → show
 - **Location** (`settlementLocation`): Text; Guide-only; hidden unless a rule shows it
-  - when Location Type = "Planetside Settlement" → show, oracle `oracle_rollable:starforged/settlement/location`
-  - when Location Type = "Non-Planetary Settlement" → show, oracle `oracle_rollable:starforged/settlement/location`
+  - when Location Type = "Settlement" → show, oracle `oracle_rollable:starforged/settlement/location`
   - when Location Type = "Vault" → show, oracle `oracle_rollable:starforged/precursor_vault/location`
 - **First Look** (`settlementFirstLook`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/settlement/first_look`
-  - when Location Type = "Planetside Settlement" → show
-  - when Location Type = "Non-Planetary Settlement" → show
+  - when Location Type = "Settlement" → show
 - **Initial Contact** (`settlementInitialContact`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/settlement/initial_contact`
-  - when Location Type = "Planetside Settlement" → show
-  - when Location Type = "Non-Planetary Settlement" → show
+  - when Location Type = "Settlement" → show
 - **Authority** (`settlementAuthority`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/settlement/authority`
-  - when Location Type = "Planetside Settlement" → show
-  - when Location Type = "Non-Planetary Settlement" → show
+  - when Location Type = "Settlement" → show
 - **Projects** (`settlementProjects`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/settlement/projects`
-  - when Location Type = "Planetside Settlement" → show
-  - when Location Type = "Non-Planetary Settlement" → show
+  - when Location Type = "Settlement" → show
 - **Trouble** (`settlementTrouble`): Text; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/settlement/trouble`
-  - when Location Type = "Planetside Settlement" → show
-  - when Location Type = "Non-Planetary Settlement" → show
+  - when Location Type = "Settlement" → show
 - **Population** (`settlementPopulation`): Text; Guide-only; hidden unless a rule shows it
-  - when Location Type = "Planetside Settlement" and nearest ancestor with Location Type = "Sector": Region = "Terminus" → show, oracle `oracle_rollable:starforged/settlement/population/terminus`
-  - when Location Type = "Planetside Settlement" and nearest ancestor with Location Type = "Sector": Region = "Outlands" → show, oracle `oracle_rollable:starforged/settlement/population/outlands`
-  - when Location Type = "Planetside Settlement" and nearest ancestor with Location Type = "Sector": Region = "Expanse" → show, oracle `oracle_rollable:starforged/settlement/population/expanse`
-  - when Location Type = "Non-Planetary Settlement" and nearest ancestor with Location Type = "Sector": Region = "Terminus" → show, oracle `oracle_rollable:starforged/settlement/population/terminus`
-  - when Location Type = "Non-Planetary Settlement" and nearest ancestor with Location Type = "Sector": Region = "Outlands" → show, oracle `oracle_rollable:starforged/settlement/population/outlands`
-  - when Location Type = "Non-Planetary Settlement" and nearest ancestor with Location Type = "Sector": Region = "Expanse" → show, oracle `oracle_rollable:starforged/settlement/population/expanse`
-  - when Location Type = "Planetside Settlement" → show
-  - when Location Type = "Non-Planetary Settlement" → show
+  - when Location Type = "Settlement" and nearest ancestor with Location Type = "Sector": Region = "Terminus" → show, oracle `oracle_rollable:starforged/settlement/population/terminus`
+  - when Location Type = "Settlement" and nearest ancestor with Location Type = "Sector": Region = "Outlands" → show, oracle `oracle_rollable:starforged/settlement/population/outlands`
+  - when Location Type = "Settlement" and nearest ancestor with Location Type = "Sector": Region = "Expanse" → show, oracle `oracle_rollable:starforged/settlement/population/expanse`
+  - when Location Type = "Settlement" → show
 - **Location** (`derelictLocation`): Option list, single, allows other values; Guide-only; hidden unless a rule shows it; oracle `oracle_rollable:starforged/derelict/location`
   - Options: "Planetside", "Orbital", "Deep Space"
   - when Location Type = "Derelict" → show

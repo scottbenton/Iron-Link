@@ -513,7 +513,7 @@ select is(public.get_world_field_options(pg_temp.w('main'),pg_temp.f('main','loc
 select is(public.get_world_field_options(pg_temp.w('main'),'f9100000-0000-4000-8000-000000000007'),
   '{}'::text[],'players receive no options for Guide-only fields');
 select is(public.get_world_field_options(pg_temp.w('forge'),pg_temp.f('forge','locations','locationType')),
-  array['Sector','Planet','Planetside Settlement','Non-Planetary Settlement','Star','Derelict','Vault'],
+  array['Sector','Planet','Settlement','Star','Derelict','Vault'],
   'inherited defaults offer their suggestions without customization');
 select is((select configuration_customized from public.worlds where id=pg_temp.w('forge')),false,
   'reading options never forks inherited defaults');
