@@ -412,7 +412,7 @@ export function WorldCategoryManager({
           navigation={navigation}
         />
       ) : (
-        <Stack spacing={4}>
+        <Stack spacing={4} sx={{ flexGrow: 1 }}>
           <WorldCategoryBrowser
             categories={categories}
             missingCategory={showsEntries && !selected}
@@ -455,9 +455,12 @@ export function WorldCategoryManager({
           minWidth: 0,
           containerType: "inline-size",
           containerName: "world-configuration",
+          flex: "1 0 auto",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        <Stack spacing={2}>
+        <Stack spacing={2} sx={{ flexGrow: 1 }}>
           {(loading || (configuring && !customized && oracles.loading)) && (
             <LinearProgress />
           )}

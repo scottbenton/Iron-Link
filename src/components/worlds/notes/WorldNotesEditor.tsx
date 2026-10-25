@@ -88,7 +88,13 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
   if (!canEdit && content && content.length === 0) return null;
 
   return (
-    <Box component="section" aria-labelledby={`${id}-notes`}>
+    // Takes the rest of the page, so the whole space below the heading is
+    // the text to click into, as in a note in the Notes tab.
+    <Box
+      component="section"
+      aria-labelledby={`${id}-notes`}
+      sx={{ flex: "1 0 auto", display: "flex", flexDirection: "column" }}
+    >
       <Typography
         id={`${id}-notes`}
         component="h2"
@@ -108,13 +114,9 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
         <Alert severity="error">{loadErrorMessage}</Alert>
       ) : content ? (
         // Laid out like a note in the Notes tab: the toolbar strip above
-        // plain text, with room to click into while it is empty.
+        // plain text.
         <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            "& .ProseMirror": { minHeight: canEdit ? 120 : undefined },
-          }}
+          sx={{ flex: "1 0 auto", display: "flex", flexDirection: "column" }}
         >
           <RtcRichTextEditor
             id={id}
@@ -123,6 +125,8 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
             initialValue={content}
             onSave={canEdit ? handleSave : undefined}
             Toolbar={Toolbar}
+            fill
+            minHeight={120}
           />
         </Box>
       ) : (

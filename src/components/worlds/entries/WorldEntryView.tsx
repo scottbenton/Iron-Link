@@ -146,7 +146,7 @@ export function WorldEntryView({
     entries,
   );
   return (
-    <Stack component="article" spacing={2.5}>
+    <Stack component="article" spacing={2.5} sx={{ flexGrow: 1 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <WorldEntryHeaderIcon
           entry={entry}
