@@ -68,7 +68,7 @@ describe("WorldHomeNotes", () => {
       .spyOn(WorldsService, "updateWorldNotesContentBeacon")
       .mockResolvedValue();
     render(<WorldHomeNotes worldId="world-a" canEdit onError={vi.fn()} />);
-    const notes = await screen.findByRole("region", { name: "Notes" });
+    const notes = await screen.findByRole("region", { name: "Overview" });
     expect(within(notes).getByTestId("rich-text")).toHaveTextContent(
       "world-notes-world-a: 0 bytes",
     );
@@ -93,7 +93,7 @@ describe("WorldHomeNotes", () => {
     render(
       <WorldHomeNotes worldId="world-a" canEdit={false} onError={vi.fn()} />,
     );
-    const notes = await screen.findByRole("region", { name: "Notes" });
+    const notes = await screen.findByRole("region", { name: "Overview" });
     expect(within(notes).getByTestId("rich-text")).toHaveTextContent("3 bytes");
     expect(
       within(notes).queryByRole("button", { name: "Save document" }),
@@ -111,7 +111,7 @@ describe("WorldHomeNotes", () => {
     );
     await waitFor(() =>
       expect(
-        screen.queryByRole("region", { name: "Notes" }),
+        screen.queryByRole("region", { name: "Overview" }),
       ).not.toBeInTheDocument(),
     );
   });
@@ -122,7 +122,7 @@ describe("WorldHomeNotes", () => {
     );
     render(<WorldHomeNotes worldId="world-a" canEdit onError={vi.fn()} />);
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Could not load the world's notes. Please reopen the world to try again.",
+      "Could not load the world's overview. Please reopen the world to try again.",
     );
   });
 });

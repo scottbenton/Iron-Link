@@ -33,6 +33,7 @@ that are easy to miss. When you learn a new one, add a line here.
   are not changed by it.
 - Long text fields are no longer offered for new fields; existing ones keep
   working.
-- World Notes are Yjs bytes in `worlds.notes_content`, left out of world
-  list queries. Guides edit them but may not update `worlds`, so every save
-  goes through the `update_world_notes` RPC.
+- World Notes (headed "Overview" on the world home) are Yjs bytes in
+  `worlds.notes_content`, left out of world list queries. Guides edit them but
+  may not update `worlds`, so every save goes through the `update_world_notes`
+  RPC.
