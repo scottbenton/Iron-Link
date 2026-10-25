@@ -110,9 +110,7 @@ export function WorldEntryFields({
         name: entry.name,
       })}
     >
-      {canEdit && !forTable && (
-        <WorldEntryParentHints hints={parentRequirements} />
-      )}
+      {canEdit && <WorldEntryParentHints hints={parentRequirements} />}
       {sharedFields.length > 0 && (
         <WorldEntryWell
           variant="details"
