@@ -23,6 +23,15 @@ that are easy to miss. When you learn a new one, add a line here.
   `supabase/world-defaults.json` and `.md` with
   `npm run generate:world-defaults`.
 
+## Games
+
+- Clients cannot add other people to a game. A client adds only its own first
+  row to a game it just created (`games.created_by`). Everyone else joins
+  through the service-role `add-player-to-game-invite` edge function.
+- Only a Guide of the game changes roles or `game_type`. Triggers enforce this
+  and stand aside for roles that bypass RLS, so a SECURITY DEFINER function
+  that writes `game_players` or `games` must check authorisation itself.
+
 ## Worlds
 
 - A world is guided (`world_is_guided`, `useWorldIsGuided`) when a linked
