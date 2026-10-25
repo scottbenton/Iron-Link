@@ -16,7 +16,6 @@ import { WorldEntryField } from "./WorldEntryField";
 import { WorldEntryParentHints } from "./WorldEntryParentHints";
 import { WorldEntryWell } from "./WorldEntryWell";
 import { useResolvedWorldEntryFields } from "./useResolvedWorldEntryFields";
-import { useWorldEntryAudience } from "./worldEntryAudience";
 import { hasWorldEntryFieldValue } from "./worldEntryFieldValue";
 
 export interface WorldEntryFieldsProps {
@@ -40,7 +39,6 @@ export interface WorldEntryFieldsProps {
 // else, and in a guided world they get a dashed Guide only well of their own.
 // Editors also see a note above them for any field that cannot roll until the
 // entry sits under the right parent.
-// Drawn for the table, Guide-only fields are left out for everyone.
 export function WorldEntryFields({
   entry,
   canEdit,
@@ -55,11 +53,9 @@ export function WorldEntryFields({
     isGuide,
     parentRequirements,
   } = useResolvedWorldEntryFields(entry);
-  const forTable = useWorldEntryAudience() === "table";
   const fields = resolved.filter(
     (field) =>
-      (canEdit || hasWorldEntryFieldValue(field, values[field.id], entries)) &&
-      !(forTable && field.gmOnly),
+      canEdit || hasWorldEntryFieldValue(field, values[field.id], entries),
   );
   const marked = guided && isGuide;
   const sharedFields = marked
@@ -114,9 +110,7 @@ export function WorldEntryFields({
         name: entry.name,
       })}
     >
-      {canEdit && !forTable && (
-        <WorldEntryParentHints hints={parentRequirements} />
-      )}
+      {canEdit && <WorldEntryParentHints hints={parentRequirements} />}
       {sharedFields.length > 0 && (
         <WorldEntryWell
           variant="details"
