@@ -58,6 +58,22 @@
           {
             "binding": null,
             "configuration": {
+              "helpText": "",
+              "rules": [],
+              "suggestions": [],
+              "version": 1,
+              "visible": true
+            },
+            "gm_only": false,
+            "id": "cde2b3ce-d29c-5f3b-a5e8-96d9c85e515a",
+            "key": "pronouns",
+            "label": "Pronouns",
+            "sort_order": 0,
+            "type": "text"
+          },
+          {
+            "binding": null,
+            "configuration": {
               "allowOther": false,
               "helpText": "",
               "multiple": false,
@@ -71,24 +87,8 @@
             "id": "6e3859b1-311d-5d41-9a47-a5b3c567b7d0",
             "key": "location",
             "label": "Location",
-            "sort_order": 0,
-            "type": "select"
-          },
-          {
-            "binding": null,
-            "configuration": {
-              "helpText": "",
-              "rules": [],
-              "suggestions": [],
-              "version": 1,
-              "visible": true
-            },
-            "gm_only": false,
-            "id": "cde2b3ce-d29c-5f3b-a5e8-96d9c85e515a",
-            "key": "pronouns",
-            "label": "Pronouns",
             "sort_order": 1,
-            "type": "text"
+            "type": "select"
           },
           {
             "binding": null,
@@ -420,7 +420,6 @@
               "resolvedOracleId": "oracle_rollable:classic/character/goal"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -564,6 +563,22 @@
           {
             "binding": null,
             "configuration": {
+              "helpText": "",
+              "rules": [],
+              "suggestions": [],
+              "version": 1,
+              "visible": true
+            },
+            "gm_only": false,
+            "id": "cde2b3ce-d29c-5f3b-a5e8-96d9c85e515a",
+            "key": "pronouns",
+            "label": "Pronouns",
+            "sort_order": 0,
+            "type": "text"
+          },
+          {
+            "binding": null,
+            "configuration": {
               "allowOther": false,
               "helpText": "",
               "multiple": false,
@@ -577,24 +592,8 @@
             "id": "6e3859b1-311d-5d41-9a47-a5b3c567b7d0",
             "key": "location",
             "label": "Location",
-            "sort_order": 0,
-            "type": "select"
-          },
-          {
-            "binding": null,
-            "configuration": {
-              "helpText": "",
-              "rules": [],
-              "suggestions": [],
-              "version": 1,
-              "visible": true
-            },
-            "gm_only": false,
-            "id": "cde2b3ce-d29c-5f3b-a5e8-96d9c85e515a",
-            "key": "pronouns",
-            "label": "Pronouns",
             "sort_order": 1,
-            "type": "text"
+            "type": "select"
           },
           {
             "binding": null,
@@ -661,7 +660,6 @@
               "resolvedOracleId": "oracle_rollable:elegy/character/goal"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -818,7 +816,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/launching_your_campaign/starting_sector/trouble"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -889,7 +886,6 @@
           {
             "binding": null,
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -934,7 +930,6 @@
           {
             "binding": null,
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -3184,7 +3179,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/settlement/first_look"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -3984,7 +3978,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/scale"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4113,7 +4106,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/interior/first_look"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4146,7 +4138,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/interior/feature"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4179,7 +4170,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/interior/peril"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4212,7 +4202,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/interior/opportunity"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4245,7 +4234,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/sanctum/purpose"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4278,7 +4266,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/sanctum/feature"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4311,7 +4298,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/sanctum/peril"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4344,7 +4330,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/sanctum/opportunity"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -4389,25 +4374,6 @@
           {
             "binding": null,
             "configuration": {
-              "allowOther": false,
-              "helpText": "",
-              "multiple": false,
-              "rules": [],
-              "suggestions": [],
-              "targetCategoryId": "762df5e2-d5a3-5700-8575-77a56c5f3db8",
-              "version": 1,
-              "visible": true
-            },
-            "gm_only": false,
-            "id": "6e3859b1-311d-5d41-9a47-a5b3c567b7d0",
-            "key": "location",
-            "label": "Location",
-            "sort_order": 0,
-            "type": "select"
-          },
-          {
-            "binding": null,
-            "configuration": {
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -4418,7 +4384,7 @@
             "id": "cde2b3ce-d29c-5f3b-a5e8-96d9c85e515a",
             "key": "pronouns",
             "label": "Pronouns",
-            "sort_order": 1,
+            "sort_order": 0,
             "type": "text"
           },
           {
@@ -4438,7 +4404,7 @@
             "id": "b37acc5b-4784-50a9-94ae-573f3a3ea144",
             "key": "callsign",
             "label": "Callsign",
-            "sort_order": 2,
+            "sort_order": 1,
             "type": "text"
           },
           {
@@ -4462,6 +4428,25 @@
             "id": "5a98b394-70a0-5da6-aeb7-e04d4d63f3ce",
             "key": "difficulty",
             "label": "Difficulty",
+            "sort_order": 2,
+            "type": "select"
+          },
+          {
+            "binding": null,
+            "configuration": {
+              "allowOther": false,
+              "helpText": "",
+              "multiple": false,
+              "rules": [],
+              "suggestions": [],
+              "targetCategoryId": "762df5e2-d5a3-5700-8575-77a56c5f3db8",
+              "version": 1,
+              "visible": true
+            },
+            "gm_only": false,
+            "id": "6e3859b1-311d-5d41-9a47-a5b3c567b7d0",
+            "key": "location",
+            "label": "Location",
             "sort_order": 3,
             "type": "select"
           },
@@ -4532,7 +4517,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/character/goal"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -4769,7 +4753,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/faction/projects"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -4785,32 +4768,11 @@
           },
           {
             "binding": {
-              "oracleId": "oracle_rollable:starforged/faction/relationships",
-              "packageId": "starforged",
-              "resolvedOracleId": "oracle_rollable:starforged/faction/relationships"
-            },
-            "configuration": {
-              "helpText": "Choose another faction before rolling, and record which faction the relationship describes.",
-              "rules": [],
-              "suggestions": [],
-              "version": 1,
-              "visible": true
-            },
-            "gm_only": true,
-            "id": "ad7e11a7-e36e-59c2-ba92-c3488296ab6f",
-            "key": "relationships",
-            "label": "Relationships",
-            "sort_order": 5,
-            "type": "text"
-          },
-          {
-            "binding": {
               "oracleId": "oracle_rollable:starforged/faction/quirks",
               "packageId": "starforged",
               "resolvedOracleId": "oracle_rollable:starforged/faction/quirks"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -4821,7 +4783,7 @@
             "id": "ce6ca2fe-392b-563f-9c24-a30d91bbc9e2",
             "key": "quirks",
             "label": "Quirks",
-            "sort_order": 6,
+            "sort_order": 5,
             "type": "text"
           },
           {
@@ -4831,7 +4793,6 @@
               "resolvedOracleId": "oracle_rollable:starforged/faction/rumors"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -4842,7 +4803,7 @@
             "id": "40ca52c8-315a-518b-a86e-5886299d24e2",
             "key": "rumors",
             "label": "Rumors",
-            "sort_order": 7,
+            "sort_order": 6,
             "type": "text"
           }
         ],
@@ -5087,7 +5048,6 @@
               "resolvedOracleId": "oracle_rollable:sundered_isles/island/offshore_observations"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5181,7 +5141,6 @@
           {
             "binding": null,
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5247,7 +5206,6 @@
           {
             "binding": null,
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5333,7 +5291,6 @@
               "resolvedOracleId": "oracle_rollable:sundered_isles/cave/threshold"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5548,6 +5505,22 @@
           {
             "binding": null,
             "configuration": {
+              "helpText": "",
+              "rules": [],
+              "suggestions": [],
+              "version": 1,
+              "visible": true
+            },
+            "gm_only": false,
+            "id": "cde2b3ce-d29c-5f3b-a5e8-96d9c85e515a",
+            "key": "pronouns",
+            "label": "Pronouns",
+            "sort_order": 0,
+            "type": "text"
+          },
+          {
+            "binding": null,
+            "configuration": {
               "allowOther": false,
               "helpText": "",
               "multiple": false,
@@ -5561,24 +5534,8 @@
             "id": "6e3859b1-311d-5d41-9a47-a5b3c567b7d0",
             "key": "location",
             "label": "Location",
-            "sort_order": 0,
-            "type": "select"
-          },
-          {
-            "binding": null,
-            "configuration": {
-              "helpText": "",
-              "rules": [],
-              "suggestions": [],
-              "version": 1,
-              "visible": true
-            },
-            "gm_only": false,
-            "id": "cde2b3ce-d29c-5f3b-a5e8-96d9c85e515a",
-            "key": "pronouns",
-            "label": "Pronouns",
             "sort_order": 1,
-            "type": "text"
+            "type": "select"
           },
           {
             "binding": {
@@ -5647,7 +5604,6 @@
               "resolvedOracleId": "oracle_rollable:sundered_isles/character/goals"
             },
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [],
               "suggestions": [],
@@ -5719,7 +5675,7 @@
             },
             "configuration": {
               "allowOther": true,
-              "helpText": "On a cursed result, choose The Cursed or keep the faction's type and set Cursed to Yes.",
+              "helpText": "On a cursed result, choose The Cursed.",
               "multiple": false,
               "rules": [],
               "suggestions": [
@@ -5759,29 +5715,8 @@
             "type": "text"
           },
           {
-            "binding": {
-              "oracleId": "oracle_rollable:sundered_isles/faction/relationship",
-              "packageId": "sundered_isles",
-              "resolvedOracleId": "oracle_rollable:sundered_isles/faction/relationship"
-            },
-            "configuration": {
-              "helpText": "Choose another faction or individual before rolling, and record who the relationship describes.",
-              "rules": [],
-              "suggestions": [],
-              "version": 1,
-              "visible": true
-            },
-            "gm_only": true,
-            "id": "ad7e11a7-e36e-59c2-ba92-c3488296ab6f",
-            "key": "relationships",
-            "label": "Relationships",
-            "sort_order": 2,
-            "type": "text"
-          },
-          {
             "binding": null,
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5809,13 +5744,12 @@
             "id": "b499396b-244b-5985-8f62-402e05a51153",
             "key": "chronicles",
             "label": "Chronicles",
-            "sort_order": 3,
+            "sort_order": 2,
             "type": "text"
           },
           {
             "binding": null,
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5860,13 +5794,12 @@
             "id": "14a80f05-507b-53bd-9805-170e9a26ee3a",
             "key": "leadership",
             "label": "Leadership",
-            "sort_order": 4,
+            "sort_order": 3,
             "type": "text"
           },
           {
             "binding": null,
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5894,13 +5827,12 @@
             "id": "f95cec22-6dde-53b4-879d-c3344a11d39f",
             "key": "touchstones",
             "label": "Touchstones",
-            "sort_order": 5,
+            "sort_order": 4,
             "type": "text"
           },
           {
             "binding": null,
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5944,13 +5876,12 @@
             "id": "0c1f657d-dbad-590a-8444-f0ecca9b503a",
             "key": "role",
             "label": "Role",
-            "sort_order": 6,
+            "sort_order": 5,
             "type": "text"
           },
           {
             "binding": null,
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -5978,13 +5909,12 @@
             "id": "d34086f0-d100-5bf4-91f7-eba9c38d66bc",
             "key": "methods",
             "label": "Methods",
-            "sort_order": 7,
+            "sort_order": 6,
             "type": "text"
           },
           {
             "binding": null,
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -6012,13 +5942,12 @@
             "id": "d7f893f3-d27e-54f4-8335-09ccbd7b215d",
             "key": "secrets",
             "label": "Secrets",
-            "sort_order": 8,
+            "sort_order": 7,
             "type": "text"
           },
           {
             "binding": null,
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -6046,13 +5975,12 @@
             "id": "660b0347-017f-5726-a669-3c1114c54eb0",
             "key": "tactics",
             "label": "Tactics",
-            "sort_order": 9,
+            "sort_order": 8,
             "type": "text"
           },
           {
             "binding": null,
             "configuration": {
-              "fullWidth": true,
               "helpText": "",
               "rules": [
                 {
@@ -6080,78 +6008,7 @@
             "id": "91142a7f-5916-504e-a5a0-add8855428aa",
             "key": "vulnerabilities",
             "label": "Vulnerabilities",
-            "sort_order": 10,
-            "type": "text"
-          },
-          {
-            "binding": null,
-            "configuration": {
-              "allowOther": true,
-              "helpText": "Set Yes to add cursed aspects to any faction type. The Cursed always shows cursed aspects.",
-              "multiple": false,
-              "rules": [],
-              "suggestions": [
-                "Yes",
-                "No"
-              ],
-              "version": 1,
-              "visible": true
-            },
-            "gm_only": true,
-            "id": "cc49241d-7b65-5e60-b156-9728145f4222",
-            "key": "cursed",
-            "label": "Cursed",
-            "sort_order": 11,
-            "type": "select"
-          },
-          {
-            "binding": null,
-            "configuration": {
-              "fullWidth": true,
-              "helpText": "",
-              "rules": [
-                {
-                  "binding": {
-                    "oracleId": "oracle_rollable:sundered_isles/faction/cursed/aspects",
-                    "packageId": "sundered_isles",
-                    "resolvedOracleId": "oracle_rollable:sundered_isles/faction/cursed/aspects"
-                  },
-                  "conditions": [
-                    {
-                      "fieldId": "ced93d31-6adc-5b62-ba0e-b4d4146c9cb7",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "The Cursed"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "binding": {
-                    "oracleId": "oracle_rollable:sundered_isles/faction/cursed/aspects",
-                    "packageId": "sundered_isles",
-                    "resolvedOracleId": "oracle_rollable:sundered_isles/faction/cursed/aspects"
-                  },
-                  "conditions": [
-                    {
-                      "fieldId": "cc49241d-7b65-5e60-b156-9728145f4222",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Yes"
-                    }
-                  ],
-                  "visible": true
-                }
-              ],
-              "suggestions": [],
-              "version": 1,
-              "visible": false
-            },
-            "gm_only": true,
-            "id": "88e30f04-00fc-5769-ae2f-e2f520510b71",
-            "key": "cursedAspects",
-            "label": "Cursed Aspects",
-            "sort_order": 12,
+            "sort_order": 9,
             "type": "text"
           }
         ],

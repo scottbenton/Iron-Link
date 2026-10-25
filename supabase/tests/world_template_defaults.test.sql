@@ -192,7 +192,7 @@ select is((select rule->'binding'->>'oracleId' from catalog_rules r where key='i
  and exists(select 1 from jsonb_array_elements(rule->'conditions') c where c->>'value'='Reaches')),
  'oracle_rollable:sundered_isles/settlement/size/reaches','merged Isles Size preserves regional settlements');
 
--- Type-specific faction details and the private Cursed modifier are authored rules.
+-- Type-specific faction details are authored rules.
 select ok(exists(select 1 from catalog_rules r where r.key=expected.key and r.category_key='factions'
  and r.field->>'key'=expected.field_key and r.field->'configuration'->>'visible'='false'
  and r.rule->>'visible'='true' and coalesce(r.rule->>'label',r.field->>'label')=expected.label
@@ -228,25 +228,33 @@ select is((select jsonb_agg(field->'key' order by (field->>'sort_order')::int) f
  where key=w.key and category_key='factions' and field->>'gm_only'='false'),
  '["factionType","influence"]'::jsonb,key||' exposes only faction Type and Influence publicly')
  from catalog_worlds w where key in ('forge','isles');
-select ok((select field->>'type'='select' and field->'configuration'->>'allowOther'='true'
- and field->>'gm_only'='true' and field->'binding'='null'::jsonb
- from catalog_fields where key='isles' and category_key='factions' and field->>'key'='cursed'),
- 'Isles Cursed modifier is a private open option list without a binding');
-select ok((select field->>'gm_only'='true' and field->'configuration'->>'visible'='false'
- and field->'binding'='null'::jsonb and jsonb_array_length(field->'configuration'->'rules')=2
- from catalog_fields where key='isles' and category_key='factions' and field->>'key'='cursedAspects'),
- 'Cursed Aspects is private and hidden until either independent predicate matches');
-select ok(exists(select 1 from catalog_rules r where key='isles' and field->>'key'='cursedAspects'
- and rule->>'visible'='true' and rule->'binding'->>'oracleId'='oracle_rollable:sundered_isles/faction/cursed/aspects'
- and rule->'conditions'=jsonb_build_array(jsonb_build_object('source','entry','fieldId',
- extensions.uuid_generate_v5(r.world_id,'field:factions:'||expected.source_key)::text,
- 'operator','equals','value',expected.value))),expected.description)
- from (values ('factionType','The Cursed','The Cursed always receives Cursed Aspects'),
- ('cursed','Yes','ordinary and custom factions receive Cursed Aspects only with Cursed Yes')) expected(source_key,value,description);
-select ok((select jsonb_array_length(field->'configuration'->'rules')=1 from catalog_fields
- where key='isles' and category_key='factions' and field->>'key'=expected.field_key),
- 'Organization '||field_key||' ignores the Cursed modifier and remains hidden for The Cursed')
- from (values ('methods'),('secrets')) expected(field_key);
+-- Rolled once per other faction or per curse, so not kept on a faction entry.
+select is((select count(*) from catalog_fields where category_key='factions'
+ and field->>'key' in ('relationships','cursed','cursedAspects')),0::bigint,
+ 'factions have no Relationships, Cursed or Cursed Aspects fields');
+select is((select field->'configuration'->>'helpText' from catalog_fields
+ where key='isles' and category_key='factions' and field->>'key'='factionType'),
+ 'On a cursed result, choose The Cursed.','Isles Faction Type help names only The Cursed');
+select is((select jsonb_agg(field->'key' order by (field->>'sort_order')::int) from catalog_fields
+ where key=w.key and category_key='factions'),expected.fields,key||' faction fields keep their order')
+ from catalog_worlds w join (values
+  ('forge','["factionType","influence","focus","leadership","projects","quirks","rumors"]'::jsonb),
+  ('isles','["factionType","influence","chronicles","leadership","touchstones","role","methods","secrets","tactics","vulnerabilities"]'::jsonb)
+ ) expected(world_key,fields) on expected.world_key=w.key;
+
+-- NPCs lead with Pronouns.
+select is((select jsonb_agg(field->'key' order by (field->>'sort_order')::int) from catalog_fields
+ where key=w.key and category_key='npcs'),expected.fields,key||' NPC fields are in order')
+ from catalog_worlds w join (values
+  ('blank','["pronouns","location","tags"]'::jsonb),
+  ('forge','["pronouns","callsign","difficulty","location","firstLook","role","disposition","goal","revealedAspect"]'::jsonb),
+  ('isles','["pronouns","location","firstLook","role","disposition","goal"]'::jsonb),
+  ('elegy','["pronouns","location","tags","traits","occupation","goal","disposition"]'::jsonb)
+ ) expected(world_key,fields) on expected.world_key=w.key;
+select is((select count(*) from catalog_categories c where (select array_agg((f->>'sort_order')::int order by o)
+ from jsonb_array_elements(c.category->'fields') with ordinality x(f,o))
+ <> (select array_agg(i) from generate_series(0,jsonb_array_length(c.category->'fields')-1) i)),0::bigint,
+ 'template fields are stored in sort order without gaps');
 
 -- Materialize every setting through the client RPC, validating real references.
 insert into auth.users(id) values ('f1000000-0000-4000-8000-000000000002');
