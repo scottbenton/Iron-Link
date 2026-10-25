@@ -109,7 +109,7 @@ select is((select count(*) from catalog_bindings where key='classic' and binding
 select is(field->'configuration'->'suggestions',expected::jsonb,key||' location type keeps its suggested options')
  from catalog_fields join (values
  ('classic','["Settlement","Tower","Ruin","Camp"]'),
- ('forge','["Sector","Planet","Planetside Settlement","Non-Planetary Settlement","Star","Derelict","Vault"]'),
+ ('forge','["Sector","Planet","Settlement","Star","Derelict","Vault"]'),
  ('elegy','[]')) s(key,expected) using(key) where category_key='locations' and field->>'key'='locationType';
 select ok(field->>'type'='select' and field->'configuration'->>'multiple'='false'
  and field->'configuration'->>'allowOther'='true',key||' location type is an open single select') from catalog_fields where field->>'key'='locationType';
@@ -154,9 +154,7 @@ select ok(exists(select 1 from catalog_rules r where r.key=expected.key and r.fi
  and c->>'operator'='equals' and c->>'value'=expected.location_type)),
  expected.key||' routes '||expected.field_key||' for '||expected.location_type)
 from (values
- ('forge','settlementLocation','Planetside Settlement','starforged/settlement/location'),
- ('forge','settlementLocation','Non-Planetary Settlement','starforged/settlement/location'),
- ('forge','settlementLocation','Orbital Settlement','starforged/settlement/location'),
+ ('forge','settlementLocation','Settlement','starforged/settlement/location'),
  ('forge','settlementLocation','Vault','starforged/precursor_vault/location'),
  ('forge','derelictOuterFirstLook','Vault','starforged/precursor_vault/outer_first_look'),
  ('isles','settlementLocation','Shipwreck','sundered_isles/shipwreck/location'),
@@ -182,7 +180,15 @@ select ok(exists(select 1 from catalog_rules r where r.key=expected.key and r.fi
  expected.key||' '||expected.field_key||' has an editable fallback without a region')
  from (values ('forge','planetSettlements'),('forge','settlementPopulation'),('isles','islandVitality'),('isles','islandSize')) expected(key,field_key);
 select is((select count(*) from catalog_rules where key='forge' and field->>'key'='settlementPopulation' and rule->'binding'<>'null'::jsonb),
- 9::bigint,'all three settlement aliases have all three regional population bindings');
+ 3::bigint,'settlements have all three regional population bindings');
+select is((select count(*) from catalog_rules r,lateral jsonb_array_elements(r.rule->'conditions') c
+ where c->>'value' in ('Orbital Settlement','Planetside Settlement','Non-Planetary Settlement')),0::bigint,
+ 'Forge has one Settlement type and no rule names the old ones');
+select is(field->'configuration'->>'helpText',expected,key||' Region says descendants use the nearest one')
+ from catalog_fields join (values
+  ('forge','Terminus, Outlands, Expanse or Void. Descendants use their nearest Sector''s Region.'),
+  ('isles','Myriads (Central Seas), Margins (Outer Seas), Reaches (Remote Seas). Descendants use their nearest Area''s Region.')
+ ) s(key,expected) using(key) where field->>'key'='region';
 select is((select rule->'binding'->>'oracleId' from catalog_rules r where key='forge' and field->>'key'='planetSettlements'
  and exists(select 1 from jsonb_array_elements(rule->'conditions') c where c->>'value'='Desert World')
  and exists(select 1 from jsonb_array_elements(rule->'conditions') c where c->>'value'='Outlands')),
