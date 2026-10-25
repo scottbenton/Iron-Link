@@ -7,7 +7,10 @@ import {
   useWorldEntryFieldValues,
 } from "stores/worldEntries.store";
 
-import { resolveFieldDefinition } from "lib/worldFieldRules";
+import {
+  getWorldFieldParentRequirements,
+  resolveFieldDefinition,
+} from "lib/worldFieldRules";
 import { getWorldFieldSnapshot } from "lib/worldFieldSnapshot";
 
 import { isGuideEquivalent } from "repositories/shared.types";
@@ -17,7 +20,8 @@ import { IWorldEntry } from "services/worldEntries.service";
 // An entry's fields in their configured order, each resolved by its rules
 // for this entry and its ancestors, with the values they hold. Guide-only
 // fields are left out for everyone but Guides, and so are fields a rule
-// hides.
+// hides. parentRequirements lists the shown fields that cannot roll until the
+// entry sits under a parent with a certain value.
 export function useResolvedWorldEntryFields(
   entry: Pick<IWorldEntry, "id" | "parentEntryId" | "categoryId">,
 ) {
@@ -42,5 +46,9 @@ export function useResolvedWorldEntryFields(
   const fields = definitions
     .map((definition) => resolveFieldDefinition(definition, snapshot))
     .filter((field) => field.visible);
-  return { fields, values, entries, isGuide };
+  const parentRequirements = fields.flatMap((field) => {
+    const requirements = getWorldFieldParentRequirements(field, snapshot);
+    return requirements.length ? [{ field, requirements }] : [];
+  });
+  return { fields, values, entries, isGuide, parentRequirements };
 }

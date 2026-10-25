@@ -739,6 +739,57 @@ describe("WorldEntryFields", () => {
         screen.getByRole("textbox", { name: "Ice depth" }),
       ).toBeInTheDocument();
     });
+    it("tells editors which parent a field needs before it can roll", () => {
+      const weather = field({ id: "weather", label: "Weather", sortOrder: 3 });
+      const snowfall = field({
+        id: "snowfall",
+        label: "Snowfall",
+        sortOrder: 4,
+        configuration: createWorldFieldConfiguration({
+          rules: [
+            {
+              conditions: [
+                {
+                  source: "ancestor",
+                  ancestor: { fieldId: "kind", value: "Region" },
+                  fieldId: "weather",
+                  operator: "equals",
+                  value: "Frozen",
+                },
+              ],
+              binding: {
+                packageId: "test",
+                oracleId: "oracle_rollable:test/snowfall",
+                resolvedOracleId: "oracle_rollable:test/snowfall",
+              },
+            },
+          ],
+        }),
+      });
+      defineFields(kind, weather, snowfall);
+      loadEntries(
+        worldEntry({ parentEntryId: "region" }),
+        worldEntry({ id: "region", name: "The North" }),
+      );
+      storeValue("region", "kind", "Region");
+      const hint =
+        "To roll Snowfall, move this entry under a Region whose Weather is Frozen.";
+      const { unmount } = renderFields({
+        entry: worldEntry({ parentEntryId: "region" }),
+      });
+      expect(screen.getByText(hint)).toBeInTheDocument();
+
+      storeValue("region", "weather", "Frozen");
+      expect(screen.queryByText(hint)).not.toBeInTheDocument();
+
+      storeValue("region", "weather", "Mild");
+      unmount();
+      renderFields({
+        entry: worldEntry({ parentEntryId: "region" }),
+        canEdit: false,
+      });
+      expect(screen.queryByText(hint)).not.toBeInTheDocument();
+    });
   });
 
   describe("Guide-only fields", () => {

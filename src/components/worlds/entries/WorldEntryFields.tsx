@@ -13,6 +13,7 @@ import { IWorldEntry } from "services/worldEntries.service";
 
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldEntryField } from "./WorldEntryField";
+import { WorldEntryParentHints } from "./WorldEntryParentHints";
 import { WorldEntryWell } from "./WorldEntryWell";
 import { useResolvedWorldEntryFields } from "./useResolvedWorldEntryFields";
 import { hasWorldEntryFieldValue } from "./worldEntryFieldValue";
@@ -36,6 +37,8 @@ export interface WorldEntryFieldsProps {
 // A field a rule hides keeps its value. Read-only, empty fields are left out.
 // Fields sit in a Details well. Guide-only fields are hidden from everyone
 // else, and in a guided world they get a dashed Guide only well of their own.
+// Editors also see a note above them for any field that cannot roll until the
+// entry sits under the right parent.
 export function WorldEntryFields({
   entry,
   canEdit,
@@ -48,6 +51,7 @@ export function WorldEntryFields({
     values,
     entries,
     isGuide,
+    parentRequirements,
   } = useResolvedWorldEntryFields(entry);
   const fields = resolved.filter(
     (field) =>
@@ -106,6 +110,7 @@ export function WorldEntryFields({
         name: entry.name,
       })}
     >
+      {canEdit && <WorldEntryParentHints hints={parentRequirements} />}
       {sharedFields.length > 0 && (
         <WorldEntryWell
           variant="details"

@@ -31,5 +31,9 @@ that are easy to miss. When you learn a new one, add a line here.
 - Non-customized worlds read `world_templates` live, so a template migration
   reaches them at once; customized worlds hold copied field definitions and
   are not changed by it.
+- A field whose oracle comes from an ancestor's value (Population from the
+  nearest Sector's Region) shows editors a note naming the parent it needs
+  when none fits (`getWorldFieldParentRequirements`); the wording is built
+  from the rules, so templates need no copy for it.
 - Long text fields are no longer offered for new fields; existing ones keep
   working.

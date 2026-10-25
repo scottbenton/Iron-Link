@@ -778,7 +778,7 @@
             "binding": null,
             "configuration": {
               "allowOther": true,
-              "helpText": "",
+              "helpText": "Terminus, Outlands, Expanse or Void. Descendants use their nearest Sector's Region.",
               "multiple": false,
               "rules": [
                 {
@@ -3130,22 +3130,6 @@
                 },
                 {
                   "binding": {
-                    "oracleId": "oracle_rollable:starforged/settlement/location",
-                    "packageId": "starforged",
-                    "resolvedOracleId": "oracle_rollable:starforged/settlement/location"
-                  },
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Orbital Settlement"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "binding": {
                     "oracleId": "oracle_rollable:starforged/precursor_vault/location",
                     "packageId": "starforged",
                     "resolvedOracleId": "oracle_rollable:starforged/precursor_vault/location"
@@ -3202,17 +3186,6 @@
                     }
                   ],
                   "visible": true
-                },
-                {
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Orbital Settlement"
-                    }
-                  ],
-                  "visible": true
                 }
               ],
               "suggestions": [],
@@ -3253,17 +3226,6 @@
                       "operator": "equals",
                       "source": "entry",
                       "value": "Non-Planetary Settlement"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Orbital Settlement"
                     }
                   ],
                   "visible": true
@@ -3310,17 +3272,6 @@
                     }
                   ],
                   "visible": true
-                },
-                {
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Orbital Settlement"
-                    }
-                  ],
-                  "visible": true
                 }
               ],
               "suggestions": [],
@@ -3364,17 +3315,6 @@
                     }
                   ],
                   "visible": true
-                },
-                {
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Orbital Settlement"
-                    }
-                  ],
-                  "visible": true
                 }
               ],
               "suggestions": [],
@@ -3415,17 +3355,6 @@
                       "operator": "equals",
                       "source": "entry",
                       "value": "Non-Planetary Settlement"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Orbital Settlement"
                     }
                   ],
                   "visible": true
@@ -3604,84 +3533,6 @@
                   "visible": true
                 },
                 {
-                  "binding": {
-                    "oracleId": "oracle_rollable:starforged/settlement/population/terminus",
-                    "packageId": "starforged",
-                    "resolvedOracleId": "oracle_rollable:starforged/settlement/population/terminus"
-                  },
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Orbital Settlement"
-                    },
-                    {
-                      "ancestor": {
-                        "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                        "value": "Sector"
-                      },
-                      "fieldId": "1b67a1b9-4b25-5905-b9f4-63f54495851f",
-                      "operator": "equals",
-                      "source": "ancestor",
-                      "value": "Terminus"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "binding": {
-                    "oracleId": "oracle_rollable:starforged/settlement/population/outlands",
-                    "packageId": "starforged",
-                    "resolvedOracleId": "oracle_rollable:starforged/settlement/population/outlands"
-                  },
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Orbital Settlement"
-                    },
-                    {
-                      "ancestor": {
-                        "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                        "value": "Sector"
-                      },
-                      "fieldId": "1b67a1b9-4b25-5905-b9f4-63f54495851f",
-                      "operator": "equals",
-                      "source": "ancestor",
-                      "value": "Outlands"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "binding": {
-                    "oracleId": "oracle_rollable:starforged/settlement/population/expanse",
-                    "packageId": "starforged",
-                    "resolvedOracleId": "oracle_rollable:starforged/settlement/population/expanse"
-                  },
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Orbital Settlement"
-                    },
-                    {
-                      "ancestor": {
-                        "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                        "value": "Sector"
-                      },
-                      "fieldId": "1b67a1b9-4b25-5905-b9f4-63f54495851f",
-                      "operator": "equals",
-                      "source": "ancestor",
-                      "value": "Expanse"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
                   "conditions": [
                     {
                       "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
@@ -3699,17 +3550,6 @@
                       "operator": "equals",
                       "source": "entry",
                       "value": "Non-Planetary Settlement"
-                    }
-                  ],
-                  "visible": true
-                },
-                {
-                  "conditions": [
-                    {
-                      "fieldId": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
-                      "operator": "equals",
-                      "source": "entry",
-                      "value": "Orbital Settlement"
                     }
                   ],
                   "visible": true
