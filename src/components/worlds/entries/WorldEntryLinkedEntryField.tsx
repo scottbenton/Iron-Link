@@ -13,11 +13,7 @@ import {
   WORLD_FIELD_VALUE_MAX_LENGTH,
 } from "lib/worldFieldRules";
 
-import {
-  ReadPermissions,
-  WorldPermission,
-  isGuideEquivalent,
-} from "repositories/shared.types";
+import { WorldPermission, isGuideEquivalent } from "repositories/shared.types";
 
 import type { IWorldEntry } from "services/worldEntries.service";
 import type { WorldFieldValue } from "services/worldEntryFieldValues.service";
@@ -29,7 +25,6 @@ import {
   useEmptyFieldText,
   worldEntryValueInputSx,
 } from "./WorldEntryFieldShell";
-import { useWorldEntryAudience } from "./worldEntryAudience";
 import { getWorldFieldValueList } from "./worldEntryFieldValue";
 import { getLinkedWorldEntryPermissions } from "./worldEntryPermissions";
 
@@ -63,15 +58,9 @@ export function WorldEntryLinkedEntryField({
   const guided = useWorldIsGuided();
   const createEntry = useWorldEntriesStore((store) => store.createEntry);
   const targetCategoryId = field.configuration.targetCategoryId ?? "";
-  // The table never learns the names of entries only Guides can see.
-  const forTable = useWorldEntryAudience() === "table";
   const targets = useWorldEntriesStore((store) =>
     Object.values(store.entryState.entries)
-      .filter(
-        (target) =>
-          target.categoryId === targetCategoryId &&
-          !(forTable && target.readPermissions === ReadPermissions.OnlyGuides),
-      )
+      .filter((target) => target.categoryId === targetCategoryId)
       .map((target) => ({ id: target.id, name: target.name }))
       .sort((a, b) => a.name.localeCompare(b.name)),
   );
