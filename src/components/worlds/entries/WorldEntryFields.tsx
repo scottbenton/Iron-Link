@@ -15,7 +15,6 @@ import type { WorldNavigation } from "../worldNavigation";
 import { WorldEntryField } from "./WorldEntryField";
 import { WorldEntryWell } from "./WorldEntryWell";
 import { useResolvedWorldEntryFields } from "./useResolvedWorldEntryFields";
-import { useWorldEntryAudience } from "./worldEntryAudience";
 import { hasWorldEntryFieldValue } from "./worldEntryFieldValue";
 
 export interface WorldEntryFieldsProps {
@@ -37,7 +36,6 @@ export interface WorldEntryFieldsProps {
 // A field a rule hides keeps its value. Read-only, empty fields are left out.
 // Fields sit in a Details well. Guide-only fields are hidden from everyone
 // else, and in a guided world they get a dashed Guide only well of their own.
-// Drawn for the table, Guide-only fields are left out for everyone.
 export function WorldEntryFields({
   entry,
   canEdit,
@@ -51,11 +49,9 @@ export function WorldEntryFields({
     entries,
     isGuide,
   } = useResolvedWorldEntryFields(entry);
-  const forTable = useWorldEntryAudience() === "table";
   const fields = resolved.filter(
     (field) =>
-      (canEdit || hasWorldEntryFieldValue(field, values[field.id], entries)) &&
-      !(forTable && field.gmOnly),
+      canEdit || hasWorldEntryFieldValue(field, values[field.id], entries),
   );
   const marked = guided && isGuide;
   const sharedFields = marked
