@@ -317,6 +317,22 @@
           {
             "binding": null,
             "configuration": {
+              "helpText": "",
+              "rules": [],
+              "suggestions": [],
+              "version": 1,
+              "visible": true
+            },
+            "gm_only": false,
+            "id": "cde2b3ce-d29c-5f3b-a5e8-96d9c85e515a",
+            "key": "pronouns",
+            "label": "Pronouns",
+            "sort_order": 0,
+            "type": "text"
+          },
+          {
+            "binding": null,
+            "configuration": {
               "allowOther": false,
               "helpText": "",
               "multiple": false,
@@ -330,24 +346,8 @@
             "id": "6e3859b1-311d-5d41-9a47-a5b3c567b7d0",
             "key": "location",
             "label": "Location",
-            "sort_order": 0,
-            "type": "select"
-          },
-          {
-            "binding": null,
-            "configuration": {
-              "helpText": "",
-              "rules": [],
-              "suggestions": [],
-              "version": 1,
-              "visible": true
-            },
-            "gm_only": false,
-            "id": "cde2b3ce-d29c-5f3b-a5e8-96d9c85e515a",
-            "key": "pronouns",
-            "label": "Pronouns",
             "sort_order": 1,
-            "type": "text"
+            "type": "select"
           },
           {
             "binding": null,

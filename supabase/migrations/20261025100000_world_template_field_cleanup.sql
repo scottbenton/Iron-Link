@@ -29,6 +29,7 @@ insert into leading_template_fields values
   ('world:starforged/forge','npcs','location',3),
   ('world:sundered_isles/sundered_isles','npcs','pronouns',0),
   ('world:elegy/santa_maria','npcs','pronouns',0),
+  ('world:classic/ironlands','npcs','pronouns',0),
   ('blank','npcs','pronouns',0);
 
 do $$

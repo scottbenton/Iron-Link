@@ -52,8 +52,8 @@ Supports: hierarchy, map, bonds. Subtitle: Location Type.
 
 Supports: bonds. Subtitle: Location.
 
-- **Location** (`location`): Linked entry → Locations, single
 - **Pronouns** (`pronouns`): Text
+- **Location** (`location`): Linked entry → Locations, single
 - **Species** (`species`): Option list, single, allows other values
   - Options: "Human", "Elf", "Giant", "Varou", "Troll"
 - **Descriptor** (`descriptor`): Text; Guide-only; oracle `oracle_rollable:classic/character/descriptor`
