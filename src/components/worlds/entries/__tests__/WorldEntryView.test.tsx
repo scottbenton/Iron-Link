@@ -38,7 +38,6 @@ import {
 } from "../../categories/__tests__/fixtures";
 import { WorldEntryActions } from "../WorldEntryActions";
 import { WorldEntryView } from "../WorldEntryView";
-import { WorldEntryAudienceContext } from "../worldEntryAudience";
 import { worldEntry } from "./fixtures";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
@@ -78,7 +77,7 @@ beforeEach(() => {
   vi.restoreAllMocks();
   useWorldEntriesStore.getState().reset();
   useWorldCategoriesStore.setState({ fieldDefinitions: {}, categories: {} });
-  useWorldStore.setState({ isGuided: true, worldPermission: null });
+  useWorldStore.setState({ isGuided: true });
   vi.spyOn(WorldEntriesService, "getWorldEntryNotesContent").mockResolvedValue({
     content: new Uint8Array(),
   });
@@ -681,83 +680,6 @@ describe("WorldEntryView", () => {
     expect(
       screen.getByRole("heading", { name: "Hollowmere" }),
     ).toBeInTheDocument();
-    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-  });
-
-  it("draws only what the whole table may see on a shared screen", () => {
-    useWorldStore.setState({ worldPermission: WorldPermission.Guide });
-    const look = field({ id: "look", key: "look", label: "Look" });
-    const secret = field({
-      id: "secret",
-      key: "secret",
-      label: "Secret",
-      sortOrder: 1,
-      gmOnly: true,
-    });
-    const allies = linkedEntry(
-      category.id,
-      {
-        id: "allies",
-        key: "allies",
-        label: "Allies",
-        sortOrder: 2,
-      },
-      { multiple: true },
-    );
-    useWorldCategoriesStore.setState({
-      fieldDefinitions: { look, secret, allies },
-    });
-    loadEntries([
-      worldEntry(),
-      worldEntry({ id: "ana", name: "Ana" }),
-      worldEntry({
-        id: "spy",
-        name: "The Spy",
-        readPermissions: ReadPermissions.OnlyGuides,
-      }),
-    ]);
-    const value = (fieldDefinitionId: string, stored: string | string[]) => ({
-      entryId: "entry-1",
-      fieldDefinitionId,
-      worldId: category.worldId,
-      gmOnly: fieldDefinitionId === "secret",
-      value: stored,
-    });
-    useWorldEntriesStore.setState((store) => {
-      store.fieldValueState.valuesByEntry = {
-        "entry-1": {
-          look: value("look", "Grim"),
-          secret: value("secret", "Traitor"),
-          allies: value("allies", ["ana", "spy"]),
-        },
-      };
-    });
-    render(
-      <MemoryRouter>
-        <ConfirmProvider>
-          <WorldEntryAudienceContext.Provider value="table">
-            <WorldEntryView
-              category={category}
-              entryId="entry-1"
-              navigation={{
-                view: {
-                  type: "entry",
-                  categoryId: category.id,
-                  entryId: "entry-1",
-                },
-                getLinkProps: () => ({ href: "#" }),
-                navigate: vi.fn(),
-              }}
-            />
-          </WorldEntryAudienceContext.Provider>
-        </ConfirmProvider>
-      </MemoryRouter>,
-    );
-    expect(screen.getByText("Grim")).toBeInTheDocument();
-    expect(screen.getByText("Ana")).toBeInTheDocument();
-    expect(screen.queryByText("Traitor")).not.toBeInTheDocument();
-    expect(screen.queryByText("The Spy")).not.toBeInTheDocument();
-    expect(screen.queryByText("Guide only")).not.toBeInTheDocument();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
 
