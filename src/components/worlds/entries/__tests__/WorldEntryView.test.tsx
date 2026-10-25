@@ -18,11 +18,7 @@ import { useWorldOraclesStore } from "stores/worldOracles.store";
 
 import { catalogOf, oracle } from "lib/__tests__/worldOracleFixtures";
 
-import {
-  EditPermissions,
-  ReadPermissions,
-  WorldPermission,
-} from "repositories/shared.types";
+import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 
 import {
   IWorldEntry,
