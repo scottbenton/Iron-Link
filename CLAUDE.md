@@ -31,5 +31,9 @@ that are easy to miss. When you learn a new one, add a line here.
 - Non-customized worlds read `world_templates` live, so a template migration
   reaches them at once; customized worlds hold copied field definitions and
   are not changed by it.
+- A world entry is either Guide prep (`only_guides` read and edit) or shared
+  with everyone (`all_players` read and edit, so players can add notes).
+  Only Guides choose, and only in guided worlds; a trigger refuses permission
+  changes from anyone else. Older author-scoped entries read as shared.
 - Long text fields are no longer offered for new fields; existing ones keep
   working.

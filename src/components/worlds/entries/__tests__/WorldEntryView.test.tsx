@@ -18,6 +18,8 @@ import { useWorldOraclesStore } from "stores/worldOracles.store";
 
 import { catalogOf, oracle } from "lib/__tests__/worldOracleFixtures";
 
+import { EditPermissions, ReadPermissions } from "repositories/shared.types";
+
 import {
   IWorldEntry,
   WorldEntriesService,
@@ -204,12 +206,30 @@ describe("WorldEntryActions", () => {
     expect(removeFiles).toHaveBeenCalledWith(category.worldId, "entry-1");
   });
 
-  it("shows Share in the strip and keeps the rest in More", async () => {
+  it("sets who can see the entry from the strip", async () => {
     const user = userEvent.setup();
-    loadEntries([worldEntry()]);
+    const update = vi
+      .spyOn(WorldEntriesService, "updateWorldEntry")
+      .mockResolvedValue();
+    loadEntries([
+      worldEntry({
+        readPermissions: ReadPermissions.OnlyGuides,
+        editPermissions: EditPermissions.OnlyGuides,
+      }),
+    ]);
     renderActions("strip");
-    await user.click(screen.getByRole("button", { name: "Share" }));
-    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Visible to: Guides only" }),
+    );
+    const options = screen
+      .getAllByRole("menuitem")
+      .map((item) => item.textContent);
+    expect(options).toEqual(["Guides only", "Everyone"]);
+    await user.click(screen.getByRole("menuitem", { name: "Everyone" }));
+    expect(update).toHaveBeenCalledWith("entry-1", {
+      readPermissions: ReadPermissions.AllPlayers,
+      editPermissions: EditPermissions.AllPlayers,
+    });
   });
 
   it("puts every action in one menu on a card", async () => {
@@ -217,12 +237,17 @@ describe("WorldEntryActions", () => {
     loadEntries([worldEntry()]);
     renderActions("card");
     expect(
-      screen.queryByRole("button", { name: "Share" }),
+      screen.queryByRole("button", { name: /Visible to/ }),
     ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Hollowmere actions" }),
     );
-    expect(screen.getByRole("menuitem", { name: "Share" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Guides only" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Everyone" }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("menuitem", { name: "Delete" }),
     ).toBeInTheDocument();

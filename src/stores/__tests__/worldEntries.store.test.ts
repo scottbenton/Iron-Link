@@ -85,7 +85,7 @@ describe("world entry parents", () => {
 });
 
 describe("world entry permissions", () => {
-  it("lets the author and Guides change permissions only while they can edit", () => {
+  it("lets only Guides change permissions, and only while they can edit", () => {
     expect(
       getEntryPermissions(
         EditPermissions.OnlyAuthor,
@@ -117,7 +117,7 @@ describe("world entry permissions", () => {
         "author",
         WorldPermission.Player,
       ),
-    ).toEqual({ canEdit: true, canDelete: true, canChangePermissions: true });
+    ).toEqual({ canEdit: true, canDelete: true, canChangePermissions: false });
   });
 
   it("never lets other players change permissions, even when they can edit", () => {

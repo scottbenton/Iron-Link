@@ -307,7 +307,7 @@ describe("WorldCategoryBrowser routes", () => {
       category.id,
       "Untitled",
       ReadPermissions.AllPlayers,
-      EditPermissions.GuidesAndAuthor,
+      EditPermissions.AllPlayers,
       undefined,
     );
     // The insert has not arrived yet: the page waits rather than saying the
