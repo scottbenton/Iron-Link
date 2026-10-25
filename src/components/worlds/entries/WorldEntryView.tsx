@@ -8,7 +8,7 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
-import { useCallback, useState } from "react";
+import { ReactNode, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
@@ -42,17 +42,21 @@ const READ_ONLY = {
 
 // One entry's page: its portrait or icon, name and subtitle, then its
 // fields and Notes. In a category with nesting, Details and Places are tabs
-// under the header; Places lists the entries inside this one. Its actions sit in the strip above, which the manager
-// renders. The manager also listens to the world's entries, so moving here
+// under the header; Places lists the entries inside this one. Its actions sit
+// in the strip above, which the manager renders, or beside the name when the
+// manager passes them in. The manager also listens to the world's entries, so
+// moving here
 // from the list needs no loading.
 export function WorldEntryView({
   category,
   entryId,
   navigation,
+  headerActions,
 }: {
   category: IWorldCategory;
   entryId: string;
   navigation: WorldNavigation;
+  headerActions?: ReactNode;
 }) {
   const { t } = useTranslation();
   // An entry this window just created counts as loading until the listener
@@ -147,13 +151,15 @@ export function WorldEntryView({
   );
   return (
     <Stack component="article" spacing={2.5} sx={{ flexGrow: 1 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <Box
+        sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2 }}
+      >
         <WorldEntryHeaderIcon
           entry={entry}
           canEdit={permissions.canEdit}
           onError={onNotesError}
         />
-        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+        <Box sx={{ flex: "1 1 240px", minWidth: 0 }}>
           <WorldEntryNameField
             key={entry.id}
             entry={entry}
@@ -169,6 +175,11 @@ export function WorldEntryView({
             </Typography>
           )}
         </Box>
+        {headerActions && (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            {headerActions}
+          </Box>
+        )}
       </Box>
       {hasPlaces && (
         <Tabs

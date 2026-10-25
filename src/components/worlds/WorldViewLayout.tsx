@@ -109,7 +109,9 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
   }
 
   return (
-    <Box>
+    // A flex column down to the content, so Notes can take the rest of the
+    // page.
+    <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
       {breadcrumbs}
       {(title || hasActions) && (
         <Box
