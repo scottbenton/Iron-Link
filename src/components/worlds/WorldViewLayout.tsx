@@ -73,10 +73,13 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
               <ActionToolbarStrip>
                 {actions?.start}
                 {actions?.end && (
+                  // Pushed right with a margin rather than grown, so when
+                  // the start actions already end in a spacer (an entry's
+                  // More menu) the two sit together with a normal gap.
                   <Box
-                    flexGrow={1}
+                    ml="auto"
+                    pl={0.5}
                     display="flex"
-                    justifyContent="flex-end"
                     alignItems="center"
                     gap={1}
                   >
