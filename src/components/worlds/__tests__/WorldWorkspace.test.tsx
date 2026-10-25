@@ -179,7 +179,6 @@ function TestWorldPanel(props: Omit<WorldPanelProps, "navigation">) {
 const world: IWorld = {
   id: "world-a",
   name: "Our world",
-  description: null,
   settingKey: null,
   createdBy: "owner",
   createdAt: new Date(),

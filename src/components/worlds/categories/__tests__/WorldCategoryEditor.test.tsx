@@ -44,10 +44,10 @@ describe("WorldCategoryEditor", () => {
     await user.type(name, " ");
     expect(create).toBeDisabled();
     await user.type(name, "Creatures");
-    await user.click(screen.getByRole("checkbox", { name: "Maps" }));
+    await user.click(screen.getByRole("checkbox", { name: "Nesting" }));
     await user.click(create);
     expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "Creatures", supportsMap: true }),
+      expect.objectContaining({ name: "Creatures", supportsHierarchy: true }),
     );
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
@@ -129,12 +129,38 @@ describe("WorldCategoryDetails", () => {
         disabled={false}
       />,
     );
-    const maps = screen.getByRole("checkbox", { name: "Maps" });
-    await user.click(maps);
+    const nesting = screen.getByRole("checkbox", { name: "Nesting" });
+    await waitFor(() => expect(actions.getCategoryCounts).toHaveBeenCalled());
+    await user.click(nesting);
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Please reconnect.",
     );
-    expect(maps).not.toBeChecked();
+    expect(nesting).toBeChecked();
+  });
+
+  // Release guard until #237 and #238 bring Maps and Bonds back.
+  it("does not offer Maps or Bonds yet, and keeps their stored values", async () => {
+    const user = userEvent.setup();
+    actions.updateCategory.mockResolvedValue(undefined);
+    render(
+      <WorldCategoryDetails
+        category={{ ...category, supportsMap: true, supportsBonds: true }}
+        fields={[]}
+        readOnly={false}
+        disabled={false}
+      />,
+    );
+    expect(
+      screen.queryByRole("checkbox", { name: "Maps" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("checkbox", { name: "Bonds" }),
+    ).not.toBeInTheDocument();
+    await waitFor(() => expect(actions.getCategoryCounts).toHaveBeenCalled());
+    await user.click(screen.getByRole("checkbox", { name: "Nesting" }));
+    expect(actions.updateCategory).toHaveBeenCalledWith(category.id, {
+      supportsHierarchy: false,
+    });
   });
 
   it("keeps nesting on while entries are nested", async () => {
@@ -154,7 +180,6 @@ describe("WorldCategoryDetails", () => {
     expect(nesting).toHaveAccessibleDescription(
       "Entries can sit inside other entries, like a settlement on a planet. Move 3 entries out of their parent entries first.",
     );
-    expect(screen.getByRole("checkbox", { name: "Maps" })).toBeEnabled();
     expect(actions.getCategoryCounts).toHaveBeenCalledWith(category.id);
   });
 
@@ -206,7 +231,7 @@ describe("WorldCategoryDetails", () => {
     expect(
       screen.getByRole("textbox", { name: /Category name/ }),
     ).toBeDisabled();
-    expect(screen.getByRole("checkbox", { name: "Maps" })).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: "Nesting" })).toBeDisabled();
     expect(
       screen.getByRole("button", { name: "Choose category icon" }),
     ).toBeDisabled();

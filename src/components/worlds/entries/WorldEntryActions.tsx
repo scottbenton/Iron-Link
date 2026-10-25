@@ -1,16 +1,22 @@
 import AddPhotoIcon from "@mui/icons-material/AddPhotoAlternate";
+import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
+import GroupsIcon from "@mui/icons-material/Groups";
 import HideImageIcon from "@mui/icons-material/HideImage";
 import InterestsIcon from "@mui/icons-material/Interests";
+import LockIcon from "@mui/icons-material/Lock";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import ShareIcon from "@mui/icons-material/Share";
+import PresentToAllIcon from "@mui/icons-material/PresentToAll";
 import {
   Box,
+  Button,
+  Divider,
   IconButton,
   ListItemIcon,
   ListItemText,
+  ListSubheader,
   Menu,
   MenuItem,
   Tooltip,
@@ -29,11 +35,16 @@ import { IWorldEntry } from "services/worldEntries.service";
 import { WorldIconPickerDialog } from "../WorldIconPickerDialog";
 import { WorldEntryMoveDialog } from "./WorldEntryMoveDialog";
 import { WorldEntryRollEmptyButton } from "./WorldEntryRollEmptyButton";
-import { WorldEntryShareDialog } from "./WorldEntryShareDialog";
 import { useWorldEntryImage } from "./useWorldEntryImage";
+import { useWorldEntrySecondScreen } from "./useWorldEntrySecondScreen";
+import {
+  WorldEntryVisibility,
+  getWorldEntryVisibility,
+  getWorldEntryVisibilityPermissions,
+} from "./worldEntryPermissions";
 
-// An entry's actions. In the strip on its page, Share is a button and More
-// holds the rest; on its card in a list, everything is in one menu. Move to
+// An entry's actions. In the strip on its page, who can see it is a button
+// and More holds the rest; on its card in a list, everything is in one menu. Move to
 // is offered only in categories that nest entries. People who can edit the
 // entry get Roll empty fields and, in More, the image items: clicking the
 // picture itself is for viewing it.
@@ -61,7 +72,9 @@ export function WorldEntryActions({
   const { t } = useTranslation();
   const confirm = useConfirm();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const [sharing, setSharing] = useState(false);
+  const [visibilityAnchor, setVisibilityAnchor] = useState<HTMLElement | null>(
+    null,
+  );
   const [moving, setMoving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [choosingIcon, setChoosingIcon] = useState(false);
@@ -71,10 +84,19 @@ export function WorldEntryActions({
   );
   const deleteEntry = useWorldEntriesStore((store) => store.deleteEntry);
   const image = useWorldEntryImage(entry, onError);
+  const secondScreen = useWorldEntrySecondScreen(entry);
 
   const card = variant === "card";
   const showEditActions = !card && canEdit;
-  if (!canShare && !canMove && !canDelete && !showEditActions) return null;
+  const showSecondScreen = !card && secondScreen.available;
+  if (
+    !canShare &&
+    !canMove &&
+    !canDelete &&
+    !showEditActions &&
+    !showSecondScreen
+  )
+    return null;
 
   const handleDelete = async () => {
     setAnchor(null);
@@ -123,21 +145,33 @@ export function WorldEntryActions({
     }
   };
 
-  const shareLabel = t("worlds.entries.share", "Share");
   const moreLabel = t("worlds.entries.actions", "More");
-  const shareItem = (
+  const visibility = getWorldEntryVisibility(entry.readPermissions);
+  const visibilityLabels: Record<WorldEntryVisibility, string> = {
+    guides: t("worlds.entries.visibility.guides", "Guides only"),
+    everyone: t("worlds.entries.visibility.everyone", "Everyone"),
+  };
+  const visibilityTitle = t("worlds.entries.visibility.title", "Visible to");
+  const setVisibility = (next: WorldEntryVisibility) => {
+    setAnchor(null);
+    setVisibilityAnchor(null);
+    if (next === visibility) return;
+    updateEntry(entry.id, getWorldEntryVisibilityPermissions(next)).catch(
+      onError,
+    );
+  };
+  const visibilityItems = (["guides", "everyone"] as const).map((option) => (
     <MenuItem
-      onClick={() => {
-        setAnchor(null);
-        setSharing(true);
-      }}
+      key={option}
+      selected={option === visibility}
+      onClick={() => setVisibility(option)}
     >
       <ListItemIcon>
-        <ShareIcon fontSize="small" />
+        {option === visibility && <CheckIcon fontSize="small" />}
       </ListItemIcon>
-      <ListItemText>{shareLabel}</ListItemText>
+      <ListItemText>{visibilityLabels[option]}</ListItemText>
     </MenuItem>
-  );
+  ));
   const moveItem = (
     <MenuItem
       onClick={() => {
@@ -225,15 +259,50 @@ export function WorldEntryActions({
       </ListItemText>
     </MenuItem>
   );
-  const hasMenu = card || showEditActions || canMove || canDelete;
+  const secondScreenItem = (
+    <MenuItem
+      key="second-screen"
+      onClick={() => {
+        setAnchor(null);
+        secondScreen.toggle().catch(onError);
+      }}
+    >
+      <ListItemIcon>
+        <PresentToAllIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>
+        {secondScreen.shown
+          ? t("worlds.entries.second-screen-hide", "Remove from second screen")
+          : t("worlds.entries.second-screen-show", "Show on second screen")}
+      </ListItemText>
+    </MenuItem>
+  );
+  const hasMenu =
+    card || showEditActions || showSecondScreen || canMove || canDelete;
   return (
     <>
       {!card && canShare && (
-        <Tooltip title={shareLabel}>
-          <IconButton aria-label={shareLabel} onClick={() => setSharing(true)}>
-            <ShareIcon />
-          </IconButton>
-        </Tooltip>
+        <>
+          <Button
+            color="inherit"
+            startIcon={visibility === "guides" ? <LockIcon /> : <GroupsIcon />}
+            aria-haspopup="menu"
+            aria-label={`${visibilityTitle}: ${visibilityLabels[visibility]}`}
+            onClick={(event) => setVisibilityAnchor(event.currentTarget)}
+          >
+            {visibilityLabels[visibility]}
+          </Button>
+          <Menu
+            anchorEl={visibilityAnchor}
+            open={!!visibilityAnchor}
+            onClose={() => setVisibilityAnchor(null)}
+            MenuListProps={{
+              subheader: <ListSubheader>{visibilityTitle}</ListSubheader>,
+            }}
+          >
+            {visibilityItems}
+          </Menu>
+        </>
       )}
       {showEditActions && (
         <WorldEntryRollEmptyButton entry={entry} onError={onError} />
@@ -263,9 +332,19 @@ export function WorldEntryActions({
             open={!!anchor}
             onClose={() => setAnchor(null)}
           >
-            {card && canShare && shareItem}
+            {card &&
+              canShare && [
+                <ListSubheader key="visibility">
+                  {visibilityTitle}
+                </ListSubheader>,
+                ...visibilityItems,
+                ...(canMove || canDelete
+                  ? [<Divider key="visibility-divider" />]
+                  : []),
+              ]}
             {showEditActions && iconItem}
             {showEditActions && imageItems}
+            {showSecondScreen && secondScreenItem}
             {canMove && moveItem}
             {canDelete && deleteItem}
           </Menu>
@@ -287,12 +366,6 @@ export function WorldEntryActions({
           entry={entry}
           categoryName={categoryName}
           onClose={() => setMoving(false)}
-        />
-      )}
-      {sharing && (
-        <WorldEntryShareDialog
-          entry={entry}
-          onClose={() => setSharing(false)}
         />
       )}
     </>

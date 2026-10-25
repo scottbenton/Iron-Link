@@ -37,7 +37,12 @@ export default function WorldPage() {
     !!matchPath("/worlds/:worldId/settings", location.pathname);
   let view: WorldView;
   if (categoryId && entryId) {
-    view = { type: "entry", categoryId, entryId };
+    view = matchPath(
+      "/worlds/:worldId/categories/:categoryId/entries/:entryId/places",
+      location.pathname,
+    )
+      ? { type: "entry", categoryId, entryId, section: "places" }
+      : { type: "entry", categoryId, entryId };
   } else if (categoryId) {
     view = { type: settings ? "category-settings" : "category", categoryId };
   } else {

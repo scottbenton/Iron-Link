@@ -422,8 +422,8 @@ describe("WorldEntryFields", () => {
         .mockResolvedValue("created");
       defineFields(linkedEntry(PEOPLE, { id: "home", label: "Location" }));
       const entry = worldEntry({
-        readPermissions: ReadPermissions.GuidesAndAuthor,
-        editPermissions: EditPermissions.OnlyAuthor,
+        readPermissions: ReadPermissions.AllPlayers,
+        editPermissions: EditPermissions.AllPlayers,
       });
       loadEntries(entry, kell);
       storeValue("entry-1", "home", "kell");
@@ -449,13 +449,13 @@ describe("WorldEntryFields", () => {
         category.worldId,
         PEOPLE,
         "Brinehold",
-        ReadPermissions.GuidesAndAuthor,
-        EditPermissions.OnlyAuthor,
+        ReadPermissions.AllPlayers,
+        EditPermissions.AllPlayers,
         undefined,
       );
     });
 
-    it("creates Guide-only entries from a Guide-only field, and falls back to defaults a player cannot pick", async () => {
+    it("creates Guide-only entries from a Guide-only field, and shares what a player creates", async () => {
       const user = userEvent.setup();
       const add = vi
         .spyOn(WorldEntriesService, "addWorldEntry")
@@ -518,13 +518,13 @@ describe("WorldEntryFields", () => {
           PEOPLE,
           "Dock",
           ReadPermissions.AllPlayers,
-          EditPermissions.GuidesAndAuthor,
+          EditPermissions.AllPlayers,
           undefined,
         ),
       );
     });
 
-    it("shares an entry a Guide creates from a player's private entry so the player keeps the link", async () => {
+    it("shares an entry a Guide creates from an older private entry", async () => {
       const user = userEvent.setup();
       const add = vi
         .spyOn(WorldEntriesService, "addWorldEntry")
@@ -552,7 +552,7 @@ describe("WorldEntryFields", () => {
           PEOPLE,
           "Brinehold",
           ReadPermissions.AllPlayers,
-          EditPermissions.GuidesAndAuthor,
+          EditPermissions.AllPlayers,
           undefined,
         ),
       );
