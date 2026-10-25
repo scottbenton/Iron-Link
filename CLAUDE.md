@@ -33,3 +33,8 @@ that are easy to miss. When you learn a new one, add a line here.
   are not changed by it.
 - Long text fields are no longer offered for new fields; existing ones keep
   working.
+- Entry field value saves (`setFieldValue`, `deleteFieldValue`) go through
+  `stores/worldFieldValueWrites.ts`: shown at once, sent one at a time per
+  field with waiting changes coalesced, and realtime changes for the field are
+  skipped until this window's last save's own change arrives. Never call the
+  service directly for them, or quick rolls jump back to earlier values.

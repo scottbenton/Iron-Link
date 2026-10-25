@@ -294,15 +294,17 @@ describe("WorldEntryFields", () => {
 
       const input = screen.getByRole("combobox", { name: "Kind" });
       expect(input).toHaveValue("Lighthouse");
+      await user.click(input);
+      expect(
+        screen.getAllByRole("option").map((option) => option.textContent),
+      ).toEqual(["Settlement", "Ruin", "Lighthouse"]);
+
       await user.clear(input);
       await user.type(input, "Shrine{Enter}");
       expect(setValue).not.toHaveBeenCalled();
 
       await user.clear(input);
       await user.keyboard("{ArrowDown}");
-      expect(
-        screen.getAllByRole("option").map((option) => option.textContent),
-      ).toEqual(["Settlement", "Ruin", "Lighthouse"]);
       await user.click(screen.getByRole("option", { name: "Ruin" }));
       expect(setValue).toHaveBeenCalledWith(
         "entry-1",
@@ -402,16 +404,18 @@ describe("WorldEntryFields", () => {
         ["unreadable"],
       );
 
+      // The removal shows at once, so Kell is offered again.
+      expect(screen.queryByRole("link", { name: "Kell" })).toBeNull();
       await user.click(screen.getByRole("combobox", { name: "Residents" }));
       expect(
         screen.getAllByRole("option").map((option) => option.textContent),
-      ).toEqual(["Ash"]);
+      ).toEqual(["Ash", "Kell"]);
       await user.click(screen.getByRole("option", { name: "Ash" }));
-      expect(setValue).toHaveBeenCalledWith(
+      expect(setValue).toHaveBeenLastCalledWith(
         "entry-1",
         category.worldId,
         "residents",
-        ["kell", "ash", "unreadable"],
+        ["ash", "unreadable"],
       );
     });
 

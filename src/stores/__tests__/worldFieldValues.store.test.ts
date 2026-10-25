@@ -442,3 +442,157 @@ describe("world field value listeners", () => {
     [entry, missing, all].forEach((hook) => hook.unmount());
   });
 });
+
+describe("this window's own value saves", () => {
+  // Saves stay pending until the test settles them, in the order sent.
+  function stubSaves() {
+    const sent: {
+      value: unknown;
+      settle: (error?: Error) => Promise<void>;
+    }[] = [];
+    const track = (value: unknown) =>
+      new Promise<void>((resolve, reject) => {
+        sent.push({
+          value,
+          settle: (error) =>
+            act(async () => (error ? reject(error) : resolve())),
+        });
+      });
+    vi.spyOn(
+      WorldEntryFieldValuesService,
+      "setWorldEntryFieldValue",
+    ).mockImplementation((_entryId, _worldId, _fieldId, value) => track(value));
+    vi.spyOn(
+      WorldEntryFieldValuesService,
+      "deleteWorldEntryFieldValue",
+    ).mockImplementation(() => track(null));
+    return sent;
+  }
+  const save = (value: string) => {
+    let saved!: Promise<void>;
+    act(() => {
+      saved = store().setFieldValue("a", "world", "f1", value);
+    });
+    return saved;
+  };
+  const clear = () => {
+    let cleared!: Promise<void>;
+    act(() => {
+      cleared = store().deleteFieldValue("a", "f1");
+    });
+    return cleared;
+  };
+  const changed = (value: string) =>
+    send({ eventType: "UPDATE", new: row("a", "f1", value), old: {} });
+
+  it("keeps the newest roll when an earlier roll's change arrives after it", async () => {
+    mocks.rows = [row("a", "f1", "start")];
+    store().listenToWorldFieldValues("world");
+    const sent = stubSaves();
+
+    // Rolling three times quickly.
+    const saves = [save("one"), save("two"), save("three")];
+    expect(values().a.f1.value).toBe("three");
+    // One save at a time, and a change waiting behind another is replaced.
+    expect(sent.map((s) => s.value)).toEqual(["one"]);
+
+    changed("one");
+    expect(values().a.f1.value).toBe("three");
+    await sent[0].settle();
+    expect(sent.map((s) => s.value)).toEqual(["one", "three"]);
+    expect(values().a.f1.value).toBe("three");
+
+    await sent[1].settle();
+    await Promise.all(saves);
+    changed("three");
+    expect(values().a.f1.value).toBe("three");
+  });
+
+  it("skips changes committed before its last save, even when they arrive after it", async () => {
+    store().listenToWorldFieldValues("world");
+    const sent = stubSaves();
+
+    save("one");
+    save("two");
+    await sent[0].settle();
+    await sent[1].settle();
+    // Realtime trails the responses.
+    changed("one");
+    expect(values().a.f1.value).toBe("two");
+    // Someone else's edit committed between this window's two saves.
+    changed("theirs");
+    expect(values().a.f1.value).toBe("two");
+    changed("two");
+    expect(values().a.f1.value).toBe("two");
+
+    // Once caught up, other people's changes show as usual.
+    changed("later");
+    expect(values().a.f1.value).toBe("later");
+  });
+
+  it("shows what the database holds when its last save fails", async () => {
+    mocks.rows = [row("a", "f1", "start")];
+    store().listenToWorldFieldValues("world");
+    const sent = stubSaves();
+
+    const failing = expect(save("one")).rejects.toThrow("denied");
+    expect(values().a.f1.value).toBe("one");
+    await sent[0].settle(new Error("denied"));
+    await failing;
+    expect(values().a.f1.value).toBe("start");
+    changed("theirs");
+    expect(values().a.f1.value).toBe("theirs");
+  });
+
+  it("does not bring back a cleared value when an earlier save's change arrives", async () => {
+    mocks.rows = [row("a", "f1", "start")];
+    store().listenToWorldFieldValues("world");
+    const sent = stubSaves();
+
+    save("one");
+    clear();
+    expect(values().a).toBeUndefined();
+    await sent[0].settle();
+    expect(sent.map((s) => s.value)).toEqual(["one", null]);
+    changed("one");
+    expect(values().a).toBeUndefined();
+    await sent[1].settle();
+    send({
+      eventType: "DELETE",
+      new: {},
+      old: { entry_id: "a", field_definition_id: "f1" },
+    });
+    expect(values().a).toBeUndefined();
+    changed("theirs");
+    expect(values().a.f1.value).toBe("theirs");
+  });
+
+  it("does not wait for a change when clearing a value that was never stored", async () => {
+    store().listenToWorldFieldValues("world");
+    const sent = stubSaves();
+
+    clear();
+    await sent[0].settle();
+    changed("theirs");
+    expect(values().a.f1.value).toBe("theirs");
+  });
+
+  it("keeps a save still in flight over a fresh snapshot", async () => {
+    mocks.rows = [row("a", "f1", "start"), row("a", "f2", "other")];
+    store().listenToWorldFieldValues("world");
+    const sent = stubSaves();
+
+    save("one");
+    // The channel rejoins and reads again before the save commits.
+    mocks.rows = [row("a", "f1", "start"), row("a", "f2", "renamed")];
+    act(() => {
+      store().listenToWorldFieldValues("world");
+    });
+    expect(values().a.f1.value).toBe("one");
+    expect(values().a.f2.value).toBe("renamed");
+    await sent[0].settle();
+    changed("one");
+    changed("theirs");
+    expect(values().a.f1.value).toBe("theirs");
+  });
+});
