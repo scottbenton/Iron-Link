@@ -12,6 +12,10 @@ type BucketNames =
   | "world_entry_images"
   | "world_map_backgrounds";
 
+// Images inside Guide-only secrets. The bucket is private: files are read
+// through signed URLs, under the same rule as the secrets themselves.
+const GUIDE_IMAGES_BUCKET = "guide_images";
+
 export class StorageRepository {
   public static async storeImage(
     bucket: BucketNames,
@@ -107,6 +111,37 @@ export class StorageRepository {
         true,
       );
     }
+  }
+
+  // Uploads an image into a secret and resolves its path in the bucket,
+  // which is what a secret stores: a signed URL expires.
+  public static async storeGuideImage(
+    folder: string,
+    image: File,
+  ): Promise<string> {
+    const path = `${folder}/${image.name}`;
+    const { error } = await supabase.storage
+      .from(GUIDE_IMAGES_BUCKET)
+      .upload(path, image);
+    if (error) {
+      console.error(error);
+      throw getRepositoryError(error, ErrorVerb.Upload, ErrorNoun.Image, false);
+    }
+    return path;
+  }
+
+  public static async getSignedGuideImageUrl(
+    path: string,
+    expiresInSeconds: number,
+  ): Promise<string> {
+    const { data, error } = await supabase.storage
+      .from(GUIDE_IMAGES_BUCKET)
+      .createSignedUrl(path, expiresInSeconds);
+    if (error) {
+      console.error(error);
+      throw getRepositoryError(error, ErrorVerb.Read, ErrorNoun.Image, false);
+    }
+    return data.signedUrl;
   }
 
   public static getImageUrl(
