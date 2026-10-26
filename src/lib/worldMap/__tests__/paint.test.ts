@@ -22,7 +22,7 @@ describe("paintCell", () => {
     expect(paintCell({ p: true }, path)).toBeUndefined();
   });
 
-  it("erases everything, or only paths", () => {
+  it("erases everything, only paths or only terrain", () => {
     expect(
       paintCell({ c: "grass", p: true }, { ...brush, tool: "eraser" }),
     ).toBeNull();
@@ -33,6 +33,16 @@ describe("paintCell", () => {
     });
     expect(paintCell({ p: true }, pathEraser)).toBeNull();
     expect(paintCell({ c: "grass" }, pathEraser)).toBeUndefined();
+    const terrainEraser = {
+      ...brush,
+      tool: "eraser",
+      eraser: "terrain",
+    } as const;
+    expect(paintCell({ c: "grass", p: true }, terrainEraser)).toEqual({
+      p: true,
+    });
+    expect(paintCell({ c: "grass" }, terrainEraser)).toBeNull();
+    expect(paintCell({ p: true }, terrainEraser)).toBeUndefined();
   });
 });
 

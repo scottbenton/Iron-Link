@@ -1,3 +1,4 @@
+import { useConfirm } from "material-ui-confirm";
 import { ChangeEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -11,12 +12,14 @@ import {
 import { IWorldMap } from "services/worldMaps.service";
 
 // Adds, replaces or removes a map's background image. Render `input`
-// anywhere; `choose` opens the file picker.
+// anywhere; `choose` opens the file picker. Removing asks first, because the
+// image file is deleted.
 export function useWorldMapBackgroundUpload(
   map: IWorldMap | null,
   onError: (cause: unknown) => void,
 ) {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const setBackground = useWorldMapsStore((store) => store.setBackground);
@@ -52,6 +55,22 @@ export function useWorldMapBackgroundUpload(
     run(file).catch(onError);
   };
 
+  const remove = async () => {
+    const { confirmed } = await confirm({
+      title: t(
+        "worlds.maps.background.remove-title",
+        "Remove background image",
+      ),
+      description: t(
+        "worlds.maps.background.remove-confirmation",
+        "The image is deleted from this map. Painted cells and pins stay. This cannot be undone.",
+      ),
+      confirmationText: t("worlds.maps.background.remove-confirm", "Remove"),
+      confirmationButtonProps: { color: "error", variant: "contained" },
+    });
+    if (confirmed) await run(null);
+  };
+
   const input = (
     <input
       ref={inputRef}
@@ -67,6 +86,6 @@ export function useWorldMapBackgroundUpload(
     input,
     busy,
     choose: () => inputRef.current?.click(),
-    remove: () => run(null).catch(onError),
+    remove: () => remove().catch(onError),
   };
 }
