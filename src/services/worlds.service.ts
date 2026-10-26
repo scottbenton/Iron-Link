@@ -1,4 +1,4 @@
-import { byteaToUint8Array, uint8ArrayToBytea } from "lib/bytea.lib";
+import { byteaToUint8Array } from "lib/bytea.lib";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import { WorldPermission } from "repositories/shared.types";
@@ -9,6 +9,11 @@ import {
   WorldMembershipRole,
   WorldsRepository,
 } from "repositories/worlds.repository";
+
+import {
+  RichTextContentService,
+  RichTextContentStore,
+} from "./richTextContent.service";
 
 const WORLD_NOTES_IMAGE_FOLDER = "world-notes";
 
@@ -83,13 +88,14 @@ export class WorldsService {
     return content ? byteaToUint8Array(content) : new Uint8Array();
   }
 
-  public static updateWorldNotesContent(
+  public static getWorldNotesContentStore(
     worldId: string,
-    content: Uint8Array,
-  ): Promise<void> {
-    return WorldsRepository.updateWorldNotesContent(
+    getToken: () => string | undefined,
+  ): RichTextContentStore {
+    return RichTextContentService.createStore(
+      { table: "worlds", column: "notes_content" },
       worldId,
-      uint8ArrayToBytea(content),
+      getToken,
     );
   }
 
@@ -104,18 +110,6 @@ export class WorldsService {
       "world_entry_images",
       `${worldId}/${WORLD_NOTES_IMAGE_FOLDER}`,
       StorageRepository.renameFile(image, filename),
-    );
-  }
-
-  public static updateWorldNotesContentBeacon(
-    worldId: string,
-    content: Uint8Array,
-    token: string,
-  ): Promise<void> {
-    return WorldsRepository.updateWorldNotesContentBeacon(
-      token,
-      worldId,
-      uint8ArrayToBytea(content),
     );
   }
 

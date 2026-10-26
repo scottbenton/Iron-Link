@@ -1,18 +1,21 @@
 import { Editor as TTEditor } from "@tiptap/react";
 
+import type { RichTextContentStore } from "services/richTextContent.service";
+import type { RoomKeySource } from "services/roomKeys.service";
+
 import { Editor, EditorProps } from "./Editor";
 import { useAutoSaveRtcEditor } from "./useAutosaveRtcEditor";
+import { useRoomKey } from "./useRoomKey";
 
 export interface RtcRichTextEditorProps {
   id: string;
   roomPrefix: string;
-  documentPassword: string;
-  onSave?: (
-    documentId: string,
-    notes: Uint8Array,
-    noteContentString: string,
-    isBeaconRequest?: boolean,
-  ) => Promise<void>;
+  // Whose key locks the live room: the note's or entry's own, or a Guide key.
+  roomKeySource: RoomKeySource;
+  // Where the document is saved; saves merge with what is stored. Without
+  // one, the editor is read-only.
+  contentStore?: RichTextContentStore;
+  onSaveError?: (error: unknown) => void;
   initialValue: Uint8Array;
   Toolbar: React.FC<{ editor: TTEditor }>;
   // Bordered, with the toolbar inside, for an editor among other inputs.
@@ -27,8 +30,9 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
   const {
     id,
     roomPrefix,
-    documentPassword,
-    onSave,
+    roomKeySource,
+    contentStore,
+    onSaveError,
     initialValue,
     Toolbar,
     outlined,
@@ -37,14 +41,15 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
     fill,
   } = props;
 
-  const readOnly = !onSave;
+  const readOnly = !contentStore;
+  const roomKey = useRoomKey(roomKeySource);
   const { editor, saving } = useAutoSaveRtcEditor({
     documentId: id,
     roomName: `${roomPrefix}-${id}`,
-    roomPassword: documentPassword,
+    roomKey,
     initialValue,
-    onSave,
-    readOnly,
+    contentStore,
+    onSaveError,
   });
 
   return (

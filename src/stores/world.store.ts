@@ -5,6 +5,7 @@ import { createWithEqualityFn } from "zustand/traditional";
 
 import { WorldPermission } from "repositories/shared.types";
 
+import type { RichTextContentStore } from "services/richTextContent.service";
 import {
   IWorldPlayer,
   WorldPlayerRole,
@@ -41,11 +42,7 @@ interface WorldStoreActions {
   createWorld: (name: string, settingKey?: string) => Promise<string>;
   updateWorldName: (worldId: string, name: string) => Promise<void>;
   getWorldNotesContent: (worldId: string) => Promise<Uint8Array>;
-  updateWorldNotesContent: (
-    worldId: string,
-    content: Uint8Array,
-    isBeaconRequest?: boolean,
-  ) => Promise<void>;
+  getWorldNotesContentStore: (worldId: string) => RichTextContentStore;
   uploadWorldNotesImage: (worldId: string, image: File) => Promise<string>;
   deleteWorld: (worldId: string) => Promise<void>;
 
@@ -197,16 +194,11 @@ export const useWorldStore = createWithEqualityFn<
     getWorldNotesContent: (worldId) => {
       return WorldsService.getWorldNotesContent(worldId);
     },
-    updateWorldNotesContent: (worldId, content, isBeaconRequest) => {
-      const token = isBeaconRequest ? useAuthStore.getState().token : undefined;
-      if (token) {
-        return WorldsService.updateWorldNotesContentBeacon(
-          worldId,
-          content,
-          token,
-        );
-      }
-      return WorldsService.updateWorldNotesContent(worldId, content);
+    getWorldNotesContentStore: (worldId) => {
+      return WorldsService.getWorldNotesContentStore(
+        worldId,
+        () => useAuthStore.getState().token,
+      );
     },
     uploadWorldNotesImage: (worldId, image) => {
       return WorldsService.uploadWorldNotesImage(worldId, image);

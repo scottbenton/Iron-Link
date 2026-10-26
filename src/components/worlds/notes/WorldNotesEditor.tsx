@@ -1,8 +1,11 @@
 import { Alert, Box, Skeleton, Typography } from "@mui/material";
 import { Editor as TTEditor } from "@tiptap/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { RtcRichTextEditor } from "components/RichTextEditor";
+
+import type { RichTextContentStore } from "services/richTextContent.service";
+import type { RoomKeySource } from "services/roomKeys.service";
 
 import { WorldNotesToolbar } from "./WorldNotesToolbar";
 
@@ -12,12 +15,14 @@ export interface WorldNotesEditorProps {
   // The section's heading and its loading label.
   heading: string;
   loadingLabel: string;
-  worldId: string;
   // Separates live editing rooms: world Notes and entry Notes never share one.
   roomPrefix: string;
+  // Whose key locks the live room.
+  roomKeySource: RoomKeySource;
   canEdit: boolean;
   load: () => Promise<Uint8Array>;
-  save: (content: Uint8Array, isBeaconRequest?: boolean) => Promise<void>;
+  // Where edits are saved, merging with what is stored.
+  contentStore: RichTextContentStore;
   uploadImage: (file: File) => Promise<string>;
   loadErrorMessage: string;
   onError: (cause: unknown) => void;
@@ -31,11 +36,11 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
     id,
     heading,
     loadingLabel,
-    worldId,
     roomPrefix,
+    roomKeySource,
     canEdit,
     load,
-    save,
+    contentStore,
     uploadImage,
     loadErrorMessage,
     onError,
@@ -58,16 +63,6 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
       active = false;
     };
   }, [load]);
-
-  const handleSave = useCallback(
-    (
-      _documentId: string,
-      document: Uint8Array,
-      _text: string,
-      isBeaconRequest?: boolean,
-    ) => save(document, isBeaconRequest).catch(onError),
-    [save, onError],
-  );
 
   // The editor takes a component; keep it stable for this document.
   const Toolbar = useMemo(
@@ -124,9 +119,10 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
           <RtcRichTextEditor
             id={id}
             roomPrefix={roomPrefix}
-            documentPassword={worldId}
+            roomKeySource={roomKeySource}
             initialValue={content}
-            onSave={canEdit ? handleSave : undefined}
+            contentStore={canEdit ? contentStore : undefined}
+            onSaveError={onError}
             Toolbar={Toolbar}
             fill
             minHeight={120}

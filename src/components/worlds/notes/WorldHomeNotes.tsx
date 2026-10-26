@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useWorldStore } from "stores/world.store";
@@ -21,8 +21,8 @@ export function WorldHomeNotes({
   const getWorldNotesContent = useWorldStore(
     (store) => store.getWorldNotesContent,
   );
-  const updateWorldNotesContent = useWorldStore(
-    (store) => store.updateWorldNotesContent,
+  const getWorldNotesContentStore = useWorldStore(
+    (store) => store.getWorldNotesContentStore,
   );
   const uploadWorldNotesImage = useWorldStore(
     (store) => store.uploadWorldNotesImage,
@@ -32,10 +32,9 @@ export function WorldHomeNotes({
     () => getWorldNotesContent(worldId),
     [worldId, getWorldNotesContent],
   );
-  const save = useCallback(
-    (content: Uint8Array, isBeaconRequest?: boolean) =>
-      updateWorldNotesContent(worldId, content, isBeaconRequest),
-    [worldId, updateWorldNotesContent],
+  const contentStore = useMemo(
+    () => getWorldNotesContentStore(worldId),
+    [worldId, getWorldNotesContentStore],
   );
   const uploadImage = useCallback(
     (file: File) => uploadWorldNotesImage(worldId, file),
@@ -47,11 +46,11 @@ export function WorldHomeNotes({
       id={worldId}
       heading={t("worlds.overview", "Overview")}
       loadingLabel={t("worlds.overview-loading", "Loading overview")}
-      worldId={worldId}
       roomPrefix="world-notes"
+      roomKeySource={{ worldId }}
       canEdit={canEdit}
       load={load}
-      save={save}
+      contentStore={contentStore}
       uploadImage={uploadImage}
       loadErrorMessage={t(
         "worlds.overview-load-error",

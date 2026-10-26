@@ -46,11 +46,20 @@ that are easy to miss. When you learn a new one, add a line here.
   working.
 - World Notes (headed "Overview" on the world home) are Yjs bytes in
   `worlds.notes_content`, left out of world list queries. Guides edit them but
-  may not update `worlds`, so every save goes through the `update_world_notes`
-  RPC.
+  may not update `worlds`, so every save goes through the
+  `update_world_notes_if_unchanged` RPC, versioned by `notes_updated_at`.
 - A world entry mention stores only the entry id (`kind: "worldEntry"`,
   `label: null`); its name is read live from the entries store, so renames
   show at once and an unreadable entry shows "Unavailable entry".
+
+## Rich text
+
+- Live editing rooms are locked by room keys (`room_keys` per note, entry and
+  world, `guide_room_keys` per game and world, readable only by readers or Guides).
+  Give `RtcRichTextEditor` a `roomKeySource`; never use an id as a room password.
+- Rich text saves merge rather than overwrite: the editor takes a
+  `RichTextContentStore` and saves through `saveMergedRichText`, guarded by the
+  row's `updated_at`. A new rich text column needs a versioned row and a store.
 
 ## Notes
 

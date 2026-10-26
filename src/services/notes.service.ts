@@ -1,11 +1,16 @@
 import { GamePermission } from "stores/game.store";
 
-import { byteaToUint8Array, uint8ArrayToBytea } from "lib/bytea.lib";
+import { byteaToUint8Array } from "lib/bytea.lib";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import { NoteDTO, NotesRepository } from "repositories/notes.repository";
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 import { StorageRepository } from "repositories/storage.repository";
+
+import {
+  RichTextContentService,
+  RichTextContentStore,
+} from "./richTextContent.service";
 
 export type INote = {
   title: string;
@@ -124,26 +129,17 @@ export class NotesService {
     });
   }
 
-  public static async updateNoteContent(
+  // Saves merge with the stored state; see saveMergedRichText.
+  public static getNoteContentStore(
     noteId: string,
-    noteContent: Uint8Array,
-    noteContentText: string,
-  ): Promise<void> {
-    return NotesRepository.updateNote(noteId, {
-      note_content_bytes: uint8ArrayToBytea(noteContent),
-      note_content_text: noteContentText,
-    });
-  }
-  public static async updateNoteContentBeacon(
-    noteId: string,
-    noteContent: Uint8Array,
-    noteContentText: string,
-    token: string,
-  ): Promise<void> {
-    return NotesRepository.updateNoteBeaconRequest(token, noteId, {
-      note_content_bytes: uint8ArrayToBytea(noteContent),
-      note_content_text: noteContentText,
-    });
+    getToken: () => string | undefined,
+  ): RichTextContentStore {
+    return RichTextContentService.createStore(
+      { table: "notes", column: "note_content_bytes" },
+      noteId,
+      getToken,
+      (text) => ({ note_content_text: text }),
+    );
   }
 
   private static convertNoteDTOToNote(note: NoteDTO): INote {
