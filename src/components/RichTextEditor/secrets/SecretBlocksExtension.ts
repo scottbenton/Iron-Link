@@ -128,6 +128,10 @@ export const SecretBlocksExtension = Extension.create<SecretBlocksOptions>({
         }),
         props: {
           decorations: (state) => secretBlocksKey.getState(state),
+          handleDOMEvents: {
+            mousedown: (_, event) =>
+              getController()?.clickPastEdge(event) ?? false,
+          },
           // An image in a secret lives in the private bucket, which players
           // can't load, so it never comes along into the shared note.
           transformPasted: (slice: Slice) => {
