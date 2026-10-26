@@ -105,7 +105,7 @@ select is(pg_temp.add_note(1),'42501','an outsider cannot add secrets');
 select pg_temp.as_user(1);
 select is(pg_temp.add_note(1),'ok','a Guide adds secrets to a shared note');
 select is(pg_temp.add_note(2),'ok','a Guide adds secrets to a Guide-only note');
-select is(pg_temp.add_note(4),'ok','a Guide adds secrets to a note only its author edits');
+select is(pg_temp.add_note(4),'42501','a Guide cannot add secrets to a note only its author edits');
 select is(pg_temp.add_note(3),'42501','a Guide cannot add secrets to a note they cannot read');
 select is(pg_temp.add_note(5),'42501','a Guide of one game cannot add secrets to another game''s note');
 select is(pg_temp.add_note(1),'ok','adding a surface''s secrets twice is not an error');
@@ -134,12 +134,18 @@ select is(pg_temp.add_entry(3),'42501','a player cannot add secrets to their own
 reset role;
 select is((select count(*) from public.rich_text_secrets where note_id=pg_temp.id('note',1)),1::bigint,
   'one row per surface');
+-- Secrets added to note 4 while its Guide could still edit it.
+insert into public.rich_text_secrets(note_id,content_text) values (pg_temp.id('note',4),'Older');
+insert into storage.objects(bucket_id,name) values ('guide_images','notes/'||pg_temp.id('note',4)||'/old.png');
 set local role authenticated;
 
 -- Reading.
 select pg_temp.as_user(1);
 select is(pg_temp.visible(),array['entry 1','entry 2','note 1','note 2','note 4','world'],
-  'a guided game''s Guide reads its notes'' and its world''s secrets');
+  'a guided game''s Guide reads its notes'' and its world''s secrets, even where they cannot edit the note');
+update public.rich_text_secrets set content_text='Changed' where note_id=pg_temp.id('note',4);
+select is((select content_text from public.rich_text_secrets where note_id=pg_temp.id('note',4)),
+  'Older','a Guide cannot change the secrets of a note they cannot edit');
 select pg_temp.as_user(6);
 select is(pg_temp.visible(),array['entry 1','entry 2','world'],'the world owner reads the world''s secrets');
 select pg_temp.as_user(8);
@@ -187,6 +193,13 @@ select is((select content_text from public.rich_text_secrets where note_id=pg_te
 select is(pg_temp.upload('notes/'||pg_temp.id('note',1)||'/map.png'),'ok','a Guide uploads an image to a note''s secrets');
 select is(pg_temp.upload('worlds/'||pg_temp.w()||'/map.png'),'ok','a Guide uploads an image to world Notes secrets');
 select is(pg_temp.upload('notes/'||pg_temp.id('note',3)||'/map.png'),'42501','not to a note they cannot read');
+select is(pg_temp.upload('notes/'||pg_temp.id('note',4)||'/map.png'),'42501','not to a note they cannot edit');
+select ok('notes/'||pg_temp.id('note',4)||'/old.png' = any(pg_temp.images()),
+  'but they still read its guide images');
+select is(pg_temp.outcome(format('delete from storage.objects where bucket_id=''guide_images'' and name=%L',
+  'notes/'||pg_temp.id('note',4)||'/old.png')),'ok','deleting them is refused quietly');
+select ok('notes/'||pg_temp.id('note',4)||'/old.png' = any(pg_temp.images()),
+  'and leaves them in place');
 select is(pg_temp.upload('notes/'||pg_temp.id('note',1)||'/x/map.png'),'42501','not to a deeper path');
 select is(pg_temp.upload('notes/not-a-uuid/map.png'),'42501','not to a malformed path');
 select is(pg_temp.upload('characters/'||pg_temp.id('note',1)||'/map.png'),'42501','not to an unknown kind');

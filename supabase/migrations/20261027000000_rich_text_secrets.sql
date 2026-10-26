@@ -54,8 +54,8 @@ create index rich_text_secrets_mentioned_entry_ids on public.rich_text_secrets
 create trigger rich_text_secrets_set_updated_at before update on public.rich_text_secrets
   for each row execute function public.set_updated_at();
 
--- Whether a user may read and write the secrets of a surface. Exactly one of
--- the three ids is expected; anything else is refused.
+-- Whether a user may read the secrets of a surface. Exactly one of the three
+-- ids is expected; anything else is refused.
 create function public.rich_text_secrets_allowed(p_note_id uuid, p_world_entry_id uuid,
   p_world_id uuid, p_uid uuid) returns boolean
 language sql stable security definer set search_path = '' as $$
@@ -72,6 +72,18 @@ language sql stable security definer set search_path = '' as $$
   end;
 $$;
 
+-- Whether a user may also add and change them: a game note's secrets also
+-- need edit access to the note itself, so a Guide only reads the secrets of
+-- a note its author keeps to themselves. Entries and world Notes need nothing
+-- more, since their Guides can edit them.
+create function public.rich_text_secrets_writable(p_note_id uuid, p_world_entry_id uuid,
+  p_world_id uuid, p_uid uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select public.rich_text_secrets_allowed(p_note_id, p_world_entry_id, p_world_id, p_uid)
+    and (p_note_id is null or exists (select 1 from public.notes n where n.id = p_note_id
+      and public.note_permission_allows_edit(n.game_id, n.author_id, n.edit_permissions, p_uid)));
+$$;
+
 alter table public.rich_text_secrets enable row level security;
 
 create policy "Guides can read secrets" on public.rich_text_secrets
@@ -80,12 +92,12 @@ create policy "Guides can read secrets" on public.rich_text_secrets
 
 create policy "Guides can add secrets" on public.rich_text_secrets
   for insert to authenticated with check (
-    public.rich_text_secrets_allowed(note_id, world_entry_id, world_id, (select auth.uid())));
+    public.rich_text_secrets_writable(note_id, world_entry_id, world_id, (select auth.uid())));
 
 create policy "Guides can edit secrets" on public.rich_text_secrets
   for update to authenticated
-  using (public.rich_text_secrets_allowed(note_id, world_entry_id, world_id, (select auth.uid())))
-  with check (public.rich_text_secrets_allowed(note_id, world_entry_id, world_id, (select auth.uid())));
+  using (public.rich_text_secrets_writable(note_id, world_entry_id, world_id, (select auth.uid())))
+  with check (public.rich_text_secrets_writable(note_id, world_entry_id, world_id, (select auth.uid())));
 
 -- Rows go with their surface (on delete cascade); clients never delete them,
 -- and a deleted block is marked inside the document so undo can restore it.
@@ -99,6 +111,8 @@ grant all on public.rich_text_secrets to service_role;
 
 revoke execute on function public.rich_text_secrets_allowed(uuid, uuid, uuid, uuid) from public, anon;
 grant execute on function public.rich_text_secrets_allowed(uuid, uuid, uuid, uuid) to authenticated, service_role;
+revoke execute on function public.rich_text_secrets_writable(uuid, uuid, uuid, uuid) from public, anon;
+grant execute on function public.rich_text_secrets_writable(uuid, uuid, uuid, uuid) to authenticated, service_role;
 
 -- Realtime applies the read policy per subscriber, so players never receive
 -- these rows.
@@ -110,9 +124,9 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 values ('guide_images', 'guide_images', false, 5242880, array['image/*'])
 on conflict (id) do nothing;
 
--- Whether a user may read or write the object at p_name, which must be
--- <notes|world_entries|worlds>/<surface id>/<file name>.
-create function public.guide_image_allowed(p_name text, p_uid uuid) returns boolean
+-- Whether a user may read (or, with p_write, upload or delete) the object at
+-- p_name, which must be <notes|world_entries|worlds>/<surface id>/<file name>.
+create function public.guide_image_allowed(p_name text, p_uid uuid, p_write boolean) returns boolean
 language plpgsql stable security definer set search_path = '' as $$
 declare
   v_parts text[] := string_to_array(p_name, '/');
@@ -123,6 +137,14 @@ begin
     return false;
   end if;
   v_id := v_parts[2]::uuid;
+  if p_write then
+    return case v_parts[1]
+      when 'notes' then public.rich_text_secrets_writable(v_id, null, null, p_uid)
+      when 'world_entries' then public.rich_text_secrets_writable(null, v_id, null, p_uid)
+      when 'worlds' then public.rich_text_secrets_writable(null, null, v_id, p_uid)
+      else false
+    end;
+  end if;
   return case v_parts[1]
     when 'notes' then public.rich_text_secrets_allowed(v_id, null, null, p_uid)
     when 'world_entries' then public.rich_text_secrets_allowed(null, v_id, null, p_uid)
@@ -131,19 +153,19 @@ begin
   end;
 end $$;
 
-revoke execute on function public.guide_image_allowed(text, uuid) from public, anon;
-grant execute on function public.guide_image_allowed(text, uuid) to authenticated, service_role;
+revoke execute on function public.guide_image_allowed(text, uuid, boolean) from public, anon;
+grant execute on function public.guide_image_allowed(text, uuid, boolean) to authenticated, service_role;
 
 create policy "Guides can read guide images" on storage.objects
   for select to authenticated using (
-    bucket_id = 'guide_images' and public.guide_image_allowed(objects.name, (select auth.uid())));
+    bucket_id = 'guide_images' and public.guide_image_allowed(objects.name, (select auth.uid()), false));
 
 create policy "Guides can upload guide images" on storage.objects
   for insert to authenticated with check (
-    bucket_id = 'guide_images' and public.guide_image_allowed(objects.name, (select auth.uid())));
+    bucket_id = 'guide_images' and public.guide_image_allowed(objects.name, (select auth.uid()), true));
 
 create policy "Guides can delete guide images" on storage.objects
   for delete to authenticated using (
-    bucket_id = 'guide_images' and public.guide_image_allowed(objects.name, (select auth.uid())));
+    bucket_id = 'guide_images' and public.guide_image_allowed(objects.name, (select auth.uid()), true));
 
 commit;
