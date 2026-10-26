@@ -8,18 +8,21 @@ import { ReadPermissions } from "repositories/shared.types";
 
 import type { IWorldEntry } from "services/worldEntries.service";
 
-// Puts an entry on the game's second screen, or takes it off again. Only in
-// a game with the second screen turned on, and never for an entry only
-// Guides can see: the second screen is for the whole table.
+// Puts an entry, or its map, on the game's second screen, or takes it off
+// again. Only in a game with the second screen turned on, and never for an
+// entry only Guides can see: the second screen is for the whole table.
 export function useWorldEntrySecondScreen(
   entry: Pick<IWorldEntry, "id" | "worldId" | "readPermissions">,
+  view: "entry" | "map" = "entry",
 ) {
+  const map = view === "map";
   const gameId = useGameIdOptional();
   const featureActive = useSecondScreenFeature();
   const shown = useSecondScreenStore(
     (store) =>
       store.settings?.type === "world_entry" &&
-      store.settings.entryId === entry.id,
+      store.settings.entryId === entry.id &&
+      !!store.settings.map === map,
   );
   const updateSettings = useSecondScreenStore(
     (store) => store.updateSecondScreenSettings,
@@ -35,7 +38,12 @@ export function useWorldEntrySecondScreen(
       gameId,
       shown
         ? null
-        : { type: "world_entry", worldId: entry.worldId, entryId: entry.id },
+        : {
+            type: "world_entry",
+            worldId: entry.worldId,
+            entryId: entry.id,
+            ...(map ? { map: true } : {}),
+          },
     );
   };
 

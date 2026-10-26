@@ -39,7 +39,8 @@ export function WorldMapPinMarker({
   entries: IWorldEntry[];
   screen: Point;
   showLabel: boolean;
-  navigation: Pick<WorldNavigation, "getLinkProps">;
+  // Without navigation (the second screen) the marker is only a picture.
+  navigation?: Pick<WorldNavigation, "getLinkProps">;
   onSelect?: (entry: IWorldEntry) => void;
   // Without an entry id the whole marker is being dragged.
   onDragStart?: (event: PointerEvent<HTMLElement>, entryId?: string) => void;
@@ -58,8 +59,11 @@ export function WorldMapPinMarker({
     if (draggingOut) setAnchor(null);
   }, [draggingOut]);
 
-  const linkProps = (entry: IWorldEntry) =>
-    navigation.getLinkProps({
+  const linkProps = (
+    nav: Pick<WorldNavigation, "getLinkProps">,
+    entry: IWorldEntry,
+  ) =>
+    nav.getLinkProps({
       type: "entry",
       categoryId: entry.categoryId,
       entryId: entry.id,
@@ -153,11 +157,18 @@ export function WorldMapPinMarker({
   const movingWhole = !!dragging && !draggingOut;
   const sx = placeAt(movingWhole ? dragging.screen : screen, movingWhole);
 
+  if (!navigation)
+    return (
+      <Box sx={sx} role="img" aria-label={label}>
+        {markerFor(entries)}
+      </Box>
+    );
+
   if (entries.length === 1 && !onSelect)
     return (
       <ButtonBase
         component={LinkComponent}
-        {...linkProps(first)}
+        {...linkProps(navigation, first)}
         aria-label={first.name}
         sx={sx}
       >
@@ -204,7 +215,7 @@ export function WorldMapPinMarker({
                     onDragStart?.(event, entry.id),
                   sx: onDragStart ? { touchAction: "none" } : undefined,
                 }
-              : { component: LinkComponent, ...linkProps(entry) })}
+              : { component: LinkComponent, ...linkProps(navigation, entry) })}
           >
             <ListItemIcon>
               <WorldMapPinIcon entry={entry} />

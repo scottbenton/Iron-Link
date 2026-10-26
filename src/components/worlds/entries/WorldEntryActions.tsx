@@ -6,6 +6,7 @@ import GroupsIcon from "@mui/icons-material/Groups";
 import HideImageIcon from "@mui/icons-material/HideImage";
 import InterestsIcon from "@mui/icons-material/Interests";
 import LockIcon from "@mui/icons-material/Lock";
+import MapIcon from "@mui/icons-material/Map";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import PresentToAllIcon from "@mui/icons-material/PresentToAll";
@@ -88,6 +89,10 @@ export function WorldEntryActions({
   const deleteEntry = useWorldEntriesStore((store) => store.deleteEntry);
   const image = useWorldEntryImage(entry, onError);
   const secondScreen = useWorldEntrySecondScreen(entry);
+  const mapSecondScreen = useWorldEntrySecondScreen(entry, "map");
+  const hasMaps = useWorldCategoriesStore(
+    (store) => !!store.categories[entry.categoryId]?.supportsMap,
+  );
 
   const card = variant === "card";
   const showEditActions = !card && canEdit;
@@ -280,6 +285,31 @@ export function WorldEntryActions({
       </ListItemText>
     </MenuItem>
   );
+  // The map goes up on its own; while it is up, this offers to take it down.
+  const mapSecondScreenItem = hasMaps && (
+    <MenuItem
+      key="second-screen-map"
+      onClick={() => {
+        setAnchor(null);
+        mapSecondScreen.toggle().catch(onError);
+      }}
+    >
+      <ListItemIcon>
+        <MapIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>
+        {mapSecondScreen.shown
+          ? t(
+              "worlds.entries.second-screen-map-hide",
+              "Remove map from second screen",
+            )
+          : t(
+              "worlds.entries.second-screen-map-show",
+              "Show map on second screen",
+            )}
+      </ListItemText>
+    </MenuItem>
+  );
   const hasMenu =
     card || showEditActions || showSecondScreen || canMove || canDelete;
   return (
@@ -348,6 +378,7 @@ export function WorldEntryActions({
             {showEditActions && iconItem}
             {showEditActions && imageItems}
             {showSecondScreen && secondScreenItem}
+            {showSecondScreen && mapSecondScreenItem}
             {canMove && moveItem}
             {canDelete && deleteItem}
           </Menu>

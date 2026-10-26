@@ -92,6 +92,11 @@ export interface WorldMapViewportProps<T> {
   overlay?: ReactNode;
   // 44px controls over the map, for phones.
   touch?: boolean;
+  // Fits everything again whenever the content grows or shrinks, for a
+  // screen nobody steers (the second screen).
+  autoFit?: boolean;
+  // Back to the map and the minimap; off where the map is only shown.
+  controls?: boolean;
   height?: number | string;
 }
 
@@ -129,6 +134,8 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     renderPin,
     overlay,
     touch = false,
+    autoFit = false,
+    controls = true,
     height = "min(70vh, 640px)",
   } = props;
   const { t } = useTranslation();
@@ -211,6 +218,13 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     fitted.current = true;
     setCamera(fitCamera(boundsRef.current, view));
   }, [ready, backgroundPending, view]);
+  const boundsKey = bounds
+    ? [bounds.minX, bounds.minY, bounds.maxX, bounds.maxY].join(",")
+    : "";
+  useEffect(() => {
+    if (!autoFit || !fitted.current || !view.width) return;
+    setCamera(fitCamera(boundsRef.current, view));
+  }, [autoFit, boundsKey, view]);
   const fit = useCallback(
     () =>
       setCamera(
@@ -620,23 +634,25 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
         }}
       >
         {overlay}
-        <Button
-          size="small"
-          variant="contained"
-          color="inherit"
-          startIcon={<CenterFocusStrongIcon />}
-          onClick={fit}
-          sx={{
-            ml: "auto",
-            minHeight: touch ? 44 : undefined,
-            bgcolor: "background.paper",
-            color: "text.primary",
-          }}
-        >
-          {t("worlds.maps.back-to-map", "Back to the map")}
-        </Button>
+        {controls && (
+          <Button
+            size="small"
+            variant="contained"
+            color="inherit"
+            startIcon={<CenterFocusStrongIcon />}
+            onClick={fit}
+            sx={{
+              ml: "auto",
+              minHeight: touch ? 44 : undefined,
+              bgcolor: "background.paper",
+              color: "text.primary",
+            }}
+          >
+            {t("worlds.maps.back-to-map", "Back to the map")}
+          </Button>
+        )}
       </Box>
-      {bounds && (
+      {controls && bounds && (
         <WorldMapMinimap
           grid={grid}
           chunks={chunks}
