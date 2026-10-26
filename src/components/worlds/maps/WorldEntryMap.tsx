@@ -1,5 +1,6 @@
 import CheckIcon from "@mui/icons-material/Check";
 import EditIcon from "@mui/icons-material/Edit";
+import PresentToAllIcon from "@mui/icons-material/PresentToAll";
 import {
   Alert,
   Box,
@@ -34,6 +35,7 @@ import { IWorldEntry } from "services/worldEntries.service";
 import { WorldMapsService } from "services/worldMaps.service";
 
 import { getEditorErrorMessage } from "../categories/categoryEditor.utils";
+import { useWorldEntrySecondScreen } from "../entries/useWorldEntrySecondScreen";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldMapClearDialog } from "./WorldMapClearDialog";
 import { WorldMapCreate } from "./WorldMapCreate";
@@ -107,6 +109,7 @@ export function WorldEntryMap({
     : paintSettings;
   const painting = useWorldMapPainting(entry.id, grid, settings);
   const pinTool = useWorldMapPins(entry, grid, state.pins, onError);
+  const secondScreen = useWorldEntrySecondScreen(entry, "map");
   const chunks = useMemo(
     () => getDisplayedChunks(state),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -258,73 +261,96 @@ export function WorldEntryMap({
       onBackgroundLoad={backgroundEditor.onBackgroundLoad}
       label={t("worlds.maps.label", "Map of {{name}}", { name: entry.name })}
       overlay={
-        canEdit &&
-        (!phone || paintMode) && (
-          <WorldMapOptions
-            map={map}
-            painted={painted}
-            onError={onError}
-            touch={touch}
-          >
-            {(close) => [
-              <Divider key="divider" />,
-              <MenuItem
-                key="background"
-                disabled={upload.busy}
-                onClick={() => {
-                  close();
-                  upload.choose();
-                }}
-              >
-                <ListItemText
-                  primary={
-                    map.background
-                      ? t(
-                          "worlds.maps.background.replace",
-                          "Replace background image",
-                        )
-                      : t("worlds.maps.background.add", "Add background image")
-                  }
-                />
-              </MenuItem>,
-              map.background && (
+        <>
+          {canEdit && (!phone || paintMode) && (
+            <WorldMapOptions
+              map={map}
+              painted={painted}
+              onError={onError}
+              touch={touch}
+            >
+              {(close) => [
+                <Divider key="divider" />,
                 <MenuItem
-                  key="remove-background"
+                  key="background"
                   disabled={upload.busy}
                   onClick={() => {
                     close();
-                    upload.remove();
+                    upload.choose();
                   }}
                 >
                   <ListItemText
-                    primary={t(
-                      "worlds.maps.background.remove",
-                      "Remove background image",
-                    )}
+                    primary={
+                      map.background
+                        ? t(
+                            "worlds.maps.background.replace",
+                            "Replace background image",
+                          )
+                        : t(
+                            "worlds.maps.background.add",
+                            "Add background image",
+                          )
+                    }
                   />
-                </MenuItem>
-              ),
-              grid !== "none" && (
-                <MenuItem
-                  key="clear"
-                  disabled={!painted}
-                  onClick={() => {
-                    close();
-                    setClearOpen(true);
-                  }}
-                >
-                  <ListItemText
-                    primary={t("worlds.maps.clear.confirm", "Clear map")}
-                    secondary={t(
-                      "worlds.maps.clear.help",
-                      "Pins stay where they are",
-                    )}
-                  />
-                </MenuItem>
-              ),
-            ]}
-          </WorldMapOptions>
-        )
+                </MenuItem>,
+                map.background && (
+                  <MenuItem
+                    key="remove-background"
+                    disabled={upload.busy}
+                    onClick={() => {
+                      close();
+                      upload.remove();
+                    }}
+                  >
+                    <ListItemText
+                      primary={t(
+                        "worlds.maps.background.remove",
+                        "Remove background image",
+                      )}
+                    />
+                  </MenuItem>
+                ),
+                grid !== "none" && (
+                  <MenuItem
+                    key="clear"
+                    disabled={!painted}
+                    onClick={() => {
+                      close();
+                      setClearOpen(true);
+                    }}
+                  >
+                    <ListItemText
+                      primary={t("worlds.maps.clear.confirm", "Clear map")}
+                      secondary={t(
+                        "worlds.maps.clear.help",
+                        "Pins stay where they are",
+                      )}
+                    />
+                  </MenuItem>
+                ),
+              ]}
+            </WorldMapOptions>
+          )}
+          {secondScreen.available && !paintMode && (
+            <Button
+              size="small"
+              variant="contained"
+              color={secondScreen.shown ? "primary" : "inherit"}
+              startIcon={<PresentToAllIcon />}
+              aria-pressed={secondScreen.shown}
+              onClick={() => secondScreen.toggle().catch(onError)}
+              sx={{
+                minHeight: touch ? 44 : undefined,
+                ...(!secondScreen.shown && {
+                  bgcolor: "background.paper",
+                  color: "text.primary",
+                }),
+              }}
+            >
+              {t("worlds.maps.second-screen", "Show on second screen")}
+            </Button>
+          )}
+        </>
       }
       renderPin={({ id, pin, screen, scale, dragging, startDrag }) => (
         <WorldMapPinMarker
