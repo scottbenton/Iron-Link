@@ -13,6 +13,7 @@ import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 
 import { INoteFolder, NoteFoldersService } from "services/noteFolders.service";
 import { INote, INoteContent, NotesService } from "services/notes.service";
+import type { RichTextContentStore } from "services/richTextContent.service";
 
 import { useAuthStore, useUID } from "./auth.store";
 import { GamePermission } from "./game.store";
@@ -109,12 +110,7 @@ interface NotesStoreActions {
   ) => Promise<void>;
   deleteNote: (noteId: string) => Promise<void>;
 
-  updateNoteContent: (
-    noteId: string,
-    content: Uint8Array,
-    contentString: string,
-    isBeaconRequest?: boolean,
-  ) => Promise<void>;
+  getNoteContentStore: (noteId: string) => RichTextContentStore;
   uploadNoteImage: (noteId: string, image: File) => Promise<string>;
 
   getFolderDescendants: (folderId: string) => {
@@ -245,17 +241,11 @@ export const useNotesStore = createWithEqualityFn<
       return NotesService.getNoteContent(noteId);
     },
 
-    updateNoteContent: (noteId, content, contentString, isBeaconRequest) => {
-      const token = useAuthStore.getState().token;
-      if (isBeaconRequest && token) {
-        return NotesService.updateNoteContentBeacon(
-          noteId,
-          content,
-          contentString,
-          token,
-        );
-      }
-      return NotesService.updateNoteContent(noteId, content, contentString);
+    getNoteContentStore: (noteId) => {
+      return NotesService.getNoteContentStore(
+        noteId,
+        () => useAuthStore.getState().token,
+      );
     },
 
     uploadNoteImage: (noteId, image) => {

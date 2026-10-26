@@ -2,6 +2,10 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { RichTextContentRepository } from "repositories/richTextContent.repository";
+
+import type { RichTextContentStore } from "services/richTextContent.service";
+import type { RoomKeySource } from "services/roomKeys.service";
 import { WorldsService } from "services/worlds.service";
 
 import { translate } from "../../categories/__tests__/fixtures";
@@ -22,27 +26,32 @@ vi.mock("components/RichTextEditor", () => ({
   RtcRichTextEditor: ({
     id,
     roomPrefix,
+    roomKeySource,
     initialValue,
-    onSave,
+    contentStore,
   }: {
     id: string;
     roomPrefix: string;
+    roomKeySource: RoomKeySource;
     initialValue: Uint8Array;
-    onSave?: (
-      id: string,
-      value: Uint8Array,
-      text: string,
-      isBeaconRequest?: boolean,
-    ) => Promise<void>;
+    contentStore?: RichTextContentStore;
   }) => (
     <div data-testid="rich-text">
-      {`${roomPrefix}-${id}: ${initialValue.length} bytes`}
-      {onSave && (
+      {`${roomPrefix}-${id}: ${initialValue.length} bytes, key ${JSON.stringify(roomKeySource)}`}
+      {contentStore && (
         <>
-          <button onClick={() => onSave(id, new Uint8Array([7, 8]), "text")}>
+          <button
+            onClick={() =>
+              contentStore.write(new Uint8Array([7, 8]), "text", "v1")
+            }
+          >
             Save document
           </button>
-          <button onClick={() => onSave(id, new Uint8Array([9]), "text", true)}>
+          <button
+            onClick={() =>
+              contentStore.writeBeacon(new Uint8Array([9]), "text", "v1")
+            }
+          >
             Save while closing
           </button>
         </>
@@ -62,27 +71,35 @@ describe("WorldHomeNotes", () => {
   it("lets owners, editors and Guides edit the world's Notes", async () => {
     const user = userEvent.setup();
     const save = vi
-      .spyOn(WorldsService, "updateWorldNotesContent")
-      .mockResolvedValue();
+      .spyOn(RichTextContentRepository, "writeIfUnchanged")
+      .mockResolvedValue("v2");
     const beacon = vi
-      .spyOn(WorldsService, "updateWorldNotesContentBeacon")
-      .mockResolvedValue();
+      .spyOn(RichTextContentRepository, "writeIfUnchangedBeacon")
+      .mockReturnValue();
     render(<WorldHomeNotes worldId="world-a" canEdit onError={vi.fn()} />);
     const notes = await screen.findByRole("region", { name: "Overview" });
     expect(within(notes).getByTestId("rich-text")).toHaveTextContent(
-      "world-notes-world-a: 0 bytes",
+      'world-notes-world-a: 0 bytes, key {"worldId":"world-a"}',
     );
     await user.click(
       within(notes).getByRole("button", { name: "Save document" }),
     );
-    expect(save).toHaveBeenCalledWith("world-a", new Uint8Array([7, 8]));
+    const target = { table: "worlds", column: "notes_content" };
+    expect(save).toHaveBeenCalledWith(
+      target,
+      "world-a",
+      { notes_content: "\\x0708" },
+      "v1",
+    );
     await user.click(
       within(notes).getByRole("button", { name: "Save while closing" }),
     );
     expect(beacon).toHaveBeenCalledWith(
-      "world-a",
-      new Uint8Array([9]),
       "token",
+      target,
+      "world-a",
+      { notes_content: "\\x09" },
+      "v1",
     );
   });
 

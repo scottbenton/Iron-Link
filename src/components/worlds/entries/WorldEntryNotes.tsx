@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useWorldEntriesStore } from "stores/worldEntries.store";
@@ -22,8 +22,8 @@ export function WorldEntryNotes({
   const getEntryNotesContent = useWorldEntriesStore(
     (store) => store.getEntryNotesContent,
   );
-  const updateEntryNotesContent = useWorldEntriesStore(
-    (store) => store.updateEntryNotesContent,
+  const getEntryNotesContentStore = useWorldEntriesStore(
+    (store) => store.getEntryNotesContentStore,
   );
   const uploadEntryImage = useWorldEntriesStore(
     (store) => store.uploadEntryImage,
@@ -34,10 +34,9 @@ export function WorldEntryNotes({
     () => getEntryNotesContent(entryId).then(({ content }) => content),
     [entryId, getEntryNotesContent],
   );
-  const save = useCallback(
-    (content: Uint8Array, isBeaconRequest?: boolean) =>
-      updateEntryNotesContent(entryId, content, isBeaconRequest),
-    [entryId, updateEntryNotesContent],
+  const contentStore = useMemo(
+    () => getEntryNotesContentStore(entryId),
+    [entryId, getEntryNotesContentStore],
   );
   const uploadImage = useCallback(
     (file: File) =>
@@ -50,11 +49,11 @@ export function WorldEntryNotes({
       id={entryId}
       heading={t("worlds.entries.notes", "Notes")}
       loadingLabel={t("worlds.entries.notes-loading", "Loading notes")}
-      worldId={worldId}
       roomPrefix={`world-entry-notes-${worldId}`}
+      roomKeySource={{ worldEntryId: entryId }}
       canEdit={canEdit}
       load={load}
-      save={save}
+      contentStore={contentStore}
       uploadImage={uploadImage}
       loadErrorMessage={t(
         "worlds.entries.notes-load-error",

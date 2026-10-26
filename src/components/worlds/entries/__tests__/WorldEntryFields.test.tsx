@@ -22,6 +22,7 @@ import {
   WorldPermission,
 } from "repositories/shared.types";
 
+import type { RichTextContentStore } from "services/richTextContent.service";
 import {
   IWorldEntry,
   WorldEntriesService,
@@ -61,17 +62,21 @@ vi.mock("components/RichTextEditor", () => ({
     id,
     roomPrefix,
     initialValue,
-    onSave,
+    contentStore,
   }: {
     id: string;
     roomPrefix: string;
     initialValue: Uint8Array;
-    onSave?: (id: string, value: Uint8Array, text: string) => Promise<void>;
+    contentStore?: RichTextContentStore;
   }) => (
     <div data-testid="rich-text">
       {`${roomPrefix}-${id}: ${initialValue.length} bytes`}
-      {onSave && (
-        <button onClick={() => onSave(id, new Uint8Array([7, 8]), "text")}>
+      {contentStore && (
+        <button
+          onClick={() =>
+            contentStore.write(new Uint8Array([7, 8]), "text", "v1")
+          }
+        >
           Save document
         </button>
       )}

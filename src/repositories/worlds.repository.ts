@@ -2,7 +2,7 @@ import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 import { Tables, TablesUpdate } from "types/supabase-generated.type";
 
-import { SUPABASE_ANON_KEY, SUPABASE_URL, supabase } from "lib/supabase.lib";
+import { supabase } from "lib/supabase.lib";
 
 import { createSubscription } from "./_subscriptionManager";
 import {
@@ -362,63 +362,6 @@ export class WorldsRepository {
       );
     }
     return data.notes_content;
-  }
-
-  // Through an RPC because Guides edit world Notes but may not update the
-  // world itself; see 20261018000000_world_notes.sql.
-  public static async updateWorldNotesContent(
-    worldId: string,
-    content: string,
-  ): Promise<void> {
-    const { error, status } = await supabase.rpc("update_world_notes", {
-      p_world_id: worldId,
-      p_notes_content: content,
-    });
-    if (error) {
-      console.error(error);
-      throw getRepositoryError(
-        error,
-        ErrorVerb.Update,
-        ErrorNoun.World,
-        false,
-        status,
-      );
-    }
-  }
-
-  // The same save as a keepalive request, for when the page is closing.
-  public static async updateWorldNotesContentBeacon(
-    token: string,
-    worldId: string,
-    content: string,
-  ): Promise<void> {
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/rpc/update_world_notes`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          Prefer: "return=minimal",
-          Apikey: SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
-          p_world_id: worldId,
-          p_notes_content: content,
-        }),
-        keepalive: true,
-      },
-    );
-    if (!response.ok) {
-      console.error(response);
-      throw getRepositoryError(
-        response,
-        ErrorVerb.Update,
-        ErrorNoun.World,
-        false,
-        response.status,
-      );
-    }
   }
 
   public static async getWorldPermission(
