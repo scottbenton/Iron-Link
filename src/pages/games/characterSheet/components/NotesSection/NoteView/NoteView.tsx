@@ -7,7 +7,6 @@ import {
   RichTextToolbarProps,
   RtcRichTextEditor,
 } from "components/RichTextEditor";
-import { SecretToolbarItems } from "components/RichTextEditor/secrets/SecretToolbarItems";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
@@ -95,17 +94,13 @@ export function NoteView(props: NoteViewProps) {
         <NoteToolbar>
           {isMobile ? undefined : (
             <>
-              {/* A Guide who can't edit the note may still write its
-                  secrets (#254). */}
-              {notePermissions.canEdit || secrets?.inSecret ? (
+              {notePermissions.canEdit ? (
                 <NoteViewToolbar
                   editor={editor}
                   openNoteId={openNoteId}
                   permissions={notePermissions}
                   secrets={secrets}
                 />
-              ) : secrets ? (
-                <SecretToolbarItems secrets={secrets} />
               ) : undefined}
             </>
           )}

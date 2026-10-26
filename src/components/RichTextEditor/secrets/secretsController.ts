@@ -35,6 +35,10 @@ export interface SecretsControllerOptions {
   // The extensions every rich text editor shares (formatting, images,
   // mentions), for the editors inside blocks.
   blockExtensions: Extensions;
+  // A Guide who can't edit the surface reads its secrets but changes nothing:
+  // blocks aren't editable, none are added or deleted, and anchors aren't
+  // rewritten.
+  readOnly?: boolean;
   createId?: () => string;
 }
 
@@ -121,10 +125,11 @@ export class SecretsController {
   }
 
   // Where every live block renders, for the shared editor's decorations.
-  // Rewrites stale anchors, since only a Guide's editor builds these.
+  // Rewrites stale anchors, since only a Guide's editor builds these, unless
+  // this Guide may not edit.
   public place(sharedDoc: Y.Doc, fragment: Y.XmlFragment) {
     this.placed = placeSecretBlocks(this.companion, sharedDoc, fragment, {
-      refresh: true,
+      refresh: !this.options.readOnly,
     });
     const live = new Set(this.placed.map((p) => p.id));
     let changed = false;
@@ -173,6 +178,7 @@ export class SecretsController {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const controller = this;
     const editor = new Editor({
+      editable: !this.options.readOnly,
       extensions: [
         ...this.options.blockExtensions,
         Extension.create({
@@ -192,7 +198,7 @@ export class SecretsController {
               ArrowRight: ({ editor }) =>
                 controller.leaveIfAtEdge(id, editor, "right"),
               Backspace: ({ editor }) => {
-                if (!editor.isEmpty) return false;
+                if (!editor.isEmpty || !editor.isEditable) return false;
                 controller.deleteBlock(id);
                 return true;
               },
@@ -355,6 +361,7 @@ export class SecretsController {
 
   // Adds an empty block at the caret's boundary and moves the caret into it.
   public insertSecret() {
+    if (this.options.readOnly) return null;
     const binding = this.shared && getSharedBinding(this.shared.state);
     if (!binding) return null;
     const id = this.newId();
@@ -367,6 +374,7 @@ export class SecretsController {
   // Moves the shared note's selection into a new block. Players who loaded
   // the note or were in its room may already have seen the text.
   public makeSecret() {
+    if (this.options.readOnly) return null;
     const shared = this.shared;
     const binding = shared && getSharedBinding(shared.state);
     if (!shared || !binding || shared.state.selection.empty) return null;
@@ -426,6 +434,7 @@ export class SecretsController {
   // Marks a block deleted, so undo brings it back, and returns the caret to
   // the note where the block was.
   public deleteBlock(id: string) {
+    if (this.options.readOnly) return;
     const placed = this.placed.find((p) => p.id === id);
     const shared = this.shared;
     this.companionUndo.stopCapturing();
