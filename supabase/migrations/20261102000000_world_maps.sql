@@ -19,8 +19,8 @@
 --    where an entry they cannot read sits.
 -- 5. Map backgrounds may be uploaded by anyone who may edit the entry (before,
 --    only owners, editors and Guides could, though players edit shared maps).
--- 6. Saved maps in the old world_entries.map shape move into the new tables.
---    The old columns are left in place, unread, for a later cleanup.
+-- 6. The old world_entries.map, map_settings and map_background_filename
+--    columns are dropped. No world has ever saved a map in them.
 begin;
 
 -- ---------------------------------------------------------------------------
@@ -403,83 +403,12 @@ using (bucket_id = 'world_map_backgrounds'
   and public.world_map_background_path_editable(name));
 
 -- ---------------------------------------------------------------------------
--- 6. Old maps
+-- 6. Old map columns
 -- ---------------------------------------------------------------------------
--- The old shape is Iron Fellowship's: hexes with pointy tops in rows, odd
--- rows shifted half a hex right, { "row": { "col": cell } }, where a cell has
--- an optional background colour, a type of "path" or "location", and the
--- location ids standing on it. Rows and columns become axial coordinates;
--- locations become pins at their cell's centre (only for entries that are
--- children of the map's entry, as every pin must be). The default cell size
--- is a hex radius of 24 map units; old maps scale from their own hex size.
 
-create function pg_temp.old_map_cells(p_map jsonb) returns table (q integer, r integer, cell jsonb, location_ids jsonb)
-language sql immutable as $$
-  select (c.key::integer - ((rw.key::integer - (rw.key::integer & 1)) / 2)) as q,
-         rw.key::integer as r,
-         jsonb_strip_nulls(jsonb_build_object(
-           'c', case when jsonb_typeof(c.value->'background'->'color') = 'string'
-                  and (c.value->'background'->>'color') ~ '^[A-Za-z][A-Za-z0-9_-]{0,31}$'
-                then c.value->'background'->'color' end,
-           'p', case when c.value->>'type' = 'path' then 'true'::jsonb end)) as cell,
-         case when c.value->>'type' = 'location' and jsonb_typeof(c.value->'locationIds') = 'array'
-           then c.value->'locationIds' else '[]'::jsonb end as location_ids
-    from jsonb_each(case when jsonb_typeof(p_map) = 'object' then p_map else '{}'::jsonb end) rw,
-         jsonb_each(case when jsonb_typeof(rw.value) = 'object' then rw.value else '{}'::jsonb end) c
-    where rw.key ~ '^[0-9]{1,5}$' and c.key ~ '^[0-9]{1,5}$'
-      and jsonb_typeof(c.value) = 'object'
-$$;
-
-create temporary table old_maps on commit drop as
-  select e.id as entry_id, e.world_id, e.map, e.map_background_filename,
-    greatest(1, coalesce((e.map_settings->>'hexSize')::double precision, 20)) as hex_size,
-    (e.map_settings->>'cols')::double precision as cols
-  from public.world_entries e
-  where (jsonb_typeof(e.map) = 'object' and e.map <> '{}'::jsonb)
-    or e.map_background_filename is not null;
-
-insert into public.world_maps (entry_id, world_id, grid, background_filename,
-    background_x, background_y, background_width)
-  select o.entry_id, o.world_id, 'hex_pointy', o.map_background_filename,
-    -24, -24,
-    case when o.map_background_filename is null then null
-      else (24 / o.hex_size) * coalesce(
-        o.cols * o.hex_size * sqrt(3) + o.hex_size * sqrt(3) / 2 - o.cols + 6, 675) end
-  from old_maps o
-  -- Old maps were only ever made for categories with maps; skip any that are
-  -- not, rather than fail the migration.
-  where exists (select 1 from public.world_entries e,
-      public.get_world_effective_categories(e.world_id) c
-    where e.id = o.entry_id and (c->>'id')::uuid = e.category_id
-      and coalesce((c->>'supports_map')::boolean, false));
-
-insert into public.world_map_chunks (entry_id, chunk_x, chunk_y, cells)
-  select o.entry_id, floor(cell.q / 16.0)::integer, floor(cell.r / 16.0)::integer,
-    jsonb_object_agg(cell.q || ',' || cell.r, cell.cell)
-  from old_maps o
-  join public.world_maps m on m.entry_id = o.entry_id,
-  pg_temp.old_map_cells(o.map) cell
-  where cell.cell <> '{}'::jsonb
-  group by o.entry_id, 2, 3;
-
-insert into public.world_map_pins (pinned_entry_id, entry_id, x, y)
-  select distinct on (child.id) child.id, o.entry_id,
-    24 * sqrt(3) * (cell.q + cell.r / 2.0), 24 * 1.5 * cell.r
-  from old_maps o
-  join public.world_maps m on m.entry_id = o.entry_id,
-  pg_temp.old_map_cells(o.map) cell,
-  jsonb_array_elements_text(cell.location_ids) location_id
-  join public.world_entries child
-    on location_id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    and child.id = location_id::uuid
-  where child.parent_entry_id = o.entry_id
-  order by child.id, cell.r, cell.q;
-
-comment on column public.world_entries.map is
-  'Unused since world_maps (20261026200000); kept until a cleanup migration.';
-comment on column public.world_entries.map_settings is
-  'Unused since world_maps (20261026200000); kept until a cleanup migration.';
-comment on column public.world_entries.map_background_filename is
-  'Unused since world_maps (20261026200000); kept until a cleanup migration.';
+alter table public.world_entries
+  drop column map,
+  drop column map_settings,
+  drop column map_background_filename;
 
 commit;
