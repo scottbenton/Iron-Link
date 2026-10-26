@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { worldEntry } from "components/worlds/entries/__tests__/fixtures";
 
@@ -12,6 +12,7 @@ import {
   IWorldEntry,
   WorldEntriesService,
 } from "services/worldEntries.service";
+import { WorldMapsService } from "services/worldMaps.service";
 
 import { WorldEntryMain } from "../WorldEntryMain";
 
@@ -84,5 +85,77 @@ describe("WorldEntryMain", () => {
     expect(
       screen.getByRole("heading", { name: "The Game" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("WorldEntryMain with a map", () => {
+  const region = worldEntry({ id: "region", name: "The Havens" });
+  const place = (id: string, name: string, readPermissions: ReadPermissions) =>
+    worldEntry({ id, name, parentEntryId: region.id, readPermissions });
+
+  beforeEach(() => {
+    // jsdom lays nothing out; the map draws pins only once it has a size.
+    vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(800);
+    vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(600);
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+    vi.spyOn(WorldMapsService, "listenToWorldMap").mockImplementation(
+      (entryId, onMap) => {
+        onMap({
+          entryId,
+          worldId: region.worldId,
+          grid: "hex_pointy",
+          hexFlowers: false,
+          background: null,
+        });
+        return () => {};
+      },
+    );
+    vi.spyOn(WorldMapsService, "listenToWorldMapChunks").mockImplementation(
+      (_, onChunks) => {
+        onChunks([], true);
+        return () => {};
+      },
+    );
+    vi.spyOn(WorldMapsService, "listenToWorldMapPins").mockImplementation(
+      (entryId, onPins) => {
+        onPins(
+          [
+            { entryId: "town", mapEntryId: entryId, x: 0, y: 0 },
+            { entryId: "lair", mapEntryId: entryId, x: 200, y: 0 },
+          ],
+          [],
+          true,
+        );
+        return () => {};
+      },
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("shows the map with pins for places everyone can read only", async () => {
+    useWorldEntriesStore.setState((store) => {
+      store.entryState.loading = false;
+      store.entryState.entries = {
+        region,
+        town: place("town", "Highwatch", ReadPermissions.AllPlayers),
+        lair: place("lair", "The Hidden Lair", ReadPermissions.OnlyGuides),
+      };
+    });
+    await act(async () => {
+      render(
+        <WorldEntryMain worldId={region.worldId} entryId={region.id} map />,
+      );
+    });
+    expect(
+      screen.getByRole("application", { name: "Map of The Havens" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Highwatch" })).toBeInTheDocument();
+    expect(screen.queryByText("The Hidden Lair")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Back to the map" }),
+    ).not.toBeInTheDocument();
   });
 });
