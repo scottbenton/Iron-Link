@@ -342,6 +342,58 @@ describe("SecretsController", () => {
     expect(readingOrder(shared)).toEqual(original);
   });
 
+  it("starts a line when the margin past an edge block is clicked", async () => {
+    const { controller, shared, companion, guideDoc } = await setup();
+    const fragment = guideDoc.getXmlFragment("default");
+    addSecretBlock(companion, {
+      id: "first",
+      shared: fragment,
+      index: 0,
+      createdBy: "guide",
+    });
+    addSecretBlock(companion, {
+      id: "last",
+      shared: fragment,
+      index: 3,
+      createdBy: "guide",
+    });
+    await flush();
+    const rect = (top: number) => () => new DOMRect(0, top, 100, 50);
+    controller.getBlock("first")!.dom.getBoundingClientRect = rect(100);
+    controller.getBlock("last")!.dom.getBoundingClientRect = rect(400);
+    const click = (clientY: number) =>
+      shared.view.dom.dispatchEvent(
+        new MouseEvent("mousedown", { bubbles: true, button: 0, clientY }),
+      );
+
+    click(500);
+    shared.commands.insertContent("After");
+    await flush();
+    await flush();
+    expect(readingOrder(shared)).toEqual([
+      "[first]",
+      "One",
+      "Two",
+      "Three",
+      "[last]",
+      "After",
+    ]);
+
+    click(50);
+    shared.commands.insertContent("Before");
+    await flush();
+    await flush();
+    expect(readingOrder(shared)).toEqual([
+      "Before",
+      "[first]",
+      "One",
+      "Two",
+      "Three",
+      "[last]",
+      "After",
+    ]);
+  });
+
   it("lists what the blocks mention", async () => {
     const { companion } = await setup();
     companion.transact(() => {

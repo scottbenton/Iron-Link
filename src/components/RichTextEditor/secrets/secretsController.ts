@@ -394,6 +394,42 @@ export class SecretsController {
     return true;
   }
 
+  // A click in the note's margin below a block at its very end, or above one
+  // at its very start, starts a new line there, as the arrow keys do.
+  public clickPastEdge(event: MouseEvent) {
+    const shared = this.shared;
+    if (
+      !shared ||
+      this.options.readOnly ||
+      event.button !== 0 ||
+      event.target !== shared.view.dom
+    ) {
+      return false;
+    }
+    const childCount = shared.state.doc.childCount;
+    const last = this.placed[this.placed.length - 1];
+    const lastDom = last && this.blocks.get(last.id)?.dom;
+    if (
+      last?.index === childCount &&
+      lastDom &&
+      event.clientY > lastDom.getBoundingClientRect().bottom
+    ) {
+      event.preventDefault();
+      return this.leaveIntoNewParagraph(1);
+    }
+    const first = this.placed[0];
+    const firstDom = first && this.blocks.get(first.id)?.dom;
+    if (
+      first?.index === 0 &&
+      firstDom &&
+      event.clientY < firstDom.getBoundingClientRect().top
+    ) {
+      event.preventDefault();
+      return this.leaveIntoNewParagraph(-1);
+    }
+    return false;
+  }
+
   public onSharedFocus() {
     this.setActiveBlock(null);
   }
