@@ -30,7 +30,7 @@ export function WorldEntryNotes({
   const uploadEntryImage = useWorldEntriesStore(
     (store) => store.uploadEntryImage,
   );
-  const { id: entryId, worldId, readPermissions } = entry;
+  const { id: entryId, worldId } = entry;
 
   const load = useCallback(
     () => getEntryNotesContent(entryId).then(({ content }) => content),
@@ -54,9 +54,8 @@ export function WorldEntryNotes({
         surface: { worldEntryId: entryId },
         permission,
         isGuided,
-        readPermissions,
       }),
-    [worldId, entryId, permission, isGuided, readPermissions],
+    [worldId, entryId, permission, isGuided],
   );
 
   return (
