@@ -89,6 +89,9 @@ vi.mock(
   "pages/games/characterSheet/components/NotesSection/hooks/useGameWorld",
   () => ({ useGameWorldId: () => state.gameWorldId }),
 );
+vi.mock("hooks/advancedFeatures/advancedFeatures", () => ({
+  useAdvancedFeatureToggle: () => true,
+}));
 vi.mock(
   "pages/games/characterSheet/components/NotesSection/WorldView/LinkWorldDialog",
   () => ({ LinkWorldDialog: () => null }),

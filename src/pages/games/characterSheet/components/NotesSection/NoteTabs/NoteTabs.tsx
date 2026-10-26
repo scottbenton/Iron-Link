@@ -3,6 +3,11 @@ import CloseIcon from "@mui/icons-material/Close";
 import { Box, IconButton, Tab, Tabs } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { ErrorBoundary } from "components/ErrorBoundary";
+import { EmptyState } from "components/Layout/EmptyState";
+
+import { notesDestinationKey } from "pages/games/gamePageLayout/hooks/notesDestination";
+
 import { useUID } from "stores/auth.store";
 import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
 import { useWorldStore } from "stores/world.store";
@@ -97,6 +102,7 @@ export function NoteTabs() {
   const rootPlayerFolder = useNotesStore((store) =>
     uid ? getPlayerNotesFolder(uid, store.folderState.folders) : undefined,
   );
+  const folders = useNotesStore((store) => store.folderState.folders);
 
   return (
     <Box height={"100%"} display="flex" flexDirection="column">
@@ -211,24 +217,51 @@ export function NoteTabs() {
             flexDirection={"column"}
             overflow="auto"
           >
-            {tabItem.type === "world" ? (
-              <GameWorldView
-                worldId={tabItem.itemId}
-                worldView={tabItem.worldView}
-              />
-            ) : tabItem.type === "folder" ? (
-              <>
-                <FolderViewToolbar folderId={tabItem.itemId} />
-                <OpenItemWrapper sx={{ flexGrow: 1 }}>
-                  <FolderView folderId={tabItem.itemId} />
-                  {rootPlayerFolder?.id === tabItem.itemId && (
-                    <FolderView folderId={undefined} />
+            {/* Keyed by destination so opening something else in the tab
+                clears a crash. A link can name anything, including what
+                this person cannot read. */}
+            <ErrorBoundary
+              key={notesDestinationKey(tabItem)}
+              fallback={
+                <EmptyState
+                  title={t("notes.tab-error-title", "Something went wrong")}
+                  message={t(
+                    "notes.tab-error",
+                    "This tab could not be shown. Close it or open something else.",
                   )}
-                </OpenItemWrapper>
-              </>
-            ) : (
-              <NoteView openNoteId={tabItem.itemId} />
-            )}
+                  sx={{ mt: 4 }}
+                />
+              }
+            >
+              {tabItem.type === "world" ? (
+                <GameWorldView
+                  worldId={tabItem.itemId}
+                  worldView={tabItem.worldView}
+                />
+              ) : tabItem.type === "folder" && !folders[tabItem.itemId] ? (
+                // Unreadable folders are filtered out, like deleted ones.
+                <EmptyState
+                  title={t("notes.folder-missing-title", "Folder unavailable")}
+                  message={t(
+                    "notes.folder-missing",
+                    "This folder was deleted, or you do not have access to it.",
+                  )}
+                  sx={{ mt: 4 }}
+                />
+              ) : tabItem.type === "folder" ? (
+                <>
+                  <FolderViewToolbar folderId={tabItem.itemId} />
+                  <OpenItemWrapper sx={{ flexGrow: 1 }}>
+                    <FolderView folderId={tabItem.itemId} />
+                    {rootPlayerFolder?.id === tabItem.itemId && (
+                      <FolderView folderId={undefined} />
+                    )}
+                  </OpenItemWrapper>
+                </>
+              ) : (
+                <NoteView openNoteId={tabItem.itemId} />
+              )}
+            </ErrorBoundary>
           </Box>
         );
       })}
