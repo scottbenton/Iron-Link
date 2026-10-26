@@ -90,10 +90,14 @@ export interface WorldMapViewportProps<T> {
   renderPin: (placement: WorldMapPinPlacement<T>) => ReactNode;
   // Extra controls over the map, top left.
   overlay?: ReactNode;
+  // 44px controls over the map, for phones.
+  touch?: boolean;
   height?: number | string;
 }
 
 const ZOOM_STEP = 1.25;
+// How long a still finger waits for a second one before it paints.
+const TOUCH_STROKE_DELAY_MS = 120;
 const PAN_STEP = 64;
 
 function getViewSize(element: HTMLElement | null): ViewSize {
@@ -124,6 +128,7 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     onPinDrop,
     renderPin,
     overlay,
+    touch = false,
     height = "min(70vh, 640px)",
   } = props;
   const { t } = useTranslation();
@@ -258,6 +263,9 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
   const pointers = useRef(new Map<number, Point>());
   const gesture = useRef<
     | { type: "tool" }
+    // A finger down that may yet become a pinch: the stroke waits until it
+    // moves, holds still a moment, or lifts.
+    | { type: "pending"; start: Point; time: number }
     | { type: "pan"; last: Point; tap?: Point }
     | { type: "pinch"; center: Point; distance: number }
     | null
@@ -316,6 +324,16 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     } else if (pointers.current.size === 1) {
       if (toolActive && toolMode === "tap" && event.button === 0) {
         gesture.current = { type: "pan", last: screen, tap: screen };
+      } else if (
+        toolActive &&
+        event.button === 0 &&
+        event.pointerType === "touch"
+      ) {
+        gesture.current = {
+          type: "pending",
+          start: screen,
+          time: event.timeStamp,
+        };
       } else if (toolActive && event.button === 0) {
         gesture.current = { type: "tool" };
         onToolPointer?.(toolEvent("start", screen, event.pointerType));
@@ -360,7 +378,17 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     pointers.current.set(event.pointerId, screen);
     const current = gesture.current;
     if (!current) return;
-    if (current.type === "tool") {
+    if (current.type === "pending") {
+      const moved = Math.hypot(
+        screen.x - current.start.x,
+        screen.y - current.start.y,
+      );
+      if (moved < 8 && event.timeStamp - current.time < TOUCH_STROKE_DELAY_MS)
+        return;
+      gesture.current = { type: "tool" };
+      onToolPointer?.(toolEvent("start", current.start, event.pointerType));
+    }
+    if (gesture.current?.type === "tool") {
       const toolMove = toolEvent("move", screen, event.pointerType);
       if (getHighlight && toolMove.cell)
         setHighlight(getHighlight(toolMove.cell));
@@ -375,7 +403,7 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
       const dy = screen.y - current.last.y;
       current.last = screen;
       setCamera((value) => panBy(value, dx, dy));
-    } else if (pointers.current.size >= 2) {
+    } else if (current.type === "pinch" && pointers.current.size >= 2) {
       const next = pinchState();
       const size = getViewSize(containerRef.current);
       setCamera((value) =>
@@ -417,6 +445,15 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
       event.type !== "pointercancel"
     ) {
       onToolPointer?.(toolEvent("end", screen, event.pointerType));
+    }
+    if (
+      current?.type === "pending" &&
+      pointers.current.size === 0 &&
+      event.type !== "pointercancel"
+    ) {
+      // A tap paints where it landed.
+      onToolPointer?.(toolEvent("start", current.start, event.pointerType));
+      onToolPointer?.(toolEvent("end", current.start, event.pointerType));
     }
     if (current?.type === "tool") {
       onToolPointer?.(
@@ -591,6 +628,7 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
           onClick={fit}
           sx={{
             ml: "auto",
+            minHeight: touch ? 44 : undefined,
             bgcolor: "background.paper",
             color: "text.primary",
           }}
