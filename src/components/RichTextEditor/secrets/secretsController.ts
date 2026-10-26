@@ -283,8 +283,10 @@ export class SecretsController {
       return true;
     }
     const doc = shared.state.doc;
-    if (direction < 0 && index === 0) return false;
-    if (direction > 0 && index >= doc.childCount) return false;
+    const atEdge =
+      (direction < 0 && index === 0) ||
+      (direction > 0 && index >= doc.childCount);
+    if (atEdge) return this.leaveIntoNewParagraph(direction);
     const pos = topLevelIndexToPos(doc, index) + direction;
     // On focus ProseMirror reads the DOM selection, which is still inside the
     // block, and would map it to the widget's boundary: clear it, focus, then
@@ -297,6 +299,24 @@ export class SecretsController {
           TextSelection.near(shared.state.doc.resolve(pos), direction),
         )
         .scrollIntoView(),
+    );
+    this.setActiveBlock(null);
+    return true;
+  }
+
+  // A block at the very start or end of the note has nothing past it, so
+  // leaving that way adds an empty paragraph there for the caret. Its anchor
+  // holds the block to the node on its other side.
+  private leaveIntoNewParagraph(direction: -1 | 1) {
+    const shared = this.shared;
+    const paragraph = shared?.schema.nodes.paragraph;
+    if (!shared || !paragraph || !shared.isEditable) return false;
+    const at = direction < 0 ? 0 : shared.state.doc.content.size;
+    window.getSelection()?.removeAllRanges();
+    shared.view.focus();
+    const tr = shared.state.tr.insert(at, paragraph.create());
+    shared.view.dispatch(
+      tr.setSelection(TextSelection.create(tr.doc, at + 1)).scrollIntoView(),
     );
     this.setActiveBlock(null);
     return true;

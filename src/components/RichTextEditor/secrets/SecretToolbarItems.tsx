@@ -1,9 +1,7 @@
 import InsertSecretIcon from "@mui/icons-material/EnhancedEncryptionOutlined";
-import LockIcon from "@mui/icons-material/LockOutlined";
 import MakeSecretIcon from "@mui/icons-material/VisibilityOffOutlined";
 import {
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -22,8 +20,7 @@ export interface SecretToolbarItemsProps {
   secrets: SecretsToolbarState;
 }
 
-// The toolbar's secret controls, for Guides: a Secret label while the caret
-// is in a block, then Make secret and Insert secret.
+// The toolbar's secret controls, for Guides: Make secret and Insert secret.
 export function SecretToolbarItems(props: SecretToolbarItemsProps) {
   const { secrets } = props;
   const { t } = useTranslation();
@@ -34,14 +31,6 @@ export function SecretToolbarItems(props: SecretToolbarItemsProps) {
 
   return (
     <>
-      {secrets.inSecret && (
-        <Chip
-          size="small"
-          variant="outlined"
-          icon={<LockIcon />}
-          label={t("notes.secrets.label", "Secret")}
-        />
-      )}
       {secrets.canMakeSecret && (
         <Tooltip title={makeLabel} enterDelay={300}>
           <IconButton
