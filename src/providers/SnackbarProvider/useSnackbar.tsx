@@ -182,6 +182,8 @@ function getTranslatedNoun(noun: ErrorNoun, plural: boolean): string {
       return plural
         ? i18n.t("errors.worldEntryFieldValues", "field values")
         : i18n.t("errors.worldEntryFieldValue", "field value");
+    case ErrorNoun.Secrets:
+      return i18n.t("errors.secrets", "secrets");
     default:
       return "";
   }
