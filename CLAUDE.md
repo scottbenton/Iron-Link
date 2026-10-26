@@ -51,8 +51,8 @@ that are easy to miss. When you learn a new one, add a line here.
   with everyone (`all_players` read and edit, so players can add notes).
   Only Guides choose, and only in guided worlds; a trigger refuses permission
   changes from anyone else. Older author-scoped entries read as shared.
-- Long text fields are no longer offered for new fields; existing ones keep
-  working.
+- There are no Long text fields: Notes is the only rich text on an entry, and
+  field types are `text` and `select` (values are plain JSON, no `content`).
 - World Notes (headed "Overview" on the world home) are Yjs bytes in
   `worlds.notes_content`, left out of world list queries. Guides edit them but
   may not update `worlds`, so every save goes through the

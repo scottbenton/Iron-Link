@@ -10,8 +10,8 @@ import {
 
 /**
  * The text a list shows under an entry's name: its category's subtitle field,
- * when that field applies to the entry. Long text never shows, and linked
- * entries show the names of the ones this client can read.
+ * when that field applies to the entry. Linked entries show the names of
+ * the ones this client can read.
  */
 export function getWorldEntrySubtitle(
   definition: IWorldFieldDefinition | undefined,
@@ -29,8 +29,6 @@ export function getWorldEntrySubtitle(
   );
   let parts: string[];
   switch (getWorldFieldKind(definition)) {
-    case "longText":
-      return undefined;
     case "linkedEntry":
       parts = values.flatMap((id) => {
         const name = entries[id]?.name;

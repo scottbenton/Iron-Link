@@ -1,7 +1,5 @@
 import { Json } from "types/supabase-generated.type";
 
-import { byteaToUint8Array, uint8ArrayToBytea } from "lib/bytea.lib";
-
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import {
   WorldEntryFieldValueDTO,
@@ -10,7 +8,7 @@ import {
 } from "repositories/worldEntryFieldValues.repository";
 
 // Text and single Select values are strings; multi Selects store arrays.
-// Linked Selects store entry IDs. Rich text lives in `content` instead.
+// Linked Selects store entry IDs.
 export type WorldFieldValue = string | string[];
 
 export interface IWorldEntryFieldValue {
@@ -66,34 +64,6 @@ export class WorldEntryFieldValuesService {
     });
   }
 
-  public static setWorldEntryFieldContent(
-    entryId: string,
-    worldId: string,
-    fieldDefinitionId: string,
-    content: Uint8Array,
-  ): Promise<void> {
-    return WorldEntryFieldValuesRepository.upsertWorldEntryFieldValue({
-      entry_id: entryId,
-      world_id: worldId,
-      field_definition_id: fieldDefinitionId,
-      content: uint8ArrayToBytea(content),
-    });
-  }
-
-  public static async getWorldEntryFieldContent(
-    entryId: string,
-    fieldDefinitionId: string,
-  ): Promise<{ content: Uint8Array }> {
-    const row =
-      await WorldEntryFieldValuesRepository.getWorldEntryFieldValueContent(
-        entryId,
-        fieldDefinitionId,
-      );
-    return {
-      content: row?.content ? byteaToUint8Array(row.content) : new Uint8Array(),
-    };
-  }
-
   public static deleteWorldEntryFieldValue(
     entryId: string,
     fieldDefinitionId: string,
@@ -104,7 +74,6 @@ export class WorldEntryFieldValuesService {
     );
   }
 
-  // Picks columns explicitly so realtime rows' rich text `content` is dropped.
   private static convertValueDTOToValue(
     value: WorldEntryFieldValueDTO,
   ): IWorldEntryFieldValue {
