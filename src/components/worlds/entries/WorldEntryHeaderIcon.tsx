@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 
+import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import {
@@ -28,6 +29,9 @@ export function WorldEntryHeaderIcon({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const updateEntry = useWorldEntriesStore((store) => store.updateEntry);
+  const categoryIcon = useWorldCategoriesStore(
+    (store) => store.categories[entry.categoryId]?.icon ?? null,
+  );
 
   const hasImage = !!entry.imageFilename;
   if (!hasImage && !canEdit)
@@ -75,6 +79,7 @@ export function WorldEntryHeaderIcon({
       {open && !entry.imageFilename && (
         <WorldIconPickerDialog
           value={entry.icon}
+          inherited={categoryIcon}
           title={t("worlds.entries.choose-icon-title", "Choose entry icon")}
           onSave={(icon) => {
             updateEntry(entry.id, { icon }).catch(onError);
