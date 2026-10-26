@@ -212,6 +212,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
           key={block.id}
           block={block}
           onMounted={onBlockMounted}
+          audience={secrets?.audience ?? "guides"}
           onDelete={readOnly ? undefined : deleteBlock}
         />
       ))}
