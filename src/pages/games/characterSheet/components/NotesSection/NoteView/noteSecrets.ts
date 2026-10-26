@@ -5,12 +5,10 @@ import { GamePermission } from "stores/game.store";
 import { GameType } from "repositories/game.repository";
 import { ReadPermissions } from "repositories/shared.types";
 
-// A game note's secrets, for whoever is reading it. Only a Guide (the guide
-// role, or any member of a solo or co-op game) gets them. New secrets are
-// offered only where someone who isn't a Guide can read the note: in a guided
-// game, and not in a note only Guides can read (only_guides, or only_author
-// when the reader, its author, is a Guide). A Guide who can't edit the note
-// sees its secrets read-only, since the editor is read-only for them.
+// A game note's secrets, for whoever is reading it. Only a Guide of a guided
+// game gets them, whoever can read the note, so a Guide can prepare secrets
+// before sharing it; solo and co-op games have none. A Guide who can't edit
+// the note sees its secrets read-only, since the editor is read-only for them.
 export function getNoteSecretsConfig(params: {
   gameId: string;
   noteId: string;
@@ -19,14 +17,18 @@ export function getNoteSecretsConfig(params: {
   readPermissions: ReadPermissions | undefined;
 }): SecretsConfig | null {
   const { gameId, noteId, gameType, gamePermission, readPermissions } = params;
-  if (gamePermission !== GamePermission.Guide || !readPermissions) return null;
-  const canInsert =
-    gameType === GameType.Guided &&
-    readPermissions !== ReadPermissions.OnlyGuides &&
-    readPermissions !== ReadPermissions.OnlyAuthor;
+  if (
+    gameType !== GameType.Guided ||
+    gamePermission !== GamePermission.Guide ||
+    !readPermissions
+  ) {
+    return null;
+  }
   return {
     surface: { noteId },
     roomKeySource: { guideGameId: gameId },
-    canInsert,
+    // Only its author reads an only_author note, and they're this Guide.
+    audience: readPermissions === ReadPermissions.OnlyAuthor ? "you" : "guides",
+    canInsert: true,
   };
 }
