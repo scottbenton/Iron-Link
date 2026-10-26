@@ -5,8 +5,8 @@ create extension if not exists pgtap with schema extensions;
 set search_path = public,extensions;
 select no_plan();
 
-select is(pg_get_constraintdef(oid),'CHECK ((type = ANY (ARRAY[''text''::text, ''richText''::text, ''select''::text])))',
-  'field definitions store only text, rich text and select')
+select is(pg_get_constraintdef(oid),'CHECK ((type = ANY (ARRAY[''text''::text, ''select''::text])))',
+  'field definitions store only text and select')
   from pg_constraint where conname='world_field_definitions_type_check';
 select ok(not has_function_privilege('authenticated','public.world_configuration_convert_legacy_field(jsonb,jsonb)','EXECUTE')
   and not has_function_privilege('anon','public.world_configuration_convert_legacy_field(jsonb,jsonb)','EXECUTE')
@@ -90,7 +90,7 @@ select is(pg_temp.convert(pg_temp.legacy('select','{"multiple":true,"allowOther"
   pg_temp.legacy('select','{"multiple":true,"allowOther":false,"suggestions":["A"]}'),'conversion leaves current types unchanged');
 select lives_ok($$select public.world_configuration_validate_field(converted->'configuration',converted->>'type')
   from (values (pg_temp.convert(pg_temp.legacy('text','{"suggestions":["A"]}'))),(pg_temp.convert(pg_temp.legacy('tags'))),
-    (pg_temp.convert(pg_temp.legacy('number'))),(pg_temp.convert(pg_temp.legacy('richText'))),
+    (pg_temp.convert(pg_temp.legacy('number'))),
     (pg_temp.convert(pg_temp.legacy('categorySelect','{"targetCategoryId":"f1000000-0000-4000-8000-000000000001"}')))) c(converted)$$,
   'every converted definition passes field validation');
 
@@ -99,12 +99,12 @@ create temporary view template_fields as
   select t.setting_key,c.value->>'key' as category_key,f.value as field
   from public.world_templates t,lateral jsonb_array_elements(t.configuration->'categories') c,
     lateral jsonb_array_elements(c.value->'fields') f;
-select is((select count(*) from template_fields where field->>'type' not in ('text','richText','select')),0::bigint,
+select is((select count(*) from template_fields where field->>'type' not in ('text','select')),0::bigint,
   'no shared default uses a legacy field type');
 select lives_ok($$select public.world_configuration_validate_field(field->'configuration',field->>'type') from template_fields$$,
   'every shared default passes the consolidated field validation');
 select is((select count(*) from template_fields where field->'binding'<>'null'::jsonb
-  and (field->>'type'='richText' or field->'configuration' ? 'targetCategoryId')),0::bigint,
+  and field->'configuration' ? 'targetCategoryId'),0::bigint,
   'shared defaults bind oracles only to text and list selects');
 select is((select count(*) from template_fields where field->>'key' in ('locationType','factionType')
   and not (field->>'type'='select' and field->'configuration'->>'multiple'='false'
@@ -188,9 +188,6 @@ select throws_ok($$select pg_temp.mutate(pg_temp.field('f9100000-0000-4000-8000-
 select throws_ok($$select pg_temp.mutate(pg_temp.field('f9100000-0000-4000-8000-000000000001','text',
   pg_temp.cfg('{"multiple":false,"allowOther":true}')))$$,
   'P0001','Only select fields may set multiple or allowOther','text cannot carry select flags');
-select throws_ok($$select pg_temp.mutate(pg_temp.field('f9100000-0000-4000-8000-000000000001','richText',
-  pg_temp.cfg('{"allowOther":true}')))$$,
-  'P0001','Only select fields may set multiple or allowOther','rich text cannot carry select flags');
 select throws_ok($$select pg_temp.mutate(pg_temp.field('f9100000-0000-4000-8000-000000000001','text',
   pg_temp.cfg('{"suggestions":["Area"]}')))$$,
   'P0001','Invalid field suggestions or rule count','text has no suggestions; use an option list');
@@ -202,20 +199,13 @@ select throws_ok($$select pg_temp.mutate(pg_temp.field('f9100000-0000-4000-8000-
   'P0001','Options must be unique and nonblank','blank options are rejected');
 select throws_ok($$select pg_temp.mutate(pg_temp.field('f9100000-0000-4000-8000-000000000001','tags',pg_temp.cfg()))$$,
   'P0001','Invalid field type','legacy types are rejected');
-select throws_ok($$select pg_temp.mutate(pg_temp.field('f9100000-0000-4000-8000-000000000001','richText',pg_temp.cfg(),
-  jsonb_build_object('binding',pg_temp.binding('base'))))$$,
-  'P0001','Rich text fields cannot use oracle bindings','rich text has no base binding');
-select throws_ok($$select pg_temp.mutate(pg_temp.field('f9100000-0000-4000-8000-000000000001','richText',
-  pg_temp.cfg(jsonb_build_object('rules',jsonb_build_array(pg_temp.rule_on(
-    pg_temp.f('main','locations','locationType')::text,pg_temp.binding('rule')))))))$$,
-  'P0001','Rich text fields cannot use oracle bindings','rich text has no rule binding');
+select throws_ok($$select pg_temp.mutate(pg_temp.field('f9100000-0000-4000-8000-000000000001','richText',pg_temp.cfg()))$$,
+  'P0001','Invalid field type','Long text is no longer a field type');
 select lives_ok($$select pg_temp.mutate(pg_temp.field('f9100000-0000-4000-8000-000000000002','select',
   pg_temp.cfg('{"multiple":false,"allowOther":false,"suggestions":["Hot","Cold"]}'),
   jsonb_build_object('binding',pg_temp.binding('climate'))))$$,'a strict list select may roll from an oracle');
 select lives_ok($$select pg_temp.mutate(pg_temp.field('f9100000-0000-4000-8000-000000000003','select',
   pg_temp.cfg('{"multiple":true,"allowOther":false,"suggestions":["River","Hill"]}')))$$,'a strict multi list select is valid');
-select lives_ok($$select pg_temp.mutate(pg_temp.field('f9100000-0000-4000-8000-000000000004','richText',pg_temp.cfg()))$$,
-  'rich text without bindings is valid');
 select lives_ok($$select pg_temp.mutate(pg_temp.field('f9100000-0000-4000-8000-000000000005','select',
   pg_temp.cfg(jsonb_build_object('multiple',false,'allowOther',false,'targetCategoryId',pg_temp.c('main','locations')))))$$,
   'a single linked entry select may target its own category');
@@ -251,8 +241,6 @@ select throws_ok($$select pg_temp.ruled(pg_temp.condition('f9100000-0000-4000-80
   'P0001','Condition source has an incompatible field type','contains is unavailable on single selects');
 select throws_ok($$select pg_temp.ruled(pg_temp.condition(pg_temp.f('main','npcs','pronouns'),'isEmpty',null))$$,
   'P0001','Condition references a missing or foreign-category field','sources stay within the category');
-select throws_ok($$select pg_temp.ruled(pg_temp.condition('f9100000-0000-4000-8000-000000000004','isEmpty',null))$$,
-  'P0001','Condition source has an incompatible field type','rich text is never a condition source');
 select throws_ok($$select pg_temp.ruled(pg_temp.condition('f9100000-0000-4000-8000-000000000003','contains',null))$$,
   'P0001','Invalid field condition','contains requires a value');
 create function pg_temp.ancestor(p_selector uuid,p_value text default 'Sector') returns jsonb language sql as $$
@@ -305,14 +293,7 @@ select lives_ok($$select pg_temp.put('f9300000-0000-4000-8000-000000000002','f91
   'text may use 1000 characters');
 delete from public.world_entry_field_values where entry_id='f9300000-0000-4000-8000-000000000002'
   and field_definition_id='f9100000-0000-4000-8000-000000000006';
-select throws_ok($$insert into public.world_entry_field_values(entry_id,field_definition_id,world_id,content)
-  values ('f9300000-0000-4000-8000-000000000002','f9100000-0000-4000-8000-000000000006',pg_temp.w('main'),'\x01')$$,
-  'P0001','Only rich text values can contain collaborative content','text never stores collaborative content');
-select throws_ok($$select pg_temp.put('f9300000-0000-4000-8000-000000000002','f9100000-0000-4000-8000-000000000004','"Prose"')$$,
-  'P0001','Rich text values must be collaborative content','rich text never stores a JSON value');
-select lives_ok($$insert into public.world_entry_field_values(entry_id,field_definition_id,world_id,content)
-  values ('f9300000-0000-4000-8000-000000000001','f9100000-0000-4000-8000-000000000004',pg_temp.w('main'),'\x0102')$$,
-  'rich text stores collaborative content');
+select hasnt_column('public','world_entry_field_values','content','values carry no collaborative content');
 select lives_ok($$select pg_temp.mutate(pg_temp.change('f9100000-0000-4000-8000-000000000002',
   jsonb_build_object('configuration',pg_temp.cfg('{"multiple":false,"allowOther":false,"suggestions":["Cold"]}'))))$$,
   'options can be removed while values use them');
@@ -381,9 +362,6 @@ select throws_ok($$select pg_temp.mutate(pg_temp.change(pg_temp.f('main','npcs',
 select throws_ok($$select pg_temp.mutate(pg_temp.change('f9100000-0000-4000-8000-000000000006',
   jsonb_build_object('type','richText')))$$,
   'P0001','This type change cannot preserve existing values; create a new field','text to rich text is blocked');
-select throws_ok($$select pg_temp.mutate(pg_temp.change('f9100000-0000-4000-8000-000000000004',
-  jsonb_build_object('type','text')))$$,
-  'P0001','This type change cannot preserve existing values; create a new field','rich text to text is blocked');
 select lives_ok($$select pg_temp.mutate(pg_temp.change('f9100000-0000-4000-8000-000000000002',
   jsonb_build_object('type','text','configuration',pg_temp.cfg())))$$,'single list to text is allowed');
 select is(pg_temp.stored('f9300000-0000-4000-8000-000000000001','f9100000-0000-4000-8000-000000000002'),'"Hot"'::jsonb,
@@ -496,8 +474,6 @@ select is(public.get_world_field_options(pg_temp.w('main'),'f9100000-0000-4000-8
   array['Miller''s rest','Toll bridge'],'text fields offer their stored values');
 select throws_ok($$select public.get_world_field_options(pg_temp.w('main'),pg_temp.f('main','npcs','location'))$$,
   'P0001','Only text and option list fields have options','linked entry selects have no option list');
-select throws_ok($$select public.get_world_field_options(pg_temp.w('main'),'f9100000-0000-4000-8000-000000000004')$$,
-  'P0001','Only text and option list fields have options','rich text has no option list');
 select throws_ok($$select public.get_world_field_options(pg_temp.w('main'),'f9100000-0000-4000-8000-000000000099')$$,
   'P0001','Unknown world field definition','unknown fields are rejected');
 select throws_ok($$select public.get_world_field_options(pg_temp.w('main'),pg_temp.f('forge','locations','locationType'))$$,
