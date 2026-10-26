@@ -22,6 +22,8 @@ export enum ErrorNoun {
   WorldEntry = "world entry",
   WorldFieldDefinition = "world field definition",
   WorldEntryFieldValue = "world entry field value",
+  WorldMap = "world map",
+  WorldMapPin = "world map pin",
   RoomKey = "room key",
 }
 
@@ -44,6 +46,8 @@ export enum ErrorReason {
   // The database refused a world entry parent: another category, the entry
   // itself, one of its descendants, or a category without nesting.
   InvalidParent = "INVALID_PARENT",
+  // The database refused a grid change because the map has painted cells.
+  MapNotEmpty = "MAP_NOT_EMPTY",
   Unknown = "UNKNOWN",
 }
 
@@ -103,6 +107,9 @@ export function getRepositoryError(
   if (isInvalidParentError(error)) {
     reason = ErrorReason.InvalidParent;
   }
+  if (hasCheckHint(error, "map_not_empty")) {
+    reason = ErrorReason.MapNotEmpty;
+  }
 
   return createRepositoryError(reason, verb, noun, plural, message);
 }
@@ -132,13 +139,17 @@ export function createRepositoryError(
 // Every refused parent raises check_violation with this hint; the message
 // names the specific case and is not part of the contract.
 function isInvalidParentError(error: unknown): boolean {
+  return hasCheckHint(error, "invalid_parent");
+}
+
+function hasCheckHint(error: unknown, hint: string): boolean {
   return (
     typeof error === "object" &&
     error !== null &&
     "code" in error &&
     "hint" in error &&
     error.code === "23514" &&
-    error.hint === "invalid_parent"
+    error.hint === hint
   );
 }
 

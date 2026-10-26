@@ -41,6 +41,12 @@ export function parseRepositoryErrorAndGetText(error: RepositoryError) {
       "That entry can't be placed there. Choose an entry in the same category that isn't the entry itself or one of its nested entries.",
     );
   }
+  if (error.reason === ErrorReason.MapNotEmpty) {
+    return i18n.t(
+      "errors.mapNotEmpty",
+      "The grid can only change while the map has no paint. Clear the map first.",
+    );
+  }
   const reason = getTranslatedReason(error.reason);
   const noun = getTranslatedNoun(error.noun, error.plural);
   const verb = getTranslatedVerb(error.verb);
@@ -182,6 +188,14 @@ function getTranslatedNoun(noun: ErrorNoun, plural: boolean): string {
       return plural
         ? i18n.t("errors.worldEntryFieldValues", "field values")
         : i18n.t("errors.worldEntryFieldValue", "field value");
+    case ErrorNoun.WorldMap:
+      return plural
+        ? i18n.t("errors.worldMaps", "maps")
+        : i18n.t("errors.worldMap", "map");
+    case ErrorNoun.WorldMapPin:
+      return plural
+        ? i18n.t("errors.worldMapPins", "pins")
+        : i18n.t("errors.worldMapPin", "pin");
     default:
       return "";
   }

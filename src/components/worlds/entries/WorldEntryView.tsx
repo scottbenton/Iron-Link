@@ -26,6 +26,7 @@ import { getWorldEntrySubtitle } from "lib/worldEntrySubtitle";
 import { IWorldCategory } from "services/worldCategories.service";
 
 import { getEditorErrorMessage } from "../categories/categoryEditor.utils";
+import { WorldEntryMap } from "../maps/WorldEntryMap";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldEntryFields } from "./WorldEntryFields";
 import { WorldEntryHeaderIcon } from "./WorldEntryHeaderIcon";
@@ -40,8 +41,9 @@ const READ_ONLY = {
 };
 
 // One entry's page: its portrait or icon, name and subtitle, then its
-// fields and Notes. In a category with nesting, Details and Places are tabs
-// under the header; Places lists the entries inside this one. Its actions sit
+// fields and Notes. In a category with nesting or maps, Details, Map and
+// Places are tabs under the header; Places lists the entries inside this one
+// and Map holds the entry's map. Its actions sit
 // in the strip above, which the manager renders, or beside the name when the
 // manager passes them in. The manager also listens to the world's entries, so
 // moving here
@@ -130,10 +132,15 @@ export function WorldEntryView({
     );
 
   const hasPlaces = category.supportsHierarchy;
+  const hasMap = category.supportsMap;
+  const requested =
+    navigation.view.type === "entry" ? navigation.view.section : undefined;
   const section =
-    hasPlaces && navigation.view.type === "entry" && navigation.view.section
+    requested === "places" && hasPlaces
       ? "places"
-      : "details";
+      : requested === "map" && hasMap
+        ? "map"
+        : "details";
   const detailsView = {
     type: "entry" as const,
     categoryId: category.id,
@@ -177,7 +184,7 @@ export function WorldEntryView({
           </Box>
         )}
       </Box>
-      {hasPlaces && (
+      {(hasPlaces || hasMap) && (
         <Tabs
           value={section}
           aria-label={t("worlds.entries.views", "{{name}} views", {
@@ -192,23 +199,44 @@ export function WorldEntryView({
             {...navigation.getLinkProps(detailsView)}
             sx={{ minHeight: 40 }}
           />
-          <Tab
-            value="places"
-            label={
-              <Box component="span" sx={{ display: "flex", gap: 0.75 }}>
-                {t("worlds.entries.places", "Places")}
-                <Box component="span" sx={{ color: "text.secondary" }}>
-                  {placeCount}
+          {hasMap && (
+            <Tab
+              value="map"
+              label={t("worlds.entries.map", "Map")}
+              component={LinkComponent}
+              {...navigation.getLinkProps({ ...detailsView, section: "map" })}
+              sx={{ minHeight: 40 }}
+            />
+          )}
+          {hasPlaces && (
+            <Tab
+              value="places"
+              label={
+                <Box component="span" sx={{ display: "flex", gap: 0.75 }}>
+                  {t("worlds.entries.places", "Places")}
+                  <Box component="span" sx={{ color: "text.secondary" }}>
+                    {placeCount}
+                  </Box>
                 </Box>
-              </Box>
-            }
-            component={LinkComponent}
-            {...navigation.getLinkProps({ ...detailsView, section: "places" })}
-            sx={{ minHeight: 40 }}
-          />
+              }
+              component={LinkComponent}
+              {...navigation.getLinkProps({
+                ...detailsView,
+                section: "places",
+              })}
+              sx={{ minHeight: 40 }}
+            />
+          )}
         </Tabs>
       )}
-      {section === "places" ? (
+      {section === "map" ? (
+        <WorldEntryMap
+          key={entry.id}
+          entry={entry}
+          canEdit={permissions.canEdit}
+          navigation={navigation}
+        />
+      ) : section === "places" ? (
         <WorldEntryPlaces
           entry={entry}
           category={category}
