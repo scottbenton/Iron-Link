@@ -17,7 +17,7 @@ create function pg_temp.field_id(p_key text,p_field text,p_category text default
  select extensions.uuid_generate_v5(pg_temp.world_id(p_key),'field:'||p_category||':'||p_field)$$;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','b1000000-0000-4000-8000-000000000001',true);
-insert into inherited_worlds values ('main',public.create_world('Static world',null,'world:classic/ironlands')),
+insert into inherited_worlds values ('main',public.create_world('Static world','world:classic/ironlands')),
  ('blank',public.create_world('Blank world')),('rollback',public.create_world('Rollback static world'));
 select throws_ok($$select public.mutate_world_configuration(pg_temp.world_id('main'),'{}')$$,
  'P0001','Invalid configuration operation','missing operation type cannot silently fork');
@@ -107,7 +107,7 @@ select lives_ok($$delete from public.worlds where id=pg_temp.world_id('main')$$,
 select is((select count(*) from public.world_entries where id='b4000000-0000-4000-8000-000000000001'),0::bigint,'whole-world deletion removes entries');
 
 -- Bindings can pin current playset resolution but cannot mutate schema.
-insert into inherited_worlds values ('bindings',public.create_world('Binding world',null,'world:starforged/forge'));
+insert into inherited_worlds values ('bindings',public.create_world('Binding world','world:starforged/forge'));
 select throws_ok($$select public.mutate_world_configuration(pg_temp.world_id('bindings'),
  jsonb_build_object('type','update_category','id',pg_temp.category_id('bindings'),'changes',jsonb_build_object('name','Pinned')),
  jsonb_build_array(jsonb_build_object('id',pg_temp.field_id('bindings','locationType'),'binding',null,'rule_bindings','[]'::jsonb,'gm_only',false)))$$,

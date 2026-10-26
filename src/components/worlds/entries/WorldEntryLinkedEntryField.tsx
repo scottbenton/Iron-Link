@@ -137,10 +137,8 @@ export function WorldEntryLinkedEntryField({
   const create = async (name: string) => {
     if (!uid || !name) return;
     const { readPermissions, editPermissions } = getLinkedWorldEntryPermissions(
-      t,
       entry,
       {
-        uid,
         gmOnly: field.gmOnly,
         isGuide: !!permission && isGuideEquivalent(permission),
         guided: guided,

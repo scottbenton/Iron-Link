@@ -2,9 +2,10 @@
 --
 -- y-webrtc encrypts a room's traffic with a key derived from its password, and
 -- that password was the game or world id, so anyone who knew the ids could
--- join any room and read every keystroke. Each note and world entry now has a
--- random key that only its readers can select, and each game and world has a
--- Guide room key that only its Guides can select, for Guide-only rooms.
+-- join any room and read every keystroke. Each note, world entry and world
+-- (for its Notes) now has a random key that only its readers can select, and
+-- each game and world has a Guide room key that only its Guides can select,
+-- for Guide-only rooms.
 --
 -- Keys rotate when someone may have lost access: a membership removed or its
 -- role changed, a game unlinked, deleted or changing type, or a note or entry
@@ -17,9 +18,10 @@ create table public.room_keys (
   id uuid primary key default gen_random_uuid(),
   note_id uuid unique references public.notes(id) on delete cascade,
   world_entry_id uuid unique references public.world_entries(id) on delete cascade,
+  world_id uuid unique references public.worlds(id) on delete cascade,
   key text not null default encode(extensions.gen_random_bytes(32), 'base64'),
   rotated_at timestamptz not null default now(),
-  constraint room_keys_one_document check ((note_id is null) <> (world_entry_id is null))
+  constraint room_keys_one_document check (num_nonnulls(note_id, world_entry_id, world_id) = 1)
 );
 
 create table public.guide_room_keys (
@@ -86,7 +88,9 @@ alter table public.guide_room_keys enable row level security;
 create policy "Readers can read room keys" on public.room_keys
   for select to authenticated using (
     case when note_id is not null then public.note_readable(note_id, (select auth.uid()))
-      else public.world_entry_readable(world_entry_id, (select auth.uid())) end);
+      when world_entry_id is not null then public.world_entry_readable(world_entry_id, (select auth.uid()))
+      -- A world's Notes, which every member reads.
+      else public.world_role(world_id, (select auth.uid())) <> 'none' end);
 
 create policy "Guides can read guide room keys" on public.guide_room_keys
   for select to authenticated using (
@@ -116,7 +120,9 @@ begin
     when 'notes' then insert into public.room_keys(note_id) values (new.id);
     when 'world_entries' then insert into public.room_keys(world_entry_id) values (new.id);
     when 'games' then insert into public.guide_room_keys(game_id) values (new.id);
-    when 'worlds' then insert into public.guide_room_keys(world_id) values (new.id);
+    when 'worlds' then
+      insert into public.room_keys(world_id) values (new.id);
+      insert into public.guide_room_keys(world_id) values (new.id);
   end case;
   return null;
 end $$;
@@ -132,6 +138,7 @@ create trigger worlds_create_guide_room_key after insert on public.worlds
 
 insert into public.room_keys(note_id) select id from public.notes;
 insert into public.room_keys(world_entry_id) select id from public.world_entries;
+insert into public.room_keys(world_id) select id from public.worlds;
 insert into public.guide_room_keys(game_id) select id from public.games;
 insert into public.guide_room_keys(world_id) select id from public.worlds;
 
@@ -156,6 +163,10 @@ language sql security definer set search_path = '' as $$
     from public.world_entries e
     where k.world_entry_id = e.id and e.world_id = p_world_id
       and (p_uid is null or not public.world_entry_readable(e.id, p_uid));
+  update public.room_keys
+    set key = encode(extensions.gen_random_bytes(32), 'base64'), rotated_at = now()
+    where world_id = p_world_id
+      and (p_uid is null or public.world_role(p_world_id, p_uid) = 'none');
   update public.guide_room_keys
     set key = encode(extensions.gen_random_bytes(32), 'base64'), rotated_at = now()
     where world_id = p_world_id

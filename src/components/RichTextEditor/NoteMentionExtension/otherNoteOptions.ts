@@ -3,12 +3,22 @@ import { ReactRenderer } from "@tiptap/react";
 import tippy, { type Instance as TippyInstance } from "tippy.js";
 
 import { useNotesStore } from "stores/notes.store";
+import { useWorldCategoriesStore } from "stores/worldCategories.store";
+import { useWorldEntriesStore } from "stores/worldEntries.store";
+
+import { i18n } from "i18n/config";
 
 import SuggestionList, { type SuggestionListRef } from "./SuggestionList";
+import { findWorldEntryMentionCandidates } from "./worldEntryMentions";
+
+export type MentionKind = "note" | "worldEntry";
 
 export type MentionSuggestion = {
   id: string;
   mentionLabel: string;
+  kind: MentionKind;
+  // The heading the suggestion is listed under: its category, or Notes.
+  group: string;
 };
 
 /**
@@ -34,21 +44,40 @@ const DOM_RECT_FALLBACK: DOMRect = {
   },
 };
 
+function getMentionableWorldEntries(query: string): MentionSuggestion[] {
+  const { categories, worldId: categoriesWorldId } =
+    useWorldCategoriesStore.getState();
+  const { entries } = useWorldEntriesStore.getState().entryState;
+  // The entry and configuration stores hold one world at a time; offer its
+  // entries only once both hold the same one.
+  return findWorldEntryMentionCandidates(entries, categories, query)
+    .filter(({ entry }) => entry.worldId === categoriesWorldId)
+    .map(({ entry, category }) => ({
+      id: entry.id,
+      mentionLabel: entry.name,
+      kind: "worldEntry",
+      group: category.name,
+    }));
+}
+
 export const mentionSuggestionOptions: MentionOptions["suggestion"] = {
-  // Replace this `items` code with a call to your API that returns suggestions
-  // of whatever sort you like (including potentially additional data beyond
-  // just an ID and a label). It need not be async but is written that way for
-  // the sake of example.
+  // World entries first, grouped by category, then notes. Entries come from
+  // the world loaded beside these notes: the game's linked world, or the
+  // world being viewed.
   items: ({ query }): MentionSuggestion[] => {
     const noteStore = useNotesStore.getState();
     const openItem = noteStore.openTabId
       ? noteStore.noteTabItems[noteStore.openTabId]
       : null;
 
-    return Object.entries(noteStore.noteState.notes)
+    const entries = getMentionableWorldEntries(query);
+
+    const notes: MentionSuggestion[] = Object.entries(noteStore.noteState.notes)
       .map(([noteId, note]) => ({
         mentionLabel: note.title,
         id: noteId,
+        kind: "note" as const,
+        group: i18n.t("notes.mention-group-notes", "Notes"),
       }))
       .filter(
         (item) =>
@@ -56,6 +85,8 @@ export const mentionSuggestionOptions: MentionOptions["suggestion"] = {
           item.mentionLabel.toLowerCase().startsWith(query.toLowerCase()),
       )
       .slice(0, 5);
+
+    return [...entries, ...notes];
   },
 
   render: () => {

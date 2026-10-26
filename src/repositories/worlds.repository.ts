@@ -13,7 +13,15 @@ import {
 } from "./errors/RepositoryErrors";
 import { WorldPermission } from "./shared.types";
 
-export type WorldDTO = Tables<"worlds">;
+// Everything except the Notes: notes_content is a large Yjs byte column
+// fetched on demand (as entries leave out theirs), with its own version.
+const WORLD_COLUMNS =
+  "id, name, setting_key, configuration_customized, created_by, created_at, updated_at";
+
+export type WorldDTO = Omit<
+  Tables<"worlds">,
+  "notes_content" | "notes_updated_at"
+>;
 export type WorldUpdateDTO = TablesUpdate<"worlds">;
 
 // The roles an explicit world_players row can hold. Deliberately narrower
@@ -42,7 +50,7 @@ export class WorldsRepository {
 
   public static async getWorld(worldId: string): Promise<WorldDTO> {
     const { data, error, status } = await this.worlds()
-      .select("*")
+      .select(WORLD_COLUMNS)
       .eq("id", worldId)
       .single();
 
@@ -116,11 +124,11 @@ export class WorldsRepository {
     const [explicit, viaGames] = await Promise.all([
       supabase
         .from("world_players")
-        .select("role, worlds!inner(*)")
+        .select(`role, worlds!inner(${WORLD_COLUMNS})`)
         .eq("user_id", userId),
       supabase
         .from("games")
-        .select("worlds!inner(*), game_players!inner(user_id)")
+        .select(`worlds!inner(${WORLD_COLUMNS}), game_players!inner(user_id)`)
         .eq("game_players.user_id", userId),
     ]);
 
@@ -158,14 +166,12 @@ export class WorldsRepository {
   // can only be created through this security-definer function.
   public static async createWorld(
     name: string,
-    description: string | null,
     settingKey: string | null,
   ): Promise<string> {
     return new Promise((resolve, reject) => {
       supabase
         .rpc("create_world", {
           p_name: name,
-          p_description: description ?? undefined,
           p_setting_key: settingKey ?? undefined,
         })
         .then(({ data, error, status }) => {
@@ -336,6 +342,26 @@ export class WorldsRepository {
           }
         });
     });
+  }
+
+  public static async getWorldNotesContent(
+    worldId: string,
+  ): Promise<string | null> {
+    const { data, error, status } = await this.worlds()
+      .select("notes_content")
+      .eq("id", worldId)
+      .single();
+    if (error) {
+      console.error(error);
+      throw getRepositoryError(
+        error,
+        ErrorVerb.Read,
+        ErrorNoun.World,
+        false,
+        status,
+      );
+    }
+    return data.notes_content;
   }
 
   public static async getWorldPermission(

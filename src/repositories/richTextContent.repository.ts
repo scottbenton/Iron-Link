@@ -6,10 +6,16 @@ import {
   getRepositoryError,
 } from "./errors/RepositoryErrors";
 
-// A Yjs document stored in a bytea column, versioned by its row's updated_at.
+// A Yjs document stored in a bytea column, versioned by its row's updated_at,
+// or for a world's Notes by notes_updated_at.
 export type RichTextContentTarget =
   | { table: "notes"; column: "note_content_bytes" }
-  | { table: "world_entries"; column: "notes_content" };
+  | { table: "world_entries"; column: "notes_content" }
+  | { table: "worlds"; column: "notes_content" };
+
+// Guides edit a world's Notes but may not update the world, so its Notes are
+// written through this RPC; see 20261026000000_world_notes_versions.sql.
+const WORLD_NOTES_RPC = "update_world_notes_if_unchanged";
 
 export interface RichTextContentDTO {
   content: string | null;
@@ -17,7 +23,30 @@ export interface RichTextContentDTO {
 }
 
 function getNoun(target: RichTextContentTarget) {
-  return target.table === "notes" ? ErrorNoun.Note : ErrorNoun.WorldEntry;
+  switch (target.table) {
+    case "notes":
+      return ErrorNoun.Note;
+    case "world_entries":
+      return ErrorNoun.WorldEntry;
+    case "worlds":
+      return ErrorNoun.World;
+  }
+}
+
+function getVersionColumn(target: RichTextContentTarget) {
+  return target.table === "worlds" ? "notes_updated_at" : "updated_at";
+}
+
+function getWorldNotesArgs(
+  id: string,
+  values: Record<string, string>,
+  expectedUpdatedAt: string,
+) {
+  return {
+    p_world_id: id,
+    p_notes_content: values.notes_content,
+    p_expected_updated_at: expectedUpdatedAt,
+  };
 }
 
 export class RichTextContentRepository {
@@ -28,10 +57,11 @@ export class RichTextContentRepository {
     id: string,
     knownUpdatedAt: string | undefined,
   ): Promise<RichTextContentDTO | { updatedAt: string; unchanged: true }> {
+    const versionColumn = getVersionColumn(target);
     if (knownUpdatedAt) {
       const { data, error, status } = await supabase
-        .from(target.table)
-        .select("updated_at")
+        .from(target.table as "notes")
+        .select(versionColumn as "updated_at")
         .eq("id", id)
         .single();
       if (error) {
@@ -50,7 +80,7 @@ export class RichTextContentRepository {
     }
     const { data, error, status } = await supabase
       .from(target.table)
-      .select(`${target.column}, updated_at`)
+      .select(`${target.column}, ${versionColumn}`)
       .eq("id", id)
       .single();
     if (error) {
@@ -66,7 +96,7 @@ export class RichTextContentRepository {
     const row = data as unknown as Record<string, string | null>;
     return {
       content: row[target.column],
-      updatedAt: row.updated_at as string,
+      updatedAt: row[versionColumn] as string,
     };
   }
 
@@ -78,6 +108,23 @@ export class RichTextContentRepository {
     values: Record<string, string>,
     expectedUpdatedAt: string,
   ): Promise<string | null> {
+    if (target.table === "worlds") {
+      const { data, error, status } = await supabase.rpc(
+        WORLD_NOTES_RPC,
+        getWorldNotesArgs(id, values, expectedUpdatedAt),
+      );
+      if (error) {
+        console.error(error);
+        throw getRepositoryError(
+          error,
+          ErrorVerb.Update,
+          getNoun(target),
+          false,
+          status,
+        );
+      }
+      return data ?? null;
+    }
     const { data, error, status } = await supabase
       .from(target.table)
       .update(values)
@@ -106,18 +153,22 @@ export class RichTextContentRepository {
     values: Record<string, string>,
     expectedUpdatedAt: string,
   ): void {
-    const endpoint =
-      `${SUPABASE_URL}/rest/v1/${target.table}?id=eq.${id}` +
-      `&updated_at=eq.${encodeURIComponent(expectedUpdatedAt)}`;
+    const isWorld = target.table === "worlds";
+    const endpoint = isWorld
+      ? `${SUPABASE_URL}/rest/v1/rpc/${WORLD_NOTES_RPC}`
+      : `${SUPABASE_URL}/rest/v1/${target.table}?id=eq.${id}` +
+        `&updated_at=eq.${encodeURIComponent(expectedUpdatedAt)}`;
     fetch(endpoint, {
-      method: "PATCH",
+      method: isWorld ? "POST" : "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
         Prefer: "return=minimal",
         Apikey: SUPABASE_ANON_KEY,
       },
-      body: JSON.stringify(values),
+      body: JSON.stringify(
+        isWorld ? getWorldNotesArgs(id, values, expectedUpdatedAt) : values,
+      ),
       keepalive: true,
     }).catch((e) => console.error(e));
   }

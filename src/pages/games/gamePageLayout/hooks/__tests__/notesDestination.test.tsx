@@ -96,8 +96,14 @@ describe("Notes world destinations", () => {
     { type: "settings" },
     { type: "category-settings", categoryId: "npcs" },
     { type: "entry", categoryId: "locations", entryId: "hollowmere" },
+    {
+      type: "entry",
+      categoryId: "locations",
+      entryId: "hollowmere",
+      section: "places",
+    },
   ])(
-    "roundtrips $type without overwriting unrelated query parameters",
+    "roundtrips $type $section without overwriting unrelated query parameters",
     (worldView) => {
       const destination = {
         type: "world" as const,

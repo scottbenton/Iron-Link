@@ -25,6 +25,7 @@ import { WorldEntryLinkedEntryField } from "./WorldEntryLinkedEntryField";
 import { WorldEntryLongTextField } from "./WorldEntryLongTextField";
 import { WorldEntryOptionListField } from "./WorldEntryOptionListField";
 import { WorldEntryTextField } from "./WorldEntryTextField";
+import { useWorldFieldDraft } from "./useWorldFieldDraft";
 import { useWorldOracleRoller } from "./useWorldOracleRoller";
 
 // One field of an entry, with the input its kind needs. An emptied field
@@ -53,14 +54,18 @@ export function WorldEntryField({
     (cause: unknown) => setError(getEditorErrorMessage(cause)),
     [],
   );
-  const save = useCallback(
+  const send = useCallback(
     (next: WorldFieldValue | null) => {
       const empty = Array.isArray(next) ? next.length === 0 : !next;
       setError(undefined);
-      (empty
-        ? deleteFieldValue(entry.id, field.id)
-        : setFieldValue(entry.id, entry.worldId, field.id, next)
-      ).catch(showError);
+      return (
+        empty
+          ? deleteFieldValue(entry.id, field.id)
+          : setFieldValue(entry.id, entry.worldId, field.id, next)
+      ).catch((cause) => {
+        showError(cause);
+        throw cause;
+      });
     },
     [
       entry.id,
@@ -71,10 +76,18 @@ export function WorldEntryField({
       showError,
     ],
   );
+  const save = useCallback(
+    (next: WorldFieldValue | null) => {
+      send(next).catch(() => {});
+    },
+    [send],
+  );
+  // Text and option fields, the ones that roll, save after a pause.
+  const [shown, change] = useWorldFieldDraft(value?.value ?? null, send);
 
   const { catalog, lookup } = useWorldOracleRoller(entry.worldId);
   const rollable = canEdit && !!getWorldFieldRollTarget(field, catalog);
-  const roll = () => rollWorldFieldValue(field, value?.value, catalog, lookup);
+  const roll = () => rollWorldFieldValue(field, shown, catalog, lookup);
 
   let input;
   switch (getWorldFieldKind(field)) {
@@ -82,9 +95,9 @@ export function WorldEntryField({
       input = (
         <WorldEntryTextField
           field={field}
-          value={typeof value?.value === "string" ? value.value : ""}
+          value={typeof shown === "string" ? shown : ""}
           canEdit={canEdit}
-          onSave={(next) => save(next || null)}
+          onSave={(next) => change(next || null)}
           roll={
             rollable
               ? () => {
@@ -110,14 +123,14 @@ export function WorldEntryField({
       input = (
         <WorldEntryOptionListField
           field={field}
-          value={value?.value}
+          value={shown ?? undefined}
           canEdit={canEdit}
-          onSave={save}
+          onSave={change}
           onRoll={
             rollable
               ? () => {
                   const rolled = roll();
-                  if (rolled) save(rolled);
+                  if (rolled) change(rolled);
                   else
                     setError(
                       t(

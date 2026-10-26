@@ -109,7 +109,7 @@ select is((select count(*) from catalog_bindings where key='classic' and binding
 select is(field->'configuration'->'suggestions',expected::jsonb,key||' location type keeps its suggested options')
  from catalog_fields join (values
  ('classic','["Settlement","Tower","Ruin","Camp"]'),
- ('forge','["Sector","Planet","Planetside Settlement","Non-Planetary Settlement","Star","Derelict","Vault"]'),
+ ('forge','["Sector","Planet","Settlement","Star","Derelict","Vault"]'),
  ('elegy','[]')) s(key,expected) using(key) where category_key='locations' and field->>'key'='locationType';
 select ok(field->>'type'='select' and field->'configuration'->>'multiple'='false'
  and field->'configuration'->>'allowOther'='true',key||' location type is an open single select') from catalog_fields where field->>'key'='locationType';
@@ -154,9 +154,7 @@ select ok(exists(select 1 from catalog_rules r where r.key=expected.key and r.fi
  and c->>'operator'='equals' and c->>'value'=expected.location_type)),
  expected.key||' routes '||expected.field_key||' for '||expected.location_type)
 from (values
- ('forge','settlementLocation','Planetside Settlement','starforged/settlement/location'),
- ('forge','settlementLocation','Non-Planetary Settlement','starforged/settlement/location'),
- ('forge','settlementLocation','Orbital Settlement','starforged/settlement/location'),
+ ('forge','settlementLocation','Settlement','starforged/settlement/location'),
  ('forge','settlementLocation','Vault','starforged/precursor_vault/location'),
  ('forge','derelictOuterFirstLook','Vault','starforged/precursor_vault/outer_first_look'),
  ('isles','settlementLocation','Shipwreck','sundered_isles/shipwreck/location'),
@@ -182,7 +180,15 @@ select ok(exists(select 1 from catalog_rules r where r.key=expected.key and r.fi
  expected.key||' '||expected.field_key||' has an editable fallback without a region')
  from (values ('forge','planetSettlements'),('forge','settlementPopulation'),('isles','islandVitality'),('isles','islandSize')) expected(key,field_key);
 select is((select count(*) from catalog_rules where key='forge' and field->>'key'='settlementPopulation' and rule->'binding'<>'null'::jsonb),
- 9::bigint,'all three settlement aliases have all three regional population bindings');
+ 3::bigint,'settlements have all three regional population bindings');
+select is((select count(*) from catalog_rules r,lateral jsonb_array_elements(r.rule->'conditions') c
+ where c->>'value' in ('Orbital Settlement','Planetside Settlement','Non-Planetary Settlement')),0::bigint,
+ 'Forge has one Settlement type and no rule names the old ones');
+select is(field->'configuration'->>'helpText',expected,key||' Region says descendants use the nearest one')
+ from catalog_fields join (values
+  ('forge','Terminus, Outlands, Expanse or Void. Descendants use their nearest Sector''s Region.'),
+  ('isles','Myriads (Central Seas), Margins (Outer Seas), Reaches (Remote Seas). Descendants use their nearest Area''s Region.')
+ ) s(key,expected) using(key) where field->>'key'='region';
 select is((select rule->'binding'->>'oracleId' from catalog_rules r where key='forge' and field->>'key'='planetSettlements'
  and exists(select 1 from jsonb_array_elements(rule->'conditions') c where c->>'value'='Desert World')
  and exists(select 1 from jsonb_array_elements(rule->'conditions') c where c->>'value'='Outlands')),
@@ -192,7 +198,7 @@ select is((select rule->'binding'->>'oracleId' from catalog_rules r where key='i
  and exists(select 1 from jsonb_array_elements(rule->'conditions') c where c->>'value'='Reaches')),
  'oracle_rollable:sundered_isles/settlement/size/reaches','merged Isles Size preserves regional settlements');
 
--- Type-specific faction details and the private Cursed modifier are authored rules.
+-- Type-specific faction details are authored rules.
 select ok(exists(select 1 from catalog_rules r where r.key=expected.key and r.category_key='factions'
  and r.field->>'key'=expected.field_key and r.field->'configuration'->>'visible'='false'
  and r.rule->>'visible'='true' and coalesce(r.rule->>'label',r.field->>'label')=expected.label
@@ -228,25 +234,34 @@ select is((select jsonb_agg(field->'key' order by (field->>'sort_order')::int) f
  where key=w.key and category_key='factions' and field->>'gm_only'='false'),
  '["factionType","influence"]'::jsonb,key||' exposes only faction Type and Influence publicly')
  from catalog_worlds w where key in ('forge','isles');
-select ok((select field->>'type'='select' and field->'configuration'->>'allowOther'='true'
- and field->>'gm_only'='true' and field->'binding'='null'::jsonb
- from catalog_fields where key='isles' and category_key='factions' and field->>'key'='cursed'),
- 'Isles Cursed modifier is a private open option list without a binding');
-select ok((select field->>'gm_only'='true' and field->'configuration'->>'visible'='false'
- and field->'binding'='null'::jsonb and jsonb_array_length(field->'configuration'->'rules')=2
- from catalog_fields where key='isles' and category_key='factions' and field->>'key'='cursedAspects'),
- 'Cursed Aspects is private and hidden until either independent predicate matches');
-select ok(exists(select 1 from catalog_rules r where key='isles' and field->>'key'='cursedAspects'
- and rule->>'visible'='true' and rule->'binding'->>'oracleId'='oracle_rollable:sundered_isles/faction/cursed/aspects'
- and rule->'conditions'=jsonb_build_array(jsonb_build_object('source','entry','fieldId',
- extensions.uuid_generate_v5(r.world_id,'field:factions:'||expected.source_key)::text,
- 'operator','equals','value',expected.value))),expected.description)
- from (values ('factionType','The Cursed','The Cursed always receives Cursed Aspects'),
- ('cursed','Yes','ordinary and custom factions receive Cursed Aspects only with Cursed Yes')) expected(source_key,value,description);
-select ok((select jsonb_array_length(field->'configuration'->'rules')=1 from catalog_fields
- where key='isles' and category_key='factions' and field->>'key'=expected.field_key),
- 'Organization '||field_key||' ignores the Cursed modifier and remains hidden for The Cursed')
- from (values ('methods'),('secrets')) expected(field_key);
+-- Rolled once per other faction or per curse, so not kept on a faction entry.
+select is((select count(*) from catalog_fields where category_key='factions'
+ and field->>'key' in ('relationships','cursed','cursedAspects')),0::bigint,
+ 'factions have no Relationships, Cursed or Cursed Aspects fields');
+select is((select field->'configuration'->>'helpText' from catalog_fields
+ where key='isles' and category_key='factions' and field->>'key'='factionType'),
+ 'On a cursed result, choose The Cursed.','Isles Faction Type help names only The Cursed');
+select is((select jsonb_agg(field->'key' order by (field->>'sort_order')::int) from catalog_fields
+ where key=w.key and category_key='factions'),expected.fields,key||' faction fields keep their order')
+ from catalog_worlds w join (values
+  ('forge','["factionType","influence","focus","leadership","projects","quirks","rumors"]'::jsonb),
+  ('isles','["factionType","influence","chronicles","leadership","touchstones","role","methods","secrets","tactics","vulnerabilities"]'::jsonb)
+ ) expected(world_key,fields) on expected.world_key=w.key;
+
+-- NPCs lead with Pronouns.
+select is((select jsonb_agg(field->'key' order by (field->>'sort_order')::int) from catalog_fields
+ where key=w.key and category_key='npcs'),expected.fields,key||' NPC fields are in order')
+ from catalog_worlds w join (values
+  ('blank','["pronouns","location","tags"]'::jsonb),
+  ('classic','["pronouns","location","species","descriptor","role","goal"]'::jsonb),
+  ('forge','["pronouns","callsign","difficulty","location","firstLook","role","disposition","goal","revealedAspect"]'::jsonb),
+  ('isles','["pronouns","location","firstLook","role","disposition","goal"]'::jsonb),
+  ('elegy','["pronouns","location","tags","traits","occupation","goal","disposition"]'::jsonb)
+ ) expected(world_key,fields) on expected.world_key=w.key;
+select is((select count(*) from catalog_categories c where (select array_agg((f->>'sort_order')::int order by o)
+ from jsonb_array_elements(c.category->'fields') with ordinality x(f,o))
+ <> (select array_agg(i) from generate_series(0,jsonb_array_length(c.category->'fields')-1) i)),0::bigint,
+ 'template fields are stored in sort order without gaps');
 
 -- Materialize every setting through the client RPC, validating real references.
 insert into auth.users(id) values ('f1000000-0000-4000-8000-000000000002');
@@ -278,7 +293,7 @@ select is((select name from public.world_categories where id=(w.template->'categ
 -- a customized world's complete copy or rebasing existing identities.
 set local role authenticated;
 insert into catalog_worlds(key,setting_key,id) values
- ('inherited','world:starforged/forge',public.create_world('Shared defaults update',null,'world:starforged/forge'));
+ ('inherited','world:starforged/forge',public.create_world('Shared defaults update','world:starforged/forge'));
 reset role;
 update public.world_templates set configuration=jsonb_set(configuration,'{categories,0,fields,0,label}','"Place Type"'::jsonb)
  where setting_key='world:starforged/forge';
@@ -343,7 +358,7 @@ insert into public.world_entry_field_values(entry_id,field_definition_id,world_i
  select extensions.uuid_generate_v5(id,'privacy-entry'),extensions.uuid_generate_v5(id,'field:lore:tags'),
  id,'["privacy"]'::jsonb from catalog_worlds where key='inherited';
 insert into catalog_worlds(key,setting_key,id) values
- ('fallback','unknown',public.create_world('Unknown setting fallback',null,'unknown'));
+ ('fallback','unknown',public.create_world('Unknown setting fallback','unknown'));
 insert into public.world_entries(id,world_id,category_id,name,author_id)
  select extensions.uuid_generate_v5(id,'privacy-entry'),id,extensions.uuid_generate_v5(id,'category:lore'),
  'Blank fallback privacy fixture',auth.uid() from catalog_worlds where key='fallback';

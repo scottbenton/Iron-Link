@@ -28,6 +28,8 @@ create function pg_temp.game_key(p_n integer) returns text language sql as $$
   select key from public.guide_room_keys where game_id=pg_temp.id('game',p_n) $$;
 create function pg_temp.world_key() returns text language sql as $$
   select key from public.guide_room_keys where world_id=pg_temp.w() $$;
+create function pg_temp.world_notes_key() returns text language sql as $$
+  select key from public.room_keys where world_id=pg_temp.w() $$;
 create table pg_temp.snapshot(name text primary key,key text);
 create function pg_temp.snap() returns void language sql as $$
   delete from pg_temp.snapshot;
@@ -35,7 +37,8 @@ create function pg_temp.snap() returns void language sql as $$
     select 'note '||n,pg_temp.note_key(n) from generate_series(1,5) n
     union all select 'entry '||n,pg_temp.entry_key(n) from generate_series(1,3) n
     union all select 'game 1',pg_temp.game_key(1)
-    union all select 'world',pg_temp.world_key() $$;
+    union all select 'world',pg_temp.world_key()
+    union all select 'world notes',pg_temp.world_notes_key() $$;
 -- Which keys changed since the last snapshot.
 create function pg_temp.rotated() returns text[] language sql as $$
   select coalesce(array_agg(s.name order by s.name),'{}') from pg_temp.snapshot s
@@ -43,7 +46,10 @@ create function pg_temp.rotated() returns text[] language sql as $$
     when s.name like 'note %' then pg_temp.note_key(split_part(s.name,' ',2)::integer)
     when s.name like 'entry %' then pg_temp.entry_key(split_part(s.name,' ',2)::integer)
     when s.name = 'game 1' then pg_temp.game_key(1)
+    when s.name = 'world notes' then pg_temp.world_notes_key()
     else pg_temp.world_key() end) $$;
+create function pg_temp.reads_world_notes_key() returns boolean language sql as $$
+  select exists (select 1 from public.room_keys where world_id=pg_temp.w()) $$;
 -- What the current user can see.
 create function pg_temp.readable_notes() returns integer[] language sql as $$
   select coalesce(array_agg(n order by n),'{}') from generate_series(1,5) n
@@ -68,7 +74,7 @@ grant execute on function pg_temp.outcome(text) to authenticated;
 
 set local role authenticated;
 select pg_temp.as_user(6);
-insert into room_world values (public.create_world('Rooms',null,'world:classic/ironlands'));
+insert into room_world values (public.create_world('Rooms','world:classic/ironlands'));
 reset role;
 
 insert into public.games(id,name,game_type,world_id) values
@@ -102,6 +108,7 @@ select is((select count(*) from public.room_keys
   'every new entry gets a room key');
 select ok(pg_temp.game_key(1) is not null and pg_temp.game_key(2) is not null,'every new game gets a Guide room key');
 select ok(pg_temp.world_key() is not null,'every new world gets a Guide room key');
+select ok(pg_temp.world_notes_key() is not null,'every new world gets a room key for its Notes');
 select is((select count(distinct key) from public.room_keys),(select count(*) from public.room_keys),
   'room keys are random, not shared');
 select ok(pg_temp.note_key(1) <> pg_temp.id('game',1)::text and pg_temp.entry_key(1) <> pg_temp.w()::text,
@@ -146,6 +153,16 @@ select is(pg_temp.readable_entries(),array[1],'a viewer cannot read a Guide-only
 select pg_temp.as_user(4);
 select is(pg_temp.readable_entries(),'{}'::integer[],'an outsider reads no entry keys');
 
+-- A world's Notes key is for every member.
+select pg_temp.as_user(6);
+select ok(pg_temp.reads_world_notes_key(),'the world owner reads the world Notes key');
+select pg_temp.as_user(2);
+select ok(pg_temp.reads_world_notes_key(),'a linked game''s player reads the world Notes key');
+select pg_temp.as_user(7);
+select ok(pg_temp.reads_world_notes_key(),'a viewer reads the world Notes key');
+select pg_temp.as_user(4);
+select ok(not pg_temp.reads_world_notes_key(),'an outsider cannot read the world Notes key');
+
 -- Guide room keys are for that scope's Guides.
 select pg_temp.as_user(1);
 select is(pg_temp.readable_guide_keys(),array['game 1','world'],'a Guide reads the game and world Guide keys');
@@ -159,7 +176,8 @@ select pg_temp.as_user(5);
 select is(pg_temp.readable_guide_keys(),array['game 2'],'a co-op member is a Guide of their game');
 reset role;
 
--- Rotation.
+-- Rotation. These fixture writes run as no user, as admin work does.
+select set_config('request.jwt.claim.sub','',true);
 select pg_temp.snap();
 update public.notes set title='Renamed',"order"=9 where id=pg_temp.id('note',4);
 update public.world_entries set name='Renamed' where id=pg_temp.id('entry',2);
@@ -180,7 +198,7 @@ update public.notes set author_id=pg_temp.u(2) where id=pg_temp.id('note',3);
 
 select pg_temp.snap();
 delete from public.game_players where game_id=pg_temp.id('game',1) and user_id=pg_temp.u(3);
-select ok(pg_temp.rotated() @> array['note 2','entry 1','game 1','world'],
+select ok(pg_temp.rotated() @> array['note 2','entry 1','game 1','world','world notes'],
   'removing a player rotates the game and world keys they could read');
 select ok(not pg_temp.rotated() && array['note 1'],'a public note keeps its key when a player leaves');
 set local role authenticated;
@@ -193,6 +211,7 @@ select pg_temp.snap();
 update public.game_players set role='player' where game_id=pg_temp.id('game',1) and user_id=pg_temp.u(1);
 select ok(pg_temp.rotated() @> array['note 4','entry 2','game 1','world'],
   'demoting a Guide rotates the Guide-only keys of the game and world');
+select ok(not pg_temp.rotated() && array['world notes'],'a demoted Guide keeps the world Notes key');
 set local role authenticated;
 select pg_temp.as_user(1);
 select is(pg_temp.readable_guide_keys(),'{}'::text[],'a demoted Guide cannot read the new Guide keys');
@@ -202,7 +221,7 @@ update public.game_players set role='guide' where game_id=pg_temp.id('game',1) a
 
 select pg_temp.snap();
 delete from public.world_players where world_id=pg_temp.w() and user_id=pg_temp.u(7);
-select ok(pg_temp.rotated() @> array['entry 1'] and not pg_temp.rotated() && array['note 2'],
+select ok(pg_temp.rotated() @> array['entry 1','world notes'] and not pg_temp.rotated() && array['note 2'],
   'removing a world member rotates the world''s keys, not the game''s');
 
 select pg_temp.snap();
