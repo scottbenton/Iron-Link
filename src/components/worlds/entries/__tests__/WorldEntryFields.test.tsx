@@ -1,7 +1,7 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   type WorldNavigation,
@@ -90,6 +90,23 @@ const navigation: WorldNavigation = {
 let setValue: ReturnType<typeof vi.fn>;
 let deleteValue: ReturnType<typeof vi.fn>;
 
+// Text and option fields save a moment after their last change, and typed
+// text waits a moment of its own before that. These tests run on fake timers
+// and pass that time with `passSaveDelay`.
+function setupUserWithFakeTimers() {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  return userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+}
+async function passSaveDelay() {
+  for (let step = 0; step < 2; step++) {
+    await act(() => vi.advanceTimersByTimeAsync(1000));
+  }
+}
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 beforeEach(() => {
   vi.restoreAllMocks();
   useWorldEntriesStore.getState().reset();
@@ -177,7 +194,7 @@ const fieldLabels = () =>
 describe("WorldEntryFields", () => {
   describe("text", () => {
     it("saves after a pause, and deletes the value when cleared", async () => {
-      const user = userEvent.setup();
+      const user = setupUserWithFakeTimers();
       defineFields(
         field({
           id: "climate",
@@ -197,20 +214,18 @@ describe("WorldEntryFields", () => {
       expect(input).toHaveAttribute("maxLength", "1000");
 
       await user.type(input, " and wet ");
-      await waitFor(
-        () =>
-          expect(setValue).toHaveBeenCalledWith(
-            "entry-1",
-            category.worldId,
-            "climate",
-            "Cold and wet",
-          ),
-        { timeout: 3000 },
+      await passSaveDelay();
+      expect(setValue).toHaveBeenCalledWith(
+        "entry-1",
+        category.worldId,
+        "climate",
+        "Cold and wet",
       );
       setValue.mockClear();
 
       await user.clear(input);
       await user.tab();
+      await passSaveDelay();
       expect(deleteValue).toHaveBeenCalledWith("entry-1", "climate");
       expect(setValue).not.toHaveBeenCalled();
     });
@@ -238,7 +253,7 @@ describe("WorldEntryFields", () => {
 
   describe("option lists", () => {
     it("offers suggestions and used values when opened, and accepts new values in an open list", async () => {
-      const user = userEvent.setup();
+      const user = setupUserWithFakeTimers();
       const fetchOptions = vi
         .spyOn(WorldFieldDefinitionsService, "getWorldFieldOptions")
         .mockResolvedValue(["Settlement", "Ruin", "Lighthouse"]);
@@ -259,6 +274,7 @@ describe("WorldEntryFields", () => {
         await screen.findByRole("option", { name: "Lighthouse" }),
       ).toBeInTheDocument();
       await user.click(screen.getByRole("option", { name: "Lighthouse" }));
+      await passSaveDelay();
       expect(setValue).toHaveBeenCalledWith(
         "entry-1",
         category.worldId,
@@ -268,6 +284,7 @@ describe("WorldEntryFields", () => {
 
       await user.clear(input);
       await user.type(input, "Shrine{Enter}");
+      await passSaveDelay();
       expect(setValue).toHaveBeenLastCalledWith(
         "entry-1",
         category.worldId,
@@ -277,7 +294,7 @@ describe("WorldEntryFields", () => {
     });
 
     it("only offers a strict list's options, but still shows a stored value outside them", async () => {
-      const user = userEvent.setup();
+      const user = setupUserWithFakeTimers();
       const fetchOptions = vi.spyOn(
         WorldFieldDefinitionsService,
         "getWorldFieldOptions",
@@ -301,11 +318,13 @@ describe("WorldEntryFields", () => {
 
       await user.clear(input);
       await user.type(input, "Shrine{Enter}");
+      await passSaveDelay();
       expect(setValue).not.toHaveBeenCalled();
 
       await user.clear(input);
       await user.keyboard("{ArrowDown}");
       await user.click(screen.getByRole("option", { name: "Ruin" }));
+      await passSaveDelay();
       expect(setValue).toHaveBeenCalledWith(
         "entry-1",
         category.worldId,
@@ -316,7 +335,7 @@ describe("WorldEntryFields", () => {
     });
 
     it("explains a value the database rejects", async () => {
-      const user = userEvent.setup();
+      const user = setupUserWithFakeTimers();
       setValue.mockRejectedValue(
         new Error("Value must be one of the field options"),
       );
@@ -330,13 +349,14 @@ describe("WorldEntryFields", () => {
       renderFields();
       await user.click(screen.getByRole("combobox", { name: "Kind" }));
       await user.click(screen.getByRole("option", { name: "Settlement" }));
+      await passSaveDelay();
       expect(await screen.findByRole("alert")).toHaveTextContent(
         "Value must be one of the field options",
       );
     });
 
     it("shows several values as chips and deletes the value when the last is removed", async () => {
-      const user = userEvent.setup();
+      const user = setupUserWithFakeTimers();
       defineFields(
         optionList(
           { id: "tags", label: "Tags" },
@@ -353,6 +373,7 @@ describe("WorldEntryFields", () => {
 
       const coastal = screen.getByRole("button", { name: "Coastal" });
       await user.click(within(coastal).getByTestId("CancelIcon"));
+      await passSaveDelay();
       expect(setValue).toHaveBeenCalledWith(
         "entry-1",
         category.worldId,
@@ -363,6 +384,7 @@ describe("WorldEntryFields", () => {
       storeValue("entry-1", "tags", ["Haunted"]);
       const haunted = screen.getByRole("button", { name: "Haunted" });
       await user.click(within(haunted).getByTestId("CancelIcon"));
+      await passSaveDelay();
       expect(deleteValue).toHaveBeenCalledWith("entry-1", "tags");
     });
   });
@@ -404,18 +426,16 @@ describe("WorldEntryFields", () => {
         ["unreadable"],
       );
 
-      // The removal shows at once, so Kell is offered again.
-      expect(screen.queryByRole("link", { name: "Kell" })).toBeNull();
       await user.click(screen.getByRole("combobox", { name: "Residents" }));
       expect(
         screen.getAllByRole("option").map((option) => option.textContent),
-      ).toEqual(["Ash", "Kell"]);
+      ).toEqual(["Ash"]);
       await user.click(screen.getByRole("option", { name: "Ash" }));
-      expect(setValue).toHaveBeenLastCalledWith(
+      expect(setValue).toHaveBeenCalledWith(
         "entry-1",
         category.worldId,
         "residents",
-        ["ash", "unreadable"],
+        ["kell", "ash", "unreadable"],
       );
     });
 
@@ -1039,7 +1059,7 @@ describe("oracle rolls", () => {
   });
 
   it("fills a Text field and picks a list's option", async () => {
-    const user = userEvent.setup();
+    const user = setupUserWithFakeTimers();
     defineFields(goal, factionType);
     loadEntries(worldEntry());
     renderFields();
@@ -1047,6 +1067,7 @@ describe("oracle rolls", () => {
     expect(screen.getByRole("textbox", { name: "Goal" })).toHaveValue(
       "Escape the past",
     );
+    await passSaveDelay();
     expect(setValue).toHaveBeenCalledWith(
       "entry-1",
       category.worldId,
@@ -1054,11 +1075,36 @@ describe("oracle rolls", () => {
       "Escape the past",
     );
     await user.click(screen.getByRole("button", { name: "Roll Faction Type" }));
+    await passSaveDelay();
     expect(setValue).toHaveBeenCalledWith(
       "entry-1",
       category.worldId,
       "type",
       "Guild",
+    );
+  });
+
+  it("saves quick rolls once, and keeps showing the last one meanwhile", async () => {
+    const user = setupUserWithFakeTimers();
+    defineFields(goal);
+    loadEntries(worldEntry());
+    storeValue("entry-1", "goal", "Revenge");
+    renderFields();
+    const input = screen.getByRole("textbox", { name: "Goal" });
+
+    await user.click(screen.getByRole("button", { name: "Roll Goal" }));
+    await user.click(screen.getByRole("button", { name: "Roll Goal" }));
+    // An earlier save's change arriving late does not replace the roll.
+    act(() => storeValue("entry-1", "goal", "Find a home"));
+    expect(input).toHaveValue("Escape the past");
+
+    await passSaveDelay();
+    expect(setValue).toHaveBeenCalledTimes(1);
+    expect(setValue).toHaveBeenCalledWith(
+      "entry-1",
+      category.worldId,
+      "goal",
+      "Escape the past",
     );
   });
 

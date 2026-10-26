@@ -31,6 +31,9 @@ that are easy to miss. When you learn a new one, add a line here.
 - Non-customized worlds read `world_templates` live, so a template migration
   reaches them at once; customized worlds hold copied field definitions and
   are not changed by it.
+- Entry field values save through `useWorldFieldDraft`: a change shows at
+  once and saves after a 1s pause, and keeps showing until the stored value
+  matches it, because realtime echoes of an earlier save can arrive late.
 - A field whose oracle comes from an ancestor's value (Population from the
   nearest Sector's Region) shows editors a note naming the parent it needs
   when none fits (`getWorldFieldParentRequirements`); the wording is built
@@ -48,8 +51,3 @@ that are easy to miss. When you learn a new one, add a line here.
 - A world entry mention stores only the entry id (`kind: "worldEntry"`,
   `label: null`); its name is read live from the entries store, so renames
   show at once and an unreadable entry shows "Unavailable entry".
-- Entry field value saves (`setFieldValue`, `deleteFieldValue`) go through
-  `stores/worldFieldValueWrites.ts`: shown at once, sent one at a time per
-  field with waiting changes coalesced, and realtime changes for the field are
-  skipped until this window's last save's own change arrives. Never call the
-  service directly for them, or quick rolls jump back to earlier values.

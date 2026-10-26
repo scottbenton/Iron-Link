@@ -32,7 +32,6 @@ import {
 
 import { useAuthStore, useUID } from "./auth.store";
 import { useWorldStore } from "./world.store";
-import { createFieldValueWrites } from "./worldFieldValueWrites";
 
 const ENTRY_ARRIVAL_TIMEOUT_MS = 10000;
 
@@ -180,7 +179,6 @@ export const useWorldEntriesStore = createWithEqualityFn<
                 ...changedEntries,
               };
               removedEntryIds.forEach((entryId) => {
-                fieldWrites.forgetEntry(entryId);
                 delete store.entryState.entries[entryId];
                 delete store.entryState.permissions[entryId];
                 // Losing read access to an entry sends no value events, so
@@ -240,7 +238,6 @@ export const useWorldEntriesStore = createWithEqualityFn<
     },
 
     listenToWorldFieldValues: (worldId) => {
-      if (get().fieldValueState.worldId !== worldId) fieldWrites.clear();
       set((store) => {
         if (store.fieldValueState.worldId !== worldId) {
           store.fieldValueState = {
@@ -258,55 +255,14 @@ export const useWorldEntriesStore = createWithEqualityFn<
             // A late read from a previous world must not land in this one.
             if (store.fieldValueState.worldId !== worldId) return;
             if (replaceState) {
-              const snapshot: Record<
-                string,
-                Record<string, IWorldEntryFieldValue>
-              > = {};
-              changedValues.forEach((value) => {
-                snapshot[value.entryId] ??= {};
-                snapshot[value.entryId][value.fieldDefinitionId] = value;
-              });
-              // A save still settling keeps showing its change.
-              fieldWrites
-                .receiveSnapshot(snapshot)
-                .forEach(({ entryId, fieldDefinitionId }) => {
-                  const local =
-                    store.fieldValueState.valuesByEntry[entryId]?.[
-                      fieldDefinitionId
-                    ];
-                  if (local) {
-                    snapshot[entryId] ??= {};
-                    snapshot[entryId][fieldDefinitionId] = local;
-                  } else if (snapshot[entryId]) {
-                    delete snapshot[entryId][fieldDefinitionId];
-                    if (Object.keys(snapshot[entryId]).length === 0) {
-                      delete snapshot[entryId];
-                    }
-                  }
-                });
-              store.fieldValueState.valuesByEntry = snapshot;
-              store.fieldValueState.loading = false;
-              store.fieldValueState.error = undefined;
-              return;
+              store.fieldValueState.valuesByEntry = {};
             }
             const valuesByEntry = store.fieldValueState.valuesByEntry;
             changedValues.forEach((value) => {
-              if (
-                !fieldWrites.receive(
-                  value.entryId,
-                  value.fieldDefinitionId,
-                  value,
-                )
-              ) {
-                return;
-              }
               valuesByEntry[value.entryId] ??= {};
               valuesByEntry[value.entryId][value.fieldDefinitionId] = value;
             });
             removedValues.forEach(({ entryId, fieldDefinitionId }) => {
-              if (!fieldWrites.receive(entryId, fieldDefinitionId, undefined)) {
-                return;
-              }
               const entryValues = valuesByEntry[entryId];
               if (!entryValues) return;
               delete entryValues[fieldDefinitionId];
@@ -411,10 +367,11 @@ export const useWorldEntriesStore = createWithEqualityFn<
     },
 
     setFieldValue: (entryId, worldId, fieldDefinitionId, value) => {
-      return fieldWrites.write(
-        { entryId, worldId, fieldDefinitionId },
+      return WorldEntryFieldValuesService.setWorldEntryFieldValue(
+        entryId,
+        worldId,
+        fieldDefinitionId,
         value,
-        get().fieldValueState.valuesByEntry[entryId]?.[fieldDefinitionId],
       );
     },
     setFieldContent: (entryId, worldId, fieldDefinitionId, content) => {
@@ -432,16 +389,9 @@ export const useWorldEntriesStore = createWithEqualityFn<
       );
     },
     deleteFieldValue: (entryId, fieldDefinitionId) => {
-      const current =
-        get().fieldValueState.valuesByEntry[entryId]?.[fieldDefinitionId];
-      return fieldWrites.write(
-        {
-          entryId,
-          worldId: current?.worldId ?? get().fieldValueState.worldId ?? "",
-          fieldDefinitionId,
-        },
-        null,
-        current,
+      return WorldEntryFieldValuesService.deleteWorldEntryFieldValue(
+        entryId,
+        fieldDefinitionId,
       );
     },
 
@@ -463,44 +413,11 @@ export const useWorldEntriesStore = createWithEqualityFn<
     },
 
     reset: () => {
-      fieldWrites.clear();
       set((store) => ({ ...store, ...defaultWorldEntriesState }));
     },
   })),
   deepEqual,
 );
-
-// This window's own value saves, shown at once and kept over the realtime
-// changes of its earlier saves (see worldFieldValueWrites). The store's
-// actions only reach it after the module has loaded.
-const fieldWrites = createFieldValueWrites({
-  send: ({ entryId, worldId, fieldDefinitionId }, value) =>
-    value === null
-      ? WorldEntryFieldValuesService.deleteWorldEntryFieldValue(
-          entryId,
-          fieldDefinitionId,
-        )
-      : WorldEntryFieldValuesService.setWorldEntryFieldValue(
-          entryId,
-          worldId,
-          fieldDefinitionId,
-          value,
-        ),
-  show: (entryId, fieldDefinitionId, value) => {
-    useWorldEntriesStore.setState((store) => {
-      const valuesByEntry = store.fieldValueState.valuesByEntry;
-      if (value) {
-        valuesByEntry[entryId] ??= {};
-        valuesByEntry[entryId][fieldDefinitionId] = value;
-      } else if (valuesByEntry[entryId]) {
-        delete valuesByEntry[entryId][fieldDefinitionId];
-        if (Object.keys(valuesByEntry[entryId]).length === 0) {
-          delete valuesByEntry[entryId];
-        }
-      }
-    });
-  },
-});
 
 // Values start and stop with entries so every view of the entries can read
 // their fields too. Mount it with the world and configuration subscriptions
