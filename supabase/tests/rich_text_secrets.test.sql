@@ -196,10 +196,12 @@ select is(pg_temp.upload('notes/'||pg_temp.id('note',3)||'/map.png'),'42501','no
 select is(pg_temp.upload('notes/'||pg_temp.id('note',4)||'/map.png'),'42501','not to a note they cannot edit');
 select ok('notes/'||pg_temp.id('note',4)||'/old.png' = any(pg_temp.images()),
   'but they still read its guide images');
-select is(pg_temp.outcome(format('delete from storage.objects where bucket_id=''guide_images'' and name=%L',
-  'notes/'||pg_temp.id('note',4)||'/old.png')),'ok','deleting them is refused quietly');
-select ok('notes/'||pg_temp.id('note',4)||'/old.png' = any(pg_temp.images()),
-  'and leaves them in place');
+-- Hosted storage refuses every direct delete from storage.objects, so the
+-- delete policy's rule is checked directly.
+select ok(not public.guide_image_allowed('notes/'||pg_temp.id('note',4)||'/old.png',
+  (select auth.uid()), true), 'but may not delete them');
+select ok(public.guide_image_allowed('notes/'||pg_temp.id('note',1)||'/map.png',
+  (select auth.uid()), true), 'while they may delete images of a note they can edit');
 select is(pg_temp.upload('notes/'||pg_temp.id('note',1)||'/x/map.png'),'42501','not to a deeper path');
 select is(pg_temp.upload('notes/not-a-uuid/map.png'),'42501','not to a malformed path');
 select is(pg_temp.upload('characters/'||pg_temp.id('note',1)||'/map.png'),'42501','not to an unknown kind');
