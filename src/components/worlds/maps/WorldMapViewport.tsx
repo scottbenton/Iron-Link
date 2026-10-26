@@ -48,11 +48,13 @@ export interface WorldMapPinPlacement<T> {
   point: Point;
   screen: Point;
   scale: number;
-  // Being dragged to a new spot.
-  dragging: boolean;
-  // Starts dragging the pin, from its own pointerdown. Does nothing unless
-  // the map takes drops.
-  startDrag: (event: React.PointerEvent<HTMLElement>) => void;
+  // What of this pin is being dragged (the whole pin, or the id passed to
+  // startDrag) and where it is on screen.
+  dragging: { id: string; screen: Point } | null;
+  // Starts dragging the pin, or one part of it named by `id`, from a
+  // pointerdown on it or on a menu it opened. Does nothing unless the map
+  // takes drops.
+  startDrag: (event: React.PointerEvent<HTMLElement>, id?: string) => void;
 }
 
 export interface WorldMapViewportProps<T> {
@@ -80,7 +82,8 @@ export interface WorldMapViewportProps<T> {
   getHighlight?: (cell: Cell) => Cell[];
   // The cursor while a tool is active; a crosshair unless set.
   toolCursor?: string;
-  // Where a dragged pin was let go, snapped to the grid.
+  // Where a dragged pin (or the part of one passed to startDrag) was let
+  // go, snapped to the grid.
   onPinDrop?: (id: string, point: Point) => void;
   // The background image's own size, once it has loaded.
   onBackgroundLoad?: (size: { width: number; height: number }) => void;
@@ -338,7 +341,7 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
         ),
       );
       held.point = point;
-      setDraggedPin({ id: held.id, point });
+      setDraggedPin({ id: held.id, placementId: held.placementId, point });
       return;
     }
     if (!pointers.current.has(event.pointerId)) {
@@ -436,15 +439,21 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
   // Dragging a pin to a new spot.
   const pinDrag = useRef<{
     id: string;
+    placementId: string;
     pointerId: number;
     start: Point;
     point: Point;
     moved: boolean;
   } | null>(null);
   const suppressClick = useRef(false);
-  const [draggedPin, setDraggedPin] = useState<{ id: string; point: Point }>();
+  const [draggedPin, setDraggedPin] = useState<{
+    id: string;
+    placementId: string;
+    point: Point;
+  }>();
   const startPinDrag = (
     id: string,
+    placementId: string,
     point: Point,
     event: React.PointerEvent<HTMLElement>,
   ) => {
@@ -453,6 +462,7 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     suppressClick.current = false;
     pinDrag.current = {
       id,
+      placementId,
       pointerId: event.pointerId,
       start: localPoint(event),
       point,
@@ -542,18 +552,20 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
       />
       {view.width > 0 &&
         pins.map((placement) => {
-          const dragging = draggedPin?.id === placement.id;
+          const dragged =
+            draggedPin?.placementId === placement.id ? draggedPin : undefined;
           return renderPin({
             ...placement,
-            screen: mapToScreen(
-              camera,
-              view,
-              dragging ? draggedPin.point : placement.point,
-            ),
+            screen: mapToScreen(camera, view, placement.point),
             scale: camera.scale,
-            dragging,
-            startDrag: (event) =>
-              startPinDrag(placement.id, placement.point, event),
+            dragging: dragged
+              ? {
+                  id: dragged.id,
+                  screen: mapToScreen(camera, view, dragged.point),
+                }
+              : null,
+            startDrag: (event, id = placement.id) =>
+              startPinDrag(id, placement.id, placement.point, event),
           });
         })}
       <Box

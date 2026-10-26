@@ -7,7 +7,7 @@ import {
   MenuItem,
   Typography,
 } from "@mui/material";
-import { PointerEvent, ReactNode, useState } from "react";
+import { PointerEvent, ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LinkComponent } from "components/LinkComponent";
@@ -24,7 +24,8 @@ const MARKER_SIZE = 32;
 // Entries pinned to one spot on the map. A single pin opens its entry; a
 // spot holding several lists them first. Names show once the map is zoomed
 // in far enough to fit them. With the pin tool in hand, choosing a pin
-// selects it instead (`onSelect`), and a single pin can be dragged.
+// selects it instead (`onSelect`), dragging the marker moves every place on
+// the spot, and dragging a place out of the list moves just that one.
 export function WorldMapPinMarker({
   entries,
   screen,
@@ -40,26 +41,41 @@ export function WorldMapPinMarker({
   showLabel: boolean;
   navigation: Pick<WorldNavigation, "getLinkProps">;
   onSelect?: (entry: IWorldEntry) => void;
-  onDragStart?: (event: PointerEvent<HTMLElement>) => void;
-  dragging?: boolean;
+  // Without an entry id the whole marker is being dragged.
+  onDragStart?: (event: PointerEvent<HTMLElement>, entryId?: string) => void;
+  // The id being dragged (an entry's, or anything else for the whole
+  // marker) and where it is.
+  dragging?: { id: string; screen: Point } | null;
   selected?: boolean;
 }) {
   const { t } = useTranslation();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const [first] = entries;
+  const draggedEntry = entries.find((entry) => entry.id === dragging?.id);
+  const draggingOut = !!draggedEntry && entries.length > 1;
+  // Hide the list once a place is dragged out of it. It stays mounted, as the
+  // row being dragged holds the pointer until it is let go.
+  useEffect(() => {
+    if (draggingOut) setAnchor(null);
+  }, [draggingOut]);
+
   const linkProps = (entry: IWorldEntry) =>
     navigation.getLinkProps({
       type: "entry",
       categoryId: entry.categoryId,
       entryId: entry.id,
     });
-  const label =
-    entries.length === 1
-      ? first.name
+  const shown = draggingOut
+    ? entries.filter((entry) => entry !== draggedEntry)
+    : entries;
+  const [first] = shown;
+  const labelFor = (list: IWorldEntry[]) =>
+    list.length === 1
+      ? list[0].name
       : t("worlds.maps.pin-group", "{{count}} places", {
-          count: entries.length,
+          count: list.length,
         });
-  const marker: ReactNode = (
+  const label = labelFor(entries);
+  const markerFor = (list: IWorldEntry[]): ReactNode => (
     <>
       <Box
         sx={{
@@ -78,11 +94,11 @@ export function WorldMapPinMarker({
           "& img": { width: "100%", height: "100%", borderRadius: 0 },
         }}
       >
-        {entries.length === 1 ? (
-          <WorldMapPinIcon entry={first} />
+        {list.length === 1 ? (
+          <WorldMapPinIcon entry={list[0]} />
         ) : (
           <Typography variant="body2" fontWeight="bold">
-            {entries.length}
+            {list.length}
           </Typography>
         )}
       </Box>
@@ -102,27 +118,30 @@ export function WorldMapPinMarker({
             fontWeight: 600,
           }}
         >
-          {label}
+          {labelFor(list)}
         </Typography>
       )}
     </>
   );
-  const sx = {
-    position: "absolute",
-    left: screen.x,
-    top: screen.y,
-    transform: `translate(-50%, -${MARKER_SIZE / 2}px)`,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    borderRadius: 1,
-    opacity: dragging ? 0.6 : 1,
-    touchAction: "none",
-    "&:focus-visible": {
-      outline: "2px solid",
-      outlineColor: "primary.main",
-    },
-  } as const;
+  const placeAt = (point: Point, faded: boolean) =>
+    ({
+      position: "absolute",
+      left: point.x,
+      top: point.y,
+      transform: `translate(-50%, -${MARKER_SIZE / 2}px)`,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      borderRadius: 1,
+      opacity: faded ? 0.6 : 1,
+      touchAction: "none",
+      "&:focus-visible": {
+        outline: "2px solid",
+        outlineColor: "primary.main",
+      },
+    }) as const;
+  const movingWhole = !!dragging && !draggingOut;
+  const sx = placeAt(movingWhole ? dragging.screen : screen, movingWhole);
 
   if (entries.length === 1 && !onSelect)
     return (
@@ -132,7 +151,7 @@ export function WorldMapPinMarker({
         aria-label={first.name}
         sx={sx}
       >
-        {marker}
+        {markerFor(entries)}
       </ButtonBase>
     );
 
@@ -142,18 +161,26 @@ export function WorldMapPinMarker({
         aria-label={label}
         aria-haspopup={entries.length > 1 ? "menu" : undefined}
         aria-pressed={entries.length === 1 && onSelect ? !!selected : undefined}
-        onPointerDown={(event) => {
-          if (entries.length === 1) onDragStart?.(event);
-        }}
+        onPointerDown={(event) => onDragStart?.(event)}
         onClick={(event) => {
           if (entries.length > 1) setAnchor(event.currentTarget);
           else onSelect?.(first);
         }}
         sx={sx}
       >
-        {marker}
+        {markerFor(shown)}
       </ButtonBase>
-      <Menu open={!!anchor} anchorEl={anchor} onClose={() => setAnchor(null)}>
+      {draggingOut && dragging && (
+        <Box aria-hidden="true" sx={placeAt(dragging.screen, true)}>
+          {markerFor([draggedEntry])}
+        </Box>
+      )}
+      <Menu
+        open={!!anchor}
+        anchorEl={anchor}
+        onClose={() => setAnchor(null)}
+        keepMounted={!!onDragStart}
+      >
         {entries.map((entry) => (
           <MenuItem
             key={entry.id}
@@ -163,6 +190,9 @@ export function WorldMapPinMarker({
                     setAnchor(null);
                     onSelect(entry);
                   },
+                  onPointerDown: (event: PointerEvent<HTMLElement>) =>
+                    onDragStart?.(event, entry.id),
+                  sx: onDragStart ? { touchAction: "none" } : undefined,
                 }
               : { component: LinkComponent, ...linkProps(entry) })}
           >
