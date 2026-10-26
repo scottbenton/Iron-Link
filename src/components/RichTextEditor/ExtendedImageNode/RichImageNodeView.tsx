@@ -32,6 +32,7 @@ import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFe
 
 import { useSecondScreenStore } from "stores/secondScreen.store";
 
+import { isGuideImageSrc, useImageDisplaySrc } from "../secrets/guideImages";
 import { Alignment, TextWrapping } from "./RichImageNodeAttributes";
 
 export function RichImageNodeView(props: NodeViewProps) {
@@ -90,7 +91,11 @@ export function RichImageNodeView(props: NodeViewProps) {
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
-  const isSecondScreenFeatureActive = useSecondScreenFeature();
+  // An image inside a secret shows through a signed URL, and never goes to
+  // the second screen, which players watch.
+  const displaySrc = useImageDisplaySrc(src);
+  const isSecondScreenFeatureActive =
+    useSecondScreenFeature() && !isGuideImageSrc(src);
   const updateSecondScreen = useSecondScreenStore(
     (store) => store.updateSecondScreenSettings,
   );
@@ -137,7 +142,12 @@ export function RichImageNodeView(props: NodeViewProps) {
             display: "flex",
           }}
         >
-          <Box component="img" src={src} aria-hidden sx={{ width: "100%" }} />
+          <Box
+            component="img"
+            src={displaySrc}
+            aria-hidden
+            sx={{ width: "100%" }}
+          />
         </Box>
       </NodeViewWrapper>
     );
@@ -178,7 +188,7 @@ export function RichImageNodeView(props: NodeViewProps) {
             width: "100%",
             objectFit: "contain",
           }}
-          src={src}
+          src={displaySrc}
           aria-hidden
         />
         <Popper

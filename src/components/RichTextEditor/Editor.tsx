@@ -4,11 +4,20 @@ import { EditorContent, Editor as TTEditor } from "@tiptap/react";
 
 import { useIsMobile } from "hooks/useIsMobile";
 
+import type {
+  RichTextToolbarProps,
+  SecretsToolbarState,
+} from "./richTextToolbar";
+
 export interface EditorProps {
   outlined?: boolean;
   editable?: boolean;
   editor: TTEditor | null;
-  Toolbar: React.FC<{ editor: TTEditor }>;
+  // The editor the toolbar acts on, when it isn't `editor`: a secret block
+  // holding the caret.
+  toolbarEditor?: TTEditor | null;
+  secrets?: SecretsToolbarState;
+  Toolbar: React.FC<RichTextToolbarProps>;
   saving?: boolean;
   minHeight?: number;
   // Side padding for the text. Without it the text only keeps room on the
@@ -24,6 +33,8 @@ export function Editor(props: EditorProps) {
     outlined,
     editable,
     editor,
+    toolbarEditor,
+    secrets,
     Toolbar,
     saving,
     minHeight = 300,
@@ -32,10 +43,13 @@ export function Editor(props: EditorProps) {
   } = props;
 
   const isMobile = useIsMobile();
+  const toolbar = editor && (
+    <Toolbar editor={toolbarEditor ?? editor} secrets={secrets} />
+  );
 
   return (
     <>
-      {!outlined && editor && <Toolbar editor={editor} />}
+      {!outlined && toolbar}
 
       <Box
         sx={(theme) =>
@@ -57,7 +71,7 @@ export function Editor(props: EditorProps) {
               }
         }
       >
-        {outlined && editor && <Toolbar editor={editor} />}
+        {outlined && toolbar}
         <Box position={"relative"}>
           <Fade in={saving}>
             <Box
