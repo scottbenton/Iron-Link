@@ -16,10 +16,11 @@ const base = {
 };
 
 describe("getNoteSecretsConfig", () => {
-  it("offers secrets to a Guide of a guided game in a note players read", () => {
+  it("offers secrets to a Guide of a guided game", () => {
     expect(getNoteSecretsConfig(base)).toEqual({
       surface: { noteId: "note" },
       roomKeySource: { guideGameId: "game" },
+      audience: "guides",
       canInsert: true,
     });
   });
@@ -32,30 +33,23 @@ describe("getNoteSecretsConfig", () => {
   );
 
   it.each([GameType.Solo, GameType.Coop])(
-    "shows a %s game's existing secrets but offers no new ones",
+    "gives a %s game no secrets at all",
     (gameType) => {
-      expect(getNoteSecretsConfig({ ...base, gameType })?.canInsert).toBe(
-        false,
-      );
+      expect(getNoteSecretsConfig({ ...base, gameType })).toBeNull();
     },
   );
 
-  it.each([ReadPermissions.OnlyGuides, ReadPermissions.OnlyAuthor])(
-    "offers none in a note only Guides can read (%s)",
-    (readPermissions) => {
-      expect(
-        getNoteSecretsConfig({ ...base, readPermissions })?.canInsert,
-      ).toBe(false);
-    },
-  );
-
+  // A Guide prepares secrets before sharing the note.
   it.each([
-    ReadPermissions.Public,
-    ReadPermissions.GuidesAndAuthor,
-    ReadPermissions.AllPlayers,
-  ])("offers them where players can read the note (%s)", (readPermissions) => {
-    expect(getNoteSecretsConfig({ ...base, readPermissions })?.canInsert).toBe(
-      true,
-    );
+    [ReadPermissions.OnlyAuthor, "you"],
+    [ReadPermissions.OnlyGuides, "guides"],
+    [ReadPermissions.GuidesAndAuthor, "guides"],
+    [ReadPermissions.AllPlayers, "guides"],
+    [ReadPermissions.Public, "guides"],
+  ])("offers them in a %s note, seen by %s", (readPermissions, audience) => {
+    expect(getNoteSecretsConfig({ ...base, readPermissions })).toMatchObject({
+      audience,
+      canInsert: true,
+    });
   });
 });
