@@ -231,7 +231,18 @@ export function WorldEntryMap({
               ? (cell) => [cell]
               : undefined
         }
-        onPinDrop={tool === "pin" ? pinTool.onPinDrop : undefined}
+        onPinDrop={
+          tool === "pin"
+            ? (id, point) =>
+                // A marker's id is its entry, or its spot when it holds
+                // several, which then all move together.
+                (
+                  pinGroups
+                    .find((group) => group.id === id)
+                    ?.pin.entries.map((pinned) => pinned.id) ?? [id]
+                ).forEach((entryId) => pinTool.onPinDrop(entryId, point))
+            : undefined
+        }
         onBackgroundLoad={backgroundEditor.onBackgroundLoad}
         label={t("worlds.maps.label", "Map of {{name}}", { name: entry.name })}
         overlay={
