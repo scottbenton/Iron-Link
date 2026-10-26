@@ -3,9 +3,9 @@ import { Cell, PaintableGrid, cellKey, cellLine, cellsInRadius } from "./grid";
 
 // What a stroke does to each cell it touches: the brush paints a terrain
 // colour, the path tool lays a path over whatever colour is there, and the
-// eraser removes paths first and then colour.
+// eraser removes everything, only paths, or only the terrain colour.
 export type PaintTool = "brush" | "path" | "eraser";
-export type EraserTarget = "all" | "path";
+export type EraserTarget = "all" | "path" | "terrain";
 
 // Brush sizes are radii in cells: one cell, a cell and its ring, two rings.
 export const BRUSH_SIZES = [0, 1, 2] as const;
@@ -62,10 +62,11 @@ export function paintCell(
     case "eraser": {
       if (!existing) return undefined;
       if (settings.eraser === "all") return null;
-      if (!existing.p) return undefined;
+      const key = settings.eraser === "path" ? "p" : "c";
+      if (!existing[key]) return undefined;
       const rest = { ...existing };
-      delete rest.p;
-      return rest.c ? rest : null;
+      delete rest[key];
+      return rest.c || rest.p ? rest : null;
     }
   }
 }

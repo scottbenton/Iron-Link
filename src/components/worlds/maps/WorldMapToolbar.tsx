@@ -204,6 +204,9 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
           <ToggleButton value="path" sx={{ px: 1.25 }}>
             {t("worlds.maps.eraser.path", "Paths only")}
           </ToggleButton>
+          <ToggleButton value="terrain" sx={{ px: 1.25 }}>
+            {t("worlds.maps.eraser.terrain", "Terrain only")}
+          </ToggleButton>
         </ToggleButtonGroup>
       )}
 
