@@ -9,12 +9,12 @@ import {
   useGameCharactersStore,
 } from "stores/gameCharacters.store";
 
+import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterId } from "../../hooks/useCharacterId";
-import { useIsOwnerOfCharacter } from "../../hooks/useIsOwnerOfCharacter";
 
 export function ExperienceSection() {
   const characterId = useCharacterId();
-  const isCharacterOwner = useIsOwnerOfCharacter();
+  const canEditCharacter = useCanEditCharacter();
 
   const unspentExperience = useGameCharacter(
     (character) => character?.unspentExperience ?? 0,
@@ -51,7 +51,7 @@ export function ExperienceSection() {
         defaultValue={0}
         value={unspentExperience}
         onChange={handleExperienceChange}
-        disabled={!isCharacterOwner}
+        disabled={!canEditCharacter}
       />
     </Box>
   );

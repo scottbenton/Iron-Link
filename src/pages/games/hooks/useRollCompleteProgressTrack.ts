@@ -16,8 +16,8 @@ import { TrackTypes } from "repositories/tracks.repository";
 import { ITrackProgressRoll, LogType } from "services/gameLog.service";
 
 import { getTrackTypeLabel } from "../characterSheet/components/TracksSection/common";
+import { useCanEditCharacter } from "../characterSheet/hooks/useCanEditCharacter";
 import { useCharacterIdOptional } from "../characterSheet/hooks/useCharacterId";
-import { useIsOwnerOfCharacter } from "../characterSheet/hooks/useIsOwnerOfCharacter";
 import { useGameId } from "../gamePageLayout/hooks/useGameId";
 import { getRoll } from "./useRollStatAndAddToLog";
 
@@ -29,7 +29,7 @@ export function useRollCompleteProgressTrack() {
   const gameId = useGameId();
 
   const characterId = useCharacterIdOptional();
-  const isCharacterOwner = useIsOwnerOfCharacter();
+  const canEditCharacter = useCanEditCharacter();
 
   const addRoll = useGameLogStore((store) => store.createLog);
   const addRollToScreen = useAddRollSnackbar();
@@ -65,7 +65,7 @@ export function useRollCompleteProgressTrack() {
         trackProgress,
         trackType,
         result,
-        characterId: isCharacterOwner ? (characterId ?? null) : null,
+        characterId: canEditCharacter ? (characterId ?? null) : null,
         uid,
         guidesOnly: false,
         moveId,
@@ -97,7 +97,7 @@ export function useRollCompleteProgressTrack() {
       gameId,
       characterId,
       uid,
-      isCharacterOwner,
+      canEditCharacter,
       t,
       addRoll,
     ],

@@ -9,8 +9,8 @@ import { useAssetsStore } from "stores/assets.store";
 
 import { filterObject } from "lib/filterObject";
 
+import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterIdOptional } from "../../hooks/useCharacterId";
-import { useIsOwnerOfCharacter } from "../../hooks/useIsOwnerOfCharacter";
 import { AssetSectionHeader } from "./AssetSectionHeader";
 import { AssetsSectionCard } from "./AssetsSectionCard";
 
@@ -53,7 +53,7 @@ export function AssetsSection() {
     return 0;
   }, [sortedSharedAssets]);
 
-  const doesUserOwnCharacter = useIsOwnerOfCharacter();
+  const canEditCharacter = useCanEditCharacter();
 
   const [showAllAbilities, setShowAllAbilities] = useState(false);
 
@@ -66,14 +66,14 @@ export function AssetsSection() {
         setShowAllAbilities={setShowAllAbilities}
         lastCharacterAssetOrder={lastCharacterAssetOrder}
         lastSharedAssetOrder={lastSharedAssetOrder}
-        doesUserOwnCharacter={doesUserOwnCharacter}
+        canEditCharacter={canEditCharacter}
       />
       <GridLayout
         items={[...sortedSharedAssets, ...sortedCharacterAssets]}
         renderItem={(item, index) => (
           <AssetsSectionCard
             key={index}
-            doesUserOwnCharacter={doesUserOwnCharacter}
+            canEditCharacter={canEditCharacter}
             assetId={item[0]}
             assetDocument={item[1]}
             showUnavailableAbilities={showAllAbilities}

@@ -1,8 +1,9 @@
-import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
+import { useCharacterAccess } from "stores/gameCharacters.store";
 
-import { CharacterPermissionType } from "stores/gameCharacters.store";
+import { useCharacterIdOptional } from "./useCharacterId";
 
+// Only for controls that stay with the owner (Edit access, Delete). Sheet
+// edits use useCanEditCharacter.
 export function useIsOwnerOfCharacter() {
-  const characterPermission = useGamePermissions().characterPermission;
-  return characterPermission === CharacterPermissionType.Owner;
+  return useCharacterAccess(useCharacterIdOptional()).isOwner;
 }

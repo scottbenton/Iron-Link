@@ -6,6 +6,7 @@ interface MenuStateState {
   isCharacterDetailsDialogOpen: boolean;
   isCharacterStatsDialogOpen: boolean;
   isColorSchemeDialogOpen: boolean;
+  isCharacterEditAccessDialogOpen: boolean;
 
   isGameNameDialogOpen: boolean;
   isRulesetDialogOpen: boolean;
@@ -18,6 +19,7 @@ interface MenuStateActions {
   setIsCharacterDetailsDialogOpen: (open: boolean) => void;
   setIsCharacterStatsDialogOpen: (open: boolean) => void;
   setIsColorSchemeDialogOpen: (open: boolean) => void;
+  setIsCharacterEditAccessDialogOpen: (open: boolean) => void;
 
   setIsGameNameDialogOpen: (open: boolean) => void;
   setIsRulesetDialogOpen: (open: boolean) => void;
@@ -33,6 +35,7 @@ export const useMenuState = createWithEqualityFn<
     isCharacterDetailsDialogOpen: false,
     isCharacterStatsDialogOpen: false,
     isColorSchemeDialogOpen: false,
+    isCharacterEditAccessDialogOpen: false,
 
     isNotificationSettingsDialogOpen: false,
 
@@ -49,6 +52,11 @@ export const useMenuState = createWithEqualityFn<
     setIsColorSchemeDialogOpen: (open) => {
       set((state) => {
         state.isColorSchemeDialogOpen = open;
+      });
+    },
+    setIsCharacterEditAccessDialogOpen: (open) => {
+      set((state) => {
+        state.isCharacterEditAccessDialogOpen = open;
       });
     },
 

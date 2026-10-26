@@ -15,8 +15,8 @@ import {
 } from "stores/gameCharacters.store.ts";
 
 import { DEFAULT_MOMENTUM } from "../../../../../data/constants.ts";
+import { useCanEditCharacter } from "../../hooks/useCanEditCharacter.ts";
 import { useCharacterId } from "../../hooks/useCharacterId.ts";
-import { useIsOwnerOfCharacter } from "../../hooks/useIsOwnerOfCharacter.ts";
 
 export function Stats() {
   const characterId = useCharacterId();
@@ -30,7 +30,7 @@ export function Stats() {
   const updateAdds = useGameCharactersStore(
     (store) => store.updateCharacterAdds,
   );
-  const isCharacterOwner = useIsOwnerOfCharacter();
+  const canEditCharacter = useCanEditCharacter();
 
   const { t } = useTranslation();
 
@@ -63,7 +63,7 @@ export function Stats() {
             label={statRule.label}
             value={stats[key] ?? 0}
             action={
-              isCharacterOwner
+              canEditCharacter
                 ? {
                     actionLabel: t("common.roll", "Roll"),
                     ActionIcon: RollIcon,
@@ -71,7 +71,7 @@ export function Stats() {
                 : undefined
             }
             onActionClick={
-              isCharacterOwner
+              canEditCharacter
                 ? () =>
                     rollStat({
                       statId: key,
@@ -89,7 +89,7 @@ export function Stats() {
           min={-9}
           max={9}
           defaultValue={0}
-          disabled={!isCharacterOwner}
+          disabled={!canEditCharacter}
           value={adds}
           onChange={handleAddsChange}
         />

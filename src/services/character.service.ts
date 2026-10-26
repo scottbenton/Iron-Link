@@ -2,6 +2,7 @@ import { Enums, Json } from "types/supabase-generated.type";
 
 import {
   CharacterDTO,
+  CharacterEditPermissions,
   CharacterRepository,
   InitiativeStatus,
   StatsMap,
@@ -37,6 +38,7 @@ export type ICharacter = {
 
   unspentExperience: number;
   colorScheme: ColorScheme | null;
+  editPermissions: CharacterEditPermissions;
 };
 
 export class CharacterService {
@@ -73,6 +75,19 @@ export class CharacterService {
       }
     }
 
+    let editPermissions: CharacterEditPermissions;
+    switch (characterDTO.edit_permissions) {
+      case "only_owner":
+        editPermissions = CharacterEditPermissions.OnlyOwner;
+        break;
+      case "guides_and_owner":
+        editPermissions = CharacterEditPermissions.GuidesAndOwner;
+        break;
+      case "all_players":
+        editPermissions = CharacterEditPermissions.AllPlayers;
+        break;
+    }
+
     return {
       id: characterDTO.id,
       uid: characterDTO.uid,
@@ -93,6 +108,7 @@ export class CharacterService {
       adds: characterDTO.adds,
       unspentExperience: characterDTO.unspent_experience,
       colorScheme,
+      editPermissions,
       profileImage: characterDTO.portrait_filename
         ? {
             filename: characterDTO.portrait_filename,
@@ -270,6 +286,15 @@ export class CharacterService {
   ) {
     return CharacterRepository.updateCharacter(characterId, {
       color_scheme: colorScheme,
+    });
+  }
+
+  public static async updateCharacterEditPermissions(
+    characterId: string,
+    editPermissions: CharacterEditPermissions,
+  ) {
+    return CharacterRepository.updateCharacter(characterId, {
+      edit_permissions: editPermissions,
     });
   }
 

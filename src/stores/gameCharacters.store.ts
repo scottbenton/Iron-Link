@@ -5,33 +5,26 @@ import { createWithEqualityFn } from "zustand/traditional";
 
 import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
 
-import { InitiativeStatus } from "repositories/character.repository";
+import {
+  CharacterEditPermissions,
+  InitiativeStatus,
+} from "repositories/character.repository";
 import { ColorScheme } from "repositories/shared.types";
 
 import { CharacterService, ICharacter } from "services/character.service";
 
 import { useUID } from "./auth.store";
-import { GamePermission, useGameStore } from "./game.store";
-
-export enum CharacterPermissionType {
-  Owner = "owner",
-  Guide = "guide",
-  OtherPlayer = "other_player",
-  Viewer = "viewer",
-}
+import { CharacterAccess, getCharacterAccess } from "./characterAccess";
+import { useGameStore } from "./game.store";
 
 interface GameCharactersStoreState {
   characters: Record<string, ICharacter>;
-  characterPermissions: Record<string, CharacterPermissionType>;
   loading: boolean;
   error?: string;
 }
 
 interface GameCharactersStoreActions {
   listenToGameCharacters: (gameId: string) => () => void;
-  setCharacterPermissions: (
-    characterPermissions: Record<string, CharacterPermissionType>,
-  ) => void;
 
   updateCharacterPortrait: (
     characterId: string,
@@ -52,6 +45,10 @@ interface GameCharactersStoreActions {
   updateCharacterInitiativeStatus: (
     characterId: string,
     initiativeStatus: InitiativeStatus,
+  ) => Promise<void>;
+  updateCharacterEditPermissions: (
+    characterId: string,
+    editPermissions: CharacterEditPermissions,
   ) => Promise<void>;
   updateCharacterConditionMeterValue: (
     characterId: string,
@@ -79,7 +76,6 @@ interface GameCharactersStoreActions {
 
 const defaultState: GameCharactersStoreState = {
   characters: {},
-  characterPermissions: {},
   loading: true,
 };
 
@@ -121,12 +117,6 @@ export const useGameCharactersStore = createWithEqualityFn<
         set((store) => ({ ...store, ...defaultState }));
       };
     },
-    setCharacterPermissions: (characterPermissions) => {
-      set((store) => {
-        store.characterPermissions = characterPermissions;
-      });
-    },
-
     updateCharacterName: (characterId: string, newName: string) => {
       return CharacterService.updateCharacterName(characterId, newName);
     },
@@ -165,6 +155,12 @@ export const useGameCharactersStore = createWithEqualityFn<
       return CharacterService.updateCharacterInitiativeStatus(
         characterId,
         initiativeStatus,
+      );
+    },
+    updateCharacterEditPermissions: (characterId, editPermissions) => {
+      return CharacterService.updateCharacterEditPermissions(
+        characterId,
+        editPermissions,
       );
     },
     updateCharacterConditionMeterValue: (
@@ -252,47 +248,31 @@ export function useListenToGameCharacters(gameId: string | undefined) {
     (state) => state.listenToGameCharacters,
   );
 
-  useSetGameCharacterPermissions();
-
   useEffect(() => {
     if (gameId) {
       const unsubscribe = listenToGameCharacters(gameId);
       return () => unsubscribe();
     }
   }, [gameId, listenToGameCharacters]);
-} // Decreasing levels of ownership
+}
 
-export function useSetGameCharacterPermissions() {
+// Who may do what with any character in the current game, recomputed live as
+// the character's edit_permissions or the user's game role changes.
+export function useCharacterAccess(
+  characterId: string | undefined | null,
+): CharacterAccess {
   const uid = useUID();
-
   const gamePermission = useGameStore((state) => state.gamePermissions);
-  const gameCharacters = useGameCharactersStore((state) => {
-    return Object.entries(state.characters).map(([id, characterState]) => {
-      return { id, characterOwnerId: characterState.uid };
+
+  return useGameCharactersStore((state) => {
+    const character = characterId ? state.characters[characterId] : undefined;
+    return getCharacterAccess({
+      uid,
+      ownerId: character?.uid,
+      editPermissions: character?.editPermissions,
+      gamePermission,
     });
   });
-
-  const setPermissions = useGameCharactersStore(
-    (state) => state.setCharacterPermissions,
-  );
-
-  useEffect(() => {
-    const characterPermissions: Record<string, CharacterPermissionType> = {};
-
-    gameCharacters.forEach(({ id, characterOwnerId }) => {
-      if (uid === characterOwnerId) {
-        characterPermissions[id] = CharacterPermissionType.Owner;
-      } else if (gamePermission === GamePermission.Guide) {
-        characterPermissions[id] = CharacterPermissionType.Guide;
-      } else if (gamePermission === GamePermission.Player) {
-        characterPermissions[id] = CharacterPermissionType.OtherPlayer;
-      } else {
-        characterPermissions[id] = CharacterPermissionType.Viewer;
-      }
-    });
-
-    setPermissions(characterPermissions);
-  }, [gamePermission, gameCharacters, setPermissions, uid]);
 }
 
 export function useGameCharacter<T>(
