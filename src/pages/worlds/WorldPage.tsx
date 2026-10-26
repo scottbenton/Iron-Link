@@ -7,6 +7,7 @@ import {
   type WorldNavigation,
   type WorldView,
   getWorldViewPath,
+  isWorldEntrySection,
 } from "components/worlds/worldNavigation";
 
 import { Page404 } from "pages/404Page/404Page";
@@ -37,11 +38,12 @@ export default function WorldPage() {
     !!matchPath("/worlds/:worldId/settings", location.pathname);
   let view: WorldView;
   if (categoryId && entryId) {
-    view = matchPath(
-      "/worlds/:worldId/categories/:categoryId/entries/:entryId/places",
+    const section = matchPath(
+      "/worlds/:worldId/categories/:categoryId/entries/:entryId/:section",
       location.pathname,
-    )
-      ? { type: "entry", categoryId, entryId, section: "places" }
+    )?.params.section;
+    view = isWorldEntrySection(section)
+      ? { type: "entry", categoryId, entryId, section }
       : { type: "entry", categoryId, entryId };
   } else if (categoryId) {
     view = { type: settings ? "category-settings" : "category", categoryId };

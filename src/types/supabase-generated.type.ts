@@ -983,6 +983,134 @@ export type Database = {
           },
         ]
       }
+      world_map_chunks: {
+        Row: {
+          cells: Json
+          chunk_x: number
+          chunk_y: number
+          entry_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          cells?: Json
+          chunk_x: number
+          chunk_y: number
+          entry_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          cells?: Json
+          chunk_x?: number
+          chunk_y?: number
+          entry_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_map_chunks_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "world_maps"
+            referencedColumns: ["entry_id"]
+          },
+        ]
+      }
+      world_map_pins: {
+        Row: {
+          entry_id: string
+          pinned_entry_id: string
+          updated_at: string
+          x: number
+          y: number
+        }
+        Insert: {
+          entry_id: string
+          pinned_entry_id: string
+          updated_at?: string
+          x: number
+          y: number
+        }
+        Update: {
+          entry_id?: string
+          pinned_entry_id?: string
+          updated_at?: string
+          x?: number
+          y?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_map_pins_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "world_maps"
+            referencedColumns: ["entry_id"]
+          },
+          {
+            foreignKeyName: "world_map_pins_pinned_entry_id_fkey"
+            columns: ["pinned_entry_id"]
+            isOneToOne: true
+            referencedRelation: "world_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      world_maps: {
+        Row: {
+          background_filename: string | null
+          background_width: number | null
+          background_x: number
+          background_y: number
+          created_at: string
+          entry_id: string
+          grid: string
+          hex_flowers: boolean
+          updated_at: string
+          world_id: string
+        }
+        Insert: {
+          background_filename?: string | null
+          background_width?: number | null
+          background_x?: number
+          background_y?: number
+          created_at?: string
+          entry_id: string
+          grid: string
+          hex_flowers?: boolean
+          updated_at?: string
+          world_id: string
+        }
+        Update: {
+          background_filename?: string | null
+          background_width?: number | null
+          background_x?: number
+          background_y?: number
+          created_at?: string
+          entry_id?: string
+          grid?: string
+          hex_flowers?: boolean
+          updated_at?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_maps_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: true
+            referencedRelation: "world_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "world_maps_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       world_players: {
         Row: {
           created_at: string
@@ -1137,6 +1265,10 @@ export type Database = {
       mutate_world_configuration: {
         Args: { p_world_id: string; p_operation: Json; p_default_bindings?: Json }
         Returns: undefined
+      }
+      paint_world_map_cells: {
+        Args: { p_entry_id: string; p_cells: Json }
+        Returns: Database["public"]["Tables"]["world_map_chunks"]["Row"][]
       }
       reorder_world_categories: {
         Args: { p_world_id: string; p_ids: string[] }
