@@ -23,7 +23,7 @@ import {
 
 import { IProgressTrack, ISceneChallenge } from "services/tracks.service";
 
-import { useIsOwnerOfCharacter } from "../../hooks/useIsOwnerOfCharacter";
+import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { EditOrCreateTrackDialog } from "./EditOrCreateTrackDialog";
 import { TrackCompletionMoveButton } from "./TrackCompletionMoveButton";
 import { getTrackTypeLabel, trackCompletionMoveIds } from "./common";
@@ -46,7 +46,7 @@ export function TrackProgressTrack(props: TrackProgressTrackProps) {
   const { trackId, track, canEdit } = props;
 
   const gameId = useGameId();
-  const isCharacterOwner = useIsOwnerOfCharacter();
+  const canEditCharacter = useCanEditCharacter();
 
   const { t } = useTranslation();
   const announce = useSetAnnouncement();
@@ -182,7 +182,7 @@ export function TrackProgressTrack(props: TrackProgressTrackProps) {
           alignItems="flex-start"
         >
           {canEdit &&
-            isCharacterOwner &&
+            canEditCharacter &&
             track.status === TrackStatus.Active && (
               <Box>
                 {trackCompletionMoveIds[track.type]?.map((moveId) => (

@@ -9,12 +9,12 @@ import {
   useGameCharactersStore,
 } from "stores/gameCharacters.store";
 
+import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterId } from "../../hooks/useCharacterId";
-import { useIsOwnerOfCharacter } from "../../hooks/useIsOwnerOfCharacter";
 
 export function LegacyTracks() {
   const characterId = useCharacterId();
-  const isCharacterOwner = useIsOwnerOfCharacter();
+  const canEditCharacter = useCanEditCharacter();
 
   const legacyTracks = useGameCharacter(
     (character) => character?.specialTracks ?? {},
@@ -50,7 +50,7 @@ export function LegacyTracks() {
               label={specialTrack.label}
               value={legacyTracks[key]?.value ?? 0}
               onChange={
-                isCharacterOwner ? handleProgressTrackChange : undefined
+                canEditCharacter ? handleProgressTrackChange : undefined
               }
             />
           </Box>

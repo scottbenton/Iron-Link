@@ -25,11 +25,18 @@ export function GameLogEntry(props: GameLogEntryProps) {
 
   const logCharacterId = log.characterId;
   const logCharacterName = useGameCharactersStore((state) =>
-    logCharacterId ? state.characters[logCharacterId].name : undefined,
+    logCharacterId ? state.characters[logCharacterId]?.name : undefined,
+  );
+  const logCharacterOwnerId = useGameCharactersStore((state) =>
+    logCharacterId ? state.characters[logCharacterId]?.uid : undefined,
   );
   const logCreatorName = useUserName(log.uid);
 
   const isYourEntry = log.uid === uid;
+
+  // Someone other than the character's owner wrote this entry from its sheet.
+  const wasWrittenForOwner =
+    !!logCharacterOwnerId && log.uid !== logCharacterOwnerId;
 
   let rollerName = "";
   if (logCharacterName === undefined) {
@@ -59,6 +66,17 @@ export function GameLogEntry(props: GameLogEntryProps) {
       alignItems={isYourEntry ? "flex-end" : "flex-start"}
     >
       <Typography>{rollerName}</Typography>
+      {wasWrittenForOwner && (
+        <Typography color={"textSecondary"} variant={"caption"}>
+          {log.logType === LogType.MESSAGE
+            ? t("game.log.sent-by", "sent by {{name}}", {
+                name: logCreatorName,
+              })
+            : t("game.log.rolled-by", "rolled by {{name}}", {
+                name: logCreatorName,
+              })}
+        </Typography>
+      )}
       {log.logType === LogType.ROLL && (
         <RollSnackbar
           actions={<NormalRollActions rollId={logId} roll={log} />}

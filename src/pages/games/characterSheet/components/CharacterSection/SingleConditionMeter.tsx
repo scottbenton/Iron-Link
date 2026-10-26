@@ -5,10 +5,9 @@ import { useTranslation } from "react-i18next";
 
 import { DebouncedConditionMeter } from "components/datasworn/ConditonMeter";
 
-import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 import { useRollStatAndAddToLog } from "pages/games/hooks/useRollStatAndAddToLog";
 
-import { CharacterPermissionType } from "stores/gameCharacters.store";
+import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 
 interface SingleConditionMeterProps {
   conditionMeterKey: string;
@@ -24,8 +23,7 @@ export function SingleConditionMeter(props: SingleConditionMeterProps) {
   const { conditionMeterKey, rule, value, onChange, disabled, momentum, adds } =
     props;
 
-  const isCharacterOwner =
-    useGamePermissions().characterPermission === CharacterPermissionType.Owner;
+  const canEditCharacter = useCanEditCharacter();
 
   const { t } = useTranslation();
 
@@ -58,14 +56,14 @@ export function SingleConditionMeter(props: SingleConditionMeterProps) {
       onChange={handleChange}
       disabled={disabled}
       action={
-        isCharacterOwner
+        canEditCharacter
           ? {
               ActionIcon: RollIcon,
               actionLabel: t("datasworn.roll", "Roll"),
             }
           : undefined
       }
-      onActionClick={isCharacterOwner ? handleRoll : undefined}
+      onActionClick={canEditCharacter ? handleRoll : undefined}
     />
   );
 }

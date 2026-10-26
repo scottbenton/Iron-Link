@@ -19,6 +19,7 @@ import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissi
 import { useUID } from "stores/auth.store";
 import { GamePermission } from "stores/game.store";
 import {
+  useCharacterAccess,
   useGameCharacter,
   useGameCharactersStore,
 } from "stores/gameCharacters.store";
@@ -69,6 +70,13 @@ export function NormalRollActions(props: NormalRollActionsProps) {
 
   const momentum = useGameCharacter((character) => character?.momentum ?? 0);
   const momentumResetValue = useMomentumParameters().resetValue;
+
+  // A roll made for a character can be changed by anyone who can edit that
+  // character, not only the person who rolled it.
+  const canEditRollCharacter = useCharacterAccess(roll.characterId).canEdit;
+  const canChangeRoll = roll.characterId
+    ? canEditRollCharacter
+    : roll.uid === uid;
 
   const canDeleteLogs =
     useGamePermissions().gamePermission === GamePermission.Guide;
@@ -185,7 +193,7 @@ export function NormalRollActions(props: NormalRollActionsProps) {
             </ListItemIcon>
             <ListItemText>Copy Roll Result</ListItemText>
           </MenuItem>
-          {roll.type === RollType.Stat && roll.uid === uid && (
+          {roll.type === RollType.Stat && canChangeRoll && (
             <MenuItem
               onClick={(evt) => {
                 evt.stopPropagation();
@@ -200,7 +208,7 @@ export function NormalRollActions(props: NormalRollActionsProps) {
             </MenuItem>
           )}
           {roll.type === RollType.Stat &&
-            roll.uid === uid &&
+            canChangeRoll &&
             roll.characterId === currentCharacterId &&
             isMomentumBurnUseful && (
               <MenuItem

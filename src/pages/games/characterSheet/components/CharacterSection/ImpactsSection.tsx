@@ -24,12 +24,12 @@ import {
   useGameCharactersStore,
 } from "stores/gameCharacters.store";
 
+import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterId } from "../../hooks/useCharacterId";
-import { useIsOwnerOfCharacter } from "../../hooks/useIsOwnerOfCharacter";
 
 export function ImpactsSection() {
   const characterId = useCharacterId();
-  const isCharacterOwner = useIsOwnerOfCharacter();
+  const canEditCharacter = useCanEditCharacter();
 
   const impacts = useGameCharacter((character) => character?.debilities ?? {});
   const { impactCategories, impacts: impactRules } = useImpactRules();
@@ -68,7 +68,7 @@ export function ImpactsSection() {
           <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
             {t("character.character-sidebar.active-impacts", "Active Impacts")}
           </Typography>
-          {isCharacterOwner && (
+          {canEditCharacter && (
             <IconButton
               aria-label={t(
                 "character.character-sidebar.edit-impacts",

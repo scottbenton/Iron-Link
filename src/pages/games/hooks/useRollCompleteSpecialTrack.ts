@@ -14,8 +14,8 @@ import { RollType } from "repositories/shared.types";
 
 import { ISpecialTrackProgressRoll, LogType } from "services/gameLog.service";
 
+import { useCanEditCharacter } from "../characterSheet/hooks/useCanEditCharacter";
 import { useCharacterIdOptional } from "../characterSheet/hooks/useCharacterId";
-import { useIsOwnerOfCharacter } from "../characterSheet/hooks/useIsOwnerOfCharacter";
 import { useGameId } from "../gamePageLayout/hooks/useGameId";
 import { getRoll } from "./useRollStatAndAddToLog";
 
@@ -27,7 +27,7 @@ export function useRollCompleteSpecialTrack() {
   const gameId = useGameId();
 
   const characterId = useCharacterIdOptional();
-  const isCharacterOwner = useIsOwnerOfCharacter();
+  const canEditCharacter = useCanEditCharacter();
 
   const addRoll = useGameLogStore((store) => store.createLog);
   const addRollToScreen = useAddRollSnackbar();
@@ -61,7 +61,7 @@ export function useRollCompleteSpecialTrack() {
         trackProgress,
         specialTrackKey,
         result,
-        characterId: isCharacterOwner ? (characterId ?? null) : null,
+        characterId: canEditCharacter ? (characterId ?? null) : null,
         uid,
         id: createId(),
         gameId,
@@ -94,7 +94,7 @@ export function useRollCompleteSpecialTrack() {
       addRollToScreen,
       characterId,
       uid,
-      isCharacterOwner,
+      canEditCharacter,
       t,
       addRoll,
     ],

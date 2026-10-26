@@ -11,19 +11,15 @@ import { useAssetsStore } from "stores/assets.store";
 import { IAsset } from "services/asset.service";
 
 export interface AssetsSectionCardProps {
-  doesUserOwnCharacter: boolean;
+  canEditCharacter: boolean;
   assetId: string;
   assetDocument: IAsset;
   showUnavailableAbilities: boolean;
 }
 
 function AssetsSectionCardUnMemoized(props: AssetsSectionCardProps) {
-  const {
-    doesUserOwnCharacter,
-    assetId,
-    assetDocument,
-    showUnavailableAbilities,
-  } = props;
+  const { canEditCharacter, assetId, assetDocument, showUnavailableAbilities } =
+    props;
   const { t } = useTranslation();
 
   const toggleAssetAbility = useAssetsStore(
@@ -93,13 +89,13 @@ function AssetsSectionCardUnMemoized(props: AssetsSectionCardProps) {
       assetId={assetDocument.dataswornAssetId}
       assetDocument={assetDocument}
       onAssetAbilityToggle={
-        doesUserOwnCharacter ? handleAssetAbilityToggle : undefined
+        canEditCharacter ? handleAssetAbilityToggle : undefined
       }
       onAssetOptionChange={
-        doesUserOwnCharacter ? handleAssetOptionChange : undefined
+        canEditCharacter ? handleAssetOptionChange : undefined
       }
       onAssetControlChange={
-        doesUserOwnCharacter ? handleAssetControlChange : undefined
+        canEditCharacter ? handleAssetControlChange : undefined
       }
       hideUnavailableAbilities={!showUnavailableAbilities}
     />

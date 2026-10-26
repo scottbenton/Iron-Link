@@ -7,11 +7,11 @@ import { useRollOracle } from "hooks/useRollOracle";
 
 import { useAddRollSnackbar } from "stores/appState.store";
 import { useUID } from "stores/auth.store";
-import { useGameCharacter } from "stores/gameCharacters.store";
 import { useGameLogStore } from "stores/gameLog.store";
 
 import { IOracleTableRoll } from "services/gameLog.service";
 
+import { useCanEditCharacter } from "../characterSheet/hooks/useCanEditCharacter";
 import { useCharacterIdOptional } from "../characterSheet/hooks/useCharacterId";
 import { useGameIdOptional } from "../gamePageLayout/hooks/useGameId";
 
@@ -21,7 +21,7 @@ export function useRollOracleAndAddToLog() {
   const characterId = useCharacterIdOptional();
   const gameId = useGameIdOptional();
 
-  const characterOwner = useGameCharacter((character) => character?.uid);
+  const canEditCharacter = useCanEditCharacter();
 
   const addRollSnackbar = useAddRollSnackbar();
 
@@ -43,8 +43,7 @@ export function useRollOracleAndAddToLog() {
           ...result,
           gameId: gameId ?? "fake-game",
           uid,
-          characterId:
-            characterId && characterOwner === uid ? characterId : null,
+          characterId: characterId && canEditCharacter ? characterId : null,
           guidesOnly,
         };
         if (gameId) {
@@ -78,7 +77,7 @@ export function useRollOracleAndAddToLog() {
       error,
       t,
       addRollSnackbar,
-      characterOwner,
+      canEditCharacter,
       addRoll,
     ],
   );

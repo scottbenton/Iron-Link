@@ -2,10 +2,7 @@ import CharacterSettingsIcon from "@mui/icons-material/ManageAccounts";
 import { IconButton, Menu } from "@mui/material";
 import { useCallback, useRef, useState } from "react";
 
-import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
-
-import { CharacterPermissionType } from "stores/gameCharacters.store";
-
+import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { CharacterMenuDialogs } from "./CharacterMenuDialogs";
 import { CharacterMenuItems } from "./CharacterMenuItems";
 
@@ -14,10 +11,9 @@ export function CharacterSettingsMenu() {
   const closeMenu = useCallback(() => setIsSettingsMenuOpen(false), []);
 
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const isCharacterOwner =
-    useGamePermissions().characterPermission === CharacterPermissionType.Owner;
+  const canEditCharacter = useCanEditCharacter();
 
-  if (!isCharacterOwner) {
+  if (!canEditCharacter) {
     return null;
   }
 

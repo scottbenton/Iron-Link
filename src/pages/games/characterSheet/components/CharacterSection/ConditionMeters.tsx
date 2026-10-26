@@ -21,15 +21,15 @@ import { momentumTrack } from "data/defaultTracks";
 import { elegyRulesetConfig } from "data/package.config.ts";
 
 import { DEFAULT_MOMENTUM } from "../../../../../data/constants.ts";
+import { useCanEditCharacter } from "../../hooks/useCanEditCharacter.ts";
 import { useCharacterId } from "../../hooks/useCharacterId.ts";
-import { useIsOwnerOfCharacter } from "../../hooks/useIsOwnerOfCharacter.ts";
 import { useMomentumParameters } from "../../hooks/useMomentumResetValue.ts";
 import { SingleConditionMeter } from "./SingleConditionMeter.tsx";
 
 export function ConditionMeters() {
   const gameId = useGameId();
   const characterId = useCharacterId();
-  const isCharacterOwner = useIsOwnerOfCharacter();
+  const canEditCharacter = useCanEditCharacter();
 
   const gameConditionMeterValues = useGameStore(
     (store) => store.game?.conditionMeters ?? {},
@@ -110,7 +110,7 @@ export function ConditionMeters() {
                 : conditionMeterValues[key]
             }
             onChange={handleConditionMeterChange}
-            disabled={!isCharacterOwner}
+            disabled={!canEditCharacter}
             momentum={momentum}
             adds={adds}
           />
@@ -136,7 +136,7 @@ export function ConditionMeters() {
             ),
             ActionIcon: ResetIcon,
           }}
-          disabled={!isCharacterOwner}
+          disabled={!canEditCharacter}
         />
       </Box>
     </Box>

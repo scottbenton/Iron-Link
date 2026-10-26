@@ -1,4 +1,5 @@
 import CharacterIcon from "@mui/icons-material/AccountBox";
+import EditAccessIcon from "@mui/icons-material/Group";
 import StatsIcon from "@mui/icons-material/Numbers";
 import ThemeIcon from "@mui/icons-material/Palette";
 import {
@@ -11,13 +12,14 @@ import { useTranslation } from "react-i18next";
 
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
-import {
-  CharacterPermissionType,
-  useGameCharacter,
-} from "stores/gameCharacters.store";
+import { useGameCharacter } from "stores/gameCharacters.store";
 import { useMenuState } from "stores/menuState";
 
+import { GameType } from "repositories/game.repository";
+
+import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterIdOptional } from "../../hooks/useCharacterId";
+import { useIsOwnerOfCharacter } from "../../hooks/useIsOwnerOfCharacter";
 import { DeleteCharacterButton } from "./DeleteCharacterButton";
 
 export interface CharacterMenuItemsProps {
@@ -29,8 +31,9 @@ export function CharacterMenuItems(props: CharacterMenuItemsProps) {
 
   const { t } = useTranslation();
 
-  const isCharacterOwner =
-    useGamePermissions().characterPermission === CharacterPermissionType.Owner;
+  const canEditCharacter = useCanEditCharacter();
+  const isCharacterOwner = useIsOwnerOfCharacter();
+  const { gameType } = useGamePermissions();
 
   const characterId = useCharacterIdOptional();
 
@@ -47,8 +50,11 @@ export function CharacterMenuItems(props: CharacterMenuItemsProps) {
   const setIsColorSchemeDialogOpen = useMenuState(
     (store) => store.setIsColorSchemeDialogOpen,
   );
+  const setIsCharacterEditAccessDialogOpen = useMenuState(
+    (store) => store.setIsCharacterEditAccessDialogOpen,
+  );
 
-  if (!isCharacterOwner || !characterId) {
+  if (!canEditCharacter || !characterId) {
     return null;
   }
 
@@ -107,7 +113,24 @@ export function CharacterMenuItems(props: CharacterMenuItemsProps) {
           )}
         />
       </MenuItem>
-      <DeleteCharacterButton closeMenu={() => closeMenu()} />
+      {isCharacterOwner && gameType !== GameType.Solo && (
+        <MenuItem
+          onClick={() => {
+            setIsCharacterEditAccessDialogOpen(true);
+            closeMenu();
+          }}
+        >
+          <ListItemIcon>
+            <EditAccessIcon />
+          </ListItemIcon>
+          <ListItemText
+            primary={t("character.edit-access.title", "Edit Access")}
+          />
+        </MenuItem>
+      )}
+      {isCharacterOwner && (
+        <DeleteCharacterButton closeMenu={() => closeMenu()} />
+      )}
     </>
   );
 }

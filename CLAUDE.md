@@ -76,3 +76,9 @@ that are easy to miss. When you learn a new one, add a line here.
   through the `note_permission_allows_read|edit|manage` helpers, and the
   `notes_guard_update`/`note_folders_guard_update` triggers check which columns
   each editor may change. Change both sides together.
+
+## Character sheets
+
+- Sheet edit controls check `useCanEditCharacter` (backed by
+  `getCharacterAccess`, which mirrors the database's `can_edit_character()`),
+  not ownership. Only Edit access and Delete use `useIsOwnerOfCharacter`.

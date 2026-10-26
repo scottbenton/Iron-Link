@@ -1,6 +1,7 @@
 import { useMenuState } from "stores/menuState";
 
 import { CharacterDetailsDialog } from "./CharacterDetailsDialog";
+import { CharacterEditAccessDialog } from "./CharacterEditAccessDialog";
 import { CharacterStatsDialog } from "./CharacterStatsDialog";
 import { ColorSchemeDialog } from "./ColorSchemeDialog";
 
@@ -20,6 +21,10 @@ export function CharacterMenuDialogs() {
       <ColorSchemeDialog
         open={state.isColorSchemeDialogOpen}
         onClose={() => state.setIsColorSchemeDialogOpen(false)}
+      />
+      <CharacterEditAccessDialog
+        open={state.isCharacterEditAccessDialogOpen}
+        onClose={() => state.setIsCharacterEditAccessDialogOpen(false)}
       />
     </>
   );

@@ -23,6 +23,13 @@ export enum InitiativeStatus {
   DoesNotHaveInitiative = "noInitiative",
   OutOfCombat = "outOfCombat",
 }
+// Who besides the owner may edit a character sheet. Matches the
+// character_edit_permissions database enum; AllPlayers includes guides.
+export enum CharacterEditPermissions {
+  OnlyOwner = "only_owner",
+  GuidesAndOwner = "guides_and_owner",
+  AllPlayers = "all_players",
+}
 export type CharacterDTO = Tables<"characters">;
 type InsertCharacterDTO = TablesInsert<"characters">;
 type UpdateCharacterDTO = TablesUpdate<"characters">;

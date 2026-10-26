@@ -18,7 +18,7 @@ export interface AssetsSectionHeaderProps {
   setShowAllAbilities: (showAllAbilities: boolean) => void;
   lastSharedAssetOrder: number;
   lastCharacterAssetOrder: number;
-  doesUserOwnCharacter: boolean;
+  canEditCharacter: boolean;
 }
 
 export function AssetSectionHeader(props: AssetsSectionHeaderProps) {
@@ -29,7 +29,7 @@ export function AssetSectionHeader(props: AssetsSectionHeaderProps) {
     setShowAllAbilities,
     lastSharedAssetOrder,
     lastCharacterAssetOrder,
-    doesUserOwnCharacter,
+    canEditCharacter,
   } = props;
   const { t } = useTranslation();
 
@@ -97,7 +97,7 @@ export function AssetSectionHeader(props: AssetsSectionHeaderProps) {
           />
         }
       />
-      {doesUserOwnCharacter && (
+      {canEditCharacter && (
         <>
           <Button
             variant="outlined"
