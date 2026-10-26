@@ -1,8 +1,11 @@
 import { Alert, Box, Skeleton, Typography } from "@mui/material";
-import { Editor as TTEditor } from "@tiptap/react";
 import { useEffect, useMemo, useState } from "react";
 
-import { RtcRichTextEditor } from "components/RichTextEditor";
+import {
+  RichTextToolbarProps,
+  RtcRichTextEditor,
+} from "components/RichTextEditor";
+import type { SecretsConfig } from "components/RichTextEditor/secrets/useSecretsCompanion";
 
 import type { RichTextContentStore } from "services/richTextContent.service";
 import type { RoomKeySource } from "services/roomKeys.service";
@@ -26,6 +29,8 @@ export interface WorldNotesEditorProps {
   uploadImage: (file: File) => Promise<string>;
   loadErrorMessage: string;
   onError: (cause: unknown) => void;
+  // Guide-only secret blocks, for a Guide of this world.
+  secrets?: SecretsConfig | null;
 }
 
 // Collaborative Notes for a world or an entry. Edited and saved like a game
@@ -44,6 +49,7 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
     uploadImage,
     loadErrorMessage,
     onError,
+    secrets,
   } = props;
   const [content, setContent] = useState<Uint8Array>();
   const [loadError, setLoadError] = useState(false);
@@ -67,12 +73,16 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
   // The editor takes a component; keep it stable for this document.
   const Toolbar = useMemo(
     () =>
-      function NotesToolbar({ editor }: { editor: TTEditor }) {
+      function NotesToolbar({ editor, secrets }: RichTextToolbarProps) {
         return (
           <WorldNotesToolbar
             editor={editor}
+            secrets={secrets}
             upload={(file) =>
-              uploadImage(file).catch((cause) => {
+              (secrets?.inSecret
+                ? secrets.uploadImage(file)
+                : uploadImage(file)
+              ).catch((cause) => {
                 onError(cause);
                 throw cause;
               })
@@ -83,7 +93,8 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
     [uploadImage, onError],
   );
 
-  if (!canEdit && content && content.length === 0) return null;
+  // A Guide may have secrets to read under empty Notes.
+  if (!canEdit && !secrets && content && content.length === 0) return null;
 
   return (
     // Takes the rest of the page, so the whole space below the heading is
@@ -123,6 +134,7 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
             initialValue={content}
             contentStore={canEdit ? contentStore : undefined}
             onSaveError={onError}
+            secrets={secrets}
             Toolbar={Toolbar}
             fill
             minHeight={120}

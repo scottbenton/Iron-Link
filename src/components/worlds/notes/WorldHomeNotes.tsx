@@ -1,9 +1,14 @@
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useWorldStore } from "stores/world.store";
+import {
+  useWorldIsGuided,
+  useWorldPermission,
+  useWorldStore,
+} from "stores/world.store";
 
 import { WorldNotesEditor } from "./WorldNotesEditor";
+import { getWorldSecretsConfig } from "./worldNotesSecrets";
 
 // The world's Overview (its own Notes document), below the category cards on the world home.
 // Everyone who can read the world reads them; owners, editors and Guides
@@ -40,6 +45,18 @@ export function WorldHomeNotes({
     (file: File) => uploadWorldNotesImage(worldId, file),
     [worldId, uploadWorldNotesImage],
   );
+  const permission = useWorldPermission();
+  const isGuided = useWorldIsGuided();
+  const secrets = useMemo(
+    () =>
+      getWorldSecretsConfig({
+        worldId,
+        surface: { worldId },
+        permission,
+        isGuided,
+      }),
+    [worldId, permission, isGuided],
+  );
 
   return (
     <WorldNotesEditor
@@ -57,6 +74,7 @@ export function WorldHomeNotes({
         "Could not load the world's overview. Please reopen the world to try again.",
       )}
       onError={onError}
+      secrets={secrets}
     />
   );
 }
