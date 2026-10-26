@@ -1,9 +1,35 @@
-import { Editor as TTEditor } from "@tiptap/react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import { useTranslation } from "react-i18next";
+
+import { useSnackbar } from "providers/SnackbarProvider";
+
+import { useUID } from "stores/auth.store";
 
 import type { RichTextContentStore } from "services/richTextContent.service";
+import { RichTextSecretsService } from "services/richTextSecrets.service";
 import type { RoomKeySource } from "services/roomKeys.service";
 
 import { Editor, EditorProps } from "./Editor";
+import type {
+  RichTextToolbarProps,
+  SecretsToolbarState,
+} from "./richTextToolbar";
+import { defaultExtensions } from "./rtcExtensions";
+import { SecretBlockView } from "./secrets/SecretBlockView";
+import { SecretBlocksExtension } from "./secrets/SecretBlocksExtension";
+import { toGuideImageSrc } from "./secrets/guideImages";
+import { SecretsController } from "./secrets/secretsController";
+import {
+  SecretsConfig,
+  useSecretsCompanion,
+} from "./secrets/useSecretsCompanion";
 import { useAutoSaveRtcEditor } from "./useAutosaveRtcEditor";
 import { useRoomKey } from "./useRoomKey";
 
@@ -17,7 +43,10 @@ export interface RtcRichTextEditorProps {
   contentStore?: RichTextContentStore;
   onSaveError?: (error: unknown) => void;
   initialValue: Uint8Array;
-  Toolbar: React.FC<{ editor: TTEditor }>;
+  Toolbar: React.FC<RichTextToolbarProps>;
+  // Guide-only secret blocks, for a Guide of this surface. Players' editors
+  // get none, and nothing about secrets reaches them.
+  secrets?: SecretsConfig | null;
   // Bordered, with the toolbar inside, for an editor among other inputs.
   outlined?: boolean;
   minHeight?: number;
@@ -35,14 +64,59 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
     onSaveError,
     initialValue,
     Toolbar,
+    secrets,
     outlined,
     minHeight,
     contentPx,
     fill,
   } = props;
 
+  const { t } = useTranslation();
+  const { error } = useSnackbar();
+  const uid = useUID();
+
   const readOnly = !contentStore;
   const roomKey = useRoomKey(roomKeySource);
+
+  const companion = useSecretsCompanion(secrets ?? null, onSaveError);
+  const controller = useMemo(
+    () =>
+      companion.doc
+        ? new SecretsController({
+            companion: companion.doc,
+            userId: uid,
+            blockExtensions: defaultExtensions,
+          })
+        : null,
+    // The user only changes on sign-out, which closes the editor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [companion.doc],
+  );
+  useEffect(() => () => controller?.destroy(), [controller]);
+
+  const controllerRef = useRef(controller);
+  controllerRef.current = controller;
+  const hasSecrets = !!secrets;
+  const refusedMessage = t(
+    "notes.secrets.image-paste-refused",
+    "Images from a secret can't be pasted into the note. Players can't see them.",
+  );
+  const refusedMessageRef = useRef(refusedMessage);
+  refusedMessageRef.current = refusedMessage;
+  // Stable for the editor's life: the controller is read when needed.
+  const extensions = useMemo(
+    () =>
+      hasSecrets
+        ? [
+            SecretBlocksExtension.configure({
+              getController: () => controllerRef.current,
+              onGuideImagesRefused: () => error(refusedMessageRef.current),
+            }),
+          ]
+        : undefined,
+    [hasSecrets, error],
+  );
+
   const { editor, saving } = useAutoSaveRtcEditor({
     documentId: id,
     roomName: `${roomPrefix}-${id}`,
@@ -50,18 +124,91 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
     initialValue,
     contentStore,
     onSaveError,
+    extensions,
   });
 
+  useEffect(() => {
+    if (!controller || !editor) return;
+    controller.attachShared(editor);
+    return () => controller.detachShared(editor);
+  }, [controller, editor]);
+
+  const subscribe = useCallback(
+    (listener: () => void) => controller?.subscribe(listener) ?? (() => {}),
+    [controller],
+  );
+  const snapshot = useSyncExternalStore(
+    subscribe,
+    () => controller?.getSnapshot() ?? null,
+  );
+  const blocks = useMemo(
+    () => controller?.getBlocks() ?? [],
+    // The snapshot changes whenever the blocks do.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [controller, snapshot?.version],
+  );
+  const activeBlockEditor = snapshot?.activeBlockId
+    ? (controller?.getActiveEditor() ?? null)
+    : null;
+
+  // The shared editor re-renders on its own transactions; follow its
+  // selection here too, for Make secret.
+  const [hasSelection, setHasSelection] = useState(false);
+  useEffect(() => {
+    if (!editor || !controller) return;
+    const update = () => setHasSelection(!editor.state.selection.empty);
+    editor.on("selectionUpdate", update);
+    return () => {
+      editor.off("selectionUpdate", update);
+    };
+  }, [editor, controller]);
+
+  const surface = secrets?.surface;
+  const secretsToolbar = useMemo<SecretsToolbarState | undefined>(() => {
+    if (!controller || !secrets || !surface) return undefined;
+    return {
+      inSecret: !!activeBlockEditor,
+      canInsert: secrets.canInsert,
+      insertSecret: () => controller.insertSecret(),
+      canMakeSecret:
+        secrets.canInsert && !activeBlockEditor && !readOnly && hasSelection,
+      makeSecret: () => controller.makeSecret(),
+      uploadImage: (file) =>
+        RichTextSecretsService.storeImage(surface, file).then(toGuideImageSrc),
+    };
+  }, [controller, secrets, surface, activeBlockEditor, readOnly, hasSelection]);
+
+  const onBlockMounted = useCallback(
+    (blockId: string) => controller?.takePendingFocus(blockId),
+    [controller],
+  );
+  const onDeleteBlock = useCallback(
+    (blockId: string) => controller?.deleteBlock(blockId),
+    [controller],
+  );
+
   return (
-    <Editor
-      editable={!readOnly}
-      editor={editor}
-      saving={saving}
-      Toolbar={Toolbar}
-      outlined={outlined}
-      minHeight={minHeight}
-      contentPx={contentPx}
-      fill={fill}
-    />
+    <>
+      <Editor
+        editable={!readOnly}
+        editor={editor}
+        toolbarEditor={activeBlockEditor}
+        secrets={secretsToolbar}
+        saving={saving || companion.saving}
+        Toolbar={Toolbar}
+        outlined={outlined}
+        minHeight={minHeight}
+        contentPx={contentPx}
+        fill={fill}
+      />
+      {blocks.map((block) => (
+        <SecretBlockView
+          key={block.id}
+          block={block}
+          onMounted={onBlockMounted}
+          onDelete={onDeleteBlock}
+        />
+      ))}
+    </>
   );
 }

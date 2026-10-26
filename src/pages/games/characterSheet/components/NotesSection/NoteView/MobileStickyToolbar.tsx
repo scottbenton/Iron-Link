@@ -3,6 +3,8 @@ import { IconButton, Tooltip } from "@mui/material";
 import { Editor } from "@tiptap/react";
 import { useTranslation } from "react-i18next";
 
+import { SecretsToolbarState } from "components/RichTextEditor";
+
 import { useIsMobile } from "hooks/useIsMobile";
 
 import { useNotesStore } from "stores/notes.store";
@@ -16,10 +18,11 @@ export interface MobileStickyNoteToolbarProps {
   openNoteId: string;
   editor: Editor;
   permissions: NotePermissions;
+  secrets?: SecretsToolbarState;
 }
 
 export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
-  const { openNoteId, editor, permissions } = props;
+  const { openNoteId, editor, permissions, secrets } = props;
 
   const { t } = useTranslation();
 
@@ -57,6 +60,7 @@ export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
           editor={editor}
           openNoteId={openNoteId}
           permissions={permissions}
+          secrets={secrets}
           hideBorders
         />
       </MobileKeyboardToolbar>

@@ -77,6 +77,13 @@ that are easy to miss. When you learn a new one, add a line here.
   anchored by Yjs relative positions stored in the companion (spike #252);
   the shared document holds nothing about them. Images in secrets go in the
   private `guide_images` bucket and are shown through signed URLs.
+- A Guide's editor gets secrets by passing `secrets` to `RtcRichTextEditor`
+  (`components/RichTextEditor/secrets/`): each block is a widget holding its
+  own editor, run by `SecretsController`. Players' editors get no secrets
+  extension. Undo goes through the controller's `UndoCoordinator`, never a
+  block editor's own, and a block node's image `src` is `guide-image:<path>`,
+  never a URL. Pass the editor a stable `Toolbar` component; one created on
+  each render remounts the toolbar and swallows clicks.
 
 ## Notes
 
