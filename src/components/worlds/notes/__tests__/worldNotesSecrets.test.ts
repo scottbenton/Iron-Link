@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
-import { WorldPermission } from "repositories/shared.types";
+import { ReadPermissions, WorldPermission } from "repositories/shared.types";
 
 import { getWorldSecretsConfig } from "../worldNotesSecrets";
 
@@ -10,6 +10,7 @@ const base = {
   surface: { worldEntryId: "entry" },
   permission: WorldPermission.Guide,
   isGuided: true,
+  readPermissions: ReadPermissions.AllPlayers,
 };
 
 describe("getWorldSecretsConfig", () => {
@@ -21,7 +22,7 @@ describe("getWorldSecretsConfig", () => {
     expect(getWorldSecretsConfig({ ...base, permission })).toEqual({
       surface: { worldEntryId: "entry" },
       roomKeySource: { guideWorldId: "world" },
-      audience: "guides",
+      sharedOnlyWith: null,
       canInsert: true,
     });
   });
@@ -39,5 +40,14 @@ describe("getWorldSecretsConfig", () => {
     expect(getWorldSecretsConfig({ ...base, isGuided: false })?.canInsert).toBe(
       false,
     );
+  });
+
+  it("offers them in an entry only Guides read so far, and says so", () => {
+    expect(
+      getWorldSecretsConfig({
+        ...base,
+        readPermissions: ReadPermissions.OnlyGuides,
+      }),
+    ).toMatchObject({ canInsert: true, sharedOnlyWith: "guides" });
   });
 });

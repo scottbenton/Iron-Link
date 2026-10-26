@@ -1,6 +1,10 @@
 import type { SecretsConfig } from "components/RichTextEditor/secrets/useSecretsCompanion";
 
-import { WorldPermission, isGuideEquivalent } from "repositories/shared.types";
+import {
+  ReadPermissions,
+  WorldPermission,
+  isGuideEquivalent,
+} from "repositories/shared.types";
 
 import type { SecretSurface } from "services/richTextSecrets.service";
 
@@ -14,13 +18,16 @@ export function getWorldSecretsConfig(params: {
   surface: SecretSurface;
   permission: WorldPermission | null;
   isGuided: boolean;
+  // An entry's read permissions; world Notes have none of their own.
+  readPermissions?: ReadPermissions;
 }): SecretsConfig | null {
-  const { worldId, surface, permission, isGuided } = params;
+  const { worldId, surface, permission, isGuided, readPermissions } = params;
   if (!permission || !isGuideEquivalent(permission)) return null;
   return {
     surface,
     roomKeySource: { guideWorldId: worldId },
-    audience: "guides",
+    sharedOnlyWith:
+      readPermissions === ReadPermissions.OnlyGuides ? "guides" : null,
     canInsert: isGuided,
   };
 }
