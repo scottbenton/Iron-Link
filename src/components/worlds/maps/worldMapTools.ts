@@ -2,9 +2,15 @@ import { TFunction } from "i18next";
 
 import { PaintTool } from "lib/worldMap/paint";
 
-// The tool in hand: panning, one of the paint tools, or moving the
-// background image.
-export type WorldMapTool = "pan" | PaintTool | "background";
+// The tool in hand: panning, one of the paint tools, placing pins, or
+// moving the background image.
+export type WorldMapTool = "pan" | PaintTool | "pin" | "background";
+
+// What the pin tool puts down: an entry already inside this one, or a new
+// place, optionally of a Location Type.
+export type WorldMapPinTarget =
+  | { type: "entry"; entryId: string }
+  | { type: "new"; locationType: string | null };
 
 export function isPaintTool(tool: WorldMapTool): tool is PaintTool {
   return tool === "brush" || tool === "path" || tool === "eraser";

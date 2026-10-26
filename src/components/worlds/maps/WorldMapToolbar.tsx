@@ -1,6 +1,7 @@
 import BrushIcon from "@mui/icons-material/Brush";
 import FormatColorResetIcon from "@mui/icons-material/FormatColorReset";
 import PanToolIcon from "@mui/icons-material/PanTool";
+import PushPinIcon from "@mui/icons-material/PushPin";
 import RouteIcon from "@mui/icons-material/Route";
 import WallpaperIcon from "@mui/icons-material/Wallpaper";
 import {
@@ -35,8 +36,11 @@ export interface WorldMapToolbarProps {
   onToolChange: (tool: WorldMapTool) => void;
   settings: PaintSettings;
   onSettingsChange: (settings: PaintSettings) => void;
-  // Painting needs a grid.
+  // Painting needs a grid; pins need a category that nests entries.
   canPaint: boolean;
+  canPin: boolean;
+  // The pin tool's settings, shown while it is in hand.
+  pinTools?: ReactNode;
   background: {
     width: number;
     naturalWidth: number;
@@ -46,8 +50,8 @@ export interface WorldMapToolbarProps {
   actions?: ReactNode;
 }
 
-// The tools for editing a map: pan, brush, path, eraser and the background
-// image, then the settings of whichever is in hand.
+// The tools for editing a map: pan, brush, path, eraser, pins and the
+// background image, then the settings of whichever is in hand.
 export function WorldMapToolbar(props: WorldMapToolbarProps) {
   const {
     tool,
@@ -55,6 +59,8 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
     settings,
     onSettingsChange,
     canPaint,
+    canPin,
+    pinTools,
     background,
     actions,
   } = props;
@@ -82,6 +88,15 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
             value: "eraser" as const,
             label: t("worlds.maps.tools.eraser", "Erase"),
             icon: <FormatColorResetIcon fontSize="small" />,
+          },
+        ]
+      : []),
+    ...(canPin
+      ? [
+          {
+            value: "pin" as const,
+            label: t("worlds.maps.tools.pin", "Place pins"),
+            icon: <PushPinIcon fontSize="small" />,
           },
         ]
       : []),
@@ -209,6 +224,8 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
           </ToggleButton>
         </ToggleButtonGroup>
       )}
+
+      {tool === "pin" && pinTools}
 
       {tool === "background" && background && (
         <Box

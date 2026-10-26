@@ -23,13 +23,15 @@ const MARKER_SIZE = 32;
 
 // Entries pinned to one spot on the map. A single pin opens its entry; a
 // spot holding several lists them first. Names show once the map is zoomed
-// in far enough to fit them.
+// in far enough to fit them. With the pin tool in hand, choosing a pin
+// selects it instead (`onSelect`), and a single pin can be dragged.
 export function WorldMapPinMarker({
   entries,
   screen,
   showLabel,
   navigation,
-  onPointerDown,
+  onSelect,
+  onDragStart,
   dragging,
   selected,
 }: {
@@ -37,11 +39,8 @@ export function WorldMapPinMarker({
   screen: Point;
   showLabel: boolean;
   navigation: Pick<WorldNavigation, "getLinkProps">;
-  // Lets the map's pin tool drag the marker instead of opening it.
-  onPointerDown?: (
-    event: PointerEvent<HTMLElement>,
-    entry: IWorldEntry,
-  ) => void;
+  onSelect?: (entry: IWorldEntry) => void;
+  onDragStart?: (event: PointerEvent<HTMLElement>) => void;
   dragging?: boolean;
   selected?: boolean;
 }) {
@@ -125,7 +124,7 @@ export function WorldMapPinMarker({
     },
   } as const;
 
-  if (entries.length === 1 && !onPointerDown)
+  if (entries.length === 1 && !onSelect)
     return (
       <ButtonBase
         component={LinkComponent}
@@ -142,11 +141,13 @@ export function WorldMapPinMarker({
       <ButtonBase
         aria-label={label}
         aria-haspopup={entries.length > 1 ? "menu" : undefined}
+        aria-pressed={entries.length === 1 && onSelect ? !!selected : undefined}
         onPointerDown={(event) => {
-          if (entries.length === 1) onPointerDown?.(event, first);
+          if (entries.length === 1) onDragStart?.(event);
         }}
         onClick={(event) => {
           if (entries.length > 1) setAnchor(event.currentTarget);
+          else onSelect?.(first);
         }}
         sx={sx}
       >
@@ -156,11 +157,14 @@ export function WorldMapPinMarker({
         {entries.map((entry) => (
           <MenuItem
             key={entry.id}
-            component={LinkComponent}
-            {...linkProps(entry)}
-            onPointerDown={(event: PointerEvent<HTMLElement>) =>
-              onPointerDown?.(event, entry)
-            }
+            {...(onSelect
+              ? {
+                  onClick: () => {
+                    setAnchor(null);
+                    onSelect(entry);
+                  },
+                }
+              : { component: LinkComponent, ...linkProps(entry) })}
           >
             <ListItemIcon>
               <WorldMapPinIcon entry={entry} />
