@@ -14,7 +14,7 @@ export type RichTextContentTarget =
   | { table: "worlds"; column: "notes_content" };
 
 // Guides edit a world's Notes but may not update the world, so its Notes are
-// written through this RPC; see 20261026000000_world_notes_versions.sql.
+// written through this RPC; see 20261026020000_world_notes_versions.sql.
 const WORLD_NOTES_RPC = "update_world_notes_if_unchanged";
 
 export interface RichTextContentDTO {
