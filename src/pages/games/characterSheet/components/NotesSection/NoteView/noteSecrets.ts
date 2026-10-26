@@ -9,7 +9,8 @@ import { ReadPermissions } from "repositories/shared.types";
 // role, or any member of a solo or co-op game) gets them. New secrets are
 // offered only where someone who isn't a Guide can read the note: in a guided
 // game, and not in a note only Guides can read (only_guides, or only_author
-// when the reader, its author, is a Guide).
+// when the reader, its author, is a Guide). A Guide who can't edit the note
+// sees its secrets read-only, since the editor is read-only for them.
 export function getNoteSecretsConfig(params: {
   gameId: string;
   noteId: string;

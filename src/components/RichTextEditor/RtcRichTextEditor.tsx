@@ -78,7 +78,12 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
   const readOnly = !contentStore;
   const roomKey = useRoomKey(roomKeySource);
 
-  const companion = useSecretsCompanion(secrets ?? null, onSaveError);
+  // Secrets are edited exactly where the surface is: a Guide who can't edit
+  // the note can't add, change or delete its secrets either.
+  const companion = useSecretsCompanion(secrets ?? null, {
+    readOnly,
+    onSaveError,
+  });
   const controller = useMemo(
     () =>
       companion.doc
@@ -86,11 +91,12 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
             companion: companion.doc,
             userId: uid,
             blockExtensions: defaultExtensions,
+            readOnly,
           })
         : null,
     // The user only changes on sign-out, which closes the editor.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [companion.doc],
+    [companion.doc, readOnly],
   );
   useEffect(() => () => controller?.destroy(), [controller]);
 
@@ -168,7 +174,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
     if (!controller || !secrets || !surface) return undefined;
     return {
       inSecret: !!activeBlockEditor,
-      canInsert: secrets.canInsert,
+      canInsert: secrets.canInsert && !readOnly,
       insertSecret: () => controller.insertSecret(),
       canMakeSecret:
         secrets.canInsert && !activeBlockEditor && !readOnly && hasSelection,
@@ -182,7 +188,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
     (blockId: string) => controller?.takePendingFocus(blockId),
     [controller],
   );
-  const onDeleteBlock = useCallback(
+  const deleteBlock = useCallback(
     (blockId: string) => controller?.deleteBlock(blockId),
     [controller],
   );
@@ -206,7 +212,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
           key={block.id}
           block={block}
           onMounted={onBlockMounted}
-          onDelete={onDeleteBlock}
+          onDelete={readOnly ? undefined : deleteBlock}
         />
       ))}
     </>

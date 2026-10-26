@@ -9,6 +9,7 @@ import { SecretBlocksExtension } from "../SecretBlocksExtension";
 import { toGuideImageSrc } from "../guideImages";
 import { SecretsController } from "../secretsController";
 import {
+  addSecretBlock,
   getSecretBlocks,
   getSecretsMentions,
   getSecretsText,
@@ -39,7 +40,7 @@ let nextId = 0;
 
 // A Guide's shared editor with secrets, and a player's copy of the same note
 // in one live room. The player's editor has no secrets extension.
-async function setup() {
+async function setup(options: { readOnly?: boolean } = {}) {
   const guideDoc = new Y.Doc();
   const playerDoc = new Y.Doc();
   guideDoc.on("update", (update: Uint8Array, origin: unknown) => {
@@ -55,6 +56,7 @@ async function setup() {
     userId: "guide",
     blockExtensions: extensions,
     createId: () => `block-${++nextId}`,
+    readOnly: options.readOnly,
   });
   const onGuideImagesRefused = vi.fn();
   const element = document.createElement("div");
@@ -265,6 +267,45 @@ describe("SecretsController", () => {
       mentioned_note_ids: ["note-1"],
       mentioned_entry_ids: ["entry-1"],
     });
+  });
+
+  it("shows a Guide who can't edit the note its secrets and changes nothing", async () => {
+    const { controller, shared, player, guideDoc, companion } = await setup({
+      readOnly: true,
+    });
+    addSecretBlock(companion, {
+      id: "kept",
+      shared: guideDoc.getXmlFragment("default"),
+      index: 1,
+      createdBy: "other-guide",
+      fill: (fragment) => {
+        const paragraph = new Y.XmlElement("paragraph");
+        paragraph.insert(0, [new Y.XmlText("the duke is a spy")]);
+        fragment.insert(0, [paragraph]);
+      },
+    });
+    await flush();
+    expect(readingOrder(shared)).toEqual(["One", "[kept]", "Two", "Three"]);
+    const block = controller.getBlock("kept")!;
+    expect(block.editor.isEditable).toBe(false);
+    expect(block.editor.getText()).toBe("the duke is a spy");
+
+    const writes = vi.fn();
+    companion.on("update", writes);
+    caretAtEndOf(shared, 0);
+    expect(controller.insertSecret()).toBeNull();
+    controller.deleteBlock("kept");
+    // A player deletes the paragraph below the block, leaving its anchor
+    // stale; it isn't rewritten.
+    const start = player.state.doc.child(0).nodeSize;
+    player.commands.deleteRange({
+      from: start,
+      to: start + player.state.doc.child(1).nodeSize,
+    });
+    await flush();
+    await flush();
+    expect(writes).not.toHaveBeenCalled();
+    expect(readingOrder(shared)).toEqual(["One", "[kept]", "Three"]);
   });
 
   it("drops images from a secret pasted into the note", async () => {
