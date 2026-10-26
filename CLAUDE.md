@@ -61,6 +61,17 @@ that are easy to miss. When you learn a new one, add a line here.
   `label: null`); its name is read live from the entries store, so renames
   show at once and an unreadable entry shows "Unavailable entry".
 
+## Maps
+
+- An entry's map is a `world_maps` row (grid chosen at creation: `hex_pointy`,
+  `hex_flat`, `square` or `none`); painted cells live in 16x16 chunks in
+  `world_map_chunks`, keyed "x,y" in the grid's own coordinates (axial for
+  hexes). Paint only through `paint_world_map_cells`, which merges cells, never
+  by writing a chunk's `cells` whole (clearing to `{}` is the one exception).
+- Pins (`world_map_pins`) are child entries at a position in map units (a CSS
+  pixel at the default cell size), snapped to a cell when drawn. A pin is only
+  readable with its entry, and moving the child elsewhere removes its pin.
+
 ## Rich text
 
 - Live editing rooms are locked by room keys (`room_keys` per note, entry and
