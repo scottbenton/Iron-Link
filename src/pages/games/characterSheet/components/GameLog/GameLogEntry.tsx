@@ -25,7 +25,7 @@ export function GameLogEntry(props: GameLogEntryProps) {
 
   const logCharacterId = log.characterId;
   const logCharacterName = useGameCharactersStore((state) =>
-    logCharacterId ? state.characters[logCharacterId].name : undefined,
+    logCharacterId ? state.characters[logCharacterId]?.name : undefined,
   );
   const logCharacterOwnerId = useGameCharactersStore((state) =>
     logCharacterId ? state.characters[logCharacterId]?.uid : undefined,
@@ -34,7 +34,7 @@ export function GameLogEntry(props: GameLogEntryProps) {
 
   const isYourEntry = log.uid === uid;
 
-  // Someone the owner shared the sheet with wrote this entry for them.
+  // Someone other than the character's owner wrote this entry from its sheet.
   const wasWrittenForOwner =
     !!logCharacterOwnerId && log.uid !== logCharacterOwnerId;
 

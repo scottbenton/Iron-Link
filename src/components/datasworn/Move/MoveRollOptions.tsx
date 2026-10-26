@@ -7,6 +7,7 @@ import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
 
 import { useAssetsStore } from "stores/assets.store";
 import { useUID } from "stores/auth.store";
+import { getCharacterAccess } from "stores/characterAccess";
 import { useDataswornTree } from "stores/dataswornTree.store";
 import { useGameStore } from "stores/game.store";
 import { useGameCharactersStore } from "stores/gameCharacters.store";
@@ -34,14 +35,23 @@ export function MoveRollOptions(props: MoveRollOptions) {
   const optionalCharacterId = useCharacterIdOptional();
   const optionalGameId = useGameIdOptional();
 
+  const gamePermission = useGameStore((store) => store.gamePermissions);
+
+  // Off a sheet, rolls are offered for your own characters. On a sheet, for
+  // that character whenever you can edit it, including one shared with you.
   const characterData = useGameCharactersStore((store) => {
     const characterData: Record<string, CharacterRollOptionState> = {};
     Object.entries(store.characters).forEach(([characterId, character]) => {
-      if (
-        uid &&
-        uid === character?.uid &&
-        (!optionalCharacterId || characterId === optionalCharacterId)
-      ) {
+      const canRoll = optionalCharacterId
+        ? characterId === optionalCharacterId &&
+          getCharacterAccess({
+            uid,
+            ownerId: character?.uid,
+            editPermissions: character?.editPermissions,
+            gamePermission,
+          }).canEdit
+        : !!uid && uid === character?.uid;
+      if (canRoll) {
         characterData[characterId] = {
           name: character?.name,
           stats: character?.stats,
