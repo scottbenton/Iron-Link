@@ -12,13 +12,17 @@ import { GameNavBar } from "pages/games/gamePageLayout/GameNavBar";
 import { MobileTabs } from "pages/games/gamePageLayout/MobileTabs";
 import { SidebarLayout } from "pages/games/gamePageLayout/SidebarLayout";
 import { GameTabs } from "pages/games/gamePageLayout/components/GameTabs";
+import { WorldsBetaBanner } from "pages/games/gamePageLayout/components/WorldsBetaBanner";
 import { useSyncGame } from "pages/games/gamePageLayout/hooks/useSyncGame";
 import { useSyncColorScheme } from "pages/games/hooks/useSyncColorScheme";
+
+import { useShowWorldsBetaBanner } from "hooks/advancedFeatures/worldsBetaBanner";
 
 import { useDataswornTreeStore } from "stores/dataswornTree.store";
 import { useGameStore } from "stores/game.store";
 import { useSyncSecondScreenSettingsIfActive } from "stores/secondScreen.store";
 
+import { useGameId } from "./hooks/useGameId";
 import { useGameKeybinds } from "./hooks/useGameKeybinds";
 import { useSyncOpenNoteItem } from "./hooks/useSyncOpenNoteItem";
 
@@ -32,6 +36,11 @@ export default function GameLayout() {
   useSyncOpenNoteItem();
 
   const characterId = useCharacterIdOptional();
+  const gameId = useGameId();
+  const showWorldsBetaBanner = useShowWorldsBetaBanner(gameId);
+  const worldsBetaBanner = showWorldsBetaBanner && (
+    <WorldsBetaBanner gameId={gameId} />
+  );
 
   const hasGame = useGameStore((state) => !!state.game);
   const error = useGameStore((state) => state.error);
@@ -82,6 +91,7 @@ export default function GameLayout() {
           isOnCreatePage
           isOnOverviewPage={false}
         />
+        {worldsBetaBanner}
 
         {!isMobile && (
           <PageHeader
@@ -111,6 +121,7 @@ export default function GameLayout() {
         isOnOverviewPage={isOnOverviewPage}
         isOnCreatePage={isOnCharacterCreatePage}
       />
+      {worldsBetaBanner}
       {!isMobile && (
         <PageHeader
           maxWidth={isOnCharacterCreatePage ? "md" : undefined}
