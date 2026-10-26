@@ -308,11 +308,23 @@ export const useWorldMapsStore = createWithEqualityFn<WorldMapsStore>()(
         update(entryId, (state) => applyChunks(state, chunks, false));
       },
 
+      // Shows the pin where it was put at once, and puts it back if the
+      // database refuses.
       setPin: async (pin) => {
-        await WorldMapsService.setPin(pin);
+        const previous = get().maps[pin.mapEntryId]?.pins[pin.entryId];
         update(pin.mapEntryId, (state) => {
           state.pins[pin.entryId] = pin;
         });
+        try {
+          await WorldMapsService.setPin(pin);
+        } catch (error) {
+          update(pin.mapEntryId, (state) => {
+            if (!deepEqual(state.pins[pin.entryId], pin)) return;
+            if (previous) state.pins[pin.entryId] = previous;
+            else delete state.pins[pin.entryId];
+          });
+          throw error;
+        }
       },
 
       removePin: async (pinnedEntryId, mapEntryId) => {

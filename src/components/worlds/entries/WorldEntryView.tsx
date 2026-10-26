@@ -233,6 +233,7 @@ export function WorldEntryView({
         <WorldEntryMap
           key={entry.id}
           entry={entry}
+          category={category}
           canEdit={permissions.canEdit}
           navigation={navigation}
         />
