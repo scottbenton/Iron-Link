@@ -117,6 +117,15 @@ export const SecretBlocksExtension = Extension.create<SecretBlocksOptions>({
               ? build(state, oldState)
               : old.map(tr.mapping, tr.doc),
         },
+        // A local edit reaches the shared document only after this plugin
+        // has built, from the document as it was, so build again once it has.
+        view: () => ({
+          update: (view, prevState) => {
+            if (!view.state.doc.eq(prevState.doc)) {
+              getController()?.refreshDecorations();
+            }
+          },
+        }),
         props: {
           decorations: (state) => secretBlocksKey.getState(state),
           // An image in a secret lives in the private bucket, which players

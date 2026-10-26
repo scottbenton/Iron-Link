@@ -297,6 +297,51 @@ describe("SecretsController", () => {
     ]);
   });
 
+  it("removes that paragraph if it is left with nothing typed", async () => {
+    const { controller, shared, companion, guideDoc } = await setup();
+    const fragment = guideDoc.getXmlFragment("default");
+    addSecretBlock(companion, {
+      id: "first",
+      shared: fragment,
+      index: 0,
+      createdBy: "guide",
+    });
+    addSecretBlock(companion, {
+      id: "last",
+      shared: fragment,
+      index: 3,
+      createdBy: "guide",
+    });
+    await flush();
+    const original = ["[first]", "One", "Two", "Three", "[last]"];
+    const press = (id: string, key: string) =>
+      controller
+        .getBlock(id)!
+        .editor.view.someProp("handleKeyDown", (f) =>
+          f(
+            controller.getBlock(id)!.editor.view,
+            new KeyboardEvent("keydown", { key }),
+          ),
+        );
+
+    expect(press("first", "ArrowLeft")).toBe(true);
+    await flush();
+    expect(readingOrder(shared)).toEqual(["", ...original]);
+    // Back into the block.
+    controller.setActiveBlock("first");
+    await flush();
+    expect(readingOrder(shared)).toEqual(original);
+
+    expect(press("last", "ArrowRight")).toBe(true);
+    await flush();
+    expect(readingOrder(shared)).toEqual([...original, ""]);
+    // Elsewhere in the note.
+    caretAtEndOf(shared, 1);
+    await flush();
+    await flush();
+    expect(readingOrder(shared)).toEqual(original);
+  });
+
   it("lists what the blocks mention", async () => {
     const { companion } = await setup();
     companion.transact(() => {

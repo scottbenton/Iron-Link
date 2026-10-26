@@ -60,6 +60,8 @@ export class SecretsController {
   private placed: PlacedSecretBlock[] = [];
   private activeBlockId: string | null = null;
   private pendingFocus: { id: string; where: "start" | "end" } | null = null;
+  // The side of the note where leaving a block last added an empty paragraph.
+  private edgeParagraph: -1 | 1 | null = null;
   private listeners = new Set<Listener>();
   private snapshot = { version: 0, activeBlockId: null as string | null };
   private destroyed = false;
@@ -86,11 +88,13 @@ export class SecretsController {
       | Y.UndoManager
       | undefined;
     if (undoManager) this.undo.track("shared", undoManager);
+    editor.on("selectionUpdate", this.onSharedSelection);
     this.refreshDecorations();
   }
 
   public detachShared(editor: Editor) {
     if (this.shared !== editor) return;
+    editor.off("selectionUpdate", this.onSharedSelection);
     this.shared = null;
     this.undo.untrack("shared");
   }
@@ -110,7 +114,7 @@ export class SecretsController {
     this.refreshDecorations();
   };
 
-  private refreshDecorations() {
+  public refreshDecorations() {
     const shared = this.shared;
     if (!shared || shared.isDestroyed) return;
     // Not inside another editor's dispatch.
@@ -220,6 +224,7 @@ export class SecretsController {
   public setActiveBlock(id: string | null) {
     if (this.activeBlockId === id) return;
     this.activeBlockId = id;
+    if (id) this.dropEdgeParagraphIfLeft();
     this.emit();
   }
 
@@ -314,12 +319,44 @@ export class SecretsController {
     const at = direction < 0 ? 0 : shared.state.doc.content.size;
     window.getSelection()?.removeAllRanges();
     shared.view.focus();
-    const tr = shared.state.tr.insert(at, paragraph.create());
+    const tr = shared.state.tr
+      .insert(at, paragraph.create())
+      .setMeta("addToHistory", false);
     shared.view.dispatch(
       tr.setSelection(TextSelection.create(tr.doc, at + 1)).scrollIntoView(),
     );
     this.setActiveBlock(null);
+    this.edgeParagraph = direction;
     return true;
+  }
+
+  private onSharedSelection = () => {
+    // Wait for the transaction that moved the caret to finish dispatching.
+    queueMicrotask(() => this.dropEdgeParagraphIfLeft());
+  };
+
+  // The paragraph added by leaveIntoNewParagraph goes again once the caret
+  // leaves it with nothing typed, so stepping out of a block leaves no trace.
+  private dropEdgeParagraphIfLeft() {
+    const direction = this.edgeParagraph;
+    const shared = this.shared;
+    if (direction === null || !shared || shared.isDestroyed) return;
+    const { doc, selection } = shared.state;
+    const index = direction < 0 ? 0 : doc.childCount - 1;
+    const node = doc.maybeChild(index);
+    if (!node || node.type.name !== "paragraph" || node.content.size > 0) {
+      this.edgeParagraph = null;
+      return;
+    }
+    const start = topLevelIndexToPos(doc, index);
+    const end = start + node.nodeSize;
+    const inside = selection.from >= start && selection.to <= end;
+    if (inside && !this.activeBlockId) return;
+    this.edgeParagraph = null;
+    if (doc.childCount < 2) return;
+    shared.view.dispatch(
+      shared.state.tr.delete(start, end).setMeta("addToHistory", false),
+    );
   }
 
   // Down or Right at the end of the node above a block, or Up or Left at the
