@@ -152,6 +152,12 @@ insert into storage.objects(bucket_id,name) values
 -- prove nothing. This test-only policy lets the write policies decide.
 create policy "Test reads character images" on storage.objects for select to authenticated
   using (bucket_id = 'characters');
+-- Newer storage schemas refuse any direct DELETE on storage.objects (the
+-- statement trigger protect_objects_delete) unless storage.allow_delete_query
+-- is 'true', which is what the Storage API sets before its own deletes. Set it
+-- here too so the delete policies, not that guard, decide who removes images.
+-- Older storage schemas have no such guard and ignore the setting.
+set local storage.allow_delete_query = 'true';
 
 select is((select edit_permissions::text from public.characters where id=pg_temp.ch('guided')),'only_owner',
   'a new character is only editable by its owner');
