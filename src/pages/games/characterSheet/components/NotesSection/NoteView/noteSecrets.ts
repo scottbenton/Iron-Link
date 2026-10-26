@@ -28,7 +28,12 @@ export function getNoteSecretsConfig(params: {
     surface: { noteId },
     roomKeySource: { guideGameId: gameId },
     // Only its author reads an only_author note, and they're this Guide.
-    audience: readPermissions === ReadPermissions.OnlyAuthor ? "you" : "guides",
+    sharedOnlyWith:
+      readPermissions === ReadPermissions.OnlyAuthor
+        ? "you"
+        : readPermissions === ReadPermissions.OnlyGuides
+          ? "guides"
+          : null,
     canInsert: true,
   };
 }

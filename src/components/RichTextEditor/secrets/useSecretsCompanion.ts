@@ -15,15 +15,17 @@ import { useRoomKey } from "../useRoomKey";
 import { useRtcDocument } from "../useRtcDocument";
 import { getSecretsMentions, getSecretsText } from "./secretsDocument";
 
+// Who can read the surface while it isn't shared with players yet.
 export type SecretsAudience = "you" | "guides";
 
 export interface SecretsConfig {
   surface: SecretSurface;
   // The Guide-only room the companion is shared live in.
   roomKeySource: RoomKeySource;
-  // Who besides players can't read the surface, for the note on each block:
-  // only this Guide (a note only its author reads), or every Guide.
-  audience: SecretsAudience;
+  // Set while no player can read the surface, for a note on each block that
+  // it isn't shared yet: only this Guide (a note only its author reads), or
+  // the Guides.
+  sharedOnlyWith: SecretsAudience | null;
   // Whether this Guide may add new secrets here. Existing ones always show.
   canInsert: boolean;
 }

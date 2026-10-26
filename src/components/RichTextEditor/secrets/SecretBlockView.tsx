@@ -11,17 +11,19 @@ import type { SecretsAudience } from "./useSecretsCompanion";
 
 export interface SecretBlockViewProps {
   block: SecretBlock;
-  audience: SecretsAudience;
+  // Who can read the surface while players can't; null once they can.
+  sharedOnlyWith: SecretsAudience | null;
   onMounted: (id: string) => void;
   // Left out where the Guide may not edit the surface.
   onDelete?: (id: string) => void;
 }
 
 // One secret block, drawn into its widget in the Guide's shared editor: a
-// dashed inset labelled Secret, saying who can see it, holding the block's
-// own editor.
+// dashed inset labelled Secret, holding the block's own editor. While the
+// note isn't shared with players yet, it says so, since the secret then
+// looks no different from the rest of the note.
 export function SecretBlockView(props: SecretBlockViewProps) {
-  const { block, audience, onMounted, onDelete } = props;
+  const { block, sharedOnlyWith, onMounted, onDelete } = props;
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -63,15 +65,17 @@ export function SecretBlockView(props: SecretBlockViewProps) {
           {label}
         </Typography>
         <Typography variant="caption" component="span" flexGrow={1} ml={0.5}>
-          {audience === "you"
+          {sharedOnlyWith === "you"
             ? t(
-                "notes.secrets.audience-you",
-                "Only you can see this, even once the note is shared",
+                "notes.secrets.shared-only-with-you",
+                "Shared only with you so far. Players won't see this secret once it's shared.",
               )
-            : t(
-                "notes.secrets.audience-guides",
-                "Only Guides can see this, even once the note is shared",
-              )}
+            : sharedOnlyWith === "guides"
+              ? t(
+                  "notes.secrets.shared-only-with-guides",
+                  "Shared only with Guides so far. Players won't see this secret once it's shared.",
+                )
+              : null}
         </Typography>
         {onDelete && (
           <Tooltip title={t("notes.secrets.delete", "Delete secret")}>
