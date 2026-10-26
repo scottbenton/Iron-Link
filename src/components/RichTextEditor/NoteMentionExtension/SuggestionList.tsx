@@ -1,9 +1,22 @@
-import { List, ListItem, ListItemButton, Paper } from "@mui/material";
+import {
+  List,
+  ListItem,
+  ListItemButton,
+  ListSubheader,
+  Paper,
+} from "@mui/material";
 import type { MentionNodeAttrs } from "@tiptap/extension-mention";
 import type { SuggestionOptions, SuggestionProps } from "@tiptap/suggestion";
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import {
+  Fragment,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 
-import type { MentionSuggestion } from "./otherNoteOptions";
+import type { MentionKind, MentionSuggestion } from "./otherNoteOptions";
 
 export type SuggestionListRef = {
   // For convenience using this SuggestionList from within the
@@ -39,9 +52,13 @@ const SuggestionList = forwardRef<SuggestionListRef, SuggestionListProps>(
       // indicated via SuggestionProps<MentionSuggestion>). We are passing an
       // object of the `MentionNodeAttrs` shape when calling `command` (utilized
       // by the Mention extension to create a Mention Node).
-      const mentionItem: MentionNodeAttrs = {
+      // A world entry's name is never stored in the note: it is read live, so
+      // a rename shows everywhere and a hidden entry never reveals its name.
+      const mentionItem: MentionNodeAttrs & { kind: MentionKind } = {
         id: suggestion.id,
-        label: suggestion.mentionLabel,
+        label:
+          suggestion.kind === "worldEntry" ? null : suggestion.mentionLabel,
+        kind: suggestion.kind,
       };
       props.command(mentionItem);
     };
@@ -63,6 +80,12 @@ const SuggestionList = forwardRef<SuggestionListRef, SuggestionListProps>(
     useEffect(() => {
       setSelectedIndex(0);
     }, [props.items]);
+
+    // The menu scrolls past its height cap; keep the arrowed-to row in view.
+    const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+    useEffect(() => {
+      itemRefs.current[selectedIndex]?.scrollIntoView({ block: "nearest" });
+    }, [selectedIndex]);
 
     useImperativeHandle(ref, () => ({
       onKeyDown: ({ event }) => {
@@ -86,25 +109,52 @@ const SuggestionList = forwardRef<SuggestionListRef, SuggestionListProps>(
     }));
 
     return props.items.length > 0 ? (
-      <Paper elevation={5}>
-        <List
-          dense
-          sx={{
-            // In case there are contiguous stretches of long text that can't wrap:
-            overflow: "hidden",
-          }}
-        >
+      <Paper
+        elevation={5}
+        sx={{
+          maxHeight: 320,
+          overflowY: "auto",
+          // In case there are contiguous stretches of long text that can't wrap:
+          overflowX: "hidden",
+        }}
+      >
+        <List dense disablePadding sx={{ py: 0.5 }}>
           {props.items.map((item, index) => (
-            <ListItem key={item.id} disablePadding>
-              <ListItemButton
-                selected={index === selectedIndex}
-                onClick={() => {
-                  selectItem(index);
-                }}
-              >
-                {item.mentionLabel}
-              </ListItemButton>
-            </ListItem>
+            <Fragment key={`${item.kind}:${item.id}`}>
+              {item.group !== props.items[index - 1]?.group && (
+                // Group labels read as labels, not rows: small, grey and
+                // uppercase, with a rule between groups.
+                <ListSubheader
+                  sx={{
+                    lineHeight: "28px",
+                    pt: index > 0 ? 0.5 : 0,
+                    mt: index > 0 ? 0.5 : 0,
+                    borderTop: index > 0 ? 1 : 0,
+                    borderColor: "divider",
+                    fontSize: "0.6875rem",
+                    fontWeight: 600,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: "text.secondary",
+                  }}
+                >
+                  {item.group}
+                </ListSubheader>
+              )}
+              <ListItem disablePadding>
+                <ListItemButton
+                  ref={(element) => {
+                    itemRefs.current[index] = element;
+                  }}
+                  selected={index === selectedIndex}
+                  onClick={() => {
+                    selectItem(index);
+                  }}
+                >
+                  {item.mentionLabel}
+                </ListItemButton>
+              </ListItem>
+            </Fragment>
           ))}
         </List>
       </Paper>

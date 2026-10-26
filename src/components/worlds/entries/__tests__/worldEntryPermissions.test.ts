@@ -1,134 +1,78 @@
-import type { TFunction } from "i18next";
 import { describe, expect, it } from "vitest";
 
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 
-import { translate } from "../../categories/__tests__/fixtures";
 import {
+  getDefaultWorldEntryPermissions,
   getLinkedWorldEntryPermissions,
-  getWorldEntryPermissionOptions,
+  getWorldEntryVisibility,
 } from "../worldEntryPermissions";
 
-const t = translate as unknown as TFunction;
+const guidesOnly = {
+  readPermissions: ReadPermissions.OnlyGuides,
+  editPermissions: EditPermissions.OnlyGuides,
+};
+const everyone = {
+  readPermissions: ReadPermissions.AllPlayers,
+  editPermissions: EditPermissions.AllPlayers,
+};
 
-// Mirrors the world_entries update policy's check on the saved row: who may
-// hold an entry with each edit permission.
-function policyAccepts(
-  editPermissions: EditPermissions,
-  { isAuthor, isGuide }: { isAuthor: boolean; isGuide: boolean },
-) {
-  switch (editPermissions) {
-    case EditPermissions.AllPlayers:
-      return true;
-    case EditPermissions.GuidesAndAuthor:
-      return isAuthor || isGuide;
-    case EditPermissions.OnlyGuides:
-      return isGuide;
-    case EditPermissions.OnlyAuthor:
-      return isAuthor;
-  }
-}
-
-describe("getWorldEntryPermissionOptions", () => {
+describe("getWorldEntryVisibility", () => {
   it.each([
-    { isAuthor: true, isGuide: false },
-    { isAuthor: false, isGuide: true },
-    { isAuthor: true, isGuide: true },
-  ])("offers only edit settings the database accepts for %o", (role) => {
-    const { editOptions } = getWorldEntryPermissionOptions(t, role);
-    expect(editOptions.length).toBeGreaterThan(0);
-    editOptions.forEach((option) =>
-      expect(policyAccepts(option.value, role)).toBe(true),
-    );
+    [ReadPermissions.OnlyGuides, "guides"],
+    [ReadPermissions.AllPlayers, "everyone"],
+    [ReadPermissions.GuidesAndAuthor, "everyone"],
+    [ReadPermissions.OnlyAuthor, "everyone"],
+  ])("reads %s as %s", (read, visibility) => {
+    expect(getWorldEntryVisibility(read)).toBe(visibility);
   });
 });
 
-describe("getLinkedWorldEntryPermissions", () => {
-  const entry = (
-    readPermissions: ReadPermissions,
-    editPermissions: EditPermissions,
-  ) => ({ authorId: "player", readPermissions, editPermissions });
-  const options = {
-    gmOnly: false,
-    isGuide: false,
-    guided: true,
-  };
-
-  it("copies the linking entry's permissions for its author", () => {
-    expect(
-      getLinkedWorldEntryPermissions(
-        t,
-        entry(ReadPermissions.OnlyAuthor, EditPermissions.OnlyAuthor),
-        { ...options, uid: "player" },
-      ),
-    ).toEqual({
-      readPermissions: ReadPermissions.OnlyAuthor,
-      editPermissions: EditPermissions.OnlyAuthor,
-    });
+describe("getDefaultWorldEntryPermissions", () => {
+  it("starts a Guide's entries in a guided world as prep", () => {
+    expect(getDefaultWorldEntryPermissions(true, true)).toEqual(guidesOnly);
   });
 
-  it.each([ReadPermissions.OnlyAuthor, ReadPermissions.GuidesAndAuthor])(
-    "shares an entry a Guide creates from a player's %s entry so the player can still read it",
-    (readPermissions) => {
-      expect(
-        getLinkedWorldEntryPermissions(
-          t,
-          entry(readPermissions, EditPermissions.GuidesAndAuthor),
-          { ...options, uid: "guide", isGuide: true },
-        ),
-      ).toEqual({
-        readPermissions: ReadPermissions.AllPlayers,
-        editPermissions: EditPermissions.GuidesAndAuthor,
-      });
+  it.each([
+    [false, true],
+    [true, false],
+    [false, false],
+  ])(
+    "shares everything else with everyone (guide %s, guided %s)",
+    (isGuide, guided) => {
+      expect(getDefaultWorldEntryPermissions(isGuide, guided)).toEqual(
+        everyone,
+      );
     },
   );
+});
 
-  it("copies permissions that are not author-scoped for other creators", () => {
+describe("getLinkedWorldEntryPermissions", () => {
+  const guide = { gmOnly: false, isGuide: true, guided: true };
+
+  it("keeps a Guide's link from prep or a Guide only field as prep", () => {
+    expect(getLinkedWorldEntryPermissions(guidesOnly, guide)).toEqual(
+      guidesOnly,
+    );
     expect(
-      getLinkedWorldEntryPermissions(
-        t,
-        entry(ReadPermissions.OnlyGuides, EditPermissions.OnlyGuides),
-        { ...options, uid: "guide", isGuide: true },
-      ),
-    ).toEqual({
-      readPermissions: ReadPermissions.OnlyGuides,
-      editPermissions: EditPermissions.OnlyGuides,
-    });
-    expect(
-      getLinkedWorldEntryPermissions(
-        t,
-        entry(ReadPermissions.AllPlayers, EditPermissions.AllPlayers),
-        { ...options, uid: "other-player" },
-      ),
-    ).toEqual({
-      readPermissions: ReadPermissions.AllPlayers,
-      editPermissions: EditPermissions.AllPlayers,
-    });
+      getLinkedWorldEntryPermissions(everyone, { ...guide, gmOnly: true }),
+    ).toEqual(guidesOnly);
   });
 
-  it("starts entries from a Guide-only field as Guide prep", () => {
-    expect(
-      getLinkedWorldEntryPermissions(
-        t,
-        entry(ReadPermissions.GuidesAndAuthor, EditPermissions.GuidesAndAuthor),
-        { ...options, uid: "guide", isGuide: true, gmOnly: true },
-      ),
-    ).toEqual({
-      readPermissions: ReadPermissions.OnlyGuides,
-      editPermissions: EditPermissions.OnlyGuides,
-    });
+  it("shares a link from a shared entry", () => {
+    expect(getLinkedWorldEntryPermissions(everyone, guide)).toEqual(everyone);
   });
 
-  it("falls back to the creator's defaults for settings they cannot pick", () => {
+  it("shares whatever a player or an unguided world creates", () => {
     expect(
-      getLinkedWorldEntryPermissions(
-        t,
-        entry(ReadPermissions.OnlyGuides, EditPermissions.OnlyGuides),
-        { ...options, uid: "other-player" },
-      ),
-    ).toEqual({
-      readPermissions: ReadPermissions.AllPlayers,
-      editPermissions: EditPermissions.GuidesAndAuthor,
-    });
+      getLinkedWorldEntryPermissions(guidesOnly, {
+        ...guide,
+        isGuide: false,
+        gmOnly: true,
+      }),
+    ).toEqual(everyone);
+    expect(
+      getLinkedWorldEntryPermissions(guidesOnly, { ...guide, guided: false }),
+    ).toEqual(everyone);
   });
 });

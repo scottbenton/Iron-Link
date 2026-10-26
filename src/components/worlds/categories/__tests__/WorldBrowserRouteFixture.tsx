@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 
 import {
   type WorldNavigation,
@@ -20,10 +20,13 @@ export function WorldBrowserRouteFixture({
 }) {
   const { worldId = "world-1", categoryId, entryId } = useParams();
   const navigate = useNavigate();
+  const places = useLocation().pathname.endsWith("/places");
   const navigation: WorldNavigation = {
     view:
       categoryId && entryId
-        ? { type: "entry", categoryId, entryId }
+        ? places
+          ? { type: "entry", categoryId, entryId, section: "places" }
+          : { type: "entry", categoryId, entryId }
         : categoryId
           ? { type: "category", categoryId }
           : { type: "world" },

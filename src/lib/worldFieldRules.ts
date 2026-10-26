@@ -125,6 +125,67 @@ export function resolveFieldDefinition(
   };
 }
 
+// A parent a field needs before it can roll: the nearest ancestor whose
+// selector field holds selectorValue, with fieldId holding one of values.
+export interface WorldFieldParentRequirement {
+  selectorFieldId: string;
+  selectorValue: string;
+  fieldId: string;
+  values: string[];
+}
+
+/**
+ * What a field is missing from its parents to roll. Empty unless the rule
+ * that applies has no oracle while a rule with one would apply but for its
+ * ancestor conditions: a Population that would roll from its Sector's Region,
+ * on a settlement with no Sector above it, or one with no usable Region.
+ */
+export function getWorldFieldParentRequirements(
+  definition: IWorldFieldDefinition,
+  snapshot: WorldFieldSnapshot,
+): WorldFieldParentRequirement[] {
+  if (resolveFieldDefinition(definition, snapshot).binding) return [];
+  const { rules } = normalizeWorldFieldConfiguration(
+    definition.configuration,
+    definition.type,
+  );
+  const requirements = new Map<string, WorldFieldParentRequirement>();
+  for (const rule of rules) {
+    if (!rule.binding) continue;
+    const ancestorConditions = rule.conditions.filter(
+      (condition) => condition.source === "ancestor" && condition.ancestor,
+    );
+    if (
+      ancestorConditions.length === 0 ||
+      !rule.conditions.every(
+        (condition) =>
+          condition.source === "ancestor" ||
+          matchesCondition(condition, snapshot),
+      )
+    )
+      continue;
+    for (const condition of ancestorConditions) {
+      if (matchesCondition(condition, snapshot) || !condition.ancestor)
+        continue;
+      const key = `${condition.ancestor.fieldId}\u0000${condition.ancestor.value}\u0000${condition.fieldId}`;
+      const requirement = requirements.get(key) ?? {
+        selectorFieldId: condition.ancestor.fieldId,
+        selectorValue: condition.ancestor.value,
+        fieldId: condition.fieldId,
+        values: [],
+      };
+      if (
+        condition.operator === "equals" &&
+        condition.value &&
+        !requirement.values.includes(condition.value)
+      )
+        requirement.values.push(condition.value);
+      requirements.set(key, requirement);
+    }
+  }
+  return [...requirements.values()];
+}
+
 export function generateWorldFieldKey(id: string): string {
   return `field_${id.replace(/-/g, "")}`;
 }

@@ -50,8 +50,12 @@ beforeEach(() => {
   useWorldEntriesStore.getState().reset();
 });
 
-const entry = (id: string, categoryId: string, name: string) =>
-  ({ id, categoryId, name, parentEntryId: null }) as IWorldEntry;
+const entry = (
+  id: string,
+  categoryId: string,
+  name: string,
+  parentEntryId: string | null = null,
+) => ({ id, categoryId, name, parentEntryId }) as IWorldEntry;
 
 const navigation: WorldNavigation = {
   view: { type: "category", categoryId: category.id },
@@ -254,5 +258,60 @@ describe("WorldCategoryContents", () => {
     renderList("", { ...category, subtitleFieldDefinitionId: "ruler" });
     expect(screen.getByText("Elder Kell")).toBeInTheDocument();
     expect(screen.queryByText("Nobody")).not.toBeInTheDocument();
+  });
+
+  describe("with nesting", () => {
+    // The Ironlands > The Hinterlands > Kingsmark > Kingsmark Keep, and the
+    // Havens beside it.
+    const places = [
+      entry("ironlands", category.id, "The Ironlands"),
+      entry("hinterlands", category.id, "The Hinterlands", "ironlands"),
+      entry("kingsmark", category.id, "Kingsmark", "hinterlands"),
+      entry("keep", category.id, "Kingsmark Keep", "kingsmark"),
+      entry("havens", category.id, "The Havens"),
+    ];
+
+    it("lists only the top level, with places holding others as folders", () => {
+      loadWorld(places, [], []);
+      renderList();
+      expect(
+        screen.getAllByRole("link").map((link) => link.textContent),
+      ).toEqual(["The Ironlands1 place", "The Havens"]);
+      expect(row("The Ironlands")).toHaveAttribute(
+        "href",
+        `/worlds/${category.worldId}/categories/${category.id}/entries/ironlands/places`,
+      );
+      expect(row("The Havens")).toHaveAttribute(
+        "href",
+        `/worlds/${category.worldId}/categories/${category.id}/entries/havens`,
+      );
+    });
+
+    it("lists entries under a hidden parent at the top level", () => {
+      loadWorld(places.slice(1), [], []);
+      renderList();
+      expect(row("The Hinterlands")).toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: /^Kingsmark/ })).toBeNull();
+    });
+
+    it("filters every level and shows each match's path", () => {
+      loadWorld(places, [], []);
+      renderList("king");
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "2 matches across every level",
+      );
+      expect(
+        screen.getAllByRole("link").map((link) => link.textContent),
+      ).toEqual([
+        "KingsmarkThe Ironlands / The Hinterlands",
+        "Kingsmark KeepThe Ironlands / The Hinterlands / Kingsmark",
+      ]);
+    });
+
+    it("lists everything flat in a category without nesting", () => {
+      loadWorld(places, [], []);
+      renderList("", { ...category, supportsHierarchy: false });
+      expect(screen.getAllByRole("link")).toHaveLength(5);
+    });
   });
 });

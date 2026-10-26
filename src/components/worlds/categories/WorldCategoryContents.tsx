@@ -1,24 +1,24 @@
-import { Alert, Box, LinearProgress } from "@mui/material";
+import { Alert, Box, LinearProgress, Typography } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
 
-import { useWorldFieldEntrySnapshots } from "hooks/useWorldFieldEntrySnapshots";
-
 import { useWorldIsGuided } from "stores/world.store";
-import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
-import { getWorldEntrySubtitle } from "lib/worldEntrySubtitle";
+import { getWorldEntryPath, isTopLevelWorldEntry } from "lib/worldEntryParents";
 
 import { IWorldCategory } from "services/worldCategories.service";
 
 import type { WorldNavigation } from "../worldNavigation";
-import { WorldCategoryEntryItem } from "./WorldCategoryEntryItem";
+import { WorldEntryCardRow, WorldEntryCards } from "./WorldEntryCards";
 import { getEditorErrorMessage } from "./categoryEditor.utils";
+import { useWorldEntryRows } from "./useWorldEntryRows";
 
 // A category opened like a Notes folder: its entries as note cards, by name.
+// With nesting, only its top level shows, and entries holding others are
+// folder cards that open into their Places.
 // Entries are listened to by the surrounding manager, which keeps them loaded
 // while moving between this list and an entry.
 export function WorldCategoryContents({
@@ -35,33 +35,34 @@ export function WorldCategoryContents({
   const [actionError, setActionError] = useState<string>();
   const loading = useWorldEntriesStore((store) => store.entryState.loading);
   const error = useWorldEntriesStore((store) => !!store.entryState.error);
-  const visible = useWorldEntriesStore((store) =>
-    Object.values(store.entryState.entries)
-      .filter((entry) => entry.categoryId === category.id)
-      .sort((a, b) => a.name.localeCompare(b.name)),
-  );
-  const subtitleField = useWorldCategoriesStore((store) =>
-    category.subtitleFieldDefinitionId
-      ? store.fieldDefinitions[category.subtitleFieldDefinitionId]
-      : undefined,
-  );
-  const entries = useWorldEntriesStore((store) => store.entryState.entries);
-  const snapshots = useWorldFieldEntrySnapshots();
-  const rows = visible.map((entry) => ({
-    entry,
-    subtitle: getWorldEntrySubtitle(
-      subtitleField,
-      entry.id,
-      snapshots,
-      entries,
-    ),
-  }));
+  const { entries, subtitleOf, rowOf } = useWorldEntryRows(category);
+  const nesting = category.supportsHierarchy;
+  const inCategory = Object.values(entries)
+    .filter((entry) => entry.categoryId === category.id)
+    .sort((a, b) => a.name.localeCompare(b.name));
   const query = search.trim().toLocaleLowerCase();
-  const filtered = rows.filter(
-    ({ entry, subtitle }) =>
-      entry.name.toLocaleLowerCase().includes(query) ||
-      !!subtitle?.toLocaleLowerCase().includes(query),
-  );
+  // A filter searches every level, giving each match its path; otherwise a
+  // category with nesting lists only its top level.
+  const rows: WorldEntryCardRow[] = query
+    ? inCategory.flatMap((entry) => {
+        const subtitle = subtitleOf(entry);
+        if (
+          !entry.name.toLocaleLowerCase().includes(query) &&
+          !subtitle?.toLocaleLowerCase().includes(query)
+        )
+          return [];
+        const path = nesting ? getWorldEntryPath(entries, entry.id) : "";
+        return [
+          {
+            entry,
+            folder: false,
+            subtitle: [subtitle, path].filter(Boolean).join(" · "),
+          },
+        ];
+      })
+    : inCategory
+        .filter((entry) => !nesting || isTopLevelWorldEntry(entries, entry))
+        .map(rowOf);
   return (
     <Box
       component="section"
@@ -89,15 +90,15 @@ export function WorldCategoryContents({
         <LinearProgress
           aria-label={t("worlds.categories.loading-entries", "Loading entries")}
         />
-      ) : filtered.length === 0 ? (
+      ) : rows.length === 0 ? (
         <EmptyState
           title={
-            visible.length === 0
+            inCategory.length === 0
               ? t("worlds.categories.no-entries-title", "No entries yet")
               : undefined
           }
           message={
-            visible.length === 0
+            inCategory.length === 0
               ? t(
                   "worlds.categories.no-entries",
                   "No entries in this category yet.",
@@ -110,41 +111,33 @@ export function WorldCategoryContents({
           sx={{ py: 4 }}
         />
       ) : (
-        // Cards in columns where there is room, like the folders in Notes,
-        // and one full-width list when there is not.
-        <Box sx={{ containerType: "inline-size" }}>
-          <Box
-            component="ul"
-            sx={{
-              listStyle: "none",
-              p: 0,
-              m: 0,
-              display: "grid",
-              gap: 1,
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              "@container (max-width: 560px)": { gridTemplateColumns: "1fr" },
-            }}
-          >
-            {filtered.map(({ entry, subtitle }) => (
-              <WorldCategoryEntryItem
-                key={entry.id}
-                entry={entry}
-                category={category}
-                subtitle={subtitle}
-                guided={guided}
-                onDeleted={() => setActionError(undefined)}
-                onError={(cause) =>
-                  setActionError(getEditorErrorMessage(cause))
-                }
-                linkProps={navigation.getLinkProps({
-                  type: "entry",
-                  categoryId: category.id,
-                  entryId: entry.id,
-                })}
-              />
-            ))}
-          </Box>
-        </Box>
+        <>
+          {query && nesting && (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              role="status"
+              sx={{ mb: 1 }}
+            >
+              {t(
+                "worlds.categories.matches-every-level",
+                "{{count}} matches across every level",
+                {
+                  count: rows.length,
+                  defaultValue_one: "1 match across every level",
+                },
+              )}
+            </Typography>
+          )}
+          <WorldEntryCards
+            rows={rows}
+            category={category}
+            guided={guided}
+            navigation={navigation}
+            onDeleted={() => setActionError(undefined)}
+            onError={(cause) => setActionError(getEditorErrorMessage(cause))}
+          />
+        </>
       )}
     </Box>
   );

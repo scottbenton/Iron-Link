@@ -18,6 +18,8 @@ import { useWorldOraclesStore } from "stores/worldOracles.store";
 
 import { catalogOf, oracle } from "lib/__tests__/worldOracleFixtures";
 
+import { EditPermissions, ReadPermissions } from "repositories/shared.types";
+
 import {
   IWorldEntry,
   WorldEntriesService,
@@ -104,10 +106,14 @@ function loadEntries(
   });
 }
 
-function renderView(entryId = "entry-1", viewCategory = category) {
+function renderView(
+  entryId = "entry-1",
+  viewCategory = category,
+  section?: "places",
+) {
   const navigate = vi.fn();
   const navigation: WorldNavigation = {
-    view: { type: "entry", categoryId: category.id, entryId },
+    view: { type: "entry", categoryId: category.id, entryId, section },
     getLinkProps: (view) => ({
       href: getWorldViewPath(category.worldId, view),
     }),
@@ -204,12 +210,30 @@ describe("WorldEntryActions", () => {
     expect(removeFiles).toHaveBeenCalledWith(category.worldId, "entry-1");
   });
 
-  it("shows Share in the strip and keeps the rest in More", async () => {
+  it("sets who can see the entry from the strip", async () => {
     const user = userEvent.setup();
-    loadEntries([worldEntry()]);
+    const update = vi
+      .spyOn(WorldEntriesService, "updateWorldEntry")
+      .mockResolvedValue();
+    loadEntries([
+      worldEntry({
+        readPermissions: ReadPermissions.OnlyGuides,
+        editPermissions: EditPermissions.OnlyGuides,
+      }),
+    ]);
     renderActions("strip");
-    await user.click(screen.getByRole("button", { name: "Share" }));
-    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Visible to: Guides only" }),
+    );
+    const options = screen
+      .getAllByRole("menuitem")
+      .map((item) => item.textContent);
+    expect(options).toEqual(["Guides only", "Everyone"]);
+    await user.click(screen.getByRole("menuitem", { name: "Everyone" }));
+    expect(update).toHaveBeenCalledWith("entry-1", {
+      readPermissions: ReadPermissions.AllPlayers,
+      editPermissions: EditPermissions.AllPlayers,
+    });
   });
 
   it("puts every action in one menu on a card", async () => {
@@ -217,12 +241,17 @@ describe("WorldEntryActions", () => {
     loadEntries([worldEntry()]);
     renderActions("card");
     expect(
-      screen.queryByRole("button", { name: "Share" }),
+      screen.queryByRole("button", { name: /Visible to/ }),
     ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Hollowmere actions" }),
     );
-    expect(screen.getByRole("menuitem", { name: "Share" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Guides only" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Everyone" }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("menuitem", { name: "Delete" }),
     ).toBeInTheDocument();
@@ -456,6 +485,74 @@ describe("entry header icon", () => {
     await screen.findByRole("article");
     expect(
       screen.queryByRole("button", { name: "Choose icon" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("entry Places", () => {
+  const places = () => [
+    worldEntry({ id: "region", name: "The Hinterlands" }),
+    worldEntry({ id: "town", name: "Kingsmark", parentEntryId: "region" }),
+    worldEntry({ id: "keep", name: "Kingsmark Keep", parentEntryId: "town" }),
+    worldEntry({ id: "ford", name: "Ford of Ashes", parentEntryId: "region" }),
+  ];
+
+  it("offers Details and Places tabs in a category with nesting", () => {
+    loadEntries(places());
+    renderView("region");
+    const tabs = screen.getByRole("tablist", { name: "The Hinterlands views" });
+    const details = within(tabs).getByRole("tab", { name: "Details" });
+    expect(details).toHaveAttribute("aria-selected", "true");
+    const placesTab = within(tabs).getByRole("tab", { name: "Places 2" });
+    expect(placesTab).toHaveAttribute(
+      "href",
+      `/worlds/${category.worldId}/categories/${category.id}/entries/region/places`,
+    );
+  });
+
+  it("lists the places inside, with those holding more as folders", () => {
+    loadEntries(places());
+    renderView("region", category, "places");
+    expect(screen.getByRole("tab", { name: "Places 2" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    const list = screen.getByRole("region", {
+      name: "Places in The Hinterlands",
+    });
+    expect(
+      within(list)
+        .getAllByRole("link")
+        .map((link) => [link.textContent, link.getAttribute("href")]),
+    ).toEqual([
+      [
+        "Kingsmark1 place",
+        `/worlds/${category.worldId}/categories/${category.id}/entries/town/places`,
+      ],
+      [
+        "Ford of Ashes",
+        `/worlds/${category.worldId}/categories/${category.id}/entries/ford`,
+      ],
+    ]);
+    expect(
+      screen.queryByRole("region", { name: "Notes" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("says when nothing is inside yet", () => {
+    loadEntries(places());
+    renderView("ford", category, "places");
+    expect(
+      screen.getByText("Nothing is inside Ford of Ashes yet."),
+    ).toBeInTheDocument();
+  });
+
+  it("has no Places without nesting", () => {
+    loadEntries(places());
+    renderView("region", { ...category, supportsHierarchy: false }, "places");
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Places in The Hinterlands" }),
     ).not.toBeInTheDocument();
   });
 });

@@ -31,5 +31,23 @@ that are easy to miss. When you learn a new one, add a line here.
 - Non-customized worlds read `world_templates` live, so a template migration
   reaches them at once; customized worlds hold copied field definitions and
   are not changed by it.
+- Entry field values save through `useWorldFieldDraft`: a change shows at
+  once and saves after a 1s pause, and keeps showing until the stored value
+  matches it, because realtime echoes of an earlier save can arrive late.
+- A field whose oracle comes from an ancestor's value (Population from the
+  nearest Sector's Region) shows editors a note naming the parent it needs
+  when none fits (`getWorldFieldParentRequirements`); the wording is built
+  from the rules, so templates need no copy for it.
+- A world entry is either Guide prep (`only_guides` read and edit) or shared
+  with everyone (`all_players` read and edit, so players can add notes).
+  Only Guides choose, and only in guided worlds; a trigger refuses permission
+  changes from anyone else. Older author-scoped entries read as shared.
 - Long text fields are no longer offered for new fields; existing ones keep
   working.
+- World Notes (headed "Overview" on the world home) are Yjs bytes in
+  `worlds.notes_content`, left out of world list queries. Guides edit them but
+  may not update `worlds`, so every save goes through the `update_world_notes`
+  RPC.
+- A world entry mention stores only the entry id (`kind: "worldEntry"`,
+  `label: null`); its name is read live from the entries store, so renames
+  show at once and an unreadable entry shows "Unavailable entry".

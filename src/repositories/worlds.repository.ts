@@ -2,7 +2,7 @@ import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 import { Tables, TablesUpdate } from "types/supabase-generated.type";
 
-import { supabase } from "lib/supabase.lib";
+import { SUPABASE_ANON_KEY, SUPABASE_URL, supabase } from "lib/supabase.lib";
 
 import { createSubscription } from "./_subscriptionManager";
 import {
@@ -13,7 +13,12 @@ import {
 } from "./errors/RepositoryErrors";
 import { WorldPermission } from "./shared.types";
 
-export type WorldDTO = Tables<"worlds">;
+// Everything except notes_content, a large Yjs byte column fetched on demand
+// (as entries leave out theirs).
+const WORLD_COLUMNS =
+  "id, name, setting_key, configuration_customized, created_by, created_at, updated_at";
+
+export type WorldDTO = Omit<Tables<"worlds">, "notes_content">;
 export type WorldUpdateDTO = TablesUpdate<"worlds">;
 
 // The roles an explicit world_players row can hold. Deliberately narrower
@@ -42,7 +47,7 @@ export class WorldsRepository {
 
   public static async getWorld(worldId: string): Promise<WorldDTO> {
     const { data, error, status } = await this.worlds()
-      .select("*")
+      .select(WORLD_COLUMNS)
       .eq("id", worldId)
       .single();
 
@@ -116,11 +121,11 @@ export class WorldsRepository {
     const [explicit, viaGames] = await Promise.all([
       supabase
         .from("world_players")
-        .select("role, worlds!inner(*)")
+        .select(`role, worlds!inner(${WORLD_COLUMNS})`)
         .eq("user_id", userId),
       supabase
         .from("games")
-        .select("worlds!inner(*), game_players!inner(user_id)")
+        .select(`worlds!inner(${WORLD_COLUMNS}), game_players!inner(user_id)`)
         .eq("game_players.user_id", userId),
     ]);
 
@@ -158,14 +163,12 @@ export class WorldsRepository {
   // can only be created through this security-definer function.
   public static async createWorld(
     name: string,
-    description: string | null,
     settingKey: string | null,
   ): Promise<string> {
     return new Promise((resolve, reject) => {
       supabase
         .rpc("create_world", {
           p_name: name,
-          p_description: description ?? undefined,
           p_setting_key: settingKey ?? undefined,
         })
         .then(({ data, error, status }) => {
@@ -336,6 +339,83 @@ export class WorldsRepository {
           }
         });
     });
+  }
+
+  public static async getWorldNotesContent(
+    worldId: string,
+  ): Promise<string | null> {
+    const { data, error, status } = await this.worlds()
+      .select("notes_content")
+      .eq("id", worldId)
+      .single();
+    if (error) {
+      console.error(error);
+      throw getRepositoryError(
+        error,
+        ErrorVerb.Read,
+        ErrorNoun.World,
+        false,
+        status,
+      );
+    }
+    return data.notes_content;
+  }
+
+  // Through an RPC because Guides edit world Notes but may not update the
+  // world itself; see 20261018000000_world_notes.sql.
+  public static async updateWorldNotesContent(
+    worldId: string,
+    content: string,
+  ): Promise<void> {
+    const { error, status } = await supabase.rpc("update_world_notes", {
+      p_world_id: worldId,
+      p_notes_content: content,
+    });
+    if (error) {
+      console.error(error);
+      throw getRepositoryError(
+        error,
+        ErrorVerb.Update,
+        ErrorNoun.World,
+        false,
+        status,
+      );
+    }
+  }
+
+  // The same save as a keepalive request, for when the page is closing.
+  public static async updateWorldNotesContentBeacon(
+    token: string,
+    worldId: string,
+    content: string,
+  ): Promise<void> {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/rpc/update_world_notes`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          Prefer: "return=minimal",
+          Apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          p_world_id: worldId,
+          p_notes_content: content,
+        }),
+        keepalive: true,
+      },
+    );
+    if (!response.ok) {
+      console.error(response);
+      throw getRepositoryError(
+        response,
+        ErrorVerb.Update,
+        ErrorNoun.World,
+        false,
+        response.status,
+      );
+    }
   }
 
   public static async getWorldPermission(
