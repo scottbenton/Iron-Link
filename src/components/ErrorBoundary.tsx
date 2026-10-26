@@ -1,14 +1,20 @@
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, ReactNode } from "react";
 
 import { AnalyticsService } from "services/analytics.service";
 
 import { ErrorMessage } from "./ErrorMessage";
 
+export type ErrorBoundaryProps = PropsWithChildren<{
+  // Shown in place of the crash page, for a boundary around one part of a
+  // page so the rest keeps working.
+  fallback?: ReactNode;
+}>;
+
 export class ErrorBoundary extends React.Component<
-  PropsWithChildren,
+  ErrorBoundaryProps,
   { hasError: boolean; errorMessage?: string }
 > {
-  constructor(props: PropsWithChildren) {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
@@ -53,6 +59,7 @@ export class ErrorBoundary extends React.Component<
 
   render() {
     if (this.state.hasError) {
+      if (this.props.fallback !== undefined) return this.props.fallback;
       return <ErrorMessage message={this.state.errorMessage} />;
     }
 

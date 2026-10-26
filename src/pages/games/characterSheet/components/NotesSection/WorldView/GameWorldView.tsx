@@ -19,6 +19,8 @@ import type {
 import { getNotesItemLinkProps } from "pages/games/gamePageLayout/hooks/notesDestination";
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 
+import { useAdvancedFeatureToggle } from "hooks/advancedFeatures/advancedFeatures";
+
 import { useUID } from "stores/auth.store";
 import { GamePermission, useGameStore } from "stores/game.store";
 import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
@@ -90,6 +92,7 @@ export function GameWorldView(props: GameWorldViewProps) {
     (store) => store.gamePermissions === GamePermission.Guide,
   );
   const gameWorldId = useGameWorldId();
+  const worldsEnabled = useAdvancedFeatureToggle("worlds");
   const closeTabsMatching = useNotesStore((store) => store.closeTabsMatching);
 
   const [unlinking, setUnlinking] = useState(false);
@@ -128,6 +131,20 @@ export function GameWorldView(props: GameWorldViewProps) {
       })
       .catch(() => {});
   }, [confirm, t, gameId, worldId, closeTabsMatching]);
+
+  // A link to a world tab still opens one when worlds are turned off here.
+  if (!worldsEnabled) {
+    return (
+      <EmptyState
+        title={t("worlds.game.worlds-off-title", "Worlds are turned off")}
+        message={t(
+          "worlds.game.worlds-off",
+          "Turn on Worlds in Advanced Features to open this world.",
+        )}
+        sx={{ mt: 4 }}
+      />
+    );
+  }
 
   // The tab can outlive the link if another guide swaps or unlinks the world
   // while this tab is open; the world store then holds a different world.

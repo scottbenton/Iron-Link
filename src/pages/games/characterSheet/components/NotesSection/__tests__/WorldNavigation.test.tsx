@@ -17,6 +17,8 @@ import { GameWorldView } from "../WorldView/GameWorldView";
 const confirm = vi.hoisted(() => vi.fn());
 const context = vi.hoisted(() => ({
   worldId: "world-a",
+  worldsEnabled: true,
+  noteViewThrows: false,
   world: { id: "world-a", name: "Ironlands" },
   worldPermission: "guide" as string | null,
   worldDeleted: false,
@@ -66,6 +68,9 @@ vi.mock("stores/game.store", () => ({
   GamePermission: { Guide: "guide" },
   useGameStore: (select: (value: typeof context) => unknown) => select(context),
 }));
+vi.mock("hooks/advancedFeatures/advancedFeatures", () => ({
+  useAdvancedFeatureToggle: () => context.worldsEnabled,
+}));
 vi.mock("material-ui-confirm", () => ({ useConfirm: () => confirm }));
 vi.mock("pages/games/gamePageLayout/hooks/useGameId", () => ({
   useGameId: () => "game-a",
@@ -81,7 +86,12 @@ vi.mock("../FolderView", () => ({
   FolderView: () => null,
   FolderViewToolbar: () => null,
 }));
-vi.mock("../NoteView", () => ({ NoteView: () => null }));
+vi.mock("../NoteView", () => ({
+  NoteView: () => {
+    if (context.noteViewThrows) throw new Error("Note crashed");
+    return null;
+  },
+}));
 vi.mock("components/worlds/WorldPanel", () => ({
   WorldPanel: ({
     navigation,
@@ -128,6 +138,8 @@ beforeEach(() => {
     },
   });
   context.worldId = "world-a";
+  context.worldsEnabled = true;
+  context.noteViewThrows = false;
   context.world.name = "Ironlands";
   context.worldPermission = "guide";
   context.loading = false;
@@ -311,5 +323,38 @@ describe("World Notes navigation", () => {
     expect(
       screen.queryByRole("link", { name: "Open Locations" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("says worlds are off when a link opens a world tab without them", () => {
+    context.worldsEnabled = false;
+    render(
+      <MemoryRouter>
+        <GameWorldView worldId="world-a" />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("Worlds are turned off")).toBeInTheDocument();
+  });
+
+  it("explains a folder tab this person cannot read", () => {
+    useNotesStore.getState().openItemTab({ type: "folder", id: "hidden" });
+    render(
+      <MemoryRouter>
+        <NoteTabs />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("Folder unavailable")).toBeInTheDocument();
+  });
+
+  it("keeps the tab strip when one tab crashes", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    context.noteViewThrows = true;
+    useNotesStore.getState().openItemTab({ type: "note", id: "broken" });
+    render(
+      <MemoryRouter>
+        <NoteTabs />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("Something went wrong")).toBeInTheDocument();
+    expect(screen.getAllByRole("tab").length).toBeGreaterThan(0);
   });
 });

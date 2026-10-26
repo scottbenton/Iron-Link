@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
 import { NOTES_PANE_GUTTER } from "components/Layout/notesPaneGutter";
@@ -21,19 +22,20 @@ export interface NoteViewProps {
 
 export function NoteView(props: NoteViewProps) {
   const { openNoteId } = props;
+  const { t } = useTranslation();
 
   const gameId = useGameId();
   const updateNoteContent = useNotesStore((store) => store.updateNoteContent);
 
   const [noteContent, setNoteContent] = useState<Uint8Array | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const getNoteContent = useNotesStore((store) => store.getNoteContent);
   useEffect(() => {
     let isMounted = true;
 
     setLoading(true);
-    setError(null);
+    setError(false);
     getNoteContent(openNoteId)
       .then((noteContent) => {
         if (isMounted) {
@@ -41,9 +43,9 @@ export function NoteView(props: NoteViewProps) {
           setLoading(false);
         }
       })
-      .catch((error) => {
+      .catch(() => {
         if (isMounted) {
-          setError(error);
+          setError(true);
           setLoading(false);
         }
       });
@@ -75,7 +77,15 @@ export function NoteView(props: NoteViewProps) {
   const isMobile = useIsMobile();
 
   if (error) {
-    return <EmptyState message={error} />;
+    // An unreadable note returns no row, the same as a deleted one.
+    return (
+      <EmptyState
+        message={t(
+          "notes.load-error",
+          "This note could not be opened. It may have been deleted, or you may not have access to it.",
+        )}
+      />
+    );
   }
 
   if (!noteContent || loading) {
