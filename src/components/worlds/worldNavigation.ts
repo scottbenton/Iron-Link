@@ -6,15 +6,24 @@ export type WorldView =
   | { type: "world" }
   | { type: "category"; categoryId: string }
   // An entry opens on its Details; one in a category with nesting also has
-  // a Places section listing the entries inside it.
+  // a Places section listing the entries inside it, and one in a category
+  // with maps a Map section.
   | {
       type: "entry";
       categoryId: string;
       entryId: string;
-      section?: "places";
+      section?: WorldEntrySection;
     }
   | { type: "settings" }
   | { type: "category-settings"; categoryId: string };
+
+export type WorldEntrySection = "places" | "map";
+
+export function isWorldEntrySection(
+  value: string | null | undefined,
+): value is WorldEntrySection {
+  return value === "places" || value === "map";
+}
 
 export type WorldLinkProps = NavigationLinkProps;
 
@@ -35,7 +44,9 @@ export function getWorldViewPath(worldId: string, view: WorldView): string {
     case "entry":
       return view.section === "places"
         ? pathConfig.worldEntryPlaces(worldId, view.categoryId, view.entryId)
-        : pathConfig.worldEntry(worldId, view.categoryId, view.entryId);
+        : view.section === "map"
+          ? pathConfig.worldEntryMap(worldId, view.categoryId, view.entryId)
+          : pathConfig.worldEntry(worldId, view.categoryId, view.entryId);
     case "settings":
       return pathConfig.worldSettings(worldId);
     case "category-settings":
