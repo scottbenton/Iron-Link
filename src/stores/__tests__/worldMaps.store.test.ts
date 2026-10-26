@@ -166,3 +166,19 @@ describe("world map backgrounds", () => {
     expect(remove).not.toHaveBeenCalled();
   });
 });
+
+describe("world map pins", () => {
+  const pin = { entryId: "town", mapEntryId: "region", x: 10, y: 20 };
+
+  it("shows a pin at once and puts it back when refused", async () => {
+    let refuse: (error: Error) => void = () => {};
+    vi.spyOn(WorldMapsService, "setPin").mockImplementationOnce(
+      () => new Promise((_, reject) => (refuse = reject)),
+    );
+    const placing = store().setPin(pin);
+    expect(map().pins.town).toEqual(pin);
+    refuse(new Error("refused"));
+    await expect(placing).rejects.toThrow("refused");
+    expect(map().pins.town).toBeUndefined();
+  });
+});
