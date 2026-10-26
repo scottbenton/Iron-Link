@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { WorldMapChunk } from "lib/worldMap/chunks";
 
-import { WorldMapsService } from "services/worldMaps.service";
+import { WorldEntriesService } from "services/worldEntries.service";
+import { IWorldMap, WorldMapsService } from "services/worldMaps.service";
 
 import { getDisplayedChunks, useWorldMapsStore } from "../worldMaps.store";
 
@@ -118,5 +119,50 @@ describe("world map painting", () => {
     const shown = getDisplayedChunks(map());
     expect(shown).toHaveLength(1);
     expect(shown[0]).toBe(map().chunks["0,0"]);
+  });
+});
+
+describe("world map backgrounds", () => {
+  const withBackground: IWorldMap = {
+    entryId: "region",
+    worldId: "world",
+    grid: "none",
+    hexFlowers: false,
+    background: { filename: "old.png", x: -40, y: 12, width: 900 },
+  };
+
+  it("keeps a replaced image's place and removes the old file after", async () => {
+    const order: string[] = [];
+    vi.spyOn(WorldEntriesService, "uploadWorldMapBackground").mockResolvedValue(
+      { filename: "new.png", url: "" },
+    );
+    const update = vi
+      .spyOn(WorldMapsService, "updateWorldMap")
+      .mockImplementation(async (_, changes) => {
+        order.push("update");
+        return { ...withBackground, ...changes };
+      });
+    const remove = vi
+      .spyOn(WorldEntriesService, "deleteWorldMapBackground")
+      .mockImplementation(async () => {
+        order.push("delete");
+      });
+    await store().setBackground(withBackground, new File(["x"], "new.png"));
+    expect(update).toHaveBeenCalledWith("region", {
+      background: { filename: "new.png", x: -40, y: 12, width: 900 },
+    });
+    expect(remove).toHaveBeenCalledWith("world", "region", "old.png");
+    expect(order).toEqual(["update", "delete"]);
+  });
+
+  it("keeps the old file when the map refuses the change", async () => {
+    vi.spyOn(WorldMapsService, "updateWorldMap").mockRejectedValue(
+      new Error("refused"),
+    );
+    const remove = vi.spyOn(WorldEntriesService, "deleteWorldMapBackground");
+    await expect(store().setBackground(withBackground, null)).rejects.toThrow(
+      "refused",
+    );
+    expect(remove).not.toHaveBeenCalled();
   });
 });
