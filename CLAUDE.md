@@ -51,3 +51,10 @@ that are easy to miss. When you learn a new one, add a line here.
 - A world entry mention stores only the entry id (`kind: "worldEntry"`,
   `label: null`); its name is read live from the entries store, so renames
   show at once and an unreadable entry shows "Unavailable entry".
+
+## Notes
+
+- Note and folder RLS follows the app's `getPermissions` (`notes.store.ts`)
+  through the `note_permission_allows_read|edit|manage` helpers, and the
+  `notes_guard_update`/`note_folders_guard_update` triggers check which columns
+  each editor may change. Change both sides together.
