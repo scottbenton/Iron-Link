@@ -8,7 +8,6 @@ import { useWorldEntriesStore } from "stores/worldEntries.store";
 import type { WorldFieldCondition } from "lib/worldFieldRules";
 
 import type { IWorldEntry } from "services/worldEntries.service";
-import { WorldFieldType } from "services/worldFieldDefinitions.service";
 
 import { WorldFieldConditionEditor } from "../WorldFieldConditionEditor";
 import { field, linkedEntry, optionList, translate } from "./fixtures";
@@ -111,18 +110,13 @@ describe("WorldFieldConditionEditor", () => {
     });
   });
 
-  it("offers the operators for each source and never reads long text", async () => {
+  it("offers the operators for each source", async () => {
     const user = userEvent.setup();
     const text = field({ id: "text", label: "Name" });
     const tags = optionList({ id: "tags", label: "Tags" }, { multiple: true });
-    const notes = field({
-      id: "notes",
-      label: "Notes",
-      type: WorldFieldType.RichText,
-    });
     renderCondition(
       { source: "entry", fieldId: text.id, operator: "equals", value: "" },
-      [text, tags, notes],
+      [text, tags],
     );
     expect(await operatorNames(user)).toEqual([
       "Equals",
@@ -130,9 +124,6 @@ describe("WorldFieldConditionEditor", () => {
       "Is empty",
       "Is not empty",
     ]);
-    await user.click(screen.getByRole("combobox", { name: "Source field" }));
-    expect(screen.queryByRole("option", { name: "Notes" })).toBeNull();
-    await user.keyboard("{Escape}");
   });
 
   it("offers contains for fields that allow more than one", async () => {

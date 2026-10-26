@@ -30,28 +30,6 @@ export function WorldFieldKindPreview({ kind }: { kind: WorldFieldKind }) {
         />
       );
       break;
-    case "longText":
-      preview = (
-        <Typography
-          variant="body2"
-          sx={{
-            px: 1.5,
-            py: 1,
-            border: 1,
-            borderColor: "divider",
-            borderRadius: 1,
-          }}
-        >
-          <Box component="strong">
-            {t("worlds.fields.preview-long-text-lead", "Founded in salt.")}
-          </Box>{" "}
-          {t(
-            "worlds.fields.preview-long-text",
-            "The harbor freezes each winter, and the elders still argue over who first lit the beacon.",
-          )}
-        </Typography>
-      );
-      break;
     case "optionList":
       preview = (
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>

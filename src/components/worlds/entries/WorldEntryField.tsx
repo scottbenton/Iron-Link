@@ -22,7 +22,6 @@ import type {
 import { getEditorErrorMessage } from "../categories/categoryEditor.utils";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldEntryLinkedEntryField } from "./WorldEntryLinkedEntryField";
-import { WorldEntryLongTextField } from "./WorldEntryLongTextField";
 import { WorldEntryOptionListField } from "./WorldEntryOptionListField";
 import { WorldEntryTextField } from "./WorldEntryTextField";
 import { useWorldFieldDraft } from "./useWorldFieldDraft";
@@ -106,16 +105,6 @@ export function WorldEntryField({
                 }
               : undefined
           }
-        />
-      );
-      break;
-    case "longText":
-      input = (
-        <WorldEntryLongTextField
-          entry={entry}
-          field={field}
-          canEdit={canEdit}
-          onError={showError}
         />
       );
       break;

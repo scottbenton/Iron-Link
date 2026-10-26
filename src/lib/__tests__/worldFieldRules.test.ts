@@ -11,7 +11,6 @@ import {
   type WorldFieldKind,
   type WorldFieldSnapshot,
   canWorldFieldBeAncestorSelector,
-  canWorldFieldBeConditionSource,
   canWorldFieldHaveOracleBinding,
   changeWorldFieldKind,
   createWorldFieldConfiguration,
@@ -347,7 +346,6 @@ function shape(
   return { type, configuration: createWorldFieldConfiguration(configuration) };
 }
 const text = shape(WorldFieldType.Text);
-const longText = shape(WorldFieldType.RichText);
 const list = (multiple = false, allowOther = true) =>
   shape(WorldFieldType.Select, { multiple, allowOther, suggestions: ["A"] });
 const linked = (multiple = false, targetCategoryId = TARGET) =>
@@ -360,12 +358,10 @@ const linked = (multiple = false, targetCategoryId = TARGET) =>
 describe("field kinds", () => {
   it("derives the kind from the storage type and source", () => {
     expect(getWorldFieldKind(text)).toBe("text");
-    expect(getWorldFieldKind(longText)).toBe("longText");
     expect(getWorldFieldKind(list())).toBe("optionList");
     expect(getWorldFieldKind(linked())).toBe("linkedEntry");
     expect(canWorldFieldHaveOracleBinding(text)).toBe(true);
     expect(canWorldFieldHaveOracleBinding(list(true))).toBe(true);
-    expect(canWorldFieldHaveOracleBinding(longText)).toBe(false);
     expect(canWorldFieldHaveOracleBinding(linked())).toBe(false);
   });
   it("builds a draft for each kind, keeping rules and dropping bindings it cannot hold", () => {
@@ -384,7 +380,6 @@ describe("field kinds", () => {
     };
     const kinds: [WorldFieldKind, Partial<WorldFieldConfiguration>][] = [
       ["text", {}],
-      ["longText", {}],
       ["optionList", { multiple: false, allowOther: true }],
       ["linkedEntry", { multiple: false, allowOther: false }],
     ];
@@ -434,13 +429,14 @@ describe("configuration normalization", () => {
       multiple: true,
       allowOther: false,
     });
-    for (const type of [WorldFieldType.Text, WorldFieldType.RichText]) {
-      const normalized = normalizeWorldFieldConfiguration(stored, type);
-      expect(normalized.suggestions).toEqual([]);
-      expect(normalized).not.toHaveProperty("multiple");
-      expect(normalized).not.toHaveProperty("allowOther");
-      expect(normalized).not.toHaveProperty("targetCategoryId");
-    }
+    const normalized = normalizeWorldFieldConfiguration(
+      stored,
+      WorldFieldType.Text,
+    );
+    expect(normalized.suggestions).toEqual([]);
+    expect(normalized).not.toHaveProperty("multiple");
+    expect(normalized).not.toHaveProperty("allowOther");
+    expect(normalized).not.toHaveProperty("targetCategoryId");
     // Postgres accepts IDs without RFC version or variant bits.
     expect(
       getWorldFieldKind({
@@ -482,7 +478,6 @@ describe("configuration normalization", () => {
     for (const [shaped, keeps] of [
       [text, true],
       [list(), true],
-      [longText, false],
       [linked(), false],
     ] as const) {
       const normalized = normalizeWorldFieldDefinition({
@@ -507,8 +502,6 @@ describe("conditions by source", () => {
     const multiple = ["contains", "notContains", "isEmpty", "isNotEmpty"];
     expect(getWorldFieldConditionOperators(list(true))).toEqual(multiple);
     expect(getWorldFieldConditionOperators(linked(true))).toEqual(multiple);
-    expect(getWorldFieldConditionOperators(longText)).toEqual([]);
-    expect(canWorldFieldBeConditionSource(longText)).toBe(false);
     expect(isWorldFieldConditionCompatible(list(true), "equals")).toBe(false);
     expect(isWorldFieldConditionCompatible(text, "contains")).toBe(false);
   });
@@ -533,7 +526,6 @@ describe("conditions by source", () => {
     expect(canWorldFieldBeAncestorSelector(linked())).toBe(true);
     expect(canWorldFieldBeAncestorSelector(list(true))).toBe(false);
     expect(canWorldFieldBeAncestorSelector(text)).toBe(false);
-    expect(canWorldFieldBeAncestorSelector(longText)).toBe(false);
   });
 });
 
@@ -552,8 +544,6 @@ describe("field changes with stored values", () => {
     expect(getWorldFieldChangeBlocker(from, to, counts)).toBeNull();
   });
   it.each([
-    ["Text to Long text", text, longText],
-    ["Long text to Text", longText, text],
     ["a list to a link", list(), linked()],
     ["a link to a list", linked(), list()],
     ["a multi list to Text", list(true), text],
@@ -579,7 +569,7 @@ describe("field changes with stored values", () => {
   });
   it("allows anything while no values are stored", () => {
     expect(
-      getWorldFieldChangeBlocker(text, longText, {
+      getWorldFieldChangeBlocker(text, linked(true), {
         valueCount: 0,
         multiValueCount: 0,
       }),
