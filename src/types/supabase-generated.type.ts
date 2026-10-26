@@ -423,6 +423,7 @@ export type Database = {
           color_scheme: string | null
           condition_meter_values: Json
           created_at: string
+          created_by: string | null
           expansions: Json
           game_type: Database["public"]["Enums"]["game_type"]
           id: string
@@ -436,6 +437,7 @@ export type Database = {
           color_scheme?: string | null
           condition_meter_values?: Json
           created_at?: string
+          created_by?: string | null
           expansions?: Json
           game_type: Database["public"]["Enums"]["game_type"]
           id?: string
@@ -449,6 +451,7 @@ export type Database = {
           color_scheme?: string | null
           condition_meter_values?: Json
           created_at?: string
+          created_by?: string | null
           expansions?: Json
           game_type?: Database["public"]["Enums"]["game_type"]
           id?: string
@@ -459,6 +462,13 @@ export type Database = {
           world_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "games_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "games_world_id_fkey"
             columns: ["world_id"]
