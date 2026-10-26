@@ -71,8 +71,6 @@ that are easy to miss. When you learn a new one, add a line here.
 - Pins (`world_map_pins`) are child entries at a position in map units (a CSS
   pixel at the default cell size), snapped to a cell when drawn. A pin is only
   readable with its entry, and moving the child elsewhere removes its pin.
-- The old `world_entries.map`, `map_settings` and `map_background_filename`
-  columns are unused.
 
 ## Rich text
 

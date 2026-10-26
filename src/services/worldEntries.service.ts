@@ -1,9 +1,4 @@
 import { IconDefinition } from "types/Icon.type";
-import {
-  LocationMap,
-  MapBackgroundImageFit,
-  MapStrokeColors,
-} from "types/Locations.type";
 import { Json } from "types/supabase-generated.type";
 
 import { byteaToUint8Array } from "lib/bytea.lib";
@@ -25,17 +20,6 @@ import {
   RichTextContentStore,
 } from "./richTextContent.service";
 
-export interface IWorldEntryMapSettings {
-  backgroundImageFit: MapBackgroundImageFit;
-  strokeColor: MapStrokeColors;
-  showMap: boolean;
-  // Absent until the user resizes the map, at which point the grid is pinned
-  // instead of being derived from the background image's aspect ratio.
-  rows?: number;
-  cols?: number;
-  hexSize?: number;
-}
-
 export interface IWorldEntry {
   id: string;
   worldId: string;
@@ -46,9 +30,6 @@ export interface IWorldEntry {
   // default -> the category's icon.
   imageFilename: string | null;
   icon: IconDefinition | null;
-  map: LocationMap | null;
-  mapBackgroundFilename: string | null;
-  mapSettings: IWorldEntryMapSettings | null;
   readPermissions: ReadPermissions;
   editPermissions: EditPermissions;
   authorId: string;
@@ -135,12 +116,6 @@ export class WorldEntriesService {
       icon:
         entry.icon === undefined ? undefined : (entry.icon as unknown as Json),
       image_filename: entry.imageFilename,
-      map: entry.map === undefined ? undefined : (entry.map as unknown as Json),
-      map_background_filename: entry.mapBackgroundFilename,
-      map_settings:
-        entry.mapSettings === undefined
-          ? undefined
-          : (entry.mapSettings as unknown as Json),
       read_permissions: entry.readPermissions,
       edit_permissions: entry.editPermissions,
     });
@@ -327,10 +302,6 @@ export class WorldEntriesService {
       name: entry.name,
       imageFilename: entry.image_filename,
       icon: (entry.icon as unknown as IconDefinition) ?? null,
-      map: (entry.map as unknown as LocationMap) ?? null,
-      mapBackgroundFilename: entry.map_background_filename,
-      mapSettings:
-        (entry.map_settings as unknown as IWorldEntryMapSettings) ?? null,
       readPermissions,
       editPermissions,
       authorId: entry.author_id,

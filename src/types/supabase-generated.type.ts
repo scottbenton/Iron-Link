@@ -781,9 +781,6 @@ export type Database = {
           icon: Json | null
           id: string
           image_filename: string | null
-          map: Json | null
-          map_background_filename: string | null
-          map_settings: Json | null
           name: string
           notes_content: string | null
           parent_entry_id: string | null
@@ -799,9 +796,6 @@ export type Database = {
           icon?: Json | null
           id?: string
           image_filename?: string | null
-          map?: Json | null
-          map_background_filename?: string | null
-          map_settings?: Json | null
           name: string
           notes_content?: string | null
           parent_entry_id?: string | null
@@ -817,9 +811,6 @@ export type Database = {
           icon?: Json | null
           id?: string
           image_filename?: string | null
-          map?: Json | null
-          map_background_filename?: string | null
-          map_settings?: Json | null
           name?: string
           notes_content?: string | null
           parent_entry_id?: string | null

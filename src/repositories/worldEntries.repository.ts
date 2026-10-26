@@ -24,7 +24,8 @@ export type WorldEntryInsertDTO = TablesInsert<"world_entries">;
 export type WorldEntryUpdateDTO = TablesUpdate<"world_entries">;
 
 // Everything except notes_content, which is a large Yjs byte column fetched
-// on demand (mirrors how notes exclude note_content_bytes from list queries).
+// on demand (mirrors how notes exclude note_content_bytes from list queries),
+// and the unused old map columns (maps live in world_maps).
 const ENTRY_LIST_COLUMNS = `
   id,
   world_id,
@@ -33,9 +34,6 @@ const ENTRY_LIST_COLUMNS = `
   name,
   icon,
   image_filename,
-  map,
-  map_background_filename,
-  map_settings,
   read_permissions,
   edit_permissions,
   author_id,
