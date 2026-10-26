@@ -135,6 +135,16 @@ export function WorldMapPinMarker({
       borderRadius: 1,
       opacity: faded ? 0.6 : 1,
       touchAction: "none",
+      // A 44px target around the 32px marker, for fingers.
+      "&::before": {
+        content: '""',
+        position: "absolute",
+        top: (MARKER_SIZE - 44) / 2,
+        left: "50%",
+        width: 44,
+        height: 44,
+        transform: "translateX(-50%)",
+      },
       "&:focus-visible": {
         outline: "2px solid",
         outlineColor: "primary.main",

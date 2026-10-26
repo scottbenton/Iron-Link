@@ -6,6 +6,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   ListItemIcon,
   ListItemText,
   Menu,
@@ -29,8 +30,11 @@ export function WorldMapOptions({
   painted,
   onError,
   children,
+  touch = false,
 }: {
   map: IWorldMap;
+  // An icon button with a 44px target, for phones.
+  touch?: boolean;
   painted: boolean;
   onError: (cause: unknown) => void;
   children?: (close: () => void) => ReactNode;
@@ -46,17 +50,35 @@ export function WorldMapOptions({
 
   return (
     <>
-      <Button
-        size="small"
-        variant="contained"
-        color="inherit"
-        startIcon={<TuneIcon />}
-        aria-haspopup="menu"
-        onClick={(event) => setAnchor(event.currentTarget)}
-        sx={{ bgcolor: "background.paper", color: "text.primary" }}
-      >
-        {label}
-      </Button>
+      {touch ? (
+        <IconButton
+          aria-label={label}
+          aria-haspopup="menu"
+          onClick={(event) => setAnchor(event.currentTarget)}
+          sx={{
+            width: 44,
+            height: 44,
+            bgcolor: "background.paper",
+            color: "text.primary",
+            boxShadow: 2,
+            "&:hover": { bgcolor: "background.paper" },
+          }}
+        >
+          <TuneIcon />
+        </IconButton>
+      ) : (
+        <Button
+          size="small"
+          variant="contained"
+          color="inherit"
+          startIcon={<TuneIcon />}
+          aria-haspopup="menu"
+          onClick={(event) => setAnchor(event.currentTarget)}
+          sx={{ bgcolor: "background.paper", color: "text.primary" }}
+        >
+          {label}
+        </Button>
+      )}
       <Menu anchorEl={anchor} open={!!anchor} onClose={close}>
         {isHexGrid(map.grid) && (
           <MenuItem
