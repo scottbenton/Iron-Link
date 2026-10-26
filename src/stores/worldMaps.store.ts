@@ -10,8 +10,9 @@ import {
   chunkKey,
   chunkOf,
 } from "lib/worldMap/chunks";
-import { WorldMapGrid, parseCellKey } from "lib/worldMap/grid";
+import { Cell, WorldMapGrid, cellKey, parseCellKey } from "lib/worldMap/grid";
 
+import { WorldEntriesService } from "services/worldEntries.service";
 import {
   IWorldMap,
   IWorldMapPin,
@@ -44,6 +45,9 @@ interface WorldMapsStoreActions {
     grid: WorldMapGrid,
   ) => Promise<void>;
   updateMap: (entryId: string, update: IWorldMapUpdate) => Promise<void>;
+  // Uploads a background image (or, with null, removes it) and removes the
+  // old file once the map points at the new one.
+  setBackground: (map: IWorldMap, file: File | null) => Promise<void>;
   // Paints (or, with null, erases) cells. Saves after a short pause.
   paint: (entryId: string, cells: Record<string, WorldMapCell | null>) => void;
   flush: (entryId: string) => Promise<void>;
@@ -217,6 +221,44 @@ export const useWorldMapsStore = createWithEqualityFn<WorldMapsStore>()(
         });
       },
 
+      setBackground: async (map, file) => {
+        const previous = map.background;
+        let background: IWorldMap["background"] = null;
+        if (file) {
+          const { filename } =
+            await WorldEntriesService.uploadWorldMapBackground(
+              map.worldId,
+              map.entryId,
+              file,
+            );
+          // A replacement keeps the old one's place and size.
+          background = {
+            filename,
+            x: previous?.x ?? 0,
+            y: previous?.y ?? 0,
+            width: previous?.width ?? null,
+          };
+        }
+        try {
+          await get().updateMap(map.entryId, { background });
+        } catch (error) {
+          // The new file is never shown, so it goes.
+          if (background)
+            WorldEntriesService.deleteWorldMapBackground(
+              map.worldId,
+              map.entryId,
+              background.filename,
+            ).catch(() => undefined);
+          throw error;
+        }
+        if (previous)
+          WorldEntriesService.deleteWorldMapBackground(
+            map.worldId,
+            map.entryId,
+            previous.filename,
+          ).catch(() => undefined);
+      },
+
       paint: (entryId, cells) => {
         if (!get().maps[entryId]) return;
         update(entryId, (state) => {
@@ -320,4 +362,14 @@ export function getDisplayedChunks(
   return Object.values(displayed).filter(
     (chunk) => Object.keys(chunk.cells).length > 0,
   );
+}
+
+// One cell as this window shows it, unsaved paint included.
+export function readWorldMapCell(
+  state: Pick<WorldMapState, "chunks" | "pending">,
+  cell: Cell,
+): WorldMapCell | undefined {
+  const key = cellKey(cell);
+  if (key in state.pending) return state.pending[key] ?? undefined;
+  return state.chunks[chunkKey(chunkOf(cell))]?.cells[key];
 }

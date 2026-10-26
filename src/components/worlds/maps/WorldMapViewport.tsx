@@ -70,6 +70,10 @@ export interface WorldMapViewportProps<T> {
   onToolPointer?: (event: WorldMapPointerEvent) => void;
   // Cells outlined under the pointer while a tool is active.
   getHighlight?: (cell: Cell) => Cell[];
+  // The cursor while a tool is active; a crosshair unless set.
+  toolCursor?: string;
+  // The background image's own size, once it has loaded.
+  onBackgroundLoad?: (size: { width: number; height: number }) => void;
   renderPin: (placement: WorldMapPinPlacement<T>) => ReactNode;
   // Extra controls over the map, top left.
   overlay?: ReactNode;
@@ -101,6 +105,8 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     toolActive = false,
     onToolPointer,
     getHighlight,
+    toolCursor = "crosshair",
+    onBackgroundLoad,
     renderPin,
     overlay,
     height = "min(70vh, 640px)",
@@ -128,6 +134,15 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
       active = false;
     };
   }, [background?.url]);
+  const onBackgroundLoadRef = useRef(onBackgroundLoad);
+  onBackgroundLoadRef.current = onBackgroundLoad;
+  useEffect(() => {
+    if (image?.naturalWidth)
+      onBackgroundLoadRef.current?.({
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+      });
+  }, [image]);
   const backgroundRect: WorldMapBackgroundImage | null = useMemo(() => {
     if (!background || !image || !image.naturalWidth) return null;
     const width = background.width ?? image.naturalWidth;
@@ -424,7 +439,7 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
         bgcolor: "grey.900",
         touchAction: "none",
         userSelect: "none",
-        cursor: toolActive ? "crosshair" : "grab",
+        cursor: toolActive ? toolCursor : "grab",
         "&:focus-visible": {
           outline: (theme) => `2px solid ${theme.palette.primary.main}`,
           outlineOffset: 2,
