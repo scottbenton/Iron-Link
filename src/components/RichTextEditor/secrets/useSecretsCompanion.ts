@@ -28,12 +28,17 @@ export interface SecretsConfig {
 // gets no secrets; nothing is read or joined.
 export function useSecretsCompanion(
   config: SecretsConfig | null,
-  onSaveError?: (error: unknown) => void,
+  options: {
+    // A Guide who can't edit the surface reads its secrets and saves nothing.
+    readOnly: boolean;
+    onSaveError?: (error: unknown) => void;
+  },
 ): { doc: Y.Doc | null; saving: boolean; failed: boolean } {
   const surfaceKey = config ? getSecretSurfaceKey(config.surface) : null;
   const surfaceRef = useRef(config?.surface);
   surfaceRef.current = config?.surface;
 
+  const { readOnly, onSaveError } = options;
   const docRef = useRef<Y.Doc | null>(null);
   const store = useMemo(
     () =>
@@ -80,7 +85,9 @@ export function useSecretsCompanion(
   // Join the Guide room only where secrets can be added or already exist, so
   // opening a note in a solo game joins nothing.
   const live =
-    !!config && !!initialValue && (config.canInsert || initialValue.length > 0);
+    !!config &&
+    !!initialValue &&
+    ((config.canInsert && !readOnly) || initialValue.length > 0);
   const roomKey = useRoomKey(live && config ? config.roomKeySource : null);
   const getText = useCallback(
     () => (docRef.current ? getSecretsText(docRef.current) : ""),
@@ -92,7 +99,7 @@ export function useSecretsCompanion(
     roomName: `secrets-${surfaceKey ?? "none"}`,
     roomKey,
     initialValue,
-    contentStore: store,
+    contentStore: readOnly ? undefined : store,
     getText,
     onSaveError,
   });

@@ -11,7 +11,8 @@ import { SecretBlockView as SecretBlock } from "./secretsController";
 export interface SecretBlockViewProps {
   block: SecretBlock;
   onMounted: (id: string) => void;
-  onDelete: (id: string) => void;
+  // Left out where the Guide may not edit the surface.
+  onDelete?: (id: string) => void;
 }
 
 // One secret block, drawn into its widget in the Guide's shared editor: a
@@ -63,15 +64,17 @@ export function SecretBlockView(props: SecretBlockViewProps) {
         >
           {label}
         </Typography>
-        <Tooltip title={t("notes.secrets.delete", "Delete secret")}>
-          <IconButton
-            size="small"
-            aria-label={t("notes.secrets.delete", "Delete secret")}
-            onClick={() => onDelete(block.id)}
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
+        {onDelete && (
+          <Tooltip title={t("notes.secrets.delete", "Delete secret")}>
+            <IconButton
+              size="small"
+              aria-label={t("notes.secrets.delete", "Delete secret")}
+              onClick={() => onDelete(block.id)}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
       </Box>
       <EditorContent editor={block.editor} />
     </Box>,
