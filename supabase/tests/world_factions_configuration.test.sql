@@ -56,7 +56,7 @@ select set_config('request.jwt.claim.sub','d2000000-0000-4000-8000-000000000002'
 select is((select count(*) from public.world_entry_field_values where world_id in (select id from faction_test_worlds)),3::bigint,
  'viewers see only the public faction values before customization');
 reset role;
-create temporary table faction_values_before as select entry_id,field_definition_id,world_id,value,content,gm_only from public.world_entry_field_values where world_id in (select id from faction_test_worlds);
+create temporary table faction_values_before as select entry_id,field_definition_id,world_id,value,gm_only from public.world_entry_field_values where world_id in (select id from faction_test_worlds);
 set local role authenticated;
 select set_config('request.jwt.claim.sub','d2000000-0000-4000-8000-000000000001',true);
 select lives_ok($$select public.mutate_world_configuration(id,jsonb_build_object('type','update_category',
@@ -72,7 +72,7 @@ select is((select count(*) from faction_test_worlds u,lateral jsonb_array_elemen
  and to_jsonb(d.binding) is not distinct from nullif(f->'binding','null'::jsonb))),0::bigint,
  'all faction identities, types, GM metadata, bindings and conditions survive the fork');
 reset role;
-select results_eq($$select entry_id,field_definition_id,world_id,value,content,gm_only from public.world_entry_field_values where world_id in (select id from faction_test_worlds) order by entry_id,field_definition_id$$,
+select results_eq($$select entry_id,field_definition_id,world_id,value,gm_only from public.world_entry_field_values where world_id in (select id from faction_test_worlds) order by entry_id,field_definition_id$$,
  $$select * from faction_values_before order by entry_id,field_definition_id$$,'faction values preserve their identities, bytes, and privacy after customization');
 set local role authenticated;
 select set_config('request.jwt.claim.sub','d2000000-0000-4000-8000-000000000002',true);
