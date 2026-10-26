@@ -247,6 +247,56 @@ describe("SecretsController", () => {
     expect(readingOrder(shared)).toEqual(["Zero", "One", "Two", `[${id}]`]);
   });
 
+  it("adds a paragraph to leave a block at either end of the note", async () => {
+    const { controller, shared, companion, guideDoc } = await setup();
+    const fragment = guideDoc.getXmlFragment("default");
+    addSecretBlock(companion, {
+      id: "first",
+      shared: fragment,
+      index: 0,
+      createdBy: "guide",
+    });
+    addSecretBlock(companion, {
+      id: "last",
+      shared: fragment,
+      index: 3,
+      createdBy: "guide",
+    });
+    await flush();
+    expect(readingOrder(shared)).toEqual([
+      "[first]",
+      "One",
+      "Two",
+      "Three",
+      "[last]",
+    ]);
+
+    const press = (id: string, key: string) =>
+      controller
+        .getBlock(id)!
+        .editor.view.someProp("handleKeyDown", (f) =>
+          f(
+            controller.getBlock(id)!.editor.view,
+            new KeyboardEvent("keydown", { key }),
+          ),
+        );
+    expect(press("first", "ArrowLeft")).toBe(true);
+    shared.commands.insertContent("Before");
+    expect(press("last", "ArrowRight")).toBe(true);
+    shared.commands.insertContent("After");
+    await flush();
+    await flush();
+    expect(readingOrder(shared)).toEqual([
+      "Before",
+      "[first]",
+      "One",
+      "Two",
+      "Three",
+      "[last]",
+      "After",
+    ]);
+  });
+
   it("lists what the blocks mention", async () => {
     const { companion } = await setup();
     companion.transact(() => {
