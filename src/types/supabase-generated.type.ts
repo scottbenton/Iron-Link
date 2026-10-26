@@ -468,6 +468,45 @@ export type Database = {
           },
         ]
       }
+      guide_room_keys: {
+        Row: {
+          game_id: string | null
+          id: string
+          key: string
+          rotated_at: string
+          world_id: string | null
+        }
+        Insert: {
+          game_id?: string | null
+          id?: string
+          key?: string
+          rotated_at?: string
+          world_id?: string | null
+        }
+        Update: {
+          game_id?: string | null
+          id?: string
+          key?: string
+          rotated_at?: string
+          world_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guide_room_keys_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: true
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guide_room_keys_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: true
+            referencedRelation: "worlds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       note_folders: {
         Row: {
           author_id: string
@@ -542,6 +581,7 @@ export type Database = {
           parent_folder_id: string
           read_permissions: Database["public"]["Enums"]["note_read_permissions"]
           title: string | null
+          updated_at: string
         }
         Insert: {
           author_id: string
@@ -555,6 +595,7 @@ export type Database = {
           parent_folder_id: string
           read_permissions: Database["public"]["Enums"]["note_read_permissions"]
           title?: string | null
+          updated_at?: string
         }
         Update: {
           author_id?: string
@@ -568,6 +609,7 @@ export type Database = {
           parent_folder_id?: string
           read_permissions?: Database["public"]["Enums"]["note_read_permissions"]
           title?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -589,6 +631,55 @@ export type Database = {
             columns: ["parent_folder_id"]
             isOneToOne: false
             referencedRelation: "note_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_keys: {
+        Row: {
+          id: string
+          key: string
+          note_id: string | null
+          rotated_at: string
+          world_entry_id: string | null
+          world_id: string | null
+        }
+        Insert: {
+          id?: string
+          key?: string
+          note_id?: string | null
+          rotated_at?: string
+          world_entry_id?: string | null
+          world_id?: string | null
+        }
+        Update: {
+          id?: string
+          key?: string
+          note_id?: string | null
+          rotated_at?: string
+          world_entry_id?: string | null
+          world_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_keys_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: true
+            referencedRelation: "notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_keys_world_entry_id_fkey"
+            columns: ["world_entry_id"]
+            isOneToOne: true
+            referencedRelation: "world_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_keys_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: true
+            referencedRelation: "worlds"
             referencedColumns: ["id"]
           },
         ]
@@ -970,6 +1061,7 @@ export type Database = {
           id: string
           name: string
           notes_content: string | null
+          notes_updated_at: string
           setting_key: string | null
           updated_at: string
         }
@@ -980,6 +1072,7 @@ export type Database = {
           id?: string
           name: string
           notes_content?: string | null
+          notes_updated_at?: string
           setting_key?: string | null
           updated_at?: string
         }
@@ -990,6 +1083,7 @@ export type Database = {
           id?: string
           name?: string
           notes_content?: string | null
+          notes_updated_at?: string
           setting_key?: string | null
           updated_at?: string
         }
@@ -1052,6 +1146,14 @@ export type Database = {
         Args: { p_world_id: string; p_notes_content: string }
         Returns: undefined
       }
+      update_world_notes_if_unchanged: {
+        Args: {
+          p_world_id: string
+          p_notes_content: string
+          p_expected_updated_at: string
+        }
+        Returns: string | null
+      }
       unlink_game_from_world: {
         Args: { p_game_id: string }
         Returns: undefined
@@ -1075,6 +1177,18 @@ export type Database = {
       world_configuration_validate_field: {
         Args: { p_configuration: Json; p_type: string }
         Returns: undefined
+      }
+      is_game_guide: {
+        Args: { p_game_id: string; p_uid: string }
+        Returns: boolean
+      }
+      note_readable: {
+        Args: { p_note_id: string; p_uid: string }
+        Returns: boolean
+      }
+      world_entry_readable: {
+        Args: { p_entry_id: string; p_uid: string }
+        Returns: boolean
       }
       world_is_guided: {
         Args: { p_world_id: string }

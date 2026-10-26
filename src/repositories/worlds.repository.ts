@@ -13,12 +13,15 @@ import {
 } from "./errors/RepositoryErrors";
 import { WorldPermission } from "./shared.types";
 
-// Everything except notes_content, a large Yjs byte column fetched on demand
-// (as entries leave out theirs).
+// Everything except the Notes: notes_content is a large Yjs byte column
+// fetched on demand (as entries leave out theirs), with its own version.
 const WORLD_COLUMNS =
   "id, name, setting_key, configuration_customized, created_by, created_at, updated_at";
 
-export type WorldDTO = Omit<Tables<"worlds">, "notes_content">;
+export type WorldDTO = Omit<
+  Tables<"worlds">,
+  "notes_content" | "notes_updated_at"
+>;
 export type WorldUpdateDTO = TablesUpdate<"worlds">;
 
 // The roles an explicit world_players row can hold. Deliberately narrower
