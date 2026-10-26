@@ -28,16 +28,18 @@ import { i18n } from "i18n/config";
 import { INoteFolder } from "services/noteFolders.service";
 import { INote } from "services/notes.service";
 
-import { useShowWorldItem } from "../hooks/useGameWorld";
+import { useGameWorldId, useShowWorldItem } from "../hooks/useGameWorld";
 import { FolderItem } from "./FolderItem";
+import { GameWorldSection } from "./GameWorldSection";
 import { NoteItem } from "./NoteItem";
 import { SortableNoteItem } from "./SortableNoteItem";
 import { WorldItem } from "./WorldItem";
 import { getItemName } from "./getFolderName";
 import { useFolderPermission } from "./useFolderPermissions";
 
-// The folder grid holds folder cards plus, in the viewer's own root folder,
-// the game's world as the leading tile.
+// The folder grid holds folder cards plus, in a Guide's own root folder of a
+// game without a world, a leading tile to link one. A linked world gets its
+// own section above the grid instead.
 type FolderGridItem =
   | { kind: "world" }
   | { kind: "folder"; folderId: string; folder: INoteFolder };
@@ -58,10 +60,12 @@ export function FolderView(props: FolderViewProps) {
   const rootPlayerFolderId = useNotesStore((state) =>
     uid ? getPlayerNotesFolder(uid, state.folderState.folders)?.id : undefined,
   );
-  const showWorldItem =
-    useShowWorldItem() &&
-    folderId !== undefined &&
-    folderId === rootPlayerFolderId;
+  const isRootPlayerFolder =
+    folderId !== undefined && folderId === rootPlayerFolderId;
+  const showWorldItem = useShowWorldItem() && isRootPlayerFolder;
+  const worldId = useGameWorldId();
+  const showWorldSection = showWorldItem && !!worldId;
+  const showLinkWorldItem = showWorldItem && !worldId;
 
   const subFolders = useNotesStore((state) => {
     if (!folderId) {
@@ -178,7 +182,7 @@ export function FolderView(props: FolderViewProps) {
   );
 
   const gridItems: FolderGridItem[] = [
-    ...(showWorldItem ? [{ kind: "world" as const }] : []),
+    ...(showLinkWorldItem ? [{ kind: "world" as const }] : []),
     ...subFolders.map(([subFolderId, subFolder]) => ({
       kind: "folder" as const,
       folderId: subFolderId,
@@ -188,6 +192,15 @@ export function FolderView(props: FolderViewProps) {
 
   return (
     <>
+      {showWorldSection && (
+        <>
+          <GameWorldSection />
+          <Divider sx={{ mb: 1 }} />
+          <Typography variant="overline" px={1} component="h2">
+            {t("notes.your-notes", "Your notes")}
+          </Typography>
+        </>
+      )}
       {folderId === undefined &&
         (subFolders.length > 0 || sortedNoteIds.length > 0) && (
           <>
@@ -219,7 +232,7 @@ export function FolderView(props: FolderViewProps) {
       {subFolders.length === 0 &&
         sortedNoteIds.length === 0 &&
         folderId &&
-        !showWorldItem && (
+        !showLinkWorldItem && (
           <EmptyState
             title={t("notes.empty-folder", "Empty Folder")}
             message={t(

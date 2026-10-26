@@ -54,20 +54,32 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
         {/* One full width scroller, so the scrollbar sits at the column's
             edge. The breadcrumbs stay put; the actions scroll away with the
             page, and an entry's Notes bar pins on its own. */}
-        <Box sx={{ flexGrow: 1, minHeight: 0, overflow: "auto" }}>
+        <Box
+          sx={{
+            flexGrow: 1,
+            minHeight: 0,
+            overflow: "auto",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           {hasActions && (
             <Box
               mx={NOTES_PANE_GUTTER}
               pb={1}
+              flexShrink={0}
               borderBottom={(theme) => `1px solid ${theme.palette.divider}`}
             >
               <ActionToolbarStrip>
                 {actions?.start}
                 {actions?.end && (
+                  // Pushed right with a margin rather than grown, so when
+                  // the start actions already end in a spacer (an entry's
+                  // More menu) the two sit together with a normal gap.
                   <Box
-                    flexGrow={1}
+                    ml="auto"
+                    pl={0.5}
                     display="flex"
-                    justifyContent="flex-end"
                     alignItems="center"
                     gap={1}
                   >
@@ -77,14 +89,29 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
               </ActionToolbarStrip>
             </Box>
           )}
-          <Box sx={{ pt: 2, pb: 2, px: NOTES_PANE_GUTTER }}>{children}</Box>
+          {/* A flex column down to the content, so Notes can take the rest
+              of the page. */}
+          <Box
+            sx={{
+              pt: 2,
+              pb: 2,
+              px: NOTES_PANE_GUTTER,
+              flex: "1 0 auto",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {children}
+          </Box>
         </Box>
       </Box>
     );
   }
 
   return (
-    <Box>
+    // A flex column down to the content, so Notes can take the rest of the
+    // page.
+    <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
       {breadcrumbs}
       {(title || hasActions) && (
         <Box

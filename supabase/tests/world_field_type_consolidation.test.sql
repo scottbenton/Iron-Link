@@ -165,7 +165,7 @@ create function pg_temp.with_rule(p_condition jsonb) returns jsonb language sql 
 -- Owner f9..01, editor f9..02, guide f9..03, player f9..04, outsider f9..05.
 select set_config('request.jwt.claim.sub','f9000000-0000-4000-8000-000000000001',true);
 insert into consolidation_worlds values ('main',public.create_world('Consolidated fields')),
-  ('forge',public.create_world('Inherited options',null,'world:starforged/forge'));
+  ('forge',public.create_world('Inherited options','world:starforged/forge'));
 insert into public.world_players(world_id,user_id,role) values (pg_temp.w('main'),'f9000000-0000-4000-8000-000000000002','editor');
 insert into public.games(id,name,game_type,world_id,rulesets,expansions,playset) values
   ('f9500000-0000-4000-8000-000000000001','Options game','guided',pg_temp.w('main'),'["classic"]','[]','{}'),
@@ -513,7 +513,7 @@ select is(public.get_world_field_options(pg_temp.w('main'),pg_temp.f('main','loc
 select is(public.get_world_field_options(pg_temp.w('main'),'f9100000-0000-4000-8000-000000000007'),
   '{}'::text[],'players receive no options for Guide-only fields');
 select is(public.get_world_field_options(pg_temp.w('forge'),pg_temp.f('forge','locations','locationType')),
-  array['Sector','Planet','Planetside Settlement','Non-Planetary Settlement','Star','Derelict','Vault'],
+  array['Sector','Planet','Settlement','Star','Derelict','Vault'],
   'inherited defaults offer their suggestions without customization');
 select is((select configuration_customized from public.worlds where id=pg_temp.w('forge')),false,
   'reading options never forks inherited defaults');

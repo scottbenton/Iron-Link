@@ -5,6 +5,7 @@ import { createWithEqualityFn } from "zustand/traditional";
 
 import { WorldPermission } from "repositories/shared.types";
 
+import type { RichTextContentStore } from "services/richTextContent.service";
 import {
   IWorldPlayer,
   WorldPlayerRole,
@@ -12,7 +13,7 @@ import {
 } from "services/worldPlayers.service";
 import { IWorld, WorldsService } from "services/worlds.service";
 
-import { useUID } from "./auth.store";
+import { useAuthStore, useUID } from "./auth.store";
 
 interface WorldStoreState {
   worldId: string;
@@ -38,16 +39,11 @@ interface WorldStoreActions {
   loadWorldPermission: (worldId: string, uid: string | undefined) => void;
   loadIsGuided: (worldId: string) => void;
 
-  createWorld: (
-    name: string,
-    description?: string,
-    settingKey?: string,
-  ) => Promise<string>;
+  createWorld: (name: string, settingKey?: string) => Promise<string>;
   updateWorldName: (worldId: string, name: string) => Promise<void>;
-  updateWorldDescription: (
-    worldId: string,
-    description: string | null,
-  ) => Promise<void>;
+  getWorldNotesContent: (worldId: string) => Promise<Uint8Array>;
+  getWorldNotesContentStore: (worldId: string) => RichTextContentStore;
+  uploadWorldNotesImage: (worldId: string, image: File) => Promise<string>;
   deleteWorld: (worldId: string) => Promise<void>;
 
   addWorldPlayer: (
@@ -189,14 +185,23 @@ export const useWorldStore = createWithEqualityFn<
         });
     },
 
-    createWorld: (name, description, settingKey) => {
-      return WorldsService.createWorld(name, description, settingKey);
+    createWorld: (name, settingKey) => {
+      return WorldsService.createWorld(name, settingKey);
     },
     updateWorldName: (worldId, name) => {
       return WorldsService.updateWorldName(worldId, name);
     },
-    updateWorldDescription: (worldId, description) => {
-      return WorldsService.updateWorldDescription(worldId, description);
+    getWorldNotesContent: (worldId) => {
+      return WorldsService.getWorldNotesContent(worldId);
+    },
+    getWorldNotesContentStore: (worldId) => {
+      return WorldsService.getWorldNotesContentStore(
+        worldId,
+        () => useAuthStore.getState().token,
+      );
+    },
+    uploadWorldNotesImage: (worldId, image) => {
+      return WorldsService.uploadWorldNotesImage(worldId, image);
     },
     deleteWorld: (worldId) => {
       return WorldsService.deleteWorld(worldId);

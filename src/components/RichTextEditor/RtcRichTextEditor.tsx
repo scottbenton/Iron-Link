@@ -23,6 +23,7 @@ export interface RtcRichTextEditorProps {
   minHeight?: number;
   // Side padding for the text, so the editor can scroll at its column's edge.
   contentPx?: EditorProps["contentPx"];
+  fill?: EditorProps["fill"];
 }
 
 export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
@@ -37,6 +38,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
     outlined,
     minHeight,
     contentPx,
+    fill,
   } = props;
 
   const readOnly = !contentStore;
@@ -59,6 +61,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
       outlined={outlined}
       minHeight={minHeight}
       contentPx={contentPx}
+      fill={fill}
     />
   );
 }

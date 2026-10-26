@@ -12,11 +12,12 @@ import {
   getRepositoryError,
 } from "./errors/RepositoryErrors";
 
-// The live room a key unlocks: one note or entry, or the Guide-only rooms of a
-// game or world.
+// The live room a key unlocks: one note or entry, a world's Notes, or the
+// Guide-only rooms of a game or world.
 export type RoomKeySource =
   | { noteId: string }
   | { worldEntryId: string }
+  | { worldId: string }
   | { guideGameId: string }
   | { guideWorldId: string };
 
@@ -31,6 +32,8 @@ function getTarget(source: RoomKeySource) {
       column: "world_entry_id",
       id: source.worldEntryId,
     };
+  } else if ("worldId" in source) {
+    return { table: "room_keys", column: "world_id", id: source.worldId };
   } else if ("guideGameId" in source) {
     return {
       table: "guide_room_keys",

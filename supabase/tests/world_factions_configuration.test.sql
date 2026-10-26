@@ -10,10 +10,10 @@ select set_config('request.jwt.claim.sub','d2000000-0000-4000-8000-000000000001'
 create temporary table faction_test_worlds(key text primary key,id uuid,category jsonb);
 grant select on faction_test_worlds to authenticated;
 insert into faction_test_worlds(key,id) values
- ('forge',public.create_world('Faction Forge',null,'world:starforged/forge')),
- ('isles',public.create_world('Faction Isles',null,'world:sundered_isles/sundered_isles')),
- ('classic',public.create_world('No classic factions',null,'world:classic/ironlands')),
- ('elegy',public.create_world('No Elegy factions',null,'world:elegy/santa_maria')),
+ ('forge',public.create_world('Faction Forge','world:starforged/forge')),
+ ('isles',public.create_world('Faction Isles','world:sundered_isles/sundered_isles')),
+ ('classic',public.create_world('No classic factions','world:classic/ironlands')),
+ ('elegy',public.create_world('No Elegy factions','world:elegy/santa_maria')),
  ('blank',public.create_world('Blank factions'));
 update faction_test_worlds u set category=c
  from public.worlds w,lateral jsonb_array_elements(public.get_world_template(w.id,w.setting_key)->'categories') c
@@ -41,7 +41,7 @@ select lives_ok($$insert into public.world_entry_field_values(entry_id,field_def
  'public Type values are valid before customization');
 select lives_ok($$insert into public.world_entry_field_values(entry_id,field_definition_id,world_id,value,gm_only) values
  (pg_temp.faction_entry('forge'),pg_temp.faction_field('forge','rumors'),pg_temp.faction_world('forge'),'"A rumor"',false),
- (pg_temp.faction_entry('isles'),pg_temp.faction_field('isles','cursedAspects'),pg_temp.faction_world('isles'),'"An aspect"',false)$$,
+ (pg_temp.faction_entry('isles'),pg_temp.faction_field('isles','chronicles'),pg_temp.faction_world('isles'),'"A chronicle"',false)$$,
  'GM faction details are valid before customization');
 select is((select count(*) from public.world_entry_field_values where world_id in (select id from faction_test_worlds) and gm_only),2::bigint,
  'GM faction value privacy is derived from trusted defaults despite client flags');

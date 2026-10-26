@@ -1,5 +1,8 @@
+import { byteaToUint8Array } from "lib/bytea.lib";
+
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import { WorldPermission } from "repositories/shared.types";
+import { StorageRepository } from "repositories/storage.repository";
 import {
   WorldDTO,
   WorldLinkResult,
@@ -7,10 +10,16 @@ import {
   WorldsRepository,
 } from "repositories/worlds.repository";
 
+import {
+  RichTextContentService,
+  RichTextContentStore,
+} from "./richTextContent.service";
+
+const WORLD_NOTES_IMAGE_FOLDER = "world-notes";
+
 export interface IWorld {
   id: string;
   name: string;
-  description: string | null;
   // The setting chosen at creation; drives truths seeding and the binding
   // picker's default scope. Either a datasworn world id
   // ("world:starforged/forge"), or a bare package id when the package ships
@@ -62,25 +71,46 @@ export class WorldsService {
 
   public static createWorld(
     name: string,
-    description?: string,
     settingKey?: string,
   ): Promise<string> {
-    return WorldsRepository.createWorld(
-      name,
-      description ?? null,
-      settingKey ?? null,
-    );
+    return WorldsRepository.createWorld(name, settingKey ?? null);
   }
 
   public static updateWorldName(worldId: string, name: string): Promise<void> {
     return WorldsRepository.updateWorld(worldId, { name });
   }
 
-  public static updateWorldDescription(
+  // A world's Notes as Yjs bytes, empty while nobody has written any.
+  public static async getWorldNotesContent(
     worldId: string,
-    description: string | null,
-  ): Promise<void> {
-    return WorldsRepository.updateWorld(worldId, { description });
+  ): Promise<Uint8Array> {
+    const content = await WorldsRepository.getWorldNotesContent(worldId);
+    return content ? byteaToUint8Array(content) : new Uint8Array();
+  }
+
+  public static getWorldNotesContentStore(
+    worldId: string,
+    getToken: () => string | undefined,
+  ): RichTextContentStore {
+    return RichTextContentService.createStore(
+      { table: "worlds", column: "notes_content" },
+      worldId,
+      getToken,
+    );
+  }
+
+  // World Notes images share the entry images bucket, whose policies check
+  // the world in the path's first segment, under a folder of their own.
+  public static uploadWorldNotesImage(
+    worldId: string,
+    image: File,
+  ): Promise<string> {
+    const filename = `${new Date().getTime()}_${image.name}`;
+    return StorageRepository.storeImage(
+      "world_entry_images",
+      `${worldId}/${WORLD_NOTES_IMAGE_FOLDER}`,
+      StorageRepository.renameFile(image, filename),
+    );
   }
 
   // Both sides of the game<->world link. The game store already listens to
@@ -120,7 +150,6 @@ export class WorldsService {
     return {
       id: world.id,
       name: world.name,
-      description: world.description,
       settingKey: world.setting_key,
       createdBy: world.created_by,
       createdAt: new Date(world.created_at),

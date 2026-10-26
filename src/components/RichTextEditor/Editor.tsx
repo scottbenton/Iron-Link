@@ -14,6 +14,9 @@ export interface EditorProps {
   // Side padding for the text. Without it the text only keeps room on the
   // right.
   contentPx?: ResponsiveStyleValue<number>;
+  // Grow the text to fill the rest of a flex column, so the whole space below
+  // the toolbar takes a click. minHeight is then the text's smallest height.
+  fill?: boolean;
 }
 
 export function Editor(props: EditorProps) {
@@ -25,6 +28,7 @@ export function Editor(props: EditorProps) {
     saving,
     minHeight = 300,
     contentPx,
+    fill,
   } = props;
 
   const isMobile = useIsMobile();
@@ -73,9 +77,13 @@ export function Editor(props: EditorProps) {
           flexGrow={1}
           sx={(theme) => ({
             overflowY: "auto",
+            ...(fill ? { display: "flex", flexDirection: "column" } : {}),
             ">div": {
               height: "100%",
               overflowX: "hidden",
+              ...(fill
+                ? { flexGrow: 1, display: "flex", flexDirection: "column" }
+                : {}),
               ...(outlined
                 ? {
                     minHeight: editable ? `${minHeight}px` : 0,
@@ -100,6 +108,10 @@ export function Editor(props: EditorProps) {
               pb: isMobile ? 6 : undefined,
 
               mx: !outlined ? "auto" : undefined,
+              // Flex items shrink to their content around auto margins.
+              ...(fill
+                ? { width: "100%", minHeight: editable ? minHeight : 0 }
+                : {}),
 
               "&:focus": {
                 outline: "none",

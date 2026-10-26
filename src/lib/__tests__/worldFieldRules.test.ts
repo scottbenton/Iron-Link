@@ -20,6 +20,7 @@ import {
   getWorldFieldConditionOperators,
   getWorldFieldConditionReferences,
   getWorldFieldKind,
+  getWorldFieldParentRequirements,
   isWorldFieldConditionCompatible,
   isWorldFieldConditionValueValid,
   normalizeWorldFieldConfiguration,
@@ -608,5 +609,113 @@ describe("field changes with stored values", () => {
         }),
       ),
     ).toEqual(["source", "type"]);
+  });
+});
+
+describe("field parent requirements", () => {
+  const regional = (region: string) => ({
+    conditions: [
+      {
+        source: "entry" as const,
+        fieldId: "type",
+        operator: "equals" as const,
+        value: "Settlement",
+      },
+      {
+        source: "ancestor" as const,
+        fieldId: "region",
+        operator: "equals" as const,
+        value: region,
+        ancestor: { fieldId: "type", value: "Sector" },
+      },
+    ],
+    visible: true,
+    binding: {
+      packageId: "test",
+      oracleId: `oracle_rollable:test/${region}`,
+      resolvedOracleId: `oracle_rollable:test/${region}`,
+    },
+  });
+  const population = {
+    ...definition,
+    configuration: createWorldFieldConfiguration({
+      visible: false,
+      rules: [
+        regional("Terminus"),
+        regional("Expanse"),
+        {
+          conditions: [
+            {
+              source: "entry",
+              fieldId: "type",
+              operator: "equals",
+              value: "Settlement",
+            },
+          ],
+          visible: true,
+        },
+      ],
+    }),
+  };
+  const requirement = {
+    selectorFieldId: "type",
+    selectorValue: "Sector",
+    fieldId: "region",
+    values: ["Terminus", "Expanse"],
+  };
+  const settlementUnder = (
+    parent?: Record<string, string>,
+  ): WorldFieldSnapshot => ({
+    entry: {
+      id: "child",
+      parentId: parent ? "parent" : null,
+      values: { type: "Settlement" },
+    },
+    entries: parent ? { parent: { id: "parent", values: parent } } : {},
+  });
+
+  it.each([
+    ["no parent", undefined],
+    ["a parent that is not a Sector", { type: "Planet" }],
+    ["a Sector with no Region", { type: "Sector" }],
+    [
+      "a Sector with a Region no oracle rolls",
+      { type: "Sector", region: "Void" },
+    ],
+  ])("names the parent a field needs with %s", (_, parent) => {
+    expect(
+      getWorldFieldParentRequirements(population, settlementUnder(parent)),
+    ).toEqual([requirement]);
+  });
+
+  it("is empty once the field can roll, or when its entry conditions do not apply", () => {
+    expect(
+      getWorldFieldParentRequirements(
+        population,
+        settlementUnder({ type: "Sector", region: "Expanse" }),
+      ),
+    ).toEqual([]);
+    expect(
+      getWorldFieldParentRequirements(population, {
+        entry: { id: "child", values: { type: "Planet" } },
+        entries: {},
+      }),
+    ).toEqual([]);
+  });
+
+  it("is empty when the field rolls its base oracle anyway", () => {
+    expect(
+      getWorldFieldParentRequirements(
+        {
+          ...population,
+          binding: {
+            packageId: "test",
+            oracleId: "oracle_rollable:test/base",
+            resolvedOracleId: "oracle_rollable:test/base",
+          },
+        },
+        settlementUnder(),
+      ),
+    ).toEqual([]);
   });
 });

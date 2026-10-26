@@ -12,9 +12,11 @@ import { WorldCategoryIcon } from "./WorldCategoryIcon";
 export function WorldCategoryFolder({
   category,
   linkProps,
+  subtitle,
 }: {
   category: IWorldCategory;
   linkProps: WorldLinkProps;
+  subtitle?: string;
 }) {
   return (
     <Card
@@ -41,6 +43,16 @@ export function WorldCategoryFolder({
         )}
         <Typography sx={{ flexGrow: 1, minWidth: 0, overflowWrap: "anywhere" }}>
           {category.name}
+          {subtitle && (
+            <Typography
+              component="span"
+              variant="caption"
+              color="text.secondary"
+              display="block"
+            >
+              {subtitle}
+            </Typography>
+          )}
         </Typography>
       </CardActionArea>
     </Card>
