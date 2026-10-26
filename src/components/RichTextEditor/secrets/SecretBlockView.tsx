@@ -7,18 +7,23 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import { SecretBlockView as SecretBlock } from "./secretsController";
+import type { SecretsAudience } from "./useSecretsCompanion";
 
 export interface SecretBlockViewProps {
   block: SecretBlock;
+  // Who can read the surface while players can't; null once they can.
+  sharedOnlyWith: SecretsAudience | null;
   onMounted: (id: string) => void;
   // Left out where the Guide may not edit the surface.
   onDelete?: (id: string) => void;
 }
 
 // One secret block, drawn into its widget in the Guide's shared editor: a
-// dashed inset labelled Secret, holding the block's own editor.
+// dashed inset labelled Secret, holding the block's own editor. While the
+// note isn't shared with players yet, it says so, since the secret then
+// looks no different from the rest of the note.
 export function SecretBlockView(props: SecretBlockViewProps) {
-  const { block, onMounted, onDelete } = props;
+  const { block, sharedOnlyWith, onMounted, onDelete } = props;
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -56,13 +61,21 @@ export function SecretBlockView(props: SecretBlockViewProps) {
         color="text.secondary"
       >
         <LockIcon fontSize="inherit" />
-        <Typography
-          variant="overline"
-          component="span"
-          lineHeight={1.5}
-          flexGrow={1}
-        >
+        <Typography variant="overline" component="span" lineHeight={1.5}>
           {label}
+        </Typography>
+        <Typography variant="caption" component="span" flexGrow={1} ml={0.5}>
+          {sharedOnlyWith === "you"
+            ? t(
+                "notes.secrets.shared-only-with-you",
+                "Shared only with you so far. Players won't see this secret once it's shared.",
+              )
+            : sharedOnlyWith === "guides"
+              ? t(
+                  "notes.secrets.shared-only-with-guides",
+                  "Shared only with Guides so far. Players won't see this secret once it's shared.",
+                )
+              : null}
         </Typography>
         {onDelete && (
           <Tooltip title={t("notes.secrets.delete", "Delete secret")}>

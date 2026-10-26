@@ -10,7 +10,9 @@ import type { SecretSurface } from "services/richTextSecrets.service";
 
 // The secrets of a world's Notes or an entry's Notes, for whoever is reading
 // them. Only world Guides (owner, editor or guide) get them. New secrets are
-// offered only in a guided world, and not in an entry only Guides can read.
+// offered in a guided world, including entries only Guides read so far, so a
+// Guide can prepare them before sharing. A world that isn't guided still shows
+// the secrets it has.
 export function getWorldSecretsConfig(params: {
   worldId: string;
   surface: SecretSurface;
@@ -24,6 +26,8 @@ export function getWorldSecretsConfig(params: {
   return {
     surface,
     roomKeySource: { guideWorldId: worldId },
-    canInsert: isGuided && readPermissions !== ReadPermissions.OnlyGuides,
+    sharedOnlyWith:
+      readPermissions === ReadPermissions.OnlyGuides ? "guides" : null,
+    canInsert: isGuided,
   };
 }

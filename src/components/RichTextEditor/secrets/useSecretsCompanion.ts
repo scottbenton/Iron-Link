@@ -15,10 +15,17 @@ import { useRoomKey } from "../useRoomKey";
 import { useRtcDocument } from "../useRtcDocument";
 import { getSecretsMentions, getSecretsText } from "./secretsDocument";
 
+// Who can read the surface while it isn't shared with players yet.
+export type SecretsAudience = "you" | "guides";
+
 export interface SecretsConfig {
   surface: SecretSurface;
   // The Guide-only room the companion is shared live in.
   roomKeySource: RoomKeySource;
+  // Set while no player can read the surface, for a note on each block that
+  // it isn't shared yet: only this Guide (a note only its author reads), or
+  // the Guides.
+  sharedOnlyWith: SecretsAudience | null;
   // Whether this Guide may add new secrets here. Existing ones always show.
   canInsert: boolean;
 }
@@ -82,8 +89,7 @@ export function useSecretsCompanion(
 
   const initialValue =
     loaded && loaded.key === surfaceKey ? loaded.content : null;
-  // Join the Guide room only where secrets can be added or already exist, so
-  // opening a note in a solo game joins nothing.
+  // Join the Guide room only where secrets can be added or already exist.
   const live =
     !!config &&
     !!initialValue &&

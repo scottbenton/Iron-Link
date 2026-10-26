@@ -22,6 +22,7 @@ describe("getWorldSecretsConfig", () => {
     expect(getWorldSecretsConfig({ ...base, permission })).toEqual({
       surface: { worldEntryId: "entry" },
       roomKeySource: { guideWorldId: "world" },
+      sharedOnlyWith: null,
       canInsert: true,
     });
   });
@@ -41,22 +42,12 @@ describe("getWorldSecretsConfig", () => {
     );
   });
 
-  it("offers none in an entry only Guides can read", () => {
+  it("offers them in an entry only Guides read so far, and says so", () => {
     expect(
       getWorldSecretsConfig({
         ...base,
         readPermissions: ReadPermissions.OnlyGuides,
-      })?.canInsert,
-    ).toBe(false);
-  });
-
-  it("offers them in world Notes, which everyone in the world reads", () => {
-    expect(
-      getWorldSecretsConfig({
-        ...base,
-        surface: { worldId: "world" },
-        readPermissions: undefined,
-      })?.canInsert,
-    ).toBe(true);
+      }),
+    ).toMatchObject({ canInsert: true, sharedOnlyWith: "guides" });
   });
 });
