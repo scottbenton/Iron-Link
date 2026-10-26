@@ -65,22 +65,28 @@ function getColorLabel(t: TFunction, color: IconColors): string {
 
 // Follows Crew Link's image editor: color swatches, a filterable scrolling
 // icon grid, and a live preview. Nothing is saved until Save.
-// Chooses an icon and its color for a world category or entry.
+// Chooses an icon and its color for a world category or entry. It opens on
+// the icon shown today (an entry's own, else the one it inherits) so either
+// the icon or the color can be changed alone.
 export function WorldIconPickerDialog({
   value,
+  inherited = null,
   title,
   onSave,
   onClose,
 }: {
   value: IconDefinition | null;
+  // Shown when value has no icon. Saving it unchanged keeps inheriting.
+  inherited?: IconDefinition | null;
   title: string;
   onSave: (value: IconDefinition | null) => void;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const initial = value?.key ? value : inherited?.key ? inherited : null;
   const [draft, setDraft] = useState<IconDefinition>({
-    key: value?.key ?? null,
-    color: value?.color ?? IconColors.Grey,
+    key: initial?.key ?? null,
+    color: initial?.color ?? IconColors.Grey,
   });
   const [search, setSearch] = useState("");
   const query = useDeferredValue(search.trim().toLowerCase());
@@ -104,9 +110,17 @@ export function WorldIconPickerDialog({
       active = false;
     };
   }, [icons]);
+  // The icon it opened on leads the grid, so it is in view and selected.
+  const initialKey =
+    initial?.key &&
+    (initial.key === GROUPS_CATEGORY_ICON_KEY || icons?.[initial.key])
+      ? initial.key
+      : null;
   const matches = [
-    GROUPS_CATEGORY_ICON_KEY,
-    ...Object.keys(icons ?? {}),
+    ...(initialKey ? [initialKey] : []),
+    ...[GROUPS_CATEGORY_ICON_KEY, ...Object.keys(icons ?? {})].filter(
+      (key) => key !== initialKey,
+    ),
   ].filter((key) => categoryIconName(key).toLowerCase().includes(query));
   const color = draft.color ?? IconColors.Grey;
   return (
@@ -310,7 +324,11 @@ export function WorldIconPickerDialog({
         <Button
           variant="contained"
           onClick={() => {
-            onSave(draft.key ? draft : null);
+            const keepsInherited =
+              !value?.key &&
+              draft.key === inherited?.key &&
+              draft.color === (inherited?.color ?? IconColors.Grey);
+            onSave(draft.key && !keepsInherited ? draft : null);
             onClose();
           }}
         >
