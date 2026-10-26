@@ -58,24 +58,18 @@ export function SecretBlockView(props: SecretBlockViewProps) {
         pl={1.5}
         pr={0.5}
         pt={0.5}
+        minHeight={34}
         color="text.secondary"
       >
         <LockIcon fontSize="inherit" />
-        <Typography variant="overline" component="span" lineHeight={1.5}>
+        <Typography
+          variant="overline"
+          component="span"
+          lineHeight={1.5}
+          whiteSpace="nowrap"
+          flexGrow={1}
+        >
           {label}
-        </Typography>
-        <Typography variant="caption" component="span" flexGrow={1} ml={0.5}>
-          {sharedOnlyWith === "you"
-            ? t(
-                "notes.secrets.shared-only-with-you",
-                "Shared only with you so far. Players won't see this secret once it's shared.",
-              )
-            : sharedOnlyWith === "guides"
-              ? t(
-                  "notes.secrets.shared-only-with-guides",
-                  "Shared only with Guides so far. Players won't see this secret once it's shared.",
-                )
-              : null}
         </Typography>
         {onDelete && (
           <Tooltip title={t("notes.secrets.delete", "Delete secret")}>
@@ -89,6 +83,24 @@ export function SecretBlockView(props: SecretBlockViewProps) {
           </Tooltip>
         )}
       </Box>
+      {sharedOnlyWith && (
+        <Typography
+          variant="caption"
+          component="p"
+          color="text.secondary"
+          px={1.5}
+        >
+          {sharedOnlyWith === "you"
+            ? t(
+                "notes.secrets.shared-only-with-you",
+                "Shared only with you so far. Players won't see this secret once it's shared.",
+              )
+            : t(
+                "notes.secrets.shared-only-with-guides",
+                "Shared only with Guides so far. Players won't see this secret once it's shared.",
+              )}
+        </Typography>
+      )}
       <EditorContent editor={block.editor} />
     </Box>,
     block.dom,
