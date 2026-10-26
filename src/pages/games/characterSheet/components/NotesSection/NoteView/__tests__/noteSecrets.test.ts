@@ -20,7 +20,7 @@ describe("getNoteSecretsConfig", () => {
     expect(getNoteSecretsConfig(base)).toEqual({
       surface: { noteId: "note" },
       roomKeySource: { guideGameId: "game" },
-      audience: "guides",
+      sharedOnlyWith: null,
       canInsert: true,
     });
   });
@@ -43,13 +43,16 @@ describe("getNoteSecretsConfig", () => {
   it.each([
     [ReadPermissions.OnlyAuthor, "you"],
     [ReadPermissions.OnlyGuides, "guides"],
-    [ReadPermissions.GuidesAndAuthor, "guides"],
-    [ReadPermissions.AllPlayers, "guides"],
-    [ReadPermissions.Public, "guides"],
-  ])("offers them in a %s note, seen by %s", (readPermissions, audience) => {
-    expect(getNoteSecretsConfig({ ...base, readPermissions })).toMatchObject({
-      audience,
-      canInsert: true,
-    });
-  });
+    [ReadPermissions.GuidesAndAuthor, null],
+    [ReadPermissions.AllPlayers, null],
+    [ReadPermissions.Public, null],
+  ])(
+    "offers them in a %s note, shared only with %s",
+    (readPermissions, sharedOnlyWith) => {
+      expect(getNoteSecretsConfig({ ...base, readPermissions })).toMatchObject({
+        sharedOnlyWith,
+        canInsert: true,
+      });
+    },
+  );
 });
