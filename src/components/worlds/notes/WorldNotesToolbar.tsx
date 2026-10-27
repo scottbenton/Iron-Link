@@ -1,8 +1,13 @@
-import { Box } from "@mui/material";
+import { Box, ToggleButtonGroup } from "@mui/material";
 import { Editor } from "@tiptap/react";
 import { useEffect, useRef, useState } from "react";
 
 import { ActionToolbarStrip } from "components/Layout/ActionToolbarStrip";
+import type { SecretsToolbarState } from "components/RichTextEditor";
+import {
+  InsertSecretButton,
+  MakeSecretButton,
+} from "components/RichTextEditor/secrets/SecretToolbarItems";
 
 import { FormattingToolbarItems } from "pages/games/characterSheet/components/NotesSection/NoteView/FormattingToolbarItems";
 import { MobileKeyboardToolbar } from "pages/games/characterSheet/components/NotesSection/NoteView/MobileKeyboardToolbar";
@@ -16,28 +21,38 @@ const NOTES_IMAGE_TYPES = "image/png,image/jpeg,image/gif,image/webp";
 
 // The Notes tab's toolbar for a world's or an entry's Notes, built from the
 // same pieces; `upload` stores an image where its owner keeps them and
-// resolves to its URL. Readers see no toolbar. On larger screens it pins to the top of the scroller while the
+// resolves to its URL. Readers see no toolbar, except a Guide's secret
+// controls. On larger screens it pins to the top of the scroller while the
 // Notes are on screen; on a phone it rides above the keyboard, as in Notes,
 // but only while the Notes are being edited, since the page has more on it.
 export function WorldNotesToolbar({
   editor,
   upload,
+  secrets,
 }: {
   editor: Editor;
   upload: (file: File) => Promise<string>;
+  secrets?: SecretsToolbarState;
 }) {
   const isMobile = useIsMobile();
-  if (!editor.isEditable) return null;
+  if (!editor.isEditable && !secrets) return null;
+  // Formatting acts on the editor with the caret; a reader's note has none.
+  const formatting = editor.isEditable;
 
   if (isMobile) {
     return (
       <MobileNotesToolbar editor={editor}>
-        <TextTypeMenu editor={editor} />
-        <FormattingToolbarItems editor={editor} hideBorders />
-        <UploadImageButton
+        {formatting && (
+          <>
+            <TextTypeMenu editor={editor} />
+            <FormattingToolbarItems editor={editor} hideBorders />
+          </>
+        )}
+        <InsertToolbarGroup
           editor={editor}
           upload={upload}
-          accept={NOTES_IMAGE_TYPES}
+          secrets={secrets}
+          sx={NO_BORDER}
         />
       </MobileNotesToolbar>
     );
@@ -56,15 +71,47 @@ export function WorldNotesToolbar({
       })}
     >
       <ActionToolbarStrip>
-        <TextTypeDropdown editor={editor} />
-        <FormattingToolbarItems editor={editor} />
+        {formatting && (
+          <>
+            <TextTypeDropdown editor={editor} />
+            <FormattingToolbarItems editor={editor} />
+          </>
+        )}
+        <InsertToolbarGroup editor={editor} upload={upload} secrets={secrets} />
+      </ActionToolbarStrip>
+    </Box>
+  );
+}
+
+const NO_BORDER = { border: "none" };
+
+// Upload image and the secret buttons, as one group like the formatting
+// ones. Upload needs the caret, so readers get only what secrets allow.
+function InsertToolbarGroup({
+  editor,
+  upload,
+  secrets,
+  sx,
+}: {
+  editor: Editor;
+  upload: (file: File) => Promise<string>;
+  secrets?: SecretsToolbarState;
+  sx?: typeof NO_BORDER;
+}) {
+  if (!editor.isEditable && !secrets?.canInsert) return null;
+  return (
+    <ToggleButtonGroup>
+      {editor.isEditable && (
         <UploadImageButton
           editor={editor}
           upload={upload}
           accept={NOTES_IMAGE_TYPES}
+          sx={sx}
         />
-      </ActionToolbarStrip>
-    </Box>
+      )}
+      {secrets?.canInsert && <InsertSecretButton secrets={secrets} sx={sx} />}
+      {secrets?.canMakeSecret && <MakeSecretButton secrets={secrets} sx={sx} />}
+    </ToggleButtonGroup>
   );
 }
 

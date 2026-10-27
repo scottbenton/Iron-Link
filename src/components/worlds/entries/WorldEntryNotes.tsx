@@ -1,11 +1,13 @@
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useWorldIsGuided, useWorldPermission } from "stores/world.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import type { IWorldEntry } from "services/worldEntries.service";
 
 import { WorldNotesEditor } from "../notes/WorldNotesEditor";
+import { getWorldSecretsConfig } from "../notes/worldNotesSecrets";
 
 // An entry's collaborative Notes, below its fields, with images stored with
 // the entry so they are removed with it.
@@ -28,7 +30,7 @@ export function WorldEntryNotes({
   const uploadEntryImage = useWorldEntriesStore(
     (store) => store.uploadEntryImage,
   );
-  const { id: entryId, worldId } = entry;
+  const { id: entryId, worldId, readPermissions } = entry;
 
   const load = useCallback(
     () => getEntryNotesContent(entryId).then(({ content }) => content),
@@ -42,6 +44,19 @@ export function WorldEntryNotes({
     (file: File) =>
       uploadEntryImage(worldId, entryId, file).then(({ url }) => url),
     [worldId, entryId, uploadEntryImage],
+  );
+  const permission = useWorldPermission();
+  const isGuided = useWorldIsGuided();
+  const secrets = useMemo(
+    () =>
+      getWorldSecretsConfig({
+        worldId,
+        surface: { worldEntryId: entryId },
+        permission,
+        isGuided,
+        readPermissions,
+      }),
+    [worldId, entryId, permission, isGuided, readPermissions],
   );
 
   return (
@@ -60,6 +75,7 @@ export function WorldEntryNotes({
         "Could not load these notes. Please reopen the entry to try again.",
       )}
       onError={onError}
+      secrets={secrets}
     />
   );
 }
