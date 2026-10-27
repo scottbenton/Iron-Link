@@ -86,8 +86,9 @@ that are easy to miss. When you learn a new one, add a line here.
   block editor's own, and a block node's image `src` is `guide-image:<path>`,
   never a URL. Pass the editor a stable `Toolbar` component; one created on
   each render remounts the toolbar and swallows clicks.
-- Guides get Insert secret on every surface they edit in a guided game or
-  world, so secrets can be prepared before sharing; a block notes "Shared
+- Guides who turn on the "secrets" advanced feature get Insert secret on
+  every surface they edit in a guided game or world (existing secrets show
+  either way), so secrets can be prepared before sharing; a block notes "Shared
   only with you/Guides so far" until players can read it. Solo and co-op
   games get no secrets; a world that isn't guided still shows its existing
   ones (`noteSecrets.ts`, `worldNotesSecrets.ts`).
