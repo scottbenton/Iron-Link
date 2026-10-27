@@ -115,6 +115,15 @@ export class RichTextSecretsService {
     );
   }
 
+  // The folder of a surface's images in the private bucket.
+  public static getImageFolder(surface: SecretSurface) {
+    return getGuideImageFolder(surface);
+  }
+
+  public static isPublicImageUrl(url: string) {
+    return StorageRepository.isPublicImageUrl(url);
+  }
+
   public static getImageUrl(path: string, expiresInSeconds = 60 * 60) {
     return StorageRepository.getSignedGuideImageUrl(path, expiresInSeconds);
   }

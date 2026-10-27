@@ -1,6 +1,8 @@
 import { Box } from "@mui/material";
 import { Editor } from "@tiptap/react";
 
+import { SecretsToolbarState } from "components/RichTextEditor";
+
 import { CommonToolbarItems } from "./CommonToolbarItems";
 import { TextTypeDropdown } from "./TextTypeDropdown";
 import { NotePermissions } from "./useNotePermission";
@@ -9,10 +11,11 @@ export interface NoteToolbarContentProps {
   openNoteId: string;
   editor: Editor;
   permissions: NotePermissions;
+  secrets?: SecretsToolbarState;
 }
 
 export function NoteViewToolbar(props: NoteToolbarContentProps) {
-  const { openNoteId, editor, permissions } = props;
+  const { openNoteId, editor, permissions, secrets } = props;
 
   return (
     <>
@@ -22,6 +25,7 @@ export function NoteViewToolbar(props: NoteToolbarContentProps) {
           editor={editor}
           openNoteId={openNoteId}
           permissions={permissions}
+          secrets={secrets}
         />
       </Box>
     </>

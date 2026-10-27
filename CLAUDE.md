@@ -72,11 +72,20 @@ that are easy to miss. When you learn a new one, add a line here.
 
 - Guide-only secrets never go in a document players can read. Each note,
   entry Notes or world Notes keeps its secrets in one companion Yjs document,
-  a `rich_text_secrets` row created by the first save, read and written only
-  by Guides who can read the surface (`rich_text_secrets_allowed`). Blocks are
+  a `rich_text_secrets` row created by the first save, read only by Guides who
+  can read the surface (`rich_text_secrets_allowed`) and written only by those
+  who can also edit it (`rich_text_secrets_writable`). Blocks are
   anchored by Yjs relative positions stored in the companion (spike #252);
   the shared document holds nothing about them. Images in secrets go in the
   private `guide_images` bucket and are shown through signed URLs.
+- A Guide's editor gets secrets by passing `secrets` to `RtcRichTextEditor`
+  (`components/RichTextEditor/secrets/`): each block is a widget holding its
+  own editor, run by `SecretsController`, read-only (no anchor rewrites,
+  inserts or deletes) when the surface's editor is. Players' editors get no secrets
+  extension. Undo goes through the controller's `UndoCoordinator`, never a
+  block editor's own, and a block node's image `src` is `guide-image:<path>`,
+  never a URL. Pass the editor a stable `Toolbar` component; one created on
+  each render remounts the toolbar and swallows clicks.
 
 ## Notes
 

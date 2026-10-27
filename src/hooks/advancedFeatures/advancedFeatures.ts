@@ -12,7 +12,7 @@ interface AdvancedFeature {
   requiresGuideRole?: boolean;
 }
 
-export type FeatureKey = "secondScreen" | "worlds";
+export type FeatureKey = "secondScreen" | "worlds" | "secrets";
 
 export const advancedFeaturesLocalStorageKey =
   "iron-link-advanced-feature-toggles";
@@ -33,11 +33,19 @@ export const advancedFeatures: Record<FeatureKey, AdvancedFeature> = {
       "Enables in-progress worldbuilding features: creating worlds and linking them to your games.",
     ),
   },
+  secrets: {
+    name: i18n.t("advanced-features.secrets", "Guide Secrets (Beta)"),
+    description: i18n.t(
+      "advanced-features.secrets-description",
+      "Lets Guides add secret blocks to notes in guided games and worlds. Players never see them. Secrets a note already has still show while this is off.",
+    ),
+  },
 };
 
 const defaultToggles: Record<FeatureKey, boolean> = {
   secondScreen: false,
   worlds: false,
+  secrets: false,
 };
 
 export const useAdvancedFeatureToggles = create<{

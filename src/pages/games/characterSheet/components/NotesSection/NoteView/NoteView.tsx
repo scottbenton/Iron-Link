@@ -1,11 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
 import { NOTES_PANE_GUTTER } from "components/Layout/notesPaneGutter";
-import { RtcRichTextEditor } from "components/RichTextEditor";
+import {
+  RichTextToolbarProps,
+  RtcRichTextEditor,
+} from "components/RichTextEditor";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
+import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
 import { useIsMobile } from "hooks/useIsMobile";
 
@@ -14,6 +18,7 @@ import { useNotesStore } from "stores/notes.store";
 import { NoteToolbar } from "../Layout";
 import { MobileStickyNoteToolbar } from "./MobileStickyToolbar";
 import { NoteViewToolbar } from "./NoteViewToolbar";
+import { getNoteSecretsConfig } from "./noteSecrets";
 import { useNotePermission } from "./useNotePermission";
 
 export interface NoteViewProps {
@@ -66,6 +71,51 @@ export function NoteView(props: NoteViewProps) {
 
   const isMobile = useIsMobile();
 
+  const { gameType, gamePermission } = useGamePermissions();
+  const readPermissions = useNotesStore(
+    (store) => store.noteState.notes[openNoteId]?.readPermissions,
+  );
+  const secrets = useMemo(
+    () =>
+      getNoteSecretsConfig({
+        gameId,
+        noteId: openNoteId,
+        gameType,
+        gamePermission,
+        readPermissions,
+      }),
+    [gameId, openNoteId, gameType, gamePermission, readPermissions],
+  );
+
+  // Stable, so the toolbar isn't remounted while a click is under way.
+  const Toolbar = useCallback(
+    ({ editor, secrets }: RichTextToolbarProps) => (
+      <>
+        <NoteToolbar>
+          {isMobile ? undefined : (
+            <>
+              {notePermissions.canEdit ? (
+                <NoteViewToolbar
+                  editor={editor}
+                  openNoteId={openNoteId}
+                  permissions={notePermissions}
+                  secrets={secrets}
+                />
+              ) : undefined}
+            </>
+          )}
+        </NoteToolbar>
+        <MobileStickyNoteToolbar
+          editor={editor}
+          openNoteId={openNoteId}
+          permissions={notePermissions}
+          secrets={secrets}
+        />
+      </>
+    ),
+    [isMobile, notePermissions, openNoteId],
+  );
+
   if (error) {
     // An unreadable note returns no row, the same as a deleted one.
     return (
@@ -88,28 +138,8 @@ export function NoteView(props: NoteViewProps) {
         id={openNoteId}
         roomPrefix={`notes-${gameId}-`}
         roomKeySource={{ noteId: openNoteId }}
-        Toolbar={({ editor }) => (
-          <>
-            <NoteToolbar>
-              {isMobile ? undefined : (
-                <>
-                  {notePermissions.canEdit ? (
-                    <NoteViewToolbar
-                      editor={editor}
-                      openNoteId={openNoteId}
-                      permissions={notePermissions}
-                    />
-                  ) : undefined}
-                </>
-              )}
-            </NoteToolbar>
-            <MobileStickyNoteToolbar
-              editor={editor}
-              openNoteId={openNoteId}
-              permissions={notePermissions}
-            />
-          </>
-        )}
+        secrets={secrets}
+        Toolbar={Toolbar}
         initialValue={noteContent}
         contentPx={NOTES_PANE_GUTTER}
         contentStore={
