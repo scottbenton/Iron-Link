@@ -1,10 +1,13 @@
-import { Box } from "@mui/material";
+import { Box, ToggleButtonGroup } from "@mui/material";
 import { Editor } from "@tiptap/react";
 import { useEffect, useRef, useState } from "react";
 
 import { ActionToolbarStrip } from "components/Layout/ActionToolbarStrip";
 import type { SecretsToolbarState } from "components/RichTextEditor";
-import { SecretToolbarItems } from "components/RichTextEditor/secrets/SecretToolbarItems";
+import {
+  InsertSecretButton,
+  MakeSecretButton,
+} from "components/RichTextEditor/secrets/SecretToolbarItems";
 
 import { FormattingToolbarItems } from "pages/games/characterSheet/components/NotesSection/NoteView/FormattingToolbarItems";
 import { MobileKeyboardToolbar } from "pages/games/characterSheet/components/NotesSection/NoteView/MobileKeyboardToolbar";
@@ -43,14 +46,14 @@ export function WorldNotesToolbar({
           <>
             <TextTypeMenu editor={editor} />
             <FormattingToolbarItems editor={editor} hideBorders />
-            <UploadImageButton
-              editor={editor}
-              upload={upload}
-              accept={NOTES_IMAGE_TYPES}
-            />
           </>
         )}
-        {secrets && <SecretToolbarItems secrets={secrets} />}
+        <InsertToolbarGroup
+          editor={editor}
+          upload={upload}
+          secrets={secrets}
+          sx={NO_BORDER}
+        />
       </MobileNotesToolbar>
     );
   }
@@ -72,16 +75,43 @@ export function WorldNotesToolbar({
           <>
             <TextTypeDropdown editor={editor} />
             <FormattingToolbarItems editor={editor} />
-            <UploadImageButton
-              editor={editor}
-              upload={upload}
-              accept={NOTES_IMAGE_TYPES}
-            />
           </>
         )}
-        {secrets && <SecretToolbarItems secrets={secrets} />}
+        <InsertToolbarGroup editor={editor} upload={upload} secrets={secrets} />
       </ActionToolbarStrip>
     </Box>
+  );
+}
+
+const NO_BORDER = { border: "none" };
+
+// Upload image and the secret buttons, as one group like the formatting
+// ones. Upload needs the caret, so readers get only what secrets allow.
+function InsertToolbarGroup({
+  editor,
+  upload,
+  secrets,
+  sx,
+}: {
+  editor: Editor;
+  upload: (file: File) => Promise<string>;
+  secrets?: SecretsToolbarState;
+  sx?: typeof NO_BORDER;
+}) {
+  if (!editor.isEditable && !secrets?.canInsert) return null;
+  return (
+    <ToggleButtonGroup>
+      {editor.isEditable && (
+        <UploadImageButton
+          editor={editor}
+          upload={upload}
+          accept={NOTES_IMAGE_TYPES}
+          sx={sx}
+        />
+      )}
+      {secrets?.canInsert && <InsertSecretButton secrets={secrets} sx={sx} />}
+      {secrets?.canMakeSecret && <MakeSecretButton secrets={secrets} sx={sx} />}
+    </ToggleButtonGroup>
   );
 }
 
