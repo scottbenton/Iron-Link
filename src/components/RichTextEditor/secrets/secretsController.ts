@@ -1,5 +1,5 @@
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
-import { EditorState, TextSelection } from "@tiptap/pm/state";
+import { EditorState, Plugin, TextSelection } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
 import { Editor, Extension, Extensions } from "@tiptap/react";
 import {
@@ -40,6 +40,14 @@ export interface SecretsControllerOptions {
   // rewritten.
   readOnly?: boolean;
   createId?: () => string;
+  // Images that land in a block but live elsewhere (in the note's public
+  // storage, or another surface's secrets) are copied into this surface's
+  // private storage, and the block then shows the copy.
+  images?: {
+    needsCopy: (src: unknown) => boolean;
+    copy: (src: string) => Promise<string>;
+    onCopyFailed: () => void;
+  };
 }
 
 type Listener = () => void;
@@ -65,6 +73,9 @@ export class SecretsController {
   private listeners = new Set<Listener>();
   private snapshot = { version: 0, activeBlockId: null as string | null };
   private destroyed = false;
+  // Image sources being copied, and those whose copy failed (not retried).
+  private copyingImages = new Set<string>();
+  private failedImages = new Set<string>();
 
   constructor(options: SecretsControllerOptions) {
     this.options = options;
@@ -187,7 +198,21 @@ export class SecretsController {
         ...this.options.blockExtensions,
         Extension.create({
           name: "secretBlock",
-          addProseMirrorPlugins: () => [ySyncPlugin(fragment)],
+          addProseMirrorPlugins: () => [
+            ySyncPlugin(fragment),
+            new Plugin({
+              view: () => {
+                queueMicrotask(() => controller.copyImagesInto(editor));
+                return {
+                  update: (view, prevState) => {
+                    if (!view.state.doc.eq(prevState.doc)) {
+                      controller.copyImagesInto(editor);
+                    }
+                  },
+                };
+              },
+            }),
+          ],
           addKeyboardShortcuts() {
             return {
               "Mod-z": () => controller.undo.undo(),
@@ -219,6 +244,53 @@ export class SecretsController {
       },
     });
     return { id, dom, editor };
+  }
+
+  // Starts copying the block's images that live outside this surface's
+  // private storage, then points the block at each copy.
+  private copyImagesInto(editor: Editor) {
+    const images = this.options.images;
+    if (!images || this.options.readOnly || editor.isDestroyed) return;
+    editor.state.doc.descendants((node) => {
+      const { src } = node.attrs;
+      if (
+        node.type.name !== "image" ||
+        typeof src !== "string" ||
+        this.copyingImages.has(src) ||
+        this.failedImages.has(src) ||
+        !images.needsCopy(src)
+      ) {
+        return;
+      }
+      this.copyingImages.add(src);
+      images
+        .copy(src)
+        .then((copy) => this.replaceImageSrc(src, copy))
+        .catch((e) => {
+          console.error(e);
+          this.failedImages.add(src);
+          if (!this.destroyed) images.onCopyFailed();
+        })
+        .finally(() => this.copyingImages.delete(src));
+    });
+  }
+
+  // Points every block image showing `from` at `to`, in any block, since
+  // the same image may have been pasted into several.
+  private replaceImageSrc(from: string, to: string) {
+    if (this.destroyed) return;
+    this.blocks.forEach(({ editor }) => {
+      if (editor.isDestroyed) return;
+      const tr = editor.state.tr;
+      editor.state.doc.descendants((node, pos) => {
+        if (node.type.name === "image" && node.attrs.src === from) {
+          tr.setNodeMarkup(pos, undefined, { ...node.attrs, src: to });
+        }
+      });
+      if (tr.docChanged) {
+        editor.view.dispatch(tr.setMeta("addToHistory", false));
+      }
+    });
   }
 
   public setActiveBlock(id: string | null) {
