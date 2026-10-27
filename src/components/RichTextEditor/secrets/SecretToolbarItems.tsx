@@ -1,4 +1,4 @@
-import InsertSecretIcon from "@mui/icons-material/EnhancedEncryptionOutlined";
+import InsertSecretIcon from "@mui/icons-material/Lock";
 import MakeSecretIcon from "@mui/icons-material/VisibilityOffOutlined";
 import {
   Button,
