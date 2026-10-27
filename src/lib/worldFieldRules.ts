@@ -254,8 +254,7 @@ const MULTI_VALUE_OPERATORS: WorldFieldConditionOperator[] = [
 ];
 
 // Conditions compare plain values: equality on Text and single Selects,
-// membership on multi Selects. Long text is a collaborative document with no
-// value to compare.
+// membership on multi Selects.
 export function getWorldFieldConditionOperators(
   field: FieldShape,
 ): WorldFieldConditionOperator[] {

@@ -24,9 +24,7 @@ export function isWorldUuid(value: unknown): value is string {
 // The longest Text value or option the database accepts.
 export const WORLD_FIELD_VALUE_MAX_LENGTH = 1000;
 
-// In the order the field editor presents them. Long text is no longer
-// offered; existing Long text fields keep working until their values move
-// into entry Notes.
+// In the order the field editor presents them.
 export const WORLD_FIELD_KINDS: WorldFieldKind[] = [
   "text",
   "optionList",
@@ -153,8 +151,6 @@ export function withoutWorldFieldOracleBindings(
 
 export function getWorldFieldKind(field: FieldShape): WorldFieldKind {
   switch (field.type) {
-    case WorldFieldType.RichText:
-      return "longText";
     case WorldFieldType.Select:
       return field.configuration.targetCategoryId === undefined
         ? "optionList"
@@ -168,8 +164,7 @@ export function isWorldFieldLinkedEntry(field: FieldShape): boolean {
   return getWorldFieldKind(field) === "linkedEntry";
 }
 
-// Long text is a collaborative document and a linked entry stores entry IDs,
-// so neither can hold a rolled result.
+// A linked entry stores entry IDs, so it cannot hold a rolled result.
 export function canWorldFieldHaveOracleBinding(field: FieldShape): boolean {
   const kind = getWorldFieldKind(field);
   return kind === "text" || kind === "optionList";
@@ -223,26 +218,24 @@ export function changeWorldFieldKind<T extends BoundFieldShape>(
   const next: Pick<IWorldFieldDefinition, "type" | "configuration"> =
     kind === "text"
       ? { type: WorldFieldType.Text, configuration: base }
-      : kind === "longText"
-        ? { type: WorldFieldType.RichText, configuration: base }
-        : kind === "optionList"
-          ? {
-              type: WorldFieldType.Select,
-              // Most lists in the setting defaults are open, and an open
-              // single list is also what a Text field can become in place.
-              configuration: { ...base, multiple, allowOther: true },
-            }
-          : {
-              type: WorldFieldType.Select,
-              configuration: {
-                ...base,
-                // An empty target keeps the kind until a category is chosen;
-                // saving is blocked while it is missing.
-                targetCategoryId: "",
-                multiple,
-                allowOther: false,
-              },
-            };
+      : kind === "optionList"
+        ? {
+            type: WorldFieldType.Select,
+            // Most lists in the setting defaults are open, and an open
+            // single list is also what a Text field can become in place.
+            configuration: { ...base, multiple, allowOther: true },
+          }
+        : {
+            type: WorldFieldType.Select,
+            configuration: {
+              ...base,
+              // An empty target keeps the kind until a category is chosen;
+              // saving is blocked while it is missing.
+              targetCategoryId: "",
+              multiple,
+              allowOther: false,
+            },
+          };
   const bindable = canWorldFieldHaveOracleBinding(next);
   return {
     ...definition,

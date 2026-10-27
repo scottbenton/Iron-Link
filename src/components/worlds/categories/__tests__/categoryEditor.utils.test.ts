@@ -60,10 +60,12 @@ describe("validateFieldDraft", () => {
     const edited = field({ id: "edited", label: "Kind" });
     const draft = {
       label: "Renamed",
-      type: WorldFieldType.RichText,
+      type: WorldFieldType.Select,
       gmOnly: false,
       configuration: {
         ...createWorldFieldConfiguration(),
+        multiple: true,
+        allowOther: true,
         rules: [
           {
             conditions: [
@@ -83,9 +85,9 @@ describe("validateFieldDraft", () => {
 
     expect(result.sourceFields[0]).toMatchObject({
       label: "Renamed",
-      type: WorldFieldType.RichText,
+      type: WorldFieldType.Select,
     });
-    // Rich text cannot be compared, so its own condition is now invalid.
+    // A multi select cannot use equals, so its own condition is now invalid.
     expect(result.invalidCondition).toBe(true);
     expect(
       validateFieldDraft(draft, [edited], edited.id, true).sourceFields[0],

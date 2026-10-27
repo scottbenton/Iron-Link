@@ -18,8 +18,7 @@ export function getWorldFieldValueList(
   return value ? [value] : [];
 }
 
-// Whether a read-only view has anything to show for this field. Long text
-// keeps its document outside the store, so any stored row counts; a linked
+// Whether a read-only view has anything to show for this field. A linked
 // entry counts only links to entries this reader can see.
 export function hasWorldEntryFieldValue(
   field: ResolvedWorldFieldDefinition,
@@ -28,8 +27,6 @@ export function hasWorldEntryFieldValue(
 ): boolean {
   if (!value) return false;
   switch (getWorldFieldKind(field)) {
-    case "longText":
-      return true;
     case "linkedEntry":
       return getWorldFieldValueList(value.value).some(
         (id) =>

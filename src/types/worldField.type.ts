@@ -2,13 +2,12 @@
 // purpose (WorldFieldKind), and a Select's kind follows from its source.
 export enum WorldFieldType {
   Text = "text",
-  RichText = "richText",
   Select = "select",
 }
 
 // What a field is for, as presented in the field editor. A Select reads its
 // options from a list unless it links entries in a target category.
-export type WorldFieldKind = "text" | "longText" | "optionList" | "linkedEntry";
+export type WorldFieldKind = "text" | "optionList" | "linkedEntry";
 
 // JSON shape stored in world_field_definitions.binding.
 // Bindings are pinned and concrete: the picker browses the world's effective

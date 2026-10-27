@@ -22,7 +22,6 @@ import {
   WorldPermission,
 } from "repositories/shared.types";
 
-import type { RichTextContentStore } from "services/richTextContent.service";
 import {
   IWorldEntry,
   WorldEntriesService,
@@ -55,33 +54,6 @@ vi.mock("stores/auth.store", () => ({ useUID: () => "author" }));
 vi.mock("react-i18next", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-i18next")>()),
   useTranslation: () => ({ t: translate }),
-}));
-// The collaborative editor needs WebRTC; the stand-in shows what it was given.
-vi.mock("components/RichTextEditor", () => ({
-  RtcRichTextEditor: ({
-    id,
-    roomPrefix,
-    initialValue,
-    contentStore,
-  }: {
-    id: string;
-    roomPrefix: string;
-    initialValue: Uint8Array;
-    contentStore?: RichTextContentStore;
-  }) => (
-    <div data-testid="rich-text">
-      {`${roomPrefix}-${id}: ${initialValue.length} bytes`}
-      {contentStore && (
-        <button
-          onClick={() =>
-            contentStore.write(new Uint8Array([7, 8]), "text", "v1")
-          }
-        >
-          Save document
-        </button>
-      )}
-    </div>
-  ),
 }));
 
 const PEOPLE = "bbbbbbbb-0000-4000-8000-000000000000";
@@ -624,44 +596,6 @@ describe("WorldEntryFields", () => {
     });
   });
 
-  describe("long text", () => {
-    it("loads the document before editing it and saves it as field content", async () => {
-      const user = userEvent.setup();
-      const load = vi
-        .spyOn(WorldEntryFieldValuesService, "getWorldEntryFieldContent")
-        .mockResolvedValue({ content: new Uint8Array([1, 2, 3]) });
-      const save = vi
-        .spyOn(WorldEntryFieldValuesService, "setWorldEntryFieldContent")
-        .mockResolvedValue();
-      defineFields(
-        field({
-          id: "history",
-          label: "History",
-          type: WorldFieldType.RichText,
-        }),
-      );
-      loadEntries(worldEntry());
-      renderFields();
-
-      expect(
-        screen.getByRole("group", { name: "History" }),
-      ).toBeInTheDocument();
-      expect(
-        await screen.findByText(
-          `world-fields-${category.worldId}-entry-1-history: 3 bytes`,
-        ),
-      ).toBeInTheDocument();
-      expect(load).toHaveBeenCalledWith("entry-1", "history");
-      await user.click(screen.getByRole("button", { name: "Save document" }));
-      expect(save).toHaveBeenCalledWith(
-        "entry-1",
-        category.worldId,
-        "history",
-        new Uint8Array([7, 8]),
-      );
-    });
-  });
-
   describe("conditional fields", () => {
     const kind = optionList(
       { id: "kind", label: "Kind" },
@@ -915,43 +849,11 @@ describe("WorldEntryFields", () => {
           linkedEntry(PEOPLE, { id: "home" }, { multiple: true }),
         ),
       ).toBe(false);
-      expect(
-        isWorldEntryFieldFullRow(field({ type: WorldFieldType.RichText })),
-      ).toBe(false);
-    });
-
-    it("keeps Long text in the Guide only well", () => {
-      vi.spyOn(
-        WorldEntryFieldValuesService,
-        "getWorldEntryFieldContent",
-      ).mockResolvedValue({ content: new Uint8Array() });
-      defineFields(
-        field({ id: "climate", label: "Climate", sortOrder: 0 }),
-        field({
-          id: "plots",
-          label: "Plots",
-          type: WorldFieldType.RichText,
-          sortOrder: 1,
-          gmOnly: true,
-        }),
-      );
-      loadEntries(worldEntry());
-      renderFields();
-      expect(
-        within(screen.getByRole("region", { name: "Guide only" })).getByRole(
-          "group",
-          { name: "Plots" },
-        ),
-      ).toBeInTheDocument();
     });
   });
 
   describe("read-only", () => {
     it("shows stored values without inputs, links linked entries, and leaves out empty fields", async () => {
-      vi.spyOn(
-        WorldEntryFieldValuesService,
-        "getWorldEntryFieldContent",
-      ).mockResolvedValue({ content: new Uint8Array([1]) });
       defineFields(
         field({ id: "climate", label: "Climate" }),
         field({ id: "empty", label: "Empty", sortOrder: 1 }),
@@ -961,12 +863,6 @@ describe("WorldEntryFields", () => {
         ),
         linkedEntry(PEOPLE, { id: "home", label: "Leader", sortOrder: 3 }),
         linkedEntry(PEOPLE, { id: "lost", label: "Lost link", sortOrder: 4 }),
-        field({
-          id: "history",
-          label: "History",
-          type: WorldFieldType.RichText,
-          sortOrder: 5,
-        }),
       );
       loadEntries(
         worldEntry(),
@@ -976,7 +872,6 @@ describe("WorldEntryFields", () => {
       storeValue("entry-1", "tags", ["Coastal", "Haunted"]);
       storeValue("entry-1", "home", "kell");
       storeValue("entry-1", "lost", "unreadable");
-      storeValue("entry-1", "history", null);
       renderFields({ canEdit: false });
 
       expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
@@ -1009,14 +904,6 @@ describe("WorldEntryFields", () => {
       ).not.toBeInTheDocument();
       expect(
         screen.queryByRole("group", { name: "Lost link" }),
-      ).not.toBeInTheDocument();
-      expect(
-        await screen.findByText(
-          `world-fields-${category.worldId}-entry-1-history: 1 bytes`,
-        ),
-      ).toBeInTheDocument();
-      expect(
-        screen.queryByRole("button", { name: "Save document" }),
       ).not.toBeInTheDocument();
     });
   });

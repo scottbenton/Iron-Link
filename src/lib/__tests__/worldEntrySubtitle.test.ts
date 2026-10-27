@@ -101,7 +101,6 @@ describe("getWorldEntrySubtitle", () => {
         ["haven", "unreadable", "keep"],
       ),
     ).toBe("Frosthaven, Old Keep");
-    expect(subtitle(definition(WorldFieldType.RichText), null)).toBeUndefined();
   });
 
   it("shows nothing without a subtitle field or value", () => {
