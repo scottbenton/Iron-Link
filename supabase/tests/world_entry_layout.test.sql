@@ -22,8 +22,8 @@ select throws_ok($$select public.world_configuration_validate_field(pg_temp.cfg(
 select throws_ok($$select public.world_configuration_validate_field(
     pg_temp.cfg('{"fullWidth":true,"multiple":false,"allowOther":true}'),'select')$$,
   'Only text fields may set fullWidth', 'option lists always size themselves');
-select throws_ok($$select public.world_configuration_validate_field(pg_temp.cfg('{"fullWidth":true}'),'richText')$$,
-  'Only text fields may set fullWidth', 'Long text fields cannot set full width');
+select throws_ok($$select public.world_configuration_validate_field(pg_temp.cfg('{}'),'richText')$$,
+  'Invalid field type', 'Long text is no longer a field type');
 
 select ok(not (pg_temp.template_field('world:classic/ironlands','npcs','goal')->'configuration' ? 'fullWidth'),
   'an Ironlands NPC Goal shares its row');
