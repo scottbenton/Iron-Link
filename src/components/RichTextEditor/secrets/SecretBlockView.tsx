@@ -1,5 +1,5 @@
 import DeleteIcon from "@mui/icons-material/DeleteOutline";
-import LockIcon from "@mui/icons-material/LockOutlined";
+import LockIcon from "@mui/icons-material/Lock";
 import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { EditorContent } from "@tiptap/react";
 import { MouseEvent, useEffect } from "react";
