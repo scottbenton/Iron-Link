@@ -10,6 +10,8 @@ import { useTranslation } from "react-i18next";
 
 import { useSnackbar } from "providers/SnackbarProvider";
 
+import { useAdvancedFeatureToggle } from "hooks/advancedFeatures/advancedFeatures";
+
 import { useUID } from "stores/auth.store";
 
 import type { RichTextContentStore } from "services/richTextContent.service";
@@ -64,12 +66,22 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
     onSaveError,
     initialValue,
     Toolbar,
-    secrets,
     outlined,
     minHeight,
     contentPx,
     fill,
   } = props;
+
+  // Adding secrets is an advanced feature. With it off a Guide still sees the
+  // secrets a note already has, so nothing hidden in it goes unnoticed.
+  const secretsEnabled = useAdvancedFeatureToggle("secrets");
+  const secrets = useMemo(
+    () =>
+      props.secrets && !secretsEnabled
+        ? { ...props.secrets, canInsert: false }
+        : props.secrets,
+    [props.secrets, secretsEnabled],
+  );
 
   const { t } = useTranslation();
   const { error } = useSnackbar();

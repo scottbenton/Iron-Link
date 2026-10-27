@@ -6,7 +6,9 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
-  IconButton,
+  SxProps,
+  Theme,
+  ToggleButton,
   Tooltip,
 } from "@mui/material";
 import { useState } from "react";
@@ -16,47 +18,65 @@ import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButto
 
 import type { SecretsToolbarState } from "../richTextToolbar";
 
-export interface SecretToolbarItemsProps {
+export interface SecretToolbarButtonProps {
   secrets: SecretsToolbarState;
+  sx?: SxProps<Theme>;
 }
 
-// The toolbar's secret controls, for Guides: Make secret and Insert secret.
-export function SecretToolbarItems(props: SecretToolbarItemsProps) {
-  const { secrets } = props;
+// Insert secret, for Guides: adds an empty block at the caret. A button in
+// the toolbar's insert group, not an on/off toggle.
+export function InsertSecretButton(props: SecretToolbarButtonProps) {
+  const { secrets, sx } = props;
+  const { t } = useTranslation();
+  const label = t("notes.secrets.insert", "Insert secret");
+
+  return (
+    <Tooltip title={label} enterDelay={300}>
+      <ToggleButton
+        size="small"
+        value="insert secret"
+        // An action, not an on/off state.
+        aria-pressed={undefined}
+        aria-label={label}
+        // Keep the caret in the note.
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => secrets.insertSecret()}
+        sx={sx}
+      >
+        <InsertSecretIcon />
+      </ToggleButton>
+    </Tooltip>
+  );
+}
+
+// Make secret, for Guides: moves the selected text into a new block, after
+// warning that players may already have seen it.
+export function MakeSecretButton(props: SecretToolbarButtonProps) {
+  const { secrets, sx } = props;
   const { t } = useTranslation();
   const [confirmOpen, setConfirmOpen] = useState(false);
-
-  const insertLabel = t("notes.secrets.insert", "Insert secret");
-  const makeLabel = t("notes.secrets.make", "Make secret");
+  const label = t("notes.secrets.make", "Make secret");
 
   return (
     <>
-      {secrets.canMakeSecret && (
-        <Tooltip title={makeLabel} enterDelay={300}>
-          <IconButton
-            aria-label={makeLabel}
-            // Keep the selection in the note while the dialog opens.
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => setConfirmOpen(true)}
-          >
-            <MakeSecretIcon />
-          </IconButton>
-        </Tooltip>
-      )}
-      {secrets.canInsert && (
-        <Tooltip title={insertLabel} enterDelay={300}>
-          <IconButton
-            aria-label={insertLabel}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => secrets.insertSecret()}
-          >
-            <InsertSecretIcon />
-          </IconButton>
-        </Tooltip>
-      )}
+      <Tooltip title={label} enterDelay={300}>
+        <ToggleButton
+          size="small"
+          value="make secret"
+          // An action, not an on/off state.
+          aria-pressed={undefined}
+          aria-label={label}
+          // Keep the selection in the note while the dialog opens.
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => setConfirmOpen(true)}
+          sx={sx}
+        >
+          <MakeSecretIcon />
+        </ToggleButton>
+      </Tooltip>
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogTitleWithCloseButton onClose={() => setConfirmOpen(false)}>
-          {makeLabel}
+          {label}
         </DialogTitleWithCloseButton>
         <DialogContent>
           <DialogContentText>
@@ -77,7 +97,7 @@ export function SecretToolbarItems(props: SecretToolbarItemsProps) {
               secrets.makeSecret();
             }}
           >
-            {makeLabel}
+            {label}
           </Button>
         </DialogActions>
       </Dialog>
