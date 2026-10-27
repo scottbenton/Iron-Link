@@ -1,5 +1,5 @@
 import UploadIcon from "@mui/icons-material/AddPhotoAlternate";
-import { IconButton, Tooltip } from "@mui/material";
+import { SxProps, Theme, ToggleButton, Tooltip } from "@mui/material";
 import { Editor } from "@tiptap/react";
 import { ChangeEventHandler, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,10 +17,11 @@ export interface UploadImageButtonProps {
   // to report.
   upload: (file: File) => Promise<string>;
   accept?: string;
+  sx?: SxProps<Theme>;
 }
 
 export function UploadImageButton(props: UploadImageButtonProps) {
-  const { editor, upload, accept = "image/*" } = props;
+  const { editor, upload, accept = "image/*", sx } = props;
 
   const { t } = useTranslation();
 
@@ -57,7 +58,12 @@ export function UploadImageButton(props: UploadImageButtonProps) {
         title={t("note.editor-toolbar.upload-image", "Upload Image")}
         enterDelay={300}
       >
-        <IconButton
+        <ToggleButton
+          size="small"
+          value="upload image"
+          // An action, not an on/off state.
+          aria-pressed={undefined}
+          sx={sx}
           aria-label={t("note.editor-toolbar.upload-image", "Upload Image")}
           onClick={() => {
             if (imageInputRef.current) {
@@ -66,7 +72,7 @@ export function UploadImageButton(props: UploadImageButtonProps) {
           }}
         >
           <UploadIcon />
-        </IconButton>
+        </ToggleButton>
       </Tooltip>
       <input
         ref={imageInputRef}

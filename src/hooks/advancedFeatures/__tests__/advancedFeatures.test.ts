@@ -21,6 +21,7 @@ describe("useAdvancedFeatureToggles persistence", () => {
     expect(await loadToggles()).toEqual({
       secondScreen: false,
       worlds: false,
+      secrets: false,
     });
   });
 
@@ -35,6 +36,7 @@ describe("useAdvancedFeatureToggles persistence", () => {
     expect(await loadToggles()).toEqual({
       secondScreen: true,
       worlds: false,
+      secrets: false,
     });
   });
 
@@ -49,6 +51,7 @@ describe("useAdvancedFeatureToggles persistence", () => {
     expect(await loadToggles()).toEqual({
       secondScreen: false,
       worlds: true,
+      secrets: false,
     });
   });
 
@@ -63,6 +66,7 @@ describe("useAdvancedFeatureToggles persistence", () => {
     expect(await loadToggles()).toEqual({
       secondScreen: false,
       worlds: true,
+      secrets: false,
     });
   });
 
@@ -77,6 +81,7 @@ describe("useAdvancedFeatureToggles persistence", () => {
     expect(await loadToggles()).toEqual({
       secondScreen: false,
       worlds: false,
+      secrets: false,
     });
   });
 });
