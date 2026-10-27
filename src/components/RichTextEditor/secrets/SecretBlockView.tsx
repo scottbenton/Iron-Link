@@ -2,7 +2,7 @@ import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import LockIcon from "@mui/icons-material/LockOutlined";
 import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { EditorContent } from "@tiptap/react";
-import { useEffect } from "react";
+import { MouseEvent, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
@@ -32,10 +32,25 @@ export function SecretBlockView(props: SecretBlockViewProps) {
 
   const label = t("notes.secrets.label", "Secret");
 
+  // The label and note are not text to edit: a press on them goes to the
+  // block's own text instead of putting a caret beside them.
+  const handleMouseDown = (event: MouseEvent) => {
+    const target = event.target as Node;
+    if (
+      block.editor.view.dom.contains(target) ||
+      (target instanceof Element && target.closest("button"))
+    ) {
+      return;
+    }
+    event.preventDefault();
+    if (block.editor.isEditable) block.editor.commands.focus("start");
+  };
+
   return createPortal(
     <Box
       component="section"
       aria-label={label}
+      onMouseDown={handleMouseDown}
       sx={(theme) => ({
         my: 1.5,
         borderWidth: 1,
@@ -43,7 +58,9 @@ export function SecretBlockView(props: SecretBlockViewProps) {
         borderColor: theme.palette.text.secondary,
         borderRadius: `${theme.shape.borderRadius}px`,
         bgcolor: theme.palette.action.hover,
+        userSelect: "none",
         ".ProseMirror": {
+          userSelect: "text",
           minHeight: "unset",
           px: 1.5,
           py: 1,
