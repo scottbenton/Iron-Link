@@ -23,10 +23,15 @@ import type {
   RichTextToolbarProps,
   SecretsToolbarState,
 } from "./richTextToolbar";
-import { defaultExtensions } from "./rtcExtensions";
+import { secretBlockExtensions } from "./rtcExtensions";
 import { SecretBlockView } from "./secrets/SecretBlockView";
 import { SecretBlocksExtension } from "./secrets/SecretBlocksExtension";
-import { toGuideImageSrc } from "./secrets/guideImages";
+import { GUIDE_IMAGES_REFUSED_EVENT } from "./secrets/guideImagePasteGuard";
+import {
+  copyImageIntoSurface,
+  guideImageNeedsCopy,
+  toGuideImageSrc,
+} from "./secrets/guideImages";
 import { SecretsController } from "./secrets/secretsController";
 import {
   SecretsConfig,
@@ -96,14 +101,41 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
     readOnly,
     onSaveError,
   });
+  const surfaceRef = useRef(secrets?.surface);
+  surfaceRef.current = secrets?.surface;
+  const refusedMessage = t(
+    "notes.secrets.image-paste-refused",
+    "Images from a secret can't be pasted into the note. Players can't see them.",
+  );
+  const refusedMessageRef = useRef(refusedMessage);
+  refusedMessageRef.current = refusedMessage;
+  const copyFailedMessage = t(
+    "notes.secrets.image-copy-failed",
+    "An image couldn't be moved into the secret's private storage. Players can still open it from its old link.",
+  );
+  const copyFailedMessageRef = useRef(copyFailedMessage);
+  copyFailedMessageRef.current = copyFailedMessage;
+
   const controller = useMemo(
     () =>
       companion.doc
         ? new SecretsController({
             companion: companion.doc,
             userId: uid,
-            blockExtensions: defaultExtensions,
+            blockExtensions: secretBlockExtensions,
             readOnly,
+            // A note image or another surface's secret image that lands in
+            // a block is copied into this surface's private storage.
+            images: {
+              needsCopy: (src) =>
+                !!surfaceRef.current &&
+                guideImageNeedsCopy(surfaceRef.current, src),
+              copy: (src) =>
+                surfaceRef.current
+                  ? copyImageIntoSurface(surfaceRef.current, src)
+                  : Promise.reject(new Error("No surface")),
+              onCopyFailed: () => error(copyFailedMessageRef.current),
+            },
           })
         : null,
     // The user only changes on sign-out, which closes the editor.
@@ -115,12 +147,6 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
   const controllerRef = useRef(controller);
   controllerRef.current = controller;
   const hasSecrets = !!secrets;
-  const refusedMessage = t(
-    "notes.secrets.image-paste-refused",
-    "Images from a secret can't be pasted into the note. Players can't see them.",
-  );
-  const refusedMessageRef = useRef(refusedMessage);
-  refusedMessageRef.current = refusedMessage;
   // Stable for the editor's life: the controller is read when needed.
   const extensions = useMemo(
     () =>
@@ -128,11 +154,10 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
         ? [
             SecretBlocksExtension.configure({
               getController: () => controllerRef.current,
-              onGuideImagesRefused: () => error(refusedMessageRef.current),
             }),
           ]
         : undefined,
-    [hasSecrets, error],
+    [hasSecrets],
   );
 
   const { editor, saving } = useAutoSaveRtcEditor({
@@ -144,6 +169,14 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
     onSaveError,
     extensions,
   });
+
+  useEffect(() => {
+    if (!editor) return;
+    const dom = editor.view.dom;
+    const onRefused = () => error(refusedMessageRef.current);
+    dom.addEventListener(GUIDE_IMAGES_REFUSED_EVENT, onRefused);
+    return () => dom.removeEventListener(GUIDE_IMAGES_REFUSED_EVENT, onRefused);
+  }, [editor, error]);
 
   useEffect(() => {
     if (!controller || !editor) return;

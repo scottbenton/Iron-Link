@@ -82,7 +82,7 @@ export function MakeSecretButton(props: SecretToolbarButtonProps) {
           <DialogContentText>
             {t(
               "notes.secrets.make-warning",
-              "Players may already have seen this. The text moves into a secret only Guides can read, but anyone who opened the note before now has already seen it.",
+              "Players may already have seen this. The text moves into a secret only Guides can read, but anyone who opened the note before now has already seen it. Images are copied into private storage, but the originals stay where they were, so anyone with their old links can still open them.",
             )}
           </DialogContentText>
         </DialogContent>

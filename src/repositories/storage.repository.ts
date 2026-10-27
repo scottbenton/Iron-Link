@@ -12,6 +12,13 @@ type BucketNames =
   | "world_entry_images"
   | "world_map_backgrounds";
 
+const PUBLIC_IMAGE_BUCKETS: BucketNames[] = [
+  "characters",
+  "note_images",
+  "world_entry_images",
+  "world_map_backgrounds",
+];
+
 // Images inside Guide-only secrets. The bucket is private: files are read
 // through signed URLs, under the same rule as the secrets themselves.
 const GUIDE_IMAGES_BUCKET = "guide_images";
@@ -151,6 +158,15 @@ export class StorageRepository {
   ): string {
     return supabase.storage.from(bucket).getPublicUrl(`${path}/${filename}`)
       .data.publicUrl;
+  }
+
+  // Whether a URL is a file in one of the app's public image buckets.
+  public static isPublicImageUrl(url: string): boolean {
+    return PUBLIC_IMAGE_BUCKETS.some((bucket) =>
+      url.startsWith(
+        supabase.storage.from(bucket).getPublicUrl("").data.publicUrl,
+      ),
+    );
   }
 
   public static renameFile(file: File, newFileName: string): File {

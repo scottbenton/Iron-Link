@@ -6,8 +6,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import * as Y from "yjs";
 
 import { SecretBlocksExtension } from "../SecretBlocksExtension";
+import {
+  GUIDE_IMAGES_REFUSED_EVENT,
+  GuideImagePasteGuard,
+} from "../guideImagePasteGuard";
 import { toGuideImageSrc } from "../guideImages";
-import { SecretsController } from "../secretsController";
+import {
+  SecretsController,
+  SecretsControllerOptions,
+} from "../secretsController";
 import {
   addSecretBlock,
   getSecretBlocks,
@@ -40,7 +47,12 @@ let nextId = 0;
 
 // A Guide's shared editor with secrets, and a player's copy of the same note
 // in one live room. The player's editor has no secrets extension.
-async function setup(options: { readOnly?: boolean } = {}) {
+async function setup(
+  options: {
+    readOnly?: boolean;
+    images?: SecretsControllerOptions["images"];
+  } = {},
+) {
   const guideDoc = new Y.Doc();
   const playerDoc = new Y.Doc();
   guideDoc.on("update", (update: Uint8Array, origin: unknown) => {
@@ -57,6 +69,7 @@ async function setup(options: { readOnly?: boolean } = {}) {
     blockExtensions: extensions,
     createId: () => `block-${++nextId}`,
     readOnly: options.readOnly,
+    images: options.images,
   });
   const onGuideImagesRefused = vi.fn();
   const element = document.createElement("div");
@@ -65,13 +78,17 @@ async function setup(options: { readOnly?: boolean } = {}) {
     element,
     extensions: [
       ...extensions,
+      GuideImagePasteGuard,
       Collaboration.configure({ document: guideDoc }),
       SecretBlocksExtension.configure({
         getController: () => controller,
-        onGuideImagesRefused,
       }),
     ],
   });
+  shared.view.dom.addEventListener(
+    GUIDE_IMAGES_REFUSED_EVENT,
+    onGuideImagesRefused,
+  );
   const player = new Editor({
     element: document.createElement("div"),
     extensions: [
@@ -468,5 +485,78 @@ describe("SecretsController", () => {
     shared.view.pasteHTML(`<img src="https://example.com/a.png">`);
     expect(onGuideImagesRefused).not.toHaveBeenCalled();
     expect(shared.getHTML()).toContain("https://example.com/a.png");
+  });
+  it("keeps images from secrets pasted into a block", async () => {
+    const { controller, shared, companion, guideDoc } = await setup();
+    addSecretBlock(companion, {
+      id: "kept",
+      shared: guideDoc.getXmlFragment("default"),
+      index: 1,
+      createdBy: "guide",
+    });
+    await flush();
+    const block = controller.getBlock("kept")!.editor;
+    block.commands.focus("end");
+    const src = toGuideImageSrc("notes/n/one.png");
+    block.view.pasteHTML(`<img src="${src}">`);
+    expect(block.getHTML()).toContain(src);
+    expect(shared.getHTML()).not.toContain("guide-image:");
+  });
+
+  it("copies images from outside the surface into its private storage", async () => {
+    const outside = "https://storage.test/public/note.png";
+    const copied = toGuideImageSrc("notes/this/copy.png");
+    const copy = vi.fn(() => Promise.resolve(copied));
+    const onCopyFailed = vi.fn();
+    const { controller, shared } = await setup({
+      images: {
+        needsCopy: (src) => src === outside,
+        copy,
+        onCopyFailed,
+      },
+    });
+    shared.commands.setContent(
+      `<p>One</p><img src="${outside}"><img src="https://example.com/a.png">`,
+    );
+    shared.commands.setTextSelection({
+      from: 0,
+      to: shared.state.doc.content.size,
+    });
+    const id = controller.makeSecret()!;
+    await flush();
+    await flush();
+
+    expect(copy).toHaveBeenCalledTimes(1);
+    expect(copy).toHaveBeenCalledWith(outside);
+    const html = controller.getBlock(id)!.editor.getHTML();
+    expect(html).toContain(copied);
+    expect(html).not.toContain(outside);
+    expect(html).toContain("https://example.com/a.png");
+    expect(onCopyFailed).not.toHaveBeenCalled();
+  });
+
+  it("says so when an image can't be copied, and tries it only once", async () => {
+    const outside = "https://storage.test/public/note.png";
+    const copy = vi.fn(() => Promise.reject(new Error("offline")));
+    const onCopyFailed = vi.fn();
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { controller, companion, guideDoc } = await setup({
+      images: { needsCopy: (src) => src === outside, copy, onCopyFailed },
+    });
+    addSecretBlock(companion, {
+      id: "failing",
+      shared: guideDoc.getXmlFragment("default"),
+      index: 1,
+      createdBy: "guide",
+    });
+    await flush();
+    const block = controller.getBlock("failing")!.editor;
+    block.commands.setImage({ src: outside });
+    await flush();
+    block.commands.insertContentAt(block.state.doc.content.size, "<p>more</p>");
+    await flush();
+    expect(onCopyFailed).toHaveBeenCalledTimes(1);
+    expect(copy).toHaveBeenCalledTimes(1);
+    expect(block.getHTML()).toContain(outside);
   });
 });
