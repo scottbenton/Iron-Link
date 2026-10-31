@@ -1,5 +1,10 @@
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
-import { EditorState, Plugin, TextSelection } from "@tiptap/pm/state";
+import {
+  EditorState,
+  Plugin,
+  Selection,
+  TextSelection,
+} from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
 import { Editor, Extension, Extensions } from "@tiptap/react";
 import {
@@ -312,7 +317,15 @@ export class SecretsController {
   private focusBlock(id: string, where: "start" | "end") {
     const block = this.blocks.get(id);
     if (block && block.dom.isConnected && block.editor.view.dom.isConnected) {
-      block.editor.commands.focus(where);
+      // At once, not a frame later as Tiptap's focus command does: a key
+      // pressed in between would still go to the note and carry the caret
+      // past the block.
+      const { view } = block.editor;
+      const { doc } = view.state;
+      const selection =
+        where === "start" ? Selection.atStart(doc) : Selection.atEnd(doc);
+      view.dispatch(view.state.tr.setSelection(selection));
+      view.focus();
     } else {
       this.pendingFocus = { id, where };
     }
