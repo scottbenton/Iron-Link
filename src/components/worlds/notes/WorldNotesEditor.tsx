@@ -136,6 +136,7 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
             onSaveError={onError}
             secrets={secrets}
             Toolbar={Toolbar}
+            uploadImage={canEdit ? uploadImage : undefined}
             fill
             minHeight={120}
           />

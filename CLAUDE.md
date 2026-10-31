@@ -77,7 +77,10 @@ that are easy to miss. When you learn a new one, add a line here.
   who can also edit it (`rich_text_secrets_writable`). Blocks are
   anchored by Yjs relative positions stored in the companion (spike #252);
   the shared document holds nothing about them. Images in secrets go in the
-  private `guide_images` bucket and are shown through signed URLs.
+  private `guide_images` bucket and are shown through signed URLs. A
+  `guide-image:` src never enters shared text: `GuideImagePasteGuard` strips
+  it from pastes and drops, and the editor stores a public copy through
+  `RtcRichTextEditor`'s `uploadImage` (left out with a message without one).
 - A Guide's editor gets secrets by passing `secrets` to `RtcRichTextEditor`
   (`components/RichTextEditor/secrets/`): each block is a widget holding its
   own editor, run by `SecretsController`, read-only (no anchor rewrites,
