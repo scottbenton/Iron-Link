@@ -63,6 +63,11 @@ export function NoteView(props: NoteViewProps) {
   }, [openNoteId, getNoteContent]);
 
   const notePermissions = useNotePermission(openNoteId);
+  const uploadNoteImage = useNotesStore((store) => store.uploadNoteImage);
+  const uploadImage = useCallback(
+    (file: File) => uploadNoteImage(openNoteId, file),
+    [uploadNoteImage, openNoteId],
+  );
 
   const contentStore = useMemo(
     () => getNoteContentStore(openNoteId),
@@ -142,6 +147,7 @@ export function NoteView(props: NoteViewProps) {
         Toolbar={Toolbar}
         initialValue={noteContent}
         contentPx={NOTES_PANE_GUTTER}
+        uploadImage={uploadImage}
         contentStore={
           loading || !notePermissions.canEdit ? undefined : contentStore
         }

@@ -54,6 +54,13 @@ export async function copyImageIntoSurface(
   surface: SecretSurface,
   src: string,
 ): Promise<string> {
+  const file = await fetchImageFile(src);
+  const path = await RichTextSecretsService.storeImage(surface, file);
+  return toGuideImageSrc(path);
+}
+
+// An image node's `src` as a file to store again, under a fresh name.
+export async function fetchImageFile(src: string): Promise<File> {
   const url = isGuideImageSrc(src)
     ? await getSignedUrl(getGuideImagePath(src))
     : src;
@@ -61,11 +68,9 @@ export async function copyImageIntoSurface(
   if (!response.ok) throw new Error(`Image fetch failed: ${response.status}`);
   const blob = await response.blob();
   const extension = IMAGE_EXTENSIONS[blob.type] ?? "png";
-  const file = new File([blob], `${crypto.randomUUID()}.${extension}`, {
+  return new File([blob], `${crypto.randomUUID()}.${extension}`, {
     type: blob.type,
   });
-  const path = await RichTextSecretsService.storeImage(surface, file);
-  return toGuideImageSrc(path);
 }
 
 // Signed URLs last an hour; reuse one for most of that.

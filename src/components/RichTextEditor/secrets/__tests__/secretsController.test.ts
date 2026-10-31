@@ -7,8 +7,9 @@ import * as Y from "yjs";
 
 import { SecretBlocksExtension } from "../SecretBlocksExtension";
 import {
-  GUIDE_IMAGES_REFUSED_EVENT,
+  GUIDE_IMAGES_PASTED_EVENT,
   GuideImagePasteGuard,
+  GuideImagesPastedDetail,
 } from "../guideImagePasteGuard";
 import { toGuideImageSrc } from "../guideImages";
 import {
@@ -51,6 +52,8 @@ async function setup(
   options: {
     readOnly?: boolean;
     images?: SecretsControllerOptions["images"];
+    // Claims pasted secret images and resolves the srcs of public copies.
+    publish?: (srcs: string[]) => Promise<string[]>;
   } = {},
 ) {
   const guideDoc = new Y.Doc();
@@ -71,7 +74,13 @@ async function setup(
     readOnly: options.readOnly,
     images: options.images,
   });
-  const onGuideImagesRefused = vi.fn();
+  const onGuideImagesPasted = vi.fn((event: Event) => {
+    const { srcs, place } = (event as CustomEvent<GuideImagesPastedDetail>)
+      .detail;
+    if (!options.publish) return;
+    event.preventDefault();
+    options.publish(srcs).then(place);
+  });
   const element = document.createElement("div");
   document.body.appendChild(element);
   const shared = new Editor({
@@ -86,8 +95,8 @@ async function setup(
     ],
   });
   shared.view.dom.addEventListener(
-    GUIDE_IMAGES_REFUSED_EVENT,
-    onGuideImagesRefused,
+    GUIDE_IMAGES_PASTED_EVENT,
+    onGuideImagesPasted,
   );
   const player = new Editor({
     element: document.createElement("div"),
@@ -114,7 +123,7 @@ async function setup(
     controller,
     shared,
     player,
-    onGuideImagesRefused,
+    onGuideImagesPasted,
   };
 }
 
@@ -472,19 +481,46 @@ describe("SecretsController", () => {
     expect(readingOrder(shared)).toEqual(["One", "[kept]", "Three"]);
   });
 
-  it("drops images from a secret pasted into the note", async () => {
-    const { shared, onGuideImagesRefused } = await setup();
+  it("leaves a secret's images out of the note when nobody copies them", async () => {
+    const { shared, onGuideImagesPasted } = await setup();
     shared.commands.focus("end");
     const src = toGuideImageSrc("notes/n/one.png");
     shared.view.pasteHTML(`<p>text</p><img src="${src}">`);
-    expect(onGuideImagesRefused).toHaveBeenCalled();
+    expect(onGuideImagesPasted).toHaveBeenCalledTimes(1);
+    await flush();
     expect(shared.getHTML()).not.toContain("guide-image:");
     expect(shared.getText()).toContain("text");
 
-    onGuideImagesRefused.mockClear();
+    onGuideImagesPasted.mockClear();
     shared.view.pasteHTML(`<img src="https://example.com/a.png">`);
-    expect(onGuideImagesRefused).not.toHaveBeenCalled();
+    expect(onGuideImagesPasted).not.toHaveBeenCalled();
     expect(shared.getHTML()).toContain("https://example.com/a.png");
+  });
+
+  it("puts a public copy where a secret's image was pasted", async () => {
+    let resolve!: (srcs: string[]) => void;
+    const publish = vi.fn(
+      () => new Promise<string[]>((done) => (resolve = done)),
+    );
+    const { shared, player } = await setup({ publish });
+    shared.commands.focus("end");
+    const src = toGuideImageSrc("notes/n/one.png");
+    shared.view.pasteHTML(`<p>pasted</p><img src="${src}">`);
+    expect(publish).toHaveBeenCalledWith([src]);
+    // Typing while the copy is made moves where it goes.
+    shared.commands.insertContentAt(1, "Before ");
+    resolve(["https://storage.test/public/copy.png"]);
+    await flush();
+    expect(readingOrder(shared)).toEqual([
+      "Before One",
+      "Two",
+      "Threepasted",
+      "",
+    ]);
+    expect(shared.state.doc.child(3).attrs.src).toBe(
+      "https://storage.test/public/copy.png",
+    );
+    expect(player.getHTML()).not.toContain("guide-image:");
   });
   it("keeps images from secrets pasted into a block", async () => {
     const { controller, shared, companion, guideDoc } = await setup();

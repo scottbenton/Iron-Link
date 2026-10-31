@@ -26,9 +26,13 @@ import type {
 import { secretBlockExtensions } from "./rtcExtensions";
 import { SecretBlockView } from "./secrets/SecretBlockView";
 import { SecretBlocksExtension } from "./secrets/SecretBlocksExtension";
-import { GUIDE_IMAGES_REFUSED_EVENT } from "./secrets/guideImagePasteGuard";
+import {
+  GUIDE_IMAGES_PASTED_EVENT,
+  GuideImagesPastedDetail,
+} from "./secrets/guideImagePasteGuard";
 import {
   copyImageIntoSurface,
+  fetchImageFile,
   guideImageNeedsCopy,
   toGuideImageSrc,
 } from "./secrets/guideImages";
@@ -60,6 +64,10 @@ export interface RtcRichTextEditorProps {
   // Side padding for the text, so the editor can scroll at its column's edge.
   contentPx?: EditorProps["contentPx"];
   fill?: EditorProps["fill"];
+  // Stores an image where everyone who reads this text can load it. An
+  // image from a secret pasted into the text is copied there; without one
+  // it is left out.
+  uploadImage?: (file: File) => Promise<string>;
 }
 
 export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
@@ -75,6 +83,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
     minHeight,
     contentPx,
     fill,
+    uploadImage,
   } = props;
 
   // Adding secrets is an advanced feature. With it off a Guide still sees the
@@ -103,12 +112,20 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
   });
   const surfaceRef = useRef(secrets?.surface);
   surfaceRef.current = secrets?.surface;
+  const uploadImageRef = useRef(uploadImage);
+  uploadImageRef.current = uploadImage;
   const refusedMessage = t(
     "notes.secrets.image-paste-refused",
-    "Images from a secret can't be pasted into the note. Players can't see them.",
+    "Images from a secret can't be pasted here, so they were left out.",
   );
   const refusedMessageRef = useRef(refusedMessage);
   refusedMessageRef.current = refusedMessage;
+  const publishFailedMessage = t(
+    "notes.secrets.image-publish-failed",
+    "An image from a secret couldn't be copied into the note, so it was left out.",
+  );
+  const publishFailedMessageRef = useRef(publishFailedMessage);
+  publishFailedMessageRef.current = publishFailedMessage;
   const copyFailedMessage = t(
     "notes.secrets.image-copy-failed",
     "An image couldn't be moved into the secret's private storage. Players can still open it from its old link.",
@@ -170,12 +187,37 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
     extensions,
   });
 
+  // An image from a secret pasted into the text gets a public copy, since
+  // the private one is out of players' reach.
   useEffect(() => {
     if (!editor) return;
     const dom = editor.view.dom;
-    const onRefused = () => error(refusedMessageRef.current);
-    dom.addEventListener(GUIDE_IMAGES_REFUSED_EVENT, onRefused);
-    return () => dom.removeEventListener(GUIDE_IMAGES_REFUSED_EVENT, onRefused);
+    const onPasted = (event: Event) => {
+      const { srcs, place } = (event as CustomEvent<GuideImagesPastedDetail>)
+        .detail;
+      const upload = uploadImageRef.current;
+      if (!upload) {
+        error(refusedMessageRef.current);
+        return;
+      }
+      event.preventDefault();
+      Promise.allSettled(
+        srcs.map((src) => fetchImageFile(src).then(upload)),
+      ).then((results) => {
+        const published = results.flatMap((result) =>
+          result.status === "fulfilled" ? [result.value] : [],
+        );
+        results.forEach((result) => {
+          if (result.status === "rejected") console.error(result.reason);
+        });
+        place(published);
+        if (published.length < srcs.length) {
+          error(publishFailedMessageRef.current);
+        }
+      });
+    };
+    dom.addEventListener(GUIDE_IMAGES_PASTED_EVENT, onPasted);
+    return () => dom.removeEventListener(GUIDE_IMAGES_PASTED_EVENT, onPasted);
   }, [editor, error]);
 
   useEffect(() => {
