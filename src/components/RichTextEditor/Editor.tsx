@@ -155,6 +155,10 @@ export function Editor(props: EditorProps) {
             hr: {
               color: theme.palette.divider,
             },
+            // Tiptap draws it black, which disappears in dark mode.
+            ".ProseMirror-gapcursor:after": {
+              borderTopColor: "currentColor",
+            },
             p: {
               marginBottom: 0,
             },
