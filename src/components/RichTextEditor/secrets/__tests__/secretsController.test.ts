@@ -457,6 +457,8 @@ describe("SecretsController", () => {
     );
     expect(controller.enterFromShared("down")).toBe(true);
     expect(controller.getSnapshot().activeBlockId).toBe("after-image");
+    // The image is let go, so it isn't left outlined.
+    expect(shared.state.selection).not.toBeInstanceOf(NodeSelection);
 
     const block = controller.getBlock("after-image")!.editor;
     const handled = block.view.someProp("handleKeyDown", (f) =>

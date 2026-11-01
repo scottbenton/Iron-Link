@@ -214,6 +214,22 @@ export class SecretsController {
                     if (!view.state.doc.eq(prevState.doc)) {
                       controller.copyImagesInto(editor);
                     }
+                    // The block sits in a widget of the note, where the
+                    // browser doesn't keep a moving caret in view itself.
+                    if (
+                      view.hasFocus() &&
+                      !view.state.selection.eq(prevState.selection)
+                    ) {
+                      queueMicrotask(() => {
+                        if (!view.isDestroyed && view.hasFocus()) {
+                          view.dispatch(
+                            view.state.tr
+                              .scrollIntoView()
+                              .setMeta("addToHistory", false),
+                          );
+                        }
+                      });
+                    }
                   },
                 };
               },
@@ -301,6 +317,10 @@ export class SecretsController {
 
   public setActiveBlock(id: string | null) {
     if (this.activeBlockId === id) return;
+    const previous = this.activeBlockId
+      ? this.blocks.get(this.activeBlockId)?.editor
+      : this.shared;
+    if (previous) releaseNodeSelection(previous);
     this.activeBlockId = id;
     if (id) this.dropEdgeParagraphIfLeft();
     this.emit();
@@ -325,7 +345,7 @@ export class SecretsController {
       const { doc } = view.state;
       const selection =
         where === "start" ? Selection.atStart(doc) : Selection.atEnd(doc);
-      view.dispatch(view.state.tr.setSelection(selection));
+      view.dispatch(view.state.tr.setSelection(selection).scrollIntoView());
       view.focus();
     } else {
       this.pendingFocus = { id, where };
@@ -689,6 +709,21 @@ export class SecretsController {
 }
 
 export const SECRETS_REFRESH_META = "secretsRefresh";
+
+// An image selected in an editor the caret has left would stay outlined,
+// with its toolbar open: put that editor's selection in text beside it.
+// The editor no longer has focus, so the browser's caret stays put.
+function releaseNodeSelection(editor: Editor) {
+  if (editor.isDestroyed) return;
+  const { state, view } = editor;
+  const { selection } = state;
+  if (!(selection instanceof NodeSelection)) return;
+  const text =
+    Selection.findFrom(selection.$from, -1, true) ??
+    Selection.findFrom(selection.$to, 1, true);
+  if (!text) return;
+  view.dispatch(state.tr.setSelection(text).setMeta("addToHistory", false));
+}
 
 // Whether two positions are drawn on one line. ProseMirror's own test for
 // the last line reads the caret's box, which browsers draw differently at
