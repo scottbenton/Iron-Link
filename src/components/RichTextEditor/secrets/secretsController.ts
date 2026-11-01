@@ -345,8 +345,11 @@ export class SecretsController {
       const { doc } = view.state;
       const selection =
         where === "start" ? Selection.atStart(doc) : Selection.atEnd(doc);
-      view.dispatch(view.state.tr.setSelection(selection).scrollIntoView());
+      // Focus first: ProseMirror only scrolls to a selection the browser's
+      // caret is in, and that is still in the note until then.
+      window.getSelection()?.removeAllRanges();
       view.focus();
+      view.dispatch(view.state.tr.setSelection(selection).scrollIntoView());
     } else {
       this.pendingFocus = { id, where };
     }
