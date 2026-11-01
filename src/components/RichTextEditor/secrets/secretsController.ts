@@ -1,6 +1,7 @@
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import {
   EditorState,
+  NodeSelection,
   Plugin,
   Selection,
   TextSelection,
@@ -340,9 +341,16 @@ export class SecretsController {
     key: "up" | "left" | "down" | "right",
   ) {
     const { doc } = editor.state;
+    const backward = key === "up" || key === "left";
+    // An image first or last in the block, selected whole.
+    const selected = editor.state.selection;
+    if (selected instanceof NodeSelection && selected.$from.depth === 0) {
+      const index = selected.$from.index(0);
+      if (index !== (backward ? 0 : doc.childCount - 1)) return false;
+      return this.leaveBlock(id, backward ? -1 : 1);
+    }
     const selection = readCaret(editor.view);
     if (!selection.empty) return false;
-    const backward = key === "up" || key === "left";
     let atEdge: boolean;
     if (key === "left") {
       atEdge = selection.from <= TextSelection.atStart(doc).from;
@@ -377,7 +385,7 @@ export class SecretsController {
       (direction < 0 && index === 0) ||
       (direction > 0 && index >= doc.childCount);
     if (atEdge) return this.leaveIntoNewParagraph(direction);
-    const pos = topLevelIndexToPos(doc, index) + direction;
+    const $boundary = doc.resolve(topLevelIndexToPos(doc, index));
     // On focus ProseMirror reads the DOM selection, which is still inside the
     // block, and would map it to the widget's boundary: clear it, focus, then
     // place the caret.
@@ -385,8 +393,10 @@ export class SecretsController {
     shared.view.focus();
     shared.view.dispatch(
       shared.state.tr
+        // An image next to the block is selected rather than skipped.
         .setSelection(
-          TextSelection.near(shared.state.doc.resolve(pos), direction),
+          Selection.findFrom($boundary, direction) ??
+            Selection.near($boundary, direction),
         )
         .scrollIntoView(),
     );
@@ -450,13 +460,25 @@ export class SecretsController {
     const shared = this.shared;
     if (!shared) return false;
     const { state, view } = shared;
-    const { $from, empty } = readCaret(view);
-    if (!empty || state.doc.childCount === 0) return false;
+    const backward = key === "up" || key === "left";
+    // An image (or other leaf) beside a block is selected whole, so any
+    // arrow away from it toward the block goes in.
+    const { selection } = state;
+    if (selection instanceof NodeSelection && selection.$from.depth === 0) {
+      return this.enterBeside(selection.$from.index(0), backward);
+    }
+    const caret = readCaret(view);
+    if (!caret.empty || state.doc.childCount === 0) return false;
+    // Firefox can leave the caret between two blocks after a line move, at
+    // the end of the one above; read it as inside that one.
+    const $from = caret.$from.parent.inlineContent
+      ? caret.$from
+      : (Selection.findFrom(caret.$from, backward ? 1 : -1, true)?.$from ??
+        caret.$from);
     const top = $from.index(0);
     const node = state.doc.maybeChild(top);
     if (!node) return false;
     const start = topLevelIndexToPos(state.doc, top);
-    const backward = key === "up" || key === "left";
     const edge = backward
       ? TextSelection.near(state.doc.resolve(start + 1), 1)
       : TextSelection.near(state.doc.resolve(start + node.nodeSize - 1), -1);
@@ -465,8 +487,15 @@ export class SecretsController {
         ? backward
           ? $from.pos <= edge.from
           : $from.pos >= edge.from
-        : $from.sameParent(edge.$from) && view.endOfTextblock(key);
+        : $from.sameParent(edge.$from) &&
+          (view.endOfTextblock(key) || onSameLine(view, $from.pos, edge.from));
     if (!atEdge) return false;
+    return this.enterBeside(top, backward);
+  }
+
+  // Focuses the block right after the top-level node at `top`, or with
+  // `backward` the one right before it.
+  private enterBeside(top: number, backward: boolean) {
     if (!backward) {
       const block = this.placed.find((p) => p.index === top + 1);
       if (!block) return false;
@@ -660,6 +689,19 @@ export class SecretsController {
 }
 
 export const SECRETS_REFRESH_META = "secretsRefresh";
+
+// Whether two positions are drawn on one line. ProseMirror's own test for
+// the last line reads the caret's box, which browsers draw differently at
+// the end of a line.
+function onSameLine(view: EditorView, a: number, b: number) {
+  try {
+    const first = view.coordsAtPos(a);
+    const second = view.coordsAtPos(b);
+    return first.top < second.bottom && first.bottom > second.top;
+  } catch {
+    return false;
+  }
+}
 
 // The caret as the DOM has it. ProseMirror reads a selection the browser
 // moved (End, Home, a click) a moment later, and an arrow key that reads the

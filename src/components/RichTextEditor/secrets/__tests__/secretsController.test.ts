@@ -1,6 +1,7 @@
 import { Editor } from "@tiptap/core";
 import Collaboration from "@tiptap/extension-collaboration";
 import Image from "@tiptap/extension-image";
+import { NodeSelection } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as Y from "yjs";
@@ -418,6 +419,54 @@ describe("SecretsController", () => {
       "[last]",
       "After",
     ]);
+  });
+
+  it("enters a block below when the caret sits just past the node above", async () => {
+    const { controller, shared, companion, guideDoc } = await setup();
+    addSecretBlock(companion, {
+      id: "middle",
+      shared: guideDoc.getXmlFragment("default"),
+      index: 1,
+      createdBy: "guide",
+    });
+    await flush();
+    shared.view.focus();
+    // Where Firefox can leave the caret after Down onto a line's end:
+    // between the paragraph and the block.
+    document.getSelection()!.collapse(shared.view.dom, 1);
+    expect(controller.enterFromShared("down")).toBe(true);
+    expect(controller.getSnapshot().activeBlockId).toBe("middle");
+  });
+
+  it("steps between a block and an image beside it", async () => {
+    const { controller, shared, companion, guideDoc } = await setup();
+    shared.commands.setContent('<p>One</p><img src="a.png"><p>Three</p>');
+    addSecretBlock(companion, {
+      id: "after-image",
+      shared: guideDoc.getXmlFragment("default"),
+      index: 2,
+      createdBy: "guide",
+    });
+    await flush();
+    const imagePos = shared.state.doc.child(0).nodeSize;
+    shared.view.focus();
+    shared.view.dispatch(
+      shared.state.tr.setSelection(
+        NodeSelection.create(shared.state.doc, imagePos),
+      ),
+    );
+    expect(controller.enterFromShared("down")).toBe(true);
+    expect(controller.getSnapshot().activeBlockId).toBe("after-image");
+
+    const block = controller.getBlock("after-image")!.editor;
+    const handled = block.view.someProp("handleKeyDown", (f) =>
+      f(block.view, new KeyboardEvent("keydown", { key: "ArrowUp" })),
+    );
+    expect(handled).toBe(true);
+    // The image is selected, not skipped for the text above it.
+    const { selection } = shared.state;
+    expect(selection).toBeInstanceOf(NodeSelection);
+    expect(selection.from).toBe(imagePos);
   });
 
   it("lists what the blocks mention", async () => {
