@@ -93,7 +93,9 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
   }[] = [
     {
       value: "pan",
-      label: t("worlds.maps.tools.pan", "Move around"),
+      label: canPin
+        ? t("worlds.maps.tools.pan-and-move", "Move around, or drag a place")
+        : t("worlds.maps.tools.pan", "Move around"),
       shortLabel: t("worlds.maps.tools.pan-short", "Pan"),
       icon: <PanToolIcon fontSize="small" />,
     },
@@ -146,8 +148,8 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
       ? [
           {
             value: "pin" as const,
-            label: t("worlds.maps.tools.pin", "Place pins"),
-            shortLabel: t("worlds.maps.tools.pin-short", "Pin"),
+            label: t("worlds.maps.tools.pin", "Add places to the map"),
+            shortLabel: t("worlds.maps.tools.pin-short", "Add"),
             icon: pinIcon ?? <PushPinIcon fontSize="small" />,
             menu: "pin" as const,
           },

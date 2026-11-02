@@ -105,6 +105,9 @@ export function WorldEntryMap({
     (chosenTool === "background" && !backgroundEditor.background)
       ? "pan"
       : chosenTool;
+  // Editors drag pins to move them with the hand, as well as with the pin
+  // tool; a finger lifts one with a long press.
+  const canMovePins = canEdit && canPin && (tool === "pan" || tool === "pin");
   const settings = isPaintTool(tool)
     ? { ...paintSettings, tool }
     : paintSettings;
@@ -330,18 +333,24 @@ export function WorldEntryMap({
             : undefined
       }
       onPinDrop={
-        tool === "pin"
+        canMovePins
           ? (id, point) =>
               // A marker's id is its entry, or its spot when it holds
               // several, which then all move together.
-              (
+              void pinTool.movePins(
                 pinGroups
                   .find((group) => group.id === id)
-                  ?.pin.entries.map((pinned) => pinned.id) ?? [id]
-              ).forEach((entryId) => pinTool.onPinDrop(entryId, point))
+                  ?.pin.entries.map((pinned) => pinned.id) ?? [id],
+                point,
+              )
           : undefined
       }
       onBackgroundLoad={backgroundEditor.onBackgroundLoad}
+      selectedPoints={
+        tool === "pin" && pinTool.selectedId && state.pins[pinTool.selectedId]
+          ? [state.pins[pinTool.selectedId]]
+          : undefined
+      }
       label={t("worlds.maps.label", "Map of {{name}}", { name: entry.name })}
       overlay={
         canEdit &&
@@ -371,10 +380,11 @@ export function WorldEntryMap({
           key={id}
           entries={pin.entries}
           screen={screen}
+          scale={scale}
           showLabel={scale >= PIN_LABEL_SCALE}
           navigation={navigation}
           onSelect={tool === "pin" ? pinTool.select : undefined}
-          onDragStart={tool === "pin" ? startDrag : undefined}
+          onDragStart={canMovePins ? startDrag : undefined}
           dragging={dragging}
           selected={pin.entries.some(
             (pinned) => pinned.id === pinTool.selectedId,

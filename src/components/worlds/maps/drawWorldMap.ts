@@ -47,6 +47,8 @@ export interface WorldMapScene {
   background: WorldMapBackgroundImage | null;
   // Cells outlined under the pointer: the brush, or the cell a pin will land.
   highlight?: Cell[];
+  // Cells outlined in the accent colour: the selected pin's.
+  selected?: { cells: Cell[]; color: string };
 }
 
 // Grid lines show once a cell is this many pixels across.
@@ -311,6 +313,15 @@ export function drawWorldMap(
     ctx.fill(outline);
     ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
     ctx.lineWidth = 1.5 / camera.scale;
+    ctx.stroke(outline);
+  }
+
+  if (scene.selected?.cells.length) {
+    const outline = new Path2D();
+    scene.selected.cells.forEach((cell) => traceCell(outline, grid, cell));
+    ctx.strokeStyle = scene.selected.color;
+    ctx.lineWidth = 2.5 / camera.scale;
+    ctx.lineJoin = "round";
     ctx.stroke(outline);
   }
 }
