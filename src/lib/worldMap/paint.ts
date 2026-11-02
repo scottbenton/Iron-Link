@@ -71,6 +71,17 @@ export function paintCell(
   }
 }
 
+// The settings a stroke uses, decided where it starts: a path stroke that
+// starts on a path takes paths away, so clicking a path again removes it.
+export function getStrokeSettings(
+  settings: PaintSettings,
+  startCell: WorldMapCell | undefined,
+): PaintSettings {
+  return settings.tool === "path" && startCell?.p
+    ? { ...settings, tool: "eraser", eraser: "path", size: 0 }
+    : settings;
+}
+
 // Applies a tool to a set of cells, reading each one's current value.
 export function paintCells(
   cells: Cell[],

@@ -1,4 +1,4 @@
-import TuneIcon from "@mui/icons-material/Tune";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
   Button,
   Checkbox,
@@ -11,6 +11,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Tooltip,
 } from "@mui/material";
 import { ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -23,8 +24,9 @@ import { IWorldMap } from "services/worldMaps.service";
 
 import { WorldMapGridPicker } from "./WorldMapGridPicker";
 
-// The map's settings, for editors: hex flowers, the grid while nothing is
-// painted, and whatever the tools add (`children`).
+// The map's settings, for editors, from a button at the end of the toolbar:
+// hex flowers, the grid while nothing is painted, and whatever the tools add
+// (`children`).
 export function WorldMapOptions({
   map,
   painted,
@@ -33,7 +35,7 @@ export function WorldMapOptions({
   touch = false,
 }: {
   map: IWorldMap;
-  // An icon button with a 44px target, for phones.
+  // A 44px target, for phones.
   touch?: boolean;
   painted: boolean;
   onError: (cause: unknown) => void;
@@ -50,35 +52,18 @@ export function WorldMapOptions({
 
   return (
     <>
-      {touch ? (
+      <Tooltip title={label}>
         <IconButton
           aria-label={label}
           aria-haspopup="menu"
+          aria-expanded={!!anchor}
           onClick={(event) => setAnchor(event.currentTarget)}
-          sx={{
-            width: 44,
-            height: 44,
-            bgcolor: "background.paper",
-            color: "text.primary",
-            boxShadow: 2,
-            "&:hover": { bgcolor: "background.paper" },
-          }}
+          size={touch ? "medium" : "small"}
+          sx={touch ? { width: 44, height: 44 } : undefined}
         >
-          <TuneIcon />
+          <MoreVertIcon />
         </IconButton>
-      ) : (
-        <Button
-          size="small"
-          variant="contained"
-          color="inherit"
-          startIcon={<TuneIcon />}
-          aria-haspopup="menu"
-          onClick={(event) => setAnchor(event.currentTarget)}
-          sx={{ bgcolor: "background.paper", color: "text.primary" }}
-        >
-          {label}
-        </Button>
-      )}
+      </Tooltip>
       <Menu anchorEl={anchor} open={!!anchor} onClose={close}>
         {isHexGrid(map.grid) && (
           <MenuItem
@@ -131,7 +116,12 @@ export function WorldMapOptions({
         </MenuItem>
         {children?.(close)}
       </Menu>
-      <Dialog open={gridOpen} onClose={() => !busy && setGridOpen(false)}>
+      <Dialog
+        open={gridOpen}
+        onClose={() => !busy && setGridOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>{t("worlds.maps.change-grid", "Change grid")}</DialogTitle>
         <DialogContent>
           <WorldMapGridPicker value={grid} onChange={setGrid} disabled={busy} />
