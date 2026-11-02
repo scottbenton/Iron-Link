@@ -67,7 +67,7 @@ openai_api_key = "env(OPENAI_API_KEY)"
 
 # Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
 # are monitored, and you can view the emails that would have been sent from the web interface.
-[inbucket]
+[local_smtp]
 enabled = true
 # Port to use for the email testing server web interface.
 port = 54324
@@ -126,8 +126,9 @@ minimum_password_length = 6
 password_requirements = ""
 
 [auth.email]
-# Allow/disallow new user signups via email to your project.
-enable_signup = true
+# Allow/disallow the email provider. When false, users can't sign up or sign in with email.
+# To block new signups only, set enable_signup = false under [auth] instead.
+enabled = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
@@ -165,8 +166,9 @@ subject = "Iron Link One Time Passcode"
 content_path = "./supabase/email-templates/magic-link.html"
 
 [auth.sms]
-# Allow/disallow new user signups via SMS to your project.
-enable_signup = false
+# Allow/disallow the phone provider. When false, users can't sign up or sign in with SMS.
+# To block new signups only, set enable_signup = false under [auth] instead.
+enabled = false
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 # Template for sending OTP to users

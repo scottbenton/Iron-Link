@@ -18,12 +18,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # v3 changed config keys and made hosted commands opt-in (--remote, --yes);
-      # move up deliberately rather than on its release.
+      # Pinned so a new CLI release can't break CI or the deploy on its own;
+      # move up deliberately, with supabase in package.json.
       - uses: supabase/setup-cli@v1
         with:
-          version: 2.122.0
+          version: 3.0.0
 
       - run: supabase link --project-ref $SUPABASE_PROJECT_ID
-      - run: supabase db push
-      - run: supabase functions deploy --project-ref $SUPABASE_PROJECT_ID
+      # From v3, commands target the local stack unless given --remote, and
+      # hosted changes need --yes when there is no prompt.
+      - run: supabase db push --remote --yes
+      - run: supabase functions deploy --remote --yes
