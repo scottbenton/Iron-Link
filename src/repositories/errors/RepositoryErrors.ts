@@ -23,6 +23,7 @@ export enum ErrorNoun {
   WorldFieldDefinition = "world field definition",
   WorldEntryFieldValue = "world entry field value",
   RoomKey = "room key",
+  Secrets = "secrets",
 }
 
 export enum ErrorVerb {

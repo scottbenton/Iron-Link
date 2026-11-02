@@ -70,6 +70,14 @@ that are easy to miss. When you learn a new one, add a line here.
   `RichTextContentStore` and saves through `saveMergedRichText`, guarded by the
   row's `updated_at`. A new rich text column needs a versioned row and a store.
 
+- Guide-only secrets never go in a document players can read. Each note,
+  entry Notes or world Notes keeps its secrets in one companion Yjs document,
+  a `rich_text_secrets` row created by the first save, read and written only
+  by Guides who can read the surface (`rich_text_secrets_allowed`). Blocks are
+  anchored by Yjs relative positions stored in the companion (spike #252);
+  the shared document holds nothing about them. Images in secrets go in the
+  private `guide_images` bucket and are shown through signed URLs.
+
 ## Notes
 
 - Note and folder RLS follows the app's `getPermissions` (`notes.store.ts`)
