@@ -52,9 +52,11 @@ export interface WorldMapScene {
 // Grid lines show once a cell is this many pixels across.
 const GRID_MIN_PIXELS = 10;
 const FLOWER_MIN_PIXELS = 4;
-// Below the default size each chunk is drawn once into its own canvas, at a
-// power of two at or above the scale, and reused until it changes.
-const CACHE_MAX_SCALE = 1;
+// Zoomed out, each chunk is drawn once into its own canvas, at a power of two
+// at or above the screen pixels per map unit (scale times the device pixel
+// ratio, so high-density screens stay sharp), and reused until it changes.
+// Closer in, chunks are drawn straight to the screen.
+const CACHE_MAX_SCALE = 2;
 const CACHE_MIN_SCALE = 1 / 32;
 
 export function getCell(
@@ -244,8 +246,9 @@ export function drawWorldMap(
   const grid = scene.grid;
   if (grid === "none") return;
 
-  const cached = camera.scale <= CACHE_MAX_SCALE;
-  const level = cacheLevel(camera.scale);
+  const pixelsPerUnit = camera.scale * pixelRatio;
+  const cached = pixelsPerUnit <= CACHE_MAX_SCALE;
+  const level = cacheLevel(pixelsPerUnit);
   scene.chunks.forEach((chunk) => {
     const bounds = chunkBounds(grid, chunk);
     if (!boundsIntersect(bounds, visible)) return;

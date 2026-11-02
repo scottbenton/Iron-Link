@@ -9,8 +9,8 @@ import { WORLD_MAP_BACKGROUND } from "lib/worldMap/terrain";
 
 import { WorldMapBackgroundImage, drawMinimapCells } from "./drawWorldMap";
 
-const WIDTH = 168;
-const HEIGHT = 112;
+const WIDTH = 132;
+const HEIGHT = 88;
 const PADDING = 6;
 
 // Everything on the map in miniature, with the part on screen outlined.
@@ -106,9 +106,7 @@ export function WorldMapMinimap({
         if (event.buttons) centerOn(event);
       }}
       sx={{
-        position: "absolute",
-        right: 8,
-        bottom: 8,
+        position: "relative",
         width: WIDTH,
         height: HEIGHT,
         borderRadius: 1,
@@ -118,7 +116,6 @@ export function WorldMapMinimap({
         boxShadow: 3,
         cursor: "pointer",
         touchAction: "none",
-        display: { xs: "none", sm: "block" },
       }}
     >
       <canvas

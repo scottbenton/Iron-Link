@@ -2,7 +2,13 @@
 import { describe, expect, it } from "vitest";
 
 import { cellKey } from "../grid";
-import { getStrokeCells, paintCell, paintCells } from "../paint";
+import {
+  PaintSettings,
+  getStrokeCells,
+  getStrokeSettings,
+  paintCell,
+  paintCells,
+} from "../paint";
 
 describe("paintCell", () => {
   const brush = { tool: "brush", terrain: "water", eraser: "all" } as const;
@@ -99,5 +105,30 @@ describe("paintCells", () => {
         { tool: "brush", terrain: "water", eraser: "all" },
       ),
     ).toEqual({ "1,0": { c: "water" } });
+  });
+});
+
+describe("getStrokeSettings", () => {
+  const path: PaintSettings = {
+    tool: "path",
+    terrain: "grass",
+    size: 2,
+    eraser: "all",
+  };
+
+  it("draws paths when the stroke starts off a path", () => {
+    expect(getStrokeSettings(path, undefined)).toBe(path);
+    expect(getStrokeSettings(path, { c: "grass" })).toBe(path);
+  });
+
+  it("takes paths away when the stroke starts on one", () => {
+    const stroke = getStrokeSettings(path, { c: "grass", p: true });
+    expect(stroke).toMatchObject({ tool: "eraser", eraser: "path", size: 0 });
+    expect(paintCell({ c: "grass", p: true }, stroke)).toEqual({ c: "grass" });
+  });
+
+  it("leaves the other tools alone", () => {
+    const brush: PaintSettings = { ...path, tool: "brush" };
+    expect(getStrokeSettings(brush, { p: true })).toBe(brush);
   });
 });
