@@ -126,6 +126,15 @@ select is(pg_temp.cells(1),
   'a null cell erases it, and erasing an unpainted cell stores nothing');
 select is(pg_temp.outcome($$select pg_temp.paint(1,'{"0,0":{"c":"sand","x":1}}')$$),
   '22023 invalid_cells A painted cell is not valid','cells hold only a colour and a path');
+select is(pg_temp.outcome($$select pg_temp.paint(1,'{"3,0":{"p":259},"4,0":{"c":"grass","p":511}}')$$),
+  'ok','a path can keep the neighbours it links to');
+select is(pg_temp.outcome($$select pg_temp.paint(1,'{"0,0":{"p":512}}')$$),
+  '22023 invalid_cells A painted cell is not valid','path links fit in eight directions');
+select is(pg_temp.outcome($$select pg_temp.paint(1,'{"0,0":{"p":255.5}}')$$),
+  '22023 invalid_cells A painted cell is not valid','a path is true or whole links');
+select is(pg_temp.outcome($$select pg_temp.paint(1,'{"0,0":{"p":false}}')$$),
+  '22023 invalid_cells A painted cell is not valid','a path is never false');
+select pg_temp.paint(1,'{"3,0":null,"4,0":null}');
 select is(pg_temp.outcome($$select pg_temp.paint(1,'{"0,0":{}}')$$),
   '22023 invalid_cells A painted cell is not valid','an empty cell is not stored');
 select is(pg_temp.outcome($$select pg_temp.paint(1,'{"a,b":{"c":"sand"}}')$$),
