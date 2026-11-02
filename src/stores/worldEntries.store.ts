@@ -101,16 +101,6 @@ interface WorldEntriesStoreActions {
     fieldDefinitionId: string,
     value: WorldFieldValue | null,
   ) => Promise<void>;
-  setFieldContent: (
-    entryId: string,
-    worldId: string,
-    fieldDefinitionId: string,
-    content: Uint8Array,
-  ) => Promise<void>;
-  getFieldContent: (
-    entryId: string,
-    fieldDefinitionId: string,
-  ) => Promise<{ content: Uint8Array }>;
   deleteFieldValue: (
     entryId: string,
     fieldDefinitionId: string,
@@ -364,20 +354,6 @@ export const useWorldEntriesStore = createWithEqualityFn<
         worldId,
         fieldDefinitionId,
         value,
-      );
-    },
-    setFieldContent: (entryId, worldId, fieldDefinitionId, content) => {
-      return WorldEntryFieldValuesService.setWorldEntryFieldContent(
-        entryId,
-        worldId,
-        fieldDefinitionId,
-        content,
-      );
-    },
-    getFieldContent: (entryId, fieldDefinitionId) => {
-      return WorldEntryFieldValuesService.getWorldEntryFieldContent(
-        entryId,
-        fieldDefinitionId,
       );
     },
     deleteFieldValue: (entryId, fieldDefinitionId) => {

@@ -10,14 +10,22 @@ import { getHueFromString, hslToHex } from "lib/getHueFromString";
 import { ExtendedImageExtension } from "./ExtendedImageNode";
 import { LogEntryNodeExtension } from "./LogEntryNode";
 import { NoteMentionExtension } from "./NoteMentionExtension";
+import { GuideImagePasteGuard } from "./secrets/guideImagePasteGuard";
 
-export const defaultExtensions = [
+// What a secret block's own editor has: everything but the guard that keeps
+// images from secrets out, since that is where they belong.
+export const secretBlockExtensions = [
   StarterKit.configure({
     history: false,
   }),
   ExtendedImageExtension,
   NoteMentionExtension,
   LogEntryNodeExtension,
+];
+
+export const defaultExtensions = [
+  ...secretBlockExtensions,
+  GuideImagePasteGuard,
 ];
 
 export const rtcExtensions = (params: {

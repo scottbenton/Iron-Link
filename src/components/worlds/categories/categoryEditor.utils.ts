@@ -20,8 +20,6 @@ export function getFieldKindLabel(t: TFunction, kind: WorldFieldKind): string {
   switch (kind) {
     case "text":
       return t("worlds.fields.kind-text", "Text");
-    case "longText":
-      return t("worlds.fields.kind-long-text", "Long text");
     case "optionList":
       return t("worlds.fields.kind-option-list", "Option list");
     case "linkedEntry":
@@ -35,11 +33,6 @@ export function getFieldKindHint(t: TFunction, kind: WorldFieldKind): string {
       return t(
         "worlds.fields.kind-text-hint",
         "A short line, like a name or a rolled result. Can roll from an oracle.",
-      );
-    case "longText":
-      return t(
-        "worlds.fields.kind-long-text-hint",
-        "Formatted paragraphs that several people can edit together.",
       );
     case "optionList":
       return t(

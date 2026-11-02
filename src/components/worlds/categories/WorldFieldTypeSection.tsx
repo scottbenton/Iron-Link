@@ -132,7 +132,6 @@ export function WorldFieldTypeSection({
           )}
           <WorldFieldTypePicker
             value={kind}
-            current={fieldKind}
             label={title}
             disabled={disabled}
             getDisabledReason={getDisabledReason}

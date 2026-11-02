@@ -10,12 +10,15 @@ function getSourceId(source: RoomKeySource) {
 
 // The password for a live editing room: undefined while it loads, null when
 // this user cannot read it (they edit without a live room), and a new value
-// after each rotation.
-export function useRoomKey(source: RoomKeySource): string | null | undefined {
-  const sourceId = getSourceId(source);
+// after each rotation. Null without a source: there is no room to join.
+export function useRoomKey(
+  source: RoomKeySource | null,
+): string | null | undefined {
+  const sourceId = source ? getSourceId(source) : "";
   const [key, setKey] = useState<{ sourceId: string; key: string | null }>();
 
   useEffect(() => {
+    if (!sourceId) return;
     const [kind, id] = sourceId.split(":");
     return RoomKeysService.listenToRoomKey(
       { [kind]: id } as RoomKeySource,
@@ -24,5 +27,6 @@ export function useRoomKey(source: RoomKeySource): string | null | undefined {
     );
   }, [sourceId]);
 
+  if (!sourceId) return null;
   return key?.sourceId === sourceId ? key.key : undefined;
 }

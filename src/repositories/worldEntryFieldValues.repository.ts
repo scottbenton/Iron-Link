@@ -21,8 +21,6 @@ export interface WorldEntryFieldValueKey {
   fieldDefinitionId: string;
 }
 
-// `content` holds rich text Yjs documents and is fetched on demand,
-// exactly as notes_content is on the entry itself.
 const VALUE_LIST_COLUMNS =
   "entry_id, field_definition_id, world_id, gm_only, value, created_at, updated_at";
 
@@ -33,7 +31,7 @@ export class WorldEntryFieldValuesRepository {
     supabase.from("world_entry_field_values");
 
   // Every value in the world, so lists and linked entries can read any entry's
-  // fields. Realtime rows still carry `content`; callers must ignore it.
+  // fields.
   public static listenToWorldFieldValues(
     worldId: string,
     onValueChanges: (
@@ -170,36 +168,6 @@ export class WorldEntryFieldValuesRepository {
             );
           } else {
             resolve();
-          }
-        });
-    });
-  }
-
-  // Returns null when the entry has no value row for this field yet.
-  public static getWorldEntryFieldValueContent(
-    entryId: string,
-    fieldDefinitionId: string,
-  ): Promise<WorldEntryFieldValueDTO | null> {
-    return new Promise((resolve, reject) => {
-      this.worldEntryFieldValues()
-        .select("content")
-        .eq("entry_id", entryId)
-        .eq("field_definition_id", fieldDefinitionId)
-        .maybeSingle()
-        .then(({ data, error, status }) => {
-          if (error) {
-            console.error(error);
-            reject(
-              getRepositoryError(
-                error,
-                ErrorVerb.Read,
-                ErrorNoun.WorldEntryFieldValue,
-                false,
-                status,
-              ),
-            );
-          } else {
-            resolve(data as WorldEntryFieldValueDTO | null);
           }
         });
     });

@@ -150,11 +150,9 @@ export class WorldFieldDefinitionsService {
     definition: WorldConfigurationFieldDTO,
   ): IWorldFieldDefinition {
     const type =
-      definition.type === WorldFieldType.RichText
-        ? WorldFieldType.RichText
-        : definition.type === WorldFieldType.Select
-          ? WorldFieldType.Select
-          : WorldFieldType.Text;
+      definition.type === WorldFieldType.Select
+        ? WorldFieldType.Select
+        : WorldFieldType.Text;
 
     return {
       id: definition.id,

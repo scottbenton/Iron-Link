@@ -950,7 +950,6 @@ export type Database = {
       };
       world_entry_field_values: {
         Row: {
-          content: string | null;
           created_at: string;
           entry_id: string;
           field_definition_id: string;
@@ -960,7 +959,6 @@ export type Database = {
           world_id: string;
         };
         Insert: {
-          content?: string | null;
           created_at?: string;
           entry_id: string;
           field_definition_id: string;
@@ -970,7 +968,6 @@ export type Database = {
           world_id: string;
         };
         Update: {
-          content?: string | null;
           created_at?: string;
           entry_id?: string;
           field_definition_id?: string;

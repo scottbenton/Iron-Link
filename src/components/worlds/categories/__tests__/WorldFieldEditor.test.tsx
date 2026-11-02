@@ -67,12 +67,6 @@ function renderGuideOnlySources(gmOnly: boolean) {
     { id: "tags", label: "Secret tags", gmOnly: true },
     { multiple: true },
   );
-  const notes = field({
-    id: "notes",
-    label: "Secret notes",
-    type: WorldFieldType.RichText,
-    gmOnly: true,
-  });
   target.configuration.rules = [
     {
       conditions: [
@@ -92,7 +86,7 @@ function renderGuideOnlySources(gmOnly: boolean) {
       worldId="world-1"
       categories={[category]}
       field={target}
-      fields={[target, secret, name, tags, notes]}
+      fields={[target, secret, name, tags]}
       valueCount={0}
       multiValueCount={0}
       readOnly={false}
@@ -132,9 +126,6 @@ describe("WorldFieldEditor", () => {
     expect(
       screen.getByRole("option", { name: "Secret tags" }),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("option", { name: "Secret notes" }),
-    ).not.toBeInTheDocument();
     await user.click(screen.getByRole("option", { name: "Secret type" }));
     await user.click(
       screen.getByRole("combobox", { name: "Ancestor selector field" }),
@@ -564,25 +555,6 @@ describe("WorldFieldEditor field types", () => {
     expect(screen.getByRole("radio", { name: "Option list" })).toHaveFocus();
     await user.keyboard("{ArrowLeft}{ArrowLeft}");
     expect(screen.getByRole("radio", { name: "Linked entry" })).toBeChecked();
-  });
-
-  it("keeps Long text on offer for an existing Long text field", async () => {
-    const user = userEvent.setup();
-    render(
-      <WorldFieldEditor
-        {...props}
-        field={field({ type: WorldFieldType.RichText })}
-        onSave={vi.fn()}
-      />,
-    );
-    expect(
-      screen.getByRole("region", { name: "Field type" }),
-    ).toHaveTextContent("Long text");
-    await user.click(screen.getByRole("button", { name: "Change type" }));
-    expect(screen.getByRole("radio", { name: "Long text" })).toBeChecked();
-    expect(
-      screen.queryByRole("checkbox", { name: "Full width" }),
-    ).not.toBeInTheDocument();
   });
 
   it("shows only the settings each kind uses", async () => {
