@@ -1,4 +1,7 @@
+import { Button } from "@mui/material";
+import { closeSnackbar, enqueueSnackbar } from "notistack";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useUID } from "stores/auth.store";
 import { useWorldIsGuided, useWorldPermission } from "stores/world.store";
@@ -42,6 +45,7 @@ export function useWorldMapPins(
   pins: Record<string, IWorldMapPin>,
   onError: (cause: unknown) => void,
 ) {
+  const { t } = useTranslation();
   const uid = useUID();
   const permission = useWorldPermission();
   const guided = useWorldIsGuided();
@@ -103,6 +107,42 @@ export function useWorldMapPins(
     } catch (cause) {
       onError(cause);
     }
+  };
+
+  // Moves pinned places to a new spot, all at once, and offers to put them
+  // back, so a drop in the wrong place costs nothing.
+  const movePins = async (entryIds: string[], point: Point) => {
+    const before = entryIds.flatMap((entryId) =>
+      pins[entryId]
+        ? [{ entryId, x: pins[entryId].x, y: pins[entryId].y }]
+        : [],
+    );
+    const moved = snapToGrid(grid, point);
+    if (before.every((pin) => pin.x === moved.x && pin.y === moved.y)) return;
+    await Promise.all(entryIds.map((entryId) => pinAt(entryId, point)));
+    const name =
+      entryIds.length === 1
+        ? (entries[entryIds[0]]?.name ?? "")
+        : t("worlds.maps.pin-group", "{{count}} places", {
+            count: entryIds.length,
+          });
+    enqueueSnackbar(t("worlds.maps.pins.moved", "Moved {{name}}", { name }), {
+      variant: "info",
+      action: (id) => (
+        <Button
+          color="inherit"
+          size="small"
+          onClick={() => {
+            closeSnackbar(id);
+            before.forEach((pin) =>
+              setPin({ ...pin, mapEntryId: entry.id }).catch(onError),
+            );
+          }}
+        >
+          {t("worlds.maps.pins.undo", "Undo")}
+        </Button>
+      ),
+    });
   };
 
   const onToolPointer = (event: WorldMapPointerEvent) => {
@@ -176,7 +216,7 @@ export function useWorldMapPins(
     select: (place: IWorldEntry) =>
       setTarget({ type: "entry", entryId: place.id }),
     onToolPointer,
-    onPinDrop: pinAt,
+    movePins,
     remove,
     busy,
     dialog,

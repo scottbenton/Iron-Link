@@ -95,11 +95,12 @@ export function WorldMapScreen({
           label={t("worlds.maps.label", "Map of {{name}}", {
             name: entry.name,
           })}
-          renderPin={({ id, pin, screen }) => (
+          renderPin={({ id, pin, screen, scale }) => (
             <WorldMapPinMarker
               key={id}
               entries={pin}
               screen={screen}
+              scale={scale}
               showLabel
             />
           )}
