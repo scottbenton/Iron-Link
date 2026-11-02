@@ -26,6 +26,7 @@ import {
   isHexGrid,
   parseCellKey,
 } from "lib/worldMap/grid";
+import { pathDirections, pathsJoin } from "lib/worldMap/paint";
 import {
   WORLD_MAP_BACKGROUND,
   WORLD_MAP_PATH_COLOR,
@@ -81,7 +82,7 @@ function traceCell(
 }
 
 // Draws one chunk's cells in map units. Paths run from a cell's centre
-// towards each neighbouring path, so they join across chunk edges.
+// towards each neighbour they join, so they join across chunk edges.
 function drawChunkCells(
   ctx: CanvasRenderingContext2D,
   grid: PaintableGrid,
@@ -119,9 +120,12 @@ function drawChunkCells(
   ctx.beginPath();
   paths.forEach((cell) => {
     const center = cellCenter(grid, cell);
+    const value = getCell(chunks, cell);
     let joined = false;
-    cellNeighbors(grid, cell).forEach((neighbor) => {
-      if (!getCell(chunks, neighbor)?.p) return;
+    pathDirections(grid).forEach((direction) => {
+      const neighbor = { x: cell.x + direction.x, y: cell.y + direction.y };
+      if (!pathsJoin(grid, cell, value, neighbor, getCell(chunks, neighbor)))
+        return;
       const other = cellCenter(grid, neighbor);
       ctx.moveTo(center.x, center.y);
       ctx.lineTo((center.x + other.x) / 2, (center.y + other.y) / 2);

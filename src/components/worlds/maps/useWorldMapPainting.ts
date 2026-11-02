@@ -2,13 +2,14 @@ import { useCallback, useRef } from "react";
 
 import { readWorldMapCell, useWorldMapsStore } from "stores/worldMaps.store";
 
-import { Cell, PaintableGrid, cellKey } from "lib/worldMap/grid";
+import { Cell, PaintableGrid, cellKey, cellLine } from "lib/worldMap/grid";
 import {
   PaintSettings,
   getBrushCells,
   getStrokeCells,
   getTapSettings,
   paintCells,
+  paintPath,
 } from "lib/worldMap/paint";
 
 import { WorldMapPointerEvent } from "./WorldMapViewport";
@@ -63,18 +64,22 @@ export function useWorldMapPainting(
       ) {
         pathTap.current = null;
       }
-      const cells = getStrokeCells(
-        grid,
-        event.phase === "start" ? undefined : last.current,
-        event.cell,
-        current,
-      );
+      const from = event.phase === "start" ? undefined : last.current;
       last.current = event.cell;
-      const changes = paintCells(
-        cells,
-        (cell) => readWorldMapCell(state, cell),
-        current,
-      );
+      const read = (cell: Cell) => readWorldMapCell(state, cell);
+      // Paths link each cell to the next one drawn.
+      const changes =
+        current.tool === "path"
+          ? paintPath(
+              grid,
+              from ? cellLine(grid, from, event.cell) : [event.cell],
+              read,
+            )
+          : paintCells(
+              getStrokeCells(grid, from, event.cell, current),
+              read,
+              current,
+            );
       if (Object.keys(changes).length > 0) paint(entryId, changes);
     },
     [entryId, grid, paint],
