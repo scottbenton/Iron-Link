@@ -5,7 +5,7 @@ import { cellKey } from "../grid";
 import {
   PaintSettings,
   getStrokeCells,
-  getStrokeSettings,
+  getTapSettings,
   paintCell,
   paintCells,
 } from "../paint";
@@ -108,7 +108,7 @@ describe("paintCells", () => {
   });
 });
 
-describe("getStrokeSettings", () => {
+describe("getTapSettings", () => {
   const path: PaintSettings = {
     tool: "path",
     terrain: "grass",
@@ -116,19 +116,19 @@ describe("getStrokeSettings", () => {
     eraser: "all",
   };
 
-  it("draws paths when the stroke starts off a path", () => {
-    expect(getStrokeSettings(path, undefined)).toBe(path);
-    expect(getStrokeSettings(path, { c: "grass" })).toBe(path);
+  it("draws paths when the tap is off a path", () => {
+    expect(getTapSettings(path, undefined)).toBe(path);
+    expect(getTapSettings(path, { c: "grass" })).toBe(path);
   });
 
-  it("takes paths away when the stroke starts on one", () => {
-    const stroke = getStrokeSettings(path, { c: "grass", p: true });
+  it("takes the path away when the tap is on one", () => {
+    const stroke = getTapSettings(path, { c: "grass", p: true });
     expect(stroke).toMatchObject({ tool: "eraser", eraser: "path", size: 0 });
     expect(paintCell({ c: "grass", p: true }, stroke)).toEqual({ c: "grass" });
   });
 
   it("leaves the other tools alone", () => {
     const brush: PaintSettings = { ...path, tool: "brush" };
-    expect(getStrokeSettings(brush, { p: true })).toBe(brush);
+    expect(getTapSettings(brush, { p: true })).toBe(brush);
   });
 });

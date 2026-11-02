@@ -71,9 +71,9 @@ export function paintCell(
   }
 }
 
-// The settings a stroke uses, decided where it starts: a path stroke that
-// starts on a path takes paths away, so clicking a path again removes it.
-export function getStrokeSettings(
+// What a click (a stroke that never leaves its cell) does: the path tool
+// clicked on a path takes it away; otherwise it paints as usual.
+export function getTapSettings(
   settings: PaintSettings,
   startCell: WorldMapCell | undefined,
 ): PaintSettings {
