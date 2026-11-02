@@ -1,3 +1,5 @@
+import { TablesUpdate } from "types/supabase-generated.type";
+
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabase } from "lib/supabase.lib";
 
 import {
@@ -127,7 +129,9 @@ export class RichTextContentRepository {
     }
     const { data, error, status } = await supabase
       .from(target.table)
-      .update(values)
+      // The values name this target's own columns, which a union of tables
+      // can't check.
+      .update(values as TablesUpdate<typeof target.table>)
       .eq("id", id)
       .eq("updated_at", expectedUpdatedAt)
       .select("updated_at");
