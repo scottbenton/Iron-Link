@@ -23,7 +23,7 @@ import {
   zoomAt,
 } from "lib/worldMap/camera";
 import { WorldMapChunk, chunkKey } from "lib/worldMap/chunks";
-import { contentBounds } from "lib/worldMap/content";
+import { contentBounds, snapToGrid } from "lib/worldMap/content";
 import { Cell, Point, WorldMapGrid, cellAt } from "lib/worldMap/grid";
 
 import { WorldMapMinimap } from "./WorldMapMinimap";
@@ -42,11 +42,19 @@ export interface WorldMapPointerEvent {
 }
 
 export interface WorldMapPinPlacement<T> {
+  id: string;
   pin: T;
   // Where the pin sits, in map units and on screen.
   point: Point;
   screen: Point;
   scale: number;
+  // What of this pin is being dragged (the whole pin, or the id passed to
+  // startDrag) and where it is on screen.
+  dragging: { id: string; screen: Point } | null;
+  // Starts dragging the pin, or one part of it named by `id`, from a
+  // pointerdown on it or on a menu it opened. Does nothing unless the map
+  // takes drops.
+  startDrag: (event: React.PointerEvent<HTMLElement>, id?: string) => void;
 }
 
 export interface WorldMapViewportProps<T> {
@@ -59,19 +67,24 @@ export interface WorldMapViewportProps<T> {
     y: number;
     width: number | null;
   } | null;
-  pins: { pin: T; point: Point }[];
+  pins: { id: string; pin: T; point: Point }[];
   // False until the map's cells and pins have loaded, so the first fit sees
   // all of them.
   ready: boolean;
   label: string;
   // With a tool, one pointer (one finger) uses it and two pan and zoom;
-  // without one, dragging pans.
+  // without one, dragging pans. A "tap" tool leaves dragging to pan and
+  // hears only taps, as a single "end".
   toolActive?: boolean;
+  toolMode?: "stroke" | "tap";
   onToolPointer?: (event: WorldMapPointerEvent) => void;
   // Cells outlined under the pointer while a tool is active.
   getHighlight?: (cell: Cell) => Cell[];
   // The cursor while a tool is active; a crosshair unless set.
   toolCursor?: string;
+  // Where a dragged pin (or the part of one passed to startDrag) was let
+  // go, snapped to the grid.
+  onPinDrop?: (id: string, point: Point) => void;
   // The background image's own size, once it has loaded.
   onBackgroundLoad?: (size: { width: number; height: number }) => void;
   renderPin: (placement: WorldMapPinPlacement<T>) => ReactNode;
@@ -103,10 +116,12 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     ready,
     label,
     toolActive = false,
+    toolMode = "stroke",
     onToolPointer,
     getHighlight,
     toolCursor = "crosshair",
     onBackgroundLoad,
+    onPinDrop,
     renderPin,
     overlay,
     height = "min(70vh, 640px)",
@@ -243,7 +258,7 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
   const pointers = useRef(new Map<number, Point>());
   const gesture = useRef<
     | { type: "tool" }
-    | { type: "pan"; last: Point }
+    | { type: "pan"; last: Point; tap?: Point }
     | { type: "pinch"; center: Point; distance: number }
     | null
   >(null);
@@ -299,7 +314,9 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
       gesture.current = { type: "pinch", ...pinchState() };
       setHighlight(undefined);
     } else if (pointers.current.size === 1) {
-      if (toolActive && event.button === 0) {
+      if (toolActive && toolMode === "tap" && event.button === 0) {
+        gesture.current = { type: "pan", last: screen, tap: screen };
+      } else if (toolActive && event.button === 0) {
         gesture.current = { type: "tool" };
         onToolPointer?.(toolEvent("start", screen, event.pointerType));
       } else {
@@ -310,6 +327,23 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
 
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     const screen = localPoint(event);
+    const held = pinDrag.current;
+    if (held && held.pointerId === event.pointerId) {
+      if (Math.hypot(screen.x - held.start.x, screen.y - held.start.y) > 4)
+        held.moved = true;
+      if (!held.moved) return;
+      const point = snapToGrid(
+        grid,
+        screenToMap(
+          cameraRef.current,
+          getViewSize(containerRef.current),
+          screen,
+        ),
+      );
+      held.point = point;
+      setDraggedPin({ id: held.id, placementId: held.placementId, point });
+      return;
+    }
     if (!pointers.current.has(event.pointerId)) {
       // Hovering with a mouse or pen outlines what the tool would touch.
       if (
@@ -332,6 +366,11 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
         setHighlight(getHighlight(toolMove.cell));
       onToolPointer?.(toolMove);
     } else if (current.type === "pan") {
+      if (
+        current.tap &&
+        Math.hypot(screen.x - current.tap.x, screen.y - current.tap.y) > 6
+      )
+        current.tap = undefined;
       const dx = screen.x - current.last.x;
       const dy = screen.y - current.last.y;
       current.last = screen;
@@ -356,10 +395,29 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
   };
 
   const onPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    const held = pinDrag.current;
+    if (held && held.pointerId === event.pointerId) {
+      pinDrag.current = null;
+      setDraggedPin(undefined);
+      if (held.moved) {
+        // The pin's own click would follow; it is not a click.
+        suppressClick.current = true;
+        if (event.type !== "pointercancel") onPinDrop?.(held.id, held.point);
+      }
+      return;
+    }
     if (!pointers.current.has(event.pointerId)) return;
     const screen = localPoint(event);
     pointers.current.delete(event.pointerId);
     const current = gesture.current;
+    if (
+      current?.type === "pan" &&
+      current.tap &&
+      pointers.current.size === 0 &&
+      event.type !== "pointercancel"
+    ) {
+      onToolPointer?.(toolEvent("end", screen, event.pointerType));
+    }
     if (current?.type === "tool") {
       onToolPointer?.(
         toolEvent(
@@ -376,6 +434,40 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     } else if (pointers.current.size === 0) {
       gesture.current = null;
     }
+  };
+
+  // Dragging a pin to a new spot.
+  const pinDrag = useRef<{
+    id: string;
+    placementId: string;
+    pointerId: number;
+    start: Point;
+    point: Point;
+    moved: boolean;
+  } | null>(null);
+  const suppressClick = useRef(false);
+  const [draggedPin, setDraggedPin] = useState<{
+    id: string;
+    placementId: string;
+    point: Point;
+  }>();
+  const startPinDrag = (
+    id: string,
+    placementId: string,
+    point: Point,
+    event: React.PointerEvent<HTMLElement>,
+  ) => {
+    if (!onPinDrop || event.button !== 0) return;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    suppressClick.current = false;
+    pinDrag.current = {
+      id,
+      placementId,
+      pointerId: event.pointerId,
+      start: localPoint(event),
+      point,
+      moved: false,
+    };
   };
 
   // Wheel and trackpad pinch zoom around the pointer. React's wheel
@@ -429,6 +521,12 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
+      onClickCapture={(event) => {
+        if (!suppressClick.current) return;
+        suppressClick.current = false;
+        event.preventDefault();
+        event.stopPropagation();
+      }}
       onPointerLeave={() => !pointers.current.size && setHighlight(undefined)}
       sx={{
         position: "relative",
@@ -453,13 +551,23 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
         sx={{ display: "block", width: "100%", height: "100%" }}
       />
       {view.width > 0 &&
-        pins.map((placement) =>
-          renderPin({
+        pins.map((placement) => {
+          const dragged =
+            draggedPin?.placementId === placement.id ? draggedPin : undefined;
+          return renderPin({
             ...placement,
             screen: mapToScreen(camera, view, placement.point),
             scale: camera.scale,
-          }),
-        )}
+            dragging: dragged
+              ? {
+                  id: dragged.id,
+                  screen: mapToScreen(camera, view, dragged.point),
+                }
+              : null,
+            startDrag: (event, id = placement.id) =>
+              startPinDrag(id, placement.id, placement.point, event),
+          });
+        })}
       <Box
         sx={{
           position: "absolute",
