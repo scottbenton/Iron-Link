@@ -1,13 +1,17 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
-import { cellKey } from "../grid";
+import { WorldMapCell } from "../chunks";
+import { Cell, cellKey } from "../grid";
 import {
+  PATH,
   PaintSettings,
   getStrokeCells,
   getTapSettings,
   paintCell,
   paintCells,
+  paintPath,
+  pathsJoin,
 } from "../paint";
 
 describe("paintCell", () => {
@@ -24,7 +28,7 @@ describe("paintCell", () => {
   });
 
   it("lays a path and keeps the colour", () => {
-    expect(paintCell({ c: "grass" }, path)).toEqual({ c: "grass", p: true });
+    expect(paintCell({ c: "grass" }, path)).toEqual({ c: "grass", p: PATH });
     expect(paintCell({ p: true }, path)).toBeUndefined();
   });
 
@@ -130,5 +134,113 @@ describe("getTapSettings", () => {
   it("leaves the other tools alone", () => {
     const brush: PaintSettings = { ...path, tool: "brush" };
     expect(getTapSettings(brush, { p: true })).toBe(brush);
+  });
+});
+
+describe("paintPath", () => {
+  const read = (cells: Record<string, WorldMapCell>) => (cell: Cell) =>
+    cells[cellKey(cell)];
+
+  it("links each cell to the next one drawn, and no others", () => {
+    // A hex line that bends, so its first and last cells are neighbours.
+    const line = [
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 0, y: 1 },
+    ];
+    const cells = paintPath("hex_pointy", line, read({}));
+    const value = (cell: Cell) => cells[cellKey(cell)];
+    expect(
+      pathsJoin("hex_pointy", line[0], value(line[0]), line[1], value(line[1])),
+    ).toBe(true);
+    expect(
+      pathsJoin("hex_pointy", line[1], value(line[1]), line[2], value(line[2])),
+    ).toBe(true);
+    expect(
+      pathsJoin("hex_pointy", line[0], value(line[0]), line[2], value(line[2])),
+    ).toBe(false);
+  });
+
+  it("keeps a cell's links and colour when a new stroke passes through", () => {
+    const first = paintPath(
+      "square",
+      [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ],
+      read({ "1,0": { c: "grass" } }),
+    );
+    const second = paintPath(
+      "square",
+      [
+        { x: 1, y: 0 },
+        { x: 1, y: 1 },
+      ],
+      read(first),
+    );
+    const middle = second["1,0"];
+    expect(middle.c).toBe("grass");
+    expect(
+      pathsJoin("square", { x: 0, y: 0 }, first["0,0"], { x: 1, y: 0 }, middle),
+    ).toBe(true);
+    expect(
+      pathsJoin(
+        "square",
+        { x: 1, y: 0 },
+        middle,
+        { x: 1, y: 1 },
+        second["1,1"],
+      ),
+    ).toBe(true);
+  });
+
+  it("joins squares across corners", () => {
+    const cells = paintPath(
+      "square",
+      [
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+      ],
+      read({}),
+    );
+    expect(
+      pathsJoin(
+        "square",
+        { x: 0, y: 0 },
+        cells["0,0"],
+        { x: 1, y: 1 },
+        cells["1,1"],
+      ),
+    ).toBe(true);
+  });
+
+  it("changes nothing when the path is already there", () => {
+    const line = [
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+    ];
+    const cells = paintPath("hex_pointy", line, read({}));
+    expect(paintPath("hex_pointy", line, read(cells))).toEqual({});
+  });
+
+  it("joins old paths to every side-by-side neighbour", () => {
+    expect(
+      pathsJoin(
+        "square",
+        { x: 0, y: 0 },
+        { p: true },
+        { x: 1, y: 0 },
+        { p: true },
+      ),
+    ).toBe(true);
+    expect(
+      pathsJoin(
+        "square",
+        { x: 0, y: 0 },
+        { p: true },
+        { x: 1, y: 1 },
+        { p: true },
+      ),
+    ).toBe(false);
   });
 });
