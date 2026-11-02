@@ -32,6 +32,7 @@ export function WorldMapPinTools({
   locationTypes,
   onRemove,
   busy,
+  touch = false,
 }: {
   places: PlaceOption[];
   target: WorldMapPinTarget;
@@ -39,6 +40,8 @@ export function WorldMapPinTools({
   locationTypes: string[];
   onRemove: (entry: IWorldEntry) => void;
   busy: boolean;
+  // Phone paint mode: one scrolling row, 44px targets.
+  touch?: boolean;
 }) {
   const { t } = useTranslation();
   const selected =
@@ -60,10 +63,12 @@ export function WorldMapPinTools({
         alignItems: "center",
         gap: 1,
         flex: "1 1 320px",
+        py: touch ? 0.5 : 0,
+        minWidth: 0,
       }}
     >
       <Autocomplete
-        size="small"
+        size={touch ? "medium" : "small"}
         options={sorted}
         value={selected}
         groupBy={(option) =>
@@ -95,7 +100,7 @@ export function WorldMapPinTools({
           "worlds.maps.pins.no-places",
           "Nothing is inside this entry yet",
         )}
-        sx={{ width: 240 }}
+        sx={{ width: touch ? "auto" : 240, flex: touch ? "1 1 200px" : "none" }}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -107,6 +112,7 @@ export function WorldMapPinTools({
         <Button
           size="small"
           color="error"
+          sx={{ flexShrink: 0, minHeight: touch ? 44 : undefined }}
           disabled={busy}
           onClick={() => onRemove(selected.entry)}
         >
@@ -118,12 +124,17 @@ export function WorldMapPinTools({
         aria-label={t("worlds.maps.pins.new", "New place")}
         sx={{
           display: "flex",
-          flexWrap: "wrap",
+          flexWrap: touch ? "nowrap" : "wrap",
           alignItems: "center",
-          gap: 0.5,
+          gap: touch ? 1 : 0.5,
+          ...(touch && { width: "100%", overflowX: "auto", pb: 0.5 }),
         }}
       >
-        <Typography variant="body2" color="text.secondary" sx={{ mr: 0.5 }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mr: 0.5, whiteSpace: "nowrap" }}
+        >
           {t("worlds.maps.pins.new", "New place")}
         </Typography>
         {newTypes.map((type) => {
@@ -152,6 +163,11 @@ export function WorldMapPinTools({
               label={type ?? t("worlds.maps.pins.other", "Other place")}
               onClick={() =>
                 onTargetChange({ type: "new", locationType: type })
+              }
+              sx={
+                touch
+                  ? { height: 44, borderRadius: 22, px: 0.5, flexShrink: 0 }
+                  : undefined
               }
             />
           );
