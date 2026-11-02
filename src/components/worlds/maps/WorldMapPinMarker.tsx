@@ -57,6 +57,7 @@ export function WorldMapPinMarker({
   onDragStart,
   dragging,
   selected,
+  passThrough,
 }: {
   entries: IWorldEntry[];
   screen: Point;
@@ -75,6 +76,9 @@ export function WorldMapPinMarker({
   // marker) and where it is.
   dragging?: { id: string; screen: Point } | null;
   selected?: boolean;
+  // Pointers go through to the map, so a brush or path stroke can start on
+  // a place and run through it.
+  passThrough?: boolean;
 }) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -202,8 +206,8 @@ export function WorldMapPinMarker({
       flexDirection: "column",
       alignItems: "center",
       borderRadius: 1,
-      opacity: look === "ghost" ? 0.35 : 1,
-      pointerEvents: look === "ghost" ? "none" : undefined,
+      opacity: look === "ghost" ? 0.35 : passThrough ? 0.6 : 1,
+      pointerEvents: look === "ghost" || passThrough ? "none" : undefined,
       zIndex: look === "lifted" ? 1 : undefined,
       cursor: onDragStart
         ? look === "lifted"

@@ -386,6 +386,7 @@ export function WorldEntryMap({
           onSelect={tool === "pin" ? pinTool.select : undefined}
           onDragStart={canMovePins ? startDrag : undefined}
           dragging={dragging}
+          passThrough={isPaintTool(tool)}
           selected={pin.entries.some(
             (pinned) => pinned.id === pinTool.selectedId,
           )}
