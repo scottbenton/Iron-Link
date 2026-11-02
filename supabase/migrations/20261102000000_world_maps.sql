@@ -48,7 +48,8 @@ create table public.world_maps (
     abs(background_x) < 10000000 and abs(background_y) < 10000000)
 );
 
--- A cell is { "c": colour key } and/or { "p": true } for a path.
+-- A cell is { "c": colour key } and/or { "p": ... } for a path: true, or 256
+-- plus a bit for each neighbour the path was drawn to (up to 8 directions).
 create function public.world_map_cell_valid(p_cell jsonb) returns boolean
 language sql immutable set search_path = '' as $$
   select jsonb_typeof(p_cell) = 'object'
@@ -56,7 +57,10 @@ language sql immutable set search_path = '' as $$
     and p_cell - array['c', 'p'] = '{}'::jsonb
     and (not p_cell ? 'c' or (jsonb_typeof(p_cell->'c') = 'string'
       and (p_cell->>'c') ~ '^[A-Za-z][A-Za-z0-9_-]{0,31}$'))
-    and (not p_cell ? 'p' or p_cell->'p' = 'true'::jsonb)
+    and (not p_cell ? 'p' or p_cell->'p' = 'true'::jsonb
+      or (jsonb_typeof(p_cell->'p') = 'number'
+        and (p_cell->>'p') ~ '^[0-9]{3}$'
+        and (p_cell->>'p')::integer between 256 and 511))
 $$;
 
 -- Keys are "x,y" in the grid's coordinates and must fall inside the chunk.
