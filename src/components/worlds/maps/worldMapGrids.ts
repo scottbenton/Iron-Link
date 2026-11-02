@@ -2,17 +2,14 @@ import type { TFunction } from "i18next";
 
 import { WorldMapGrid } from "lib/worldMap/grid";
 
-export const WORLD_MAP_GRIDS: WorldMapGrid[] = [
-  "hex_pointy",
-  "hex_flat",
-  "square",
-  "none",
-];
+// The grids offered when making a map. Flat-topped hexes are still stored
+// and drawn, but are not offered for now.
+export const WORLD_MAP_GRIDS: WorldMapGrid[] = ["hex_pointy", "square", "none"];
 
 export function getGridLabel(t: TFunction, grid: WorldMapGrid): string {
   switch (grid) {
     case "hex_pointy":
-      return t("worlds.maps.grid-hex-pointy", "Hexes with pointy tops");
+      return t("worlds.maps.grid-hex-pointy", "Hexes");
     case "hex_flat":
       return t("worlds.maps.grid-hex-flat", "Hexes with flat tops");
     case "square":

@@ -26,6 +26,7 @@ import {
   isHexGrid,
   parseCellKey,
 } from "lib/worldMap/grid";
+import { pathDirections, pathsJoin } from "lib/worldMap/paint";
 import {
   WORLD_MAP_BACKGROUND,
   WORLD_MAP_PATH_COLOR,
@@ -47,14 +48,18 @@ export interface WorldMapScene {
   background: WorldMapBackgroundImage | null;
   // Cells outlined under the pointer: the brush, or the cell a pin will land.
   highlight?: Cell[];
+  // Cells outlined in the accent colour: the selected pin's.
+  selected?: { cells: Cell[]; color: string };
 }
 
 // Grid lines show once a cell is this many pixels across.
 const GRID_MIN_PIXELS = 10;
 const FLOWER_MIN_PIXELS = 4;
-// Below the default size each chunk is drawn once into its own canvas, at a
-// power of two at or above the scale, and reused until it changes.
-const CACHE_MAX_SCALE = 1;
+// Zoomed out, each chunk is drawn once into its own canvas, at a power of two
+// at or above the screen pixels per map unit (scale times the device pixel
+// ratio, so high-density screens stay sharp), and reused until it changes.
+// Closer in, chunks are drawn straight to the screen.
+const CACHE_MAX_SCALE = 2;
 const CACHE_MIN_SCALE = 1 / 32;
 
 export function getCell(
@@ -77,7 +82,7 @@ function traceCell(
 }
 
 // Draws one chunk's cells in map units. Paths run from a cell's centre
-// towards each neighbouring path, so they join across chunk edges.
+// towards each neighbour they join, so they join across chunk edges.
 function drawChunkCells(
   ctx: CanvasRenderingContext2D,
   grid: PaintableGrid,
@@ -115,9 +120,12 @@ function drawChunkCells(
   ctx.beginPath();
   paths.forEach((cell) => {
     const center = cellCenter(grid, cell);
+    const value = getCell(chunks, cell);
     let joined = false;
-    cellNeighbors(grid, cell).forEach((neighbor) => {
-      if (!getCell(chunks, neighbor)?.p) return;
+    pathDirections(grid).forEach((direction) => {
+      const neighbor = { x: cell.x + direction.x, y: cell.y + direction.y };
+      if (!pathsJoin(grid, cell, value, neighbor, getCell(chunks, neighbor)))
+        return;
       const other = cellCenter(grid, neighbor);
       ctx.moveTo(center.x, center.y);
       ctx.lineTo((center.x + other.x) / 2, (center.y + other.y) / 2);
@@ -244,8 +252,9 @@ export function drawWorldMap(
   const grid = scene.grid;
   if (grid === "none") return;
 
-  const cached = camera.scale <= CACHE_MAX_SCALE;
-  const level = cacheLevel(camera.scale);
+  const pixelsPerUnit = camera.scale * pixelRatio;
+  const cached = pixelsPerUnit <= CACHE_MAX_SCALE;
+  const level = cacheLevel(pixelsPerUnit);
   scene.chunks.forEach((chunk) => {
     const bounds = chunkBounds(grid, chunk);
     if (!boundsIntersect(bounds, visible)) return;
@@ -308,6 +317,15 @@ export function drawWorldMap(
     ctx.fill(outline);
     ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
     ctx.lineWidth = 1.5 / camera.scale;
+    ctx.stroke(outline);
+  }
+
+  if (scene.selected?.cells.length) {
+    const outline = new Path2D();
+    scene.selected.cells.forEach((cell) => traceCell(outline, grid, cell));
+    ctx.strokeStyle = scene.selected.color;
+    ctx.lineWidth = 2.5 / camera.scale;
+    ctx.lineJoin = "round";
     ctx.stroke(outline);
   }
 }

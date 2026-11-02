@@ -1,10 +1,14 @@
+import { Button } from "@mui/material";
+import { closeSnackbar, enqueueSnackbar } from "notistack";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useUID } from "stores/auth.store";
 import { useWorldIsGuided, useWorldPermission } from "stores/world.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 import { useWorldMapsStore } from "stores/worldMaps.store";
 
+import { isValidWorldEntryParent } from "lib/worldEntryParents";
 import { snapToGrid } from "lib/worldMap/content";
 import { Point, WorldMapGrid } from "lib/worldMap/grid";
 
@@ -19,22 +23,39 @@ import { WorldMapPointerEvent } from "./WorldMapViewport";
 import { useWorldMapLocationTypes } from "./useWorldMapLocationTypes";
 import { WorldMapPinTarget } from "./worldMapTools";
 
-// The pin tool: putting the places inside an entry on its map, moving them
-// and taking them off. A tap puts down the chosen place (moving it if it was
-// already pinned) or opens the new place dialog; new places go inside this
-// entry with the chosen Location Type and sharing to match it.
+// Where a place that could be pinned is now: on this map, inside this entry
+// but not on the map, or elsewhere in the world (pinning moves it in here).
+export type WorldMapPlaceWhere = "pinned" | "inside" | "elsewhere";
+
+export interface WorldMapPlaceOption {
+  entry: IWorldEntry;
+  where: WorldMapPlaceWhere;
+  // The entry it sits in now, for places elsewhere.
+  parentName?: string;
+}
+
+// The pin tool: putting places on an entry's map, moving them and taking them
+// off. A tap puts down the chosen place (moving it if it was already pinned,
+// and moving it inside this entry if it was elsewhere) or opens the new place
+// dialog; new places go inside this entry with the chosen Location Type and
+// sharing to match it.
 export function useWorldMapPins(
   entry: IWorldEntry,
   grid: WorldMapGrid,
   pins: Record<string, IWorldMapPin>,
   onError: (cause: unknown) => void,
 ) {
+  const { t } = useTranslation();
   const uid = useUID();
   const permission = useWorldPermission();
   const guided = useWorldIsGuided();
   const entries = useWorldEntriesStore((store) => store.entryState.entries);
   const createEntry = useWorldEntriesStore((store) => store.createEntry);
   const setFieldValue = useWorldEntriesStore((store) => store.setFieldValue);
+  const setEntryParent = useWorldEntriesStore((store) => store.setEntryParent);
+  const entryPermissions = useWorldEntriesStore(
+    (store) => store.entryState.permissions,
+  );
   const setPin = useWorldMapsStore((store) => store.setPin);
   const removePin = useWorldMapsStore((store) => store.removePin);
   const { fieldId, types } = useWorldMapLocationTypes(entry.categoryId);
@@ -45,28 +66,88 @@ export function useWorldMapPins(
   const [newPlaceAt, setNewPlaceAt] = useState<Point>();
   const [busy, setBusy] = useState(false);
 
-  const places = useMemo(
+  // Places of this entry's category: its own, and any elsewhere the reader
+  // may edit and that could move inside it.
+  const places = useMemo<WorldMapPlaceOption[]>(
     () =>
-      Object.values(entries)
-        .filter(
-          (child) =>
-            child.parentEntryId === entry.id &&
-            child.categoryId === entry.categoryId,
+      Object.values(entries).flatMap((place): WorldMapPlaceOption[] => {
+        if (place.id === entry.id || place.categoryId !== entry.categoryId)
+          return [];
+        if (place.parentEntryId === entry.id)
+          return [
+            { entry: place, where: pins[place.id] ? "pinned" : "inside" },
+          ];
+        if (
+          !entryPermissions[place.id]?.canEdit ||
+          !isValidWorldEntryParent(entries, place.id, entry.id)
         )
-        .map((child) => ({ entry: child, pinned: !!pins[child.id] })),
-    [entries, pins, entry.id, entry.categoryId],
+          return [];
+        return [
+          {
+            entry: place,
+            where: "elsewhere",
+            parentName: place.parentEntryId
+              ? entries[place.parentEntryId]?.name
+              : undefined,
+          },
+        ];
+      }),
+    [entries, entryPermissions, pins, entry.id, entry.categoryId],
   );
 
-  const pinAt = (entryId: string, point: Point) =>
-    setPin({
-      entryId,
-      mapEntryId: entry.id,
-      ...snapToGrid(grid, point),
-    }).catch(onError);
+  const pinAt = async (entryId: string, point: Point) => {
+    try {
+      if (entries[entryId] && entries[entryId].parentEntryId !== entry.id)
+        await setEntryParent(entryId, entry.id);
+      await setPin({
+        entryId,
+        mapEntryId: entry.id,
+        ...snapToGrid(grid, point),
+      });
+    } catch (cause) {
+      onError(cause);
+    }
+  };
+
+  // Moves pinned places to a new spot, all at once, and offers to put them
+  // back, so a drop in the wrong place costs nothing.
+  const movePins = async (entryIds: string[], point: Point) => {
+    const before = entryIds.flatMap((entryId) =>
+      pins[entryId]
+        ? [{ entryId, x: pins[entryId].x, y: pins[entryId].y }]
+        : [],
+    );
+    const moved = snapToGrid(grid, point);
+    if (before.every((pin) => pin.x === moved.x && pin.y === moved.y)) return;
+    await Promise.all(entryIds.map((entryId) => pinAt(entryId, point)));
+    const name =
+      entryIds.length === 1
+        ? (entries[entryIds[0]]?.name ?? "")
+        : t("worlds.maps.pin-group", "{{count}} places", {
+            count: entryIds.length,
+          });
+    enqueueSnackbar(t("worlds.maps.pins.moved", "Moved {{name}}", { name }), {
+      variant: "info",
+      action: (id) => (
+        <Button
+          color="inherit"
+          size="small"
+          onClick={() => {
+            closeSnackbar(id);
+            before.forEach((pin) =>
+              setPin({ ...pin, mapEntryId: entry.id }).catch(onError),
+            );
+          }}
+        >
+          {t("worlds.maps.pins.undo", "Undo")}
+        </Button>
+      ),
+    });
+  };
 
   const onToolPointer = (event: WorldMapPointerEvent) => {
     if (event.phase !== "end") return;
-    if (target.type === "entry") pinAt(target.entryId, event.point);
+    if (target.type === "entry") void pinAt(target.entryId, event.point);
     else setNewPlaceAt(event.point);
   };
 
@@ -135,7 +216,7 @@ export function useWorldMapPins(
     select: (place: IWorldEntry) =>
       setTarget({ type: "entry", entryId: place.id }),
     onToolPointer,
-    onPinDrop: pinAt,
+    movePins,
     remove,
     busy,
     dialog,

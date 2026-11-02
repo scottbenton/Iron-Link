@@ -6,50 +6,82 @@ import {
   Menu,
   MenuItem,
   Typography,
+  useTheme,
 } from "@mui/material";
-import { PointerEvent, ReactNode, useEffect, useState } from "react";
+import {
+  DragEvent,
+  MouseEvent,
+  ReactNode,
+  PointerEvent as ReactPointerEvent,
+  useEffect,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import { LinkComponent } from "components/LinkComponent";
 
-import { Point } from "lib/worldMap/grid";
+import { Point, SQUARE_SIZE } from "lib/worldMap/grid";
 
 import { IWorldEntry } from "services/worldEntries.service";
 
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldMapPinIcon } from "./WorldMapPinIcon";
 
-const MARKER_SIZE = 32;
+// A pin is its place's icon, with no badge around it, drawn about this much
+// of a cell across so it sits in its cell and scales with the map. Maps
+// without a grid size it as if it sat in a cell of the default size.
+const CELL_FILL = 0.7;
+const MAX_ICON = 64;
+// Below this the icon would be unreadable, so the pin is a dot.
+const MIN_ICON = 14;
+const DOT = 8;
+// A dark halo keeps the glyph readable on any terrain or image.
+const HALO = "drop-shadow(0 0 1px #000) drop-shadow(0 0 2px rgba(0,0,0,0.8))";
+
+function getPinIconSize(scale: number): number {
+  return Math.min(MAX_ICON, SQUARE_SIZE * scale * CELL_FILL);
+}
 
 // Entries pinned to one spot on the map. A single pin opens its entry; a
-// spot holding several lists them first. Names show once the map is zoomed
-// in far enough to fit them. With the pin tool in hand, choosing a pin
+// spot holding several lists them first, and shows the first one's icon with
+// a count. Names show once the map is zoomed in far enough to fit them. With the pin tool in hand, choosing a pin
 // selects it instead (`onSelect`), dragging the marker moves every place on
 // the spot, and dragging a place out of the list moves just that one.
 export function WorldMapPinMarker({
   entries,
   screen,
+  scale,
   showLabel,
   navigation,
   onSelect,
   onDragStart,
   dragging,
   selected,
+  passThrough,
 }: {
   entries: IWorldEntry[];
   screen: Point;
+  // The map's zoom, which sizes the pin.
+  scale: number;
   showLabel: boolean;
   // Without navigation (the second screen) the marker is only a picture.
   navigation?: Pick<WorldNavigation, "getLinkProps">;
   onSelect?: (entry: IWorldEntry) => void;
   // Without an entry id the whole marker is being dragged.
-  onDragStart?: (event: PointerEvent<HTMLElement>, entryId?: string) => void;
+  onDragStart?: (
+    event: ReactPointerEvent<HTMLElement>,
+    entryId?: string,
+  ) => void;
   // The id being dragged (an entry's, or anything else for the whole
   // marker) and where it is.
   dragging?: { id: string; screen: Point } | null;
   selected?: boolean;
+  // Pointers go through to the map, so a brush or path stroke can start on
+  // a place and run through it.
+  passThrough?: boolean;
 }) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const draggedEntry = entries.find((entry) => entry.id === dragging?.id);
   const draggingOut = !!draggedEntry && entries.length > 1;
@@ -79,31 +111,65 @@ export function WorldMapPinMarker({
           count: list.length,
         });
   const label = labelFor(entries);
+  const iconSize = getPinIconSize(scale);
+  const dot = iconSize < MIN_ICON;
+  const size = dot ? DOT : iconSize;
   const markerFor = (list: IWorldEntry[]): ReactNode => (
     <>
       <Box
         sx={{
-          width: MARKER_SIZE,
-          height: MARKER_SIZE,
-          borderRadius: "50%",
-          bgcolor: "grey.900",
-          border: 2,
-          borderColor: selected ? "primary.main" : "grey.300",
+          position: "relative",
+          width: size,
+          height: size,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          overflow: "hidden",
-          boxShadow: 2,
           color: "common.white",
-          "& img": { width: "100%", height: "100%", borderRadius: 0 },
+          filter: selected
+            ? `drop-shadow(0 0 2px ${theme.palette.primary.main}) drop-shadow(0 0 2px ${theme.palette.primary.main})`
+            : HALO,
+          ...(dot
+            ? {
+                borderRadius: "50%",
+                bgcolor: selected ? "primary.main" : "common.white",
+              }
+            : {
+                // The icon fills the pin: glyphs, tiles and pictures alike.
+                "& > :not(.pin-count)": {
+                  width: "100% !important",
+                  height: "100% !important",
+                  minWidth: 0,
+                  bgcolor: "transparent",
+                },
+                "& svg": { width: "100%", height: "100%" },
+                "& img": { borderRadius: "4px" },
+              }),
         }}
       >
-        {list.length === 1 ? (
-          <WorldMapPinIcon entry={list[0]} />
-        ) : (
-          <Typography variant="body2" fontWeight="bold">
+        {!dot && <WorldMapPinIcon entry={list[0]} />}
+        {list.length > 1 && !dot && (
+          <Box
+            className="pin-count"
+            sx={{
+              position: "absolute",
+              right: dot ? -10 : -6,
+              top: dot ? -8 : -4,
+              minWidth: 16,
+              height: 16,
+              px: 0.5,
+              borderRadius: 8,
+              bgcolor: "grey.900",
+              border: 1,
+              borderColor: "grey.400",
+              fontSize: 10,
+              fontWeight: 700,
+              lineHeight: "14px",
+              textAlign: "center",
+              filter: "none",
+            }}
+          >
             {list.length}
-          </Typography>
+          </Box>
         )}
       </Box>
       {showLabel && (
@@ -127,23 +193,35 @@ export function WorldMapPinMarker({
       )}
     </>
   );
-  const placeAt = (point: Point, faded: boolean) =>
+  // A pin being carried is lifted: a little larger, and fully drawn, while a
+  // faded copy stays where it was.
+  const placeAt = (point: Point, look: "rest" | "lifted" | "ghost") =>
     ({
       position: "absolute",
       left: point.x,
       top: point.y,
-      transform: `translate(-50%, -${MARKER_SIZE / 2}px)`,
+      transform: `translate(-50%, -${size / 2}px)${look === "lifted" ? " scale(1.2)" : ""}`,
+      transformOrigin: `50% ${size / 2}px`,
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       borderRadius: 1,
-      opacity: faded ? 0.6 : 1,
+      opacity: look === "ghost" ? 0.35 : passThrough ? 0.6 : 1,
+      pointerEvents: look === "ghost" || passThrough ? "none" : undefined,
+      zIndex: look === "lifted" ? 1 : undefined,
+      cursor: onDragStart
+        ? look === "lifted"
+          ? "grabbing"
+          : "grab"
+        : undefined,
       touchAction: "none",
-      // A 44px target around the 32px marker, for fingers.
+      // A long press lifts the pin rather than opening the browser's menu.
+      WebkitTouchCallout: "none",
+      // At least a 44px target around the pin, for fingers.
       "&::before": {
         content: '""',
         position: "absolute",
-        top: (MARKER_SIZE - 44) / 2,
+        top: (size - 44) / 2,
         left: "50%",
         width: 44,
         height: 44,
@@ -155,7 +233,24 @@ export function WorldMapPinMarker({
       },
     }) as const;
   const movingWhole = !!dragging && !draggingOut;
-  const sx = placeAt(movingWhole ? dragging.screen : screen, movingWhole);
+  const sx = movingWhole
+    ? placeAt(dragging.screen, "lifted")
+    : placeAt(screen, "rest");
+  const ghost = movingWhole && (
+    <Box aria-hidden="true" sx={placeAt(screen, "ghost")}>
+      {markerFor(entries)}
+    </Box>
+  );
+  // Editors drag pins (`onDragStart`), so a pointer down on one may start a
+  // drag; a click that never moved still opens it.
+  const dragProps = onDragStart && {
+    draggable: false,
+    onDragStart: (event: DragEvent) => event.preventDefault(),
+    onContextMenu: (event: MouseEvent) => {
+      if ((event.nativeEvent as PointerEvent).pointerType !== "mouse")
+        event.preventDefault();
+    },
+  };
 
   if (!navigation)
     return (
@@ -166,19 +261,30 @@ export function WorldMapPinMarker({
 
   if (entries.length === 1 && !onSelect)
     return (
-      <ButtonBase
-        component={LinkComponent}
-        {...linkProps(navigation, first)}
-        aria-label={first.name}
-        sx={sx}
-      >
-        {markerFor(entries)}
-      </ButtonBase>
+      <>
+        {ghost}
+        <ButtonBase
+          disableRipple={!!onDragStart}
+          component={LinkComponent}
+          {...linkProps(navigation, first)}
+          {...dragProps}
+          onPointerDown={(event: ReactPointerEvent<HTMLElement>) =>
+            onDragStart?.(event)
+          }
+          aria-label={first.name}
+          sx={sx}
+        >
+          {markerFor(entries)}
+        </ButtonBase>
+      </>
     );
 
   return (
     <>
+      {ghost}
       <ButtonBase
+        disableRipple={!!onDragStart}
+        {...dragProps}
         aria-label={label}
         aria-haspopup={entries.length > 1 ? "menu" : undefined}
         aria-pressed={entries.length === 1 && onSelect ? !!selected : undefined}
@@ -192,7 +298,7 @@ export function WorldMapPinMarker({
         {markerFor(shown)}
       </ButtonBase>
       {draggingOut && dragging && (
-        <Box aria-hidden="true" sx={placeAt(dragging.screen, true)}>
+        <Box aria-hidden="true" sx={placeAt(dragging.screen, "lifted")}>
           {markerFor([draggedEntry])}
         </Box>
       )}
@@ -211,11 +317,15 @@ export function WorldMapPinMarker({
                     setAnchor(null);
                     onSelect(entry);
                   },
-                  onPointerDown: (event: PointerEvent<HTMLElement>) =>
-                    onDragStart?.(event, entry.id),
-                  sx: onDragStart ? { touchAction: "none" } : undefined,
                 }
               : { component: LinkComponent, ...linkProps(navigation, entry) })}
+            {...(onDragStart && {
+              ...dragProps,
+              // Dragging a row out of the list moves just that place.
+              onPointerDown: (event: ReactPointerEvent<HTMLElement>) =>
+                onDragStart(event, entry.id),
+              sx: { touchAction: "none", WebkitTouchCallout: "none" },
+            })}
           >
             <ListItemIcon>
               <WorldMapPinIcon entry={entry} />

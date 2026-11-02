@@ -14,7 +14,9 @@ export const CHUNK_SIZE = 16;
 // A painted cell: a terrain colour key, a path, or both.
 export interface WorldMapCell {
   c?: string;
-  p?: true;
+  // A path: `true` for one saved before paths kept their links, else PATH
+  // plus the links it was drawn with (see paint.ts).
+  p?: true | number;
 }
 
 export type WorldMapCells = Record<string, WorldMapCell>;
@@ -77,6 +79,10 @@ export function isWorldMapCell(value: unknown): value is WorldMapCell {
     keys.length > 0 &&
     keys.every((key) => key === "c" || key === "p") &&
     (cell.c === undefined || typeof cell.c === "string") &&
-    (cell.p === undefined || cell.p === true)
+    (cell.p === undefined ||
+      cell.p === true ||
+      (Number.isInteger(cell.p) &&
+        (cell.p as number) >= 256 &&
+        (cell.p as number) < 512))
   );
 }

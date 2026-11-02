@@ -1,5 +1,6 @@
 import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
-import { Box, Button } from "@mui/material";
+import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
+import { Box, Button, IconButton, Tooltip, useTheme } from "@mui/material";
 import {
   KeyboardEvent,
   ReactNode,
@@ -16,10 +17,12 @@ import {
   Camera,
   DEFAULT_CAMERA,
   ViewSize,
+  boundsIntersect,
   fitCamera,
   mapToScreen,
   panBy,
   screenToMap,
+  visibleBounds,
   zoomAt,
 } from "lib/worldMap/camera";
 import { WorldMapChunk, chunkKey } from "lib/worldMap/chunks";
@@ -90,6 +93,9 @@ export interface WorldMapViewportProps<T> {
   renderPin: (placement: WorldMapPinPlacement<T>) => ReactNode;
   // Extra controls over the map, top left.
   overlay?: ReactNode;
+  // Spots whose cells are outlined in the accent colour, such as the
+  // selected pin's.
+  selectedPoints?: Point[];
   // 44px controls over the map, for phones.
   touch?: boolean;
   // Fits everything again whenever the content grows or shrinks, for a
@@ -101,9 +107,33 @@ export interface WorldMapViewportProps<T> {
 }
 
 const ZOOM_STEP = 1.25;
+// A finger lifts a pin after holding still this long, and carries it this far
+// above itself so the pin stays in sight.
+const PIN_LIFT_MS = 400;
+const PIN_LIFT_OFFSET = 40;
 // How long a still finger waits for a second one before it paints.
 const TOUCH_STROKE_DELAY_MS = 120;
 const PAN_STEP = 64;
+// How long the minimap stays after the view stops moving.
+const MINIMAP_LINGER_MS = 1500;
+// Whether this device keeps the minimap open.
+const MINIMAP_KEPT_KEY = "world-map-minimap-kept";
+
+function readMinimapKept(): boolean {
+  try {
+    return localStorage.getItem(MINIMAP_KEPT_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function writeMinimapKept(kept: boolean) {
+  try {
+    localStorage.setItem(MINIMAP_KEPT_KEY, String(kept));
+  } catch {
+    // Storage is off; the choice lasts until the page closes.
+  }
+}
 
 function getViewSize(element: HTMLElement | null): ViewSize {
   return {
@@ -113,8 +143,9 @@ function getViewSize(element: HTMLElement | null): ViewSize {
 }
 
 // The map canvas: infinite in every direction, drawn a chunk at a time for
-// what is on screen. Wheel, pinch, keyboard and the minimap move the view;
-// Back to the map fits everything again.
+// what is on screen. Wheel, pinch, keyboard and the minimap move the view.
+// The minimap shows while the view moves, or stays when kept open; Back to the
+// map appears once nothing of the map is on screen and fits everything again.
 export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
   const {
     grid,
@@ -133,6 +164,7 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     onPinDrop,
     renderPin,
     overlay,
+    selectedPoints,
     touch = false,
     autoFit = false,
     controls = true,
@@ -147,6 +179,38 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
   const cameraRef = useRef(camera);
   cameraRef.current = camera;
   const [highlight, setHighlight] = useState<Cell[]>();
+  // The pin being dragged and where it would land.
+  const [draggedPin, setDraggedPin] = useState<{
+    id: string;
+    placementId: string;
+    point: Point;
+  }>();
+  const theme = useTheme();
+  const selectedKey = selectedPoints
+    ?.map((point) => `${point.x},${point.y}`)
+    .join(";");
+  const selectedCells = useMemo(
+    () =>
+      grid === "none" || !selectedPoints?.length
+        ? undefined
+        : selectedPoints.map((point) => cellAt(grid, point)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [grid, selectedKey],
+  );
+
+  // The minimap wakes while the view moves and fades a moment after.
+  const [minimapKept, setMinimapKept] = useState(readMinimapKept);
+  const [minimapAwake, setMinimapAwake] = useState(false);
+  const minimapTimer = useRef<number | undefined>(undefined);
+  const wakeMinimap = useCallback(() => {
+    setMinimapAwake(true);
+    window.clearTimeout(minimapTimer.current);
+    minimapTimer.current = window.setTimeout(
+      () => setMinimapAwake(false),
+      MINIMAP_LINGER_MS,
+    );
+  }, []);
+  useEffect(() => () => window.clearTimeout(minimapTimer.current), []);
 
   // Background image
   const [image, setImage] = useState<HTMLImageElement>();
@@ -256,7 +320,16 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
           chunks: chunkMap,
           hexFlowers,
           background: backgroundRect,
-          highlight: toolActive ? highlight : undefined,
+          // A pin being dragged outlines the cell it would land in.
+          highlight:
+            draggedPin && grid !== "none"
+              ? [cellAt(grid, draggedPin.point)]
+              : toolActive
+                ? highlight
+                : undefined,
+          selected: selectedCells
+            ? { cells: selectedCells, color: theme.palette.primary.main }
+            : undefined,
         },
         cacheRef.current,
       );
@@ -271,6 +344,9 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     backgroundRect,
     highlight,
     toolActive,
+    draggedPin,
+    selectedCells,
+    theme.palette.primary.main,
   ]);
 
   // Pointers: one uses the tool (or pans), two pan and pinch.
@@ -318,6 +394,13 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
   };
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    // A second finger puts back a pin held by the first.
+    if (
+      pinDrag.current &&
+      pinDrag.current.pointerId !== event.pointerId &&
+      event.pointerType === "touch"
+    )
+      cancelPinDrag();
     // Pins and controls over the map handle their own pointers.
     if (event.target !== canvasRef.current) return;
     if (
@@ -361,19 +444,22 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     const screen = localPoint(event);
     const held = pinDrag.current;
     if (held && held.pointerId === event.pointerId) {
-      if (Math.hypot(screen.x - held.start.x, screen.y - held.start.y) > 4)
-        held.moved = true;
-      if (!held.moved) return;
-      const point = snapToGrid(
-        grid,
-        screenToMap(
-          cameraRef.current,
-          getViewSize(containerRef.current),
-          screen,
-        ),
+      const distance = Math.hypot(
+        screen.x - held.start.x,
+        screen.y - held.start.y,
       );
-      held.point = point;
-      setDraggedPin({ id: held.id, placementId: held.placementId, point });
+      if (held.touch && !held.moved) {
+        // A finger that moves before the pin lifts pans the map instead.
+        if (distance > 8) {
+          cancelPinDrag();
+          pointers.current.set(event.pointerId, screen);
+          gesture.current = { type: "pan", last: screen };
+        }
+        return;
+      }
+      if (distance > 4) held.moved = true;
+      if (!held.moved) return;
+      movePinTo(held, screen);
       return;
     }
     if (!pointers.current.has(event.pointerId)) {
@@ -417,7 +503,9 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
       const dy = screen.y - current.last.y;
       current.last = screen;
       setCamera((value) => panBy(value, dx, dy));
+      wakeMinimap();
     } else if (current.type === "pinch" && pointers.current.size >= 2) {
+      wakeMinimap();
       const next = pinchState();
       const size = getViewSize(containerRef.current);
       setCamera((value) =>
@@ -439,8 +527,7 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
   const onPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
     const held = pinDrag.current;
     if (held && held.pointerId === event.pointerId) {
-      pinDrag.current = null;
-      setDraggedPin(undefined);
+      cancelPinDrag();
       if (held.moved) {
         // The pin's own click would follow; it is not a click.
         suppressClick.current = true;
@@ -488,20 +575,36 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
   };
 
   // Dragging a pin to a new spot.
-  const pinDrag = useRef<{
+  interface HeldPin {
     id: string;
     placementId: string;
     pointerId: number;
     start: Point;
     point: Point;
+    // Picked up: past the click distance, or held long enough by a finger.
     moved: boolean;
-  } | null>(null);
+    touch: boolean;
+    timer?: number;
+  }
+  const pinDrag = useRef<HeldPin | null>(null);
+  const movePinTo = (held: HeldPin, screen: Point) => {
+    const point = snapToGrid(
+      grid,
+      screenToMap(
+        cameraRef.current,
+        getViewSize(containerRef.current),
+        held.touch ? { x: screen.x, y: screen.y - PIN_LIFT_OFFSET } : screen,
+      ),
+    );
+    held.point = point;
+    setDraggedPin({ id: held.id, placementId: held.placementId, point });
+  };
+  const cancelPinDrag = () => {
+    window.clearTimeout(pinDrag.current?.timer);
+    pinDrag.current = null;
+    setDraggedPin(undefined);
+  };
   const suppressClick = useRef(false);
-  const [draggedPin, setDraggedPin] = useState<{
-    id: string;
-    placementId: string;
-    point: Point;
-  }>();
   const startPinDrag = (
     id: string,
     placementId: string,
@@ -511,14 +614,23 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     if (!onPinDrop || event.button !== 0) return;
     event.currentTarget.setPointerCapture?.(event.pointerId);
     suppressClick.current = false;
-    pinDrag.current = {
+    const held: HeldPin = {
       id,
       placementId,
       pointerId: event.pointerId,
       start: localPoint(event),
       point,
       moved: false,
+      touch: event.pointerType === "touch",
     };
+    if (held.touch)
+      held.timer = window.setTimeout(() => {
+        if (pinDrag.current !== held) return;
+        held.moved = true;
+        navigator.vibrate?.(10);
+        movePinTo(held, held.start);
+      }, PIN_LIFT_MS);
+    pinDrag.current = held;
   };
 
   // Wheel and trackpad pinch zoom around the pointer. React's wheel
@@ -536,10 +648,11 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
       const delta = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY;
       const factor = Math.exp(-delta * (event.ctrlKey ? 0.01 : 0.0015));
       setCamera((value) => zoomAt(value, getViewSize(element), screen, factor));
+      wakeMinimap();
     };
     element.addEventListener("wheel", onWheel, { passive: false });
     return () => element.removeEventListener("wheel", onWheel);
-  }, []);
+  }, [wakeMinimap]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget) return;
@@ -558,7 +671,14 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     if (!move) return;
     event.preventDefault();
     setCamera(move());
+    if (event.key !== "0") wakeMinimap();
   };
+
+  const offScreen =
+    !!bounds &&
+    view.width > 0 &&
+    !boundsIntersect(bounds, visibleBounds(camera, view));
+  const minimapShown = minimapKept || minimapAwake;
 
   return (
     <Box
@@ -634,7 +754,7 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
         }}
       >
         {overlay}
-        {controls && (
+        {controls && offScreen && (
           <Button
             size="small"
             variant="contained"
@@ -653,15 +773,76 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
         )}
       </Box>
       {controls && bounds && (
-        <WorldMapMinimap
-          grid={grid}
-          chunks={chunks}
-          background={backgroundRect}
-          bounds={bounds}
-          camera={camera}
-          view={view}
-          onCenter={(point) => setCamera((value) => ({ ...value, ...point }))}
-        />
+        <Box
+          sx={{
+            position: "absolute",
+            right: 8,
+            bottom: 8,
+            display: { xs: "none", sm: "flex" },
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: 1,
+            pointerEvents: "none",
+          }}
+        >
+          <Box
+            aria-hidden={!minimapShown}
+            sx={{
+              opacity: minimapShown ? 1 : 0,
+              transition: (theme) =>
+                theme.transitions.create("opacity", {
+                  duration: minimapShown
+                    ? theme.transitions.duration.shortest
+                    : theme.transitions.duration.standard,
+                }),
+              pointerEvents: minimapShown ? "auto" : "none",
+            }}
+          >
+            <WorldMapMinimap
+              grid={grid}
+              chunks={chunks}
+              background={backgroundRect}
+              bounds={bounds}
+              camera={camera}
+              view={view}
+              onCenter={(point) => {
+                setCamera((value) => ({ ...value, ...point }));
+                wakeMinimap();
+              }}
+            />
+          </Box>
+          <Tooltip
+            title={
+              minimapKept
+                ? t("worlds.maps.minimap-hide", "Hide the minimap")
+                : t("worlds.maps.minimap-keep", "Keep the minimap open")
+            }
+          >
+            <IconButton
+              size="small"
+              aria-label={t(
+                "worlds.maps.minimap-keep",
+                "Keep the minimap open",
+              )}
+              aria-pressed={minimapKept}
+              onClick={() => {
+                setMinimapKept(!minimapKept);
+                writeMinimapKept(!minimapKept);
+              }}
+              sx={{
+                pointerEvents: "auto",
+                bgcolor: minimapKept ? "primary.main" : "background.paper",
+                color: minimapKept ? "primary.contrastText" : "text.primary",
+                boxShadow: 2,
+                "&:hover": {
+                  bgcolor: minimapKept ? "primary.dark" : "background.paper",
+                },
+              }}
+            >
+              <MapOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
       )}
     </Box>
   );
