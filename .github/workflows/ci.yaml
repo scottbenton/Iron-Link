@@ -11,11 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # v3 changed config keys and made hosted commands opt-in (--remote, --yes);
-      # move up deliberately rather than on its release.
+      # Pinned: move up deliberately, not when a release lands.
       - uses: supabase/setup-cli@v1
         with:
-          version: 2.122.0
+          version: 3.0.0
 
       - name: Start Supabase local development setup
         run: supabase db start
@@ -34,7 +33,7 @@ jobs:
 
       - name: Verify generated types are checked in
         run: |
-          supabase gen types typescript --local > types.gen.ts
+          supabase gen types typescript > types.gen.ts
           if ! git diff --ignore-space-at-eol --exit-code --quiet types.gen.ts; then
             echo "Detected uncommitted changes after build. See status below:"
             git diff
