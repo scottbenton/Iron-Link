@@ -1,6 +1,7 @@
 import { Box, Fade } from "@mui/material";
 import type { ResponsiveStyleValue } from "@mui/system";
 import { EditorContent, Editor as TTEditor } from "@tiptap/react";
+import { useEffect, useState } from "react";
 
 import { useIsMobile } from "hooks/useIsMobile";
 
@@ -8,6 +9,10 @@ import type {
   RichTextToolbarProps,
   SecretsToolbarState,
 } from "./richTextToolbar";
+import { ToolbarClearanceContext } from "./toolbarClearance";
+
+// ProseMirror's default scroll margin, kept on the other three sides.
+const DEFAULT_SCROLL_MARGIN = 5;
 
 export interface EditorProps {
   outlined?: boolean;
@@ -47,8 +52,33 @@ export function Editor(props: EditorProps) {
     <Toolbar editor={toolbarEditor ?? editor} secrets={secrets} />
   );
 
+  // What a phone toolbar covers at the bottom of the window while it shows.
+  // It reports a settled value, once per keyboard open or close.
+  const [clearance, setClearance] = useState(0);
+  // Scrolling the caret into view keeps it above the toolbar, in the note and
+  // in a secret block holding the caret. Always set, even at 0: ProseMirror
+  // merges new props over old ones, so a prop left out would keep the last
+  // clearance.
+  useEffect(() => {
+    for (const target of [editor, toolbarEditor]) {
+      if (!target || target.isDestroyed) continue;
+      target.setOptions({
+        editorProps: {
+          ...target.options.editorProps,
+          scrollThreshold: { top: 0, right: 0, left: 0, bottom: clearance },
+          scrollMargin: {
+            top: DEFAULT_SCROLL_MARGIN,
+            right: DEFAULT_SCROLL_MARGIN,
+            left: DEFAULT_SCROLL_MARGIN,
+            bottom: clearance + DEFAULT_SCROLL_MARGIN,
+          },
+        },
+      });
+    }
+  }, [editor, toolbarEditor, clearance]);
+
   return (
-    <>
+    <ToolbarClearanceContext.Provider value={setClearance}>
       {!outlined && toolbar}
 
       <Box
@@ -119,7 +149,16 @@ export function Editor(props: EditorProps) {
               ...(contentPx !== undefined
                 ? { px: contentPx }
                 : { pr: isMobile ? 0 : 2 }),
-              pb: isMobile ? 6 : undefined,
+              // The text is the last thing in whatever scrolls it (this box,
+              // the Notes tab or the window), so room under it lets its end
+              // scroll clear of a phone toolbar. Without one, phones keep the
+              // extra room they have always had.
+              pb:
+                clearance > 0
+                  ? `calc(${theme.spacing(editable || !outlined ? 2 : 0)} + ${clearance}px)`
+                  : isMobile
+                    ? 6
+                    : undefined,
 
               mx: !outlined ? "auto" : undefined,
               // Flex items shrink to their content around auto margins.
@@ -192,6 +231,6 @@ export function Editor(props: EditorProps) {
           <EditorContent editor={editor} />
         </Box>
       </Box>
-    </>
+    </ToolbarClearanceContext.Provider>
   );
 }
