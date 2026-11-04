@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { computeKeyboardInset } from "../keyboardInset";
+import { computeKeyboardInset, getBottomBarTransform } from "../keyboardInset";
 
 describe("computeKeyboardInset", () => {
   it("is 0 with no keyboard", () => {
@@ -52,5 +52,25 @@ describe("computeKeyboardInset", () => {
         visualOffsetTop: 500,
       }),
     ).toBe(0);
+  });
+});
+
+describe("getBottomBarTransform", () => {
+  it("leaves the bar in place with no keyboard or zoom", () => {
+    expect(getBottomBarTransform({ inset: 0, offsetLeft: 0, scale: 1 })).toBe(
+      "",
+    );
+  });
+
+  it("only raises the bar for the keyboard", () => {
+    expect(getBottomBarTransform({ inset: 336, offsetLeft: 0, scale: 1 })).toBe(
+      "translateY(-336px)",
+    );
+  });
+
+  it("moves the bar onto a zoomed view at its own size", () => {
+    expect(
+      getBottomBarTransform({ inset: 122, offsetLeft: 100, scale: 2 }),
+    ).toBe("translate(100px, -122px) scale(0.5)");
   });
 });

@@ -23,9 +23,8 @@ describe("resolved Datasworn item accessors", () => {
 
   it("resolves replaced oracle rollable ids to active replacements", () => {
     expect(
-      getOracleRollable(
-        "oracle_rollable:starforged/character/name/given_name",
-      )?._id,
+      getOracleRollable("oracle_rollable:starforged/character/name/given_name")
+        ?._id,
     ).toEqual("oracle_rollable:sundered_isles/character/name/given_name");
   });
 

@@ -30,6 +30,8 @@ const originalRect = HTMLElement.prototype.getBoundingClientRect;
 class FakeVisualViewport extends EventTarget {
   height = WINDOW_HEIGHT;
   offsetTop = 0;
+  offsetLeft = 0;
+  scale = 1;
 }
 let viewport: FakeVisualViewport;
 
@@ -184,5 +186,20 @@ describe("MobileNotesToolbar", () => {
     openKeyboard(0);
     expect(bar().style.transform).toBe("");
     expect(bar()).not.toHaveAttribute("data-keyboard-open");
+  });
+  it("stays at its own size on the bottom of a pinch zoomed view", () => {
+    const { editor } = renderToolbar();
+    act(() => editor.view.dom.focus());
+
+    viewport.scale = 2;
+    viewport.offsetLeft = 100;
+    viewport.offsetTop = 300;
+    viewport.height = WINDOW_HEIGHT / 2;
+    viewport.dispatchEvent(new Event("resize"));
+    nextFrame();
+    const inset = WINDOW_HEIGHT - (WINDOW_HEIGHT / 2 + 300);
+    expect(bar().style.transform).toBe(
+      `translate(100px, ${-inset}px) scale(0.5)`,
+    );
   });
 });

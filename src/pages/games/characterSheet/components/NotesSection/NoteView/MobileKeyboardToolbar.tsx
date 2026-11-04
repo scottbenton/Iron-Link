@@ -6,9 +6,11 @@ import { ScrollFadeRow } from "components/Layout/ScrollFadeRow";
 import { useReportToolbarClearance } from "components/RichTextEditor/toolbarClearance";
 
 import {
-  subscribeKeyboardInset,
+  subscribeVisibleArea,
   useSettledKeyboardInset,
 } from "hooks/useKeyboardInset";
+
+import { getBottomBarTransform } from "lib/keyboardInset";
 
 // The smallest a button in the bar may be each way, so it is easy to tap.
 const MIN_TAP_TARGET = 44;
@@ -36,14 +38,15 @@ export function MobileKeyboardToolbar(props: MobileKeyboardToolbarProps) {
 
   // Follows the keyboard frame by frame by writing to the bar itself, outside
   // React, so the toolbar doesn't re-render as the keyboard moves; a
-  // transform moves it without layout. `data-keyboard-open` drops the
+  // transform moves it without layout. While the page is pinch zoomed the
+  // transform also keeps the bar at its own size on the zoomed view. `data-keyboard-open` drops the
   // safe-area padding, and is never rendered so React does not overwrite it.
   useLayoutEffect(() => {
     const element = bar.current;
     if (!element) return;
-    const unsubscribe = subscribeKeyboardInset((inset) => {
-      element.style.transform = inset > 0 ? `translateY(${-inset}px)` : "";
-      element.toggleAttribute("data-keyboard-open", inset > 0);
+    const unsubscribe = subscribeVisibleArea((area) => {
+      element.style.transform = getBottomBarTransform(area);
+      element.toggleAttribute("data-keyboard-open", area.inset > 0);
     });
     return () => {
       unsubscribe();
@@ -73,6 +76,8 @@ export function MobileKeyboardToolbar(props: MobileKeyboardToolbarProps) {
         left: 0,
         right: 0,
         zIndex: theme.zIndex.appBar - 1,
+        // Scaled for pinch zoom from the corner it is fixed by.
+        transformOrigin: "left bottom",
         bgcolor:
           theme.palette.mode === "light" ? "background.paper" : "grey.700",
         borderTop: `1px solid ${theme.palette.divider}`,

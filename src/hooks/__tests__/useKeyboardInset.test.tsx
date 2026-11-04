@@ -4,13 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   KEYBOARD_INSET_PROBE_CLASS,
   KEYBOARD_INSET_SETTLE_MS,
-  subscribeKeyboardInset,
+  subscribeVisibleArea,
   useSettledKeyboardInset,
 } from "../useKeyboardInset";
 
 class FakeVisualViewport extends EventTarget {
   height = 844;
   offsetTop = 0;
+  offsetLeft = 0;
+  scale = 1;
 }
 
 let viewport: FakeVisualViewport;
@@ -27,6 +29,10 @@ function probes() {
 function setViewport(height: number, offsetTop = 0) {
   viewport.height = height;
   viewport.offsetTop = offsetTop;
+}
+
+function area(inset: number, offsetLeft = 0, scale = 1) {
+  return { inset, offsetLeft, scale };
 }
 
 function nextFrame() {
@@ -65,23 +71,23 @@ afterEach(() => {
   });
 });
 
-describe("subscribeKeyboardInset", () => {
+describe("subscribeVisibleArea", () => {
   it("reports the current inset at once, then each change a frame later", () => {
     const listener = vi.fn();
-    const unsubscribe = subscribeKeyboardInset(listener);
-    expect(listener).toHaveBeenLastCalledWith(0);
+    const unsubscribe = subscribeVisibleArea(listener);
+    expect(listener).toHaveBeenLastCalledWith(area(0));
 
     setViewport(508);
     viewport.dispatchEvent(new Event("resize"));
     expect(listener).toHaveBeenCalledTimes(1);
     nextFrame();
-    expect(listener).toHaveBeenLastCalledWith(336);
+    expect(listener).toHaveBeenLastCalledWith(area(336));
 
     // iOS scrolling the layout viewport moves the visible area down.
     setViewport(508, 120);
     viewport.dispatchEvent(new Event("scroll"));
     nextFrame();
-    expect(listener).toHaveBeenLastCalledWith(216);
+    expect(listener).toHaveBeenLastCalledWith(area(216));
     unsubscribe();
   });
 
@@ -95,14 +101,14 @@ describe("subscribeKeyboardInset", () => {
     layoutHeight = 844;
     setViewport(508);
     const listener = vi.fn();
-    const unsubscribe = subscribeKeyboardInset(listener);
-    expect(listener).toHaveBeenLastCalledWith(336);
+    const unsubscribe = subscribeVisibleArea(listener);
+    expect(listener).toHaveBeenLastCalledWith(area(336));
     unsubscribe();
   });
 
   it("reads at most once per frame however many events arrive", () => {
     const listener = vi.fn();
-    const unsubscribe = subscribeKeyboardInset(listener);
+    const unsubscribe = subscribeVisibleArea(listener);
     const read = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect");
 
     setViewport(700);
@@ -116,34 +122,34 @@ describe("subscribeKeyboardInset", () => {
     nextFrame();
     expect(read).toHaveBeenCalledTimes(1);
     expect(listener).toHaveBeenCalledTimes(2);
-    expect(listener).toHaveBeenLastCalledWith(336);
+    expect(listener).toHaveBeenLastCalledWith(area(336));
     unsubscribe();
   });
 
   it("re-reads on touchmove, which iOS momentum scrolling can fire alone", () => {
     const listener = vi.fn();
-    const unsubscribe = subscribeKeyboardInset(listener);
+    const unsubscribe = subscribeVisibleArea(listener);
 
     setViewport(508, 40);
     window.dispatchEvent(new Event("touchmove"));
     nextFrame();
-    expect(listener).toHaveBeenLastCalledWith(296);
+    expect(listener).toHaveBeenLastCalledWith(area(296));
     unsubscribe();
   });
 
   it("shares one probe between subscribers and removes it after the last", () => {
     const first = vi.fn();
     const second = vi.fn();
-    const unsubscribeFirst = subscribeKeyboardInset(first);
-    const unsubscribeSecond = subscribeKeyboardInset(second);
+    const unsubscribeFirst = subscribeVisibleArea(first);
+    const unsubscribeSecond = subscribeVisibleArea(second);
     expect(probes()).toHaveLength(1);
     expect(probes()[0]).toHaveAttribute("aria-hidden", "true");
 
     setViewport(500);
     viewport.dispatchEvent(new Event("resize"));
     nextFrame();
-    expect(first).toHaveBeenLastCalledWith(344);
-    expect(second).toHaveBeenLastCalledWith(344);
+    expect(first).toHaveBeenLastCalledWith(area(344));
+    expect(second).toHaveBeenLastCalledWith(area(344));
 
     unsubscribeFirst();
     // Unsubscribing twice does not drop the other subscriber's count.
@@ -162,12 +168,30 @@ describe("subscribeKeyboardInset", () => {
 
   it("drops a pending frame when the last subscriber leaves", () => {
     const listener = vi.fn();
-    const unsubscribe = subscribeKeyboardInset(listener);
+    const unsubscribe = subscribeVisibleArea(listener);
     setViewport(508);
     viewport.dispatchEvent(new Event("resize"));
     unsubscribe();
     nextFrame();
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports pinch zoom and panning a zoomed page", () => {
+    const listener = vi.fn();
+    const unsubscribe = subscribeVisibleArea(listener);
+
+    viewport.scale = 2;
+    viewport.offsetLeft = 100;
+    setViewport(422, 300);
+    viewport.dispatchEvent(new Event("resize"));
+    nextFrame();
+    expect(listener).toHaveBeenLastCalledWith(area(122, 100, 2));
+
+    viewport.offsetLeft = 150;
+    viewport.dispatchEvent(new Event("scroll"));
+    nextFrame();
+    expect(listener).toHaveBeenLastCalledWith(area(122, 150, 2));
+    unsubscribe();
   });
 
   it("is 0 with no probe without the visual viewport API", () => {
@@ -176,8 +200,8 @@ describe("subscribeKeyboardInset", () => {
       value: undefined,
     });
     const listener = vi.fn();
-    const unsubscribe = subscribeKeyboardInset(listener);
-    expect(listener).toHaveBeenLastCalledWith(0);
+    const unsubscribe = subscribeVisibleArea(listener);
+    expect(listener).toHaveBeenLastCalledWith(area(0));
     expect(probes()).toHaveLength(0);
     unsubscribe();
   });
@@ -231,6 +255,31 @@ describe("useSettledKeyboardInset", () => {
       vi.advanceTimersByTime(20);
     });
     expect(result.current).toBe(336);
+  });
+
+  it("does not wait again when only a zoomed page's pan changes", () => {
+    let renders = 0;
+    const { result } = renderHook(() => {
+      renders += 1;
+      return useSettledKeyboardInset();
+    });
+    setViewport(508);
+    viewport.dispatchEvent(new Event("resize"));
+    nextFrame();
+    act(() => {
+      vi.advanceTimersByTime(KEYBOARD_INSET_SETTLE_MS);
+    });
+    expect(result.current).toBe(336);
+    const rendersSettled = renders;
+
+    viewport.offsetLeft = 40;
+    viewport.dispatchEvent(new Event("scroll"));
+    nextFrame();
+    act(() => {
+      vi.advanceTimersByTime(KEYBOARD_INSET_SETTLE_MS);
+    });
+    expect(result.current).toBe(336);
+    expect(renders).toBe(rendersSettled);
   });
 
   it("removes the probe on unmount", () => {
