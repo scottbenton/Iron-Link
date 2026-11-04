@@ -1,11 +1,13 @@
 import BoldIcon from "@mui/icons-material/FormatBold";
+import OutdentIcon from "@mui/icons-material/FormatIndentDecrease";
+import IndentIcon from "@mui/icons-material/FormatIndentIncrease";
 import ItalicIcon from "@mui/icons-material/FormatItalic";
 import BulletListIcon from "@mui/icons-material/FormatListBulleted";
 import NumberedListIcon from "@mui/icons-material/FormatListNumbered";
 import QuoteIcon from "@mui/icons-material/FormatQuote";
 import StrikeThroughIcon from "@mui/icons-material/FormatStrikethrough";
 import HorizontalRuleIcon from "@mui/icons-material/HorizontalRule";
-import { ToggleButton, ToggleButtonGroup, Tooltip } from "@mui/material";
+import { Box, ToggleButton, ToggleButtonGroup, Tooltip } from "@mui/material";
 import { Editor } from "@tiptap/react";
 import { useTranslation } from "react-i18next";
 
@@ -20,10 +22,14 @@ export function FormattingToolbarItems(props: FormattingToolbarItemsProps) {
   const { editor, hideBorders } = props;
 
   const { t } = useTranslation();
+  const outdentLabel = t("note.editor-toolbar.outdent", "Outdent");
+  const indentLabel = t("note.editor-toolbar.indent", "Indent");
 
+  // A disabled button draws its own border unless told not to.
   const sx = hideBorders
     ? {
         border: "none",
+        "&.Mui-disabled": { border: "none" },
       }
     : {};
 
@@ -100,6 +106,42 @@ export function FormattingToolbarItems(props: FormattingToolbarItemsProps) {
           >
             <NumberedListIcon />
           </ToggleButton>
+        </Tooltip>
+        {/* Tab and Shift-Tab do this too, but a phone keyboard has no Tab.
+            The toolbar re-renders on every transaction, so these follow the
+            caret. A disabled button takes no hover, so its tooltip sits on a
+            wrapper. */}
+        <Tooltip title={outdentLabel} enterDelay={300}>
+          <Box component="span" display="flex">
+            <ToggleButton
+              size={"small"}
+              value={"outdent"}
+              aria-label={outdentLabel}
+              onClick={() =>
+                editor.chain().focus().liftListItem("listItem").run()
+              }
+              disabled={!editor.can().liftListItem("listItem")}
+              sx={sx}
+            >
+              <OutdentIcon />
+            </ToggleButton>
+          </Box>
+        </Tooltip>
+        <Tooltip title={indentLabel} enterDelay={300}>
+          <Box component="span" display="flex">
+            <ToggleButton
+              size={"small"}
+              value={"indent"}
+              aria-label={indentLabel}
+              onClick={() =>
+                editor.chain().focus().sinkListItem("listItem").run()
+              }
+              disabled={!editor.can().sinkListItem("listItem")}
+              sx={sx}
+            >
+              <IndentIcon />
+            </ToggleButton>
+          </Box>
         </Tooltip>
         <Tooltip
           title={t("note.editor-toolbar.horizontal-line", "Horizontal Line")}

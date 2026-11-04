@@ -1,23 +1,17 @@
-import { Box, ToggleButtonGroup } from "@mui/material";
+import { Box } from "@mui/material";
 import { Editor } from "@tiptap/react";
-import { useEffect, useRef, useState } from "react";
 
 import { ActionToolbarStrip } from "components/Layout/ActionToolbarStrip";
 import type { SecretsToolbarState } from "components/RichTextEditor";
-import {
-  InsertSecretButton,
-  MakeSecretButton,
-} from "components/RichTextEditor/secrets/SecretToolbarItems";
 
 import { FormattingToolbarItems } from "pages/games/characterSheet/components/NotesSection/NoteView/FormattingToolbarItems";
-import { MobileKeyboardToolbar } from "pages/games/characterSheet/components/NotesSection/NoteView/MobileKeyboardToolbar";
 import { TextTypeDropdown } from "pages/games/characterSheet/components/NotesSection/NoteView/TextTypeDropdown";
 import { TextTypeMenu } from "pages/games/characterSheet/components/NotesSection/NoteView/TextTypeMenu";
-import { UploadImageButton } from "pages/games/characterSheet/components/NotesSection/NoteView/UploadImageButton";
 
 import { useIsMobile } from "hooks/useIsMobile";
 
-const NOTES_IMAGE_TYPES = "image/png,image/jpeg,image/gif,image/webp";
+import { InsertToolbarGroup } from "./InsertToolbarGroup";
+import { MobileNotesToolbar } from "./MobileNotesToolbar";
 
 // The Notes tab's toolbar for a world's or an entry's Notes, built from the
 // same pieces; `upload` stores an image where its owner keeps them and
@@ -84,80 +78,3 @@ export function WorldNotesToolbar({
 }
 
 const NO_BORDER = { border: "none" };
-
-// Upload image and the secret buttons, as one group like the formatting
-// ones. Upload needs the caret, so readers get only what secrets allow.
-function InsertToolbarGroup({
-  editor,
-  upload,
-  secrets,
-  sx,
-}: {
-  editor: Editor;
-  upload: (file: File) => Promise<string>;
-  secrets?: SecretsToolbarState;
-  sx?: typeof NO_BORDER;
-}) {
-  if (!editor.isEditable && !secrets?.canInsert) return null;
-  return (
-    <ToggleButtonGroup>
-      {editor.isEditable && (
-        <UploadImageButton
-          editor={editor}
-          upload={upload}
-          accept={NOTES_IMAGE_TYPES}
-          sx={sx}
-        />
-      )}
-      {secrets?.canInsert && <InsertSecretButton secrets={secrets} sx={sx} />}
-      {secrets?.canMakeSecret && <MakeSecretButton secrets={secrets} sx={sx} />}
-    </ToggleButtonGroup>
-  );
-}
-
-// Shown while focus is in the editor, the bar, or a menu the bar opened.
-function MobileNotesToolbar({
-  editor,
-  children,
-}: {
-  editor: Editor;
-  children: React.ReactNode;
-}) {
-  const bar = useRef<HTMLDivElement>(null);
-  const [editing, setEditing] = useState(() => editor.isFocused);
-
-  useEffect(() => {
-    const onFocusIn = (event: FocusEvent) => {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      setEditing(
-        editor.view.dom.contains(target) ||
-          !!bar.current?.contains(target) ||
-          !!target.closest(".MuiPopover-root, .MuiMenu-root"),
-      );
-    };
-    // Tapping the page outside moves focus nowhere, so no focusin follows.
-    const onBlur = ({ event }: { event: FocusEvent }) => {
-      if (!event.relatedTarget) setEditing(false);
-    };
-    document.addEventListener("focusin", onFocusIn);
-    editor.on("blur", onBlur);
-    return () => {
-      document.removeEventListener("focusin", onFocusIn);
-      editor.off("blur", onBlur);
-    };
-  }, [editor]);
-
-  return (
-    <MobileKeyboardToolbar hidden={!editing}>
-      {/* Pressing a button keeps the editor, and the keyboard, focused. */}
-      <Box
-        ref={bar}
-        sx={{ display: "contents" }}
-        onMouseDown={(event) => event.preventDefault()}
-      >
-        {children}
-      </Box>
-    </MobileKeyboardToolbar>
-  );
-}

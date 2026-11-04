@@ -8,8 +8,9 @@ export function getAssetCollection(
   const { assetCollectionAliases, assetCollectionMap } =
     useDataswornTreeStore.getState().assets;
   return (
-    assetCollectionMap[assetCollectionAliases[assetCollectionId] ?? assetCollectionId] ??
-    assetCollectionMap[assetCollectionId]
+    assetCollectionMap[
+      assetCollectionAliases[assetCollectionId] ?? assetCollectionId
+    ] ?? assetCollectionMap[assetCollectionId]
   );
 }
 
