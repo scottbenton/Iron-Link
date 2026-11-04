@@ -10,8 +10,8 @@ import {
   useSettledKeyboardInset,
 } from "hooks/useKeyboardInset";
 
-// The row of buttons, under the bar's 1px top border.
-const MOBILE_KEYBOARD_TOOLBAR_ROW_HEIGHT = 40;
+// The smallest a button in the bar may be each way, so it is easy to tap.
+const MIN_TAP_TARGET = 44;
 
 export interface MobileKeyboardToolbarProps extends PropsWithChildren {
   // Hidden, it keeps its layout, and leaves the tab order and the
@@ -85,7 +85,17 @@ export function MobileKeyboardToolbar(props: MobileKeyboardToolbarProps) {
       })}
     >
       <ScrollFadeRow
-        sx={{ height: MOBILE_KEYBOARD_TOOLBAR_ROW_HEIGHT, px: 2, gap: 0.5 }}
+        sx={{
+          height: MIN_TAP_TARGET,
+          px: 2,
+          gap: 0.5,
+          // The buttons are shared with the desktop toolbars, which keep
+          // their own sizes.
+          "& .MuiButtonBase-root": {
+            minWidth: MIN_TAP_TARGET,
+            minHeight: MIN_TAP_TARGET,
+          },
+        }}
       >
         {children}
       </ScrollFadeRow>
