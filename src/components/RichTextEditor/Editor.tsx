@@ -75,6 +75,12 @@ export function Editor(props: EditorProps) {
         },
       });
     }
+    // New margins only apply to the next scroll, and the browser lifts the
+    // caret above the keyboard but not above the toolbar, so scroll now.
+    const caretEditor = toolbarEditor ?? editor;
+    if (clearance > 0 && caretEditor?.isFocused && !caretEditor.isDestroyed) {
+      caretEditor.commands.scrollIntoView();
+    }
   }, [editor, toolbarEditor, clearance]);
 
   return (
