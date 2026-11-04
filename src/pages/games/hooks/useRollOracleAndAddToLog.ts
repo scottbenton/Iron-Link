@@ -5,7 +5,7 @@ import { useSnackbar } from "providers/SnackbarProvider";
 
 import { useRollOracle } from "hooks/useRollOracle";
 
-import { useAddRollSnackbar } from "stores/appState.store";
+import { useAddRollSnackbar, useSetAnnouncement } from "stores/appState.store";
 import { useUID } from "stores/auth.store";
 import { useGameLogStore } from "stores/gameLog.store";
 
@@ -24,6 +24,7 @@ export function useRollOracleAndAddToLog() {
   const canEditCharacter = useCanEditCharacter();
 
   const addRollSnackbar = useAddRollSnackbar();
+  const announce = useSetAnnouncement();
 
   const { t } = useTranslation();
 
@@ -46,6 +47,25 @@ export function useRollOracleAndAddToLog() {
           characterId: characterId && canEditCharacter ? characterId : null,
           guidesOnly,
         };
+        // The result snackbar isn't read out, so without this a screen reader
+        // user hears nothing when they roll an oracle.
+        let announcement = t(
+          "datasworn.a11y.oracle-roll",
+          "Rolled {{oracleName}}: {{result}}.",
+          {
+            oracleName: result.rollLabel,
+            result: plainText(result.result),
+          },
+        );
+        if (result.cursedDieAdditiveResult) {
+          announcement += t(
+            "datasworn.a11y.oracle-roll-cursed",
+            " The cursed die adds: {{result}}.",
+            { result: plainText(result.cursedDieAdditiveResult) },
+          );
+        }
+        announce(announcement);
+
         if (gameId) {
           addRoll(resultWithAdditions.id, resultWithAdditions).catch(() => {});
           addRollSnackbar(resultWithAdditions.id, resultWithAdditions);
@@ -77,10 +97,16 @@ export function useRollOracleAndAddToLog() {
       error,
       t,
       addRollSnackbar,
+      announce,
       canEditCharacter,
       addRoll,
     ],
   );
 
   return handleRollOracle;
+}
+
+// Oracle results can hold markdown links; read out only their text.
+function plainText(markdown: string): string {
+  return markdown.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
 }

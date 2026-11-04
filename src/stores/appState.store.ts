@@ -18,6 +18,9 @@ export enum ReferenceTabs {
 
 interface AppStateState {
   announcement: string | null;
+  // Goes up with every setAnnouncement call, so a message that repeats the last
+  // one (the same oracle result twice) is still read out again.
+  announcementId: number;
   dataswornDialogState: {
     isOpen: boolean;
     openId?: string;
@@ -52,6 +55,7 @@ interface AppStateActions {
 
 const defaultAppState: AppStateState = {
   announcement: null,
+  announcementId: 0,
   dataswornDialogState: {
     isOpen: false,
     previousIds: [],
@@ -68,7 +72,11 @@ export const useAppState = createWithEqualityFn<
   immer((set) => ({
     ...defaultAppState,
 
-    setAnnouncement: (announcement) => set({ announcement }),
+    setAnnouncement: (announcement) =>
+      set((state) => {
+        state.announcement = announcement;
+        state.announcementId += 1;
+      }),
 
     openDataswornDialog: (id) => {
       set((state) => {
@@ -153,6 +161,10 @@ export const useAppState = createWithEqualityFn<
 
 export function useAnnouncement() {
   return useAppState((state) => state.announcement);
+}
+
+export function useAnnouncementId() {
+  return useAppState((state) => state.announcementId);
 }
 
 export function useSetAnnouncement() {

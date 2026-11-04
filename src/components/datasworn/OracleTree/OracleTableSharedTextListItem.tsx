@@ -79,6 +79,11 @@ export function OracleTableSharedTextListItem(
           >
             <span>
               <IconButton
+                aria-label={t(
+                  "datasworn.oracle.view-full-table-for",
+                  "View full table for {{name}}",
+                  { name: collection.name },
+                )}
                 onClick={() => openDialog(collection._id)}
                 disabled={disabled}
               >

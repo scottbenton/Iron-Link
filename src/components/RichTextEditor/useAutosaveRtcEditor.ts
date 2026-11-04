@@ -22,6 +22,8 @@ export function useAutoSaveRtcEditor(params: {
   // More extensions for this editor. Keep the array stable; a new one
   // recreates the editor.
   extensions?: Extensions;
+  // The editor's accessible name. Tiptap already gives it role="textbox".
+  label?: string;
 }): { editor: ReturnType<typeof useEditor>; saving: boolean } {
   const {
     documentId,
@@ -31,6 +33,7 @@ export function useAutoSaveRtcEditor(params: {
     contentStore,
     onSaveError,
     extensions,
+    label,
   } = params;
   const readOnly = !contentStore;
 
@@ -71,8 +74,11 @@ export function useAutoSaveRtcEditor(params: {
         }
       },
       enablePasteRules: true,
+      editorProps: label
+        ? { attributes: { "aria-label": label, "aria-multiline": "true" } }
+        : undefined,
     },
-    [doc, provider, uid, displayName, readOnly, extensions],
+    [doc, provider, uid, displayName, readOnly, extensions, label],
   );
 
   if (!doc) {

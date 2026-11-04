@@ -7,7 +7,7 @@ import {
   ListItemText,
 } from "@mui/material";
 import { ListItemIcon } from "@mui/material";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { MoveCategoryMap, MoveMap } from "stores/dataswornTree.store";
 
@@ -41,6 +41,7 @@ export function MoveCategoryListItem(props: MoveCategoryListItemProps) {
   const moveCategory = moveCategoryMap[moveCategoryId];
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const contentsId = useId();
 
   let categoryVisibilityState = CollectionVisibility.All;
   if (isSearchActive && !isFullCategoryVisible) {
@@ -82,6 +83,8 @@ export function MoveCategoryListItem(props: MoveCategoryListItemProps) {
           <ListItemButton
             disabled={disabled || isSearchActive}
             onClick={() => setIsExpanded((prev) => !prev)}
+            aria-expanded={isExpanded}
+            aria-controls={isExpanded ? contentsId : undefined}
           >
             <ListItemText>{moveCategory.name}</ListItemText>
             <ListItemIcon sx={{ minWidth: "unset" }}>
@@ -98,7 +101,7 @@ export function MoveCategoryListItem(props: MoveCategoryListItemProps) {
         )}
       </ListItem>
 
-      <Collapse unmountOnExit in={isExpandedOrForced}>
+      <Collapse unmountOnExit in={isExpandedOrForced} id={contentsId}>
         <List sx={{ py: 0, mb: isExpandedOrForced ? 0.5 : 0 }}>
           {Object.values(moveCategory.contents).map((move) => (
             <MoveListItem
