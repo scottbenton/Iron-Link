@@ -22,8 +22,8 @@ export function FormattingToolbarItems(props: FormattingToolbarItemsProps) {
   const { editor, hideBorders } = props;
 
   const { t } = useTranslation();
-  const indentLabel = t("note.editor-toolbar.indent", "Indent");
   const outdentLabel = t("note.editor-toolbar.outdent", "Outdent");
+  const indentLabel = t("note.editor-toolbar.indent", "Indent");
 
   // A disabled button draws its own border unless told not to.
   const sx = hideBorders
@@ -111,22 +111,6 @@ export function FormattingToolbarItems(props: FormattingToolbarItemsProps) {
             The toolbar re-renders on every transaction, so these follow the
             caret. A disabled button takes no hover, so its tooltip sits on a
             wrapper. */}
-        <Tooltip title={indentLabel} enterDelay={300}>
-          <Box component="span" display="flex">
-            <ToggleButton
-              size={"small"}
-              value={"indent"}
-              aria-label={indentLabel}
-              onClick={() =>
-                editor.chain().focus().sinkListItem("listItem").run()
-              }
-              disabled={!editor.can().sinkListItem("listItem")}
-              sx={sx}
-            >
-              <IndentIcon />
-            </ToggleButton>
-          </Box>
-        </Tooltip>
         <Tooltip title={outdentLabel} enterDelay={300}>
           <Box component="span" display="flex">
             <ToggleButton
@@ -140,6 +124,22 @@ export function FormattingToolbarItems(props: FormattingToolbarItemsProps) {
               sx={sx}
             >
               <OutdentIcon />
+            </ToggleButton>
+          </Box>
+        </Tooltip>
+        <Tooltip title={indentLabel} enterDelay={300}>
+          <Box component="span" display="flex">
+            <ToggleButton
+              size={"small"}
+              value={"indent"}
+              aria-label={indentLabel}
+              onClick={() =>
+                editor.chain().focus().sinkListItem("listItem").run()
+              }
+              disabled={!editor.can().sinkListItem("listItem")}
+              sx={sx}
+            >
+              <IndentIcon />
             </ToggleButton>
           </Box>
         </Tooltip>
