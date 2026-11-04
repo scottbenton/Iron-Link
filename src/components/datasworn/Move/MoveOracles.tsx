@@ -1,43 +1,40 @@
 import { Datasworn } from "@datasworn-community/core";
-import { Box } from "@mui/material";
+import { Box, Button } from "@mui/material";
+import { useTranslation } from "react-i18next";
+
+import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";
 
 import { OracleTable } from "../Oracle/OracleTable";
-import { MoveOracleButton } from "./MoveOracleButton";
-import {
-  getTableIdsRenderedInMarkdown,
-  withoutRulesPackage,
-} from "./getTableIdsRenderedInMarkdown";
 
 export interface MoveOraclesProps {
   move: Datasworn.AnyMove;
 }
-
-/**
- * The oracle tables a move carries, each with its roll button above it.
- *
- * Most moves that carry an oracle place it in their text with a {{table>...}}
- * directive, which MarkdownRenderer draws with its button
- * (getMoveTableAction). Those are left out here, so no table shows twice.
- */
 export function MoveOracles(props: MoveOraclesProps) {
   const { move } = props;
 
-  const alreadyRendered = getTableIdsRenderedInMarkdown(move.text);
-  const oracles = Object.entries(
-    ("oracles" in move ? move.oracles : undefined) ?? {},
-  ).filter(
-    ([, oracle]) => !alreadyRendered.has(withoutRulesPackage(oracle._id)),
-  );
+  const oracles = "oracles" in move ? move.oracles : undefined;
 
-  if (oracles.length === 0) {
+  const { t } = useTranslation();
+  const rollOracle = useRollOracleAndAddToLog();
+
+  if (!oracles) {
     return null;
   }
 
   return (
     <Box>
-      {oracles.map(([key, oracle]) => (
+      {Object.entries(oracles).map(([key, oracle]) => (
         <Box mt={1} key={key}>
-          <MoveOracleButton oracle={oracle} />
+          <Button
+            key={key}
+            color="inherit"
+            variant="outlined"
+            onClick={() => rollOracle(oracle._id, false)}
+          >
+            {t("datasworn.roll-oracle", "Roll {{oracleName}}", {
+              oracleName: oracle.name,
+            })}
+          </Button>
           <OracleTable oracle={oracle} />
         </Box>
       ))}

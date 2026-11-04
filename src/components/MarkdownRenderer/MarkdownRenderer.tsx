@@ -8,17 +8,16 @@ import {
   TypographyProps,
   useTheme,
 } from "@mui/material";
-import { ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-
-import { getDataswornItem } from "components/datasworn/DataswornDialog/useGetDataswornItem";
-
-import { getOracleRollable } from "hooks/datasworn/useOracleRollable";
 
 import { useOpenDataswornDialog } from "stores/appState.store";
 
 import { idMap } from "data/idMap";
+
+import { getDataswornItem } from "components/datasworn/DataswornDialog/useGetDataswornItem";
+
+import { getOracleRollable } from "hooks/datasworn/useOracleRollable";
 
 import { OracleTableRenderer } from "./OracleTableRenderer";
 
@@ -31,9 +30,6 @@ export interface MarkdownRendererProps {
   disableLinks?: boolean;
   typographyVariant?: TypographyProps["variant"];
   sx?: SxProps<Theme>;
-  // Drawn just before a table the text places inline ({{table>id}}), so its
-  // roll button comes before the table rather than after it.
-  renderTableAction?: (tableId: string) => ReactNode;
 }
 
 export function MarkdownRenderer(props: MarkdownRendererProps) {
@@ -44,7 +40,6 @@ export function MarkdownRenderer(props: MarkdownRendererProps) {
     disableLinks,
     typographyVariant,
     sx,
-    renderTableAction,
   } = props;
 
   const openDialog = useOpenDataswornDialog();
@@ -77,12 +72,7 @@ export function MarkdownRenderer(props: MarkdownRendererProps) {
                 .replace("{{table>", "");
               const oracle = getOracleRollable(id);
               if (oracle) {
-                return (
-                  <>
-                    {renderTableAction?.(id)}
-                    <OracleTableRenderer oracle={oracle} />
-                  </>
-                );
+                return <OracleTableRenderer oracle={oracle} />;
               }
             } else if (content.match(/^{{table:[^/]+\/truths\/[^}]+}}$/)) {
               return null;

@@ -32,10 +32,10 @@ export interface EditorProps {
   // Grow the text to fill the rest of a flex column, so the whole space below
   // the toolbar takes a click. minHeight is then the text's smallest height.
   fill?: boolean;
-  // Names the editable text for screen readers ("Note text"). With it, an
-  // editable editor also gets a link before the toolbar that skips straight to
-  // the text, so keyboard and screen reader users need not step through every
-  // formatting button first.
+  // The text's name ("Note text"). With it, an editable editor gets a link
+  // before the toolbar that skips straight to the text, so keyboard and screen
+  // reader users need not step through every formatting button first. The
+  // accessible name itself is set where the editor is created.
   label?: string;
 }
 
@@ -91,31 +91,6 @@ export function Editor(props: EditorProps) {
       caretEditor.commands.scrollIntoView();
     }
   }, [editor, toolbarEditor, clearance]);
-
-  useEffect(() => {
-    if (!editor || editor.isDestroyed) return;
-    const { attributes } = editor.options.editorProps;
-    const otherAttributes: Record<string, string> = {
-      ...(typeof attributes === "object" ? attributes : {}),
-    };
-    delete otherAttributes.role;
-    delete otherAttributes["aria-multiline"];
-    delete otherAttributes["aria-label"];
-    editor.setOptions({
-      editorProps: {
-        ...editor.options.editorProps,
-        attributes:
-          label && editable
-            ? {
-                ...otherAttributes,
-                role: "textbox",
-                "aria-multiline": "true",
-                "aria-label": label,
-              }
-            : otherAttributes,
-      },
-    });
-  }, [editor, label, editable]);
 
   const skipToText = editor && label && editable && (
     <Button

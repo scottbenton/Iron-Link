@@ -86,6 +86,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
   } = props;
 
   const { t } = useTranslation();
+  const noteTextLabel = t("notes.note-text", "Note text");
   const { error } = useSnackbar();
   const uid = useUID();
 
@@ -173,6 +174,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
     contentStore,
     onSaveError,
     extensions,
+    label: noteTextLabel,
   });
 
   // An image from a secret pasted into the text gets a public copy, since
@@ -281,7 +283,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
         minHeight={minHeight}
         contentPx={contentPx}
         fill={fill}
-        label={t("notes.note-text", "Note text")}
+        label={noteTextLabel}
       />
       {blocks.map((block) => (
         <SecretBlockView

@@ -8,7 +8,6 @@ import { useMove } from "hooks/datasworn/useMove";
 
 import { MoveOracles } from "./MoveOracles";
 import { MoveRollOptions } from "./MoveRollOptions";
-import { getMoveTableAction } from "./getMoveTableAction";
 
 export interface MoveProps {
   moveId: string;
@@ -38,10 +37,7 @@ export function Move(props: MoveProps) {
     <Box bgcolor="background.paper" sx={sx}>
       {!hideMoveName && <Typography variant={"h6"}>{move.name}</Typography>}
       <MoveRollOptions move={move} />
-      <MarkdownRenderer
-        markdown={move.text}
-        renderTableAction={getMoveTableAction(move)}
-      />
+      <MarkdownRenderer markdown={move.text} />
       <MoveOracles move={move} />
     </Box>
   );
