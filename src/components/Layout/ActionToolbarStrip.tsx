@@ -1,8 +1,11 @@
 import { Box } from "@mui/material";
 import { PropsWithChildren } from "react";
 
+import { ScrollFadeRow } from "./ScrollFadeRow";
+
 // The grey strip of actions under the Notes breadcrumbs, also used on its own
-// above an entry's Notes so both editors share one toolbar.
+// above an entry's Notes so both editors share one toolbar. Actions that don't
+// fit scroll sideways inside the strip.
 export function ActionToolbarStrip(props: PropsWithChildren) {
   const { children } = props;
 
@@ -15,13 +18,11 @@ export function ActionToolbarStrip(props: PropsWithChildren) {
         theme.palette.grey[theme.palette.mode === "light" ? "200" : "800"]
       }
       borderRadius={1}
-      display={"flex"}
-      alignItems={"center"}
-      gap={0.5}
       width={"100%"}
-      sx={{ overflowX: "auto" }}
     >
-      {children}
+      <ScrollFadeRow sx={{ alignItems: "center", gap: 0.5 }}>
+        {children}
+      </ScrollFadeRow>
     </Box>
   );
 }

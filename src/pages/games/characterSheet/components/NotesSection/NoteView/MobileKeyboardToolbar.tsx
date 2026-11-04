@@ -2,6 +2,7 @@ import { Box } from "@mui/material";
 import { PropsWithChildren, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { ScrollFadeRow } from "components/Layout/ScrollFadeRow";
 import { useReportToolbarClearance } from "components/RichTextEditor/toolbarClearance";
 
 import {
@@ -83,15 +84,11 @@ export function MobileKeyboardToolbar(props: MobileKeyboardToolbarProps) {
         visibility: hidden ? "hidden" : undefined,
       })}
     >
-      <Box
-        height={MOBILE_KEYBOARD_TOOLBAR_ROW_HEIGHT}
-        display="flex"
-        px={2}
-        gap={0.5}
-        overflow="auto"
+      <ScrollFadeRow
+        sx={{ height: MOBILE_KEYBOARD_TOOLBAR_ROW_HEIGHT, px: 2, gap: 0.5 }}
       >
         {children}
-      </Box>
+      </ScrollFadeRow>
     </Box>,
     document.body,
   );
