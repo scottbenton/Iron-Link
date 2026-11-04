@@ -3,7 +3,7 @@ import ChevronIcon from "@mui/icons-material/ChevronRight";
 import { Collapse, ListItem, ListItemButton } from "@mui/material";
 import { ListItemText } from "@mui/material";
 import { ListItemIcon } from "@mui/material";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { Move } from "../Move";
 import {
@@ -35,6 +35,7 @@ export function MoveListItem(props: MoveListItemProps) {
   }
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const contentId = useId();
 
   if (moveVisibility === ItemVisibility.Hidden) {
     return null;
@@ -52,6 +53,8 @@ export function MoveListItem(props: MoveListItemProps) {
         <ListItemButton
           disabled={disabled}
           onClick={() => setIsExpanded((prev) => !prev)}
+          aria-expanded={isExpanded}
+          aria-controls={isExpanded ? contentId : undefined}
         >
           <ListItemText>{move.name}</ListItemText>
           <ListItemIcon sx={{ minWidth: "unset" }}>
@@ -66,7 +69,7 @@ export function MoveListItem(props: MoveListItemProps) {
           </ListItemIcon>
         </ListItemButton>
       </ListItem>
-      <Collapse unmountOnExit in={isExpanded}>
+      <Collapse unmountOnExit in={isExpanded} id={contentId}>
         <Move moveId={move._id} hideMoveName sx={{ px: 2, py: 1 }} />
       </Collapse>
     </>

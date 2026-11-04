@@ -281,6 +281,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
         minHeight={minHeight}
         contentPx={contentPx}
         fill={fill}
+        label={t("notes.note-text", "Note text")}
       />
       {blocks.map((block) => (
         <SecretBlockView

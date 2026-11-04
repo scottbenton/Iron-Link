@@ -181,7 +181,7 @@ function announceRoll(
       "datasworn.a11y.action-roll-total-matched-negative-momentum",
       " On your action die you rolled a {{action}} which matched your momentum of {{momentum}}, so your action die got cancelled out. Your modifiers are {{statModifier}} plus {{adds}} for a total of {{actionTotal}}.",
       {
-        action: roll.actionTotal === 10 ? t("max of 10") : roll.actionTotal,
+        action: roll.action,
         momentum: rollConfig.momentum,
         statModifier: rollConfig.statModifier,
         adds: roll.adds,
@@ -193,18 +193,18 @@ function announceRoll(
       "datasworn.a11y.action-roll-total",
       " On your action die you rolled a {{action}} plus {{statModifier}} plus {{adds}} for a total of {{actionTotal}}.",
       {
-        action: roll.actionTotal === 10 ? t("max of 10") : roll.actionTotal,
+        action: roll.action,
         statModifier: rollConfig.statModifier,
         adds: roll.adds,
         actionTotal: roll.actionTotal,
       },
     );
   }
-  const resultLabel = t("datasworn.weak-hit", "Weak Hit");
+  let resultLabel = t("datasworn.weak-hit", "Weak Hit");
   if (roll.result === RollResult.StrongHit) {
-    t("datasworn.strong-hit", "Strong Hit");
+    resultLabel = t("datasworn.strong-hit", "Strong Hit");
   } else if (roll.result === RollResult.Miss) {
-    t("datasworn.miss", "Miss");
+    resultLabel = t("datasworn.miss", "Miss");
   }
   announcement += t(
     "datasworn.a11y.action-roll-result",

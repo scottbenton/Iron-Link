@@ -1,24 +1,23 @@
-import { useEffect } from "react";
-
 import { ScreenReaderOnly } from "components/ScreenReaderOnly";
 
-import { useAnnouncement } from "stores/appState.store";
+import { useLiveRegionText } from "./useLiveRegionText";
 
-const DEBUG_MODE = true;
+export interface LiveRegionProps {
+  id?: string;
+}
 
-export function LiveRegion() {
-  const announcement = useAnnouncement();
-
-  useEffect(() => {
-    if (DEBUG_MODE && announcement) {
-      console.log("-- ANNOUNCEMENT --");
-      console.log(announcement);
-    }
-  }, [announcement]);
+/**
+ * Reads announcements (roll and oracle results, track changes) to screen
+ * readers. A modal dialog hides the rest of the page from them, this region
+ * included, so dialogs render one of their own.
+ */
+export function LiveRegion(props: LiveRegionProps) {
+  const { id } = props;
+  const text = useLiveRegionText();
 
   return (
-    <ScreenReaderOnly live id={"live-region"}>
-      {announcement}
+    <ScreenReaderOnly live id={id}>
+      {text}
     </ScreenReaderOnly>
   );
 }

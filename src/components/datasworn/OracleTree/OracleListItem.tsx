@@ -61,6 +61,11 @@ export function OracleListItem(props: OracleListItemProps) {
         >
           <span>
             <IconButton
+              aria-label={t(
+                "datasworn.oracle.view-full-table-for",
+                "View full table for {{name}}",
+                { name: oracle.name },
+              )}
               onClick={() => openDialog(oracle._id)}
               disabled={disabled}
             >

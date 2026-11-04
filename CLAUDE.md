@@ -11,6 +11,13 @@ that are easy to miss. When you learn a new one, add a line here.
   World..."). A loading status that is not a control may keep one.
 - Checkboxes, never switches, for on/off settings in forms.
 
+## Accessibility
+
+- Screen reader announcements go through `useSetAnnouncement`. Live regions
+  read `useLiveRegionText`, which clears and rewrites the text so a repeated
+  message is read again. A modal dialog hides the page's region, so
+  `DialogTitleWithCloseButton` renders its own `LiveRegion`.
+
 ## Checks
 
 - Type-check: `npx tsc -b` (what `npm run build` runs).

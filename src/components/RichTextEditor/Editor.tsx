@@ -1,7 +1,8 @@
-import { Box, Fade } from "@mui/material";
+import { Box, Button, Fade } from "@mui/material";
 import type { ResponsiveStyleValue } from "@mui/system";
 import { EditorContent, Editor as TTEditor } from "@tiptap/react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useIsMobile } from "hooks/useIsMobile";
 
@@ -31,6 +32,11 @@ export interface EditorProps {
   // Grow the text to fill the rest of a flex column, so the whole space below
   // the toolbar takes a click. minHeight is then the text's smallest height.
   fill?: boolean;
+  // Names the editable text for screen readers ("Note text"). With it, an
+  // editable editor also gets a link before the toolbar that skips straight to
+  // the text, so keyboard and screen reader users need not step through every
+  // formatting button first.
+  label?: string;
 }
 
 export function Editor(props: EditorProps) {
@@ -45,7 +51,10 @@ export function Editor(props: EditorProps) {
     minHeight = 300,
     contentPx,
     fill,
+    label,
   } = props;
+
+  const { t } = useTranslation();
 
   const isMobile = useIsMobile();
   const toolbar = editor && (
@@ -83,8 +92,62 @@ export function Editor(props: EditorProps) {
     }
   }, [editor, toolbarEditor, clearance]);
 
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    const { attributes } = editor.options.editorProps;
+    const otherAttributes: Record<string, string> = {
+      ...(typeof attributes === "object" ? attributes : {}),
+    };
+    delete otherAttributes.role;
+    delete otherAttributes["aria-multiline"];
+    delete otherAttributes["aria-label"];
+    editor.setOptions({
+      editorProps: {
+        ...editor.options.editorProps,
+        attributes:
+          label && editable
+            ? {
+                ...otherAttributes,
+                role: "textbox",
+                "aria-multiline": "true",
+                "aria-label": label,
+              }
+            : otherAttributes,
+      },
+    });
+  }, [editor, label, editable]);
+
+  const skipToText = editor && label && editable && (
+    <Button
+      variant={"contained"}
+      onClick={() => editor.chain().focus().run()}
+      sx={{
+        position: "absolute",
+        zIndex: 1,
+        m: 1,
+        // Hidden until focused, like Skip to Content.
+        "&:not(:focus)": {
+          width: "1px",
+          height: "1px",
+          p: 0,
+          m: "-1px",
+          overflow: "hidden",
+          clip: "rect(0, 0, 0, 0)",
+          clipPath: "inset(50%)",
+          whiteSpace: "nowrap",
+          border: 0,
+        },
+      }}
+    >
+      {t("notes.skip-to-text", "Skip to {{label}}", {
+        label: label.toLocaleLowerCase(),
+      })}
+    </Button>
+  );
+
   return (
     <ToolbarClearanceContext.Provider value={setClearance}>
+      {!outlined && skipToText}
       {!outlined && toolbar}
 
       <Box
@@ -107,6 +170,7 @@ export function Editor(props: EditorProps) {
               }
         }
       >
+        {outlined && skipToText}
         {outlined && toolbar}
         <Box position={"relative"}>
           <Fade in={saving}>

@@ -8,7 +8,7 @@ import {
   ListItemText,
 } from "@mui/material";
 import { ListItemIcon } from "@mui/material";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import {
   CollectionVisibility,
@@ -41,6 +41,7 @@ export function OracleCollectionListItem(props: OracleCollectionListItemProps) {
   const oracleCollection = oracleCollectionMap[oracleCollectionId];
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const contentsId = useId();
 
   let collectionVisibilityState = CollectionVisibility.All;
   if (isSearchActive && !isFullCollectionVisible) {
@@ -95,6 +96,8 @@ export function OracleCollectionListItem(props: OracleCollectionListItemProps) {
           <ListItemButton
             disabled={disabled || isSearchActive}
             onClick={() => setIsExpanded((prev) => !prev)}
+            aria-expanded={isExpanded}
+            aria-controls={isExpanded ? contentsId : undefined}
           >
             <ListItemText>{oracleCollection.name}</ListItemText>
             <ListItemIcon sx={{ minWidth: "unset" }}>
@@ -111,7 +114,7 @@ export function OracleCollectionListItem(props: OracleCollectionListItemProps) {
         )}
       </ListItem>
 
-      <Collapse unmountOnExit in={isExpandedOrForced}>
+      <Collapse unmountOnExit in={isExpandedOrForced} id={contentsId}>
         <List sx={{ py: 0, mb: isExpandedOrForced ? 0.5 : 0 }}>
           {Object.values(oracleCollection.contents).map((oracle) => (
             <OracleListItem

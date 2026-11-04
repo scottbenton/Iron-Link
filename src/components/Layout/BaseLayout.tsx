@@ -34,7 +34,7 @@ export function BaseLayout() {
         flexGrow={1}
         position="relative"
       >
-        <LiveRegion />
+        <LiveRegion id={"live-region"} />
         <SkipToContentButton />
         <LayoutPathListener />
         <NavRail routes={routes} />
@@ -44,9 +44,12 @@ export function BaseLayout() {
             flexDirection: "column",
             flexGrow: 1,
             minWidth: 0,
+            "&:focus": { outline: "none" },
           }}
           component={"main"}
           id={"main-content"}
+          // Lets Skip to Content move focus here, not just scroll, in Safari.
+          tabIndex={-1}
         >
           <ErrorBoundary>
             <Outlet />

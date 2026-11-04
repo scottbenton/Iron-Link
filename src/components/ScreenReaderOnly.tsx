@@ -14,14 +14,16 @@ export function ScreenReaderOnly(
   return (
     <Box
       position={"absolute"}
-      width={1}
-      height={1}
+      // "1px", not 1: MUI reads a bare 1 as 100%, which stretched the
+      // region across the page.
+      width={"1px"}
+      height={"1px"}
       padding={0}
-      m={-1}
+      margin={"-1px"}
       overflow={"hidden"}
       whiteSpace={"nowrap"}
       border={0}
-      sx={{ clip: "rect(0, 0, 0, 0)" }}
+      sx={{ clip: "rect(0, 0, 0, 0)", clipPath: "inset(50%)" }}
       aria-live={live ? "polite" : undefined}
       id={id}
     >
