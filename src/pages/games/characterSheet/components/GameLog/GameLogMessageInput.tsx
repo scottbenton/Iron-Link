@@ -2,6 +2,7 @@ import SendIcon from "@mui/icons-material/Send";
 import { Box, Card, IconButton } from "@mui/material";
 import { Editor as TTEditor, useEditor } from "@tiptap/react";
 import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Editor } from "components/RichTextEditor/Editor";
 import {
@@ -21,6 +22,7 @@ import { IMessage, LogType } from "services/gameLog.service";
 import { useCharacterIdOptional } from "../../hooks/useCharacterId";
 
 export function GameLogMessageInput() {
+  const { t } = useTranslation();
   const uid = useUID();
   const gameId = useGameId();
   const characterId = useCharacterIdOptional();
@@ -61,8 +63,12 @@ export function GameLogMessageInput() {
       CustomEnterExtension.configure({ onEnter: handleSend }),
     ];
   }, [handleSend]);
+  const messageLabel = t("game.log.message-input", "Message to the game log");
   const editor = useEditor({
     extensions,
+    editorProps: {
+      attributes: { "aria-label": messageLabel, "aria-multiline": "true" },
+    },
   });
 
   return (
@@ -92,7 +98,11 @@ export function GameLogMessageInput() {
           <Editor editor={editor} Toolbar={() => <></>} editable={!sending} />
         </Box>
         {editor && (
-          <IconButton onClick={() => handleSend(editor)} disabled={sending}>
+          <IconButton
+            aria-label={t("game.log.send-message", "Send message")}
+            onClick={() => handleSend(editor)}
+            disabled={sending}
+          >
             <SendIcon />
           </IconButton>
         )}

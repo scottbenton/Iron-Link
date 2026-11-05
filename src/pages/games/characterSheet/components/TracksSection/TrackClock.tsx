@@ -166,6 +166,9 @@ export function TrackClock(props: TrackClockProps) {
                 color={"inherit"}
                 component={"button"}
                 sx={{ ml: 2 }}
+                aria-label={t("common.edit-named", "Edit {{name}}", {
+                  name: clock.label,
+                })}
                 onClick={() => setEditClockDialogOpen(true)}
               >
                 {t("common.edit", "Edit")}

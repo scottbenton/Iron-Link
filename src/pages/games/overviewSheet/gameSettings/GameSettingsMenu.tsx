@@ -1,6 +1,6 @@
 import GameSettingsIcon from "@mui/icons-material/Settings";
 import { IconButton, Menu, Tooltip } from "@mui/material";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { GamePermission } from "stores/game.store";
@@ -16,6 +16,7 @@ export function GameSettingsMenu() {
   const { t } = useTranslation();
 
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
 
   const { gamePermission } = useGamePermissions();
 
@@ -27,6 +28,10 @@ export function GameSettingsMenu() {
     <>
       <Tooltip title={t("game.game-settings", "Game Settings")}>
         <IconButton
+          aria-label={t("game.game-settings", "Game Settings")}
+          aria-haspopup="menu"
+          aria-expanded={isMenuOpen ? "true" : undefined}
+          aria-controls={isMenuOpen ? menuId : undefined}
           onClick={() => setIsMenuOpen(true)}
           ref={buttonRef}
           sx={{ mt: -1, mr: -1 }}
@@ -34,7 +39,12 @@ export function GameSettingsMenu() {
           <GameSettingsIcon />
         </IconButton>
       </Tooltip>
-      <Menu open={isMenuOpen} onClose={closeMenu} anchorEl={buttonRef.current}>
+      <Menu
+        open={isMenuOpen}
+        onClose={closeMenu}
+        anchorEl={buttonRef.current}
+        slotProps={{ list: { id: menuId } }}
+      >
         <GameSettingsMenuItems closeMenu={closeMenu} />
       </Menu>
       <GameSettingsMenuDialogs />

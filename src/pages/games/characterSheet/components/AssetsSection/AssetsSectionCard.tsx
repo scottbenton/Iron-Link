@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 
 import { AssetCard } from "components/datasworn/AssetCard";
 
+import { useAsset } from "hooks/datasworn/useAsset";
+
 import { useAssetsStore } from "stores/assets.store";
 
 import { IAsset } from "services/asset.service";
@@ -21,6 +23,7 @@ function AssetsSectionCardUnMemoized(props: AssetsSectionCardProps) {
   const { canEditCharacter, assetId, assetDocument, showUnavailableAbilities } =
     props;
   const { t } = useTranslation();
+  const assetName = useAsset(assetDocument.dataswornAssetId)?.name;
 
   const toggleAssetAbility = useAssetsStore(
     (store) => store.toggleAssetAbility,
@@ -81,7 +84,24 @@ function AssetsSectionCardUnMemoized(props: AssetsSectionCardProps) {
             "Delete Asset",
           )}
         >
-          <IconButton onClick={handleDeleteAsset} color="inherit">
+          <IconButton
+            aria-label={
+              assetName
+                ? t(
+                    "character.character-sidebar.delete-named-asset",
+                    "Delete {{name}}",
+                    {
+                      name: assetName,
+                    },
+                  )
+                : t(
+                    "character.character-sidebar.delete-asset-dialog-title",
+                    "Delete Asset",
+                  )
+            }
+            onClick={handleDeleteAsset}
+            color="inherit"
+          >
             <DeleteIcon />
           </IconButton>
         </Tooltip>

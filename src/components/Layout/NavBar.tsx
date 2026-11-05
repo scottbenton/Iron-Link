@@ -88,6 +88,7 @@ export function NavBar(props: NavBarProps) {
                       LinkComponent={LinkComponent}
                       color={"inherit"}
                       href={goBackTo}
+                      aria-label={t("nav.go-back-mobile", "Go Back")}
                     >
                       <BackIcon />
                     </IconButton>

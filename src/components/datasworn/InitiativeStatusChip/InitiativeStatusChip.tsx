@@ -1,6 +1,6 @@
 import DropdownIcon from "@mui/icons-material/ExpandMore";
 import { Box, Chip, ChipProps, Menu, MenuItem } from "@mui/material";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { InitiativeStatus } from "repositories/character.repository";
 
@@ -33,6 +33,7 @@ export function InitiativeStatusChip(props: InitiativeStatusChipProps) {
   const { status, handleStatusChange, variant } = props;
 
   const [menuParent, setMenuParent] = useState<HTMLElement>();
+  const menuId = useId();
 
   const onStatusChangeClick = (status: InitiativeStatus) => {
     handleStatusChange?.(status);
@@ -52,6 +53,11 @@ export function InitiativeStatusChip(props: InitiativeStatusChipProps) {
           </Box>
         }
         variant={variant ?? "filled"}
+        {...(handleStatusChange && {
+          "aria-haspopup": "menu" as const,
+          "aria-expanded": menuParent ? ("true" as const) : undefined,
+          "aria-controls": menuParent ? menuId : undefined,
+        })}
         onClick={
           handleStatusChange
             ? (evt) => setMenuParent(evt.currentTarget)
@@ -63,6 +69,7 @@ export function InitiativeStatusChip(props: InitiativeStatusChipProps) {
         open={!!menuParent}
         anchorEl={menuParent}
         onClose={() => setMenuParent(undefined)}
+        slotProps={{ list: { id: menuId } }}
       >
         <MenuItem
           onClick={() => onStatusChangeClick(InitiativeStatus.HasInitiative)}

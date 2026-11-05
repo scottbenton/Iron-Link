@@ -122,6 +122,7 @@ export function SecondScreenSectionSettings(
           <Box
             component="iframe"
             ref={iframeWindow}
+            title={t("game.second-screen.preview", "Second screen preview")}
             src={link}
             width={1920}
             height={1080}
@@ -136,8 +137,8 @@ export function SecondScreenSectionSettings(
       <div>
         <Accordion variant="outlined">
           <AccordionSummary
-            aria-controls="panel1-content"
-            aria-label="panel1-header"
+            id="second-screen-explainer-header"
+            aria-controls="second-screen-explainer-content"
             expandIcon={<ExpandIcon />}
           >
             <Typography component="span">

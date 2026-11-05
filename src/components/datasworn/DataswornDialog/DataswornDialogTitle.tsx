@@ -1,6 +1,7 @@
 import PreviousIcon from "@mui/icons-material/ChevronLeft";
 import { IconButton } from "@mui/material";
 import { PropsWithChildren } from "react";
+import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 
@@ -8,6 +9,7 @@ import { useAppState } from "stores/appState.store";
 
 export function DataswornDialogTitle(props: PropsWithChildren) {
   const { children } = props;
+  const { t } = useTranslation();
 
   const previousIds = useAppState(
     (state) => state.dataswornDialogState.previousIds,
@@ -21,7 +23,10 @@ export function DataswornDialogTitle(props: PropsWithChildren) {
     <DialogTitleWithCloseButton
       actions={
         previousIds.length > 0 ? (
-          <IconButton onClick={handleGoToPreviousItem}>
+          <IconButton
+            aria-label={t("datasworn.dialog.previous", "Back to previous item")}
+            onClick={handleGoToPreviousItem}
+          >
             <PreviousIcon />
           </IconButton>
         ) : undefined
