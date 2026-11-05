@@ -37,6 +37,7 @@ describe("repository errors", () => {
     expect(error.reason).toBe(ErrorReason.InvalidParent);
     expect(enqueueSnackbar).toHaveBeenCalledWith(invalidParentMessage, {
       variant: "error",
+      persist: true,
     });
   });
 
@@ -57,7 +58,7 @@ describe("repository errors", () => {
     expect(error.reason).toBe(ErrorReason.BadRequest);
     expect(enqueueSnackbar).toHaveBeenCalledWith(
       "Bad request: Failed to update category",
-      { variant: "error" },
+      { variant: "error", persist: true },
     );
   });
 });

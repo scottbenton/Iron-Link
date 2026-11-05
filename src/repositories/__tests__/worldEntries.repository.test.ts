@@ -63,7 +63,7 @@ describe("updateWorldEntry", () => {
     ).rejects.toMatchObject({ reason: ErrorReason.Forbidden });
     expect(enqueueSnackbar).toHaveBeenCalledWith(
       expect.stringContaining("Forbidden"),
-      { variant: "error" },
+      { variant: "error", persist: true },
     );
   });
 });
