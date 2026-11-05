@@ -1,4 +1,5 @@
 import { Box, Stack } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 import { AppSettingsMenu } from "./AppSettingsMenu";
 import { IronLinkLogo } from "./IronLinkLogo";
@@ -11,6 +12,7 @@ export interface NavRailProps {
 
 export function NavRail(props: NavRailProps) {
   const { routes } = props;
+  const { t } = useTranslation();
 
   return (
     <>
@@ -51,6 +53,7 @@ export function NavRail(props: NavRailProps) {
           mt={4}
           mb={8}
           component={"nav"}
+          aria-label={t("nav.main-navigation", "Main")}
           flexGrow={1}
           display="flex"
           flexDirection={"column"}

@@ -122,11 +122,13 @@ export function NavBar(props: NavBarProps) {
         open={topLevelRoutes && isNavMenuOpen}
         onClose={() => setIsNavMenuOpen(false)}
       >
-        <List>
-          {topLevelRoutes?.map((route, index) => (
-            <NavBarListItem key={index} {...route} />
-          ))}
-        </List>
+        <Box component={"nav"} aria-label={t("nav.main-navigation", "Main")}>
+          <List>
+            {topLevelRoutes?.map((route, index) => (
+              <NavBarListItem key={index} {...route} />
+            ))}
+          </List>
+        </Box>
       </Drawer>
 
       {/* These are here for spacing purposes */}
