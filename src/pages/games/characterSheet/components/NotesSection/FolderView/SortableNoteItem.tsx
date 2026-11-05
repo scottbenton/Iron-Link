@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import DragOrderIcon from "@mui/icons-material/DragIndicator";
 import { Box, Card } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 import { INote } from "services/notes.service";
 
@@ -23,6 +24,7 @@ export function SortableNoteItem(props: SortableNoteItemProps) {
     transition,
     isDragging,
   } = useSortable({ id: id });
+  const { t } = useTranslation();
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -46,6 +48,9 @@ export function SortableNoteItem(props: SortableNoteItemProps) {
         ref={setNodeRef}
         {...listeners}
         {...attributes}
+        aria-label={t("notes.sort.handle", "Move {{name}}", {
+          name: note.title,
+        })}
         sx={(theme) => ({
           pl: 1,
           pr: 0.5,

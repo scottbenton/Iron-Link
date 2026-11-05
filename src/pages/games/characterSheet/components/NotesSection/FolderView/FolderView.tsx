@@ -35,6 +35,7 @@ import { NoteItem } from "./NoteItem";
 import { SortableNoteItem } from "./SortableNoteItem";
 import { WorldItem } from "./WorldItem";
 import { getItemName } from "./getFolderName";
+import { getNoteSortAccessibility } from "./noteSortAnnouncements";
 import { useFolderPermission } from "./useFolderPermissions";
 
 // The folder grid holds folder cards plus, in a Guide's own root folder of a
@@ -247,6 +248,11 @@ export function FolderView(props: FolderViewProps) {
           collisionDetection={closestCenter}
           sensors={sensors}
           onDragEnd={handleDragEnd}
+          accessibility={getNoteSortAccessibility(
+            t,
+            sortedNoteIds,
+            (noteId) => noteMap[noteId]?.title,
+          )}
         >
           <SortableContext
             items={sortedNoteIds}
