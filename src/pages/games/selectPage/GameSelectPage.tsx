@@ -6,6 +6,7 @@ import { GridLayout } from "components/Layout/GridLayout";
 
 import { pathConfig } from "pages/pathConfig";
 
+import { useDocumentTitle } from "hooks/useDocumentTitle";
 import {
   PageCategory,
   useSendPageViewEvent,
@@ -17,6 +18,7 @@ import { GameCard } from "./GameCard";
 
 export default function GameSelectPage() {
   const { t } = useTranslation();
+  useDocumentTitle(t("game.list.header", "Your Games"));
   useSendPageViewEvent(PageCategory.GameSelect);
 
   useLoadUsersGames();

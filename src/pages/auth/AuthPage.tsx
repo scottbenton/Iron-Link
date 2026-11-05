@@ -16,6 +16,7 @@ import { PageContent } from "components/Layout";
 
 import { pathConfig } from "pages/pathConfig";
 
+import { useDocumentTitle } from "hooks/useDocumentTitle";
 import { useIsLocalEnvironment } from "hooks/useIsLocalEnvironment";
 import {
   PageCategory,
@@ -28,6 +29,7 @@ import { SocialLoginOptions } from "./components/SocialLoginOptions";
 
 export default function AuthPage() {
   const { t } = useTranslation();
+  useDocumentTitle(t("auth.login-or-signup", "Login or Create an Account"));
   useSendPageViewEvent(PageCategory.Auth);
 
   const [email, setEmail] = useState("");

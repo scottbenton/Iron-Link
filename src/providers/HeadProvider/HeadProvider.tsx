@@ -17,7 +17,8 @@ export function HeadProvider(props: PropsWithChildren) {
   return (
     <>
       <>
-        <title>{appName}</title>
+        {/* No <title> here: index.html names the app and each page names
+            itself with useDocumentTitle, so there is only ever one. */}
         <meta property="og:site_name" content={appName} />
         <meta property="og:title" content={appName} />
         <link rel="icon" type="image/svg+xml" href={"/favicon.svg"} />
