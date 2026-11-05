@@ -5,6 +5,8 @@ import {
 
 import { useDebouncedSync } from "hooks/useDebouncedSync";
 
+import { useAnnounceMeterValue } from "./useAnnounceMeterValue";
+
 export interface DebouncedConditionMeterProps
   extends Omit<ConditionMeterProps, "onChange" | "onActionClick"> {
   onActionClick?: (setValue: (value: number) => void) => void;
@@ -19,10 +21,20 @@ export function DebouncedConditionMeter(props: DebouncedConditionMeterProps) {
     conditionMeterProps.value ?? conditionMeterProps.defaultValue,
   );
 
+  // An action that sets the value (Reset on momentum) is announced like a
+  // change from the buttons; one that only rolls announces its own result.
+  const announceValue = useAnnounceMeterValue();
+  const setValueFromAction = (newValue: number) => {
+    setValue(newValue);
+    announceValue(conditionMeterProps.label, newValue);
+  };
+
   return (
     <ConditionMeter
       {...conditionMeterProps}
-      onActionClick={onActionClick ? () => onActionClick(setValue) : undefined}
+      onActionClick={
+        onActionClick ? () => onActionClick(setValueFromAction) : undefined
+      }
       value={value}
       onChange={setValue}
     />

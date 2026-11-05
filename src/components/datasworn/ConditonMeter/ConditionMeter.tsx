@@ -7,6 +7,10 @@ import { useTranslation } from "react-i18next";
 
 import { GradientBox } from "components/GradientBox";
 
+import { formatSignedValue } from "lib/formatSignedValue";
+
+import { useAnnounceMeterValue } from "./useAnnounceMeterValue";
+
 export interface ConditionMeterProps {
   label: string;
   defaultValue: number;
@@ -44,12 +48,24 @@ export function ConditionMeter(props: ConditionMeterProps) {
   const { t } = useTranslation();
 
   const currentValue = value ?? defaultValue;
+  const valueText = formatSignedValue(currentValue);
+  const isActionButton = !!onActionClick && !disabled;
 
-  const id = useId();
+  const labelId = useId();
+
+  const announceValue = useAnnounceMeterValue();
+  const handleChange = (newValue: number) => {
+    if (onChange) {
+      onChange(newValue);
+      announceValue(label, newValue);
+    }
+  };
 
   return (
     <Card
       variant="outlined"
+      role="group"
+      aria-labelledby={labelId}
       sx={(theme) => ({
         display: "inline-flex",
         alignItems: "stretch",
@@ -59,8 +75,8 @@ export function ConditionMeter(props: ConditionMeterProps) {
       })}
     >
       <Typography
-        component={"label"}
-        htmlFor={id}
+        component={"span"}
+        id={labelId}
         variant="body2"
         textAlign="center"
         color={"textSecondary"}
@@ -80,16 +96,29 @@ export function ConditionMeter(props: ConditionMeterProps) {
           )}
           size={"small"}
           disabled={!onChange || currentValue <= min || disabled}
-          onClick={() => onChange && onChange(currentValue - 1)}
+          onClick={() => handleChange(currentValue - 1)}
         >
           <DecrementIcon />
         </IconButton>
         <Box
-          id={id}
-          component={onActionClick && !disabled ? ButtonBase : "div"}
-          data-testid={onActionClick && !disabled ? "roll-button" : undefined}
+          component={isActionButton ? ButtonBase : "div"}
+          data-testid={isActionButton ? "roll-button" : undefined}
           onClick={onActionClick}
-          {...(onActionClick && !disabled ? { focusRipple: true } : {})}
+          {...(isActionButton
+            ? {
+                focusRipple: true,
+                "aria-label": actionLabel
+                  ? t(
+                      "datasworn.meter-action-named",
+                      "{{action}} {{label}}, {{value}}",
+                      { action: actionLabel, label, value: valueText },
+                    )
+                  : t("datasworn.meter-value-named", "{{label}}, {{value}}", {
+                      label,
+                      value: valueText,
+                    }),
+              }
+            : {})}
           display="block"
           color="common.white"
           borderRadius={normalBorderRadius}
@@ -117,7 +146,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
                 }),
               },
             }),
-            onActionClick && !disabled
+            isActionButton
               ? {
                   "&:hover, &:focus-visible": {
                     "& .gradient-box": {
@@ -151,7 +180,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
               {ActionIcon && (
                 <ActionIcon
                   data-testid={label + actionLabel}
-                  aria-label={actionLabel}
+                  aria-hidden
                   color={"inherit"}
                   fontSize={"small"}
                   sx={{
@@ -162,12 +191,12 @@ export function ConditionMeter(props: ConditionMeterProps) {
                 />
               )}
               <Typography
+                component="span"
                 variant="h5"
                 fontFamily={(theme) => theme.typography.fontFamilyTitle}
                 sx={{ width: 24 }}
               >
-                {currentValue >= 0 ? "+" : "-"}
-                {currentValue}
+                {valueText}
               </Typography>
             </Box>
           </GradientBox>
@@ -178,7 +207,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
           })}
           size={"small"}
           disabled={!onChange || currentValue >= max || disabled}
-          onClick={() => onChange && onChange(currentValue + 1)}
+          onClick={() => handleChange(currentValue + 1)}
         >
           <IncrementIcon />
         </IconButton>
