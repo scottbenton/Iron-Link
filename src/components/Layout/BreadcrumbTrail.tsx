@@ -1,4 +1,5 @@
 import { Breadcrumbs, Link, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 import {
   LinkComponent,
@@ -13,8 +14,12 @@ export interface BreadcrumbItem {
 }
 
 export function BreadcrumbTrail({ items }: { items: BreadcrumbItem[] }) {
+  const { t } = useTranslation();
   return (
-    <Breadcrumbs aria-label="Breadcrumbs" sx={{ mb: 2 }}>
+    <Breadcrumbs
+      aria-label={t("nav.breadcrumbs", "Breadcrumbs")}
+      sx={{ mb: 2 }}
+    >
       {items.map((item) =>
         item.linkProps ? (
           <Link

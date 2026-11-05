@@ -104,6 +104,7 @@ export function ThemedBox(props: {
           <IronLinkLogo sx={{ width: 64, height: 64 }} />
           <Typography
             variant="h6"
+            component="span"
             fontFamily="fontFamilyTitle"
             textTransform={"capitalize"}
           >

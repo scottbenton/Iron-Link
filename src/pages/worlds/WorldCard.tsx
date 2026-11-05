@@ -38,6 +38,7 @@ export function WorldCard(props: WorldCardProps) {
         <Box>
           <Typography
             variant="h5"
+            component="h2"
             fontFamily={(theme) => theme.typography.fontFamilyTitle}
             textTransform="uppercase"
           >

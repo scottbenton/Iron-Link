@@ -13,10 +13,13 @@ import { Page404 } from "pages/404Page/404Page";
 import { pathConfig } from "pages/pathConfig";
 
 import { useAdvancedFeatureToggle } from "hooks/advancedFeatures/advancedFeatures";
+import { useDocumentTitle } from "hooks/useDocumentTitle";
 import {
   PageCategory,
   useSendPageViewEvent,
 } from "hooks/useSendPageViewEvents";
+
+import { useWorldStore } from "stores/world.store";
 
 import { WorldsComingSoonState } from "./WorldsComingSoonState";
 
@@ -32,6 +35,12 @@ export default function WorldPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const worldsEnabled = useAdvancedFeatureToggle("worlds");
+  const worldName = useWorldStore((store) =>
+    store.worldId === worldId ? store.world?.name : undefined,
+  );
+  useDocumentTitle(
+    worldsEnabled && worldId ? worldName : t("worlds.title", "Worlds"),
+  );
   const settings =
     !!matchPath("/worlds/:worldId/settings/*", location.pathname) ||
     !!matchPath("/worlds/:worldId/settings", location.pathname);

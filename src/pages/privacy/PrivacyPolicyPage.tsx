@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { PageContent, PageHeader } from "components/Layout";
 
+import { useDocumentTitle } from "hooks/useDocumentTitle";
 import {
   PageCategory,
   useSendPageViewEvent,
@@ -16,6 +17,7 @@ const LAST_UPDATED = "October 4, 2026";
 // authoritative version of the legal text.
 export default function PrivacyPolicyPage() {
   const { t } = useTranslation();
+  useDocumentTitle(t("privacy.title", "Privacy Policy"));
   useSendPageViewEvent(PageCategory.Privacy);
 
   const contactLink = (

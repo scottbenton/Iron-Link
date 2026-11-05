@@ -53,6 +53,7 @@ export function ImpactsSection() {
     <Box>
       <Typography
         variant="h6"
+        component="h3"
         textTransform="uppercase"
         fontFamily="fontFamilyTitle"
       >
@@ -100,7 +101,11 @@ export function ImpactsSection() {
             items={Object.entries(impactCategories)}
             renderItem={([categoryKey, category]) => (
               <Box key={categoryKey}>
-                <Typography variant="h6" textTransform="capitalize">
+                <Typography
+                  variant="h6"
+                  component="h3"
+                  textTransform="capitalize"
+                >
                   {category.label}
                 </Typography>
                 <Box>

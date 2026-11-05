@@ -9,6 +9,7 @@ import { EmptyState } from "components/Layout/EmptyState";
 
 import { pathConfig } from "pages/pathConfig";
 
+import { useDocumentTitle } from "hooks/useDocumentTitle";
 import {
   PageCategory,
   useSendPageViewEvent,
@@ -33,6 +34,9 @@ export default function GameJoinPage() {
   const [gameType, setGameType] = useState<GameType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
+  useDocumentTitle(
+    gameName ? t("game.join-name", "Join {{gameName}}", { gameName }) : null,
+  );
 
   useEffect(() => {
     if (inviteKey && uid) {

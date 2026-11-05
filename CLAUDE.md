@@ -16,7 +16,26 @@ that are easy to miss. When you learn a new one, add a line here.
 - Screen reader announcements go through `useSetAnnouncement`. Live regions
   read `useLiveRegionText`, which clears and rewrites the text so a repeated
   message is read again. A modal dialog hides the page's region, so
-  `DialogTitleWithCloseButton` renders its own `LiveRegion`.
+  `DialogTitleWithCloseButton` renders its own `LiveRegion`. Only its
+  heading is the `DialogTitle` (whose id names the dialog); its buttons sit
+  beside it, so the dialog's name is the title alone.
+- One h1 per page, and headings nest by section: Typography's `variant` sets
+  the look, `component` the element. A label that only looks like a heading
+  (track and clock titles, empty state titles, anything inside a button)
+  takes a non-heading `component`. On the game page the h1 is `NavBar`'s
+  page title (screen reader only on wide screens) and each column has an h2.
+- World headings are written for the world's own page and read their
+  element from `useHeadingComponent(level)`; in a game's Notes tab
+  `WorldPanel` adds a `HeadingOffset` of 2, and a dialog inside it wraps
+  itself in `<HeadingOffset reset>`.
+- Pages name the browser tab with `useDocumentTitle` ("{page} | Iron Link");
+  `HeadProvider` renders no `<title>`.
+- After navigation `useFocusPageOnNavigate` (in `BaseLayout`) focuses the
+  page's h1, or `<main>` until it renders. Paths that are one page
+  (`getRouteFocusKey`: a game's tabs, an entry's Places) keep focus unless
+  the focused control went away.
+- Sortable lists pass dnd-kit `accessibility` announcements that use item
+  names; the defaults read ids.
 
 ## Checks
 
@@ -105,6 +124,9 @@ that are easy to miss. When you learn a new one, add a line here.
 
 ## Notes
 
+- A Notes tab's close button is a sibling of its tab (`NoteTab`), never
+  inside it. MUI Tabs' arrow keys walk the strip's direct children, which
+  are the wrappers, so `NoteTab` handles arrows, Home and End itself.
 - Note and folder RLS follows the app's `getPermissions` (`notes.store.ts`)
   through the `note_permission_allows_read|edit|manage` helpers, and the
   `notes_guard_update`/`note_folders_guard_update` triggers check which columns

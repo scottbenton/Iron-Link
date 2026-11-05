@@ -7,6 +7,7 @@ import { GridLayout } from "components/Layout/GridLayout";
 import { pathConfig } from "pages/pathConfig";
 
 import { useAdvancedFeatureToggle } from "hooks/advancedFeatures/advancedFeatures";
+import { useDocumentTitle } from "hooks/useDocumentTitle";
 import {
   PageCategory,
   useSendPageViewEvent,
@@ -19,6 +20,7 @@ import { WorldsComingSoonState } from "./WorldsComingSoonState";
 
 export default function WorldSelectPage() {
   const { t } = useTranslation();
+  useDocumentTitle(t("worlds.title", "Worlds"));
   useSendPageViewEvent(PageCategory.WorldSelect);
 
   const worldsEnabled = useAdvancedFeatureToggle("worlds");

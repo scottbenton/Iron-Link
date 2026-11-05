@@ -85,7 +85,7 @@ export function SecondScreenSectionSettings(
       gap={2}
       alignItems={"flex-start"}
     >
-      <Typography variant="h6">
+      <Typography variant="h6" component="h3">
         {t("game.second-screen.title", "Second Screen")}
       </Typography>
       <CopyButton

@@ -1,6 +1,5 @@
 import AddIcon from "@mui/icons-material/Add";
-import CloseIcon from "@mui/icons-material/Close";
-import { Box, IconButton, Tab, Tabs } from "@mui/material";
+import { Box, IconButton, Tabs } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { ErrorBoundary } from "components/ErrorBoundary";
@@ -19,6 +18,7 @@ import { getItemName } from "../FolderView/getFolderName";
 import { OpenItemWrapper } from "../Layout";
 import { NoteView } from "../NoteView";
 import { GameWorldView } from "../WorldView/GameWorldView";
+import { NoteTab } from "./NoteTab";
 
 export function NoteTabs() {
   const { t } = useTranslation();
@@ -145,51 +145,9 @@ export function NoteTabs() {
           scrollButtons="auto"
         >
           {tabOrder.map((tabId) => (
-            <Tab
-              // Named by the item alone, so the close button's name is not
-              // read as part of the tab's.
-              aria-label={itemNames[tabId] ?? worldTabLabel(tabId)}
-              sx={(theme) => ({
-                textTransform: "none",
-                "&.Mui-selected": {
-                  backgroundColor: "background.paper",
-                  "& .close-tab-button": { visibility: "visible" },
-                },
-                borderRight: 1,
-                borderColor:
-                  theme.palette.grey[
-                    theme.palette.mode === "light" ? 200 : 800
-                  ],
-                py: 0.5,
-                minHeight: 0,
-                pr: 0.5,
-                "& .close-tab-button": {
-                  visibility: "hidden",
-                },
-                "&:hover .close-tab-button": {
-                  visibility: "visible",
-                },
-              })} // Add border to the left of each tab except the first one
-              label={
-                <Box display="flex" alignItems="center" gap={1}>
-                  {itemNames[tabId] ?? worldTabLabel(tabId)}
-                  <IconButton
-                    className="close-tab-button"
-                    component="span"
-                    size="small"
-                    role="button"
-                    aria-label={t("notes.tabs.close-tab", "Close {{name}}", {
-                      name: itemNames[tabId] ?? worldTabLabel(tabId),
-                    })}
-                    onClick={(evt) => {
-                      evt.stopPropagation();
-                      closeTab(tabId);
-                    }}
-                  >
-                    <CloseIcon />
-                  </IconButton>
-                </Box>
-              }
+            <NoteTab
+              name={itemNames[tabId] ?? worldTabLabel(tabId)}
+              onClose={() => closeTab(tabId)}
               value={tabId}
               key={tabId}
               id={`note-tab-${tabId}`}

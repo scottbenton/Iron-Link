@@ -288,7 +288,7 @@ describe("WorldCategoryBrowser routes", () => {
       "Worlds/Ironlands/Locations/Entry unavailable",
     );
     expect(
-      screen.getByText("Entry unavailable", { selector: "h6" }),
+      screen.getByText("Entry unavailable", { selector: "p.MuiTypography-h6" }),
     ).toBeInTheDocument();
   });
   it("creates an entry straight away and opens it with its name selected, never as unavailable", async () => {

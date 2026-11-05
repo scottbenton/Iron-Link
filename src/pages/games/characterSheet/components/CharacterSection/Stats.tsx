@@ -51,6 +51,7 @@ export function Stats() {
     <Box>
       <Typography
         variant="h6"
+        component="h3"
         textTransform={"uppercase"}
         fontFamily="fontFamilyTitle"
       >

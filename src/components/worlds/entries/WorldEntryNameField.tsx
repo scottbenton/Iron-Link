@@ -10,6 +10,8 @@ import {
 import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useHeadingComponent } from "components/HeadingLevel";
+
 import { useDebouncedSync } from "hooks/useDebouncedSync";
 
 import { useWorldEntriesStore } from "stores/worldEntries.store";
@@ -57,6 +59,7 @@ export function WorldEntryNameField({
   const requestNameFocus = useWorldEntriesStore(
     (store) => store.requestNameFocus,
   );
+  const headingComponent = useHeadingComponent(1);
   const inputRef = useRef<HTMLInputElement>(null);
   // A just-created entry opens with its placeholder name selected.
   useEffect(() => {
@@ -81,7 +84,7 @@ export function WorldEntryNameField({
     <Box sx={{ flexGrow: 1, minWidth: 0 }}>
       <Typography
         variant="h4"
-        component="h1"
+        component={headingComponent}
         fontFamily={(theme) => theme.typography.fontFamilyTitle}
         sx={{ overflowWrap: "anywhere" }}
       >

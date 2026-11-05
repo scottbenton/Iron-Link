@@ -17,9 +17,11 @@ import { useSyncGame } from "pages/games/gamePageLayout/hooks/useSyncGame";
 import { useSyncColorScheme } from "pages/games/hooks/useSyncColorScheme";
 
 import { useShowWorldsBetaBanner } from "hooks/advancedFeatures/worldsBetaBanner";
+import { useDocumentTitle } from "hooks/useDocumentTitle";
 
 import { useDataswornTreeStore } from "stores/dataswornTree.store";
 import { useGameStore } from "stores/game.store";
+import { useGameCharacter } from "stores/gameCharacters.store";
 import { useSyncSecondScreenSettingsIfActive } from "stores/secondScreen.store";
 
 import { useGameId } from "./hooks/useGameId";
@@ -54,6 +56,25 @@ export default function GameLayout() {
     pathname.match(/\/games\/[^/]*\/create[/]?$/i) !== null;
 
   const isOnOverviewPage = !isOnCharacterCreatePage && !characterId;
+
+  const gameName = useGameStore((state) => state.game?.name);
+  const characterName = useGameCharacter((character) => character?.name);
+  let documentTitle: string | undefined = gameName;
+  if (gameName && isOnCharacterCreatePage) {
+    documentTitle = t(
+      "game.document-title.add-character",
+      "Add Character | {{gameName}}",
+      { gameName },
+    );
+  } else if (gameName && characterId) {
+    documentTitle = characterName
+      ? t("game.document-title.character", "{{characterName}} | {{gameName}}", {
+          characterName,
+          gameName,
+        })
+      : undefined;
+  }
+  useDocumentTitle(documentTitle);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));

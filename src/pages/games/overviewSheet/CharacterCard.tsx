@@ -75,7 +75,11 @@ export function CharacterCard(props: CharacterCardProps) {
             borderColor={character.colorScheme ?? ColorScheme.Default}
           />
           <Box ml={2}>
-            <Typography variant="h5" fontFamily="fontFamilyTitle">
+            <Typography
+              variant="h5"
+              component="h4"
+              fontFamily="fontFamilyTitle"
+            >
               {character.name}
             </Typography>
             {gameType !== GameType.Solo && (

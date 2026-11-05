@@ -1,11 +1,14 @@
 import { Box, Card, GlobalStyles, LinearProgress } from "@mui/material";
 import { AnimatePresence, Transition, motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 
+import { useDocumentTitle } from "hooks/useDocumentTitle";
 import {
   PageCategory,
   useSendPageViewEvent,
 } from "hooks/useSendPageViewEvents";
 
+import { useGameStore } from "stores/game.store";
 import {
   useSecondScreenStore,
   useSyncSecondScreenSettings,
@@ -58,6 +61,16 @@ export default function SecondScreenPage() {
   useSyncGame();
   useSyncColorScheme();
   useSyncSecondScreenSettings();
+
+  const { t } = useTranslation();
+  const gameName = useGameStore((state) => state.game?.name);
+  useDocumentTitle(
+    gameName
+      ? t("game.document-title.second-screen", "Second Screen | {{gameName}}", {
+          gameName,
+        })
+      : undefined,
+  );
 
   const { settings, areAllCharactersVisible, loading } = useSecondScreenStore();
 

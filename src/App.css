@@ -6,3 +6,9 @@
     transform: rotate(360deg);
   }
 }
+
+/* Headings focused after navigation (useFocusPageOnNavigate) are not
+   controls, so they show no focus ring. */
+[data-route-focus]:focus {
+  outline: none;
+}

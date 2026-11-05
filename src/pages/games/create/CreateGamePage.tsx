@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { PageContent, PageHeader } from "components/Layout";
 
+import { useDocumentTitle } from "hooks/useDocumentTitle";
 import {
   PageCategory,
   useSendPageViewEvent,
@@ -20,6 +21,7 @@ import { getSteps } from "./steps";
 
 export default function CreateGamePage() {
   const { t } = useTranslation();
+  useDocumentTitle(t("game.create.new-game", "New Game"));
   useSendPageViewEvent(PageCategory.GameCreate);
 
   const uid = useUID();

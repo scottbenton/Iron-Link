@@ -1,6 +1,8 @@
 import { Box, Typography } from "@mui/material";
 import { PropsWithChildren, ReactNode } from "react";
 
+import { useHeadingComponent } from "components/HeadingLevel";
+
 export interface WorldSettingsSectionProps extends PropsWithChildren {
   title: string;
   description?: ReactNode;
@@ -12,6 +14,7 @@ export interface WorldSettingsSectionProps extends PropsWithChildren {
 // the narrow Notes column as well as the standalone page.
 export function WorldSettingsSection(props: WorldSettingsSectionProps) {
   const { title, description, action, danger, children } = props;
+  const headingComponent = useHeadingComponent(2);
 
   return (
     <Box component="section" aria-label={title}>
@@ -31,7 +34,7 @@ export function WorldSettingsSection(props: WorldSettingsSectionProps) {
       >
         <Typography
           variant="h6"
-          component="h2"
+          component={headingComponent}
           fontFamily={(theme) => theme.typography.fontFamilyTitle}
           color={danger ? "error" : "text.secondary"}
         >

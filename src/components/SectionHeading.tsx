@@ -44,6 +44,7 @@ export function SectionHeading(props: SectionHeadingProps) {
     >
       <Typography
         variant={"h6"}
+        component={"h2"}
         fontFamily={(theme) => theme.typography.fontFamilyTitle}
         color={"text.secondary"}
       >
