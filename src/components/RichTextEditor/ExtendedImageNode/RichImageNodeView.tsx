@@ -120,6 +120,10 @@ export function RichImageNodeView(props: NodeViewProps) {
     }
   }, [altText, src, gameId, updateSecondScreen, isImageOpenOnSecondScreen]);
 
+  // Screen readers read the alt text; an image without any is skipped as
+  // decoration rather than read as its file name.
+  const imageAlt = typeof altText === "string" ? altText : "";
+
   const [altTextDialogOpen, setAltTextDialogOpen] = useState(false);
   const [altTextName, setAltTextName] = useState(
     typeof altText === "string" ? altText : "",
@@ -145,7 +149,7 @@ export function RichImageNodeView(props: NodeViewProps) {
           <Box
             component="img"
             src={displaySrc}
-            aria-hidden
+            alt={imageAlt}
             sx={{ width: "100%" }}
           />
         </Box>
@@ -189,7 +193,7 @@ export function RichImageNodeView(props: NodeViewProps) {
             objectFit: "contain",
           }}
           src={displaySrc}
-          aria-hidden
+          alt={imageAlt}
         />
         <Popper
           open={selected && !isReadOnly}

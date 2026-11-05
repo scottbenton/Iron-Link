@@ -3,8 +3,11 @@ import { Box, Input, InputAdornment, List, ListSubheader } from "@mui/material";
 import { useDeferredValue, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useAnnounceSearchResults } from "hooks/useAnnounceSearchResults";
+
 import { useMoves } from "stores/dataswornTree.store";
 
+import { countVisibleItems } from "../_helpers/countVisibleItems";
 import {
   CollectionVisibility,
   ItemVisibility,
@@ -41,6 +44,27 @@ export function MoveTree() {
       itemVisibility,
     } as VisibilitySettings;
   }, [rootMoveCategories, moveCategoryMap, moveMap, deferredSearchValue]);
+
+  const resultCount = useMemo(
+    () =>
+      countVisibleItems(
+        Object.values(rootMoveCategories).flatMap(
+          ({ rootCollectionIds }) => rootCollectionIds,
+        ),
+        moveCategoryMap,
+        visibilitySettings,
+      ),
+    [rootMoveCategories, moveCategoryMap, visibilitySettings],
+  );
+  useAnnounceSearchResults(
+    deferredSearchValue,
+    resultCount === 0
+      ? t("datasworn.filter-moves-no-results", "No moves found")
+      : t("datasworn.filter-moves-results", "{{count}} moves found", {
+          count: resultCount,
+          defaultValue_one: "1 move found",
+        }),
+  );
 
   return (
     <Box bgcolor={"background.paper"}>

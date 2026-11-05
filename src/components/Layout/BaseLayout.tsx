@@ -11,6 +11,7 @@ import { LayoutPathListener } from "./LayoutPathListener";
 import { LiveRegion } from "./LiveRegion";
 import { NavRail } from "./NavRail";
 import { MAIN_CONTENT_ID, SkipToContentButton } from "./SkipToContentButton";
+import { DialogExtrasContext } from "./dialogExtrasContext";
 import { useFocusPageOnNavigate } from "./useFocusPageOnNavigate";
 import { useNavRoutes } from "./useNavRoutes";
 
@@ -24,42 +25,44 @@ export function BaseLayout() {
   }
 
   return (
-    <Box
-      minHeight={"100vh"}
-      display={"flex"}
-      flexDirection={"column"}
-      bgcolor="grey.950"
-    >
+    <DialogExtrasContext.Provider value={RollSnackbarSection}>
       <Box
+        minHeight={"100vh"}
         display={"flex"}
-        flexDirection={{ xs: "column", md: "row" }}
-        flexGrow={1}
-        position="relative"
+        flexDirection={"column"}
+        bgcolor="grey.950"
       >
-        <LiveRegion id={"live-region"} />
-        <SkipToContentButton />
-        <LayoutPathListener />
-        <NavRail routes={routes} />
         <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            flexGrow: 1,
-            minWidth: 0,
-            "&:focus": { outline: "none" },
-          }}
-          component={"main"}
-          id={MAIN_CONTENT_ID}
-          // Lets Skip to Content move focus here, not just scroll, in Safari.
-          tabIndex={-1}
+          display={"flex"}
+          flexDirection={{ xs: "column", md: "row" }}
+          flexGrow={1}
+          position="relative"
         >
-          <ErrorBoundary>
-            <Outlet />
-          </ErrorBoundary>
+          <LiveRegion id={"live-region"} />
+          <SkipToContentButton />
+          <LayoutPathListener />
+          <NavRail routes={routes} />
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              flexGrow: 1,
+              minWidth: 0,
+              "&:focus": { outline: "none" },
+            }}
+            component={"main"}
+            id={MAIN_CONTENT_ID}
+            // Lets Skip to Content move focus here, not just scroll, in Safari.
+            tabIndex={-1}
+          >
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
+          </Box>
         </Box>
+        <RollSnackbarSection isPage />
+        <DataswornDialog />
       </Box>
-      <RollSnackbarSection />
-      <DataswornDialog />
-    </Box>
+    </DialogExtrasContext.Provider>
   );
 }

@@ -91,9 +91,21 @@ export function GameLog(props: GameLogProps) {
     <>
       {isPlayer && <GameLogMessageInput />}
       <Box flexShrink={0} height={"1px"} style={{ overflowAnchor: "auto" }} />
-      {orderedLogs.map(([logId, log]) => (
-        <GameLogEntry key={logId} logId={logId} log={log} />
-      ))}
+      {orderedLogs.length > 0 && (
+        // Newest first, like the panel, which reverses its column so the
+        // newest entry sits at the bottom by the message input.
+        <Box
+          component={"ul"}
+          display={"flex"}
+          flexDirection={"column-reverse"}
+          flexShrink={0}
+          sx={{ listStyle: "none", m: 0, p: 0 }}
+        >
+          {orderedLogs.map(([logId, log]) => (
+            <GameLogEntry key={logId} logId={logId} log={log} />
+          ))}
+        </Box>
+      )}
       <div id={"load-more-logs"} />
       {loading && <LinearProgress sx={{ flexShrink: 0 }} />}
       {error && !orderedLogs.length && (

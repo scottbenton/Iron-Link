@@ -20,6 +20,7 @@ import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";
 
 import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
+import { getRollAnnouncement } from "hooks/useRollSummary";
 
 import { useSetAnnouncement } from "stores/appState.store";
 import { useSecondScreenStore } from "stores/secondScreen.store";
@@ -62,31 +63,36 @@ export function TrackClock(props: TrackClockProps) {
   const handleProgressionRoll = () => {
     const oracleId =
       askTheOracleEnumMap[clock.oracleKey ?? AskTheOracle.AlmostCertain]._id;
-    const { result } = rollOracle(oracleId);
+    const { result } = rollOracle(oracleId, false, { announce: false });
+    // One message with the oracle's answer and what it did to the clock; two
+    // in a row would leave only the second one read.
+    const rolled = result ? getRollAnnouncement(result, t) + " " : "";
 
     if (result?.result === "Yes") {
       const add = result.match ? 2 : 1;
 
       updateClockValue(clockId, clock.value + add).catch(() => {});
       announce(
-        t(
-          "character.character-sidebar.tracks-clock-roll-progress-announcement-yes",
-          "Clock {{clockLabel}} progressed by {{add}} segment(s) for a total of {{value}} of {{total}} segments",
-          {
-            clockLabel: clock.label,
-            add,
-            value: Math.min(clock.value + add, clock.segments),
-            total: clock.segments,
-          },
-        ),
+        rolled +
+          t(
+            "character.character-sidebar.tracks-clock-roll-progress-announcement-yes",
+            "Clock {{clockLabel}} progressed by {{add}} segment(s) for a total of {{value}} of {{total}} segments",
+            {
+              clockLabel: clock.label,
+              add,
+              value: Math.min(clock.value + add, clock.segments),
+              total: clock.segments,
+            },
+          ),
       );
     } else {
       announce(
-        t(
-          "character.character-sidebar.tracks-clock-roll-progress-announcement-no",
-          "Clock {{clockLabel}} did not progress",
-          { clockLabel: clock.label },
-        ),
+        rolled +
+          t(
+            "character.character-sidebar.tracks-clock-roll-progress-announcement-no",
+            "Clock {{clockLabel}} did not progress",
+            { clockLabel: clock.label },
+          ),
       );
     }
   };

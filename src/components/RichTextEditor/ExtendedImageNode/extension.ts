@@ -20,8 +20,16 @@ export const ExtendedImageExtension = Image.extend({
       alignment: {
         default: Alignment.Left,
       },
+      // Written as the image's alt in HTML (game log messages, copies), so
+      // it is read there too. HTML from before kept it as "alttext".
       altText: {
         default: undefined,
+        parseHTML: (element) =>
+          element.getAttribute("alt") ??
+          element.getAttribute("alttext") ??
+          undefined,
+        renderHTML: (attributes) =>
+          attributes.altText ? { alt: attributes.altText } : {},
       },
     };
   },

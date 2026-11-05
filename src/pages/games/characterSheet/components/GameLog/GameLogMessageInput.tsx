@@ -12,6 +12,7 @@ import {
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 
+import { useSetAnnouncement } from "stores/appState.store";
 import { useUID } from "stores/auth.store";
 import { useGameLogStore } from "stores/gameLog.store";
 
@@ -27,13 +28,14 @@ export function GameLogMessageInput() {
   const gameId = useGameId();
   const characterId = useCharacterIdOptional();
   const createGameLog = useGameLogStore((store) => store.createLog);
+  const announce = useSetAnnouncement();
 
   const [sending, setSending] = useState(false);
 
   const handleSend = useCallback(
     (editor: TTEditor) => {
       const contents = editor.getHTML();
-      if (!uid) return;
+      if (!uid || editor.isEmpty) return;
 
       setSending(true);
       const messageLog: IMessage = {
@@ -50,12 +52,16 @@ export function GameLogMessageInput() {
         .then(() => {
           setSending(false);
           editor.commands.clearContent();
+          // The new entry appears out of sight of the input's caret, so say
+          // it went. A failure shows (and reads) an error instead.
+          announce(t("game.log.message-sent", "Message sent"));
         })
+        .catch(() => {})
         .finally(() => {
           setSending(false);
         });
     },
-    [uid, gameId, characterId, createGameLog],
+    [uid, gameId, characterId, createGameLog, announce, t],
   );
   const extensions = useMemo(() => {
     return [

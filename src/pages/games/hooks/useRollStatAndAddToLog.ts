@@ -1,9 +1,7 @@
-import { Datasworn } from "@datasworn-community/core";
-import { TFunction } from "i18next";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import { getMove } from "hooks/datasworn/useMove";
+import { getRollAnnouncement } from "hooks/useRollSummary";
 
 import { useAddRollSnackbar, useSetAnnouncement } from "stores/appState.store";
 import { useUID } from "stores/auth.store";
@@ -61,7 +59,7 @@ export function useRollStatAndAddToLog() {
       if (gameId) {
         addLog(result.id, result).catch(() => {});
       }
-      announceRoll(result, config, t, announce);
+      announce(getRollAnnouncement(result, t));
 
       if (!config.hideSnackbar) {
         addRollSnackbar(result.id, result);
@@ -141,87 +139,4 @@ function getStatRollResult(
   };
 
   return roll;
-}
-
-function announceRoll(
-  roll: IStatRoll,
-  rollConfig: StatRollConfig,
-  t: TFunction,
-  announce: (announcement: string) => void,
-) {
-  let move: Datasworn.Move | Datasworn.EmbeddedMove | undefined = undefined;
-
-  if (roll.moveId) {
-    move = getMove(roll.moveId);
-  }
-
-  let announcement: string;
-
-  if (move) {
-    announcement = t(
-      "datasworn.a11y.action-roll-with-move",
-      "Rolled {{moveName}} using stat {{statLabel}}.",
-      {
-        moveName: move.name,
-        statLabel: roll.rollLabel,
-      },
-    );
-  } else {
-    announcement = t(
-      "datasworn.a11y.action-roll-no-move",
-      "Rolled plus {{statLabel}}.",
-      {
-        statLabel: roll.rollLabel,
-      },
-    );
-  }
-
-  if (roll.matchedNegativeMomentum) {
-    announcement += t(
-      "datasworn.a11y.action-roll-total-matched-negative-momentum",
-      " On your action die you rolled a {{action}} which matched your momentum of {{momentum}}, so your action die got cancelled out. Your modifiers are {{statModifier}} plus {{adds}} for a total of {{actionTotal}}.",
-      {
-        action: roll.action,
-        momentum: rollConfig.momentum,
-        statModifier: rollConfig.statModifier,
-        adds: roll.adds,
-        actionTotal: roll.actionTotal,
-      },
-    );
-  } else {
-    announcement += t(
-      "datasworn.a11y.action-roll-total",
-      " On your action die you rolled a {{action}} plus {{statModifier}} plus {{adds}} for a total of {{actionTotal}}.",
-      {
-        action: roll.action,
-        statModifier: rollConfig.statModifier,
-        adds: roll.adds,
-        actionTotal: roll.actionTotal,
-      },
-    );
-  }
-  let resultLabel = t("datasworn.weak-hit", "Weak Hit");
-  if (roll.result === RollResult.StrongHit) {
-    resultLabel = t("datasworn.strong-hit", "Strong Hit");
-  } else if (roll.result === RollResult.Miss) {
-    resultLabel = t("datasworn.miss", "Miss");
-  }
-  announcement += t(
-    "datasworn.a11y.action-roll-result",
-    " On your challenge die you rolled a {{challenge1}} and a {{challenge2}}, for a {{resultLabel}}.",
-    {
-      challenge1: roll.challenge1,
-      challenge2: roll.challenge2,
-      resultLabel,
-    },
-  );
-  // verboseScreenReaderRolls
-  //             ? announcement
-  //             : `Rolled ${
-  //                 move ? move.name + "using stat" + label : label
-  //               }. Your action die had a total of ${actionTotal} against ${challenge1} and ${challenge2}, for a ${getRollResultLabel(
-  //                 result
-  //               )}`
-  //         );
-  announce(announcement);
 }
