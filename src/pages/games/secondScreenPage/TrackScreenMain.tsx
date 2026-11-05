@@ -1,8 +1,9 @@
 import { Box, Typography } from "@mui/material";
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 
 import { ClockCircle } from "components/datasworn/Clocks/ClockCircle";
 import { ProgressTrackTick } from "components/datasworn/ProgressTrack/ProgressTrackTick";
+import { useProgressTrackValueText } from "components/datasworn/ProgressTrack/useProgressTrackValueText";
 
 import { useTracksStore } from "stores/tracks.store";
 
@@ -16,6 +17,9 @@ export function TrackScreenMain(props: TrackScreenMainProps) {
 
   const track = useTracksStore((store) => store.tracks[trackId]);
   const completedTicks = track.type !== TrackTypes.Clock ? track.value : 0;
+
+  const labelId = useId();
+  const getValueText = useProgressTrackValueText();
 
   const checks = useMemo(() => {
     const checks: number[] = [];
@@ -53,7 +57,7 @@ export function TrackScreenMain(props: TrackScreenMainProps) {
       alignItems="center"
       justifyContent={"center"}
     >
-      <Typography variant="h3" fontFamily={"fontFamilyTitle"}>
+      <Typography variant="h3" fontFamily={"fontFamilyTitle"} id={labelId}>
         {track.label}
       </Typography>
       <Box display="flex" alignItems="center" gap={2}>
@@ -69,7 +73,12 @@ export function TrackScreenMain(props: TrackScreenMainProps) {
             borderRadius={1}
             border={4}
             borderColor={"text.secondary"}
-            role={"meter"}
+            role={"progressbar"}
+            aria-labelledby={labelId}
+            aria-valuemin={0}
+            aria-valuemax={40}
+            aria-valuenow={completedTicks}
+            aria-valuetext={getValueText(completedTicks)}
           >
             {checks.map((value, index) => (
               <Box
@@ -96,6 +105,7 @@ export function TrackScreenMain(props: TrackScreenMainProps) {
         {(track.type === TrackTypes.Clock ||
           track.type === TrackTypes.SceneChallenge) && (
           <ClockCircle
+            label={track.label}
             segments={track.type === TrackTypes.Clock ? track.segments : 4}
             value={
               track.type === TrackTypes.Clock

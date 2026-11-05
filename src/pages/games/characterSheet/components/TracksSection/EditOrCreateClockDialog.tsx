@@ -179,6 +179,7 @@ export function EditOrCreateClockDialog(props: EditOrCreateClockDialogProps) {
                 })}
               >
                 <CardActionArea
+                  aria-pressed={segmentOption === segments}
                   onClick={() => setSegments(segmentOption)}
                   sx={{ p: 1 }}
                 >
