@@ -1,12 +1,17 @@
 import { Button } from "@mui/material";
+import { useTranslation } from "react-i18next";
+
+export const MAIN_CONTENT_ID = "main-content";
 
 export function SkipToContentButton() {
+  const { t } = useTranslation();
+
   return (
     <Button
       LinkComponent={"a"}
       variant={"contained"}
       color={"primary"}
-      href={"#main-content"}
+      href={`#${MAIN_CONTENT_ID}`}
       sx={{
         position: "absolute",
         top: 0,
@@ -18,7 +23,7 @@ export function SkipToContentButton() {
         },
       }}
     >
-      Skip to Content
+      {t("nav.skip-to-content", "Skip to Content")}
     </Button>
   );
 }
