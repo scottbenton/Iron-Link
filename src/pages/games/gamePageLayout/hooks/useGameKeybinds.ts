@@ -6,9 +6,25 @@ import {
 } from "stores/accessibility.store";
 
 export const GAME_TAB_ID = "game-tabs";
-export const OVERVIEW_ID = "tab-overview";
+// The heading of the character or game overview column (desktop only).
+export const OVERVIEW_ID = "game-overview-heading";
+// The phone layout's tab for that column.
+export const OVERVIEW_MOBILE_TAB_ID = "tab-Outlet";
 export const NOTES_ID = "game-notes";
 export const REFERENCE_ID = "tab-moves";
+
+// Focuses the first of the ids that is in the page and not in a hidden
+// panel.
+export function focusFirstElement(ids: string[]) {
+  for (const id of ids) {
+    const element = document.getElementById(id);
+    if (element && !element.closest("[hidden]")) {
+      element.focus();
+      return true;
+    }
+  }
+  return false;
+}
 
 export function useGameKeybinds() {
   const modifierKey = useAccessibilityState((state) => state.modifierKey);
@@ -33,13 +49,13 @@ export function useGameKeybinds() {
 
         const eventKey = invertedKeybinds[event.key];
         if (eventKey === "game-bar") {
-          document.getElementById(GAME_TAB_ID)?.focus();
+          focusFirstElement([GAME_TAB_ID]);
         } else if (eventKey === "overview-section") {
-          document.getElementById(OVERVIEW_ID)?.focus();
+          focusFirstElement([OVERVIEW_ID, OVERVIEW_MOBILE_TAB_ID]);
         } else if (eventKey === "notes-section") {
-          document.getElementById(NOTES_ID)?.focus();
+          focusFirstElement([NOTES_ID]);
         } else if (eventKey === "reference-section") {
-          document.getElementById(REFERENCE_ID)?.focus();
+          focusFirstElement([REFERENCE_ID]);
         }
       }
     }
