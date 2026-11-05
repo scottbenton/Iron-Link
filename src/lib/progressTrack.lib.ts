@@ -38,3 +38,19 @@ export function getProgressRollResult(
   }
   return RollResult.WeakHit;
 }
+
+/**
+ * Splits a track's tick count into full boxes and the ticks in the next,
+ * partly filled box, for text that reads the track out ("3 of 10 boxes
+ * filled, and 2 of 4 ticks").
+ */
+export function getProgressBoxes(ticks: number): {
+  boxes: number;
+  ticks: number;
+} {
+  const clamped = Math.min(Math.max(Math.floor(ticks), 0), MAX_TICKS);
+  return {
+    boxes: Math.floor(clamped / TICKS_PER_BOX),
+    ticks: clamped % TICKS_PER_BOX,
+  };
+}
