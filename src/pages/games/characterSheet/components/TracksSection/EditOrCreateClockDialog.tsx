@@ -184,8 +184,10 @@ export function EditOrCreateClockDialog(props: EditOrCreateClockDialogProps) {
                   sx={{ p: 1 }}
                 >
                   <Box display={"flex"} alignItems={"baseline"}>
-                    <Typography variant={"h5"}>{segmentOption}</Typography>
-                    <Typography variant={"subtitle1"} ml={1}>
+                    <Typography variant={"h5"} component={"span"}>
+                      {segmentOption}
+                    </Typography>
+                    <Typography variant={"subtitle1"} component={"span"} ml={1}>
                       {t(
                         "character.character-sidebar.clock-dialog-segment-count",
                         "segments",

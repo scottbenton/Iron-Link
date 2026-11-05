@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 
 import { HideOnScroll } from "components/HideOnScroll";
 import { LinkComponent } from "components/LinkComponent";
+import { ScreenReaderOnly } from "components/ScreenReaderOnly";
 
 import { AppSettingsMenu, MenuAdditionComponent } from "./AppSettingsMenu";
 import { IronLinkLogo } from "./IronLinkLogo";
@@ -45,7 +46,13 @@ export function NavBar(props: NavBarProps) {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   if (!isMobile) {
-    return null;
+    // The bar is phone only, but its title is the page's heading, so wider
+    // screens keep it for screen readers.
+    return pageTitle ? (
+      <ScreenReaderOnly>
+        <h1>{pageTitle}</h1>
+      </ScreenReaderOnly>
+    ) : null;
   }
 
   return (
@@ -96,7 +103,7 @@ export function NavBar(props: NavBarProps) {
                 </Tooltip>
               )}
               {pageTitle ? (
-                <Typography variant={"h6"} ml={2}>
+                <Typography variant={"h6"} component={"h1"} ml={2}>
                   {pageTitle}
                 </Typography>
               ) : (

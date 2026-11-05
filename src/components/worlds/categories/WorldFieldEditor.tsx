@@ -13,6 +13,7 @@ import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
+import { HeadingOffset } from "components/HeadingLevel";
 
 import { useIsBreakpoint } from "hooks/useIsBreakpoint";
 
@@ -155,174 +156,181 @@ export function WorldFieldEditor({
     gmDependency ||
     affected.length > 0;
   return (
-    <Dialog
-      open
-      fullWidth
-      fullScreen={compact}
-      maxWidth="md"
-      onClose={saving ? undefined : onClose}
-    >
-      <DialogTitleWithCloseButton onClose={() => !saving && onClose()}>
-        {readOnly
-          ? t("worlds.fields.view", "Field configuration")
-          : field
-            ? t("worlds.fields.edit", "Edit field")
-            : t("worlds.fields.add", "Add field")}
-      </DialogTitleWithCloseButton>
-      <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
-        <Stack spacing={4} sx={{ pt: 1, pb: 1 }}>
-          {error && <Alert severity="error">{error}</Alert>}
-          <WorldEditorSection title={t("worlds.fields.details", "Details")}>
-            <TextField
-              autoFocus
-              required
-              fullWidth
-              label={t("worlds.fields.label", "Field label")}
-              value={draft.label}
-              disabled={disabled}
-              onChange={(event) =>
-                setDraft({ ...draft, label: event.target.value })
-              }
-            />
-            {incompatible && (
-              <Alert severity="warning">
-                {blocker === "multipleValues"
-                  ? t(
-                      "worlds.fields.incompatible-multiple",
-                      "{{count}} entries store more than one value in this field. Turning off Allow more than one cannot preserve them. Create a new field to keep the existing field and its values.",
-                      { count: multiValueCount },
-                    )
-                  : blocker === "targetCategory"
-                    ? t(
-                        "worlds.fields.incompatible-category",
-                        "This field has {{count}} stored values. Changing its category cannot preserve them. Create a new field to keep the existing field and its values.",
-                        { count: valueCount },
-                      )
-                    : t(
-                        "worlds.fields.incompatible-type",
-                        "This field has {{count}} stored values. Changing its type cannot preserve them. Create a new field to keep the existing field and its values.",
-                        { count: valueCount },
-                      )}
-              </Alert>
-            )}
-            <Stack spacing={1}>
-              <WorldSettingCheckbox
-                label={t("worlds.fields.gm-only", "Guide only")}
-                description={t(
-                  "worlds.fields.gm-only-help",
-                  "Only guides can see this field. Changing this also changes who can see existing values.",
-                )}
-                checked={draft.gmOnly}
+    // A dialog starts its own outline at its title, wherever it opens.
+    <HeadingOffset reset>
+      <Dialog
+        open
+        fullWidth
+        fullScreen={compact}
+        maxWidth="md"
+        onClose={saving ? undefined : onClose}
+      >
+        <DialogTitleWithCloseButton onClose={() => !saving && onClose()}>
+          {readOnly
+            ? t("worlds.fields.view", "Field configuration")
+            : field
+              ? t("worlds.fields.edit", "Edit field")
+              : t("worlds.fields.add", "Add field")}
+        </DialogTitleWithCloseButton>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
+          <Stack spacing={4} sx={{ pt: 1, pb: 1 }}>
+            {error && <Alert severity="error">{error}</Alert>}
+            <WorldEditorSection title={t("worlds.fields.details", "Details")}>
+              <TextField
+                autoFocus
+                required
+                fullWidth
+                label={t("worlds.fields.label", "Field label")}
+                value={draft.label}
                 disabled={disabled}
-                onChange={(checked) => setDraft({ ...draft, gmOnly: checked })}
+                onChange={(event) =>
+                  setDraft({ ...draft, label: event.target.value })
+                }
               />
-              {getWorldFieldKind(draft) === "text" && (
-                <WorldSettingCheckbox
-                  label={t("worlds.fields.full-width", "Full width")}
-                  description={t(
-                    "worlds.fields.full-width-help",
-                    "Give the value a whole row on entry pages, for long answers like a goal.",
-                  )}
-                  checked={!!draft.configuration.fullWidth}
-                  disabled={disabled}
-                  onChange={(checked) => {
-                    // Off is stored as no option, as on new fields.
-                    const next = { ...draft.configuration };
-                    if (checked) next.fullWidth = true;
-                    else delete next.fullWidth;
-                    setDraft({ ...draft, configuration: next });
-                  }}
-                />
-              )}
-            </Stack>
-            {gmDependency && (
-              <Alert severity="error">
-                {t(
-                  "worlds.fields.gm-dependency",
-                  "This field uses a Guide-only source. Make this field Guide only or choose another source.",
-                )}
-              </Alert>
-            )}
-            {affected.length > 0 && (
-              <Alert severity="error">
-                {t(
-                  "worlds.fields.affected-dependents",
-                  "This change would invalidate conditions in {{fields}}. Update their conditions or Guide visibility first.",
-                  {
-                    fields: affected
-                      .map((dependent) =>
-                        fieldChoiceLabel(dependent, fields, t),
+              {incompatible && (
+                <Alert severity="warning">
+                  {blocker === "multipleValues"
+                    ? t(
+                        "worlds.fields.incompatible-multiple",
+                        "{{count}} entries store more than one value in this field. Turning off Allow more than one cannot preserve them. Create a new field to keep the existing field and its values.",
+                        { count: multiValueCount },
                       )
-                      .join(", "),
-                  },
+                    : blocker === "targetCategory"
+                      ? t(
+                          "worlds.fields.incompatible-category",
+                          "This field has {{count}} stored values. Changing its category cannot preserve them. Create a new field to keep the existing field and its values.",
+                          { count: valueCount },
+                        )
+                      : t(
+                          "worlds.fields.incompatible-type",
+                          "This field has {{count}} stored values. Changing its type cannot preserve them. Create a new field to keep the existing field and its values.",
+                          { count: valueCount },
+                        )}
+                </Alert>
+              )}
+              <Stack spacing={1}>
+                <WorldSettingCheckbox
+                  label={t("worlds.fields.gm-only", "Guide only")}
+                  description={t(
+                    "worlds.fields.gm-only-help",
+                    "Only guides can see this field. Changing this also changes who can see existing values.",
+                  )}
+                  checked={draft.gmOnly}
+                  disabled={disabled}
+                  onChange={(checked) =>
+                    setDraft({ ...draft, gmOnly: checked })
+                  }
+                />
+                {getWorldFieldKind(draft) === "text" && (
+                  <WorldSettingCheckbox
+                    label={t("worlds.fields.full-width", "Full width")}
+                    description={t(
+                      "worlds.fields.full-width-help",
+                      "Give the value a whole row on entry pages, for long answers like a goal.",
+                    )}
+                    checked={!!draft.configuration.fullWidth}
+                    disabled={disabled}
+                    onChange={(checked) => {
+                      // Off is stored as no option, as on new fields.
+                      const next = { ...draft.configuration };
+                      if (checked) next.fullWidth = true;
+                      else delete next.fullWidth;
+                      setDraft({ ...draft, configuration: next });
+                    }}
+                  />
                 )}
-              </Alert>
-            )}
-          </WorldEditorSection>
-          <WorldFieldTypeSection
-            field={field}
-            draft={draft}
-            counts={counts}
-            categories={targetCategories}
-            invalidTarget={invalidTarget}
-            disabled={disabled}
-            readOnly={readOnly}
-            onChange={setDraft}
-          />
-          <WorldFieldFallbackEditor
-            worldId={worldId}
-            draft={draft}
-            allowOracleBinding={bindable}
-            disabled={disabled}
-            onChange={setDraft}
-          />
-          <WorldFieldRulesEditor
-            worldId={worldId}
-            rules={rules}
-            fields={selectableSources}
-            disabled={disabled}
-            readOnly={readOnly}
-            allowOracleBinding={bindable}
-            invalidCondition={invalidCondition}
-            invalidRuleLabel={invalidRuleLabel}
-            onChange={(rules) => configuration({ rules })}
-          />
-        </Stack>
-      </DialogContent>
-      <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: 2 }}>
-        {!readOnly && onDelete && (
-          <Button
-            color="error"
-            startIcon={<DeleteIcon />}
-            disabled={saving || deleting}
-            onClick={remove}
-            sx={{ mr: "auto" }}
-          >
-            {t("worlds.fields.delete", "Delete field")}
+              </Stack>
+              {gmDependency && (
+                <Alert severity="error">
+                  {t(
+                    "worlds.fields.gm-dependency",
+                    "This field uses a Guide-only source. Make this field Guide only or choose another source.",
+                  )}
+                </Alert>
+              )}
+              {affected.length > 0 && (
+                <Alert severity="error">
+                  {t(
+                    "worlds.fields.affected-dependents",
+                    "This change would invalidate conditions in {{fields}}. Update their conditions or Guide visibility first.",
+                    {
+                      fields: affected
+                        .map((dependent) =>
+                          fieldChoiceLabel(dependent, fields, t),
+                        )
+                        .join(", "),
+                    },
+                  )}
+                </Alert>
+              )}
+            </WorldEditorSection>
+            <WorldFieldTypeSection
+              field={field}
+              draft={draft}
+              counts={counts}
+              categories={targetCategories}
+              invalidTarget={invalidTarget}
+              disabled={disabled}
+              readOnly={readOnly}
+              onChange={setDraft}
+            />
+            <WorldFieldFallbackEditor
+              worldId={worldId}
+              draft={draft}
+              allowOracleBinding={bindable}
+              disabled={disabled}
+              onChange={setDraft}
+            />
+            <WorldFieldRulesEditor
+              worldId={worldId}
+              rules={rules}
+              fields={selectableSources}
+              disabled={disabled}
+              readOnly={readOnly}
+              allowOracleBinding={bindable}
+              invalidCondition={invalidCondition}
+              invalidRuleLabel={invalidRuleLabel}
+              onChange={(rules) => configuration({ rules })}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: 2 }}>
+          {!readOnly && onDelete && (
+            <Button
+              color="error"
+              startIcon={<DeleteIcon />}
+              disabled={saving || deleting}
+              onClick={remove}
+              sx={{ mr: "auto" }}
+            >
+              {t("worlds.fields.delete", "Delete field")}
+            </Button>
+          )}
+          <Button color="inherit" disabled={saving} onClick={onClose}>
+            {readOnly
+              ? t("common.close", "Close")
+              : t("common.cancel", "Cancel")}
           </Button>
-        )}
-        <Button color="inherit" disabled={saving} onClick={onClose}>
-          {readOnly ? t("common.close", "Close") : t("common.cancel", "Cancel")}
-        </Button>
-        {!readOnly &&
-          (incompatible ? (
-            <Button
-              variant="contained"
-              disabled={blocked}
-              onClick={() => save(true)}
-            >
-              {t("worlds.fields.create-new", "Create new field")}
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              disabled={blocked || !hasChanges}
-              onClick={() => save()}
-            >
-              {t("common.save", "Save")}
-            </Button>
-          ))}
-      </DialogActions>
-    </Dialog>
+          {!readOnly &&
+            (incompatible ? (
+              <Button
+                variant="contained"
+                disabled={blocked}
+                onClick={() => save(true)}
+              >
+                {t("worlds.fields.create-new", "Create new field")}
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                disabled={blocked || !hasChanges}
+                onClick={() => save()}
+              >
+                {t("common.save", "Save")}
+              </Button>
+            ))}
+        </DialogActions>
+      </Dialog>
+    </HeadingOffset>
   );
 }

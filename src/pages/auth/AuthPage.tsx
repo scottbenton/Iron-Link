@@ -116,6 +116,7 @@ export default function AuthPage() {
               <Typography
                 ml={1}
                 variant={"h4"}
+                component={"h1"}
                 textTransform={"uppercase"}
                 fontFamily={(theme) => theme.typography.fontFamilyTitle}
                 color={"textSecondary"}
@@ -128,7 +129,7 @@ export default function AuthPage() {
             <>
               <SocialLoginOptions />
               <Stack spacing={2}>
-                <Typography variant={"h6"}>
+                <Typography variant={"h6"} component={"h2"}>
                   {t("auth.passwordless-sign-in", "Sign in with Email")}
                 </Typography>
                 <Alert severity={"info"}>

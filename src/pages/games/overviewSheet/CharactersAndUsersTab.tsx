@@ -39,7 +39,12 @@ export function CharactersAndUsersTab() {
 
   return (
     <>
-      <Typography variant={"h6"} fontFamily={"fontFamilyTitle"} mt={2}>
+      <Typography
+        variant={"h6"}
+        component={"h3"}
+        fontFamily={"fontFamilyTitle"}
+        mt={2}
+      >
         {t("game.overview.characters", "Characters")}
       </Typography>
       {characters.map((character) => (
@@ -63,7 +68,12 @@ export function CharactersAndUsersTab() {
 
       {gameType !== GameType.Solo && (
         <>
-          <Typography variant={"h6"} fontFamily={"fontFamilyTitle"} mt={2}>
+          <Typography
+            variant={"h6"}
+            component={"h3"}
+            fontFamily={"fontFamilyTitle"}
+            mt={2}
+          >
             {t("game.overview.players", "Players")}
           </Typography>
           {Object.entries(users).map(([userId, user]) => (

@@ -1,7 +1,10 @@
 import { Box, Stack, Typography } from "@mui/material";
 import { PropsWithChildren, ReactNode } from "react";
 
-// Heading for a group of controls inside an editor dialog.
+import { useHeadingComponent } from "components/HeadingLevel";
+
+// Heading for a group of controls inside an editor dialog or a category's
+// settings.
 export function WorldEditorSection({
   title,
   description,
@@ -12,6 +15,7 @@ export function WorldEditorSection({
   description?: ReactNode;
   action?: ReactNode;
 }>) {
+  const headingComponent = useHeadingComponent(3);
   return (
     <Stack component="section" aria-label={title} spacing={2} useFlexGap>
       <Box
@@ -29,7 +33,7 @@ export function WorldEditorSection({
         <Box>
           <Typography
             variant="h6"
-            component="h3"
+            component={headingComponent}
             fontFamily={(theme) => theme.typography.fontFamilyTitle}
           >
             {title}

@@ -2,6 +2,7 @@ import { LinearProgress } from "@mui/material";
 import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
+import { HeadingOffset } from "components/HeadingLevel";
 import type { BreadcrumbItem } from "components/Layout/BreadcrumbTrail";
 import { EmptyState } from "components/Layout/EmptyState";
 import { WorldEntryMentionLinksContext } from "components/RichTextEditor/NoteMentionExtension/worldEntryMentionLinks";
@@ -94,16 +95,21 @@ export function WorldPanel(props: WorldPanelProps) {
   return (
     // Entry mentions in the world's Notes lead where the world's own links do.
     <WorldEntryMentionLinksContext.Provider value={navigation.getLinkProps}>
-      <WorldWorkspace
-        key={worldId}
-        world={world}
-        permission={worldPermission}
-        onWorldDeleted={onWorldDeleted}
-        additionalSettings={additionalSettings}
-        navigation={navigation}
-        rootBreadcrumb={rootBreadcrumb}
-        layout={layout}
-      />
+      {/* A Notes tab sits under the game's h1 and the Notes column's h2, so
+          its destination's heading is an h3 there rather than the h1 it is
+          on the world's own page. */}
+      <HeadingOffset offset={layout === "embedded" ? 2 : 0}>
+        <WorldWorkspace
+          key={worldId}
+          world={world}
+          permission={worldPermission}
+          onWorldDeleted={onWorldDeleted}
+          additionalSettings={additionalSettings}
+          navigation={navigation}
+          rootBreadcrumb={rootBreadcrumb}
+          layout={layout}
+        />
+      </HeadingOffset>
     </WorldEntryMentionLinksContext.Provider>
   );
 }

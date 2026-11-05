@@ -196,7 +196,7 @@ export function FolderView(props: FolderViewProps) {
         <>
           <GameWorldSection />
           <Divider sx={{ mb: 1 }} />
-          <Typography variant="overline" px={1} component="h2">
+          <Typography variant="overline" px={1} component="h3">
             {t("notes.your-notes", "Your notes")}
           </Typography>
         </>
@@ -205,7 +205,7 @@ export function FolderView(props: FolderViewProps) {
         (subFolders.length > 0 || sortedNoteIds.length > 0) && (
           <>
             <Divider sx={{ mt: 4, mb: 1 }} />
-            <Typography variant="overline" px={1}>
+            <Typography variant="overline" px={1} component="h3">
               {t("notes.shared-with-me", "Shared with you")}
             </Typography>
           </>

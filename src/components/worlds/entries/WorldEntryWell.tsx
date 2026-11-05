@@ -3,6 +3,8 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Box, ButtonBase, Collapse, Typography, alpha } from "@mui/material";
 import { PropsWithChildren, ReactNode, useId, useState } from "react";
 
+import { useHeadingComponent } from "components/HeadingLevel";
+
 // A collapsible group of an entry's fields. Details is an inset band; Guide
 // only is dashed, like the secret blocks in Notes, so the two read apart.
 export function WorldEntryWell({
@@ -20,6 +22,7 @@ export function WorldEntryWell({
 }>) {
   const [open, setOpen] = useState(true);
   const titleId = useId();
+  const headingComponent = useHeadingComponent(2);
   const contentId = useId();
   const guide = variant === "guide";
 
@@ -47,7 +50,7 @@ export function WorldEntryWell({
       })}
     >
       <Typography
-        component="h2"
+        component={headingComponent}
         sx={(theme) => ({
           fontFamily: theme.typography.fontFamilyTitle,
           fontWeight: 600,

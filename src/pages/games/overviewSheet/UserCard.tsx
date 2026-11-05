@@ -104,7 +104,7 @@ export function UserCard(props: UserCardProps) {
   return (
     <Card sx={{ mt: 1 }} variant="outlined">
       <Box p={2}>
-        <Typography variant="h6" fontFamily="fontFamilyTitle">
+        <Typography variant="h6" component="h4" fontFamily="fontFamilyTitle">
           {userName}
         </Typography>
         {gameType === GameType.Guided && <Typography>{roleName}</Typography>}
