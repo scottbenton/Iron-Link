@@ -1,8 +1,11 @@
 import ExampleIcon from "@mui/icons-material/Casino";
 import { Box, ButtonBase, Card, Typography } from "@mui/material";
 import { useId } from "react";
+import { useTranslation } from "react-i18next";
 
 import { GradientBox } from "components/GradientBox";
+
+import { formatSignedValue } from "lib/formatSignedValue";
 
 export interface StatProps {
   label: string;
@@ -24,11 +27,18 @@ export function Stat(props: StatProps) {
   const { label, value, onActionClick, action, disabled } = props;
   const { ActionIcon, actionLabel } = action ?? {};
 
-  const id = useId();
+  const { t } = useTranslation();
+
+  const valueText = formatSignedValue(value);
+  const isActionButton = !!onActionClick && !disabled;
+
+  const labelId = useId();
 
   return (
     <Card
       variant="outlined"
+      role="group"
+      aria-labelledby={labelId}
       sx={(theme) => ({
         display: "inline-flex",
         alignItems: "stretch",
@@ -38,8 +48,8 @@ export function Stat(props: StatProps) {
       })}
     >
       <Typography
-        component={"label"}
-        htmlFor={id}
+        component={"span"}
+        id={labelId}
         variant="body2"
         textAlign="center"
         color={"textSecondary"}
@@ -52,10 +62,23 @@ export function Stat(props: StatProps) {
       </Typography>
       <Box display="flex" alignItems="center" px={0.5} pb={0.5}>
         <Box
-          id={id}
-          component={onActionClick && !disabled ? ButtonBase : "div"}
+          component={isActionButton ? ButtonBase : "div"}
           onClick={onActionClick}
-          {...(onActionClick ? { focusRipple: true } : {})}
+          {...(isActionButton
+            ? {
+                focusRipple: true,
+                "aria-label": actionLabel
+                  ? t(
+                      "datasworn.meter-action-named",
+                      "{{action}} {{label}}, {{value}}",
+                      { action: actionLabel, label, value: valueText },
+                    )
+                  : t("datasworn.meter-value-named", "{{label}}, {{value}}", {
+                      label,
+                      value: valueText,
+                    }),
+              }
+            : {})}
           display="block"
           color="common.white"
           borderRadius={normalBorderRadius}
@@ -117,19 +140,19 @@ export function Stat(props: StatProps) {
               {ActionIcon && (
                 <ActionIcon
                   data-testid={label + actionLabel}
-                  aria-label={actionLabel}
+                  aria-hidden
                   color={"inherit"}
                   fontSize={"small"}
                   sx={{ ml: -0.5, mr: 0.5, color: "grey.300" }}
                 />
               )}
               <Typography
+                component="span"
                 variant="h5"
                 fontFamily={(theme) => theme.typography.fontFamilyTitle}
                 sx={{ width: 24 }}
               >
-                {value >= 0 ? "+" : "-"}
-                {value}
+                {valueText}
               </Typography>
             </Box>
           </GradientBox>

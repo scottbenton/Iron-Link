@@ -5,6 +5,7 @@ import { RollResult } from "repositories/shared.types";
 import {
   MAX_PROGRESS_SCORE,
   MAX_TICKS,
+  getProgressBoxes,
   getProgressRollResult,
   getProgressScore,
 } from "../progressTrack.lib";
@@ -51,5 +52,25 @@ describe("getProgressRollResult", () => {
   it("treats ties as losses to the challenge die", () => {
     expect(getProgressRollResult(6, 6, 2)).toBe(RollResult.WeakHit);
     expect(getProgressRollResult(6, 6, 6)).toBe(RollResult.Miss);
+  });
+});
+
+describe("getProgressBoxes", () => {
+  it("splits ticks into full boxes and the ticks in the next box", () => {
+    expect(getProgressBoxes(0)).toEqual({ boxes: 0, ticks: 0 });
+    expect(getProgressBoxes(3)).toEqual({ boxes: 0, ticks: 3 });
+    expect(getProgressBoxes(14)).toEqual({ boxes: 3, ticks: 2 });
+    expect(getProgressBoxes(MAX_TICKS)).toEqual({
+      boxes: MAX_PROGRESS_SCORE,
+      ticks: 0,
+    });
+  });
+
+  it("clamps out-of-range tick counts to the track", () => {
+    expect(getProgressBoxes(-4)).toEqual({ boxes: 0, ticks: 0 });
+    expect(getProgressBoxes(MAX_TICKS + 3)).toEqual({
+      boxes: MAX_PROGRESS_SCORE,
+      ticks: 0,
+    });
   });
 });

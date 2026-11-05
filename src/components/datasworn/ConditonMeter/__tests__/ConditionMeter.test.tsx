@@ -2,6 +2,8 @@ import ExampleIcon from "@mui/icons-material/Casino";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { useAppState } from "stores/appState.store";
+
 import { TestWrapper } from "tests/TestWrapper";
 
 import { ConditionMeter, ConditionMeterProps } from "../ConditionMeter";
@@ -70,7 +72,42 @@ describe("ConditionMeter", () => {
 
   it("should render the ActionIcon when provided", () => {
     setup({ action: { ActionIcon: ExampleIcon, actionLabel: "Test Action" } });
-    expect(screen.getByLabelText("Test Action")).toBeInTheDocument();
+    expect(screen.getByTestId("Test LabelTest Action")).toBeInTheDocument();
+  });
+
+  it("should name the action button with the action, label and value", () => {
+    setup({
+      value: 3,
+      onActionClick: () => {},
+      action: { ActionIcon: ExampleIcon, actionLabel: "Reset" },
+    });
+    // Named by its action and value, not the meter's name alone.
+    expect(
+      screen.getByRole("button", { name: "Reset Test Label, +3" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("group")).toHaveAccessibleName("Test Label");
+  });
+
+  it("should render a negative value with a single minus sign", () => {
+    setup({ value: -2, min: -9, onActionClick: () => {} });
+    expect(screen.getByText("-2")).toBeInTheDocument();
+    expect(screen.queryByText("--2")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Test Label, -2" }),
+    ).toBeInTheDocument();
+  });
+
+  it("should not render the value as a heading", () => {
+    setup();
+    expect(screen.queryByRole("heading")).not.toBeInTheDocument();
+  });
+
+  it("should announce the new value after a change", () => {
+    setup({ onChange: () => {} });
+    const before = useAppState.getState().announcementId;
+    screen.getByRole("button", { name: /add/i }).click();
+    expect(useAppState.getState().announcementId).toBe(before + 1);
+    expect(useAppState.getState().announcement).toBe("Test Label is now +6");
   });
 
   it("should call onActionClick when the action button is clicked", () => {

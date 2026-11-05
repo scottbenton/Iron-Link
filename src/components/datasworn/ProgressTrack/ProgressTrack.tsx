@@ -17,6 +17,7 @@ import { useSetAnnouncement } from "stores/appState.store";
 import { Difficulty, TrackStatus } from "repositories/tracks.repository";
 
 import { ProgressTrackTick } from "./ProgressTrackTick";
+import { useProgressTrackValueText } from "./useProgressTrackValueText";
 
 export interface ProgressTrackProps {
   difficulty?: Difficulty;
@@ -50,16 +51,7 @@ export function ProgressTrack(props: ProgressTrackProps) {
   const announce = useSetAnnouncement();
   const [checks, setChecks] = useState<number[]>([]);
 
-  const getValueText = (value: number) => {
-    return t(
-      "datasworn.progress-track.value-text",
-      "{{value}} ticks: {{fullBoxes}} boxes fully filled",
-      {
-        value,
-        fullBoxes: Math.floor(value / 4),
-      },
-    );
-  };
+  const getValueText = useProgressTrackValueText();
 
   const handleChange = (increment: boolean) => {
     if (onChange) {
@@ -148,7 +140,7 @@ export function ProgressTrack(props: ProgressTrackProps) {
             flexGrow={1}
           >
             <Typography fontFamily={"fontFamilyTitle"} variant={"h6"}>
-              {capitalize(label)}
+              <span id={labelId}>{capitalize(label)}</span>
               {status === TrackStatus.Completed && (
                 <Chip
                   label={"Completed"}
@@ -223,7 +215,7 @@ export function ProgressTrack(props: ProgressTrackProps) {
         borderRadius={1}
         border={1}
         borderColor={(theme) => theme.palette.divider}
-        role={"meter"}
+        role={"progressbar"}
         aria-labelledby={labelId}
         aria-valuemin={0}
         aria-valuemax={maxTicks}
