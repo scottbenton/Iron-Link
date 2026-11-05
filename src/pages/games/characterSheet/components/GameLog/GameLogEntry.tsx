@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { ScreenReaderOnly } from "components/ScreenReaderOnly";
 import { RollSnackbar } from "components/characters/rolls/RollSnackbar";
 
 import { useUID } from "stores/auth.store";
@@ -58,23 +59,36 @@ export function GameLogEntry(props: GameLogEntryProps) {
     });
   };
 
+  const writtenBy = wasWrittenForOwner
+    ? log.logType === LogType.MESSAGE
+      ? t("game.log.sent-by", "sent by {{name}}", {
+          name: logCreatorName,
+        })
+      : t("game.log.rolled-by", "rolled by {{name}}", {
+          name: logCreatorName,
+        })
+    : undefined;
+  const timeString = getLogTimeString(log.timestamp);
+
+  // Who wrote the entry and when, read with it as one piece of text; the
+  // name and time shown around it are hidden from screen readers.
+  const heading = t("game.log.entry-heading", "{{author}}, {{time}}.", {
+    author: writtenBy ? `${rollerName}, ${writtenBy}` : rollerName,
+    time: timeString,
+  });
+
   return (
     <Box
+      component={"li"}
       p={2}
       display={"flex"}
       flexDirection={"column"}
       alignItems={isYourEntry ? "flex-end" : "flex-start"}
     >
-      <Typography>{rollerName}</Typography>
-      {wasWrittenForOwner && (
-        <Typography color={"textSecondary"} variant={"caption"}>
-          {log.logType === LogType.MESSAGE
-            ? t("game.log.sent-by", "sent by {{name}}", {
-                name: logCreatorName,
-              })
-            : t("game.log.rolled-by", "rolled by {{name}}", {
-                name: logCreatorName,
-              })}
+      <Typography aria-hidden>{rollerName}</Typography>
+      {writtenBy && (
+        <Typography color={"textSecondary"} variant={"caption"} aria-hidden>
+          {writtenBy}
         </Typography>
       )}
       {log.logType === LogType.ROLL && (
@@ -83,11 +97,17 @@ export function GameLogEntry(props: GameLogEntryProps) {
           rollId={logId}
           roll={log}
           isExpanded
+          summaryPrefix={heading}
         />
       )}
-      {log.logType === LogType.MESSAGE && <GameLogMessage message={log} />}
-      <Typography color={"textSecondary"} variant={"caption"}>
-        {getLogTimeString(log.timestamp)}
+      {log.logType === LogType.MESSAGE && (
+        <>
+          <ScreenReaderOnly>{heading}</ScreenReaderOnly>
+          <GameLogMessage message={log} />
+        </>
+      )}
+      <Typography color={"textSecondary"} variant={"caption"} aria-hidden>
+        {timeString}
       </Typography>
     </Box>
   );
