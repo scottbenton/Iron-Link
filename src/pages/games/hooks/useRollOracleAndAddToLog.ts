@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSnackbar } from "providers/SnackbarProvider";
 
 import { useRollOracle } from "hooks/useRollOracle";
+import { getRollAnnouncement } from "hooks/useRollSummary";
 
 import { useAddRollSnackbar, useSetAnnouncement } from "stores/appState.store";
 import { useUID } from "stores/auth.store";
@@ -14,6 +15,11 @@ import { IOracleTableRoll } from "services/gameLog.service";
 import { useCanEditCharacter } from "../characterSheet/hooks/useCanEditCharacter";
 import { useCharacterIdOptional } from "../characterSheet/hooks/useCharacterId";
 import { useGameIdOptional } from "../gamePageLayout/hooks/useGameId";
+
+export interface RollOracleOptions {
+  // Leave the announcement to the caller, which reads the result with more.
+  announce?: boolean;
+}
 
 export function useRollOracleAndAddToLog() {
   // TODO - remove ?? "" and handle the case where there is no UID
@@ -37,6 +43,7 @@ export function useRollOracleAndAddToLog() {
     (
       oracleId: string,
       guidesOnly: boolean = false,
+      options: RollOracleOptions = {},
     ): { id: string | undefined; result: IOracleTableRoll | undefined } => {
       const result = rollOracle(oracleId);
       if (result) {
@@ -47,24 +54,11 @@ export function useRollOracleAndAddToLog() {
           characterId: characterId && canEditCharacter ? characterId : null,
           guidesOnly,
         };
-        // The result snackbar isn't read out, so without this a screen reader
-        // user hears nothing when they roll an oracle.
-        let announcement = t(
-          "datasworn.a11y.oracle-roll",
-          "Rolled {{oracleName}}: {{result}}.",
-          {
-            oracleName: result.rollLabel,
-            result: plainText(result.result),
-          },
-        );
-        if (result.cursedDieAdditiveResult) {
-          announcement += t(
-            "datasworn.a11y.oracle-roll-cursed",
-            " The cursed die adds: {{result}}.",
-            { result: plainText(result.cursedDieAdditiveResult) },
-          );
+        // The full result, as its roll card reads it. A caller that says more
+        // about the roll (a clock's progress) announces it with its own news.
+        if (options.announce !== false) {
+          announce(getRollAnnouncement(resultWithAdditions, t));
         }
-        announce(announcement);
 
         if (gameId) {
           addRoll(resultWithAdditions.id, resultWithAdditions).catch(() => {});
@@ -104,9 +98,4 @@ export function useRollOracleAndAddToLog() {
   );
 
   return handleRollOracle;
-}
-
-// Oracle results can hold markdown links; read out only their text.
-function plainText(markdown: string): string {
-  return markdown.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
 }

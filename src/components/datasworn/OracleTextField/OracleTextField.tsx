@@ -48,8 +48,17 @@ export function OracleTextField(props: OracleTextFieldProps) {
       value = rollOracle(oracleId ?? oracleConfig, getOracleResult);
     }
     onChange(value);
-    announce(`Updated ${label} to ${value}`);
-  }, [announce, label, oracleId, oracleConfig, getOracleResult, onChange]);
+    announce(
+      t(
+        "datasworn.a11y.oracle-field-rolled",
+        "Updated {{label}} to {{value}}",
+        {
+          label,
+          value,
+        },
+      ),
+    );
+  }, [announce, label, oracleId, oracleConfig, getOracleResult, onChange, t]);
 
   return (
     <TextField
