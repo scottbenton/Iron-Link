@@ -1,4 +1,7 @@
 import { Box, Typography } from "@mui/material";
+import { useContext } from "react";
+
+import { RollCardContext } from "./rollCardContext";
 
 export interface RollTitleProps {
   overline?: string;
@@ -8,6 +11,11 @@ export interface RollTitleProps {
 
 export function RollTitle(props: RollTitleProps) {
   const { isExpanded, title, overline } = props;
+  const { hasDismissButton } = useContext(RollCardContext);
+
+  // Room for the buttons in the card's top corner: the roll's actions while
+  // it is expanded, and its dismiss button.
+  const actionsWidth = (isExpanded ? 80 : 0) + (hasDismissButton ? 40 : 0);
 
   return (
     <Box
@@ -37,9 +45,9 @@ export function RollTitle(props: RollTitleProps) {
           {title}
         </Typography>
       </div>
-      {isExpanded && (
+      {actionsWidth > 0 && (
         // Holds action space
-        <Box height={40 - 16} width={80 - 16} />
+        <Box height={40 - 16} width={actionsWidth - 16} flexShrink={0} />
       )}
     </Box>
   );

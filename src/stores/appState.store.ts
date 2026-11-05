@@ -1,5 +1,6 @@
 // Rolls, announcements, datasworn dialog, themes
 import deepEqual from "fast-deep-equal";
+import { useId, useLayoutEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
@@ -28,6 +29,10 @@ interface AppStateState {
   };
 
   visibleRolls: VisibleRoll[];
+  // Places that can show the recent roll cards: the page, then each open
+  // dialog. Only the last one shows them, since a modal dialog hides the
+  // page from screen readers.
+  rollCardHosts: string[];
 
   colorScheme: ColorScheme;
 
@@ -48,6 +53,8 @@ interface AppStateActions {
   updateRollIfPresent: (rollId: string, roll: IGameLogRoll) => void;
   clearRoll: (index: number) => void;
   clearAllRolls: () => void;
+  addRollCardHost: (hostId: string, isPage?: boolean) => void;
+  removeRollCardHost: (hostId: string) => void;
   setCurrentReferenceTab: (tab: ReferenceTabs) => void;
   setGameLogNotificationCount: (count: number) => void;
   resetReference: () => void;
@@ -61,6 +68,7 @@ const defaultAppState: AppStateState = {
     previousIds: [],
   },
   visibleRolls: [],
+  rollCardHosts: [],
   colorScheme: getDefaultColorScheme(),
   currentReferenceTab: ReferenceTabs.Moves,
   gameLogNotificationCount: 0,
@@ -127,6 +135,21 @@ export const useAppState = createWithEqualityFn<
         state.visibleRolls = [];
       });
     },
+    addRollCardHost: (hostId, isPage) => {
+      set((state) => {
+        // The page goes under any dialog, even one that mounted first.
+        if (isPage) {
+          state.rollCardHosts.unshift(hostId);
+        } else {
+          state.rollCardHosts.push(hostId);
+        }
+      });
+    },
+    removeRollCardHost: (hostId) => {
+      set((state) => {
+        state.rollCardHosts = state.rollCardHosts.filter((id) => id !== hostId);
+      });
+    },
     updateRollIfPresent: (rollId, roll) => {
       set((state) => {
         const rollIndex = state.visibleRolls.findIndex(
@@ -177,6 +200,26 @@ export function useOpenDataswornDialog() {
 
 export function useSetColorScheme() {
   return useAppState((state) => state.setColorScheme);
+}
+
+/**
+ * Registers a place that can show the recent roll cards, and says whether it
+ * is the one showing them: the most recently mounted, so an open dialog shows
+ * them in place of the page behind it.
+ */
+export function useIsActiveRollCardHost(isPage = false): boolean {
+  const hostId = useId();
+  const addHost = useAppState((state) => state.addRollCardHost);
+  const removeHost = useAppState((state) => state.removeRollCardHost);
+
+  useLayoutEffect(() => {
+    addHost(hostId, isPage);
+    return () => removeHost(hostId);
+  }, [hostId, isPage, addHost, removeHost]);
+
+  return useAppState(
+    (state) => state.rollCardHosts[state.rollCardHosts.length - 1] === hostId,
+  );
 }
 
 export function useAddRollSnackbar() {
