@@ -115,3 +115,12 @@ that are easy to miss. When you learn a new one, add a line here.
 - Sheet edit controls check `useCanEditCharacter` (backed by
   `getCharacterAccess`, which mirrors the database's `can_edit_character()`),
   not ownership. Only Edit access and Delete use `useIsOwnerOfCharacter`.
+
+## Reference
+
+- `/reference` is open to signed out visitors: paths under `openPathPrefixes`
+  pass `isOpenPath`. It loads bundled rules packages only, never the database,
+  and saves nothing; its settings are per device in localStorage.
+- Reference URLs are Datasworn ids (`getReferenceItemHref`), so a renamed id
+  breaks old links. Rules text links go through `DataswornLinkHandlerProvider`,
+  which opens reference pages there and the Datasworn dialog everywhere else.

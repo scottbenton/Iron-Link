@@ -332,7 +332,7 @@ function canUseAssetControlRoll(
   );
 }
 
-function getVisibleProgressTrack(
+export function getVisibleProgressTrack(
   move: Datasworn.AnyMove,
 ): TrackTypes | undefined {
   if (move.roll_type === "progress_roll") {

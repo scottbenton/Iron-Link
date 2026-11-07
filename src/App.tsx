@@ -28,6 +28,7 @@ const HomebrewSelectPage = lazy(
 );
 const AuthPage = lazy(() => import("./pages/auth/AuthPage"));
 const GameJoinPage = lazy(() => import("./pages/gameJoin/GameJoinPage"));
+const ReferencePage = lazy(() => import("./pages/reference/ReferencePage"));
 const PrivacyPolicyPage = lazy(
   () => import("./pages/privacy/PrivacyPolicyPage"),
 );
@@ -87,6 +88,7 @@ export function App() {
                 <Route path="/homebrew" Component={HomebrewSelectPage} />
                 <Route path="/auth" Component={AuthPage} />
                 <Route path="/privacy" Component={PrivacyPolicyPage} />
+                <Route path="/reference/*" Component={ReferencePage} />
                 <Route path="*" Component={Page404} />
               </Route>
               <Route Component={GameLayout} path="/games/:gameId">

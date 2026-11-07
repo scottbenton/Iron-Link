@@ -21,6 +21,7 @@ export const pathConfig = {
     `/worlds/${worldId}/settings/categories/${categoryId}`,
   homebrewSelect: "/homebrew",
   homebrew: (homebrewId: string) => `/homebrew/${homebrewId}`,
+  reference: "/reference",
   auth: "/auth",
   privacy: "/privacy",
 };
@@ -32,6 +33,18 @@ export const openPaths = [
   pathConfig.privacy,
   // Homebrew editor
 ];
+
+// Every path under these can be accessed regardless of authentication status
+export const openPathPrefixes = [pathConfig.reference];
+
+export function isOpenPath(pathname: string): boolean {
+  return (
+    openPaths.includes(pathname) ||
+    openPathPrefixes.some(
+      (prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
+    )
+  );
+}
 
 // Cannot be accessed while logged in
 export const onlyUnauthenticatedPaths = [pathConfig.auth];
