@@ -1,5 +1,6 @@
 import HomebrewIcon from "@mui/icons-material/Edit";
 import GamesIcon from "@mui/icons-material/Group";
+import ReferenceIcon from "@mui/icons-material/MenuBook";
 import CharacterIcon from "@mui/icons-material/Person";
 import AuthIcon from "@mui/icons-material/PersonAddAlt1";
 import WorldsIcon from "@mui/icons-material/TravelExplore";
@@ -14,6 +15,13 @@ export interface NavRouteConfig {
   href: string;
   checkIsSelected: (path: string) => boolean;
 }
+
+const referenceNavRoute: NavRouteConfig = {
+  Logo: ReferenceIcon,
+  title: i18n.t("reference.nav-title", "Reference"),
+  href: pathConfig.reference,
+  checkIsSelected: (path) => path.startsWith(pathConfig.reference),
+};
 
 export const authenticatedNavRoutes: NavRouteConfig[] = [
   {
@@ -34,6 +42,7 @@ export const authenticatedNavRoutes: NavRouteConfig[] = [
     href: pathConfig.homebrewSelect,
     checkIsSelected: (path) => path.startsWith(pathConfig.homebrewSelect),
   },
+  referenceNavRoute,
 ];
 export const unauthenticatedNavRoutes: NavRouteConfig[] = [
   {
@@ -42,4 +51,5 @@ export const unauthenticatedNavRoutes: NavRouteConfig[] = [
     href: pathConfig.auth,
     checkIsSelected: (path) => path.startsWith(pathConfig.auth),
   },
+  referenceNavRoute,
 ];

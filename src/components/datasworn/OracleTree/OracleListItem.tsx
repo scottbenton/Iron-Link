@@ -14,6 +14,7 @@ import {
   ItemVisibility,
   VisibilitySettings,
 } from "../_helpers/getCollectionVisibility";
+import { linkButtonProps, useTreeLinkMode } from "../_helpers/treeLinkMode";
 import { ListItemButtonWithSecondaryAction } from "./ListItemButtonWithSecondaryAction";
 
 export interface OracleListItemProps {
@@ -46,8 +47,26 @@ export function OracleListItem(props: OracleListItemProps) {
       CollectionVisibility.Hidden;
   }
 
+  const linkMode = useTreeLinkMode();
+
   if (oracleVisibility === ItemVisibility.Hidden) {
     return null;
+  }
+
+  if (linkMode) {
+    const isSelected = linkMode.selectedId === oracle._id;
+    return (
+      <ListItemButtonWithSecondaryAction
+        secondaryAction={linkMode.renderItemAction?.(oracle)}
+        disabled={disabled}
+        listItemButtonProps={linkButtonProps(
+          linkMode.getHref(oracle._id),
+          isSelected,
+        )}
+      >
+        <ListItemText primary={oracle.name} />
+      </ListItemButtonWithSecondaryAction>
+    );
   }
 
   return (

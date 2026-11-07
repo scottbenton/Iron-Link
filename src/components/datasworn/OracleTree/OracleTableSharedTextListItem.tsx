@@ -17,6 +17,7 @@ import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddT
 import { useOpenDataswornDialog } from "stores/appState.store";
 import { GamePermission } from "stores/game.store";
 
+import { linkButtonProps, useTreeLinkMode } from "../_helpers/treeLinkMode";
 import { ListItemButtonWithSecondaryAction } from "./ListItemButtonWithSecondaryAction";
 
 export interface OracleTableSharedTextListItemProps {
@@ -42,6 +43,23 @@ export function OracleTableSharedTextListItem(
   const [selectedOption, setSelectedOption] = useState<string>(keys[0] ?? "");
 
   const selectedOptionId = options[selectedOption]?._id;
+
+  const linkMode = useTreeLinkMode();
+  if (linkMode) {
+    return (
+      <ListItemButtonWithSecondaryAction
+        secondaryAction={linkMode.renderItemAction?.(collection)}
+        disabled={disabled}
+        listItemButtonProps={linkButtonProps(
+          linkMode.getHref(collection._id),
+          linkMode.selectedId === collection._id,
+        )}
+      >
+        <ListItemText primary={collection.name} />
+      </ListItemButtonWithSecondaryAction>
+    );
+  }
+
   return (
     <ListItemButtonWithSecondaryAction
       disabled={disabled || !selectedOptionId}

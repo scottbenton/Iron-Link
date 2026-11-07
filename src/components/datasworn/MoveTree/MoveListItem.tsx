@@ -5,11 +5,14 @@ import { ListItemText } from "@mui/material";
 import { ListItemIcon } from "@mui/material";
 import { useId, useState } from "react";
 
+import { LinkComponent } from "components/LinkComponent";
+
 import { Move } from "../Move";
 import {
   ItemVisibility,
   VisibilitySettings,
 } from "../_helpers/getCollectionVisibility";
+import { useTreeLinkMode } from "../_helpers/treeLinkMode";
 
 export interface MoveListItemProps {
   move: Datasworn.Move;
@@ -36,9 +39,34 @@ export function MoveListItem(props: MoveListItemProps) {
 
   const [isExpanded, setIsExpanded] = useState(false);
   const contentId = useId();
+  const linkMode = useTreeLinkMode();
 
   if (moveVisibility === ItemVisibility.Hidden) {
     return null;
+  }
+
+  if (linkMode) {
+    const isSelected = linkMode.selectedId === move._id;
+    return (
+      <ListItem
+        disablePadding
+        secondaryAction={linkMode.renderItemAction?.(move)}
+        sx={(theme) => ({
+          bgcolor:
+            theme.palette.grey[theme.palette.mode === "light" ? 100 : 800],
+        })}
+      >
+        <ListItemButton
+          component={LinkComponent}
+          href={linkMode.getHref(move._id) ?? ""}
+          disabled={disabled}
+          selected={isSelected}
+          aria-current={isSelected ? "page" : undefined}
+        >
+          <ListItemText>{move.name}</ListItemText>
+        </ListItemButton>
+      </ListItem>
+    );
   }
 
   return (

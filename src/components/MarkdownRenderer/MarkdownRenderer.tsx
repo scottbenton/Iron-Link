@@ -11,13 +11,12 @@ import {
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { useOpenDataswornDialog } from "stores/appState.store";
-
-import { idMap } from "data/idMap";
-
 import { getDataswornItem } from "components/datasworn/DataswornDialog/useGetDataswornItem";
+import { useDataswornLinkHandler } from "components/datasworn/useDataswornLinkHandler";
 
 import { getOracleRollable } from "hooks/datasworn/useOracleRollable";
+
+import { idMap } from "data/idMap";
 
 import { OracleTableRenderer } from "./OracleTableRenderer";
 
@@ -42,8 +41,7 @@ export function MarkdownRenderer(props: MarkdownRendererProps) {
     sx,
   } = props;
 
-  const openDialog = useOpenDataswornDialog();
-  // const openDialog = useStore((store) => store.appState.openDialog);
+  const openDialog = useDataswornLinkHandler();
 
   const theme = useTheme();
 

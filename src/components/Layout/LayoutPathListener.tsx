@@ -7,8 +7,8 @@ import {
 } from "react-router";
 
 import {
+  isOpenPath,
   onlyUnauthenticatedPaths,
-  openPaths,
   pathConfig,
 } from "pages/pathConfig";
 
@@ -34,10 +34,7 @@ export function LayoutPathListener() {
   );
 
   useEffect(() => {
-    if (
-      authStatus === AuthStatus.Unauthenticated &&
-      !openPaths.includes(pathname)
-    ) {
+    if (authStatus === AuthStatus.Unauthenticated && !isOpenPath(pathname)) {
       navigate({
         pathname: pathConfig.auth,
         search: createSearchParams({ continuePath: pathname }).toString(),
@@ -50,10 +47,7 @@ export function LayoutPathListener() {
     }
   }, [authStatus, pathname, navigate, continuePath]);
 
-  if (
-    authStatus === AuthStatus.Unauthenticated &&
-    !openPaths.includes(pathname)
-  ) {
+  if (authStatus === AuthStatus.Unauthenticated && !isOpenPath(pathname)) {
     return null;
   }
   if (

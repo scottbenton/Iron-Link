@@ -12,11 +12,13 @@ import { MoveRollOptions } from "./MoveRollOptions";
 export interface MoveProps {
   moveId: string;
   hideMoveName?: boolean;
+  // For pages that offer their own roll controls, like the public reference.
+  hideRollOptions?: boolean;
   sx?: SxProps<Theme>;
 }
 
 export function Move(props: MoveProps) {
-  const { moveId, hideMoveName, sx } = props;
+  const { moveId, hideMoveName, hideRollOptions, sx } = props;
   const move = useMove(moveId);
 
   const { t } = useTranslation();
@@ -36,7 +38,7 @@ export function Move(props: MoveProps) {
   return (
     <Box bgcolor="background.paper" sx={sx}>
       {!hideMoveName && <Typography variant={"h6"}>{move.name}</Typography>}
-      <MoveRollOptions move={move} />
+      {!hideRollOptions && <MoveRollOptions move={move} />}
       <MarkdownRenderer markdown={move.text} />
       <MoveOracles move={move} />
     </Box>
