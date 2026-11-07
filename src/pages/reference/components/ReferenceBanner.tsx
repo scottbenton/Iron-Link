@@ -11,6 +11,12 @@ import { pathConfig } from "pages/pathConfig";
 
 import { AuthStatus, useAuthStatus } from "stores/auth.store";
 
+import {
+  AnalyticsService,
+  LoggerCategory,
+  LoggerVerb,
+} from "services/analytics.service";
+
 import { useReferenceBanner } from "../stores/referenceBanner.store";
 
 export const referenceBannerCreateCharacterHref = `${pathConfig.auth}?continuePath=${pathConfig.gameCreate}`;
@@ -55,9 +61,19 @@ export function ReferenceBanner(props: ReferenceBannerProps) {
     >
       <Box
         sx={(theme) => ({
-          display: "flex",
+          // On a phone the button gets its own row under the text.
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "minmax(0, 1fr) auto",
+            sm: "auto minmax(0, 1fr) auto auto",
+          },
+          gridTemplateAreas: {
+            xs: '"text close" "cta cta"',
+            sm: '"logo text cta close"',
+          },
           alignItems: "center",
-          gap: 1.5,
+          columnGap: 1.5,
+          rowGap: 1,
           pl: 1.5,
           pr: 0.5,
           py: 1,
@@ -68,26 +84,22 @@ export function ReferenceBanner(props: ReferenceBannerProps) {
           ...theme.applyStyles("dark", { bgcolor: "grey.800" }),
         })}
       >
-        <Box aria-hidden display={{ xs: "none", sm: "flex" }} flexShrink={0}>
+        <Box aria-hidden display={{ xs: "none", sm: "flex" }} gridArea="logo">
           <IronLinkLogo sx={{ width: 32, height: 32 }} />
         </Box>
-        <Box flexGrow={1} minWidth={0}>
+        <Box gridArea="text" minWidth={0}>
           <Typography
             id={titleId}
             variant="body1"
             component="h2"
             fontWeight={600}
           >
-            {t("reference.banner.title", "Keep your character here too")}
+            {t("reference.banner.title", "Ready to play?")}
           </Typography>
-          <Typography
-            variant="body2"
-            color="grey.300"
-            display={{ xs: "none", sm: "block" }}
-          >
+          <Typography variant="body2" color="grey.300">
             {t(
               "reference.banner.description",
-              "Track your stats, assets and progress, solo or with your group.",
+              "Keep your character, rolls and notes in one place, solo or with friends.",
             )}
           </Typography>
         </Box>
@@ -96,15 +108,28 @@ export function ReferenceBanner(props: ReferenceBannerProps) {
           size="small"
           LinkComponent={LinkComponent}
           href={referenceBannerCreateCharacterHref}
-          sx={{ flexShrink: 0 }}
+          onClick={() =>
+            AnalyticsService.logEvent(
+              LoggerCategory.App,
+              "reference_banner_start_playing",
+              LoggerVerb.Click,
+            )
+          }
+          sx={{ gridArea: "cta", mr: { xs: 1, sm: 0 } }}
         >
-          {t("reference.banner.create-character", "Create a character")}
+          {t("reference.banner.start-playing", "Start playing")}
         </Button>
         <IconButton
           size="small"
           color="inherit"
+          sx={{ gridArea: "close", alignSelf: { xs: "start", sm: "center" } }}
           aria-label={t("reference.banner.dismiss", "Dismiss")}
           onClick={() => {
+            AnalyticsService.logEvent(
+              LoggerCategory.App,
+              "reference_banner_dismiss",
+              LoggerVerb.Click,
+            );
             dismiss();
             onDismiss();
           }}

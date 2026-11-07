@@ -225,16 +225,17 @@ describe("ReferencePage", () => {
     useAuthStore.setState({ status: AuthStatus.Unauthenticated });
     await renderAt("/reference/starforged/moves");
     const banner = screen.getByRole("region", {
-      name: "Keep your character here too",
+      name: "Ready to play?",
     });
     expect(banner).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "Create a character" }),
-    ).toHaveAttribute("href", "/auth?continuePath=/games/create");
+    expect(screen.getByRole("link", { name: "Start playing" })).toHaveAttribute(
+      "href",
+      "/auth?continuePath=/games/create",
+    );
 
     await userEvent.click(screen.getByRole("button", { name: "Dismiss" }));
     expect(
-      screen.queryByRole("region", { name: "Keep your character here too" }),
+      screen.queryByRole("region", { name: "Ready to play?" }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Starforged" })).toHaveFocus();
     expect(useReferenceBanner.getState().dismissed).toBe(true);
@@ -243,7 +244,7 @@ describe("ReferencePage", () => {
   it("doesn't show the invitation to signed in readers", async () => {
     await renderAt("/reference/starforged/moves");
     expect(
-      screen.queryByRole("region", { name: "Keep your character here too" }),
+      screen.queryByRole("region", { name: "Ready to play?" }),
     ).not.toBeInTheDocument();
   });
 });
