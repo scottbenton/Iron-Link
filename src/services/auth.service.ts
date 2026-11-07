@@ -12,8 +12,17 @@ export class AuthService {
     onUserFound: (userId: string, accessToken: string) => void,
     onUserNotFound: () => void,
   ): () => void {
-    const result = supabase.auth.onAuthStateChange((_event, session) => {
-      AnalyticsService.setIdentity(session?.user.id ?? null);
+    const result = supabase.auth.onAuthStateChange((event, session) => {
+      AnalyticsService.setIdentity(
+        session?.user.id ?? null,
+        session?.user.created_at,
+      );
+      if (event === "SIGNED_IN" && session) {
+        AnalyticsService.logAccountCreatedIfNew(
+          session.user.id,
+          session.user.created_at,
+        );
+      }
       if (session) {
         onUserFound(session.user.id, session.access_token);
       } else {
