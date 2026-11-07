@@ -1,6 +1,6 @@
 import MenuIcon from "@mui/icons-material/MoreHoriz";
 import { IconButton, Menu, MenuItem } from "@mui/material";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
@@ -38,6 +38,7 @@ export function FolderActionMenu(props: FolderActionMenuProps) {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuParentRef = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
 
   const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
 
@@ -58,6 +59,16 @@ export function FolderActionMenu(props: FolderActionMenuProps) {
   return (
     <>
       <IconButton
+        aria-label={
+          folderName
+            ? t("notes.folder-menu.open-named", "{{name}} actions", {
+                name: folderName,
+              })
+            : t("notes.folder-menu.open", "Folder actions")
+        }
+        aria-haspopup="menu"
+        aria-expanded={isMenuOpen ? "true" : undefined}
+        aria-controls={isMenuOpen ? menuId : undefined}
         sx={(theme) => ({
           position: "absolute",
           right: theme.spacing(1),
@@ -74,6 +85,7 @@ export function FolderActionMenu(props: FolderActionMenuProps) {
         open={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
         anchorEl={menuParentRef.current}
+        slotProps={{ list: { id: menuId } }}
       >
         {canEdit && (
           <MenuItem

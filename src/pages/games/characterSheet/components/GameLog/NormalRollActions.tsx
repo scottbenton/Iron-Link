@@ -10,7 +10,8 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useSnackbar } from "providers/SnackbarProvider";
 
@@ -64,6 +65,7 @@ async function pasteRich(rich: string, plain: string) {
 
 export function NormalRollActions(props: NormalRollActionsProps) {
   const { rollId, roll } = props;
+  const { t } = useTranslation();
 
   const uid = useUID();
   const currentCharacterId = useCharacterIdOptional();
@@ -99,6 +101,7 @@ export function NormalRollActions(props: NormalRollActionsProps) {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuParent = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
   const [isDieRerollDialogOpen, setIsDieRerollDialogOpen] = useState(false);
 
   const { error, success } = useSnackbar();
@@ -154,7 +157,7 @@ export function NormalRollActions(props: NormalRollActionsProps) {
   return (
     <>
       <IconButton
-        aria-label={"Copy Roll Result"}
+        aria-label={t("game.log.copy-roll", "Copy roll result")}
         color={"inherit"}
         onClick={() => {
           handleCopyRoll();
@@ -163,7 +166,10 @@ export function NormalRollActions(props: NormalRollActionsProps) {
         <CopyIcon />
       </IconButton>
       <IconButton
-        aria-label={"Roll Menu"}
+        aria-label={t("game.log.roll-actions", "Roll actions")}
+        aria-haspopup="menu"
+        aria-expanded={isMenuOpen ? "true" : undefined}
+        aria-controls={isMenuOpen ? menuId : undefined}
         color={"inherit"}
         ref={menuParent}
         onClick={() => {
@@ -180,6 +186,7 @@ export function NormalRollActions(props: NormalRollActionsProps) {
           open={isMenuOpen}
           onClose={() => setIsMenuOpen(false)}
           anchorEl={menuParent.current}
+          slotProps={{ list: { id: menuId } }}
         >
           <MenuItem
             onClick={(evt) => {

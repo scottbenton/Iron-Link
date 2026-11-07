@@ -2,7 +2,7 @@ import TextTypeIcon from "@mui/icons-material/FormatSize";
 import { IconButton, Menu, MenuItem, SxProps, Tooltip } from "@mui/material";
 import { Editor } from "@tiptap/react";
 import { TFunction } from "i18next";
-import React, { useRef, useState } from "react";
+import React, { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export interface TextTypeMenuProps {
@@ -60,13 +60,21 @@ export const TextTypeMenu: React.FC<TextTypeMenuProps> = (props) => {
 
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
+  const label = t("notes.text-type.change-text-type", "Change text type");
 
   return (
     <>
-      <Tooltip
-        title={t("notes.text-type.change-text-type", "Change text type")}
-      >
-        <IconButton ref={buttonRef} onClick={() => setOpen(true)} sx={sx}>
+      <Tooltip title={label}>
+        <IconButton
+          ref={buttonRef}
+          aria-label={label}
+          aria-haspopup="menu"
+          aria-expanded={open ? "true" : undefined}
+          aria-controls={open ? menuId : undefined}
+          onClick={() => setOpen(true)}
+          sx={sx}
+        >
           <TextTypeIcon />
         </IconButton>
       </Tooltip>
@@ -74,6 +82,7 @@ export const TextTypeMenu: React.FC<TextTypeMenuProps> = (props) => {
         open={open}
         onClose={() => setOpen(false)}
         anchorEl={buttonRef.current}
+        slotProps={{ list: { id: menuId } }}
       >
         {Object.keys(textLabels).map((key, index) => (
           <MenuItem

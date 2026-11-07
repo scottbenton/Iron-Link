@@ -49,6 +49,13 @@ describe("AssetAbilities", () => {
     expect(checkboxes[2]).not.toBeChecked();
   });
 
+  it("names each checkbox by its ability text", () => {
+    render(<AssetAbilities abilities={mockAbilities} />);
+    expect(
+      screen.getByRole("checkbox", { name: /Ability 1:.*Description 1/ }),
+    ).toBeInTheDocument();
+  });
+
   it("calls onAbilityToggle with correct parameters when checkbox is toggled", () => {
     const onAbilityToggle = vi.fn();
     render(

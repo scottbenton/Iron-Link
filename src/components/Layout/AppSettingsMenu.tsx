@@ -14,7 +14,7 @@ import {
   Tooltip,
   useColorScheme,
 } from "@mui/material";
-import { ComponentType, useCallback, useRef, useState } from "react";
+import { ComponentType, useCallback, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useSnackbar } from "providers/SnackbarProvider";
@@ -41,6 +41,7 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
   const [open, setOpen] = useState(false);
   const closeMenu = useCallback(() => setOpen(false), []);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
 
   const { colorScheme, setColorScheme } = useColorScheme();
 
@@ -61,12 +62,20 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
           ref={buttonRef}
           color="inherit"
           aria-label={t("iron-link.app-settings", "App Settings")}
+          aria-haspopup="menu"
+          aria-expanded={open ? "true" : undefined}
+          aria-controls={open ? menuId : undefined}
           onClick={() => setOpen(true)}
         >
           <SettingsIcon />
         </IconButton>
       </Tooltip>
-      <Menu open={open} onClose={closeMenu} anchorEl={buttonRef.current}>
+      <Menu
+        open={open}
+        onClose={closeMenu}
+        anchorEl={buttonRef.current}
+        slotProps={{ list: { id: menuId } }}
+      >
         {menuItems?.map((Item, index) => (
           <Item closeMenu={closeMenu} key={index} />
         ))}

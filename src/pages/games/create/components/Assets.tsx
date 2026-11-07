@@ -7,6 +7,8 @@ import { GridLayout } from "components/Layout";
 import { AssetCard } from "components/datasworn/AssetCard";
 import { AssetCardDialog } from "components/datasworn/AssetCardDialog/AssetCardDialog";
 
+import { useAsset } from "hooks/datasworn/useAsset";
+
 import {
   IAssetWithoutAdditives,
   useCreateCharacterStore,
@@ -88,6 +90,7 @@ interface AssetGridCardProps {
 function AssetGridCard(props: AssetGridCardProps) {
   const { index, assetDocument, shared } = props;
   const { t } = useTranslation();
+  const assetName = useAsset(assetDocument.dataswornAssetId)?.name;
 
   const toggleAssetAbility = useCreateCharacterStore(
     (store) => store.toggleAssetAbility,
@@ -136,7 +139,13 @@ function AssetGridCard(props: AssetGridCardProps) {
       }}
       headerActions={
         <IconButton
-          aria-label={t("character.assets.remove-asset", "Remove Asset")}
+          aria-label={
+            assetName
+              ? t("character.assets.remove-named-asset", "Remove {{name}}", {
+                  name: assetName,
+                })
+              : t("character.assets.remove-asset", "Remove Asset")
+          }
           onClick={handleRemoveAsset}
           color="inherit"
         >

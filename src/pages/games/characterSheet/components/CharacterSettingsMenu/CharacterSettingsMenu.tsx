@@ -1,6 +1,7 @@
 import CharacterSettingsIcon from "@mui/icons-material/ManageAccounts";
 import { IconButton, Menu } from "@mui/material";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { CharacterMenuDialogs } from "./CharacterMenuDialogs";
@@ -11,6 +12,8 @@ export function CharacterSettingsMenu() {
   const closeMenu = useCallback(() => setIsSettingsMenuOpen(false), []);
 
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
+  const { t } = useTranslation();
   const canEditCharacter = useCanEditCharacter();
 
   if (!canEditCharacter) {
@@ -21,6 +24,10 @@ export function CharacterSettingsMenu() {
     <>
       <IconButton
         ref={buttonRef}
+        aria-label={t("character.settings-menu", "Character Settings")}
+        aria-haspopup="menu"
+        aria-expanded={isSettingsMenuOpen ? "true" : undefined}
+        aria-controls={isSettingsMenuOpen ? menuId : undefined}
         sx={{ mt: -1, mr: -1 }}
         onClick={() => setIsSettingsMenuOpen(true)}
       >
@@ -30,6 +37,7 @@ export function CharacterSettingsMenu() {
         open={isSettingsMenuOpen}
         anchorEl={buttonRef.current}
         onClose={closeMenu}
+        slotProps={{ list: { id: menuId } }}
       >
         <CharacterMenuItems closeMenu={closeMenu} />
       </Menu>
