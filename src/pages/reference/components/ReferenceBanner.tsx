@@ -9,13 +9,9 @@ import { LinkComponent } from "components/LinkComponent";
 
 import { pathConfig } from "pages/pathConfig";
 
-import { AuthStatus, useAuthStatus } from "stores/auth.store";
+import { LoggerCategory, LoggerVerb, useLogEvent } from "hooks/useLogEvent";
 
-import {
-  AnalyticsService,
-  LoggerCategory,
-  LoggerVerb,
-} from "services/analytics.service";
+import { AuthStatus, useAuthStatus } from "stores/auth.store";
 
 import { useReferenceBanner } from "../stores/referenceBanner.store";
 
@@ -36,6 +32,7 @@ export function ReferenceBanner(props: ReferenceBannerProps) {
   const { onDismiss } = props;
   const { t } = useTranslation();
   const titleId = useId();
+  const logEvent = useLogEvent();
 
   const authStatus = useAuthStatus();
   const dismissed = useReferenceBanner((state) => state.dismissed);
@@ -109,7 +106,7 @@ export function ReferenceBanner(props: ReferenceBannerProps) {
           LinkComponent={LinkComponent}
           href={referenceBannerCreateCharacterHref}
           onClick={() =>
-            AnalyticsService.logEvent(
+            logEvent(
               LoggerCategory.App,
               "reference_banner_start_playing",
               LoggerVerb.Click,
@@ -125,7 +122,7 @@ export function ReferenceBanner(props: ReferenceBannerProps) {
           sx={{ gridArea: "close", alignSelf: { xs: "start", sm: "center" } }}
           aria-label={t("reference.banner.dismiss", "Dismiss")}
           onClick={() => {
-            AnalyticsService.logEvent(
+            logEvent(
               LoggerCategory.App,
               "reference_banner_dismiss",
               LoggerVerb.Click,
