@@ -15,6 +15,7 @@ import {
   Navigate,
   useLocation,
   useNavigate,
+  useNavigationType,
   useParams,
   useSearchParams,
 } from "react-router";
@@ -75,7 +76,8 @@ export default function ReferencePage() {
   useSendPageViewEvent(PageCategory.Reference);
 
   const navigate = useNavigate();
-  const { hash } = useLocation();
+  const { hash, key: locationKey } = useLocation();
+  const navigationType = useNavigationType();
   const splat = useParams()["*"];
   const [searchParams] = useSearchParams();
   const parsed = useMemo(() => parseReferencePath(splat), [splat]);
@@ -109,24 +111,50 @@ export default function ReferencePage() {
   const tab = referenceTabMap[tabId];
 
   // When a link opens another tab than the one in use, say so and offer the
-  // way back.
+  // way back. The note belongs to that one visit: stepping back or forward
+  // through history to an item is not opening a link, and returning to it
+  // later shows no note.
   const [switchNote, setSwitchNote] = useState<{
-    splat: string | undefined;
+    locationKey: string;
     fromTabId: string;
     toTabId: string;
   }>();
+  // Whether the current address was reached by stepping through history,
+  // decided when the effect below first sees it. Both that and the page
+  // loading are POP, and the first entry's key is "default" either way. The
+  // tab can resolve after a later render, so the answer is kept per address.
+  const seenLocation = useRef<{ key: string; isHistoryStep: boolean }>(
+    undefined,
+  );
   useEffect(() => {
+    if (seenLocation.current?.key !== locationKey) {
+      seenLocation.current = {
+        key: locationKey,
+        isHistoryStep:
+          seenLocation.current !== undefined && navigationType === "POP",
+      };
+    }
+    const { isHistoryStep } = seenLocation.current;
     if (
       parsed.itemPath &&
+      !isHistoryStep &&
       storedTabId &&
       isTab(storedTabId) &&
       storedTabId !== tabId &&
       queryTabId !== tabId
     ) {
-      setSwitchNote({ splat, fromTabId: storedTabId, toTabId: tabId });
+      setSwitchNote({ locationKey, fromTabId: storedTabId, toTabId: tabId });
     }
     setLastTabId(tabId);
-  }, [parsed.itemPath, storedTabId, tabId, queryTabId, splat, setLastTabId]);
+  }, [
+    parsed.itemPath,
+    navigationType,
+    storedTabId,
+    tabId,
+    queryTabId,
+    locationKey,
+    setLastTabId,
+  ]);
 
   const sourceOverrides = useReferenceSettings(
     (state) => state.sourceVisibility[tabId],
@@ -258,7 +286,7 @@ export default function ReferencePage() {
 
   const note =
     switchNote &&
-    switchNote.splat === splat &&
+    switchNote.locationKey === locationKey &&
     switchNote.toTabId === tabId &&
     referenceTabMap[switchNote.fromTabId]
       ? switchNote
@@ -395,13 +423,15 @@ export default function ReferencePage() {
             variant="scrollable"
             scrollButtons="auto"
           >
+            {/* The href alone picks the tab. Storing the tab on click as well
+                would render the old address with the new tab for a moment,
+                which read as a link opening another tab. */}
             {referenceTabs.map((referenceTab) => (
               <Tab
                 key={referenceTab.id}
                 value={referenceTab.id}
                 label={referenceTab.label}
                 {...tabLinkProps(getTabHref(referenceTab.id, currentSection))}
-                onClick={() => setLastTabId(referenceTab.id)}
                 aria-current={referenceTab.id === tabId ? "page" : undefined}
               />
             ))}
@@ -439,7 +469,6 @@ export default function ReferencePage() {
             <Link
               component={LinkComponent}
               href={getTabHref(note.fromTabId, currentSection)}
-              onClick={() => setLastTabId(note.fromTabId)}
             >
               {t("reference.switch-note-back", "Back to {{tab}}", {
                 tab: referenceTabMap[note.fromTabId].label,
