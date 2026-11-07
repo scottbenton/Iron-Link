@@ -4,7 +4,9 @@ import {
   Button,
   LinearProgress,
   Link,
+  Tab,
   TabProps,
+  Tabs,
   Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -37,6 +39,7 @@ import { ReferenceBanner } from "./components/ReferenceBanner";
 import { ReferenceBrowseSection } from "./components/ReferenceBrowseSection";
 import { ReferenceItemDetail } from "./components/ReferenceItemDetail";
 import { ReferenceRules } from "./components/ReferenceRules";
+import { referencePageMaxWidth, visuallyHidden } from "./data/referenceLayout";
 import {
   getCandidateIds,
   getPackageIdFromDataswornId,
@@ -56,7 +59,10 @@ import {
   tabLoadsPackage,
 } from "./data/referenceTabs";
 import { useReferenceRules } from "./hooks/useReferenceRules";
-import { useReferenceSettings } from "./stores/referenceSettings.store";
+import {
+  getLoadedPackageIds,
+  useReferenceSettings,
+} from "./stores/referenceSettings.store";
 
 const isTab = (tabId: string) => !!referenceTabMap[tabId];
 
@@ -122,7 +128,15 @@ export default function ReferencePage() {
     setLastTabId(tabId);
   }, [parsed.itemPath, storedTabId, tabId, queryTabId, splat, setLastTabId]);
 
-  const rules = useReferenceRules(tabId);
+  const sourceOverrides = useReferenceSettings(
+    (state) => state.sourceVisibility[tabId],
+  );
+  const loadedPackageIds = useMemo(
+    () =>
+      tab ? getLoadedPackageIds(tab, sourceOverrides, parsed.packageId) : [],
+    [tab, sourceOverrides, parsed.packageId],
+  );
+  const rules = useReferenceRules(tabId, loadedPackageIds);
   const isLoaded = rules.state === "loaded" && rules.tabId === tabId;
   // Re-render when the rules change, since items are read from the store.
   const activeRules = useDataswornTree();
@@ -178,7 +192,7 @@ export default function ReferencePage() {
     setLastItemId(tabId, section, itemId);
   }, [isLoaded, section, parsed.itemPath, itemId, tabId, setLastItemId]);
 
-  const headingRef = useRef<HTMLHeadingElement>(null);
+  const systemTabsRef = useRef<HTMLDivElement>(null);
 
   const openDialog = useOpenDataswornDialog();
   const handleOpenLink = useCallback(
@@ -356,46 +370,54 @@ export default function ReferencePage() {
     }
   }
 
+  // Moves and oracles run edge to edge, with the list on the side panel
+  // colour. The rest of the sections keep the page's padding.
+  const isBrowseSection =
+    (section === "moves" || section === "oracles") && isLoaded && !shouldReject;
+
   return (
     <>
+      <Typography component="h1" sx={visuallyHidden}>
+        {t("reference.title", "Reference")}
+      </Typography>
       <PageHeader
-        label={
-          <Typography
-            ref={headingRef}
-            tabIndex={-1}
-            variant="h4"
-            component="h1"
-            textTransform="uppercase"
-            fontFamily={(theme) => theme.typography.fontFamilyTitle}
-            sx={{ "&:focus": { outline: "none" } }}
+        disablePadding
+        maxWidth={false}
+        sx={(theme) => ({
+          maxWidth: referencePageMaxWidth,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+        })}
+      >
+        <Box ref={systemTabsRef} minWidth={0} width="100%">
+          <Tabs
+            value={tabId}
+            aria-label={t("reference.tabs.systems", "Rules")}
+            variant="scrollable"
+            scrollButtons="auto"
           >
-            {t("reference.title", "Reference")}
-          </Typography>
-        }
-      />
-      <PageContent>
-        <ReferenceBanner onDismiss={() => headingRef.current?.focus()} />
-        <StyledTabs
-          value={tabId}
-          aria-label={t("reference.tabs.systems", "Rules")}
-          variant="scrollable"
-        >
-          {referenceTabs.map((referenceTab) => (
-            <StyledTab
-              key={referenceTab.id}
-              value={referenceTab.id}
-              label={referenceTab.label}
-              {...tabLinkProps(getTabHref(referenceTab.id, currentSection))}
-              onClick={() => setLastTabId(referenceTab.id)}
-              aria-current={referenceTab.id === tabId ? "page" : undefined}
-            />
-          ))}
-        </StyledTabs>
+            {referenceTabs.map((referenceTab) => (
+              <Tab
+                key={referenceTab.id}
+                value={referenceTab.id}
+                label={referenceTab.label}
+                {...tabLinkProps(getTabHref(referenceTab.id, currentSection))}
+                onClick={() => setLastTabId(referenceTab.id)}
+                aria-current={referenceTab.id === tabId ? "page" : undefined}
+              />
+            ))}
+          </Tabs>
+        </Box>
+      </PageHeader>
+      <PageContent
+        disablePadding
+        maxWidth={false}
+        sx={{ maxWidth: referencePageMaxWidth }}
+      >
         <StyledTabs
           value={currentSection}
           aria-label={t("reference.tabs.sections", "Sections")}
           variant="scrollable"
-          sx={{ mt: 1, mb: 2 }}
+          sx={{ px: 1, py: 0.5 }}
         >
           {referenceSections.map((referenceSection) => (
             <StyledTab
@@ -408,7 +430,7 @@ export default function ReferencePage() {
           ))}
         </StyledTabs>
         {note && (
-          <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
+          <Alert severity="info" variant="outlined" sx={{ mx: 2, mt: 2 }}>
             {t(
               "reference.switch-note",
               "Opened the {{tab}} tab for this link.",
@@ -426,8 +448,24 @@ export default function ReferencePage() {
           </Alert>
         )}
         <DataswornLinkHandlerProvider onOpen={handleOpenLink}>
-          <Box pb={4}>{content}</Box>
+          <Box
+            flexGrow={1}
+            display="flex"
+            flexDirection="column"
+            px={isBrowseSection ? 0 : 2}
+            pt={isBrowseSection ? 0 : 2}
+            pb={isBrowseSection ? 0 : 4}
+          >
+            {content}
+          </Box>
         </DataswornLinkHandlerProvider>
+        <ReferenceBanner
+          onDismiss={() =>
+            systemTabsRef.current
+              ?.querySelector<HTMLElement>('[aria-current="page"]')
+              ?.focus()
+          }
+        />
       </PageContent>
     </>
   );

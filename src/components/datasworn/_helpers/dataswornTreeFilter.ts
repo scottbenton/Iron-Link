@@ -1,23 +1,23 @@
-// Which collections and items a reference list shows for a search and the
-// tab's Sources filter. Works on any Datasworn collection shape: moves,
-// oracles and assets all have `contents`, and those that nest have
-// `collections`.
+// Which collections and items a move or oracle list shows for a search and a
+// filter such as the reference's Sources. Works on any Datasworn collection
+// shape: moves, oracles and assets all have `contents`, and those that nest
+// have `collections`.
 
-export interface ReferenceTreeCollection {
+export interface DataswornTreeCollection {
   _id: string;
   name: string;
   contents?: Record<string, { _id: string; name: string }>;
-  collections?: Record<string, ReferenceTreeCollection>;
+  collections?: Record<string, DataswornTreeCollection>;
   oracle_type?: string;
 }
 
-export interface ReferenceTreeVisibility {
+export interface DataswornTreeVisibility {
   collections: Set<string>;
   items: Set<string>;
 }
 
 // Oracle collections whose tables share one result column read as one item.
-export function isLeafCollection(collection: ReferenceTreeCollection) {
+export function isLeafCollection(collection: DataswornTreeCollection) {
   return (
     collection.oracle_type === "table_shared_text" ||
     collection.oracle_type === "table_shared_text2" ||
@@ -25,14 +25,14 @@ export function isLeafCollection(collection: ReferenceTreeCollection) {
   );
 }
 
-export function getReferenceTreeVisibility(
+export function getDataswornTreeVisibility(
   rootCollectionIds: string[],
-  collectionMap: Record<string, ReferenceTreeCollection>,
+  collectionMap: Record<string, DataswornTreeCollection>,
   searchValue: string,
   isSourceVisible: (id: string) => boolean,
-): ReferenceTreeVisibility {
+): DataswornTreeVisibility {
   const search = searchValue.trim().toLocaleLowerCase();
-  const visibility: ReferenceTreeVisibility = {
+  const visibility: DataswornTreeVisibility = {
     collections: new Set(),
     items: new Set(),
   };
@@ -85,7 +85,7 @@ export function getReferenceTreeVisibility(
 // them when an item is selected.
 export function getAncestorCollectionIds(
   rootCollectionIds: string[],
-  collectionMap: Record<string, ReferenceTreeCollection>,
+  collectionMap: Record<string, DataswornTreeCollection>,
   targetId: string,
 ): string[] {
   const path: string[] = [];
@@ -115,4 +115,55 @@ export function getAncestorCollectionIds(
     if (visit(rootId, new Set())) return [...path];
   }
   return [];
+}
+
+// A copy of a tree holding only what passes `isVisible`, so a list can show a
+// filtered tree with its usual code. Collections left empty are dropped.
+export function filterDataswornTree<Collection extends DataswornTreeCollection>(
+  rootCollectionIds: string[],
+  collectionMap: Record<string, Collection>,
+  isVisible: (id: string) => boolean,
+): {
+  rootCollectionIds: string[];
+  collectionMap: Record<string, Collection>;
+} {
+  const visibility = getDataswornTreeVisibility(
+    rootCollectionIds,
+    collectionMap,
+    "",
+    isVisible,
+  );
+
+  const filteredMap: Record<string, Collection> = {};
+  Object.entries(collectionMap).forEach(([id, collection]) => {
+    if (!visibility.collections.has(id)) return;
+    if (isLeafCollection(collection)) {
+      filteredMap[id] = collection;
+      return;
+    }
+    filteredMap[id] = {
+      ...collection,
+      contents: collection.contents
+        ? Object.fromEntries(
+            Object.entries(collection.contents).filter(([, item]) =>
+              visibility.items.has(item._id),
+            ),
+          )
+        : collection.contents,
+      collections: collection.collections
+        ? Object.fromEntries(
+            Object.entries(collection.collections).filter(([, sub]) =>
+              visibility.collections.has(sub._id),
+            ),
+          )
+        : collection.collections,
+    };
+  });
+
+  return {
+    rootCollectionIds: rootCollectionIds.filter((id) =>
+      visibility.collections.has(id),
+    ),
+    collectionMap: filteredMap,
+  };
 }

@@ -111,3 +111,22 @@ export function isPackageShown(
   );
   return source ? isSourceShown(tab, source, overrides) : true;
 }
+
+// The packages a tab loads into the rules store. A whole-package source that
+// is hidden stays out, because some expansions (Starsmith) merge into the core
+// collections once loaded and would replace their oracles even while hidden.
+// The open item's own package always loads, so a shared link to a hidden
+// item still opens.
+export function getLoadedPackageIds(
+  tab: ReferenceTab,
+  overrides: Record<string, boolean> | undefined,
+  openPackageId: string | undefined,
+): string[] {
+  return tab.packageIds.filter((packageId) => {
+    if (packageId === openPackageId) return true;
+    const source = tab.sources.find(
+      (s) => s.packageId === packageId && !s.sections,
+    );
+    return !source || isSourceShown(tab, source, overrides);
+  });
+}

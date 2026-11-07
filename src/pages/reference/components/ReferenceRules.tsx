@@ -1,4 +1,4 @@
-import { Box, Divider, Typography } from "@mui/material";
+import { Box, Divider, Paper, Typography } from "@mui/material";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
@@ -12,6 +12,9 @@ import {
   useStatRules,
 } from "stores/dataswornTree.store";
 
+import { ironswornRulesetConfig } from "data/package.config";
+
+import { referenceDetailMaxWidth } from "../data/referenceLayout";
 import { getReferenceSectionHref } from "../data/referencePaths";
 import { ReferenceShareButton } from "./ReferenceShareButton";
 
@@ -53,8 +56,20 @@ export function ReferenceRules(props: ReferenceRulesProps) {
   const impactGroups = Object.entries(impactCategories);
   const tracks = Object.entries(specialTrackRules);
 
+  // Ironsworn calls its impacts debilities.
+  const impactsTitle =
+    tabId === ironswornRulesetConfig.id
+      ? t("reference.rules.debilities", "Debilities")
+      : t("reference.rules.impacts", "Impacts");
+  // Starforged's special tracks are its legacies. Ironsworn's bonds and
+  // Elegy's elegies are not.
+  const tracksTitle =
+    tracks.length > 0 && tracks.every(([key]) => key.endsWith("_legacy"))
+      ? t("reference.rules.legacy-tracks", "Legacy Tracks")
+      : t("reference.rules.special-tracks", "Special Tracks");
+
   return (
-    <Box maxWidth={800}>
+    <Box maxWidth={referenceDetailMaxWidth} mx="auto" width="100%">
       {stats.length > 0 && (
         <RulesGroup
           id={referenceRulesAnchors.stats}
@@ -71,7 +86,7 @@ export function ReferenceRules(props: ReferenceRulesProps) {
       {meters.length > 0 && (
         <RulesGroup
           id={referenceRulesAnchors.meters}
-          title={t("reference.rules.meters", "Condition meters")}
+          title={t("reference.rules.meters", "Condition Meters")}
           basePath={basePath}
         >
           {meters.map(([key, rule]) => (
@@ -92,56 +107,75 @@ export function ReferenceRules(props: ReferenceRulesProps) {
       {impactGroups.length > 0 && (
         <RulesGroup
           id={referenceRulesAnchors.impacts}
-          title={t("reference.rules.impacts", "Impacts")}
+          title={impactsTitle}
           basePath={basePath}
         >
           {impactGroups.map(([categoryKey, category]) => (
-            <Box key={categoryKey} mb={2}>
-              <Typography variant="subtitle1" component="h3" fontWeight={600}>
+            <Paper
+              key={categoryKey}
+              variant="outlined"
+              sx={{ mb: 2, overflow: "hidden" }}
+            >
+              <Typography
+                variant="subtitle1"
+                component="h3"
+                fontFamily={(theme) => theme.typography.fontFamilyTitle}
+                textTransform="capitalize"
+                sx={(theme) => ({
+                  px: 2,
+                  py: 1,
+                  bgcolor: "background.default",
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                })}
+              >
                 {category.label}
               </Typography>
-              {category.description && (
-                <MarkdownRenderer markdown={category.description} />
-              )}
-              {Object.entries(category.contents ?? {}).map(([key, impact]) => {
-                const notes = [
-                  impact.permanent
-                    ? t("reference.rules.permanent", "Permanent")
-                    : undefined,
-                  impact.prevents_recovery.length > 0
-                    ? t(
-                        "reference.rules.prevents-recovery",
-                        "Prevents recovery of {{meters}}",
-                        {
-                          meters: impact.prevents_recovery
-                            .map(
-                              (meter) =>
-                                conditionMeterRules[meter]?.label ?? meter,
-                            )
-                            .join(", "),
-                        },
-                      )
-                    : undefined,
-                ].filter((note): note is string => !!note);
-                return (
-                  <RuleEntry
-                    key={key}
-                    label={impact.label}
-                    headingComponent="h4"
-                    detail={notes.length > 0 ? notes.join(". ") : undefined}
-                  >
-                    <MarkdownRenderer markdown={impact.description} />
-                  </RuleEntry>
-                );
-              })}
-            </Box>
+              <Box px={2} pt={1.5}>
+                {category.description && (
+                  <MarkdownRenderer markdown={category.description} />
+                )}
+                {Object.entries(category.contents ?? {}).map(
+                  ([key, impact]) => {
+                    const notes = [
+                      impact.permanent
+                        ? t("reference.rules.permanent", "Permanent")
+                        : undefined,
+                      impact.prevents_recovery.length > 0
+                        ? t(
+                            "reference.rules.prevents-recovery",
+                            "Prevents recovery of {{meters}}",
+                            {
+                              meters: impact.prevents_recovery
+                                .map(
+                                  (meter) =>
+                                    conditionMeterRules[meter]?.label ?? meter,
+                                )
+                                .join(", "),
+                            },
+                          )
+                        : undefined,
+                    ].filter((note): note is string => !!note);
+                    return (
+                      <RuleEntry
+                        key={key}
+                        label={impact.label}
+                        headingComponent="h4"
+                        detail={notes.length > 0 ? notes.join(". ") : undefined}
+                      >
+                        <MarkdownRenderer markdown={impact.description} />
+                      </RuleEntry>
+                    );
+                  },
+                )}
+              </Box>
+            </Paper>
           ))}
         </RulesGroup>
       )}
       {tracks.length > 0 && (
         <RulesGroup
           id={referenceRulesAnchors.tracks}
-          title={t("reference.rules.tracks", "Special tracks")}
+          title={tracksTitle}
           basePath={basePath}
         >
           {tracks.map(([key, rule]) => (

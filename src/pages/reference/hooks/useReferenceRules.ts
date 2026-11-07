@@ -13,12 +13,18 @@ export type ReferenceRulesStatus =
   | { state: "error" };
 
 // Loads a reference tab's packages into the shared rules store, filtered by
-// the tab's playset. Nothing is read from the database.
-export function useReferenceRules(tabId: string): ReferenceRulesStatus {
+// the tab's playset. Nothing is read from the database. Changing the packages
+// within a tab keeps the tab loaded while the new set comes in.
+export function useReferenceRules(
+  tabId: string,
+  packageIds: string[],
+): ReferenceRulesStatus {
   const setActiveRules = useDataswornTreeStore((store) => store.setActiveRules);
   const [status, setStatus] = useState<ReferenceRulesStatus>({
     state: "loading",
   });
+
+  const packageKey = packageIds.join(",");
 
   useEffect(() => {
     const tab = referenceTabMap[tabId];
@@ -28,10 +34,17 @@ export function useReferenceRules(tabId: string): ReferenceRulesStatus {
     }
 
     let cancelled = false;
-    setStatus({ state: "loading" });
+    setStatus((prev) =>
+      prev.state === "loaded" && prev.tabId === tabId
+        ? prev
+        : { state: "loading" },
+    );
 
     Promise.all(
-      tab.packageIds.map((packageId) => allDefaultPackages[packageId].load()),
+      packageKey
+        .split(",")
+        .filter((packageId) => !!allDefaultPackages[packageId])
+        .map((packageId) => allDefaultPackages[packageId].load()),
     )
       .then((packages) => {
         if (cancelled) return;
@@ -49,7 +62,7 @@ export function useReferenceRules(tabId: string): ReferenceRulesStatus {
     return () => {
       cancelled = true;
     };
-  }, [tabId, setActiveRules]);
+  }, [tabId, packageKey, setActiveRules]);
 
   return status;
 }

@@ -13,26 +13,27 @@ import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LinkComponent } from "components/LinkComponent";
+import { MoveTree } from "components/datasworn/MoveTree";
+import { OracleTree } from "components/datasworn/OracleTree";
+import { TreeLinkMode } from "components/datasworn/_helpers/treeLinkMode";
 
 import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";
 
-import { useDataswornTreeStore } from "stores/dataswornTree.store";
-
-import { askTheOracleCollection } from "data/askTheOracle";
-
+import {
+  referenceDetailMaxWidth,
+  referenceListWidth,
+} from "../data/referenceLayout";
 import {
   getPackageIdFromDataswornId,
   getReferenceItemHref,
   getReferenceSectionHref,
 } from "../data/referencePaths";
 import { ReferenceTab } from "../data/referenceTabs";
-import { ReferenceTreeCollection } from "../data/referenceTreeFilter";
 import {
   isPackageShown,
   useReferenceSettings,
 } from "../stores/referenceSettings.store";
 import { ReferenceSourcesMenu } from "./ReferenceSourcesMenu";
-import { ReferenceTree, ReferenceTreeGroup } from "./ReferenceTree";
 
 export interface ReferenceBrowseSectionProps {
   tab: ReferenceTab;
@@ -50,49 +51,24 @@ export function ReferenceBrowseSection(props: ReferenceBrowseSectionProps) {
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down("md"));
 
-  const moves = useDataswornTreeStore((store) => store.moves);
-  const oracles = useDataswornTreeStore((store) => store.oracles);
-
   const overrides = useReferenceSettings(
     (state) => state.sourceVisibility[tab.id],
   );
+  // The open item's own source shows too, even if it's turned off, so the
+  // list can mark what's open.
+  const openPackageId = selectedId
+    ? getPackageIdFromDataswornId(selectedId)
+    : undefined;
   const isSourceVisible = useCallback(
-    (id: string) =>
-      isPackageShown(tab, section, getPackageIdFromDataswornId(id), overrides),
-    [tab, section, overrides],
+    (id: string) => {
+      const packageId = getPackageIdFromDataswornId(id);
+      return (
+        (!!packageId && packageId === openPackageId) ||
+        isPackageShown(tab, section, packageId, overrides)
+      );
+    },
+    [tab, section, overrides, openPackageId],
   );
-
-  const { groups, collectionMap } = useMemo(() => {
-    const rootCollections =
-      section === "moves"
-        ? moves.rootMoveCategories
-        : oracles.rootOracleCollections;
-    const packageOrder = (id: string) => {
-      const index = tab.packageIds.indexOf(id);
-      return index < 0 ? tab.packageIds.length : index;
-    };
-    const groups: ReferenceTreeGroup[] = Object.entries(rootCollections)
-      .sort(([a], [b]) => packageOrder(a) - packageOrder(b))
-      .map(([id, { title, rootCollectionIds }]) => ({
-        id,
-        title,
-        rootCollectionIds,
-      }));
-    if (section === "oracles") {
-      groups.unshift({
-        id: "ask_the_oracle",
-        rootCollectionIds: [askTheOracleCollection._id],
-      });
-    }
-    // Moves, oracles and assets all fit the tree's shape.
-    const collectionMap = (section === "moves"
-      ? moves.moveCategoryMap
-      : oracles.oracleCollectionMap) as unknown as Record<
-      string,
-      ReferenceTreeCollection
-    >;
-    return { groups, collectionMap };
-  }, [section, moves, oracles, tab.packageIds]);
 
   const rollOracle = useRollOracleAndAddToLog();
 
@@ -116,7 +92,16 @@ export function ReferenceBrowseSection(props: ReferenceBrowseSectionProps) {
     [rollOracle, t],
   );
 
-  const getHref = useCallback((id: string) => getReferenceItemHref(id), []);
+  const linkMode = useMemo<TreeLinkMode>(
+    () => ({
+      getHref: getReferenceItemHref,
+      selectedId,
+      isVisible: isSourceVisible,
+      packageOrder: tab.packageIds,
+      renderItemAction: section === "oracles" ? renderItemAction : undefined,
+    }),
+    [selectedId, isSourceVisible, tab.packageIds, section, renderItemAction],
+  );
 
   const tree = (
     <Box>
@@ -125,7 +110,8 @@ export function ReferenceBrowseSection(props: ReferenceBrowseSectionProps) {
         alignItems="center"
         justifyContent="space-between"
         gap={1}
-        mb={1}
+        px={2}
+        py={1}
       >
         <Typography
           variant="h6"
@@ -139,25 +125,19 @@ export function ReferenceBrowseSection(props: ReferenceBrowseSectionProps) {
         </Typography>
         <ReferenceSourcesMenu tab={tab} section={section} />
       </Box>
-      <ReferenceTree
-        label={
+      <nav
+        aria-label={
           section === "moves"
             ? t("reference.moves.list-label", "Moves")
             : t("reference.oracles.list-label", "Oracles")
         }
-        searchLabel={
-          section === "moves"
-            ? t("reference.moves.search", "Search moves")
-            : t("reference.oracles.search", "Search oracles")
-        }
-        groups={groups}
-        collectionMap={collectionMap}
-        selectedId={selectedId}
-        isSourceVisible={isSourceVisible}
-        getHref={getHref}
-        renderItemAction={section === "oracles" ? renderItemAction : undefined}
-        emptyMessage={t("reference.no-matches", "Nothing matches your search")}
-      />
+      >
+        {section === "moves" ? (
+          <MoveTree linkMode={linkMode} />
+        ) : (
+          <OracleTree linkMode={linkMode} />
+        )}
+      </nav>
     </Box>
   );
 
@@ -175,10 +155,12 @@ export function ReferenceBrowseSection(props: ReferenceBrowseSectionProps) {
     </Typography>
   );
 
+  const detailContent = detail ?? emptyDetail;
+
   if (isSmall) {
     if (detail) {
       return (
-        <Box>
+        <Box px={2} py={2}>
           <Button
             LinkComponent={LinkComponent}
             href={getReferenceSectionHref(tab.id, section)}
@@ -197,24 +179,36 @@ export function ReferenceBrowseSection(props: ReferenceBrowseSectionProps) {
     return tree;
   }
 
+  // Like a game's sheet: the list on the side panel colour, the open item on
+  // the page.
   return (
     <Box
       display="grid"
-      gridTemplateColumns="minmax(260px, 340px) minmax(0, 1fr)"
-      gap={3}
-      alignItems="start"
+      gridTemplateColumns={`${referenceListWidth}px minmax(0, 1fr)`}
+      alignItems="stretch"
+      flexGrow={1}
     >
       <Box
-        sx={{
-          position: "sticky",
-          top: 16,
-          maxHeight: "calc(100vh - 32px)",
-          overflowY: "auto",
-        }}
+        sx={(theme) => ({
+          bgcolor: "background.default",
+          borderLeft: `1px solid ${theme.palette.divider}`,
+          borderRight: `1px solid ${theme.palette.divider}`,
+        })}
       >
-        {tree}
+        <Box
+          sx={{
+            position: "sticky",
+            top: 0,
+            maxHeight: "100vh",
+            overflowY: "auto",
+          }}
+        >
+          {tree}
+        </Box>
       </Box>
-      <Box minWidth={0}>{detail ?? emptyDetail}</Box>
+      <Box minWidth={0} px={3} pt={2} pb={4}>
+        <Box maxWidth={referenceDetailMaxWidth}>{detailContent}</Box>
+      </Box>
     </Box>
   );
 }

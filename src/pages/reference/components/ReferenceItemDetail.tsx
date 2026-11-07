@@ -9,10 +9,10 @@ import { getDataswornItem } from "components/datasworn/DataswornDialog/useGetDat
 import { Move } from "components/datasworn/Move";
 import { Oracle } from "components/datasworn/Oracle";
 import { OracleTableSharedText } from "components/datasworn/Oracle/OracleTableSharedText";
+import { isLeafCollection } from "components/datasworn/_helpers/dataswornTreeFilter";
 
 import { getReferenceItemHref } from "../data/referencePaths";
 import { ReferenceSection, ReferenceTab } from "../data/referenceTabs";
-import { isLeafCollection } from "../data/referenceTreeFilter";
 import { ReferenceItemHeader } from "./ReferenceItemHeader";
 import { ReferenceMoveRolls } from "./ReferenceMoveRolls";
 

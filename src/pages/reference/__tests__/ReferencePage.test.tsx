@@ -1,7 +1,7 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { ThemeProvider } from "providers/ThemeProvider";
 
@@ -37,6 +37,16 @@ async function renderAt(path: string) {
 const LOAD = { timeout: 10000 };
 
 describe("ReferencePage", () => {
+  beforeAll(() => {
+    // jsdom has no ResizeObserver; the oracle list's quick roll measures its
+    // button with one.
+    globalThis.ResizeObserver ??= class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    };
+  });
+
   beforeEach(() => {
     localStorage.clear();
     useReferenceSettings.setState({
@@ -136,10 +146,19 @@ describe("ReferencePage", () => {
     expect(
       await screen.findByRole("heading", { name: "Action", level: 2 }, LOAD),
     ).toBeInTheDocument();
-    await userEvent.click(
-      screen.getByRole("button", { name: "Ask the Oracle" }),
+    // The list opens around the open oracle and marks it. Starforged's own
+    // Core Oracles show, since Starsmith is off.
+    const list = within(screen.getByRole("navigation", { name: "Oracles" }));
+    expect(list.getByRole("link", { name: "Action" })).toHaveAttribute(
+      "aria-current",
+      "page",
     );
-    await userEvent.click(screen.getByRole("button", { name: "Roll Likely" }));
+    expect(list.getByRole("link", { name: "Action" })).toHaveAttribute(
+      "href",
+      "/reference/starforged/oracles/core/action",
+    );
+    await userEvent.click(list.getByRole("button", { name: "Likely" }));
+    await userEvent.click(list.getByRole("button", { name: "Roll Action" }));
     expect(
       screen.getByRole("heading", { name: "Action", level: 2 }),
     ).toBeInTheDocument();
@@ -171,11 +190,31 @@ describe("ReferencePage", () => {
     );
     expect(stats.querySelector("#stats")).not.toBeNull();
     expect(
-      screen.getByRole("heading", { name: "Condition meters", level: 2 }),
+      screen.getByRole("heading", { name: "Condition Meters", level: 2 }),
+    ).toBeInTheDocument();
+    // Ironsworn's names: debilities, and bonds as a special track.
+    expect(
+      screen.getByRole("heading", { name: "Debilities", level: 2 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Special Tracks", level: 2 }),
     ).toBeInTheDocument();
   });
 
-  it("invites signed out visitors and moves focus to the heading when dismissed", async () => {
+  it("names Starforged's impacts and legacy tracks", async () => {
+    await renderAt("/reference/starforged/rules");
+    expect(
+      await screen.findByRole("heading", { name: "Impacts", level: 2 }, LOAD),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Legacy Tracks", level: 2 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "vehicle troubles", level: 3 }),
+    ).toBeInTheDocument();
+  });
+
+  it("invites signed out visitors and moves focus to the open tab when dismissed", async () => {
     useAuthStore.setState({ status: AuthStatus.Unauthenticated });
     await renderAt("/reference/starforged/moves");
     const banner = screen.getByRole("region", {
@@ -190,9 +229,7 @@ describe("ReferencePage", () => {
     expect(
       screen.queryByRole("region", { name: "Keep your character here too" }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Reference", level: 1 }),
-    ).toHaveFocus();
+    expect(screen.getByRole("tab", { name: "Starforged" })).toHaveFocus();
     expect(useReferenceBanner.getState().dismissed).toBe(true);
   });
 

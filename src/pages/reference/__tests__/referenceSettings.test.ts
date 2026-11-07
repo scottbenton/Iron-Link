@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { referenceTabMap } from "../data/referenceTabs";
 import {
+  getLoadedPackageIds,
   isPackageShown,
   isSourceShown,
 } from "../stores/referenceSettings.store";
@@ -38,5 +39,24 @@ describe("reference sources", () => {
       isPackageShown(classic, "moves", "classic", { classic: false }),
     ).toBe(true);
     expect(isPackageShown(classic, "moves", undefined, {})).toBe(true);
+  });
+
+  it("leaves hidden expansions unloaded unless their item is open", () => {
+    // Starsmith merges into Starforged's oracles once loaded, so it stays
+    // out while hidden.
+    const starforged = referenceTabMap.starforged;
+    expect(getLoadedPackageIds(starforged, {}, undefined)).not.toContain(
+      "starsmith",
+    );
+    expect(getLoadedPackageIds(starforged, {}, "starsmith")).toContain(
+      "starsmith",
+    );
+    expect(
+      getLoadedPackageIds(starforged, { starsmith: true }, undefined),
+    ).toContain("starsmith");
+    // A source scoped to some sections still loads: its package is needed.
+    expect(getLoadedPackageIds(sunderedIsles, {}, undefined)).toContain(
+      "starforged",
+    );
   });
 });

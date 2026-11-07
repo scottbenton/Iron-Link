@@ -124,3 +124,11 @@ that are easy to miss. When you learn a new one, add a line here.
 - Reference URLs are Datasworn ids (`getReferenceItemHref`), so a renamed id
   breaks old links. Rules text links go through `DataswornLinkHandlerProvider`,
   which opens reference pages there and the Datasworn dialog everywhere else.
+- The reference lists are the game's `MoveTree`/`OracleTree` in link mode
+  (`linkMode`, `_helpers/treeLinkMode.ts`): items are links, the open item's
+  collections start open. Without `linkMode` they behave as in a game.
+- A hidden whole-package source is not loaded (`getLoadedPackageIds`), because
+  Starsmith merges into Starforged's oracle collections once loaded. The open
+  item's package always loads, so a link to a hidden item still opens.
+- Rules naming follows the game: Ironsworn says Debilities, the others
+  Impacts; tracks are Legacy Tracks when every track is a legacy.

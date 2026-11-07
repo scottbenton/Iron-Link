@@ -36,20 +36,20 @@ export const authenticatedNavRoutes: NavRouteConfig[] = [
     href: pathConfig.worldSelect,
     checkIsSelected: (path) => path.startsWith(pathConfig.worldSelect),
   },
-  referenceNavRoute,
   {
     Logo: HomebrewIcon,
     title: i18n.t("datasworn.homebrew", "Homebrew"),
     href: pathConfig.homebrewSelect,
     checkIsSelected: (path) => path.startsWith(pathConfig.homebrewSelect),
   },
+  referenceNavRoute,
 ];
 export const unauthenticatedNavRoutes: NavRouteConfig[] = [
-  referenceNavRoute,
   {
     Logo: AuthIcon,
     title: i18n.t("datasworn.authenticate", "Sign In/Up"),
     href: pathConfig.auth,
     checkIsSelected: (path) => path.startsWith(pathConfig.auth),
   },
+  referenceNavRoute,
 ];

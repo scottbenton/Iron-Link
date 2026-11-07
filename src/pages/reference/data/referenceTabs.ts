@@ -25,9 +25,9 @@ export const referenceSections: ReferenceSection[] = [
   "rules",
 ];
 
-// An expansion a reader can hide from the lists in one tab. Hiding only
-// filters the lists: the content stays loaded, so a shared link to a hidden
-// item still opens.
+// An expansion a reader can hide from the lists in one tab. A hidden
+// whole-package source isn't loaded, except when its own item is open, so a
+// shared link to a hidden item still opens (see getLoadedPackageIds).
 export interface ReferenceSource {
   // The id of the source: the package id, plus the sections it covers when it
   // is scoped (the Starforged assets in the Sundered Isles tab).

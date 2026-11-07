@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  ReferenceTreeCollection,
+  DataswornTreeCollection,
+  filterDataswornTree,
   getAncestorCollectionIds,
-  getReferenceTreeVisibility,
-} from "../data/referenceTreeFilter";
+  getDataswornTreeVisibility,
+} from "../dataswornTreeFilter";
 
-const collectionMap: Record<string, ReferenceTreeCollection> = {
+const collectionMap: Record<string, DataswornTreeCollection> = {
   "oracle_collection:a/planets": {
     _id: "oracle_collection:a/planets",
     name: "Planets",
@@ -56,9 +57,9 @@ const collectionMap: Record<string, ReferenceTreeCollection> = {
 const roots = ["oracle_collection:a/planets", "oracle_collection:b/factions"];
 const all = () => true;
 
-describe("getReferenceTreeVisibility", () => {
+describe("getDataswornTreeVisibility", () => {
   it("shows everything with no search", () => {
-    const visibility = getReferenceTreeVisibility(
+    const visibility = getDataswornTreeVisibility(
       roots,
       collectionMap,
       "",
@@ -71,7 +72,7 @@ describe("getReferenceTreeVisibility", () => {
   });
 
   it("shows an item matching the search and the collections around it", () => {
-    const visibility = getReferenceTreeVisibility(
+    const visibility = getDataswornTreeVisibility(
       roots,
       collectionMap,
       "life",
@@ -89,7 +90,7 @@ describe("getReferenceTreeVisibility", () => {
   });
 
   it("shows a matching collection's whole contents", () => {
-    const visibility = getReferenceTreeVisibility(
+    const visibility = getDataswornTreeVisibility(
       roots,
       collectionMap,
       "  JUNGLE ",
@@ -101,7 +102,7 @@ describe("getReferenceTreeVisibility", () => {
   });
 
   it("treats a shared-table collection as one item", () => {
-    const visibility = getReferenceTreeVisibility(
+    const visibility = getDataswornTreeVisibility(
       roots,
       collectionMap,
       "name",
@@ -110,7 +111,7 @@ describe("getReferenceTreeVisibility", () => {
     expect(visibility.items.size).toBe(0);
     expect(visibility.collections).toEqual(new Set());
 
-    const byName = getReferenceTreeVisibility(
+    const byName = getDataswornTreeVisibility(
       roots,
       collectionMap,
       "fact",
@@ -122,7 +123,7 @@ describe("getReferenceTreeVisibility", () => {
   });
 
   it("leaves out hidden sources", () => {
-    const visibility = getReferenceTreeVisibility(
+    const visibility = getDataswornTreeVisibility(
       roots,
       collectionMap,
       "",
@@ -161,5 +162,34 @@ describe("getAncestorCollectionIds", () => {
 
   it("finds nothing for an unknown id", () => {
     expect(getAncestorCollectionIds(roots, collectionMap, "nope")).toEqual([]);
+  });
+});
+
+describe("filterDataswornTree", () => {
+  it("keeps only visible items and drops collections left empty", () => {
+    const filtered = filterDataswornTree(
+      ["oracle_collection:a/planets"],
+      collectionMap,
+      (id) => !id.includes("/jungle"),
+    );
+    expect(filtered.rootCollectionIds).toEqual(["oracle_collection:a/planets"]);
+    expect(
+      Object.keys(
+        filtered.collectionMap["oracle_collection:a/planets"].collections ?? {},
+      ),
+    ).toEqual(["desert"]);
+    expect(
+      filtered.collectionMap["oracle_collection:a/planets/jungle"],
+    ).toBeUndefined();
+  });
+
+  it("drops a root whose contents are all hidden", () => {
+    const filtered = filterDataswornTree(
+      ["oracle_collection:a/planets"],
+      collectionMap,
+      () => false,
+    );
+    expect(filtered.rootCollectionIds).toEqual([]);
+    expect(filtered.collectionMap).toEqual({});
   });
 });
