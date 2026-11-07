@@ -10,8 +10,12 @@ import { ErrorBoundary } from "components/ErrorBoundary";
 
 import "i18n/config";
 
+import { installStaleChunkReload } from "lib/staleChunkReload.lib";
+
 import "./App.css";
 import "./lib/audio.lib";
+
+installStaleChunkReload();
 
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
