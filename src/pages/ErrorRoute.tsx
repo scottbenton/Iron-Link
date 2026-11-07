@@ -3,6 +3,8 @@ import { useRouteError } from "react-router";
 
 import { ErrorMessage } from "components/ErrorMessage";
 
+import { isStaleChunkReloadPending } from "lib/staleChunkReload.lib";
+
 import { AnalyticsService } from "services/analytics.service";
 
 export function ErrorRoute() {
@@ -23,25 +25,16 @@ export function ErrorRoute() {
       typedError = new Error(`Unknown error. Type was ${typeof error}`);
     }
 
-    // The App has updated in the background, lets grab the new versions of the pages by refreshing
-    if (
-      errorMessage?.includes("Failed to fetch dynamically imported module") ||
-      errorMessage?.includes(
-        "'text/html' is not a valid JavaScript MIME type.",
-      ) ||
-      errorMessage?.includes("Importing a module script failed.") ||
-      errorMessage
-        ?.toLocaleLowerCase()
-        .includes("error loading dynamically imported module")
-    ) {
-      // This is due to a new version of the app being deployed, so we need to refresh the page
-      window.location.reload();
-    } else {
-      setErrorMessage(errorMessage);
-      console.error("Error Route Error: ", errorMessage, location.pathname);
-      AnalyticsService.logError(typedError);
-    }
+    // A stale chunk reload is already loading the new build (see
+    // installStaleChunkReload), so show nothing and log nothing.
+    if (isStaleChunkReloadPending()) return;
+
+    setErrorMessage(errorMessage);
+    console.error("Error Route Error: ", errorMessage, location.pathname);
+    AnalyticsService.logError(typedError);
   }, [error]);
+
+  if (isStaleChunkReloadPending()) return null;
 
   return <ErrorMessage message={errorMessage} />;
 }

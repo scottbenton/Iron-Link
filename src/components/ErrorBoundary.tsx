@@ -1,5 +1,7 @@
 import React, { PropsWithChildren, ReactNode } from "react";
 
+import { isStaleChunkReloadPending } from "lib/staleChunkReload.lib";
+
 import { AnalyticsService } from "services/analytics.service";
 
 import { ErrorMessage } from "./ErrorMessage";
@@ -33,20 +35,9 @@ export class ErrorBoundary extends React.Component<
       typedError = new Error(`Unknown error. Type was ${typeof error}`);
     }
 
-    // The App has updated in the background, lets grab the new versions of the pages by refreshing
-    if (
-      errorMessage?.includes("Failed to fetch dynamically imported module") ||
-      errorMessage?.includes(
-        "'text/html' is not a valid JavaScript MIME type.",
-      ) ||
-      errorMessage?.includes("Importing a module script failed.") ||
-      errorMessage
-        ?.toLocaleLowerCase()
-        .includes("error loading dynamically imported module")
-    ) {
-      // This is due to a new version of the app being deployed, so we need to refresh the page
-      window.location.reload();
-    } else {
+    // A stale chunk reload is already loading the new build (see
+    // installStaleChunkReload), so this crash is expected and goes unlogged.
+    if (!isStaleChunkReloadPending()) {
       AnalyticsService.logError(typedError);
     }
 
@@ -59,6 +50,7 @@ export class ErrorBoundary extends React.Component<
 
   render() {
     if (this.state.hasError) {
+      if (isStaleChunkReloadPending()) return null;
       if (this.props.fallback !== undefined) return this.props.fallback;
       return <ErrorMessage message={this.state.errorMessage} />;
     }
