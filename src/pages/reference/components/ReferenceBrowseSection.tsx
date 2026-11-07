@@ -159,8 +159,11 @@ export function ReferenceBrowseSection(props: ReferenceBrowseSectionProps) {
 
   if (isSmall) {
     if (detail) {
+      // Oracle tables bleed 24px past their container on a phone to sit
+      // edge to edge, so the page needs that much padding or it scrolls
+      // sideways.
       return (
-        <Box px={2} py={2}>
+        <Box px={3} py={2}>
           <Button
             LinkComponent={LinkComponent}
             href={getReferenceSectionHref(tab.id, section)}

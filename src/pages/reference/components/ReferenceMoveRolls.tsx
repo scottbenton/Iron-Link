@@ -1,16 +1,12 @@
 import { Datasworn } from "@datasworn-community/core";
-import {
-  Box,
-  Button,
-  Paper,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-} from "@mui/material";
+import RollIcon from "@mui/icons-material/Casino";
+import { Box, Paper, Typography } from "@mui/material";
 import { useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { create } from "zustand";
+
+import { ConditionMeter } from "components/datasworn/ConditonMeter";
+import { Stat } from "components/datasworn/Stat";
 
 import { useRollStatAndAddToLog } from "pages/games/hooks/useRollStatAndAddToLog";
 
@@ -22,10 +18,7 @@ import {
 
 import { MAX_PROGRESS_SCORE } from "lib/progressTrack.lib";
 
-import {
-  clampInteger,
-  getReferenceRollOptions,
-} from "../data/referenceRollOptions";
+import { getReferenceRollOptions } from "../data/referenceRollOptions";
 import { useRollReferenceProgress } from "../hooks/useRollReferenceProgress";
 
 // The values set for each stat, meter and progress score, kept for the
@@ -41,6 +34,8 @@ const useReferenceRollValues = create<{
 }));
 
 const PROGRESS_KEY = "progress";
+const SPECIAL_TRACK_KEY_PREFIX = "special_track:";
+const MAX_STAT_VALUE = 10;
 
 export interface ReferenceMoveRollsProps {
   move: Datasworn.AnyMove;
@@ -69,7 +64,6 @@ export function ReferenceMoveRolls(props: ReferenceMoveRollsProps) {
   const values = useReferenceRollValues((state) => state.values);
   const setValue = useReferenceRollValues((state) => state.setValue);
 
-  const [selectedKey, setSelectedKey] = useState<string>();
   const [adds, setAdds] = useState(0);
 
   const rollStat = useRollStatAndAddToLog();
@@ -77,150 +71,110 @@ export function ReferenceMoveRolls(props: ReferenceMoveRollsProps) {
 
   if (rollOptions.kind === "none") return null;
 
+  const rollAction = {
+    ActionIcon: RollIcon,
+    actionLabel: t("datasworn.roll", "Roll"),
+  };
+
   let content: React.ReactNode = null;
 
   if (rollOptions.kind === "action") {
-    const selected =
-      rollOptions.options.find((option) => option.key === selectedKey) ??
-      rollOptions.options[0];
-    const value =
-      selected.fixedValue ?? values[selected.key] ?? selected.defaultValue;
-
+    // The same boxes as a character's sheet: set a value with - and +, then
+    // press it to roll.
     content = (
-      <>
-        <ToggleButtonGroup
-          exclusive
-          size="small"
-          value={selected.key}
-          onChange={(_, key: string | null) => key && setSelectedKey(key)}
-          aria-label={t("reference.roll.roll-using", "Roll using")}
-          sx={{ flexWrap: "wrap" }}
-        >
-          {rollOptions.options.map((option) => (
-            <ToggleButton
+      <Box display="flex" flexWrap="wrap" gap={1}>
+        {rollOptions.options.map((option) => {
+          const value =
+            option.fixedValue ?? values[option.key] ?? option.defaultValue;
+          const roll = () => {
+            rollStat({
+              statId: option.statId,
+              statLabel: option.label,
+              statModifier: value,
+              adds,
+              moveId: move._id,
+              momentum: 0,
+            });
+            setAdds(0);
+          };
+          return option.fixedValue !== undefined ? (
+            <Stat
               key={option.key}
-              value={option.key}
-              sx={{ textTransform: "capitalize" }}
-            >
-              {option.label}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
-        <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
-          <TextField
-            type="number"
-            size="small"
-            label={t("reference.roll.value", "Value")}
-            value={value}
-            disabled={selected.fixedValue !== undefined}
-            onChange={(event) => {
-              const next = clampInteger(event.target.value, -9, 10);
-              if (next !== undefined) setValue(selected.key, next);
-            }}
-            slotProps={{ htmlInput: { min: -9, max: 10 } }}
-            sx={{ width: 96 }}
-          />
-          <TextField
-            type="number"
-            size="small"
-            label={t("reference.roll.adds", "Adds")}
-            value={adds}
-            onChange={(event) => {
-              const next = clampInteger(event.target.value, -9, 10);
-              if (next !== undefined) setAdds(next);
-            }}
-            slotProps={{ htmlInput: { min: -9, max: 10 } }}
-            sx={{ width: 96 }}
-          />
-          <Button
-            variant="contained"
-            onClick={() => {
-              rollStat({
-                statId: selected.statId,
-                statLabel: selected.label,
-                statModifier: value,
-                adds,
-                moveId: move._id,
-                momentum: 0,
-              });
-              setAdds(0);
-            }}
-            sx={{ textTransform: "none" }}
-          >
-            {t("reference.roll.roll-plus", "Roll +{{label}}", {
-              label: selected.label,
-            })}
-          </Button>
-        </Box>
-      </>
+              label={option.label}
+              value={value}
+              action={rollAction}
+              onActionClick={roll}
+            />
+          ) : (
+            <ConditionMeter
+              key={option.key}
+              label={option.label}
+              defaultValue={option.defaultValue}
+              value={value}
+              min={0}
+              max={MAX_STAT_VALUE}
+              onChange={(next) => setValue(option.key, next)}
+              action={rollAction}
+              onActionClick={roll}
+            />
+          );
+        })}
+        <ConditionMeter
+          label={t("character.character-sidebar.adds", "Adds")}
+          defaultValue={0}
+          value={adds}
+          min={-9}
+          max={9}
+          onChange={setAdds}
+        />
+      </Box>
     );
   } else {
-    const score = values[PROGRESS_KEY] ?? 0;
-    const specialTracks =
-      rollOptions.kind === "special_track" ? rollOptions.tracks : undefined;
-    const selectedTrack =
-      specialTracks?.find((track) => track.key === selectedKey) ??
-      specialTracks?.[0];
+    const tracks =
+      rollOptions.kind === "special_track"
+        ? rollOptions.tracks.map((track) => ({
+            key: `${SPECIAL_TRACK_KEY_PREFIX}${track.key}`,
+            label: track.label,
+            specialTrack: track,
+          }))
+        : [
+            {
+              key: PROGRESS_KEY,
+              label: t("reference.roll.progress", "Progress"),
+              specialTrack: undefined,
+            },
+          ];
 
     content = (
-      <>
-        {specialTracks && specialTracks.length > 1 && (
-          <ToggleButtonGroup
-            exclusive
-            size="small"
-            value={selectedTrack?.key}
-            onChange={(_, key: string | null) => key && setSelectedKey(key)}
-            aria-label={t("reference.roll.track", "Track")}
-            sx={{ flexWrap: "wrap" }}
-          >
-            {specialTracks.map((track) => (
-              <ToggleButton
-                key={track.key}
-                value={track.key}
-                sx={{ textTransform: "capitalize" }}
-              >
-                {track.label}
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
-        )}
-        <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
-          <TextField
-            type="number"
-            size="small"
-            label={t("reference.roll.progress-score", "Progress score")}
-            value={score}
-            onChange={(event) => {
-              const next = clampInteger(
-                event.target.value,
-                0,
-                MAX_PROGRESS_SCORE,
-              );
-              if (next !== undefined) setValue(PROGRESS_KEY, next);
-            }}
-            slotProps={{ htmlInput: { min: 0, max: MAX_PROGRESS_SCORE } }}
-            sx={{ width: 140 }}
-          />
-          <Button
-            variant="contained"
-            onClick={() =>
-              rollProgress({
-                moveId: move._id,
-                moveName: move.name,
-                progressScore: score,
-                trackType:
-                  rollOptions.kind === "progress"
-                    ? rollOptions.trackType
-                    : undefined,
-                specialTrack: selectedTrack,
-              })
-            }
-            sx={{ textTransform: "none" }}
-          >
-            {t("reference.roll.roll-progress", "Roll progress")}
-          </Button>
-        </Box>
-      </>
+      <Box display="flex" flexWrap="wrap" gap={1}>
+        {tracks.map((track) => {
+          const score = values[track.key] ?? 0;
+          return (
+            <ConditionMeter
+              key={track.key}
+              label={track.label}
+              defaultValue={0}
+              value={score}
+              min={0}
+              max={MAX_PROGRESS_SCORE}
+              onChange={(next) => setValue(track.key, next)}
+              action={rollAction}
+              onActionClick={() =>
+                rollProgress({
+                  moveId: move._id,
+                  moveName: move.name,
+                  progressScore: score,
+                  trackType:
+                    rollOptions.kind === "progress"
+                      ? rollOptions.trackType
+                      : undefined,
+                  specialTrack: track.specialTrack,
+                })
+              }
+            />
+          );
+        })}
+      </Box>
     );
   }
 
@@ -244,11 +198,11 @@ export function ReferenceMoveRolls(props: ReferenceMoveRollsProps) {
           {rollOptions.kind === "action"
             ? t(
                 "reference.roll.action-help",
-                "Set the value your character has, then roll. Nothing is saved.",
+                "Set your character's values with − and +, then press one to roll. Nothing is saved.",
               )
             : t(
                 "reference.roll.progress-help",
-                "Set your progress score, then roll against the challenge dice. Nothing is saved.",
+                "Set your progress score with − and +, then press it to roll against the challenge dice. Nothing is saved.",
               )}
         </Typography>
       </Box>

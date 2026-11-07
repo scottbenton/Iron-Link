@@ -91,6 +91,13 @@ describe("ReferencePage", () => {
     expect(
       screen.getByRole("button", { name: "Copy link" }),
     ).toBeInTheDocument();
+    // The game's stat boxes: − and + set a value, pressing the box rolls.
+    await userEvent.click(
+      screen.getByRole("button", { name: "add 1 to wits" }),
+    );
+    expect(
+      screen.getByRole("button", { name: "subtract 1 from wits" }),
+    ).toBeEnabled();
     expect(screen.getByRole("link", { name: "Face Danger" })).toHaveAttribute(
       "aria-current",
       "page",

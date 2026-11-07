@@ -100,15 +100,3 @@ export function getReferenceRollOptions(
 
   return { kind: "none" };
 }
-
-// Reads a number field. Undefined while the field holds no number yet (a lone
-// minus sign), so the last value stays.
-export function clampInteger(
-  value: string,
-  min: number,
-  max: number,
-): number | undefined {
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed)) return undefined;
-  return Math.min(max, Math.max(min, parsed));
-}

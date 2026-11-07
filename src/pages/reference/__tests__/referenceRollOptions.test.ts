@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   DEFAULT_STAT_VALUE,
-  clampInteger,
   getReferenceRollOptions,
 } from "../data/referenceRollOptions";
 
@@ -128,18 +127,5 @@ describe("getReferenceRollOptions", () => {
         trackRules,
       ),
     ).toEqual({ kind: "none" });
-  });
-});
-
-describe("clampInteger", () => {
-  it("keeps a value in range", () => {
-    expect(clampInteger("4", -9, 10)).toBe(4);
-    expect(clampInteger("40", -9, 10)).toBe(10);
-    expect(clampInteger("-40", -9, 10)).toBe(-9);
-  });
-
-  it("reads nothing while the field holds no number yet", () => {
-    expect(clampInteger("-", -9, 10)).toBeUndefined();
-    expect(clampInteger("", -9, 10)).toBeUndefined();
   });
 });
