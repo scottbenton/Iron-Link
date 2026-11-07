@@ -1,6 +1,12 @@
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes, useLocation } from "react-router";
+import {
+  MemoryRouter,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { ThemeProvider } from "providers/ThemeProvider";
@@ -18,6 +24,11 @@ function LocationDisplay() {
   );
 }
 
+function HistoryBackButton() {
+  const navigate = useNavigate();
+  return <button onClick={() => navigate(-1)}>History back</button>;
+}
+
 async function renderAt(path: string) {
   await act(async () => {
     render(
@@ -27,6 +38,7 @@ async function renderAt(path: string) {
             <Route path="/reference/*" element={<ReferencePage />} />
           </Routes>
           <LocationDisplay />
+          <HistoryBackButton />
         </MemoryRouter>
       </ThemeProvider>,
     );
@@ -129,6 +141,31 @@ describe("ReferencePage", () => {
       screen.getByRole("link", { name: "Back to Ironsworn" }),
     ).toHaveAttribute("href", "/reference/classic/moves");
     expect(useReferenceSettings.getState().lastTabId).toBe("starforged");
+  });
+
+  it("shows no note when moving between tabs or back through history", async () => {
+    const user = userEvent.setup();
+    useReferenceSettings.setState({ lastTabId: "sundered_isles" });
+    await renderAt("/reference/sundered_isles/moves/exploration/set_a_course");
+    await screen.findByRole(
+      "heading",
+      { name: "Set a Course", level: 2 },
+      LOAD,
+    );
+
+    await user.click(screen.getByRole("tab", { name: "Starforged" }));
+    expect(await screen.findByTestId("location")).toHaveTextContent(
+      /^\/reference\/starforged\/moves$/,
+    );
+    expect(useReferenceSettings.getState().lastTabId).toBe("starforged");
+
+    await user.click(screen.getByRole("button", { name: "History back" }));
+    await screen.findByRole(
+      "heading",
+      { name: "Set a Course", level: 2 },
+      LOAD,
+    );
+    expect(screen.queryByText(/for this link/)).not.toBeInTheDocument();
   });
 
   it("keeps the open tab when it shows the item", async () => {
