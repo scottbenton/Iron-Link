@@ -18,6 +18,15 @@ that are easy to miss. When you learn a new one, add a line here.
   message is read again. A modal dialog hides the page's region, so
   `DialogTitleWithCloseButton` renders its own `LiveRegion`.
 
+## Deploys
+
+- A tab left open across a deploy asks for chunks that are gone (Cloudflare
+  Pages answers with index.html). `installStaleChunkReload` reloads once on
+  Vite's `vite:preloadError`, whatever the browser's wording, with a 10s
+  guard so a chunk missing from the new build shows the crash page instead of
+  looping. Error boundaries render nothing while `isStaleChunkReloadPending()`;
+  never match chunk-error message strings.
+
 ## Checks
 
 - Type-check: `npx tsc -b` (what `npm run build` runs).
