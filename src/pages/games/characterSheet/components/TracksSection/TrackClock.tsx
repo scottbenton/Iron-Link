@@ -92,11 +92,21 @@ export function TrackClock(props: TrackClockProps) {
   };
   const onValueChange = (newSegments: number) => {
     announce(
-      t(
-        "character.character-sidebar.tracks-clock-roll-progress-announcement-manual",
-        "Manually incremented clock {{clockLabel}} to {{value}} of {{total}} segments",
-        { clockLabel: clock.label, value: newSegments, total: clock.segments },
-      ),
+      newSegments === 0
+        ? t(
+            "datasworn.clock.cleared-announcement",
+            "Cleared {{label}}, 0 of {{segments}} segments filled",
+            { label: clock.label, segments: clock.segments },
+          )
+        : t(
+            "character.character-sidebar.tracks-clock-roll-progress-announcement-manual",
+            "Manually incremented clock {{clockLabel}} to {{value}} of {{total}} segments",
+            {
+              clockLabel: clock.label,
+              value: newSegments,
+              total: clock.segments,
+            },
+          ),
     );
     updateClockValue(clockId, newSegments).catch(() => {});
   };
@@ -252,6 +262,7 @@ export function TrackClock(props: TrackClockProps) {
             )}
           </Box>
           <ClockCircle
+            label={clock.label}
             value={clock.value}
             segments={clock.segments}
             onClick={

@@ -1,4 +1,5 @@
 import { SxProps, Theme } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 import { useDebouncedSync } from "hooks/useDebouncedSync";
 
@@ -24,28 +25,34 @@ export function DebouncedClockCircle(props: DebouncedClockCircleProps) {
     value,
   );
 
+  const { t } = useTranslation();
   const announce = useSetAnnouncement();
 
+  // Announced outside the state updater, which Strict Mode runs twice.
   const handleIncrement = () => {
-    setLocalFilledSegments((prev) => {
-      const newValue = prev + 1;
-      if (segments < newValue) {
-        announce(
-          `Cannot increase clock ${voiceLabel} beyond ${segments}. Resetting field to 0`,
-        );
-        return 0;
-      }
-      announce(
-        `Increased clock ${voiceLabel} by 1 for a total of ${newValue} of ${segments} segments.`,
-      );
-      return newValue;
-    });
+    const newValue =
+      localFilledSegments >= segments ? 0 : localFilledSegments + 1;
+    setLocalFilledSegments(newValue);
+    announce(
+      newValue === 0
+        ? t(
+            "datasworn.clock.cleared-announcement",
+            "Cleared {{label}}, 0 of {{segments}} segments filled",
+            { label: voiceLabel, segments },
+          )
+        : t(
+            "datasworn.clock.filled-announcement",
+            "{{label}}, {{value}} of {{segments}} segments filled",
+            { label: voiceLabel, value: newValue, segments },
+          ),
+    );
   };
 
   return (
     <ClockCircle
       segments={segments}
       value={localFilledSegments}
+      label={voiceLabel}
       size={size}
       onClick={onFilledSegmentsChange ? handleIncrement : undefined}
       sx={sx}
