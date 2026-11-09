@@ -159,7 +159,11 @@ export function TrackClock(props: TrackClockProps) {
           alignItems={"center"}
           justifyContent="space-between"
         >
-          <Typography fontFamily={"fontFamilyTitle"} variant={"h6"}>
+          <Typography
+            fontFamily={"fontFamilyTitle"}
+            variant={"h6"}
+            component={"div"}
+          >
             {clock.label}
             {clock.status === TrackStatus.Completed && (
               <Chip

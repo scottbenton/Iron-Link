@@ -2,13 +2,16 @@ import { Box, SxProps, Theme, Typography } from "@mui/material";
 
 export interface EmptyStateProps {
   title?: string;
+  // The title looks like a heading but is a status line unless it is the
+  // page's own heading (a 404 page's h1).
+  titleComponent?: React.ElementType;
   message: string | React.ReactNode;
   action?: React.ReactNode;
   sx?: SxProps<Theme>;
 }
 
 export function EmptyState(props: EmptyStateProps) {
-  const { title, message, action, sx } = props;
+  const { title, titleComponent = "p", message, action, sx } = props;
 
   return (
     <Box
@@ -18,7 +21,12 @@ export function EmptyState(props: EmptyStateProps) {
       sx={sx}
     >
       {title && (
-        <Typography color={"textPrimary"} textAlign={"center"} variant="h6">
+        <Typography
+          color={"textPrimary"}
+          textAlign={"center"}
+          variant="h6"
+          component={titleComponent}
+        >
           {title}
         </Typography>
       )}

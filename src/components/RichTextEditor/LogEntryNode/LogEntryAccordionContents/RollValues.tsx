@@ -125,7 +125,7 @@ export function RollValues(props: RollValuesProps) {
           alignItems={"center"}
           justifyContent={"flex-start"}
         >
-          <D10Grey id={"test"} />
+          <D10Grey />
           <Typography ml={1} color={"textSecondary"}>
             {Array.isArray(d10Results) ? d10Results.join(", ") : d10Results}
           </Typography>

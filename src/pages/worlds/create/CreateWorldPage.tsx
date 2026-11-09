@@ -8,6 +8,7 @@ import { pathConfig } from "pages/pathConfig";
 import { WorldsComingSoonState } from "pages/worlds/WorldsComingSoonState";
 
 import { useAdvancedFeatureToggle } from "hooks/advancedFeatures/advancedFeatures";
+import { useDocumentTitle } from "hooks/useDocumentTitle";
 import {
   PageCategory,
   useSendPageViewEvent,
@@ -17,6 +18,7 @@ import { useUID } from "stores/auth.store";
 
 export default function CreateWorldPage() {
   const { t } = useTranslation();
+  useDocumentTitle(t("worlds.create.new-world", "New World"));
   useSendPageViewEvent(PageCategory.WorldCreate);
 
   const navigate = useNavigate();

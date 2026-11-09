@@ -1,6 +1,7 @@
 import { Alert, Box, Skeleton, Typography } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 
+import { useHeadingComponent } from "components/HeadingLevel";
 import {
   RichTextToolbarProps,
   RtcRichTextEditor,
@@ -51,6 +52,7 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
     onError,
     secrets,
   } = props;
+  const headingComponent = useHeadingComponent(2);
   const [content, setContent] = useState<Uint8Array>();
   const [loadError, setLoadError] = useState(false);
 
@@ -106,7 +108,7 @@ export function WorldNotesEditor(props: WorldNotesEditorProps) {
     >
       <Typography
         id={`${id}-notes`}
-        component="h2"
+        component={headingComponent}
         sx={(theme) => ({
           fontFamily: theme.typography.fontFamilyTitle,
           fontWeight: 600,

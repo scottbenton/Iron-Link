@@ -2,6 +2,7 @@ import { Badge, Box, Typography } from "@mui/material";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
+import { ScreenReaderOnly } from "components/ScreenReaderOnly";
 import { StyledTab, StyledTabs } from "components/StyledTabs";
 import { MoveTree } from "components/datasworn/MoveTree";
 import { OracleTree } from "components/datasworn/OracleTree";
@@ -71,16 +72,25 @@ export function ReferenceSidebarContents() {
     }
   }, [secondScreenToggleIsActive, currentTab, setCurrentTab]);
 
+  // On phones the column is a tab panel with no visible heading, so its
+  // heading is read by screen readers only.
+  const heading = (
+    <Typography
+      component={"h2"}
+      fontFamily={"fontFamilyTitle"}
+      textTransform={"uppercase"}
+    >
+      {t("character.reference-sidebar-title", "Reference")}
+    </Typography>
+  );
+
   return (
     <>
-      {!isMobile && (
+      {isMobile ? (
+        <ScreenReaderOnly>{heading}</ScreenReaderOnly>
+      ) : (
         <Box display="flex" justifyContent="space-between" px={2} pt={2}>
-          <Typography
-            fontFamily={"fontFamilyTitle"}
-            textTransform={"uppercase"}
-          >
-            {t("character.reference-sidebar-title", "Reference")}
-          </Typography>
+          {heading}
         </Box>
       )}
       <StyledTabs

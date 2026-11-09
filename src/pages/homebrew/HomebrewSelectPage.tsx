@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { PageContent, PageHeader } from "components/Layout";
 import { EmptyState } from "components/Layout/EmptyState";
 
+import { useDocumentTitle } from "hooks/useDocumentTitle";
 import {
   PageCategory,
   useSendPageViewEvent,
@@ -10,6 +11,7 @@ import {
 
 export default function HomebrewSelectPage() {
   const { t } = useTranslation();
+  useDocumentTitle(t("homebrew.title", "Homebrew"));
   useSendPageViewEvent(PageCategory.HomebrewSelect);
 
   return (

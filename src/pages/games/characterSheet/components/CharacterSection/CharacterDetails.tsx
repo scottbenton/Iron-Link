@@ -41,7 +41,7 @@ export function CharacterDetails() {
         />
       )}
       <Box>
-        <Typography variant="h4" fontFamily={"fontFamilyTitle"}>
+        <Typography variant="h4" component="h3" fontFamily={"fontFamilyTitle"}>
           {name}
         </Typography>
         <Box display="flex" flexWrap="wrap" alignItems="center" gap={1}>

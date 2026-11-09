@@ -139,7 +139,11 @@ export function ProgressTrack(props: ProgressTrackProps) {
             justifyContent="space-between"
             flexGrow={1}
           >
-            <Typography fontFamily={"fontFamilyTitle"} variant={"h6"}>
+            <Typography
+              fontFamily={"fontFamilyTitle"}
+              variant={"h6"}
+              component={"div"}
+            >
               <span id={labelId}>{capitalize(label)}</span>
               {status === TrackStatus.Completed && (
                 <Chip

@@ -1,8 +1,10 @@
 import { Box, Typography } from "@mui/material";
 import { PropsWithChildren, ReactNode } from "react";
 
+import { useHeadingComponent } from "components/HeadingLevel";
 import { ActionToolbarStrip } from "components/Layout/ActionToolbarStrip";
 import { NOTES_PANE_GUTTER } from "components/Layout/notesPaneGutter";
+import { ScreenReaderOnly } from "components/ScreenReaderOnly";
 
 // "page" is the standalone /worlds route; "embedded" is a Notes tab, where
 // the breadcrumbs name the destination and actions sit in the Notes toolbar.
@@ -28,6 +30,7 @@ export interface WorldViewLayoutProps extends PropsWithChildren {
 export function WorldViewLayout(props: WorldViewLayoutProps) {
   const { layout, breadcrumbs, title, titleIcon, actions, children } = props;
   const hasActions = !!(actions?.start || actions?.end);
+  const TitleComponent = useHeadingComponent(1);
 
   if (layout === "embedded") {
     return (
@@ -50,6 +53,13 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
           }
         >
           {breadcrumbs}
+          {/* The breadcrumbs name the destination on screen; its heading
+              is for screen readers. */}
+          {title && (
+            <ScreenReaderOnly>
+              <TitleComponent>{title}</TitleComponent>
+            </ScreenReaderOnly>
+          )}
         </Box>
         {/* One full width scroller, so the scrollbar sits at the column's
             edge. The breadcrumbs stay put; the actions scroll away with the
@@ -137,7 +147,7 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
               {titleIcon}
               <Typography
                 variant="h4"
-                component="h1"
+                component={TitleComponent}
                 textTransform="uppercase"
                 fontFamily={(theme) => theme.typography.fontFamilyTitle}
                 sx={{ overflowWrap: "anywhere" }}

@@ -10,12 +10,14 @@ import { AuthStatus, useAuthStatus } from "stores/auth.store";
 import { LayoutPathListener } from "./LayoutPathListener";
 import { LiveRegion } from "./LiveRegion";
 import { NavRail } from "./NavRail";
-import { SkipToContentButton } from "./SkipToContentButton";
+import { MAIN_CONTENT_ID, SkipToContentButton } from "./SkipToContentButton";
+import { useFocusPageOnNavigate } from "./useFocusPageOnNavigate";
 import { useNavRoutes } from "./useNavRoutes";
 
 export function BaseLayout() {
   const authStatus = useAuthStatus();
   const routes = useNavRoutes();
+  useFocusPageOnNavigate(MAIN_CONTENT_ID);
 
   if (authStatus === AuthStatus.Loading) {
     return <LinearProgress />;
@@ -47,7 +49,7 @@ export function BaseLayout() {
             "&:focus": { outline: "none" },
           }}
           component={"main"}
-          id={"main-content"}
+          id={MAIN_CONTENT_ID}
           // Lets Skip to Content move focus here, not just scroll, in Safari.
           tabIndex={-1}
         >

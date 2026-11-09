@@ -2,7 +2,10 @@ import { Box, Typography } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { ScreenReaderOnly } from "components/ScreenReaderOnly";
 import { StyledTab, StyledTabs } from "components/StyledTabs";
+
+import { OVERVIEW_ID } from "pages/games/gamePageLayout/hooks/useGameKeybinds";
 
 import { useIsMobile } from "hooks/useIsMobile";
 
@@ -40,16 +43,27 @@ export function CharacterSidebarContents() {
   const [currentTab, setCurrentTab] = useState<Tabs>(Tabs.Overview);
   const isMobile = useIsMobile();
 
+  // The column's heading; on phones the column is a tab panel with no
+  // visible heading, so it is read by screen readers only.
+  const heading = (
+    <Typography
+      component={"h2"}
+      id={OVERVIEW_ID}
+      tabIndex={-1}
+      fontFamily={"fontFamilyTitle"}
+      textTransform={"uppercase"}
+    >
+      {t("character.character-sidebar.header", "Character")}
+    </Typography>
+  );
+
   return (
     <>
-      {!isMobile && (
+      {isMobile ? (
+        <ScreenReaderOnly>{heading}</ScreenReaderOnly>
+      ) : (
         <Box display="flex" justifyContent="space-between">
-          <Typography
-            fontFamily={"fontFamilyTitle"}
-            textTransform={"uppercase"}
-          >
-            {t("character.character-sidebar.header", "Character")}
-          </Typography>
+          {heading}
           <CharacterSettingsMenu />
         </Box>
       )}
