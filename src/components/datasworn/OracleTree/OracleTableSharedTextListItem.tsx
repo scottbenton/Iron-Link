@@ -72,8 +72,18 @@ export function OracleTableSharedTextListItem(
         <Box display={"flex"} alignItems={"center"}>
           {keys.length > 0 && (
             <TextField
-              aria-label={"Oracle Option"}
               size={"small"}
+              slotProps={{
+                // The select reads its name from the input props, not the
+                // field's root.
+                htmlInput: {
+                  "aria-label": t(
+                    "datasworn.oracle.option-for",
+                    "{{name}} option",
+                    { name: collection.name },
+                  ),
+                },
+              }}
               select
               sx={{ minWidth: 100 }}
               value={selectedOption}

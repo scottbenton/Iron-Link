@@ -73,7 +73,9 @@ export const TextTypeDropdown: React.FC<TextTypeDropdownProps> = (props) => {
         value={getActiveTextType()}
         select
         hiddenLabel
-        aria-label={"Text Type"}
+        slotProps={{
+          htmlInput: { "aria-label": t("notes.text-type.label", "Text type") },
+        }}
         onChange={(evt) => setActiveTextType(evt.target.value as TEXT_TYPES)}
         variant={"outlined"}
         margin={"none"}

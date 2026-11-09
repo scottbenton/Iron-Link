@@ -164,6 +164,9 @@ export function ProgressTrack(props: ProgressTrackProps) {
                   color={"inherit"}
                   component={"button"}
                   sx={{ ml: 2 }}
+                  aria-label={t("common.edit-named", "Edit {{name}}", {
+                    name: label,
+                  })}
                   onClick={onEditClick}
                 >
                   {t("common.edit", "Edit")}
@@ -187,8 +190,9 @@ export function ProgressTrack(props: ProgressTrackProps) {
             <Box sx={{ float: "right" }}>
               <IconButton
                 aria-label={t(
-                  "datasworn.progress-track.button-decrement",
-                  "Decrement",
+                  "datasworn.progress-track.button-decrement-named",
+                  "Decrement {{label}}",
+                  { label },
                 )}
                 onClick={() => handleChange(false)}
               >
@@ -196,8 +200,9 @@ export function ProgressTrack(props: ProgressTrackProps) {
               </IconButton>
               <IconButton
                 aria-label={t(
-                  "datasworn.progress-track.button-increment",
-                  "Increment",
+                  "datasworn.progress-track.button-increment-named",
+                  "Increment {{label}}",
+                  { label },
                 )}
                 onClick={() => handleChange(true)}
               >

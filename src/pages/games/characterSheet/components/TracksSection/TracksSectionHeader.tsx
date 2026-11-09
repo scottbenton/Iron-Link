@@ -7,7 +7,7 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
@@ -38,6 +38,7 @@ export function TracksSectionHeader(props: TracksSectionHeaderProps) {
 
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
   const addMenuRef = useRef<HTMLButtonElement | null>(null);
+  const addMenuId = useId();
 
   const [isAddClockDialogOpen, setIsAddClockDialogOpen] = useState(false);
   const [isAddTrackDialogOpen, setIsAddTrackDialogOpen] = useState<{
@@ -91,6 +92,9 @@ export function TracksSectionHeader(props: TracksSectionHeaderProps) {
             color="inherit"
             variant="outlined"
             ref={addMenuRef}
+            aria-haspopup="menu"
+            aria-expanded={isAddMenuOpen ? "true" : undefined}
+            aria-controls={isAddMenuOpen ? addMenuId : undefined}
             onClick={() => setIsAddMenuOpen(true)}
           >
             {t("character.character-sidebar.add-track", "Add Track")}
@@ -99,6 +103,7 @@ export function TracksSectionHeader(props: TracksSectionHeaderProps) {
             open={isAddMenuOpen}
             anchorEl={addMenuRef.current}
             onClose={() => setIsAddMenuOpen(false)}
+            slotProps={{ list: { id: addMenuId } }}
           >
             <MenuItem onClick={() => handleOpenTrack(TrackTypes.Vow)}>
               <ListItemText primary={getTrackTypeLabel(TrackTypes.Vow, t)} />

@@ -1,5 +1,6 @@
 import { Datasworn } from "@datasworn-community/core";
 import { Box, Checkbox, Stack, Typography } from "@mui/material";
+import { useId } from "react";
 
 import { MarkdownRenderer } from "components/MarkdownRenderer";
 
@@ -19,6 +20,8 @@ export function AssetAbilities(props: AssetAbilitiesProps) {
     onAbilityToggle,
     hideUnavailableAbilities,
   } = props;
+
+  const idPrefix = useId();
 
   const abilitiesWithIndex = abilities.map((ability, index) => ({
     ...ability,
@@ -49,8 +52,14 @@ export function AssetAbilities(props: AssetAbilitiesProps) {
               onAbilityToggle(ability.index, evt.target.checked)
             }
             sx={{ p: 0.5 }}
+            slotProps={{
+              input: {
+                // Named by the ability's own text beside it.
+                "aria-labelledby": `${idPrefix}-ability-${ability.index}`,
+              },
+            }}
           />
-          <Box key={ability.index}>
+          <Box key={ability.index} id={`${idPrefix}-ability-${ability.index}`}>
             {ability.name && (
               <Typography display={"inline"} variant={"body2"}>
                 <b>{ability.name}: </b>

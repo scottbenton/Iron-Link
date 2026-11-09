@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { ChangeEventHandler, useState } from "react";
 import AvatarEditor from "react-avatar-editor";
+import { useTranslation } from "react-i18next";
 
 import { useSnackbar } from "providers/SnackbarProvider/useSnackbar";
 
@@ -47,6 +48,7 @@ export function PortraitUploaderDialog(props: PortraitUploaderDialogProps) {
     existingPortraitFile,
     existingPortraitSettings,
   } = props;
+  const { t } = useTranslation();
   const { error } = useSnackbar();
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -102,7 +104,11 @@ export function PortraitUploaderDialog(props: PortraitUploaderDialogProps) {
       >
         Upload Portrait
         <Box>
-          <IconButton onClick={() => handleClose()} disabled={loading}>
+          <IconButton
+            aria-label={t("common.close-dialog", "Close Dialog")}
+            onClick={() => handleClose()}
+            disabled={loading}
+          >
             <CloseIcon />
           </IconButton>
         </Box>

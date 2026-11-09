@@ -22,7 +22,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
@@ -72,6 +72,8 @@ export function WorldEntryActions({
   const { t } = useTranslation();
   const confirm = useConfirm();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const menuId = useId();
+  const visibilityMenuId = useId();
   const [visibilityAnchor, setVisibilityAnchor] = useState<HTMLElement | null>(
     null,
   );
@@ -290,6 +292,8 @@ export function WorldEntryActions({
             color="inherit"
             startIcon={visibility === "guides" ? <LockIcon /> : <GroupsIcon />}
             aria-haspopup="menu"
+            aria-expanded={visibilityAnchor ? "true" : undefined}
+            aria-controls={visibilityAnchor ? visibilityMenuId : undefined}
             aria-label={`${visibilityTitle}: ${visibilityLabels[visibility]}`}
             onClick={(event) => setVisibilityAnchor(event.currentTarget)}
           >
@@ -300,6 +304,7 @@ export function WorldEntryActions({
             open={!!visibilityAnchor}
             onClose={() => setVisibilityAnchor(null)}
             MenuListProps={{
+              id: visibilityMenuId,
               subheader: <ListSubheader>{visibilityTitle}</ListSubheader>,
             }}
           >
@@ -323,6 +328,8 @@ export function WorldEntryActions({
                   : moreLabel
               }
               aria-haspopup="menu"
+              aria-expanded={anchor ? "true" : undefined}
+              aria-controls={anchor ? menuId : undefined}
               size={card ? "small" : "medium"}
               disabled={deleting}
               onClick={(event) => setAnchor(event.currentTarget)}
@@ -334,6 +341,7 @@ export function WorldEntryActions({
             anchorEl={anchor}
             open={!!anchor}
             onClose={() => setAnchor(null)}
+            slotProps={{ list: { id: menuId } }}
           >
             {card &&
               canShare && [

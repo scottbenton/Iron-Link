@@ -116,6 +116,7 @@ export function NoteTabs() {
           <Box pl={1} display="flex" alignItems="center">
             <IconButton
               size="small"
+              aria-label={t("notes.tabs.new-tab", "Open new tab")}
               onClick={() =>
                 openNewTab({
                   type: "folder",
@@ -145,6 +146,9 @@ export function NoteTabs() {
         >
           {tabOrder.map((tabId) => (
             <Tab
+              // Named by the item alone, so the close button's name is not
+              // read as part of the tab's.
+              aria-label={itemNames[tabId] ?? worldTabLabel(tabId)}
               sx={(theme) => ({
                 textTransform: "none",
                 "&.Mui-selected": {
@@ -174,6 +178,9 @@ export function NoteTabs() {
                     component="span"
                     size="small"
                     role="button"
+                    aria-label={t("notes.tabs.close-tab", "Close {{name}}", {
+                      name: itemNames[tabId] ?? worldTabLabel(tabId),
+                    })}
                     onClick={(evt) => {
                       evt.stopPropagation();
                       closeTab(tabId);

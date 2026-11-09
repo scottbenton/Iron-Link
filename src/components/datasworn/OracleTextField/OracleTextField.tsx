@@ -64,7 +64,18 @@ export function OracleTextField(props: OracleTextFieldProps) {
               title={t("datasworn.consult-the-oracle", "Consult the Oracle")}
               enterDelay={500}
             >
-              <IconButton onClick={() => handleOracleRoll()}>
+              <IconButton
+                aria-label={
+                  typeof label === "string"
+                    ? t(
+                        "datasworn.consult-the-oracle-for",
+                        "Consult the Oracle for {{label}}",
+                        { label },
+                      )
+                    : t("datasworn.consult-the-oracle", "Consult the Oracle")
+                }
+                onClick={() => handleOracleRoll()}
+              >
                 <RollIcon />
               </IconButton>
             </Tooltip>

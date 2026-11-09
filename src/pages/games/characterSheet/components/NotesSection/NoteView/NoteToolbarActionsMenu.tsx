@@ -1,7 +1,7 @@
 import MoreIcon from "@mui/icons-material/MoreHoriz";
 import { IconButton, Menu, MenuItem } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
@@ -71,6 +71,7 @@ export function NoteToolbarActionsMenu(props: NoteToolbarActionsMenuProps) {
 
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
 
   const [openRenameDialog, setOpenRenameDialog] = useState(false);
 
@@ -87,13 +88,21 @@ export function NoteToolbarActionsMenu(props: NoteToolbarActionsMenuProps) {
 
   return (
     <>
-      <IconButton onClick={() => setIsOpen(true)} ref={buttonRef}>
+      <IconButton
+        aria-label={t("note.editor-toolbar.note-actions", "Note actions")}
+        aria-haspopup="menu"
+        aria-expanded={isOpen ? "true" : undefined}
+        aria-controls={isOpen ? menuId : undefined}
+        onClick={() => setIsOpen(true)}
+        ref={buttonRef}
+      >
         <MoreIcon />
       </IconButton>
       <Menu
         open={isOpen}
         onClose={() => setIsOpen(false)}
         anchorEl={buttonRef.current}
+        slotProps={{ list: { id: menuId } }}
       >
         <MenuItem
           onClick={() => {
