@@ -31,6 +31,9 @@ export function createWarningSnackbar(message: string) {
 export function createErrorSnackbar(message: string) {
   enqueueSnackbar(message, {
     variant: "error",
+    // An error stays until it is dismissed, so there is time to find it and
+    // read it again.
+    persist: true,
   });
 }
 

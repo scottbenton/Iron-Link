@@ -36,6 +36,19 @@ that are easy to miss. When you learn a new one, add a line here.
   the focused control went away.
 - Sortable lists pass dnd-kit `accessibility` announcements that use item
   names; the defaults read ids.
+- Announce one message per action: a second `setAnnouncement` in the same
+  tick replaces the first. Rolls announce `getRollAnnouncement`, built from
+  `getRollSummary` (`lib/rollSummary.lib.ts`), which roll cards also read;
+  a caller with more to say (a clock's progress) rolls with
+  `{ announce: false }` and folds the summary into its own message.
+- Roll cards hide their visual parts and read the summary laid over the
+  card. They dismiss only through their named button, never a tap on the
+  card. Dialogs render the recent roll cards through `DialogExtrasContext`
+  (from `DialogTitleWithCloseButton`); `useIsActiveRollCardHost` lets only
+  the newest place show them.
+- Snackbars read their message through the live region (dialogs hide the
+  snackbar container); the alert itself is not live. Errors persist.
+- Filters announce their result count with `useAnnounceSearchResults`.
 
 ## Deploys
 

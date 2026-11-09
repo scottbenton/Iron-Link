@@ -1,4 +1,8 @@
+import { useTranslation } from "react-i18next";
+
 import { useOracleRollable } from "hooks/datasworn/useOracleRollable";
+
+import { isOracleRollMatch } from "lib/rollSummary.lib";
 
 import { IOracleTableRoll } from "services/gameLog.service";
 
@@ -12,6 +16,7 @@ export interface OracleRollSnackbarProps {
 
 export function OracleRollSnackbar(props: OracleRollSnackbarProps) {
   const { roll, isExpanded } = props;
+  const { t } = useTranslation();
 
   const oracle = useOracleRollable(roll.oracleId ?? "");
 
@@ -35,17 +40,12 @@ export function OracleRollSnackbar(props: OracleRollSnackbarProps) {
             roll.oracleId &&
             !!oracle?.match &&
             !Array.isArray(roll.roll) &&
-            checkIfMatch(roll.roll)
-              ? ["Match"]
+            isOracleRollMatch(roll.roll)
+              ? [t("datasworn.match", "Match")]
               : undefined
           }
         />
       </RollContainer>
     </>
   );
-}
-
-// A bit hacky, check if the last two digits of the number are equal to each other.
-function checkIfMatch(num: number) {
-  return num % 10 === Math.floor(num / 10) % 10;
 }

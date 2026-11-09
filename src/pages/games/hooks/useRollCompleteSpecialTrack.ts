@@ -1,11 +1,11 @@
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import { getRollAnnouncement } from "hooks/useRollSummary";
+
 import { useAddRollSnackbar, useSetAnnouncement } from "stores/appState.store";
 import { useUID } from "stores/auth.store";
 import { useGameLogStore } from "stores/gameLog.store";
-
-import { getRollResultLabel } from "data/rollResultLabel";
 
 import { createId } from "lib/id.lib";
 import { getProgressRollResult, getProgressScore } from "lib/progressTrack.lib";
@@ -72,19 +72,7 @@ export function useRollCompleteSpecialTrack() {
       addRollToScreen(trackProgressRoll.id, trackProgressRoll);
       addRoll(trackProgressRoll.id, trackProgressRoll).catch(() => {});
 
-      announce(
-        t(
-          "datasworn.roll.trackProgress",
-          "Rolled progress for {{trackLabel}}. Your progress was {{trackProgress}} against a {{challenge1}} and a {{challenge2}} for a {{rollResult}}",
-          {
-            trackLabel,
-            trackProgress,
-            challenge1,
-            challenge2,
-            rollResult: getRollResultLabel(result),
-          },
-        ),
-      );
+      announce(getRollAnnouncement(trackProgressRoll, t));
 
       return result;
     },

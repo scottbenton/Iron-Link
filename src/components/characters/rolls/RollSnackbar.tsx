@@ -1,4 +1,9 @@
-import { ReactNode } from "react";
+import { ReactNode, Ref } from "react";
+import { useTranslation } from "react-i18next";
+
+import { useRollSummaryNames } from "hooks/useRollSummary";
+
+import { getRollSummary, getRollTitle } from "lib/rollSummary.lib";
 
 import { RollType } from "repositories/shared.types";
 
@@ -13,18 +18,39 @@ export interface RollSnackbarProps {
   rollId: string | undefined;
   roll: IGameLogRoll;
   isExpanded: boolean;
-  onSnackbarClick?: () => void;
+  // Shows a named dismiss button.
+  onDismiss?: () => void;
+  dismissButtonRef?: Ref<HTMLButtonElement>;
+  // Read before the roll's summary (who rolled it, and when).
+  summaryPrefix?: string;
   actions?: ReactNode;
 }
 
 export function RollSnackbar(props: RollSnackbarProps) {
-  const { rollId, roll, isExpanded, onSnackbarClick, actions } = props;
+  const {
+    rollId,
+    roll,
+    isExpanded,
+    onDismiss,
+    dismissButtonRef,
+    summaryPrefix,
+    actions,
+  } = props;
+  const { t } = useTranslation();
+
+  const names = useRollSummaryNames(roll);
+  const summary = getRollSummary(roll, names, t);
 
   return (
     <RollCard
-      onClick={onSnackbarClick}
+      summary={summaryPrefix ? `${summaryPrefix} ${summary}` : summary}
       isExpanded={isExpanded}
       actions={actions}
+      onDismiss={onDismiss}
+      dismissLabel={t("datasworn.roll-card.dismiss", "Dismiss {{rollName}}", {
+        rollName: getRollTitle(roll, names),
+      })}
+      dismissButtonRef={dismissButtonRef}
     >
       <>
         {roll.type === RollType.Stat && (

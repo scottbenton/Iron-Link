@@ -3,8 +3,11 @@ import { Box, Input, InputAdornment, List, ListSubheader } from "@mui/material";
 import { useDeferredValue, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useAnnounceSearchResults } from "hooks/useAnnounceSearchResults";
+
 import { useOracles } from "stores/dataswornTree.store";
 
+import { countVisibleItems } from "../_helpers/countVisibleItems";
 import {
   CollectionVisibility,
   ItemVisibility,
@@ -68,6 +71,27 @@ export function OracleTree(props: OracleTreeProps) {
     oracleRollableMap,
     deferredSearchValue,
   ]);
+
+  const resultCount = useMemo(
+    () =>
+      countVisibleItems(
+        Object.values(rootOracleCollections).flatMap(
+          ({ rootCollectionIds }) => rootCollectionIds,
+        ),
+        oracleCollectionMap,
+        visibilitySettings,
+      ),
+    [rootOracleCollections, oracleCollectionMap, visibilitySettings],
+  );
+  useAnnounceSearchResults(
+    deferredSearchValue,
+    resultCount === 0
+      ? t("datasworn.filter-oracles-no-results", "No oracles found")
+      : t("datasworn.filter-oracles-results", "{{count}} oracles found", {
+          count: resultCount,
+          defaultValue_one: "1 oracle found",
+        }),
+  );
 
   return (
     <TreeLinkModeContext.Provider value={contextValue}>

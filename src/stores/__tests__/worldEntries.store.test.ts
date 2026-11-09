@@ -79,7 +79,7 @@ describe("world entry parents", () => {
     expect(setParent).not.toHaveBeenCalled();
     expect(enqueueSnackbar).toHaveBeenCalledWith(
       "That entry can't be placed there. Choose an entry in the same category that isn't the entry itself or one of its nested entries.",
-      { variant: "error" },
+      { variant: "error", persist: true },
     );
   });
 });

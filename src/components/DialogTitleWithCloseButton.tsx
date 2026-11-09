@@ -5,10 +5,11 @@ import {
   IconButton,
   dialogTitleClasses,
 } from "@mui/material";
-import { PropsWithChildren, ReactNode } from "react";
+import { PropsWithChildren, ReactNode, useContext } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LiveRegion } from "./Layout/LiveRegion";
+import { DialogExtrasContext } from "./Layout/dialogExtrasContext";
 
 export interface DialogTitleWithCloseButtonProps extends PropsWithChildren {
   onClose: () => void;
@@ -20,10 +21,12 @@ export function DialogTitleWithCloseButton(
   const { children, actions, onClose } = props;
 
   const { t } = useTranslation();
+  const DialogExtras = useContext(DialogExtrasContext);
 
   return (
     <>
       <LiveRegion />
+      {DialogExtras && <DialogExtras />}
       {/* The dialog is named by DialogTitle's id, so only the heading is a
           DialogTitle and the buttons sit beside it; otherwise the dialog's
           name would end in "Close Dialog". The wrapper keeps the title class
