@@ -6,24 +6,17 @@ import RouteIcon from "@mui/icons-material/Route";
 import WallpaperIcon from "@mui/icons-material/Wallpaper";
 import {
   Box,
-  ButtonBase,
   Paper,
   Popover,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
-  Typography,
 } from "@mui/material";
 import { ReactNode, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  BRUSH_SIZES,
-  BrushSize,
-  EraserTarget,
-  PaintSettings,
-} from "lib/worldMap/paint";
-import { WORLD_MAP_TERRAINS, getTerrainColor } from "lib/worldMap/terrain";
+import { PaintSettings } from "lib/worldMap/paint";
+import { getTerrainColor } from "lib/worldMap/terrain";
 
 import { WorldMapEraserIcon } from "./WorldMapEraserIcon";
 import { WorldMapTool, getTerrainLabel } from "./worldMapTools";
@@ -32,7 +25,6 @@ export interface WorldMapToolbarProps {
   tool: WorldMapTool;
   onToolChange: (tool: WorldMapTool) => void;
   settings: PaintSettings;
-  onSettingsChange: (settings: PaintSettings) => void;
   // Painting needs a grid; pins need a category that nests entries.
   canPaint: boolean;
   canPin: boolean;
@@ -53,18 +45,17 @@ export interface WorldMapToolbarProps {
 
 const TOUCH = 44;
 
-type MenuTool = "brush" | "eraser" | "pin";
+type MenuTool = "pin";
 
 // The tools for editing a map in one row that never changes size: pan,
-// brush, path, eraser, pins and the background image. Tools with settings
-// (the brush's terrain and size, what the eraser takes, which place a pin
-// puts down) open a popup from their button.
+// brush, path, eraser, pins and the background image. The pin tool's button
+// opens a popup for which place it puts down; the brush and eraser keep
+// their settings over the map (WorldMapPaintPicker).
 export function WorldMapToolbar(props: WorldMapToolbarProps) {
   const {
     tool,
     onToolChange,
     settings,
-    onSettingsChange,
     canPaint,
     canPin,
     canMoveBackground,
@@ -124,7 +115,6 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
                 />
               </Box>
             ),
-            menu: "brush" as const,
           },
           {
             value: "path" as const,
@@ -140,7 +130,6 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
             label: t("worlds.maps.tools.eraser", "Erase"),
             shortLabel: t("worlds.maps.tools.eraser-short", "Eraser"),
             icon: <WorldMapEraserIcon fontSize="small" />,
-            menu: "eraser" as const,
           },
         ]
       : []),
@@ -166,12 +155,6 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
         ]
       : []),
   ];
-  const sizeLabels: Record<BrushSize, string> = {
-    0: t("worlds.maps.brush.small", "Small"),
-    1: t("worlds.maps.brush.medium", "Medium"),
-    2: t("worlds.maps.brush.large", "Large"),
-  };
-  const optionSx = touch ? { minHeight: TOUCH, px: 1.5 } : { px: 1.25 };
 
   const toolButtons = (
     <ToggleButtonGroup
@@ -236,126 +219,6 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
     </ToggleButtonGroup>
   );
 
-  const sizePicker = (
-    <Box>
-      <Typography
-        variant="overline"
-        color="text.secondary"
-        component="p"
-        id={`${popupId}-size`}
-      >
-        {t("worlds.maps.brush.size", "Brush size")}
-      </Typography>
-      <ToggleButtonGroup
-        exclusive
-        size="small"
-        value={settings.size}
-        aria-labelledby={`${popupId}-size`}
-        onChange={(_, value: BrushSize | null) =>
-          value !== null && onSettingsChange({ ...settings, size: value })
-        }
-      >
-        {BRUSH_SIZES.map((size) => (
-          <ToggleButton key={size} value={size} sx={optionSx}>
-            {sizeLabels[size]}
-          </ToggleButton>
-        ))}
-      </ToggleButtonGroup>
-    </Box>
-  );
-
-  const brushMenu = (
-    <>
-      <Box>
-        <Typography
-          variant="overline"
-          color="text.secondary"
-          component="p"
-          id={`${popupId}-terrain`}
-        >
-          {t("worlds.maps.terrain.label", "Terrain")}
-        </Typography>
-        <Box
-          role="radiogroup"
-          aria-labelledby={`${popupId}-terrain`}
-          sx={{
-            display: "grid",
-            gridTemplateColumns: `repeat(6, ${touch ? TOUCH : 32}px)`,
-            gap: 1,
-          }}
-        >
-          {WORLD_MAP_TERRAINS.map((terrain) => {
-            const selected = settings.terrain === terrain.key;
-            const label = getTerrainLabel(t, terrain.key);
-            return (
-              <Tooltip key={terrain.key} title={label}>
-                <ButtonBase
-                  role="radio"
-                  aria-checked={selected}
-                  aria-label={label}
-                  onClick={() => {
-                    onSettingsChange({ ...settings, terrain: terrain.key });
-                    closeMenu();
-                  }}
-                  sx={(theme) => ({
-                    width: touch ? TOUCH : 32,
-                    height: touch ? TOUCH : 32,
-                    borderRadius: 0.5,
-                    bgcolor: terrain.color,
-                    border: `1px solid ${theme.palette.divider}`,
-                    outline: selected
-                      ? `2px solid ${theme.palette.primary.main}`
-                      : "none",
-                    outlineOffset: 2,
-                    "&.Mui-focusVisible": {
-                      outline: `2px solid ${theme.palette.primary.main}`,
-                    },
-                  })}
-                />
-              </Tooltip>
-            );
-          })}
-        </Box>
-      </Box>
-      {sizePicker}
-    </>
-  );
-
-  const eraserMenu = (
-    <>
-      <Box>
-        <Typography
-          variant="overline"
-          color="text.secondary"
-          component="p"
-          id={`${popupId}-erase`}
-        >
-          {t("worlds.maps.eraser.label", "Erase")}
-        </Typography>
-        <ToggleButtonGroup
-          exclusive
-          size="small"
-          value={settings.eraser}
-          aria-labelledby={`${popupId}-erase`}
-          onChange={(_, value: EraserTarget | null) =>
-            value && onSettingsChange({ ...settings, eraser: value })
-          }
-        >
-          <ToggleButton value="all" sx={optionSx}>
-            {t("worlds.maps.eraser.all", "Everything")}
-          </ToggleButton>
-          <ToggleButton value="path" sx={optionSx}>
-            {t("worlds.maps.eraser.path", "Paths only")}
-          </ToggleButton>
-          <ToggleButton value="terrain" sx={optionSx}>
-            {t("worlds.maps.eraser.terrain", "Terrain only")}
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
-      {sizePicker}
-    </>
-  );
-
   const popup = (
     <Popover
       id={popupId}
@@ -378,17 +241,10 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
             gap: 1.5,
             maxWidth: "calc(100vw - 16px)",
           },
-          "aria-label":
-            menu?.tool === "brush"
-              ? t("worlds.maps.brush.settings", "Brush settings")
-              : menu?.tool === "eraser"
-                ? t("worlds.maps.eraser.settings", "Eraser settings")
-                : t("worlds.maps.pins.settings", "What to pin"),
+          "aria-label": t("worlds.maps.pins.settings", "What to pin"),
         },
       }}
     >
-      {menu?.tool === "brush" && brushMenu}
-      {menu?.tool === "eraser" && eraserMenu}
       {menu?.tool === "pin" && pinMenu?.(closeMenu)}
     </Popover>
   );

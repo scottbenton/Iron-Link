@@ -39,6 +39,7 @@ import { WorldMapBackgroundSize } from "./WorldMapBackgroundSize";
 import { WorldMapClearDialog } from "./WorldMapClearDialog";
 import { WorldMapCreate } from "./WorldMapCreate";
 import { WorldMapOptions } from "./WorldMapOptions";
+import { WorldMapPaintPicker } from "./WorldMapPaintPicker";
 import { WorldMapPinIcon } from "./WorldMapPinIcon";
 import { WorldMapPinMarker } from "./WorldMapPinMarker";
 import { WorldMapPinMenu } from "./WorldMapPinMenu";
@@ -256,7 +257,6 @@ export function WorldEntryMap({
       tool={tool}
       onToolChange={setTool}
       settings={settings}
-      onSettingsChange={setPaintSettings}
       canPaint={grid !== "none"}
       canPin={canPin}
       canMoveBackground={
@@ -358,7 +358,13 @@ export function WorldEntryMap({
       overlay={
         canEdit &&
         (!phone || paintMode) &&
-        (tool === "pin" ? (
+        (isPaintTool(tool) && tool !== "path" ? (
+          <WorldMapPaintPicker
+            touch={touch}
+            settings={settings}
+            onSettingsChange={setPaintSettings}
+          />
+        ) : tool === "pin" ? (
           <WorldMapPinStatus
             touch={touch}
             mapName={entry.name}
