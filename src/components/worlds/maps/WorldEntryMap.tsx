@@ -258,73 +258,77 @@ export function WorldEntryMap({
       onBackgroundLoad={backgroundEditor.onBackgroundLoad}
       label={t("worlds.maps.label", "Map of {{name}}", { name: entry.name })}
       overlay={
-        canEdit &&
-        (!phone || paintMode) && (
-          <WorldMapOptions
-            map={map}
-            painted={painted}
-            onError={onError}
-            touch={touch}
-          >
-            {(close) => [
-              <Divider key="divider" />,
-              <MenuItem
-                key="background"
-                disabled={upload.busy}
-                onClick={() => {
-                  close();
-                  upload.choose();
-                }}
-              >
-                <ListItemText
-                  primary={
-                    map.background
-                      ? t(
-                          "worlds.maps.background.replace",
-                          "Replace background image",
-                        )
-                      : t("worlds.maps.background.add", "Add background image")
-                  }
-                />
-              </MenuItem>,
-              map.background && (
+        <>
+          {canEdit && (!phone || paintMode) && (
+            <WorldMapOptions
+              map={map}
+              painted={painted}
+              onError={onError}
+              touch={touch}
+            >
+              {(close) => [
+                <Divider key="divider" />,
                 <MenuItem
-                  key="remove-background"
+                  key="background"
                   disabled={upload.busy}
                   onClick={() => {
                     close();
-                    upload.remove();
+                    upload.choose();
                   }}
                 >
                   <ListItemText
-                    primary={t(
-                      "worlds.maps.background.remove",
-                      "Remove background image",
-                    )}
+                    primary={
+                      map.background
+                        ? t(
+                            "worlds.maps.background.replace",
+                            "Replace background image",
+                          )
+                        : t(
+                            "worlds.maps.background.add",
+                            "Add background image",
+                          )
+                    }
                   />
-                </MenuItem>
-              ),
-              grid !== "none" && (
-                <MenuItem
-                  key="clear"
-                  disabled={!painted}
-                  onClick={() => {
-                    close();
-                    setClearOpen(true);
-                  }}
-                >
-                  <ListItemText
-                    primary={t("worlds.maps.clear.confirm", "Clear map")}
-                    secondary={t(
-                      "worlds.maps.clear.help",
-                      "Pins stay where they are",
-                    )}
-                  />
-                </MenuItem>
-              ),
-            ]}
-          </WorldMapOptions>
-        )
+                </MenuItem>,
+                map.background && (
+                  <MenuItem
+                    key="remove-background"
+                    disabled={upload.busy}
+                    onClick={() => {
+                      close();
+                      upload.remove();
+                    }}
+                  >
+                    <ListItemText
+                      primary={t(
+                        "worlds.maps.background.remove",
+                        "Remove background image",
+                      )}
+                    />
+                  </MenuItem>
+                ),
+                grid !== "none" && (
+                  <MenuItem
+                    key="clear"
+                    disabled={!painted}
+                    onClick={() => {
+                      close();
+                      setClearOpen(true);
+                    }}
+                  >
+                    <ListItemText
+                      primary={t("worlds.maps.clear.confirm", "Clear map")}
+                      secondary={t(
+                        "worlds.maps.clear.help",
+                        "Pins stay where they are",
+                      )}
+                    />
+                  </MenuItem>
+                ),
+              ]}
+            </WorldMapOptions>
+          )}
+        </>
       }
       renderPin={({ id, pin, screen, scale, dragging, startDrag }) => (
         <WorldMapPinMarker

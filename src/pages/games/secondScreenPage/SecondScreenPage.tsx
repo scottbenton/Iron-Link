@@ -148,6 +148,7 @@ export default function SecondScreenPage() {
                   <WorldEntryMain
                     worldId={settings.worldId}
                     entryId={settings.entryId}
+                    map={settings.map}
                   />
                 )}
               </Box>
