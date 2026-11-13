@@ -53,3 +53,21 @@ export function getWorldViewPath(worldId: string, view: WorldView): string {
       return pathConfig.worldCategorySettings(worldId, view.categoryId);
   }
 }
+
+// The section of each entry last shown, this session. Going back up the
+// breadcrumbs returns to it, so a place opened from its parent's map leads
+// back to the map rather than the parent's Places.
+const lastEntrySections = new Map<string, WorldEntrySection | undefined>();
+
+export function rememberWorldEntrySection(
+  entryId: string,
+  section: WorldEntrySection | undefined,
+) {
+  lastEntrySections.set(entryId, section);
+}
+
+export function getWorldEntryReturnSection(
+  entryId: string,
+): WorldEntrySection {
+  return lastEntrySections.get(entryId) ?? "places";
+}

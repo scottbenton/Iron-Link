@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -9,7 +10,11 @@ import type { IWorldCategory } from "services/worldCategories.service";
 import type { IWorldEntry } from "services/worldEntries.service";
 import type { IWorld } from "services/worlds.service";
 
-import type { WorldNavigation } from "./worldNavigation";
+import {
+  type WorldNavigation,
+  getWorldEntryReturnSection,
+  rememberWorldEntrySection,
+} from "./worldNavigation";
 
 export function WorldBreadcrumbs({
   world,
@@ -28,11 +33,18 @@ export function WorldBreadcrumbs({
   categoryLoading?: boolean;
   entry?: IWorldEntry;
   entryLoading?: boolean;
-  // The entry's visible ancestors, outermost first; each opens its Places.
+  // The entry's visible ancestors, outermost first; each opens the section
+  // it was last shown in (its Map, if the reader came from there), else its
+  // Places.
   ancestors?: IWorldEntry[];
 }) {
   const { t } = useTranslation();
   const view = navigation.view;
+  const shownEntryId = view.type === "entry" ? view.entryId : undefined;
+  const shownSection = view.type === "entry" ? view.section : undefined;
+  useEffect(() => {
+    if (shownEntryId) rememberWorldEntrySection(shownEntryId, shownSection);
+  }, [shownEntryId, shownSection]);
   const items: BreadcrumbItem[] = [
     root,
     {
@@ -74,7 +86,7 @@ export function WorldBreadcrumbs({
           type: "entry",
           categoryId: view.categoryId,
           entryId: ancestor.id,
-          section: "places",
+          section: getWorldEntryReturnSection(ancestor.id),
         }),
       }),
     );
