@@ -9,7 +9,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useCallback, useState } from "react";
+import { FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { PageContent } from "components/Layout";
@@ -45,56 +45,67 @@ export default function AuthPage() {
 
   const isLocalEnvironment = useIsLocalEnvironment();
 
-  const handleOTPSend = useCallback(() => {
-    if (!email) {
-      setErrorMessage(t("auth.email-required-error", "Email is required"));
-      return;
-    }
-    if (email.split("@").length < 2) {
-      setErrorMessage(
-        t("auth.email-invalid-error", "Please enter a valid email"),
-      );
-    }
-
-    setOtpSendLoading(true);
-    sendOtp(email)
-      .then(() => {
-        setOtpSent(true);
-        setErrorMessage("");
-      })
-      .catch((e) => {
+  const handleOTPSend = useCallback(
+    (evt?: FormEvent) => {
+      evt?.preventDefault();
+      if (otpSendLoading) return;
+      if (!email) {
+        setErrorMessage(t("auth.email-required-error", "Email is required"));
+        return;
+      }
+      if (email.split("@").length < 2) {
         setErrorMessage(
-          t("auth.error-sending", "Error sending OTP: {{message}}", {
-            message: e.message,
-          }),
+          t("auth.email-invalid-error", "Please enter a valid email"),
         );
-      })
-      .finally(() => {
-        setOtpSendLoading(false);
-      });
-  }, [email, sendOtp, t]);
+        return;
+      }
 
-  const handleVerifyOTP = useCallback(() => {
-    if (!otp) {
-      setErrorMessage(t("auth.otp-required-error", "OTP is required"));
-      return;
-    }
-    setVerifyOtpLoading(true);
-    verifyOtp(email, otp)
-      .then(() => {
-        setErrorMessage("");
-      })
-      .catch((e) => {
-        setErrorMessage(
-          t("auth.error-verifying", "Error verifying OTP: {{message}}", {
-            message: e.message,
-          }),
-        );
-      })
-      .finally(() => {
-        setVerifyOtpLoading(false);
-      });
-  }, [email, otp, t, verifyOtp]);
+      setOtpSendLoading(true);
+      sendOtp(email)
+        .then(() => {
+          setOtpSent(true);
+          setErrorMessage("");
+        })
+        .catch((e) => {
+          setErrorMessage(
+            t("auth.error-sending", "Error sending OTP: {{message}}", {
+              message: e.message,
+            }),
+          );
+        })
+        .finally(() => {
+          setOtpSendLoading(false);
+        });
+    },
+    [email, otpSendLoading, sendOtp, t],
+  );
+
+  const handleVerifyOTP = useCallback(
+    (evt?: FormEvent) => {
+      evt?.preventDefault();
+      if (verifyOtpLoading) return;
+      if (!otp) {
+        setErrorMessage(t("auth.otp-required-error", "OTP is required"));
+        return;
+      }
+      setVerifyOtpLoading(true);
+      verifyOtp(email, otp)
+        .then(() => {
+          setErrorMessage("");
+        })
+        .catch((e) => {
+          setErrorMessage(
+            t("auth.error-verifying", "Error verifying OTP: {{message}}", {
+              message: e.message,
+            }),
+          );
+        })
+        .finally(() => {
+          setVerifyOtpLoading(false);
+        });
+    },
+    [email, otp, t, verifyOtp, verifyOtpLoading],
+  );
 
   return (
     <>
@@ -130,7 +141,12 @@ export default function AuthPage() {
           {!otpSent ? (
             <>
               <SocialLoginOptions />
-              <Stack spacing={2}>
+              <Stack
+                spacing={2}
+                component={"form"}
+                noValidate
+                onSubmit={handleOTPSend}
+              >
                 <Typography variant={"h6"} component={"h2"}>
                   {t("auth.passwordless-sign-in", "Sign in with Email")}
                 </Typography>
@@ -154,13 +170,14 @@ export default function AuthPage() {
                 <TextField
                   label={t("auth.email-label", "Email Address")}
                   type={"email"}
+                  autoComplete={"email"}
                   value={email}
                   onChange={(evt) => setEmail(evt.currentTarget.value)}
                 />
                 <Box display={"flex"} justifyContent={"flex-end"}>
                   <Button
+                    type={"submit"}
                     variant={"contained"}
-                    onClick={handleOTPSend}
                     disabled={otpSendLoading}
                   >
                     {t("auth.send-otp", "Send One Time Password")}
@@ -169,7 +186,12 @@ export default function AuthPage() {
               </Stack>
             </>
           ) : (
-            <>
+            <Stack
+              spacing={4}
+              component={"form"}
+              noValidate
+              onSubmit={handleVerifyOTP}
+            >
               {isLocalEnvironment && (
                 <Alert severity="warning">
                   <Typography>
@@ -193,18 +215,21 @@ export default function AuthPage() {
                 label={t("auth.otp-label", "One Time Password")}
                 value={otp}
                 placeholder="123456"
+                autoFocus
+                autoComplete={"one-time-code"}
+                slotProps={{ htmlInput: { inputMode: "numeric" } }}
                 onChange={(evt) => setOtp(evt.currentTarget.value)}
               />
               <Box display={"flex"} justifyContent={"flex-end"}>
                 <Button
+                  type={"submit"}
                   variant={"contained"}
-                  onClick={handleVerifyOTP}
                   disabled={verifyOtpLoading}
                 >
                   {t("auth.complete-otp-signin", "Sign In")}
                 </Button>
               </Box>
-            </>
+            </Stack>
           )}
           <Typography variant={"body2"} color={"textSecondary"}>
             <Link href={pathConfig.privacy}>
