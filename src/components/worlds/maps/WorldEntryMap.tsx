@@ -22,6 +22,7 @@ import { Point } from "lib/worldMap/grid";
 import { PaintSettings } from "lib/worldMap/paint";
 import { WORLD_MAP_TERRAINS } from "lib/worldMap/terrain";
 
+import { IWorldCategory } from "services/worldCategories.service";
 import { IWorldEntry } from "services/worldEntries.service";
 import { WorldMapsService } from "services/worldMaps.service";
 
@@ -31,11 +32,13 @@ import { WorldMapClearDialog } from "./WorldMapClearDialog";
 import { WorldMapCreate } from "./WorldMapCreate";
 import { WorldMapOptions } from "./WorldMapOptions";
 import { WorldMapPinMarker } from "./WorldMapPinMarker";
+import { WorldMapPinTools } from "./WorldMapPinTools";
 import { WorldMapToolbar } from "./WorldMapToolbar";
 import { WorldMapViewport } from "./WorldMapViewport";
 import { useWorldMapBackgroundEditor } from "./useWorldMapBackgroundEditor";
 import { useWorldMapBackgroundUpload } from "./useWorldMapBackgroundUpload";
 import { useWorldMapPainting } from "./useWorldMapPainting";
+import { useWorldMapPins } from "./useWorldMapPins";
 import { WorldMapTool, isPaintTool } from "./worldMapTools";
 
 // Names show under pins from this zoom up.
@@ -52,10 +55,12 @@ const DEFAULT_PAINT: PaintSettings = {
 // it pinned where they are. Readers see only pins for entries they can read.
 export function WorldEntryMap({
   entry,
+  category,
   canEdit,
   navigation,
 }: {
   entry: IWorldEntry;
+  category: Pick<IWorldCategory, "supportsHierarchy">;
   canEdit: boolean;
   navigation: Pick<WorldNavigation, "getLinkProps">;
 }) {
@@ -76,9 +81,11 @@ export function WorldEntryMap({
   const upload = useWorldMapBackgroundUpload(map, onError);
   // A tool that no longer applies (the grid went, the background went) falls
   // back to panning.
+  const canPin = category.supportsHierarchy;
   const tool: WorldMapTool =
     !canEdit ||
     (isPaintTool(chosenTool) && grid === "none") ||
+    (chosenTool === "pin" && !canPin) ||
     (chosenTool === "background" && !backgroundEditor.background)
       ? "pan"
       : chosenTool;
@@ -86,6 +93,7 @@ export function WorldEntryMap({
     ? { ...paintSettings, tool }
     : paintSettings;
   const painting = useWorldMapPainting(entry.id, grid, settings);
+  const pinTool = useWorldMapPins(entry, grid, state.pins, onError);
   const chunks = useMemo(
     () => getDisplayedChunks(state),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,6 +112,11 @@ export function WorldEntryMap({
       groups.set(key, group);
     });
     return [...groups.values()].map((group) => ({
+      // A lone pin is its entry, so it can be dragged by id.
+      id:
+        group.entries.length === 1
+          ? group.entries[0].id
+          : `${group.point.x},${group.point.y}`,
       point: group.point,
       pin: {
         entries: group.entries.sort((a, b) => a.name.localeCompare(b.name)),
@@ -157,6 +170,17 @@ export function WorldEntryMap({
           settings={settings}
           onSettingsChange={setPaintSettings}
           canPaint={grid !== "none"}
+          canPin={canPin}
+          pinTools={
+            <WorldMapPinTools
+              places={pinTool.places}
+              target={pinTool.target}
+              onTargetChange={pinTool.setTarget}
+              locationTypes={pinTool.locationTypes}
+              onRemove={pinTool.remove}
+              busy={pinTool.busy}
+            />
+          }
           background={
             backgroundEditor.width && backgroundEditor.naturalSize
               ? {
@@ -191,13 +215,34 @@ export function WorldEntryMap({
         pins={pinGroups}
         ready={!state.loading}
         toolActive={tool !== "pan"}
+        toolMode={tool === "pin" ? "tap" : "stroke"}
         toolCursor={tool === "background" ? "move" : "crosshair"}
         onToolPointer={
           tool === "background"
             ? backgroundEditor.onToolPointer
-            : painting.onToolPointer
+            : tool === "pin"
+              ? pinTool.onToolPointer
+              : painting.onToolPointer
         }
-        getHighlight={isPaintTool(tool) ? painting.getHighlight : undefined}
+        getHighlight={
+          isPaintTool(tool)
+            ? painting.getHighlight
+            : tool === "pin"
+              ? (cell) => [cell]
+              : undefined
+        }
+        onPinDrop={
+          tool === "pin"
+            ? (id, point) =>
+                // A marker's id is its entry, or its spot when it holds
+                // several, which then all move together.
+                (
+                  pinGroups
+                    .find((group) => group.id === id)
+                    ?.pin.entries.map((pinned) => pinned.id) ?? [id]
+                ).forEach((entryId) => pinTool.onPinDrop(entryId, point))
+            : undefined
+        }
         onBackgroundLoad={backgroundEditor.onBackgroundLoad}
         label={t("worlds.maps.label", "Map of {{name}}", { name: entry.name })}
         overlay={
@@ -266,16 +311,23 @@ export function WorldEntryMap({
             </WorldMapOptions>
           )
         }
-        renderPin={({ pin, screen, point, scale }) => (
+        renderPin={({ id, pin, screen, scale, dragging, startDrag }) => (
           <WorldMapPinMarker
-            key={`${point.x},${point.y}`}
+            key={id}
             entries={pin.entries}
             screen={screen}
             showLabel={scale >= PIN_LABEL_SCALE}
             navigation={navigation}
+            onSelect={tool === "pin" ? pinTool.select : undefined}
+            onDragStart={tool === "pin" ? startDrag : undefined}
+            dragging={dragging}
+            selected={pin.entries.some(
+              (pinned) => pinned.id === pinTool.selectedId,
+            )}
           />
         )}
       />
+      {pinTool.dialog}
       {canEdit && (
         <WorldMapClearDialog
           entryId={entry.id}
