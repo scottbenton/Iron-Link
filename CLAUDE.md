@@ -10,6 +10,12 @@ that are easy to miss. When you learn a new one, add a line here.
   including in-progress button states ("Creating World", not "Creating
   World..."). A loading status that is not a control may keep one.
 - Checkboxes, never switches, for on/off settings in forms.
+- Inputs with a submit button are a real form, so Enter submits: a dialog
+  passes `getDialogFormSlotProps(onSubmit)` (`lib/dialogForm.lib.ts`) to
+  `slotProps`, which makes its paper the form without changing its layout,
+  and its main button is `type="submit"`. The handler calls
+  `preventDefault` and, where it tracks loading, ignores a submit while one
+  is in flight.
 
 ## Accessibility
 

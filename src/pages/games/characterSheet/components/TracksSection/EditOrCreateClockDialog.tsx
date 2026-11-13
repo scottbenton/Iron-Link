@@ -12,7 +12,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
@@ -21,6 +21,8 @@ import { ClockCircle } from "components/datasworn/Clocks/ClockCircle";
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 
 import { useTracksStore } from "stores/tracks.store";
+
+import { getDialogFormSlotProps } from "lib/dialogForm.lib";
 
 import { IClock } from "services/tracks.service";
 
@@ -66,7 +68,9 @@ export function EditOrCreateClockDialog(props: EditOrCreateClockDialogProps) {
 
   const addTrack = useTracksStore((store) => store.addClock);
   const updateTrack = useTracksStore((store) => store.updateClock);
-  const handleSubmit = () => {
+  const handleSubmit = (evt: FormEvent) => {
+    evt.preventDefault();
+    if (loading) return;
     if (!title) {
       setError(
         t(
@@ -119,7 +123,13 @@ export function EditOrCreateClockDialog(props: EditOrCreateClockDialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={handleDialogClose} maxWidth={"xs"} fullWidth>
+    <Dialog
+      open={open}
+      onClose={handleDialogClose}
+      maxWidth={"xs"}
+      fullWidth
+      slotProps={getDialogFormSlotProps(handleSubmit)}
+    >
       <DialogTitleWithCloseButton onClose={handleDialogClose}>
         {initialClock
           ? t(
@@ -209,7 +219,7 @@ export function EditOrCreateClockDialog(props: EditOrCreateClockDialogProps) {
         >
           Cancel
         </Button>
-        <Button disabled={loading} variant={"contained"} onClick={handleSubmit}>
+        <Button type={"submit"} disabled={loading} variant={"contained"}>
           {initialClock
             ? t(
                 "character.character-sidebar.clock-dialog-save-clock-button",

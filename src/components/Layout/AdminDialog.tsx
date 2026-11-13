@@ -7,11 +7,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 
 import { useAdminStore } from "stores/admin.store";
+
+import { getDialogFormSlotProps } from "lib/dialogForm.lib";
 
 export interface AdminDialogProps {
   open: boolean;
@@ -28,7 +30,8 @@ export function AdminDialog(props: AdminDialogProps) {
   const [magicLink, setMagicLink] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGetLink = () => {
+  const handleGetLink = (evt: FormEvent) => {
+    evt.preventDefault();
     setError(null);
     getMagicLink(uid || undefined, email || undefined)
       .then((link) => {
@@ -40,7 +43,11 @@ export function AdminDialog(props: AdminDialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      slotProps={getDialogFormSlotProps(handleGetLink)}
+    >
       <DialogTitleWithCloseButton onClose={onClose}>
         Admin Actions
       </DialogTitleWithCloseButton>
@@ -58,7 +65,7 @@ export function AdminDialog(props: AdminDialogProps) {
             value={email ?? null}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <Button variant="contained" onClick={handleGetLink}>
+          <Button type="submit" variant="contained">
             Get Magic Link
           </Button>
           {magicLink && (

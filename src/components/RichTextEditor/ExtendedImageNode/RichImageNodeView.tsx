@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { Resizable } from "re-resizable";
-import { useCallback, useState } from "react";
+import { FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
@@ -31,6 +31,8 @@ import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
 
 import { useSecondScreenStore } from "stores/secondScreen.store";
+
+import { getDialogFormSlotProps } from "lib/dialogForm.lib";
 
 import { isGuideImageSrc, useImageDisplaySrc } from "../secrets/guideImages";
 import { Alignment, TextWrapping } from "./RichImageNodeAttributes";
@@ -309,6 +311,13 @@ export function RichImageNodeView(props: NodeViewProps) {
         <Dialog
           open={altTextDialogOpen}
           onClose={() => setAltTextDialogOpen(false)}
+          slotProps={getDialogFormSlotProps((evt: FormEvent) => {
+            evt.preventDefault();
+            setAltTextDialogOpen(false);
+            updateAttributes({
+              altText: altTextName,
+            });
+          })}
         >
           <DialogTitleWithCloseButton
             onClose={() => setAltTextDialogOpen(false)}
@@ -333,15 +342,7 @@ export function RichImageNodeView(props: NodeViewProps) {
             <Button onClick={() => setAltTextDialogOpen(false)} color="inherit">
               {t("common.cancel", "Cancel")}
             </Button>
-            <Button
-              onClick={() => {
-                setAltTextDialogOpen(false);
-                updateAttributes({
-                  altText: altTextName,
-                });
-              }}
-              color="primary"
-            >
+            <Button type="submit" color="primary">
               {t("common.save", "Save")}
             </Button>
           </DialogActions>

@@ -13,12 +13,14 @@ import {
   TextField,
 } from "@mui/material";
 import { TFunction } from "i18next";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 
 import { useTracksStore } from "stores/tracks.store";
+
+import { getDialogFormSlotProps } from "lib/dialogForm.lib";
 
 import {
   Difficulty,
@@ -69,7 +71,9 @@ export function EditOrCreateTrackDialog(props: EditOrCreateTrackDialogProps) {
     (store) => store.updateSceneChallenge,
   );
 
-  const handleSubmit = () => {
+  const handleSubmit = (evt: FormEvent) => {
+    evt.preventDefault();
+    if (loading) return;
     const potentialError = verifyTrack(track, t);
     if (potentialError) {
       setError(potentialError);
@@ -145,7 +149,13 @@ export function EditOrCreateTrackDialog(props: EditOrCreateTrackDialogProps) {
 
   return (
     <>
-      <Dialog open={open} onClose={handleDialogClose} maxWidth={"xs"} fullWidth>
+      <Dialog
+        open={open}
+        onClose={handleDialogClose}
+        maxWidth={"xs"}
+        fullWidth
+        slotProps={getDialogFormSlotProps(handleSubmit)}
+      >
         <DialogTitle>
           {initialTrack
             ? t("character.character-sidebar.track-edit-title", "Edit Track")
@@ -249,11 +259,7 @@ export function EditOrCreateTrackDialog(props: EditOrCreateTrackDialogProps) {
           >
             Cancel
           </Button>
-          <Button
-            disabled={loading}
-            onClick={() => handleSubmit()}
-            variant={"contained"}
-          >
+          <Button type={"submit"} disabled={loading} variant={"contained"}>
             {initialTrack
               ? t("character.character-sidebar.edit-track-button", "Edit Track")
               : t("character.character-sidebar.add-track-button", "Add Track")}
