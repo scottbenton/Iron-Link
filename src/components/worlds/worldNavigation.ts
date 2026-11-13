@@ -66,8 +66,6 @@ export function rememberWorldEntrySection(
   lastEntrySections.set(entryId, section);
 }
 
-export function getWorldEntryReturnSection(
-  entryId: string,
-): WorldEntrySection {
+export function getWorldEntryReturnSection(entryId: string): WorldEntrySection {
   return lastEntrySections.get(entryId) ?? "places";
 }
