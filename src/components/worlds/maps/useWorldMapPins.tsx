@@ -120,6 +120,8 @@ export function useWorldMapPins(
 
   const dialog = newPlaceAt && target.type === "new" && (
     <WorldMapNewPlaceDialog
+      worldId={entry.worldId}
+      categoryId={entry.categoryId}
       locationType={target.locationType}
       onCreate={(name) => createPlace(name, newPlaceAt)}
       onClose={() => setNewPlaceAt(undefined)}
