@@ -6,7 +6,6 @@ import {
   Menu,
   MenuItem,
   Typography,
-  useTheme,
 } from "@mui/material";
 import {
   DragEvent,
@@ -27,16 +26,17 @@ import { IWorldEntry } from "services/worldEntries.service";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldMapPinIcon } from "./WorldMapPinIcon";
 
-// A pin is its place's icon, with no badge around it, drawn about this much
-// of a cell across so it sits in its cell and scales with the map. Maps
+// A pin is its place's icon on a solid tile, drawn about this much of a cell
+// across so it sits in its cell and scales with the map. The tile keeps
+// glyphs readable on any terrain or image, whatever their own shape. Maps
 // without a grid size it as if it sat in a cell of the default size.
 const CELL_FILL = 0.7;
 const MAX_ICON = 64;
 // Below this the icon would be unreadable, so the pin is a dot.
 const MIN_ICON = 14;
 const DOT = 8;
-// A dark halo keeps the glyph readable on any terrain or image.
-const HALO = "drop-shadow(0 0 1px #000) drop-shadow(0 0 2px rgba(0,0,0,0.8))";
+// The glyph's margin inside its tile, as a share of the tile.
+const TILE_PADDING = 0.14;
 
 function getPinIconSize(scale: number): number {
   return Math.min(MAX_ICON, SQUARE_SIZE * scale * CELL_FILL);
@@ -81,7 +81,6 @@ export function WorldMapPinMarker({
   passThrough?: boolean;
 }) {
   const { t } = useTranslation();
-  const theme = useTheme();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const draggedEntry = entries.find((entry) => entry.id === dragging?.id);
   const draggingOut = !!draggedEntry && entries.length > 1;
@@ -125,16 +124,21 @@ export function WorldMapPinMarker({
           alignItems: "center",
           justifyContent: "center",
           color: "common.white",
-          filter: selected
-            ? `drop-shadow(0 0 2px ${theme.palette.primary.main}) drop-shadow(0 0 2px ${theme.palette.primary.main})`
-            : HALO,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.6)",
           ...(dot
             ? {
                 borderRadius: "50%",
                 bgcolor: selected ? "primary.main" : "common.white",
               }
             : {
-                // The icon fills the pin: glyphs, tiles and pictures alike.
+                boxSizing: "border-box",
+                p: list[0].imageFilename ? 0 : `${size * TILE_PADDING}px`,
+                borderRadius: `${Math.max(3, size * 0.2)}px`,
+                bgcolor: "background.paper",
+                border: selected ? 2 : 1,
+                borderColor: selected ? "primary.main" : "divider",
+                overflow: "visible",
+                // The icon fills the tile: glyphs, tiles and pictures alike.
                 "& > :not(.pin-count)": {
                   width: "100% !important",
                   height: "100% !important",
@@ -142,7 +146,7 @@ export function WorldMapPinMarker({
                   bgcolor: "transparent",
                 },
                 "& svg": { width: "100%", height: "100%" },
-                "& img": { borderRadius: "4px" },
+                "& img": { borderRadius: `${Math.max(2, size * 0.2 - 1)}px` },
               }),
         }}
       >
@@ -206,7 +210,7 @@ export function WorldMapPinMarker({
       flexDirection: "column",
       alignItems: "center",
       borderRadius: 1,
-      opacity: look === "ghost" ? 0.35 : passThrough ? 0.6 : 1,
+      opacity: look === "ghost" ? 0.35 : 1,
       pointerEvents: look === "ghost" || passThrough ? "none" : undefined,
       zIndex: look === "lifted" ? 1 : undefined,
       cursor: onDragStart
