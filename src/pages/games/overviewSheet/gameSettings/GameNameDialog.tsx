@@ -5,12 +5,14 @@ import {
   DialogContent,
   TextField,
 } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 
 import { useGameStore } from "stores/game.store";
+
+import { getDialogFormSlotProps } from "lib/dialogForm.lib";
 
 import { useGameIdOptional } from "../../gamePageLayout/hooks/useGameId";
 
@@ -33,19 +35,27 @@ export function GameNameDialog(props: GameNameDialogProps) {
   }, [gameName]);
 
   const changeName = useGameStore((store) => store.updateGameName);
-  const handleSave = useCallback(() => {
-    if (gameId) {
-      changeName(gameId, newGameName)
-        .then(() => {
-          onClose();
-        })
-        .catch(() => {});
-      onClose();
-    }
-  }, [newGameName, changeName, onClose, gameId]);
+  const handleSave = useCallback(
+    (evt: FormEvent) => {
+      evt.preventDefault();
+      if (gameId) {
+        changeName(gameId, newGameName)
+          .then(() => {
+            onClose();
+          })
+          .catch(() => {});
+        onClose();
+      }
+    },
+    [newGameName, changeName, onClose, gameId],
+  );
 
   return (
-    <Dialog open={!!gameId && open} onClose={onClose}>
+    <Dialog
+      open={!!gameId && open}
+      onClose={onClose}
+      slotProps={getDialogFormSlotProps(handleSave)}
+    >
       <DialogTitleWithCloseButton onClose={onClose}>
         {t("game.overview-sidebar.change-name", "Change Game Name")}
       </DialogTitleWithCloseButton>
@@ -62,7 +72,7 @@ export function GameNameDialog(props: GameNameDialogProps) {
         <Button color="inherit" onClick={onClose}>
           {t("common.cancel", "Cancel")}
         </Button>
-        <Button variant="contained" onClick={handleSave}>
+        <Button type="submit" variant="contained">
           {t("common.save", "Save")}
         </Button>
       </DialogActions>

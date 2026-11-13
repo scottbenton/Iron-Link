@@ -7,11 +7,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useUID } from "stores/auth.store";
 import { useUsersStore } from "stores/users.store";
+
+import { getDialogFormSlotProps } from "lib/dialogForm.lib";
 
 export interface UserNameDialogProps {
   open: boolean;
@@ -30,16 +32,20 @@ export function UserNameDialog(props: UserNameDialogProps) {
   }, [initialName]);
 
   const handleNameChange = useUsersStore((store) => store.setUserName);
-  const handleSave = useCallback(() => {
-    if (uid && name.trim()) {
-      handleNameChange(uid, name.trim())
-        .then(() => {})
-        .catch(() => {});
-    }
-  }, [name, handleNameChange, uid]);
+  const handleSave = useCallback(
+    (evt: FormEvent) => {
+      evt.preventDefault();
+      if (uid && name.trim()) {
+        handleNameChange(uid, name.trim())
+          .then(() => {})
+          .catch(() => {});
+      }
+    },
+    [name, handleNameChange, uid],
+  );
 
   return (
-    <Dialog open={!!uid && open}>
+    <Dialog open={!!uid && open} slotProps={getDialogFormSlotProps(handleSave)}>
       <DialogTitle>
         {t("layout.userNameDialog.title", "Set your name")}
       </DialogTitle>
@@ -58,11 +64,7 @@ export function UserNameDialog(props: UserNameDialogProps) {
         />
       </DialogContent>
       <DialogActions>
-        <Button
-          variant={"contained"}
-          disabled={!name.trim()}
-          onClick={handleSave}
-        >
+        <Button type={"submit"} variant={"contained"} disabled={!name.trim()}>
           {t("common.save", "Save")}
         </Button>
       </DialogActions>

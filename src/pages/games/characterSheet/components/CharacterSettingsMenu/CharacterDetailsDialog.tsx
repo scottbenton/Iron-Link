@@ -9,7 +9,7 @@ import {
   DialogContent,
   TextField,
 } from "@mui/material";
-import { ChangeEventHandler, useEffect, useState } from "react";
+import { ChangeEventHandler, FormEvent, useEffect, useState } from "react";
 import AvatarEditor from "react-avatar-editor";
 import { useTranslation } from "react-i18next";
 
@@ -22,6 +22,8 @@ import {
   useGameCharacter,
   useGameCharactersStore,
 } from "stores/gameCharacters.store";
+
+import { getDialogFormSlotProps } from "lib/dialogForm.lib";
 
 import {
   MAX_FILE_SIZE,
@@ -116,7 +118,9 @@ export function CharacterDetailsDialog(props: CharacterDetailsDialogProps) {
     setScale(1);
   };
 
-  const handleSave = () => {
+  const handleSave = (evt: FormEvent) => {
+    evt.preventDefault();
+    if (isLoading) return;
     if (characterId) {
       setIsLoading(true);
 
@@ -153,7 +157,11 @@ export function CharacterDetailsDialog(props: CharacterDetailsDialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      slotProps={getDialogFormSlotProps(handleSave)}
+    >
       <DialogTitleWithCloseButton onClose={onClose}>
         {t(
           "character.character-sidebar.change-character-name-portrait",
@@ -234,7 +242,7 @@ export function CharacterDetailsDialog(props: CharacterDetailsDialogProps) {
         <Button color={"inherit"} onClick={onClose} disabled={isLoading}>
           {t("common.cancel", "Cancel")}
         </Button>
-        <Button variant={"contained"} onClick={handleSave} disabled={isLoading}>
+        <Button type={"submit"} variant={"contained"} disabled={isLoading}>
           {t("common.save-changes", "Save Changes")}
         </Button>
       </DialogActions>
