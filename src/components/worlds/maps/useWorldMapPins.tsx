@@ -38,12 +38,14 @@ export interface WorldMapPlaceOption {
 // off. A tap puts down the chosen place (moving it if it was already pinned,
 // and moving it inside this entry if it was elsewhere) or opens the new place
 // dialog; new places go inside this entry with the chosen Location Type and
-// sharing to match it.
+// sharing to match it. `onPlaced` runs once a tap has put a place down, so
+// the map can hand back the hand tool.
 export function useWorldMapPins(
   entry: IWorldEntry,
   grid: WorldMapGrid,
   pins: Record<string, IWorldMapPin>,
   onError: (cause: unknown) => void,
+  onPlaced?: () => void,
 ) {
   const { t } = useTranslation();
   const uid = useUID();
@@ -147,8 +149,10 @@ export function useWorldMapPins(
 
   const onToolPointer = (event: WorldMapPointerEvent) => {
     if (event.phase !== "end") return;
-    if (target.type === "entry") void pinAt(target.entryId, event.point);
-    else setNewPlaceAt(event.point);
+    if (target.type === "entry") {
+      void pinAt(target.entryId, event.point);
+      onPlaced?.();
+    } else setNewPlaceAt(event.point);
   };
 
   const createPlace = async (name: string, point: Point) => {
@@ -186,6 +190,7 @@ export function useWorldMapPins(
           ...snapToGrid(grid, point),
         }),
       ]);
+      onPlaced?.();
     } catch (cause) {
       onError(cause);
       throw cause;

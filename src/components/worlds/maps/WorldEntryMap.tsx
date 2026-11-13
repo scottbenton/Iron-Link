@@ -112,7 +112,10 @@ export function WorldEntryMap({
     ? { ...paintSettings, tool }
     : paintSettings;
   const painting = useWorldMapPainting(entry.id, grid, settings);
-  const pinTool = useWorldMapPins(entry, grid, state.pins, onError);
+  // Once a place is down, the hand comes back, to look at it or move it.
+  const pinTool = useWorldMapPins(entry, grid, state.pins, onError, () =>
+    setTool("pan"),
+  );
   const chunks = useMemo(
     () => getDisplayedChunks(state),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -387,9 +390,11 @@ export function WorldEntryMap({
           onDragStart={canMovePins ? startDrag : undefined}
           dragging={dragging}
           passThrough={isPaintTool(tool)}
-          selected={pin.entries.some(
-            (pinned) => pinned.id === pinTool.selectedId,
-          )}
+          // The chosen place is marked only while the pin tool holds it.
+          selected={
+            tool === "pin" &&
+            pin.entries.some((pinned) => pinned.id === pinTool.selectedId)
+          }
         />
       )}
     />
