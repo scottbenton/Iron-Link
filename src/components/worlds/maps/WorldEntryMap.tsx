@@ -35,11 +35,15 @@ import { WorldMapsService } from "services/worldMaps.service";
 
 import { getEditorErrorMessage } from "../categories/categoryEditor.utils";
 import type { WorldNavigation } from "../worldNavigation";
+import { WorldMapBackgroundSize } from "./WorldMapBackgroundSize";
 import { WorldMapClearDialog } from "./WorldMapClearDialog";
 import { WorldMapCreate } from "./WorldMapCreate";
 import { WorldMapOptions } from "./WorldMapOptions";
+import { WorldMapPaintPicker } from "./WorldMapPaintPicker";
+import { WorldMapPinIcon } from "./WorldMapPinIcon";
 import { WorldMapPinMarker } from "./WorldMapPinMarker";
-import { WorldMapPinTools } from "./WorldMapPinTools";
+import { WorldMapPinMenu } from "./WorldMapPinMenu";
+import { WorldMapPinStatus } from "./WorldMapPinStatus";
 import { WorldMapToolbar } from "./WorldMapToolbar";
 import { WorldMapViewport } from "./WorldMapViewport";
 import { useWorldMapBackgroundEditor } from "./useWorldMapBackgroundEditor";
@@ -102,11 +106,17 @@ export function WorldEntryMap({
     (chosenTool === "background" && !backgroundEditor.background)
       ? "pan"
       : chosenTool;
+  // Editors drag pins to move them with the hand, as well as with the pin
+  // tool; a finger lifts one with a long press.
+  const canMovePins = canEdit && canPin && (tool === "pan" || tool === "pin");
   const settings = isPaintTool(tool)
     ? { ...paintSettings, tool }
     : paintSettings;
   const painting = useWorldMapPainting(entry.id, grid, settings);
-  const pinTool = useWorldMapPins(entry, grid, state.pins, onError);
+  // Once a place is down, the hand comes back, to look at it or move it.
+  const pinTool = useWorldMapPins(entry, grid, state.pins, onError, () =>
+    setTool("pan"),
+  );
   const chunks = useMemo(
     () => getDisplayedChunks(state),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -168,35 +178,116 @@ export function WorldEntryMap({
     : null;
   const painted = chunks.length > 0;
 
+  const renderOptions = (touch: boolean) => (
+    <WorldMapOptions
+      map={map}
+      painted={painted}
+      onError={onError}
+      touch={touch}
+    >
+      {(close) => [
+        <Divider key="divider" />,
+        <MenuItem
+          key="background"
+          disabled={upload.busy}
+          onClick={() => {
+            close();
+            upload.choose();
+          }}
+        >
+          <ListItemText
+            primary={
+              map.background
+                ? t(
+                    "worlds.maps.background.replace",
+                    "Replace background image",
+                  )
+                : t("worlds.maps.background.add", "Add background image")
+            }
+          />
+        </MenuItem>,
+        map.background && (
+          <MenuItem
+            key="remove-background"
+            disabled={upload.busy}
+            onClick={() => {
+              close();
+              upload.remove();
+            }}
+          >
+            <ListItemText
+              primary={t(
+                "worlds.maps.background.remove",
+                "Remove background image",
+              )}
+            />
+          </MenuItem>
+        ),
+        grid !== "none" && (
+          <MenuItem
+            key="clear"
+            disabled={!painted}
+            onClick={() => {
+              close();
+              setClearOpen(true);
+            }}
+          >
+            <ListItemText
+              primary={t("worlds.maps.clear.confirm", "Clear map")}
+              secondary={t(
+                "worlds.maps.clear.help",
+                "Pins stay where they are",
+              )}
+            />
+          </MenuItem>
+        ),
+      ]}
+    </WorldMapOptions>
+  );
+
+  const pinTarget = pinTool.target;
+  const pinPlace =
+    pinTarget.type === "entry"
+      ? pinTool.places.find((place) => place.entry.id === pinTarget.entryId)
+      : undefined;
+
   const renderToolbar = (touch: boolean) => (
     <WorldMapToolbar
       touch={touch}
       tool={tool}
       onToolChange={setTool}
       settings={settings}
-      onSettingsChange={setPaintSettings}
       canPaint={grid !== "none"}
       canPin={canPin}
-      pinTools={
-        <WorldMapPinTools
+      canMoveBackground={
+        !!(backgroundEditor.width && backgroundEditor.naturalSize)
+      }
+      pinIcon={
+        pinPlace ? (
+          // Held to the size of the other tool icons.
+          <Box
+            sx={{
+              display: "flex",
+              width: 20,
+              height: 20,
+              "& > *": { width: 20, height: 20, fontSize: 16 },
+            }}
+          >
+            <WorldMapPinIcon entry={pinPlace.entry} />
+          </Box>
+        ) : undefined
+      }
+      pinMenu={(close) => (
+        <WorldMapPinMenu
           touch={touch}
+          mapName={entry.name}
           places={pinTool.places}
           target={pinTool.target}
           onTargetChange={pinTool.setTarget}
           locationTypes={pinTool.locationTypes}
-          onRemove={pinTool.remove}
-          busy={pinTool.busy}
+          onClose={close}
         />
-      }
-      background={
-        backgroundEditor.width && backgroundEditor.naturalSize
-          ? {
-              width: backgroundEditor.width,
-              naturalWidth: backgroundEditor.naturalSize.width,
-              onResize: backgroundEditor.resize,
-            }
-          : null
-      }
+      )}
       actions={
         grid === "none" &&
         !map.background && (
@@ -213,10 +304,15 @@ export function WorldEntryMap({
           </Button>
         )
       }
+      options={touch ? undefined : renderOptions(false)}
     />
   );
 
-  const renderViewport = (touch: boolean, height?: string) => (
+  const renderViewport = (
+    touch: boolean,
+    height?: string,
+    attachedTop = false,
+  ) => (
     <WorldMapViewport
       grid={grid}
       chunks={chunks}
@@ -244,105 +340,72 @@ export function WorldEntryMap({
             : undefined
       }
       onPinDrop={
-        tool === "pin"
+        canMovePins
           ? (id, point) =>
               // A marker's id is its entry, or its spot when it holds
               // several, which then all move together.
-              (
+              void pinTool.movePins(
                 pinGroups
                   .find((group) => group.id === id)
-                  ?.pin.entries.map((pinned) => pinned.id) ?? [id]
-              ).forEach((entryId) => pinTool.onPinDrop(entryId, point))
+                  ?.pin.entries.map((pinned) => pinned.id) ?? [id],
+                point,
+              )
           : undefined
       }
       onBackgroundLoad={backgroundEditor.onBackgroundLoad}
+      selectedPoints={
+        tool === "pin" && pinTool.selectedId && state.pins[pinTool.selectedId]
+          ? [state.pins[pinTool.selectedId]]
+          : undefined
+      }
+      attachedTop={attachedTop}
       label={t("worlds.maps.label", "Map of {{name}}", { name: entry.name })}
       overlay={
-        <>
-          {canEdit && (!phone || paintMode) && (
-            <WorldMapOptions
-              map={map}
-              painted={painted}
-              onError={onError}
-              touch={touch}
-            >
-              {(close) => [
-                <Divider key="divider" />,
-                <MenuItem
-                  key="background"
-                  disabled={upload.busy}
-                  onClick={() => {
-                    close();
-                    upload.choose();
-                  }}
-                >
-                  <ListItemText
-                    primary={
-                      map.background
-                        ? t(
-                            "worlds.maps.background.replace",
-                            "Replace background image",
-                          )
-                        : t(
-                            "worlds.maps.background.add",
-                            "Add background image",
-                          )
-                    }
-                  />
-                </MenuItem>,
-                map.background && (
-                  <MenuItem
-                    key="remove-background"
-                    disabled={upload.busy}
-                    onClick={() => {
-                      close();
-                      upload.remove();
-                    }}
-                  >
-                    <ListItemText
-                      primary={t(
-                        "worlds.maps.background.remove",
-                        "Remove background image",
-                      )}
-                    />
-                  </MenuItem>
-                ),
-                grid !== "none" && (
-                  <MenuItem
-                    key="clear"
-                    disabled={!painted}
-                    onClick={() => {
-                      close();
-                      setClearOpen(true);
-                    }}
-                  >
-                    <ListItemText
-                      primary={t("worlds.maps.clear.confirm", "Clear map")}
-                      secondary={t(
-                        "worlds.maps.clear.help",
-                        "Pins stay where they are",
-                      )}
-                    />
-                  </MenuItem>
-                ),
-              ]}
-            </WorldMapOptions>
-          )}
-        </>
+        canEdit &&
+        (!phone || paintMode) &&
+        (isPaintTool(tool) && tool !== "path" ? (
+          <WorldMapPaintPicker
+            touch={touch}
+            settings={settings}
+            onSettingsChange={setPaintSettings}
+          />
+        ) : tool === "pin" ? (
+          <WorldMapPinStatus
+            touch={touch}
+            mapName={entry.name}
+            places={pinTool.places}
+            target={pinTool.target}
+            onRemove={pinTool.remove}
+            busy={pinTool.busy}
+          />
+        ) : tool === "background" &&
+          backgroundEditor.width &&
+          backgroundEditor.naturalSize ? (
+          <WorldMapBackgroundSize
+            touch={touch}
+            width={backgroundEditor.width}
+            naturalWidth={backgroundEditor.naturalSize.width}
+            onResize={backgroundEditor.resize}
+          />
+        ) : undefined)
       }
       renderPin={({ id, pin, screen, scale, dragging, startDrag }) => (
         <WorldMapPinMarker
           key={id}
           entries={pin.entries}
           screen={screen}
+          scale={scale}
           showLabel={scale >= PIN_LABEL_SCALE}
           navigation={navigation}
           onSelect={tool === "pin" ? pinTool.select : undefined}
-          onDragStart={tool === "pin" ? startDrag : undefined}
+          onDragStart={canMovePins ? startDrag : undefined}
           dragging={dragging}
-          selected={pin.entries.some(
-            (pinned) => pinned.id === pinTool.selectedId,
-          )}
+          passThrough={isPaintTool(tool)}
+          // The chosen place is marked only while the pin tool holds it.
+          selected={
+            tool === "pin" &&
+            pin.entries.some((pinned) => pinned.id === pinTool.selectedId)
+          }
         />
       )}
     />
@@ -357,7 +420,6 @@ export function WorldEntryMap({
   return (
     <Stack spacing={1}>
       {!paintMode && errorAlert}
-      {canEdit && upload.input}
       {canEdit && phone && (
         <Button
           variant="contained"
@@ -368,8 +430,13 @@ export function WorldEntryMap({
           {t("worlds.maps.paint-mode", "Edit map")}
         </Button>
       )}
-      {canEdit && !phone && renderToolbar(false)}
-      {!paintMode && renderViewport(phone)}
+      {/* The toolbar sits on the map's top edge. */}
+      {!paintMode && (
+        <Box>
+          {canEdit && !phone && renderToolbar(false)}
+          {renderViewport(phone, undefined, canEdit && !phone)}
+        </Box>
+      )}
       {paintMode && (
         <Dialog
           fullScreen
@@ -403,6 +470,7 @@ export function WorldEntryMap({
                   name: entry.name,
                 })}
               </Typography>
+              {renderOptions(true)}
               <Button
                 variant="contained"
                 startIcon={<CheckIcon />}
@@ -423,6 +491,9 @@ export function WorldEntryMap({
         </Dialog>
       )}
       {pinTool.dialog}
+      {/* Last, as it draws nothing: a hidden first child would still give
+          the toolbar the Stack's gap above it. */}
+      {canEdit && upload.input}
       {canEdit && (
         <WorldMapClearDialog
           entryId={entry.id}
