@@ -14,7 +14,7 @@ import {
 import { ReactNode, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { ActionToolbarStrip } from "components/Layout/ActionToolbarStrip";
+import { ScrollFadeRow } from "components/Layout/ScrollFadeRow";
 
 import { PaintSettings } from "lib/worldMap/paint";
 import { getTerrainColor } from "lib/worldMap/terrain";
@@ -270,10 +270,20 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
       </Box>
     );
 
-  // Styled as the notes toolbar: a grey strip holding outlined groups.
+  // Styled as the notes toolbar, a grey strip holding outlined groups, with
+  // even padding and joined to the top of the map below it.
   return (
-    <Box role="toolbar" aria-label={t("worlds.maps.tools.label", "Map tools")}>
-      <ActionToolbarStrip>
+    <Box
+      role="toolbar"
+      aria-label={t("worlds.maps.tools.label", "Map tools")}
+      sx={(theme) => ({
+        p: 0.5,
+        bgcolor: theme.palette.grey[theme.palette.mode === "light" ? 200 : 800],
+        borderTopLeftRadius: theme.shape.borderRadius,
+        borderTopRightRadius: theme.shape.borderRadius,
+      })}
+    >
+      <ScrollFadeRow sx={{ alignItems: "center", gap: 0.5 }}>
         {toolButtons}
         <Box
           sx={{
@@ -287,7 +297,7 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
           {actions}
           {options}
         </Box>
-      </ActionToolbarStrip>
+      </ScrollFadeRow>
       {popup}
     </Box>
   );

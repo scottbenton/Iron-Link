@@ -308,7 +308,11 @@ export function WorldEntryMap({
     />
   );
 
-  const renderViewport = (touch: boolean, height?: string) => (
+  const renderViewport = (
+    touch: boolean,
+    height?: string,
+    attachedTop = false,
+  ) => (
     <WorldMapViewport
       grid={grid}
       chunks={chunks}
@@ -354,6 +358,7 @@ export function WorldEntryMap({
           ? [state.pins[pinTool.selectedId]]
           : undefined
       }
+      attachedTop={attachedTop}
       label={t("worlds.maps.label", "Map of {{name}}", { name: entry.name })}
       overlay={
         canEdit &&
@@ -415,7 +420,6 @@ export function WorldEntryMap({
   return (
     <Stack spacing={1}>
       {!paintMode && errorAlert}
-      {canEdit && upload.input}
       {canEdit && phone && (
         <Button
           variant="contained"
@@ -426,8 +430,13 @@ export function WorldEntryMap({
           {t("worlds.maps.paint-mode", "Edit map")}
         </Button>
       )}
-      {canEdit && !phone && renderToolbar(false)}
-      {!paintMode && renderViewport(phone)}
+      {/* The toolbar sits on the map's top edge. */}
+      {!paintMode && (
+        <Box>
+          {canEdit && !phone && renderToolbar(false)}
+          {renderViewport(phone, undefined, canEdit && !phone)}
+        </Box>
+      )}
       {paintMode && (
         <Dialog
           fullScreen
@@ -482,6 +491,9 @@ export function WorldEntryMap({
         </Dialog>
       )}
       {pinTool.dialog}
+      {/* Last, as it draws nothing: a hidden first child would still give
+          the toolbar the Stack's gap above it. */}
+      {canEdit && upload.input}
       {canEdit && (
         <WorldMapClearDialog
           entryId={entry.id}

@@ -93,6 +93,8 @@ export interface WorldMapViewportProps<T> {
   renderPin: (placement: WorldMapPinPlacement<T>) => ReactNode;
   // Extra controls over the map, top left.
   overlay?: ReactNode;
+  // A toolbar sits on the map's top edge, so that edge is square.
+  attachedTop?: boolean;
   // Spots whose cells are outlined in the accent colour, such as the
   // selected pin's.
   selectedPoints?: Point[];
@@ -164,6 +166,7 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
     onPinDrop,
     renderPin,
     overlay,
+    attachedTop = false,
     selectedPoints,
     touch = false,
     autoFit = false,
@@ -705,6 +708,7 @@ export function WorldMapViewport<T>(props: WorldMapViewportProps<T>) {
         minHeight: 320,
         overflow: "hidden",
         borderRadius: 1,
+        ...(attachedTop && { borderTopLeftRadius: 0, borderTopRightRadius: 0 }),
         bgcolor: "grey.900",
         touchAction: "none",
         userSelect: "none",
