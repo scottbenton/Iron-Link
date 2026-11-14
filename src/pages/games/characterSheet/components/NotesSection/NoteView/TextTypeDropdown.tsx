@@ -81,7 +81,7 @@ export const TextTypeDropdown: React.FC<TextTypeDropdownProps> = (props) => {
         margin={"none"}
         size="small"
         sx={[
-          { minWidth: "140px", width: "140px", ml: -0.5 },
+          { minWidth: "140px", width: "140px" },
           ...(Array.isArray(sx) ? sx : [sx]),
         ]}
       >
