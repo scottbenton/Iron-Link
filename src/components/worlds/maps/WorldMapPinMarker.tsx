@@ -26,8 +26,8 @@ import { IWorldEntry } from "services/worldEntries.service";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldMapPinIcon } from "./WorldMapPinIcon";
 
-// A pin is its place's icon on a solid tile, drawn about this much of a cell
-// across so it sits in its cell and scales with the map. The tile keeps
+// A pin is its place's icon on a solid disc, drawn about this much of a cell
+// across so it sits in its cell and scales with the map. The disc keeps
 // glyphs readable on any terrain or image, whatever their own shape. Maps
 // without a grid size it as if it sat in a cell of the default size.
 const CELL_FILL = 0.7;
@@ -35,8 +35,8 @@ const MAX_ICON = 64;
 // Below this the icon would be unreadable, so the pin is a dot.
 const MIN_ICON = 14;
 const DOT = 8;
-// The glyph's margin inside its tile, as a share of the tile.
-const TILE_PADDING = 0.14;
+// The glyph's margin inside its disc, as a share of the disc.
+const TILE_PADDING = 0.17;
 
 function getPinIconSize(scale: number): number {
   return Math.min(MAX_ICON, SQUARE_SIZE * scale * CELL_FILL);
@@ -133,12 +133,12 @@ export function WorldMapPinMarker({
             : {
                 boxSizing: "border-box",
                 p: list[0].imageFilename ? 0 : `${size * TILE_PADDING}px`,
-                borderRadius: `${Math.max(3, size * 0.2)}px`,
+                borderRadius: "50%",
                 bgcolor: "background.paper",
                 border: selected ? 2 : 1,
                 borderColor: selected ? "primary.main" : "divider",
                 overflow: "visible",
-                // The icon fills the tile: glyphs, tiles and pictures alike.
+                // The icon fills the disc: glyphs, tiles and pictures alike.
                 "& > :not(.pin-count)": {
                   width: "100% !important",
                   height: "100% !important",
@@ -146,7 +146,7 @@ export function WorldMapPinMarker({
                   bgcolor: "transparent",
                 },
                 "& svg": { width: "100%", height: "100%" },
-                "& img": { borderRadius: `${Math.max(2, size * 0.2 - 1)}px` },
+                "& img": { borderRadius: "50%" },
               }),
         }}
       >
