@@ -6,7 +6,6 @@ import RouteIcon from "@mui/icons-material/Route";
 import WallpaperIcon from "@mui/icons-material/Wallpaper";
 import {
   Box,
-  Paper,
   Popover,
   ToggleButton,
   ToggleButtonGroup,
@@ -14,6 +13,8 @@ import {
 } from "@mui/material";
 import { ReactNode, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { ActionToolbarStrip } from "components/Layout/ActionToolbarStrip";
 
 import { PaintSettings } from "lib/worldMap/paint";
 import { getTerrainColor } from "lib/worldMap/terrain";
@@ -269,24 +270,25 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
       </Box>
     );
 
+  // Styled as the notes toolbar: a grey strip holding outlined groups.
   return (
-    <Paper
-      variant="outlined"
-      role="toolbar"
-      aria-label={t("worlds.maps.tools.label", "Map tools")}
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 1,
-        p: 1,
-      }}
-    >
-      {toolButtons}
-      <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
-        {actions}
-        {options}
-      </Box>
+    <Box role="toolbar" aria-label={t("worlds.maps.tools.label", "Map tools")}>
+      <ActionToolbarStrip>
+        {toolButtons}
+        <Box
+          sx={{
+            ml: "auto",
+            pl: 0.5,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          {actions}
+          {options}
+        </Box>
+      </ActionToolbarStrip>
       {popup}
-    </Paper>
+    </Box>
   );
 }
