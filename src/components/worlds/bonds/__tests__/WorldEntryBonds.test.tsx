@@ -94,7 +94,7 @@ function bond(
 
 let loaded: IWorldEntryBond[];
 
-function renderBonds(placement: "header" | "body", inGame = true) {
+function renderBonds(inGame = true) {
   const wrap = (children: ReactNode) =>
     inGame ? (
       <WorldBondsGameContext.Provider value={{ gameId: "game" }}>
@@ -105,7 +105,7 @@ function renderBonds(placement: "header" | "body", inGame = true) {
     );
   return render(
     <ConfirmProvider>
-      {wrap(<WorldEntryBonds entry={entry} placement={placement} />)}
+      {wrap(<WorldEntryBonds entry={entry} />)}
     </ConfirmProvider>,
   );
 }
@@ -138,7 +138,7 @@ afterEach(() => {
 describe("world entry bonds", () => {
   it("says where bonds live outside a game", () => {
     useDataswornTreeStore.setState({ specialTrackRules: rules("bonds") });
-    renderBonds("body", false);
+    renderBonds(false);
     expect(
       screen.getByText(
         "Bonds belong to characters, so they show when you open this world from a game's Notes tab.",
@@ -146,24 +146,23 @@ describe("world entry bonds", () => {
     ).toBeInTheDocument();
   });
 
-  it("toggles an Ironlands bond and marks the Bonds track, with Undo", async () => {
+  it("checks an Ironlands bond and marks the Bonds track, with Undo", async () => {
     useDataswornTreeStore.setState({ specialTrackRules: rules("bonds") });
     loaded = [bond("vex")];
     const add = vi
       .spyOn(WorldEntryBondsService, "addBond")
       .mockResolvedValue(bond("kira"));
     const user = userEvent.setup();
-    renderBonds("header");
+    renderBonds();
 
-    const group = screen.getByRole("group", { name: "Bonds" });
-    // Someone else's character shows its state but cannot be toggled.
-    expect(within(group).getByText("Vex")).toBeInTheDocument();
-    expect(
-      within(group).queryByRole("button", { name: "Vex" }),
-    ).not.toBeInTheDocument();
+    const section = screen.getByRole("region", { name: "Bonds" });
+    // Someone else's character shows its state but cannot be changed.
+    const vex = within(section).getByRole("checkbox", { name: "Vex" });
+    expect(vex).toBeChecked();
+    expect(vex).toBeDisabled();
 
-    const kira = within(group).getByRole("button", { name: "Kira" });
-    expect(kira).toHaveAttribute("aria-pressed", "false");
+    const kira = within(section).getByRole("checkbox", { name: "Kira" });
+    expect(kira).not.toBeChecked();
     await user.click(kira);
 
     expect(add).toHaveBeenCalledWith({
@@ -182,16 +181,13 @@ describe("world entry bonds", () => {
       expect.objectContaining({ action: expect.any(Function) }),
     );
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Kira" })).toHaveAttribute(
-        "aria-pressed",
-        "true",
-      ),
+      expect(screen.getByRole("checkbox", { name: "Kira" })).toBeChecked(),
     );
   });
 
   it("shows no bonds for rules without them", () => {
     useDataswornTreeStore.setState({ specialTrackRules: {} });
-    const { container } = renderBonds("header");
+    const { container } = renderBonds();
     expect(container).toBeEmptyDOMElement();
   });
 
@@ -213,12 +209,13 @@ describe("world entry bonds", () => {
         ...changes,
       }));
     const user = userEvent.setup();
-    renderBonds("body");
+    renderBonds();
 
     expect(
       screen.getByRole("heading", { name: "Connections" }),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Mark progress" }));
+    // + marks progress by the rank.
+    await user.click(screen.getByRole("button", { name: "Increment Kira" }));
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({ characterId: "kira" }),
       { ticks: 12 },
@@ -256,7 +253,7 @@ describe("world entry bonds", () => {
         bond("kira", { kind: "connection", rank: Difficulty.Formidable }),
       );
     const user = userEvent.setup();
-    renderBonds("body");
+    renderBonds();
 
     await user.click(screen.getByRole("button", { name: "Make a connection" }));
     await user.click(screen.getByRole("menuitem", { name: "Formidable" }));
@@ -265,7 +262,7 @@ describe("world entry bonds", () => {
       Difficulty.Formidable,
     );
     expect(
-      await screen.findByRole("button", { name: "Mark progress" }),
+      await screen.findByRole("button", { name: "Forge a bond" }),
     ).toBeInTheDocument();
   });
 });

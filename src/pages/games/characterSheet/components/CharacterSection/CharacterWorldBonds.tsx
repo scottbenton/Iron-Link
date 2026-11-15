@@ -121,17 +121,7 @@ export function CharacterWorldBonds() {
                 key={connection.entryId}
                 connection={connection}
                 label={entry.name}
-                title={
-                  <Link
-                    {...getEntryLinkProps(entry)}
-                    variant="body2"
-                    color="inherit"
-                  >
-                    {t("character.bonds.open-entry", "Open {{name}}", {
-                      name: entry.name,
-                    })}
-                  </Link>
-                }
+                labelLinkProps={getEntryLinkProps(entry)}
                 canEdit={canEdit}
                 onTicksChange={(ticks) =>
                   actions.updateConnection(connection, { ticks })

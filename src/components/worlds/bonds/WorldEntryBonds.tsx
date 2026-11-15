@@ -1,17 +1,7 @@
 import AddIcon from "@mui/icons-material/Add";
-import {
-  Alert,
-  Box,
-  Button,
-  Menu,
-  MenuItem,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Menu, MenuItem, Stack } from "@mui/material";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
-
-import { useHeadingComponent } from "components/HeadingLevel";
 
 import { useRollCompleteProgressTrack } from "pages/games/hooks/useRollCompleteProgressTrack";
 
@@ -28,9 +18,10 @@ import { Difficulty, TrackTypes } from "repositories/tracks.repository";
 import { IWorldEntry } from "services/worldEntries.service";
 import { IWorldEntryBond } from "services/worldEntryBonds.service";
 
+import { WorldBondSection } from "./WorldBondSection";
 import { useWorldBondsGame } from "./WorldBondsGameContext";
 import { WorldConnectionRow } from "./WorldConnectionRow";
-import { WorldEntryBondChips } from "./WorldEntryBondChips";
+import { WorldEntryBondList } from "./WorldEntryBondList";
 import { useWorldBondActions } from "./useWorldBondActions";
 import {
   WorldBondCharacter,
@@ -46,22 +37,14 @@ const RANKS = [
   Difficulty.Epic,
 ];
 
-// A character's bonds with an entry, in the terms of the current game's
-// rules. Ironlands bonds are chips in the entry's header; Starforged
-// connections are a section of their own. Outside a game there are no
-// characters to show, so the body says where bonds live instead.
-export function WorldEntryBonds({
-  entry,
-  placement,
-}: {
-  entry: IWorldEntry;
-  placement: "header" | "body";
-}) {
+// The game's characters and their bonds with an entry, in the terms of the
+// game's rules: a checkbox per character for Ironlands bonds, a track per
+// connected character for Starforged connections. Outside a game there are
+// no characters to show, so it says where bonds live instead.
+export function WorldEntryBonds({ entry }: { entry: IWorldEntry }) {
   const game = useWorldBondsGame();
-  if (!game) {
-    return placement === "body" ? <WorldEntryBondsElsewhere /> : null;
-  }
-  return <GameWorldEntryBonds entry={entry} placement={placement} />;
+  if (!game) return <WorldEntryBondsElsewhere />;
+  return <GameWorldEntryBonds entry={entry} />;
 }
 
 function WorldEntryBondsElsewhere() {
@@ -76,13 +59,7 @@ function WorldEntryBondsElsewhere() {
   );
 }
 
-function GameWorldEntryBonds({
-  entry,
-  placement,
-}: {
-  entry: IWorldEntry;
-  placement: "header" | "body";
-}) {
+function GameWorldEntryBonds({ entry }: { entry: IWorldEntry }) {
   const specialTrackRules = useSpecialTrackRules();
   const mechanics = getWorldBondMechanics(specialTrackRules);
   useListenToEntryBonds(mechanics ? entry.id : undefined);
@@ -95,10 +72,9 @@ function GameWorldEntryBonds({
   if (!mechanics || characters.length === 0) return null;
 
   if (mechanics.kind === "bond") {
-    if (placement !== "header") return null;
     return (
-      <WorldEntryBondChips
-        entryId={entry.id}
+      <WorldEntryBondList
+        entry={entry}
         characters={characters}
         bonds={bonds}
         onToggle={(characterId, bonded) =>
@@ -107,7 +83,6 @@ function GameWorldEntryBonds({
       />
     );
   }
-  if (placement !== "body") return null;
   return (
     <WorldEntryConnections
       entry={entry}
@@ -130,8 +105,6 @@ function WorldEntryConnections({
   mechanics: WorldBondMechanics;
 }) {
   const { t } = useTranslation();
-  const headingComponent = useHeadingComponent(2);
-  const titleId = useId();
   const actions = useWorldBondActions(mechanics);
   const rollProgress = useRollCompleteProgressTrack();
   const byCharacter = new Map(
@@ -147,22 +120,19 @@ function WorldEntryConnections({
   if (listed.length === 0 && canConnect.length === 0) return null;
 
   return (
-    <Box component="section" aria-labelledby={titleId}>
-      <Typography
-        id={titleId}
-        component={headingComponent}
-        variant="overline"
-        sx={{
-          display: "block",
-          fontFamily: "fontFamilyTitle",
-          fontSize: 15,
-          lineHeight: 1.5,
-          mb: 1,
-        }}
-      >
-        {t("worlds.bonds.connections", "Connections")}
-      </Typography>
-      <Stack spacing={2}>
+    <WorldBondSection
+      title={t("worlds.bonds.connections", "Connections")}
+      description={
+        listed.length === 0
+          ? t(
+              "worlds.bonds.connections-empty",
+              "No character has a connection with {{entry}} yet.",
+              { entry: entry.name },
+            )
+          : undefined
+      }
+    >
+      <Stack spacing={3}>
         {listed.map((character) => {
           const connection = byCharacter.get(character.id)!;
           return (
@@ -209,7 +179,7 @@ function WorldEntryConnections({
           </Box>
         )}
       </Stack>
-    </Box>
+    </WorldBondSection>
   );
 }
 

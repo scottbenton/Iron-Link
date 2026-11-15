@@ -8,24 +8,23 @@ import {
   Tooltip,
 } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
-import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { NavigationLinkProps } from "components/LinkComponent";
 import { ProgressTrack } from "components/datasworn/ProgressTrack";
 
-import { MAX_TICKS } from "lib/progressTrack.lib";
 import { CONNECTION_PROGRESS_TICKS } from "lib/worldBonds.lib";
 
 import type { IWorldEntryBond } from "services/worldEntryBonds.service";
 
-// One Starforged connection: its rank and track, Mark progress, Forge a bond
-// (a progress roll, for people who let the app roll) and Bonded, which anyone
-// who rolled their own dice ticks by hand. The entry lists one per character;
+// One Starforged connection: its rank and track (whose + marks progress by
+// the rank), Forge a bond (a progress roll, for people who let the app roll)
+// and Bonded, which anyone who rolled their own dice ticks by hand. The entry lists one per character;
 // the character sheet one per entry.
 export function WorldConnectionRow({
   connection,
   label,
-  title,
+  labelLinkProps,
   canEdit,
   onTicksChange,
   onForgeBond,
@@ -35,8 +34,8 @@ export function WorldConnectionRow({
   connection: IWorldEntryBond;
   // The track's name, read with its rank: the character or the entry.
   label: string;
-  // Shown in place of the label, such as a link to the entry.
-  title?: ReactNode;
+  // Makes the label a link, such as to the entry from the character sheet.
+  labelLinkProps?: NavigationLinkProps;
   canEdit: boolean;
   onTicksChange: (ticks: number) => void;
   onForgeBond?: () => void;
@@ -69,37 +68,28 @@ export function WorldConnectionRow({
   };
 
   return (
-    <Box>
-      {title}
+    // As wide as the track, so the rank, the +/- buttons and the actions
+    // line up with it instead of spreading across the page.
+    <Box sx={{ width: "fit-content", maxWidth: "100%" }}>
       <ProgressTrack
         label={label}
+        labelLinkProps={labelLinkProps}
         difficulty={connection.rank ?? undefined}
         trackType={t("worlds.bonds.connection", "connection")}
         value={connection.ticks}
         step={step}
         onChange={canEdit ? onTicksChange : undefined}
       />
-      {canEdit && (
+      {canEdit ? (
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             flexWrap: "wrap",
-            gap: 1,
+            columnGap: 2,
             mt: 1,
           }}
         >
-          <Button
-            variant="outlined"
-            color="inherit"
-            size="small"
-            disabled={connection.ticks >= MAX_TICKS}
-            onClick={() =>
-              onTicksChange(Math.min(MAX_TICKS, connection.ticks + step))
-            }
-          >
-            {t("worlds.bonds.mark-progress", "Mark progress")}
-          </Button>
           {onForgeBond && (
             <Button
               variant="outlined"
@@ -118,9 +108,8 @@ export function WorldConnectionRow({
               />
             }
             label={t("worlds.bonds.bonded", "Bonded")}
-            sx={{ ml: 0 }}
+            sx={{ mx: 0 }}
           />
-          <Box sx={{ flexGrow: 1 }} />
           <Tooltip
             title={t("worlds.bonds.remove-connection", "Remove connection")}
           >
@@ -131,16 +120,18 @@ export function WorldConnectionRow({
                 { label },
               )}
               onClick={remove}
+              sx={{ ml: "auto" }}
             >
               <DeleteIcon />
             </IconButton>
           </Tooltip>
         </Box>
-      )}
-      {!canEdit && connection.bonded && (
-        <Box sx={{ mt: 0.5, typography: "body2", color: "text.secondary" }}>
-          {t("worlds.bonds.bonded-note", "Bonded")}
-        </Box>
+      ) : (
+        connection.bonded && (
+          <Box sx={{ mt: 0.5, typography: "body2", color: "text.secondary" }}>
+            {t("worlds.bonds.bonded-note", "Bonded")}
+          </Box>
+        )
       )}
     </Box>
   );

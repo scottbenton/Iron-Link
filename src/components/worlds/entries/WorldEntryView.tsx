@@ -178,11 +178,6 @@ export function WorldEntryView({
               {subtitle}
             </Typography>
           )}
-          {category.supportsBonds && (
-            <Box sx={{ mt: 1 }}>
-              <WorldEntryBonds entry={entry} placement="header" />
-            </Box>
-          )}
         </Box>
         {headerActions && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -258,9 +253,7 @@ export function WorldEntryView({
             guided={guided}
             navigation={navigation}
           />
-          {category.supportsBonds && (
-            <WorldEntryBonds entry={entry} placement="body" />
-          )}
+          {category.supportsBonds && <WorldEntryBonds entry={entry} />}
           {notesError && (
             <Alert severity="error" onClose={() => setNotesError(undefined)}>
               {notesError}
