@@ -138,21 +138,21 @@ that are easy to miss. When you learn a new one, add a line here.
 
 ## Bonds
 
-- A character's bond with a world entry is a `world_entry_bonds` row. Its
-  `kind` follows the character's game rules, chosen when the row is made:
-  `bond` (Ironlands, the row is the bond) or `connection` (the character
-  shares a `world_entry_connections` row, named by `connection_id`). A
-  connection holds `rank`, `completed_ticks` 0 to 40 and `bonded`; it is one
-  character's or shared by allies of its game, a character is in at most one
-  per entry, and the last member leaving removes it. Make one with its first
-  member through `create_world_entry_connection`. A row only exists in a
-  category with bonds, for a character whose game is linked to the entry's
-  world; turning bonds off, unlinking a game or moving a character keeps
-  rows, so readers filter by the world's linked games.
-- Bonds are read with their entry and written by people who can edit the
-  character and read the entry, never by the Guide for someone else's sheet.
-  A shared connection's track is changed by anyone who can edit one of its
-  members.
+- The game's rules decide what a character has with a world entry: an
+  Ironlands bond is a `world_entry_bonds` row (the row is the bond); a
+  Starforged connection is a `world_entry_connections` row holding `rank`,
+  `completed_ticks` 0 to 40 and `bonded`. A connection is one character's
+  (`character_id`) or the whole party's (`character_id` null: every character
+  of `game_id`, including later ones). Per entry and game there is either one
+  party connection or at most one per character, never both; sharing and
+  keeping for one character are updates of `character_id`. Rows only exist in
+  a category with bonds, for a game linked to the entry's world; turning bonds
+  off, unlinking a game or moving a character keeps them, so readers filter
+  by the world's linked games.
+- Bonds and connections are read with their entry and written by people who
+  can edit the character and read the entry, never by the Guide for someone
+  else's sheet. A party connection is changed by anyone who can edit a
+  character of its game (`can_edit_world_entry_connection`).
 
 ## Rich text
 

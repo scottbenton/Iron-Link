@@ -909,28 +909,22 @@ export type Database = {
       world_entry_bonds: {
         Row: {
           character_id: string;
-          connection_id: string | null;
           created_at: string;
           entry_id: string;
-          kind: string;
           updated_at: string;
           world_id: string;
         };
         Insert: {
           character_id: string;
-          connection_id?: string | null;
           created_at?: string;
           entry_id: string;
-          kind?: string;
           updated_at?: string;
           world_id?: string;
         };
         Update: {
           character_id?: string;
-          connection_id?: string | null;
           created_at?: string;
           entry_id?: string;
-          kind?: string;
           updated_at?: string;
           world_id?: string;
         };
@@ -940,13 +934,6 @@ export type Database = {
             columns: ["character_id"];
             isOneToOne: false;
             referencedRelation: "characters";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "world_entry_bonds_connection_id_fkey";
-            columns: ["connection_id"];
-            isOneToOne: false;
-            referencedRelation: "world_entry_connections";
             referencedColumns: ["id"];
           },
           {
@@ -968,6 +955,7 @@ export type Database = {
       world_entry_connections: {
         Row: {
           bonded: boolean;
+          character_id: string | null;
           completed_ticks: number;
           created_at: string;
           entry_id: string;
@@ -979,6 +967,7 @@ export type Database = {
         };
         Insert: {
           bonded?: boolean;
+          character_id?: string | null;
           completed_ticks?: number;
           created_at?: string;
           entry_id: string;
@@ -990,6 +979,7 @@ export type Database = {
         };
         Update: {
           bonded?: boolean;
+          character_id?: string | null;
           completed_ticks?: number;
           created_at?: string;
           entry_id?: string;
@@ -1000,6 +990,13 @@ export type Database = {
           world_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "world_entry_connections_character_id_fkey";
+            columns: ["character_id"];
+            isOneToOne: false;
+            referencedRelation: "characters";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "world_entry_connections_entry_id_fkey";
             columns: ["entry_id"];
@@ -1383,13 +1380,9 @@ export type Database = {
         Args: { p_character_id: string; p_uid: string };
         Returns: boolean;
       };
-      create_world_entry_connection: {
-        Args: {
-          p_character_id: string;
-          p_entry_id: string;
-          p_rank: Database["public"]["Enums"]["progress_track_difficulty"];
-        };
-        Returns: string;
+      can_edit_world_entry_connection: {
+        Args: { p_character_id: string; p_game_id: string };
+        Returns: boolean;
       };
       create_world: {
         Args: { p_name: string; p_setting_key?: string };
