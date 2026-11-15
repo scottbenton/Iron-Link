@@ -68,9 +68,15 @@ export function WorldCategoryCapabilities({
   ];
   return (
     <FormGroup>
-      <FormLabel component="legend" sx={{ mb: 0.5 }}>
+      <FormLabel component="legend">
         {t("worlds.categories.capabilities", "Entry features")}
       </FormLabel>
+      <FormHelperText sx={{ mx: 0, mt: 0, mb: 1.5 }}>
+        {t(
+          "worlds.categories.capabilities-help",
+          "Controls which tools entries in this category offer.",
+        )}
+      </FormHelperText>
       <Stack spacing={1} sx={{ mb: 1 }}>
         {options.map((option) => (
           <WorldSettingCheckbox
@@ -84,12 +90,6 @@ export function WorldCategoryCapabilities({
           />
         ))}
       </Stack>
-      <FormHelperText sx={{ mx: 0 }}>
-        {t(
-          "worlds.categories.capabilities-help",
-          "Controls which tools entries in this category offer.",
-        )}
-      </FormHelperText>
     </FormGroup>
   );
 }
