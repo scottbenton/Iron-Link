@@ -31,14 +31,17 @@ import { CONNECTION_RANKS, getRankLabel } from "./worldBondLabels";
 export interface WorldConnectionMenuAction {
   key: string;
   label: string;
+  // Shown under a label, such as why the action is unavailable.
+  secondary?: string;
+  disabled?: boolean;
   onClick: () => void;
 }
 
 // One connection: its rank and track (whose + marks progress by the rank),
 // the rules' connection roll (Starforged's Forge a Bond, for people who let
 // the app roll) and Bonded, which anyone who rolled their own dice ticks by
-// hand. Its menu changes the rank and adds or removes the characters who
-// share it. Everything sits within the track's width.
+// hand. Its menu shares it with the party or keeps it for one character,
+// removes it, and changes the rank. Everything sits within the track's width.
 export function WorldConnectionRow({
   connection,
   label,
@@ -50,7 +53,7 @@ export function WorldConnectionRow({
   onTicksChange,
   onBondedChange,
   onRankChange,
-  memberActions,
+  menuActions,
 }: {
   connection: IWorldEntryConnection;
   // The track's name, read with its rank: who shares it, or the entry.
@@ -65,16 +68,14 @@ export function WorldConnectionRow({
   onTicksChange: (ticks: number) => void;
   onBondedChange: (bonded: boolean) => void;
   onRankChange: (rank: Difficulty) => void;
-  // Adding and removing characters, shown first in the menu.
-  memberActions: WorldConnectionMenuAction[];
+  // Who shares it and removing it, shown above the rank in the menu.
+  menuActions: WorldConnectionMenuAction[];
 }) {
   const { t } = useTranslation();
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const menuId = useId();
   const step = CONNECTION_PROGRESS_TICKS[connection.rank];
   const closeMenu = () => setMenuAnchor(null);
-  // Someone who edits none of its members may still add a character of theirs.
-  const hasMenu = canEdit || memberActions.length > 0;
 
   return (
     <Box sx={{ width: "fit-content", maxWidth: "100%" }}>
@@ -88,7 +89,7 @@ export function WorldConnectionRow({
         step={step}
         onChange={canEdit ? onTicksChange : undefined}
       />
-      {hasMenu ? (
+      {canEdit ? (
         <Box
           sx={{
             display: "flex",
@@ -98,23 +99,17 @@ export function WorldConnectionRow({
             mt: 1,
           }}
         >
-          {canEdit ? (
-            <ConnectionRollButton moves={connectionMoves} onRoll={onRollMove} />
-          ) : (
-            connection.bonded && <BondedNote />
-          )}
-          {canEdit && (
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={connection.bonded}
-                  onChange={(_, checked) => onBondedChange(checked)}
-                />
-              }
-              label={t("worlds.bonds.bonded", "Bonded")}
-              sx={{ mx: 0 }}
-            />
-          )}
+          <ConnectionRollButton moves={connectionMoves} onRoll={onRollMove} />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={connection.bonded}
+                onChange={(_, checked) => onBondedChange(checked)}
+              />
+            }
+            label={t("worlds.bonds.bonded", "Bonded")}
+            sx={{ mx: 0 }}
+          />
           <Tooltip
             title={t("worlds.bonds.connection-options", "Connection options")}
           >
@@ -139,38 +134,39 @@ export function WorldConnectionRow({
             open={!!menuAnchor}
             onClose={closeMenu}
           >
-            {memberActions.map((action) => (
+            {menuActions.map((action) => (
               <MenuItem
                 key={action.key}
+                disabled={action.disabled}
                 onClick={() => {
                   closeMenu();
                   action.onClick();
                 }}
               >
-                {action.label}
+                <ListItemText
+                  primary={action.label}
+                  secondary={action.secondary}
+                />
               </MenuItem>
             ))}
-            {canEdit && memberActions.length > 0 && <Divider />}
-            {canEdit && (
-              <ListSubheader>{t("worlds.bonds.rank", "Rank")}</ListSubheader>
-            )}
-            {canEdit &&
-              CONNECTION_RANKS.map((rank) => (
-                <MenuItem
-                  key={rank}
-                  role="menuitemradio"
-                  aria-checked={rank === connection.rank}
-                  onClick={() => {
-                    closeMenu();
-                    if (rank !== connection.rank) onRankChange(rank);
-                  }}
-                >
-                  <ListItemIcon>
-                    {rank === connection.rank && <CheckIcon fontSize="small" />}
-                  </ListItemIcon>
-                  <ListItemText>{getRankLabel(rank, t)}</ListItemText>
-                </MenuItem>
-              ))}
+            {menuActions.length > 0 && <Divider />}
+            <ListSubheader>{t("worlds.bonds.rank", "Rank")}</ListSubheader>
+            {CONNECTION_RANKS.map((rank) => (
+              <MenuItem
+                key={rank}
+                role="menuitemradio"
+                aria-checked={rank === connection.rank}
+                onClick={() => {
+                  closeMenu();
+                  if (rank !== connection.rank) onRankChange(rank);
+                }}
+              >
+                <ListItemIcon>
+                  {rank === connection.rank && <CheckIcon fontSize="small" />}
+                </ListItemIcon>
+                <ListItemText>{getRankLabel(rank, t)}</ListItemText>
+              </MenuItem>
+            ))}
           </Menu>
         </Box>
       ) : (

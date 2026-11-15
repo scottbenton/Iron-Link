@@ -17,13 +17,15 @@ import { WorldBondMechanics } from "lib/worldBonds.lib";
 import { Difficulty, TrackTypes } from "repositories/tracks.repository";
 
 import { IWorldEntry } from "services/worldEntries.service";
-import { IWorldEntryBond } from "services/worldEntryBonds.service";
 
 import { WorldBondSection } from "./WorldBondSection";
 import { useWorldBondsGame } from "./WorldBondsGameContext";
 import { WorldConnectionRow } from "./WorldConnectionRow";
 import { WorldEntryBondList } from "./WorldEntryBondList";
-import { useLeaveConnection } from "./useLeaveConnection";
+import {
+  getConnectionMembers,
+  useConnectionMenuActions,
+} from "./useConnectionMenuActions";
 import { useWorldBondActions } from "./useWorldBondActions";
 import {
   WorldBondCharacter,
@@ -34,8 +36,9 @@ import { CONNECTION_RANKS, formatNames, getRankLabel } from "./worldBondLabels";
 
 // The game's characters and their bonds with an entry, in the terms of the
 // game's rules: a checkbox per character for Ironlands bonds, a track per
-// connection for Starforged connections, each one character's or shared. Outside a game there are
-// no characters to show, so it says where bonds live instead.
+// connection for Starforged connections, each one character's or the whole
+// party's. Outside a game there are no characters to show, so it says where
+// bonds live instead.
 export function WorldEntryBonds({ entry }: { entry: IWorldEntry }) {
   const game = useWorldBondsGame();
   if (!game) return <WorldEntryBondsElsewhere />;
@@ -62,7 +65,7 @@ function GameWorldEntryBonds({
   gameId: string;
 }) {
   const mechanics = useWorldBondMechanics();
-  useListenToEntryBonds(mechanics ? entry.id : undefined);
+  useListenToEntryBonds(mechanics?.kind === "bond" ? entry.id : undefined);
   const characters = useWorldBondCharacters();
   const bonds = useEntryBonds(entry.id).filter((bond) =>
     characters.some((character) => character.id === bond.characterId),
@@ -88,7 +91,6 @@ function GameWorldEntryBonds({
       entry={entry}
       gameId={gameId}
       characters={characters}
-      bonds={bonds}
       mechanics={mechanics}
     />
   );
@@ -98,39 +100,41 @@ function WorldEntryConnections({
   entry,
   gameId,
   characters,
-  bonds,
   mechanics,
 }: {
   entry: IWorldEntry;
   gameId: string;
   characters: WorldBondCharacter[];
-  bonds: IWorldEntryBond[];
   mechanics: WorldBondMechanics;
 }) {
   const { t } = useTranslation();
   const actions = useWorldBondActions(mechanics);
-  const leave = useLeaveConnection(actions);
+  const getMenuActions = useConnectionMenuActions(actions);
   const rollProgress = useRollCompleteProgressTrack();
   useListenToGameConnections(gameId);
   const connections = useEntryConnections(gameId, entry.id);
-  // In the characters' order, by name.
-  const getMembers = (connectionId: string) =>
-    characters.filter((character) =>
-      bonds.some(
-        (bond) =>
-          bond.connectionId === connectionId &&
-          bond.characterId === character.id,
-      ),
-    );
-  const listed = connections
-    .map((connection) => ({ connection, members: getMembers(connection.id) }))
-    .filter(({ members }) => members.length > 0);
-  // Characters this person may edit who have no connection with the entry.
-  const unconnected = characters.filter(
-    (character) =>
-      character.canEdit &&
-      !bonds.some((bond) => bond.characterId === character.id),
+  const party = connections.find(
+    (connection) => connection.characterId === null,
   );
+  // The party's first, then each character's, by name.
+  const listed = [
+    ...(party ? [party] : []),
+    ...characters.flatMap((character) =>
+      connections.filter(
+        (connection) => connection.characterId === character.id,
+      ),
+    ),
+  ];
+  // Characters this person may edit who could make a connection.
+  const unconnected = party
+    ? []
+    : characters.filter(
+        (character) =>
+          character.canEdit &&
+          !connections.some(
+            (connection) => connection.characterId === character.id,
+          ),
+      );
 
   if (listed.length === 0 && unconnected.length === 0) return null;
 
@@ -148,18 +152,22 @@ function WorldEntryConnections({
       }
     >
       <Stack spacing={3}>
-        {listed.map(({ connection, members }) => {
-          const editable = members.filter((member) => member.canEdit);
-          const label = formatNames(
+        {listed.map((connection) => {
+          const members = getConnectionMembers(connection, characters);
+          const names = formatNames(
             members.map((member) => member.name),
             t,
           );
+          const isParty = connection.characterId === null;
+          const label = isParty ? t("worlds.bonds.party", "The party") : names;
+          const editor = members.find((member) => member.canEdit);
           return (
             <WorldConnectionRow
               key={connection.id}
               connection={connection}
               label={label}
-              canEdit={editable.length > 0}
+              description={isParty ? names : undefined}
+              canEdit={!!editor}
               connectionMoves={mechanics.connectionMoves}
               onRollMove={(moveId) =>
                 rollProgress(
@@ -170,7 +178,7 @@ function WorldEntryConnections({
                   }),
                   connection.ticks,
                   moveId,
-                  editable[0]?.id,
+                  editor?.id,
                 )
               }
               onTicksChange={(ticks) =>
@@ -182,37 +190,12 @@ function WorldEntryConnections({
               onRankChange={(rank) =>
                 actions.updateConnection(connection.id, { rank })
               }
-              memberActions={[
-                ...unconnected.map((character) => ({
-                  key: `add:${character.id}`,
-                  label: t("worlds.bonds.share", "Share with {{name}}", {
-                    name: character.name,
-                  }),
-                  onClick: () =>
-                    actions.shareConnection(
-                      { entryId: entry.id, characterId: character.id },
-                      connection.id,
-                    ),
-                })),
-                ...editable.map((member) => ({
-                  key: `remove:${member.id}`,
-                  label:
-                    members.length > 1
-                      ? t(
-                          "worlds.bonds.unshare",
-                          "Stop sharing with {{name}}",
-                          {
-                            name: member.name,
-                          },
-                        )
-                      : t(
-                          "worlds.bonds.remove-connection",
-                          "Remove connection",
-                        ),
-                  onClick: () =>
-                    leave(entry, connection, members.length, member),
-                })),
-              ]}
+              menuActions={getMenuActions(
+                entry.name,
+                connection,
+                characters,
+                connections.length > 1,
+              )}
             />
           );
         })}
@@ -224,10 +207,12 @@ function WorldEntryConnections({
                 character={character}
                 showName={characters.filter((c) => c.canEdit).length > 1}
                 onConnect={(rank) =>
-                  actions.makeConnection(
-                    { entryId: entry.id, characterId: character.id },
+                  actions.makeConnection({
+                    entryId: entry.id,
+                    gameId,
+                    characterId: character.id,
                     rank,
-                  )
+                  })
                 }
               />
             ))}

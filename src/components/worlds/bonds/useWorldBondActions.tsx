@@ -16,9 +16,8 @@ import {
   WorldBondMechanics,
 } from "lib/worldBonds.lib";
 
-import { Difficulty } from "repositories/tracks.repository";
-
 import {
+  IWorldConnectionNew,
   IWorldConnectionUpdate,
   IWorldEntryBondKey,
   IWorldEntryConnection,
@@ -43,8 +42,8 @@ export function useWorldBondActions(mechanics: WorldBondMechanics | null) {
   const updateConnectionInStore = useWorldEntryBondsStore(
     (store) => store.updateConnection,
   );
-  const shareConnectionInStore = useWorldEntryBondsStore(
-    (store) => store.shareConnection,
+  const removeConnectionFromStore = useWorldEntryBondsStore(
+    (store) => store.removeConnection,
   );
   const updateSpecialTrackValue = useGameCharactersStore(
     (store) => store.updateSpecialTrackValue,
@@ -225,21 +224,15 @@ export function useWorldBondActions(mechanics: WorldBondMechanics | null) {
   );
 
   const makeConnection = useCallback(
-    (key: IWorldEntryBondKey, rank: Difficulty) =>
-      addConnectionToStore(key, rank).catch(
+    (connection: IWorldConnectionNew) =>
+      addConnectionToStore(connection).catch(
         parseRepositoryErrorAndCreateSnackbar,
       ),
     [addConnectionToStore],
   );
 
-  const shareConnection = useCallback(
-    (key: IWorldEntryBondKey, connectionId: string) =>
-      shareConnectionInStore(key, connectionId).catch(
-        parseRepositoryErrorAndCreateSnackbar,
-      ),
-    [shareConnectionInStore],
-  );
-
+  // Sharing with the party, or keeping it for one character, is a change of
+  // whose it is.
   const updateConnection = useCallback(
     (connectionId: string, update: IWorldConnectionUpdate) =>
       updateConnectionInStore(connectionId, update).catch(
@@ -248,20 +241,20 @@ export function useWorldBondActions(mechanics: WorldBondMechanics | null) {
     [updateConnectionInStore],
   );
 
-  // Takes a character out of a connection; the last one out removes it.
-  const leaveConnection = useCallback(
-    (key: IWorldEntryBondKey) =>
-      removeBondFromStore(key).catch(parseRepositoryErrorAndCreateSnackbar),
-    [removeBondFromStore],
+  const removeConnection = useCallback(
+    (connectionId: string) =>
+      removeConnectionFromStore(connectionId).catch(
+        parseRepositoryErrorAndCreateSnackbar,
+      ),
+    [removeConnectionFromStore],
   );
 
   return {
     setBond,
     setBonded,
     makeConnection,
-    shareConnection,
     updateConnection,
-    leaveConnection,
+    removeConnection,
   };
 }
 

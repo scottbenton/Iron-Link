@@ -11,15 +11,11 @@ import { useRollCompleteProgressTrack } from "pages/games/hooks/useRollCompleteP
 
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 import {
-  useCharacterBonds,
-  useListenToCharacterBonds,
+  useCharacterConnections,
   useListenToGameConnections,
-  useWorldEntryConnections,
 } from "stores/worldEntryBonds.store";
 
 import { TrackTypes } from "repositories/tracks.repository";
-
-import { IWorldEntryConnection } from "services/worldEntryBonds.service";
 
 // The open character's world connections as targets for a connection
 // progress move (Forge a Bond). One dropdown keeps the dialog short however
@@ -35,19 +31,12 @@ export function WorldConnectionRolls({
   const characterId = useCharacterIdOptional();
   const worldId = useGameWorldId();
   const gameId = useGameIdOptional();
-  useListenToCharacterBonds(worldId ? characterId : undefined);
   useListenToGameConnections(worldId ? gameId : undefined);
   const entries = useWorldEntriesStore((store) => store.entryState.entries);
-  const connectionsById = useWorldEntryConnections();
-  const connections = useCharacterBonds(characterId)
-    .map((bond) =>
-      bond.connectionId ? connectionsById[bond.connectionId] : undefined,
-    )
+  const connections = useCharacterConnections(gameId, characterId)
     .filter(
-      (connection): connection is IWorldEntryConnection =>
-        !!connection &&
-        connection.worldId === worldId &&
-        !!entries[connection.entryId],
+      (connection) =>
+        connection.worldId === worldId && !!entries[connection.entryId],
     )
     .sort((a, b) =>
       entries[a.entryId].name.localeCompare(entries[b.entryId].name),

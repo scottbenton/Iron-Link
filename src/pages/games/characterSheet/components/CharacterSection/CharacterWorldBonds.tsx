@@ -14,11 +14,13 @@ import { useLocation } from "react-router";
 
 import type { NavigationLinkProps } from "components/LinkComponent";
 import { WorldConnectionRow } from "components/worlds/bonds/WorldConnectionRow";
-import { useLeaveConnection } from "components/worlds/bonds/useLeaveConnection";
+import {
+  getConnectionMembers,
+  useConnectionMenuActions,
+} from "components/worlds/bonds/useConnectionMenuActions";
 import { useWorldBondActions } from "components/worlds/bonds/useWorldBondActions";
 import { useWorldBondCharacters } from "components/worlds/bonds/useWorldBondCharacters";
 import { useWorldBondMechanics } from "components/worlds/bonds/useWorldBondMechanics";
-import { formatNames } from "components/worlds/bonds/worldBondLabels";
 
 import { getNotesItemLinkProps } from "pages/games/gamePageLayout/hooks/notesDestination";
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
@@ -29,11 +31,10 @@ import { useNotesStore } from "stores/notes.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 import {
   useCharacterBonds,
-  useEntryBonds,
+  useCharacterConnections,
+  useEntryConnections,
   useListenToCharacterBonds,
-  useListenToEntryBonds,
   useListenToGameConnections,
-  useWorldEntryConnections,
 } from "stores/worldEntryBonds.store";
 
 import { WorldBondMechanics } from "lib/worldBonds.lib";
@@ -41,7 +42,10 @@ import { WorldBondMechanics } from "lib/worldBonds.lib";
 import { TrackTypes } from "repositories/tracks.repository";
 
 import { IWorldEntry } from "services/worldEntries.service";
-import { IWorldEntryBond } from "services/worldEntryBonds.service";
+import {
+  IWorldEntryBond,
+  IWorldEntryConnection,
+} from "services/worldEntryBonds.service";
 
 import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterId } from "../../hooks/useCharacterId";
@@ -58,13 +62,23 @@ export function CharacterWorldBonds() {
   const worldId = useGameWorldId();
   const gameId = useGameId();
   const mechanics = useWorldBondMechanics();
-  useListenToCharacterBonds(worldId && mechanics ? characterId : undefined);
+  useListenToCharacterBonds(
+    worldId && mechanics?.kind === "bond" ? characterId : undefined,
+  );
   useListenToGameConnections(
     worldId && mechanics?.kind === "connection" ? gameId : undefined,
   );
   const entries = useWorldEntriesStore((store) => store.entryState.entries);
   const bonds = useCharacterBonds(characterId)
     .filter((bond) => bond.worldId === worldId && entries[bond.entryId])
+    .sort((a, b) =>
+      entries[a.entryId].name.localeCompare(entries[b.entryId].name),
+    );
+  const connectionList = useCharacterConnections(gameId, characterId)
+    .filter(
+      (connection) =>
+        connection.worldId === worldId && entries[connection.entryId],
+    )
     .sort((a, b) =>
       entries[a.entryId].name.localeCompare(entries[b.entryId].name),
     );
@@ -111,7 +125,7 @@ export function CharacterWorldBonds() {
       >
         {title}
       </Typography>
-      {bonds.length === 0 ? (
+      {(connections ? connectionList : bonds).length === 0 ? (
         <Typography variant="body2" color="text.secondary">
           {connections
             ? t(
@@ -125,20 +139,17 @@ export function CharacterWorldBonds() {
         </Typography>
       ) : connections ? (
         <Stack spacing={2} sx={{ mt: 1 }}>
-          {bonds.map((bond) =>
-            bond.connectionId ? (
-              <CharacterConnection
-                key={bond.entryId}
-                entry={entries[bond.entryId]}
-                connectionId={bond.connectionId}
-                characterId={characterId}
-                characterName={characterName ?? ""}
-                canEdit={canEdit}
-                mechanics={mechanics}
-                labelLinkProps={getEntryLinkProps(entries[bond.entryId])}
-              />
-            ) : null,
-          )}
+          {connectionList.map((connection) => (
+            <CharacterConnection
+              key={connection.id}
+              entry={entries[connection.entryId]}
+              connection={connection}
+              characterId={characterId}
+              characterName={characterName ?? ""}
+              mechanics={mechanics}
+              labelLinkProps={getEntryLinkProps(entries[connection.entryId])}
+            />
+          ))}
         </Stack>
       ) : (
         <List dense disablePadding>
@@ -178,50 +189,32 @@ export function CharacterWorldBonds() {
   );
 }
 
-// One of the character's connections: its track, marked and forged here as
-// on the entry, named by the entry and by any allies who share it. Its menu
-// changes the rank or takes this character out of it.
+// One of the character's connections, its own or the party's: its track,
+// marked and forged here as on the entry, named by the entry. Its menu
+// shares it or keeps it for one character, removes it and changes the rank.
 function CharacterConnection({
   entry,
-  connectionId,
+  connection,
   characterId,
   characterName,
-  canEdit,
   mechanics,
   labelLinkProps,
 }: {
   entry: IWorldEntry;
-  connectionId: string;
+  connection: IWorldEntryConnection;
   characterId: string;
   characterName: string;
-  canEdit: boolean;
   mechanics: WorldBondMechanics;
   labelLinkProps: NavigationLinkProps;
 }) {
   const { t } = useTranslation();
-  const connection = useWorldEntryConnections()[connectionId];
-  // The other members are read with the entry's bonds.
-  useListenToEntryBonds(entry.id);
-  const entryBonds = useEntryBonds(entry.id);
   const characters = useWorldBondCharacters();
+  const entryConnections = useEntryConnections(connection.gameId, entry.id);
   const actions = useWorldBondActions(mechanics);
-  const leave = useLeaveConnection(actions);
+  const getMenuActions = useConnectionMenuActions(actions);
   const rollProgress = useRollCompleteProgressTrack();
-
-  if (!connection) return null;
-
-  const members = characters.filter((character) =>
-    entryBonds.some(
-      (bond) =>
-        bond.connectionId === connectionId && bond.characterId === character.id,
-    ),
-  );
-  const self = members.find((member) => member.id === characterId) ?? {
-    id: characterId,
-    name: characterName,
-    canEdit,
-  };
-  const allies = members.filter((member) => member.id !== characterId);
+  const members = getConnectionMembers(connection, characters);
+  const isParty = connection.characterId === null;
 
   return (
     <WorldConnectionRow
@@ -229,16 +222,11 @@ function CharacterConnection({
       label={entry.name}
       labelLinkProps={labelLinkProps}
       description={
-        allies.length > 0
-          ? t("character.bonds.shared-with", "Shared with {{names}}", {
-              names: formatNames(
-                allies.map((ally) => ally.name),
-                t,
-              ),
-            })
+        isParty
+          ? t("character.bonds.party", "Shared with the party")
           : undefined
       }
-      canEdit={canEdit}
+      canEdit={members.some((member) => member.canEdit)}
       connectionMoves={mechanics.connectionMoves}
       onRollMove={(moveId) =>
         rollProgress(
@@ -256,24 +244,15 @@ function CharacterConnection({
         actions.updateConnection(connection.id, { ticks })
       }
       onBondedChange={(bonded) =>
-        actions.setBonded(
-          connection,
-          members.length > 0 ? members : [self],
-          bonded,
-        )
+        actions.setBonded(connection, members, bonded)
       }
       onRankChange={(rank) => actions.updateConnection(connection.id, { rank })}
-      memberActions={[
-        {
-          key: "leave",
-          label:
-            members.length > 1
-              ? t("character.bonds.leave", "Stop sharing this connection")
-              : t("worlds.bonds.remove-connection", "Remove connection"),
-          onClick: () =>
-            leave(entry, connection, Math.max(members.length, 1), self),
-        },
-      ]}
+      menuActions={getMenuActions(
+        entry.name,
+        connection,
+        characters,
+        entryConnections.length > 1,
+      )}
     />
   );
 }

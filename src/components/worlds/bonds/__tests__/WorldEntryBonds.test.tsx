@@ -85,8 +85,6 @@ function bond(
     entryId: entry.id,
     characterId,
     worldId: entry.worldId,
-    kind: "bond",
-    connectionId: null,
     ...extra,
   };
 }
@@ -99,6 +97,7 @@ function connection(
     id,
     entryId: entry.id,
     gameId: "game",
+    characterId: "kira",
     worldId: entry.worldId,
     rank: Difficulty.Dangerous,
     ticks: 0,
@@ -106,9 +105,6 @@ function connection(
     ...extra,
   };
 }
-
-const member = (characterId: string, connectionId: string) =>
-  bond(characterId, { kind: "connection", connectionId });
 
 const FORGE_A_BOND = "move:starforged/connection/forge_a_bond";
 
@@ -246,7 +242,6 @@ describe("world entry bonds", () => {
   it("marks connection progress by rank and the legacy reward on Bonded", async () => {
     useConnectionRules();
     loadedConnections = [connection("a", { ticks: 4 })];
-    loaded = [member("kira", "a")];
     const update = vi
       .spyOn(WorldEntryBondsService, "updateConnection")
       .mockImplementation(async (id, changes) => ({
@@ -285,30 +280,35 @@ describe("world entry bonds", () => {
     ).toBe(5);
   });
 
-  it("shares a connection, and reminds allies it cannot mark", async () => {
+  it("shares a connection with the party, and reminds allies it cannot mark", async () => {
     useConnectionRules();
     loadedConnections = [connection("a")];
-    loaded = [member("vex", "a")];
-    const share = vi
-      .spyOn(WorldEntryBondsService, "shareConnection")
-      .mockResolvedValue(member("kira", "a"));
-    vi.spyOn(WorldEntryBondsService, "updateConnection").mockImplementation(
-      async (id, changes) => ({ ...connection(id), ...changes }),
-    );
+    const update = vi
+      .spyOn(WorldEntryBondsService, "updateConnection")
+      .mockImplementation(async (id, changes) => ({
+        ...connection(id),
+        ...changes,
+      }));
     const user = userEvent.setup();
     renderBonds();
 
     await user.click(
-      screen.getByRole("button", { name: "Connection options: Vex" }),
+      screen.getByRole("button", { name: "Connection options: Kira" }),
     );
-    await user.click(screen.getByRole("menuitem", { name: "Share with Kira" }));
-    expect(share).toHaveBeenCalledWith(
-      { entryId: "captain", characterId: "kira" },
-      "a",
+    await user.click(
+      screen.getByRole("menuitem", { name: "Share with the party" }),
     );
-    await screen.findByRole("button", {
-      name: "Connection options: Kira and Vex",
-    });
+    expect(update).toHaveBeenCalledWith("a", { characterId: null });
+    expect(
+      await screen.findByRole("button", {
+        name: "Connection options: The party",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Kira and Vex")).toBeInTheDocument();
+    // The party shares it, so no one makes another.
+    expect(
+      screen.queryByRole("button", { name: /Make a connection/ }),
+    ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("checkbox", { name: "Bonded" }));
     await waitFor(() =>
@@ -327,23 +327,43 @@ describe("world entry bonds", () => {
     ).toBe(0);
   });
 
+  it("shares with the party only while no ally has their own", async () => {
+    useConnectionRules();
+    loadedConnections = [
+      connection("a"),
+      connection("b", { characterId: "vex" }),
+    ];
+    const user = userEvent.setup();
+    renderBonds();
+
+    // Vex's connection is read only here.
+    expect(
+      screen.queryByRole("button", { name: "Connection options: Vex" }),
+    ).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Connection options: Kira" }),
+    );
+    expect(
+      screen.getByRole("menuitem", { name: /Share with the party/ }),
+    ).toHaveAttribute("aria-disabled", "true");
+  });
+
   it("makes a connection with a chosen rank", async () => {
     useConnectionRules();
     const add = vi
       .spyOn(WorldEntryBondsService, "addConnection")
-      .mockResolvedValue({
-        connection: connection("a", { rank: Difficulty.Formidable }),
-        bond: member("kira", "a"),
-      });
+      .mockResolvedValue(connection("a", { rank: Difficulty.Formidable }));
     const user = userEvent.setup();
     renderBonds();
 
     await user.click(screen.getByRole("button", { name: "Make a connection" }));
     await user.click(screen.getByRole("menuitem", { name: "Formidable" }));
-    expect(add).toHaveBeenCalledWith(
-      { entryId: "captain", characterId: "kira" },
-      Difficulty.Formidable,
-    );
+    expect(add).toHaveBeenCalledWith({
+      entryId: "captain",
+      gameId: "game",
+      characterId: "kira",
+      rank: Difficulty.Formidable,
+    });
     expect(
       await screen.findByRole("button", { name: "Forge a Bond" }),
     ).toBeInTheDocument();
