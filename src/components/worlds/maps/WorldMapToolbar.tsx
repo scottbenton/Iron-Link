@@ -42,6 +42,8 @@ export interface WorldMapToolbarProps {
   // Phone paint mode: the tools in a row along the bottom of the screen,
   // with labels, everything at least 44px.
   touch?: boolean;
+  // The usual row, with controls sized for fingers (a tablet).
+  large?: boolean;
 }
 
 const TOUCH = 44;
@@ -65,6 +67,7 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
     actions,
     options,
     touch = false,
+    large = false,
   } = props;
   const { t } = useTranslation();
   const [menu, setMenu] = useState<{
@@ -191,7 +194,11 @@ export function WorldMapToolbar(props: WorldMapToolbarProps) {
                     lineHeight: 1.2,
                     textTransform: "none",
                   }
-                : { gap: 0.25, pr: option.menu ? 0.5 : undefined }
+                : {
+                    gap: 0.25,
+                    pr: option.menu ? 0.5 : undefined,
+                    ...(large && { minHeight: TOUCH, minWidth: TOUCH }),
+                  }
             }
           >
             {option.icon}

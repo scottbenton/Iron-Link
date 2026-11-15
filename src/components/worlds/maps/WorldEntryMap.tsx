@@ -11,11 +11,12 @@ import {
   MenuItem,
   Stack,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { useIsBreakpoint } from "hooks/useIsBreakpoint";
+import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 import {
@@ -88,9 +89,11 @@ export function WorldEntryMap({
   const [paintSettings, setPaintSettings] =
     useState<PaintSettings>(DEFAULT_PAINT);
   const [clearOpen, setClearOpen] = useState(false);
-  // Phones edit in a full-screen paint mode; outside it the map only pans.
-  const theme = useTheme();
-  const phone = useMediaQuery(theme.breakpoints.down("sm"));
+  // Narrow screens edit in a full-screen paint mode, as there is no room for
+  // the editor beside the page; outside it the map only pans. Touch devices
+  // of any size get touch-sized controls.
+  const phone = useIsBreakpoint("smaller-than", "sm");
+  const touchDevice = useIsTouchDevice();
   const [paintModeOpen, setPaintModeOpen] = useState(false);
   const paintMode = phone && paintModeOpen && canEdit;
   const backgroundEditor = useWorldMapBackgroundEditor(map, onError);
@@ -251,9 +254,11 @@ export function WorldEntryMap({
       ? pinTool.places.find((place) => place.entry.id === pinTarget.entryId)
       : undefined;
 
-  const renderToolbar = (touch: boolean) => (
+  // `bar` is phone paint mode's bottom bar; `touch` sizes for fingers.
+  const renderToolbar = (bar: boolean, touch: boolean) => (
     <WorldMapToolbar
-      touch={touch}
+      touch={bar}
+      large={touch}
       tool={tool}
       onToolChange={setTool}
       settings={settings}
@@ -304,7 +309,7 @@ export function WorldEntryMap({
           </Button>
         )
       }
-      options={touch ? undefined : renderOptions(false)}
+      options={bar ? undefined : renderOptions(touch)}
     />
   );
 
@@ -433,8 +438,8 @@ export function WorldEntryMap({
       {/* The toolbar sits on the map's top edge. */}
       {!paintMode && (
         <Box>
-          {canEdit && !phone && renderToolbar(false)}
-          {renderViewport(phone, undefined, canEdit && !phone)}
+          {canEdit && !phone && renderToolbar(false, touchDevice)}
+          {renderViewport(phone || touchDevice, undefined, canEdit && !phone)}
         </Box>
       )}
       {paintMode && (
@@ -486,7 +491,7 @@ export function WorldEntryMap({
                 {renderViewport(true, "100%")}
               </Box>
             </Box>
-            {renderToolbar(true)}
+            {renderToolbar(true, true)}
           </Box>
         </Dialog>
       )}

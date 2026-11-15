@@ -11,6 +11,13 @@ that are easy to miss. When you learn a new one, add a line here.
   World..."). A loading status that is not a control may keep one.
 - Checkboxes, never switches, for on/off settings in forms.
 
+## Layout and input
+
+- Screen width decides layout (`useIsBreakpoint`, `useIsMobile`); never
+  call `useMediaQuery` with a breakpoint by hand. Touch decides control
+  size and gestures (44px targets, long press): `useIsTouchDevice`
+  (`pointer: coarse`), so a tablet gets the wide layout sized for fingers.
+
 ## Accessibility
 
 - Screen reader announcements go through `useSetAnnouncement`. Live regions
