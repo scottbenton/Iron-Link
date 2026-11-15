@@ -138,8 +138,7 @@ describe("WorldCategoryDetails", () => {
     expect(nesting).toBeChecked();
   });
 
-  // Release guard until #238 brings Bonds back.
-  it("offers Maps but not Bonds yet, and keeps Bonds' stored value", async () => {
+  it("offers Maps and Bonds, each changing only its own setting", async () => {
     const user = userEvent.setup();
     actions.updateCategory.mockResolvedValue(undefined);
     render(
@@ -151,9 +150,7 @@ describe("WorldCategoryDetails", () => {
       />,
     );
     expect(screen.getByRole("checkbox", { name: "Maps" })).toBeChecked();
-    expect(
-      screen.queryByRole("checkbox", { name: "Bonds" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Bonds" })).toBeChecked();
     await waitFor(() => expect(actions.getCategoryCounts).toHaveBeenCalled());
     await user.click(screen.getByRole("checkbox", { name: "Nesting" }));
     expect(actions.updateCategory).toHaveBeenCalledWith(category.id, {
@@ -162,6 +159,10 @@ describe("WorldCategoryDetails", () => {
     await user.click(screen.getByRole("checkbox", { name: "Maps" }));
     expect(actions.updateCategory).toHaveBeenLastCalledWith(category.id, {
       supportsMap: false,
+    });
+    await user.click(screen.getByRole("checkbox", { name: "Bonds" }));
+    expect(actions.updateCategory).toHaveBeenLastCalledWith(category.id, {
+      supportsBonds: false,
     });
   });
 

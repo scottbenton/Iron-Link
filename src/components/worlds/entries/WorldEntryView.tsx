@@ -25,6 +25,7 @@ import { getWorldEntrySubtitle } from "lib/worldEntrySubtitle";
 
 import { IWorldCategory } from "services/worldCategories.service";
 
+import { WorldEntryBonds } from "../bonds/WorldEntryBonds";
 import { getEditorErrorMessage } from "../categories/categoryEditor.utils";
 import { WorldEntryMap } from "../maps/WorldEntryMap";
 import type { WorldNavigation } from "../worldNavigation";
@@ -177,6 +178,11 @@ export function WorldEntryView({
               {subtitle}
             </Typography>
           )}
+          {category.supportsBonds && (
+            <Box sx={{ mt: 1 }}>
+              <WorldEntryBonds entry={entry} placement="header" />
+            </Box>
+          )}
         </Box>
         {headerActions && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -252,6 +258,9 @@ export function WorldEntryView({
             guided={guided}
             navigation={navigation}
           />
+          {category.supportsBonds && (
+            <WorldEntryBonds entry={entry} placement="body" />
+          )}
           {notesError && (
             <Alert severity="error" onClose={() => setNotesError(undefined)}>
               {notesError}

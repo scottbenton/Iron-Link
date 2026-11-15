@@ -53,18 +53,14 @@ export function WorldCategoryCapabilities({
         "Entries can hold a map of their own.",
       ),
     },
-    // Bonds are not in the first release. The checkbox comes back with
-    // Manage character bonds with world entries (#238); until then
-    // categories keep whatever they have stored, since a change only writes
-    // the key it toggles.
-    // {
-    //   key: "supportsBonds",
-    //   label: t("worlds.categories.bonds", "Bonds"),
-    //   description: t(
-    //     "worlds.categories.bonds-help",
-    //     "Characters can form bonds with entries.",
-    //   ),
-    // },
+    {
+      key: "supportsBonds",
+      label: t("worlds.categories.bonds", "Bonds"),
+      description: t(
+        "worlds.categories.bonds-help",
+        "Characters can form bonds with entries. Turning this off hides existing bonds without removing them.",
+      ),
+    },
   ];
   return (
     <FormGroup>

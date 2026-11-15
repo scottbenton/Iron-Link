@@ -153,6 +153,11 @@ that are easy to miss. When you learn a new one, add a line here.
   can edit the character and read the entry, never by the Guide for someone
   else's sheet. A party connection is changed by anyone who can edit a
   character of its game (`can_edit_world_entry_connection`).
+- Bonds show only inside a game (`WorldBondsGameContext`, provided by
+  `GameWorldView`), with that game's characters and rules
+  (`getWorldBondMechanics`); the world page shows a note instead. Bond
+  changes go through `useWorldBondActions`, which also moves the character's
+  Bonds track and offers Undo in a snackbar.
 
 ## Rich text
 
