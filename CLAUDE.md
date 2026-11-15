@@ -45,8 +45,8 @@ that are easy to miss. When you learn a new one, add a line here.
   `HeadProvider` renders no `<title>`.
 - After navigation `useFocusPageOnNavigate` (in `BaseLayout`) focuses the
   page's h1, or `<main>` until it renders. Paths that are one page
-  (`getRouteFocusKey`: a game's tabs, an entry's Places) keep focus unless
-  the focused control went away.
+  (`getRouteFocusKey`: a game's tabs, an entry's Details, Places and Map)
+  keep focus unless the focused control went away.
 - Sortable lists pass dnd-kit `accessibility` announcements that use item
   names; the defaults read ids.
 - Announce one message per action: a second `setAnnouncement` in the same
@@ -95,6 +95,9 @@ that are easy to miss. When you learn a new one, add a line here.
 
 ## Worlds
 
+- World paths are built only by `getWorldViewPath` and read only by
+  `parseWorldViewPath` (`worldNavigation.ts`); one `/worlds/:worldId/*`
+  route renders `WorldPage`, and a path the parser rejects is a 404.
 - A world is guided (`world_is_guided`, `useWorldIsGuided`) when a linked
   game is guided or a member is a player or viewer. Guide-only controls
   (Share, Guide only wells, lock icons) appear only in guided worlds.

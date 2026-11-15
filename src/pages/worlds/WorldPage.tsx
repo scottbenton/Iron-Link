@@ -1,13 +1,13 @@
 import { useTranslation } from "react-i18next";
-import { matchPath, useLocation, useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 import { PageContent, PageHeader } from "components/Layout";
 import { WorldPanel } from "components/worlds/WorldPanel";
 import {
+  type ParsedWorldViewPath,
   type WorldNavigation,
-  type WorldView,
   getWorldViewPath,
-  isWorldEntrySection,
+  parseWorldViewPath,
 } from "components/worlds/worldNavigation";
 
 import { Page404 } from "pages/404Page/404Page";
@@ -24,47 +24,32 @@ import { useWorldStore } from "stores/world.store";
 
 import { WorldsComingSoonState } from "./WorldsComingSoonState";
 
+// One catchall route renders every world destination; the path is read only
+// by parseWorldViewPath, and one it does not know is a 404.
 export default function WorldPage() {
+  const parsed = parseWorldViewPath(useLocation().pathname);
+  return parsed ? <WorldPageContent parsed={parsed} /> : <Page404 />;
+}
+
+function WorldPageContent(props: { parsed: ParsedWorldViewPath }) {
+  const { parsed } = props;
+  const { worldId } = parsed;
   const { t } = useTranslation();
   useSendPageViewEvent(PageCategory.World);
 
-  const { worldId, categoryId, entryId } = useParams<{
-    worldId: string;
-    categoryId: string;
-    entryId: string;
-  }>();
-  const location = useLocation();
   const navigate = useNavigate();
   const worldsEnabled = useAdvancedFeatureToggle("worlds");
   const worldName = useWorldStore((store) =>
     store.worldId === worldId ? store.world?.name : undefined,
   );
-  useDocumentTitle(
-    worldsEnabled && worldId ? worldName : t("worlds.title", "Worlds"),
-  );
-  const settings =
-    !!matchPath("/worlds/:worldId/settings/*", location.pathname) ||
-    !!matchPath("/worlds/:worldId/settings", location.pathname);
-  let view: WorldView;
-  if (categoryId && entryId) {
-    const section = matchPath(
-      "/worlds/:worldId/categories/:categoryId/entries/:entryId/:section",
-      location.pathname,
-    )?.params.section;
-    view = isWorldEntrySection(section)
-      ? { type: "entry", categoryId, entryId, section }
-      : { type: "entry", categoryId, entryId };
-  } else if (categoryId) {
-    view = { type: settings ? "category-settings" : "category", categoryId };
-  } else {
-    view = { type: settings ? "settings" : "world" };
-  }
+  useDocumentTitle(worldsEnabled ? worldName : t("worlds.title", "Worlds"));
+
   const navigation: WorldNavigation = {
-    view,
+    view: parsed.view,
     getLinkProps: (target) => ({
-      href: getWorldViewPath(worldId ?? "", target),
+      href: getWorldViewPath(worldId, target),
     }),
-    navigate: (target) => navigate(getWorldViewPath(worldId ?? "", target)),
+    navigate: (target) => navigate(getWorldViewPath(worldId, target)),
   };
 
   if (!worldsEnabled) {
@@ -76,10 +61,6 @@ export default function WorldPage() {
         </PageContent>
       </>
     );
-  }
-
-  if (!worldId) {
-    return <Page404 />;
   }
 
   return (

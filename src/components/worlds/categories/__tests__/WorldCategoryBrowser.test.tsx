@@ -75,19 +75,7 @@ function renderBrowser(
       <WorldEntriesOwnerFixture worldId={category.worldId}>
         <Routes>
           <Route
-            path="/worlds/:worldId"
-            element={<WorldBrowserRouteFixture {...fixtureProps} />}
-          />
-          <Route
-            path="/worlds/:worldId/categories/:categoryId"
-            element={<WorldBrowserRouteFixture {...fixtureProps} />}
-          />
-          <Route
-            path="/worlds/:worldId/categories/:categoryId/entries/:entryId"
-            element={<WorldBrowserRouteFixture {...fixtureProps} />}
-          />
-          <Route
-            path="/worlds/:worldId/categories/:categoryId/entries/:entryId/places"
+            path="/worlds/:worldId/*"
             element={<WorldBrowserRouteFixture {...fixtureProps} />}
           />
         </Routes>

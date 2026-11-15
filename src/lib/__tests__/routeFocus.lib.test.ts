@@ -19,10 +19,12 @@ describe("getRouteFocusKey", () => {
     expect(getRouteFocusKey("/games")).toBe("/games");
   });
 
-  it("treats an entry's Places tab as the entry", () => {
-    expect(getRouteFocusKey("/worlds/w/categories/c/entries/e/places")).toBe(
-      "/worlds/w/categories/c/entries/e",
-    );
+  it("treats every section of an entry as the entry", () => {
+    const entry = "/worlds/w/categories/c/entries/e";
+    expect(getRouteFocusKey(entry)).toBe(entry);
+    expect(getRouteFocusKey(`${entry}/`)).toBe(entry);
+    expect(getRouteFocusKey(`${entry}/places`)).toBe(entry);
+    expect(getRouteFocusKey(`${entry}/map`)).toBe(entry);
   });
 
   it("keeps other world destinations apart", () => {
@@ -30,6 +32,15 @@ describe("getRouteFocusKey", () => {
     expect(getRouteFocusKey("/worlds/w/categories/c")).toBe(
       "/worlds/w/categories/c",
     );
+    expect(getRouteFocusKey("/worlds/w/settings")).toBe("/worlds/w/settings");
+    expect(getRouteFocusKey("/worlds/w/categories/c/entries/f")).not.toBe(
+      getRouteFocusKey("/worlds/w/categories/c/entries/e/map"),
+    );
+  });
+
+  it("keeps other paths as they are", () => {
+    expect(getRouteFocusKey("/worlds/create")).toBe("/worlds/create");
+    expect(getRouteFocusKey("/worlds/w/garbage")).toBe("/worlds/w/garbage");
   });
 });
 
@@ -48,6 +59,16 @@ describe("shouldMoveFocusOnRouteChange", () => {
     expect(
       shouldMoveFocusOnRouteChange("/games/abc", "/games/abc/create", true),
     ).toBe(true);
+  });
+
+  it("leaves focus when an entry switches between Details, Places and Map", () => {
+    const entry = "/worlds/w/categories/c/entries/e";
+    expect(shouldMoveFocusOnRouteChange(entry, `${entry}/map`, false)).toBe(
+      false,
+    );
+    expect(
+      shouldMoveFocusOnRouteChange(`${entry}/map`, `${entry}/places`, false),
+    ).toBe(false);
   });
 
   it("does nothing when the path did not change", () => {
