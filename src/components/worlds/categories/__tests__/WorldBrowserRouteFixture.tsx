@@ -1,8 +1,9 @@
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 import {
   type WorldNavigation,
   getWorldViewPath,
+  parseWorldViewPath,
 } from "components/worlds/worldNavigation";
 
 import { WorldPermission } from "repositories/shared.types";
@@ -11,27 +12,23 @@ import type { IWorld } from "services/worlds.service";
 
 import { WorldCategoryManager } from "../WorldCategoryManager";
 
-// Renders the real manager for the world, category and entry destinations. Tests
-// supply categories through their worldCategories store mock.
+// Renders the real manager for the world, category and entry destinations,
+// read from the path as WorldPage reads it. Tests supply categories through
+// their worldCategories store mock.
 export function WorldBrowserRouteFixture({
   permission = WorldPermission.Viewer,
 }: {
   permission?: WorldPermission;
 }) {
-  const { worldId = "world-1", categoryId, entryId } = useParams();
+  const parsed = parseWorldViewPath(useLocation().pathname);
   const navigate = useNavigate();
-  const places = useLocation().pathname.endsWith("/places");
+  if (!parsed) return null;
+  const { worldId, view } = parsed;
+  const categoryId = "categoryId" in view ? view.categoryId : undefined;
   const navigation: WorldNavigation = {
-    view:
-      categoryId && entryId
-        ? places
-          ? { type: "entry", categoryId, entryId, section: "places" }
-          : { type: "entry", categoryId, entryId }
-        : categoryId
-          ? { type: "category", categoryId }
-          : { type: "world" },
-    getLinkProps: (view) => ({ href: getWorldViewPath(worldId, view) }),
-    navigate: (view) => navigate(getWorldViewPath(worldId, view)),
+    view,
+    getLinkProps: (target) => ({ href: getWorldViewPath(worldId, target) }),
+    navigate: (target) => navigate(getWorldViewPath(worldId, target)),
   };
   return (
     <WorldCategoryManager

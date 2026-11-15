@@ -67,28 +67,8 @@ export function App() {
                 <Route path="/join/:inviteKey" Component={GameJoinPage} />
                 <Route path="/worlds" Component={WorldSelectPage} />
                 <Route path="/worlds/create" Component={WorldCreatePage} />
-                <Route path="/worlds/:worldId" Component={WorldPage} />
-                <Route
-                  path="/worlds/:worldId/categories/:categoryId"
-                  Component={WorldPage}
-                />
-                <Route
-                  path="/worlds/:worldId/categories/:categoryId/entries/:entryId"
-                  Component={WorldPage}
-                />
-                <Route
-                  path="/worlds/:worldId/categories/:categoryId/entries/:entryId/places"
-                  Component={WorldPage}
-                />
-                <Route
-                  path="/worlds/:worldId/categories/:categoryId/entries/:entryId/map"
-                  Component={WorldPage}
-                />
-                <Route path="/worlds/:worldId/settings" Component={WorldPage} />
-                <Route
-                  path="/worlds/:worldId/settings/categories/:categoryId"
-                  Component={WorldPage}
-                />
+                {/* Every world destination; WorldPage parses the rest. */}
+                <Route path="/worlds/:worldId/*" Component={WorldPage} />
                 <Route path="/homebrew" Component={HomebrewSelectPage} />
                 <Route path="/auth" Component={AuthPage} />
                 <Route path="/privacy" Component={PrivacyPolicyPage} />
