@@ -908,39 +908,29 @@ export type Database = {
       };
       world_entry_bonds: {
         Row: {
-          bonded: boolean;
           character_id: string;
-          completed_ticks: number;
+          connection_id: string | null;
           created_at: string;
           entry_id: string;
           kind: string;
-          rank: Database["public"]["Enums"]["progress_track_difficulty"] | null;
           updated_at: string;
           world_id: string;
         };
         Insert: {
-          bonded?: boolean;
           character_id: string;
-          completed_ticks?: number;
+          connection_id?: string | null;
           created_at?: string;
           entry_id: string;
           kind?: string;
-          rank?:
-            | Database["public"]["Enums"]["progress_track_difficulty"]
-            | null;
           updated_at?: string;
           world_id?: string;
         };
         Update: {
-          bonded?: boolean;
           character_id?: string;
-          completed_ticks?: number;
+          connection_id?: string | null;
           created_at?: string;
           entry_id?: string;
           kind?: string;
-          rank?:
-            | Database["public"]["Enums"]["progress_track_difficulty"]
-            | null;
           updated_at?: string;
           world_id?: string;
         };
@@ -953,6 +943,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "world_entry_bonds_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "world_entry_connections";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "world_entry_bonds_entry_id_fkey";
             columns: ["entry_id"];
             isOneToOne: false;
@@ -961,6 +958,64 @@ export type Database = {
           },
           {
             foreignKeyName: "world_entry_bonds_world_id_fkey";
+            columns: ["world_id"];
+            isOneToOne: false;
+            referencedRelation: "worlds";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      world_entry_connections: {
+        Row: {
+          bonded: boolean;
+          completed_ticks: number;
+          created_at: string;
+          entry_id: string;
+          game_id: string;
+          id: string;
+          rank: Database["public"]["Enums"]["progress_track_difficulty"];
+          updated_at: string;
+          world_id: string;
+        };
+        Insert: {
+          bonded?: boolean;
+          completed_ticks?: number;
+          created_at?: string;
+          entry_id: string;
+          game_id: string;
+          id?: string;
+          rank: Database["public"]["Enums"]["progress_track_difficulty"];
+          updated_at?: string;
+          world_id?: string;
+        };
+        Update: {
+          bonded?: boolean;
+          completed_ticks?: number;
+          created_at?: string;
+          entry_id?: string;
+          game_id?: string;
+          id?: string;
+          rank?: Database["public"]["Enums"]["progress_track_difficulty"];
+          updated_at?: string;
+          world_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "world_entry_connections_entry_id_fkey";
+            columns: ["entry_id"];
+            isOneToOne: false;
+            referencedRelation: "world_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "world_entry_connections_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "world_entry_connections_world_id_fkey";
             columns: ["world_id"];
             isOneToOne: false;
             referencedRelation: "worlds";
@@ -1327,6 +1382,14 @@ export type Database = {
       can_edit_character: {
         Args: { p_character_id: string; p_uid: string };
         Returns: boolean;
+      };
+      create_world_entry_connection: {
+        Args: {
+          p_character_id: string;
+          p_entry_id: string;
+          p_rank: Database["public"]["Enums"]["progress_track_difficulty"];
+        };
+        Returns: string;
       };
       create_world: {
         Args: { p_name: string; p_setting_key?: string };

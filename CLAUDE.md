@@ -140,13 +140,19 @@ that are easy to miss. When you learn a new one, add a line here.
 
 - A character's bond with a world entry is a `world_entry_bonds` row. Its
   `kind` follows the character's game rules, chosen when the row is made:
-  `bond` (Ironlands, the row is the bond) or `connection` (Starforged: `rank`,
-  `completed_ticks` 0 to 40, `bonded` once Forge a Bond succeeds). A row only
-  exists in a category with bonds, for a character whose game is linked to
-  the entry's world; turning bonds off, unlinking a game or moving a character
-  keeps rows, so readers filter by the world's linked games.
+  `bond` (Ironlands, the row is the bond) or `connection` (the character
+  shares a `world_entry_connections` row, named by `connection_id`). A
+  connection holds `rank`, `completed_ticks` 0 to 40 and `bonded`; it is one
+  character's or shared by allies of its game, a character is in at most one
+  per entry, and the last member leaving removes it. Make one with its first
+  member through `create_world_entry_connection`. A row only exists in a
+  category with bonds, for a character whose game is linked to the entry's
+  world; turning bonds off, unlinking a game or moving a character keeps
+  rows, so readers filter by the world's linked games.
 - Bonds are read with their entry and written by people who can edit the
   character and read the entry, never by the Guide for someone else's sheet.
+  A shared connection's track is changed by anyone who can edit one of its
+  members.
 
 ## Rich text
 
