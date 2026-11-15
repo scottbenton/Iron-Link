@@ -5,13 +5,14 @@ import { useTranslation } from "react-i18next";
 
 import { useRollCompleteProgressTrack } from "pages/games/hooks/useRollCompleteProgressTrack";
 
-import { useSpecialTrackRules } from "stores/dataswornTree.store";
 import {
   useEntryBonds,
+  useEntryConnections,
   useListenToEntryBonds,
+  useListenToGameConnections,
 } from "stores/worldEntryBonds.store";
 
-import { WorldBondMechanics, getWorldBondMechanics } from "lib/worldBonds.lib";
+import { WorldBondMechanics } from "lib/worldBonds.lib";
 
 import { Difficulty, TrackTypes } from "repositories/tracks.repository";
 
@@ -22,29 +23,23 @@ import { WorldBondSection } from "./WorldBondSection";
 import { useWorldBondsGame } from "./WorldBondsGameContext";
 import { WorldConnectionRow } from "./WorldConnectionRow";
 import { WorldEntryBondList } from "./WorldEntryBondList";
+import { useLeaveConnection } from "./useLeaveConnection";
 import { useWorldBondActions } from "./useWorldBondActions";
 import {
   WorldBondCharacter,
   useWorldBondCharacters,
 } from "./useWorldBondCharacters";
-import { FORGE_A_BOND_MOVE_ID, getRankLabel } from "./worldBondLabels";
-
-const RANKS = [
-  Difficulty.Troublesome,
-  Difficulty.Dangerous,
-  Difficulty.Formidable,
-  Difficulty.Extreme,
-  Difficulty.Epic,
-];
+import { useWorldBondMechanics } from "./useWorldBondMechanics";
+import { CONNECTION_RANKS, formatNames, getRankLabel } from "./worldBondLabels";
 
 // The game's characters and their bonds with an entry, in the terms of the
 // game's rules: a checkbox per character for Ironlands bonds, a track per
-// connected character for Starforged connections. Outside a game there are
+// connection for Starforged connections, each one character's or shared. Outside a game there are
 // no characters to show, so it says where bonds live instead.
 export function WorldEntryBonds({ entry }: { entry: IWorldEntry }) {
   const game = useWorldBondsGame();
   if (!game) return <WorldEntryBondsElsewhere />;
-  return <GameWorldEntryBonds entry={entry} />;
+  return <GameWorldEntryBonds entry={entry} gameId={game.gameId} />;
 }
 
 function WorldEntryBondsElsewhere() {
@@ -59,9 +54,14 @@ function WorldEntryBondsElsewhere() {
   );
 }
 
-function GameWorldEntryBonds({ entry }: { entry: IWorldEntry }) {
-  const specialTrackRules = useSpecialTrackRules();
-  const mechanics = getWorldBondMechanics(specialTrackRules);
+function GameWorldEntryBonds({
+  entry,
+  gameId,
+}: {
+  entry: IWorldEntry;
+  gameId: string;
+}) {
+  const mechanics = useWorldBondMechanics();
   useListenToEntryBonds(mechanics ? entry.id : undefined);
   const characters = useWorldBondCharacters();
   const bonds = useEntryBonds(entry.id).filter((bond) =>
@@ -86,8 +86,9 @@ function GameWorldEntryBonds({ entry }: { entry: IWorldEntry }) {
   return (
     <WorldEntryConnections
       entry={entry}
+      gameId={gameId}
       characters={characters}
-      connections={bonds}
+      bonds={bonds}
       mechanics={mechanics}
     />
   );
@@ -95,29 +96,43 @@ function GameWorldEntryBonds({ entry }: { entry: IWorldEntry }) {
 
 function WorldEntryConnections({
   entry,
+  gameId,
   characters,
-  connections,
+  bonds,
   mechanics,
 }: {
   entry: IWorldEntry;
+  gameId: string;
   characters: WorldBondCharacter[];
-  connections: IWorldEntryBond[];
+  bonds: IWorldEntryBond[];
   mechanics: WorldBondMechanics;
 }) {
   const { t } = useTranslation();
   const actions = useWorldBondActions(mechanics);
+  const leave = useLeaveConnection(actions);
   const rollProgress = useRollCompleteProgressTrack();
-  const byCharacter = new Map(
-    connections.map((connection) => [connection.characterId, connection]),
-  );
-  const listed = characters.filter((character) =>
-    byCharacter.has(character.id),
-  );
-  const canConnect = characters.filter(
-    (character) => character.canEdit && !byCharacter.has(character.id),
+  useListenToGameConnections(gameId);
+  const connections = useEntryConnections(gameId, entry.id);
+  // In the characters' order, by name.
+  const getMembers = (connectionId: string) =>
+    characters.filter((character) =>
+      bonds.some(
+        (bond) =>
+          bond.connectionId === connectionId &&
+          bond.characterId === character.id,
+      ),
+    );
+  const listed = connections
+    .map((connection) => ({ connection, members: getMembers(connection.id) }))
+    .filter(({ members }) => members.length > 0);
+  // Characters this person may edit who have no connection with the entry.
+  const unconnected = characters.filter(
+    (character) =>
+      character.canEdit &&
+      !bonds.some((bond) => bond.characterId === character.id),
   );
 
-  if (listed.length === 0 && canConnect.length === 0) return null;
+  if (listed.length === 0 && unconnected.length === 0) return null;
 
   return (
     <WorldBondSection
@@ -133,37 +148,77 @@ function WorldEntryConnections({
       }
     >
       <Stack spacing={3}>
-        {listed.map((character) => {
-          const connection = byCharacter.get(character.id)!;
+        {listed.map(({ connection, members }) => {
+          const editable = members.filter((member) => member.canEdit);
+          const label = formatNames(
+            members.map((member) => member.name),
+            t,
+          );
           return (
             <WorldConnectionRow
-              key={character.id}
+              key={connection.id}
               connection={connection}
-              label={character.name}
-              canEdit={character.canEdit}
-              onTicksChange={(ticks) =>
-                actions.updateConnection(connection, { ticks })
-              }
-              onForgeBond={() =>
+              label={label}
+              canEdit={editable.length > 0}
+              connectionMoves={mechanics.connectionMoves}
+              onRollMove={(moveId) =>
                 rollProgress(
                   TrackTypes.BondProgress,
                   t("worlds.bonds.roll-label", "{{character}} and {{entry}}", {
-                    character: character.name,
+                    character: label,
                     entry: entry.name,
                   }),
                   connection.ticks,
-                  FORGE_A_BOND_MOVE_ID,
-                  character.id,
+                  moveId,
+                  editable[0]?.id,
                 )
               }
-              onBondedChange={(bonded) => actions.setBonded(connection, bonded)}
-              onRemove={() => actions.removeConnection(connection)}
+              onTicksChange={(ticks) =>
+                actions.updateConnection(connection.id, { ticks })
+              }
+              onBondedChange={(bonded) =>
+                actions.setBonded(connection, members, bonded)
+              }
+              onRankChange={(rank) =>
+                actions.updateConnection(connection.id, { rank })
+              }
+              memberActions={[
+                ...unconnected.map((character) => ({
+                  key: `add:${character.id}`,
+                  label: t("worlds.bonds.share", "Share with {{name}}", {
+                    name: character.name,
+                  }),
+                  onClick: () =>
+                    actions.shareConnection(
+                      { entryId: entry.id, characterId: character.id },
+                      connection.id,
+                    ),
+                })),
+                ...editable.map((member) => ({
+                  key: `remove:${member.id}`,
+                  label:
+                    members.length > 1
+                      ? t(
+                          "worlds.bonds.unshare",
+                          "Stop sharing with {{name}}",
+                          {
+                            name: member.name,
+                          },
+                        )
+                      : t(
+                          "worlds.bonds.remove-connection",
+                          "Remove connection",
+                        ),
+                  onClick: () =>
+                    leave(entry, connection, members.length, member),
+                })),
+              ]}
             />
           );
         })}
-        {canConnect.length > 0 && (
+        {unconnected.length > 0 && (
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-            {canConnect.map((character) => (
+            {unconnected.map((character) => (
               <MakeConnectionButton
                 key={character.id}
                 character={character}
@@ -223,7 +278,7 @@ function MakeConnectionButton({
           "aria-label": t("worlds.bonds.rank", "Rank"),
         }}
       >
-        {RANKS.map((rank) => (
+        {CONNECTION_RANKS.map((rank) => (
           <MenuItem
             key={rank}
             onClick={() => {

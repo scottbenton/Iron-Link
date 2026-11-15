@@ -6,15 +6,20 @@ import { ProgressTrack } from "components/datasworn/ProgressTrack";
 
 import { useGameWorldId } from "pages/games/characterSheet/components/NotesSection/hooks/useGameWorld";
 import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
+import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useRollCompleteProgressTrack } from "pages/games/hooks/useRollCompleteProgressTrack";
 
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 import {
   useCharacterBonds,
   useListenToCharacterBonds,
+  useListenToGameConnections,
+  useWorldEntryConnections,
 } from "stores/worldEntryBonds.store";
 
 import { TrackTypes } from "repositories/tracks.repository";
+
+import { IWorldEntryConnection } from "services/worldEntryBonds.service";
 
 // The open character's world connections as targets for a connection
 // progress move (Forge a Bond). One dropdown keeps the dialog short however
@@ -29,14 +34,20 @@ export function WorldConnectionRolls({
   const { t } = useTranslation();
   const characterId = useCharacterIdOptional();
   const worldId = useGameWorldId();
+  const gameId = useGameIdOptional();
   useListenToCharacterBonds(worldId ? characterId : undefined);
+  useListenToGameConnections(worldId ? gameId : undefined);
   const entries = useWorldEntriesStore((store) => store.entryState.entries);
+  const connectionsById = useWorldEntryConnections();
   const connections = useCharacterBonds(characterId)
+    .map((bond) =>
+      bond.connectionId ? connectionsById[bond.connectionId] : undefined,
+    )
     .filter(
-      (bond) =>
-        bond.kind === "connection" &&
-        bond.worldId === worldId &&
-        entries[bond.entryId],
+      (connection): connection is IWorldEntryConnection =>
+        !!connection &&
+        connection.worldId === worldId &&
+        !!entries[connection.entryId],
     )
     .sort((a, b) =>
       entries[a.entryId].name.localeCompare(entries[b.entryId].name),
@@ -47,7 +58,7 @@ export function WorldConnectionRolls({
   if (!worldId || connections.length === 0) return null;
 
   const connection =
-    connections.find((bond) => bond.entryId === selected) ?? connections[0];
+    connections.find((c) => c.entryId === selected) ?? connections[0];
   const name = entries[connection.entryId].name;
 
   return (
@@ -69,7 +80,7 @@ export function WorldConnectionRolls({
       </TextField>
       <ProgressTrack
         label={name}
-        difficulty={connection.rank ?? undefined}
+        difficulty={connection.rank}
         value={connection.ticks}
       />
       <Button

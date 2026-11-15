@@ -17,6 +17,7 @@ import { Difficulty } from "repositories/tracks.repository";
 import { CharacterService, ICharacter } from "services/character.service";
 import {
   IWorldEntryBond,
+  IWorldEntryConnection,
   WorldEntryBondsService,
 } from "services/worldEntryBonds.service";
 
@@ -85,14 +86,49 @@ function bond(
     characterId,
     worldId: entry.worldId,
     kind: "bond",
-    rank: null,
+    connectionId: null,
+    ...extra,
+  };
+}
+
+function connection(
+  id: string,
+  extra: Partial<IWorldEntryConnection> = {},
+): IWorldEntryConnection {
+  return {
+    id,
+    entryId: entry.id,
+    gameId: "game",
+    worldId: entry.worldId,
+    rank: Difficulty.Dangerous,
     ticks: 0,
     bonded: false,
     ...extra,
   };
 }
 
+const member = (characterId: string, connectionId: string) =>
+  bond(characterId, { kind: "connection", connectionId });
+
+const FORGE_A_BOND = "move:starforged/connection/forge_a_bond";
+
+// Starforged's rules: the legacy track and a progress move for connections.
+function useConnectionRules() {
+  useDataswornTreeStore.setState((state) => {
+    state.specialTrackRules = rules("bonds_legacy");
+    state.moves.moveMap = {
+      [FORGE_A_BOND]: {
+        _id: FORGE_A_BOND,
+        name: "Forge a Bond",
+        roll_type: "progress_roll",
+        tracks: { category: "Connection" },
+      } as unknown as Datasworn.AnyMove,
+    };
+  });
+}
+
 let loaded: IWorldEntryBond[];
+let loadedConnections: IWorldEntryConnection[];
 
 function renderBonds(inGame = true) {
   const wrap = (children: ReactNode) =>
@@ -112,6 +148,14 @@ function renderBonds(inGame = true) {
 
 beforeEach(() => {
   loaded = [];
+  loadedConnections = [];
+  vi.spyOn(
+    WorldEntryBondsService,
+    "listenToGameConnections",
+  ).mockImplementation((_, onConnections) => {
+    onConnections(loadedConnections, [], true);
+    return () => {};
+  });
   vi.spyOn(WorldEntryBondsService, "listenToEntryBonds").mockImplementation(
     (_, onBonds) => {
       onBonds(loaded, [], true);
@@ -132,7 +176,15 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.mocked(enqueueSnackbar).mockClear();
   roll.mockClear();
-  useWorldEntryBondsStore.setState({ bonds: {}, loading: {}, errors: {} });
+  useWorldEntryBondsStore.setState({
+    bonds: {},
+    connections: {},
+    loading: {},
+    errors: {},
+  });
+  useDataswornTreeStore.setState((state) => {
+    state.moves.moveMap = {};
+  });
 });
 
 describe("world entry bonds", () => {
@@ -192,20 +244,13 @@ describe("world entry bonds", () => {
   });
 
   it("marks connection progress by rank and the legacy reward on Bonded", async () => {
-    useDataswornTreeStore.setState({
-      specialTrackRules: rules("bonds_legacy"),
-    });
-    loaded = [
-      bond("kira", {
-        kind: "connection",
-        rank: Difficulty.Dangerous,
-        ticks: 4,
-      }),
-    ];
+    useConnectionRules();
+    loadedConnections = [connection("a", { ticks: 4 })];
+    loaded = [member("kira", "a")];
     const update = vi
       .spyOn(WorldEntryBondsService, "updateConnection")
-      .mockImplementation(async (_key, changes) => ({
-        ...loaded[0],
+      .mockImplementation(async (id, changes) => ({
+        ...connection(id, { ticks: 4 }),
         ...changes,
       }));
     const user = userEvent.setup();
@@ -216,24 +261,21 @@ describe("world entry bonds", () => {
     ).toBeInTheDocument();
     // + marks progress by the rank.
     await user.click(screen.getByRole("button", { name: "Increment Kira" }));
-    expect(update).toHaveBeenCalledWith(
-      expect.objectContaining({ characterId: "kira" }),
-      { ticks: 12 },
-    );
+    expect(update).toHaveBeenCalledWith("a", { ticks: 12 });
 
-    await user.click(screen.getByRole("button", { name: "Forge a bond" }));
+    await user.click(screen.getByRole("button", { name: "Forge a Bond" }));
     expect(roll).toHaveBeenCalledWith(
       "bondProgress",
       "Kira and Captain",
       12,
-      "move:starforged/connection/forge_a_bond",
+      FORGE_A_BOND,
       "kira",
     );
 
     await user.click(screen.getByRole("checkbox", { name: "Bonded" }));
     await waitFor(() =>
       expect(enqueueSnackbar).toHaveBeenCalledWith(
-        "Marked 2 ticks on Kira's Bonds track",
+        "Marked 2 ticks on Kira's Bonds track.",
         expect.anything(),
       ),
     );
@@ -243,15 +285,56 @@ describe("world entry bonds", () => {
     ).toBe(5);
   });
 
-  it("makes a connection with a chosen rank", async () => {
-    useDataswornTreeStore.setState({
-      specialTrackRules: rules("bonds_legacy"),
+  it("shares a connection, and reminds allies it cannot mark", async () => {
+    useConnectionRules();
+    loadedConnections = [connection("a")];
+    loaded = [member("vex", "a")];
+    const share = vi
+      .spyOn(WorldEntryBondsService, "shareConnection")
+      .mockResolvedValue(member("kira", "a"));
+    vi.spyOn(WorldEntryBondsService, "updateConnection").mockImplementation(
+      async (id, changes) => ({ ...connection(id), ...changes }),
+    );
+    const user = userEvent.setup();
+    renderBonds();
+
+    await user.click(
+      screen.getByRole("button", { name: "Connection options: Vex" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Share with Kira" }));
+    expect(share).toHaveBeenCalledWith(
+      { entryId: "captain", characterId: "kira" },
+      "a",
+    );
+    await screen.findByRole("button", {
+      name: "Connection options: Kira and Vex",
     });
+
+    await user.click(screen.getByRole("checkbox", { name: "Bonded" }));
+    await waitFor(() =>
+      expect(enqueueSnackbar).toHaveBeenCalledWith(
+        expect.stringContaining("Vex should mark"),
+        expect.anything(),
+      ),
+    );
+    expect(
+      useGameCharactersStore.getState().characters.kira.specialTracks
+        .bonds_legacy.value,
+    ).toBe(5);
+    expect(
+      useGameCharactersStore.getState().characters.vex.specialTracks
+        .bonds_legacy.value,
+    ).toBe(0);
+  });
+
+  it("makes a connection with a chosen rank", async () => {
+    useConnectionRules();
     const add = vi
       .spyOn(WorldEntryBondsService, "addConnection")
-      .mockResolvedValue(
-        bond("kira", { kind: "connection", rank: Difficulty.Formidable }),
-      );
+      .mockResolvedValue({
+        connection: connection("a", { rank: Difficulty.Formidable }),
+        bond: member("kira", "a"),
+      });
     const user = userEvent.setup();
     renderBonds();
 
@@ -262,7 +345,7 @@ describe("world entry bonds", () => {
       Difficulty.Formidable,
     );
     expect(
-      await screen.findByRole("button", { name: "Forge a bond" }),
+      await screen.findByRole("button", { name: "Forge a Bond" }),
     ).toBeInTheDocument();
   });
 });

@@ -2,8 +2,13 @@ import { TFunction } from "i18next";
 
 import { Difficulty } from "repositories/tracks.repository";
 
-// Starforged's Forge a Bond, rolled against a connection's progress.
-export const FORGE_A_BOND_MOVE_ID = "move:starforged/connection/forge_a_bond";
+export const CONNECTION_RANKS = [
+  Difficulty.Troublesome,
+  Difficulty.Dangerous,
+  Difficulty.Formidable,
+  Difficulty.Extreme,
+  Difficulty.Epic,
+];
 
 export function getRankLabel(rank: Difficulty, t: TFunction): string {
   switch (rank) {
@@ -21,4 +26,13 @@ export function getRankLabel(rank: Difficulty, t: TFunction): string {
     case Difficulty.Epic:
       return t("datasworn.progress-tracks.difficulty-epic", "Epic");
   }
+}
+
+// "Kira", "Kira and Vex", "Kira, Vex and Nova".
+export function formatNames(names: string[], t: TFunction): string {
+  if (names.length <= 1) return names[0] ?? "";
+  return t("worlds.bonds.name-list", "{{list}} and {{last}}", {
+    list: names.slice(0, -1).join(", "),
+    last: names[names.length - 1],
+  });
 }

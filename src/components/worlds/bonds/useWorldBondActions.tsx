@@ -20,13 +20,17 @@ import { Difficulty } from "repositories/tracks.repository";
 
 import {
   IWorldConnectionUpdate,
-  IWorldEntryBond,
   IWorldEntryBondKey,
+  IWorldEntryConnection,
 } from "services/worldEntryBonds.service";
 
-// Changes a character's bonds, keeping their Bonds track in step: forming an
+import type { WorldBondCharacter } from "./useWorldBondCharacters";
+import { formatNames } from "./worldBondLabels";
+
+// Changes characters' bonds, keeping their Bonds track in step: forming an
 // Ironlands bond marks a tick, and a connection becoming a bond marks its
-// rank's reward. Each such change says what it marked and offers Undo.
+// rank's reward for everyone who shares it. Each such change says what it
+// marked and offers Undo.
 export function useWorldBondActions(mechanics: WorldBondMechanics | null) {
   const { t } = useTranslation();
   const addBondToStore = useWorldEntryBondsStore((store) => store.addBond);
@@ -39,6 +43,9 @@ export function useWorldBondActions(mechanics: WorldBondMechanics | null) {
   const updateConnectionInStore = useWorldEntryBondsStore(
     (store) => store.updateConnection,
   );
+  const shareConnectionInStore = useWorldEntryBondsStore(
+    (store) => store.shareConnection,
+  );
   const updateSpecialTrackValue = useGameCharactersStore(
     (store) => store.updateSpecialTrackValue,
   );
@@ -49,16 +56,16 @@ export function useWorldBondActions(mechanics: WorldBondMechanics | null) {
   // it back, or nothing if the track did not move.
   const markTrack = useCallback(
     async (characterId: string, delta: number) => {
-      if (!mechanics) return undefined;
+      if (!mechanics?.trackKey) return undefined;
+      const trackKey = mechanics.trackKey;
       const character =
         useGameCharactersStore.getState().characters[characterId];
       if (!character) return undefined;
-      const before = character.specialTracks[mechanics.trackKey]?.value ?? 0;
+      const before = character.specialTracks[trackKey]?.value ?? 0;
       const after = Math.max(0, Math.min(MAX_TICKS, before + delta));
       if (after === before) return undefined;
-      await updateSpecialTrackValue(characterId, mechanics.trackKey, after);
-      return () =>
-        updateSpecialTrackValue(characterId, mechanics.trackKey, before);
+      await updateSpecialTrackValue(characterId, trackKey, after);
+      return () => updateSpecialTrackValue(characterId, trackKey, before);
     },
     [mechanics, updateSpecialTrackValue],
   );
@@ -124,42 +131,97 @@ export function useWorldBondActions(mechanics: WorldBondMechanics | null) {
     [addBondToStore, removeBondFromStore, markTrack, notify, t, trackLabel],
   );
 
-  // Starforged: a connection becoming a bond marks its rank's reward.
+  // A connection becoming a bond marks its rank's reward on the track of
+  // every character who shares it and whom this person may edit; anyone
+  // else is told to mark their own.
   const setBonded = useCallback(
-    async (connection: IWorldEntryBond, bonded: boolean) => {
-      if (!connection.rank) return;
+    async (
+      connection: IWorldEntryConnection,
+      members: WorldBondCharacter[],
+      bonded: boolean,
+    ) => {
       try {
-        await updateConnectionInStore(connection, { bonded });
+        await updateConnectionInStore(connection.id, { bonded });
         const reward = CONNECTION_BOND_REWARD_TICKS[connection.rank];
-        const restoreTrack = await markTrack(
-          connection.characterId,
-          bonded ? reward : -reward,
-        );
-        if (!restoreTrack) return;
-        const name = getName(connection.characterId);
         const amount = formatTicks(reward, t);
-        notify(
-          bonded
-            ? t(
-                "worlds.bonds.reward-marked",
-                "Marked {{amount}} on {{name}}'s {{track}} track",
-                { amount, name, track: trackLabel },
-              )
-            : t(
-                "worlds.bonds.reward-unmarked",
-                "Removed {{amount}} from {{name}}'s {{track}} track",
-                { amount, name, track: trackLabel },
-              ),
-          async () => {
-            await updateConnectionInStore(connection, { bonded: !bonded });
-            await restoreTrack();
-          },
-        );
+        const marked: WorldBondCharacter[] = [];
+        const restores: (() => Promise<unknown>)[] = [];
+        for (const member of members.filter((member) => member.canEdit)) {
+          const restore = await markTrack(member.id, bonded ? reward : -reward);
+          if (restore) {
+            marked.push(member);
+            restores.push(restore);
+          }
+        }
+        const others = members.filter((member) => !member.canEdit);
+        const parts: string[] = [];
+        if (marked.length > 0) {
+          const names = formatNames(
+            marked.map((member) => member.name),
+            t,
+          );
+          parts.push(
+            bonded
+              ? t(
+                  "worlds.bonds.reward-marked",
+                  "Marked {{amount}} on {{names}}'s {{track}} tracks.",
+                  {
+                    amount,
+                    names,
+                    track: trackLabel,
+                    count: marked.length,
+                    defaultValue_one:
+                      "Marked {{amount}} on {{names}}'s {{track}} track.",
+                  },
+                )
+              : t(
+                  "worlds.bonds.reward-unmarked",
+                  "Removed {{amount}} from {{names}}'s {{track}} tracks.",
+                  {
+                    amount,
+                    names,
+                    track: trackLabel,
+                    count: marked.length,
+                    defaultValue_one:
+                      "Removed {{amount}} from {{names}}'s {{track}} track.",
+                  },
+                ),
+          );
+        } else if (bonded && !mechanics?.trackKey) {
+          // Rules without a bonds track: say what to mark by hand.
+          parts.push(
+            t(
+              "worlds.bonds.reward-reminder",
+              "Now a bond. Mark {{amount}} on your legacy track.",
+              { amount },
+            ),
+          );
+        }
+        if (bonded && others.length > 0) {
+          parts.push(
+            t(
+              "worlds.bonds.reward-others",
+              "{{names}} should mark {{amount}} too.",
+              {
+                names: formatNames(
+                  others.map((member) => member.name),
+                  t,
+                ),
+                amount,
+              },
+            ),
+          );
+        }
+        if (parts.length === 0) return;
+        notify(parts.join(" "), async () => {
+          await updateConnectionInStore(connection.id, { bonded: !bonded });
+          await Promise.all(restores.map((restore) => restore()));
+        });
       } catch (error) {
         parseRepositoryErrorAndCreateSnackbar(error);
       }
     },
-    [updateConnectionInStore, markTrack, notify, t, trackLabel],
+    [updateConnectionInStore, markTrack, notify, t, trackLabel, mechanics],
   );
 
   const makeConnection = useCallback(
@@ -170,15 +232,24 @@ export function useWorldBondActions(mechanics: WorldBondMechanics | null) {
     [addConnectionToStore],
   );
 
+  const shareConnection = useCallback(
+    (key: IWorldEntryBondKey, connectionId: string) =>
+      shareConnectionInStore(key, connectionId).catch(
+        parseRepositoryErrorAndCreateSnackbar,
+      ),
+    [shareConnectionInStore],
+  );
+
   const updateConnection = useCallback(
-    (key: IWorldEntryBondKey, update: IWorldConnectionUpdate) =>
-      updateConnectionInStore(key, update).catch(
+    (connectionId: string, update: IWorldConnectionUpdate) =>
+      updateConnectionInStore(connectionId, update).catch(
         parseRepositoryErrorAndCreateSnackbar,
       ),
     [updateConnectionInStore],
   );
 
-  const removeConnection = useCallback(
+  // Takes a character out of a connection; the last one out removes it.
+  const leaveConnection = useCallback(
     (key: IWorldEntryBondKey) =>
       removeBondFromStore(key).catch(parseRepositoryErrorAndCreateSnackbar),
     [removeBondFromStore],
@@ -188,8 +259,9 @@ export function useWorldBondActions(mechanics: WorldBondMechanics | null) {
     setBond,
     setBonded,
     makeConnection,
+    shareConnection,
     updateConnection,
-    removeConnection,
+    leaveConnection,
   };
 }
 

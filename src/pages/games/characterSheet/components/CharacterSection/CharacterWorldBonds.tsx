@@ -12,23 +12,31 @@ import {
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 
+import type { NavigationLinkProps } from "components/LinkComponent";
 import { WorldConnectionRow } from "components/worlds/bonds/WorldConnectionRow";
+import { useLeaveConnection } from "components/worlds/bonds/useLeaveConnection";
 import { useWorldBondActions } from "components/worlds/bonds/useWorldBondActions";
-import { FORGE_A_BOND_MOVE_ID } from "components/worlds/bonds/worldBondLabels";
+import { useWorldBondCharacters } from "components/worlds/bonds/useWorldBondCharacters";
+import { useWorldBondMechanics } from "components/worlds/bonds/useWorldBondMechanics";
+import { formatNames } from "components/worlds/bonds/worldBondLabels";
 
 import { getNotesItemLinkProps } from "pages/games/gamePageLayout/hooks/notesDestination";
+import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useRollCompleteProgressTrack } from "pages/games/hooks/useRollCompleteProgressTrack";
 
-import { useSpecialTrackRules } from "stores/dataswornTree.store";
 import { useGameCharacter } from "stores/gameCharacters.store";
 import { useNotesStore } from "stores/notes.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 import {
   useCharacterBonds,
+  useEntryBonds,
   useListenToCharacterBonds,
+  useListenToEntryBonds,
+  useListenToGameConnections,
+  useWorldEntryConnections,
 } from "stores/worldEntryBonds.store";
 
-import { getWorldBondMechanics } from "lib/worldBonds.lib";
+import { WorldBondMechanics } from "lib/worldBonds.lib";
 
 import { TrackTypes } from "repositories/tracks.repository";
 
@@ -48,8 +56,12 @@ export function CharacterWorldBonds() {
   const characterName = useGameCharacter((character) => character?.name);
   const canEdit = useCanEditCharacter();
   const worldId = useGameWorldId();
-  const mechanics = getWorldBondMechanics(useSpecialTrackRules());
+  const gameId = useGameId();
+  const mechanics = useWorldBondMechanics();
   useListenToCharacterBonds(worldId && mechanics ? characterId : undefined);
+  useListenToGameConnections(
+    worldId && mechanics?.kind === "connection" ? gameId : undefined,
+  );
   const entries = useWorldEntriesStore((store) => store.entryState.entries);
   const bonds = useCharacterBonds(characterId)
     .filter((bond) => bond.worldId === worldId && entries[bond.entryId])
@@ -57,7 +69,6 @@ export function CharacterWorldBonds() {
       entries[a.entryId].name.localeCompare(entries[b.entryId].name),
     );
   const actions = useWorldBondActions(mechanics);
-  const rollProgress = useRollCompleteProgressTrack();
   const location = useLocation();
   const openItemTab = useNotesStore((store) => store.openItemTab);
 
@@ -114,38 +125,20 @@ export function CharacterWorldBonds() {
         </Typography>
       ) : connections ? (
         <Stack spacing={2} sx={{ mt: 1 }}>
-          {bonds.map((connection) => {
-            const entry = entries[connection.entryId];
-            return (
-              <WorldConnectionRow
-                key={connection.entryId}
-                connection={connection}
-                label={entry.name}
-                labelLinkProps={getEntryLinkProps(entry)}
+          {bonds.map((bond) =>
+            bond.connectionId ? (
+              <CharacterConnection
+                key={bond.entryId}
+                entry={entries[bond.entryId]}
+                connectionId={bond.connectionId}
+                characterId={characterId}
+                characterName={characterName ?? ""}
                 canEdit={canEdit}
-                onTicksChange={(ticks) =>
-                  actions.updateConnection(connection, { ticks })
-                }
-                onForgeBond={() =>
-                  rollProgress(
-                    TrackTypes.BondProgress,
-                    t(
-                      "worlds.bonds.roll-label",
-                      "{{character}} and {{entry}}",
-                      { character: characterName ?? "", entry: entry.name },
-                    ),
-                    connection.ticks,
-                    FORGE_A_BOND_MOVE_ID,
-                    characterId,
-                  )
-                }
-                onBondedChange={(bonded) =>
-                  actions.setBonded(connection, bonded)
-                }
-                onRemove={() => actions.removeConnection(connection)}
+                mechanics={mechanics}
+                labelLinkProps={getEntryLinkProps(entries[bond.entryId])}
               />
-            );
-          })}
+            ) : null,
+          )}
         </Stack>
       ) : (
         <List dense disablePadding>
@@ -182,5 +175,105 @@ export function CharacterWorldBonds() {
         </List>
       )}
     </Box>
+  );
+}
+
+// One of the character's connections: its track, marked and forged here as
+// on the entry, named by the entry and by any allies who share it. Its menu
+// changes the rank or takes this character out of it.
+function CharacterConnection({
+  entry,
+  connectionId,
+  characterId,
+  characterName,
+  canEdit,
+  mechanics,
+  labelLinkProps,
+}: {
+  entry: IWorldEntry;
+  connectionId: string;
+  characterId: string;
+  characterName: string;
+  canEdit: boolean;
+  mechanics: WorldBondMechanics;
+  labelLinkProps: NavigationLinkProps;
+}) {
+  const { t } = useTranslation();
+  const connection = useWorldEntryConnections()[connectionId];
+  // The other members are read with the entry's bonds.
+  useListenToEntryBonds(entry.id);
+  const entryBonds = useEntryBonds(entry.id);
+  const characters = useWorldBondCharacters();
+  const actions = useWorldBondActions(mechanics);
+  const leave = useLeaveConnection(actions);
+  const rollProgress = useRollCompleteProgressTrack();
+
+  if (!connection) return null;
+
+  const members = characters.filter((character) =>
+    entryBonds.some(
+      (bond) =>
+        bond.connectionId === connectionId && bond.characterId === character.id,
+    ),
+  );
+  const self = members.find((member) => member.id === characterId) ?? {
+    id: characterId,
+    name: characterName,
+    canEdit,
+  };
+  const allies = members.filter((member) => member.id !== characterId);
+
+  return (
+    <WorldConnectionRow
+      connection={connection}
+      label={entry.name}
+      labelLinkProps={labelLinkProps}
+      description={
+        allies.length > 0
+          ? t("character.bonds.shared-with", "Shared with {{names}}", {
+              names: formatNames(
+                allies.map((ally) => ally.name),
+                t,
+              ),
+            })
+          : undefined
+      }
+      canEdit={canEdit}
+      connectionMoves={mechanics.connectionMoves}
+      onRollMove={(moveId) =>
+        rollProgress(
+          TrackTypes.BondProgress,
+          t("worlds.bonds.roll-label", "{{character}} and {{entry}}", {
+            character: characterName,
+            entry: entry.name,
+          }),
+          connection.ticks,
+          moveId,
+          characterId,
+        )
+      }
+      onTicksChange={(ticks) =>
+        actions.updateConnection(connection.id, { ticks })
+      }
+      onBondedChange={(bonded) =>
+        actions.setBonded(
+          connection,
+          members.length > 0 ? members : [self],
+          bonded,
+        )
+      }
+      onRankChange={(rank) => actions.updateConnection(connection.id, { rank })}
+      memberActions={[
+        {
+          key: "leave",
+          label:
+            members.length > 1
+              ? t("character.bonds.leave", "Stop sharing this connection")
+              : t("worlds.bonds.remove-connection", "Remove connection"),
+          onClick: () =>
+            leave(entry, connection, Math.max(members.length, 1), self),
+        },
+      ]}
+    />
   );
 }
