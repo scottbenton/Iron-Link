@@ -5,6 +5,7 @@ import { Difficulty } from "repositories/tracks.repository";
 import {
   IWorldEntryBond,
   IWorldEntryBondKey,
+  IWorldEntryConnection,
   WorldEntryBondsService,
 } from "services/worldEntryBonds.service";
 
@@ -29,7 +30,19 @@ const bond = (
   characterId,
   worldId: "world",
   kind: "bond",
-  rank: null,
+  connectionId: null,
+  ...extra,
+});
+
+const connection = (
+  id: string,
+  extra: Partial<IWorldEntryConnection> = {},
+): IWorldEntryConnection => ({
+  id,
+  entryId: "captain",
+  gameId: "game",
+  worldId: "world",
+  rank: Difficulty.Dangerous,
   ticks: 0,
   bonded: false,
   ...extra,
@@ -59,7 +72,12 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
-  useWorldEntryBondsStore.setState({ bonds: {}, loading: {}, errors: {} });
+  useWorldEntryBondsStore.setState({
+    bonds: {},
+    connections: {},
+    loading: {},
+    errors: {},
+  });
 });
 
 describe("world entry bonds store", () => {
@@ -85,13 +103,9 @@ describe("world entry bonds store", () => {
     ]);
     expect(store().loading["entry:captain"]).toBe(false);
 
-    // A progress change from realtime shows in both views.
-    onEntry.captain(
-      [bond("captain", "kira", { kind: "connection", ticks: 8 })],
-      [],
-      false,
-    );
-    expect(store().bonds["captain:kira"].ticks).toBe(8);
+    // A change from realtime shows in both views.
+    onEntry.captain([bond("harbour", "kira")], [], false);
+    expect(store().bonds["harbour:kira"]).toBeDefined();
 
     // Leaving the entry keeps the bonds the character sheet still shows.
     stopEntry();
@@ -130,34 +144,69 @@ describe("world entry bonds store", () => {
     stop();
   });
 
+  it("reads connections by game and drops them with the last listener", () => {
+    let onConnections: (
+      changed: IWorldEntryConnection[],
+      removedIds: string[],
+      replace: boolean,
+    ) => void = () => {};
+    vi.spyOn(
+      WorldEntryBondsService,
+      "listenToGameConnections",
+    ).mockImplementation((_, callback) => {
+      onConnections = callback;
+      return () => stopped.push("game");
+    });
+    const stop = store().listenToGameConnections("game");
+    onConnections([connection("a"), connection("b")], [], true);
+    onConnections([connection("a", { ticks: 8 })], ["b"], false);
+    expect(Object.keys(store().connections)).toEqual(["a"]);
+    expect(store().connections.a.ticks).toBe(8);
+    stop();
+    expect(stopped).toEqual(["game"]);
+    expect(store().connections).toEqual({});
+  });
+
   it("shows a progress change at once and undoes it if refused", async () => {
-    const stop = store().listenToEntryBonds("captain");
-    onEntry.captain(
-      [
-        bond("captain", "kira", {
-          kind: "connection",
-          rank: Difficulty.Dangerous,
-          ticks: 4,
-        }),
-      ],
-      [],
-      true,
-    );
+    useWorldEntryBondsStore.setState((state) => {
+      state.connections.a = connection("a", { ticks: 4 });
+    });
     let refuse: (error: Error) => void = () => {};
     vi.spyOn(WorldEntryBondsService, "updateConnection").mockReturnValue(
       new Promise((_, reject) => {
         refuse = reject;
       }),
     );
-    const update = store().updateConnection(
-      { entryId: "captain", characterId: "kira" },
-      { ticks: 12 },
-    );
-    expect(store().bonds["captain:kira"].ticks).toBe(12);
+    const update = store().updateConnection("a", { ticks: 12 });
+    expect(store().connections.a.ticks).toBe(12);
     refuse(new Error("refused"));
     await expect(update).rejects.toThrow("refused");
-    expect(store().bonds["captain:kira"].ticks).toBe(4);
-    stop();
+    expect(store().connections.a.ticks).toBe(4);
+  });
+
+  it("makes, shares and leaves connections", async () => {
+    vi.spyOn(WorldEntryBondsService, "addConnection").mockResolvedValue({
+      connection: connection("a"),
+      bond: bond("captain", "kira", { kind: "connection", connectionId: "a" }),
+    });
+    vi.spyOn(WorldEntryBondsService, "shareConnection").mockResolvedValue(
+      bond("captain", "vex", { kind: "connection", connectionId: "a" }),
+    );
+    vi.spyOn(WorldEntryBondsService, "removeBond").mockResolvedValue();
+    await store().addConnection(
+      { entryId: "captain", characterId: "kira" },
+      Difficulty.Dangerous,
+    );
+    await store().shareConnection(
+      { entryId: "captain", characterId: "vex" },
+      "a",
+    );
+    expect(store().connections.a).toBeDefined();
+    await store().removeBond({ entryId: "captain", characterId: "kira" });
+    // Vex still shares it.
+    expect(store().connections.a).toBeDefined();
+    await store().removeBond({ entryId: "captain", characterId: "vex" });
+    expect(store().connections.a).toBeUndefined();
   });
 
   it("adds and removes bonds", async () => {
