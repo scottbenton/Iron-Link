@@ -1,6 +1,9 @@
 import type { MouseEvent } from "react";
 
-import type { WorldLinkProps } from "components/worlds/worldNavigation";
+import {
+  type WorldLinkProps,
+  isWorldEntrySection,
+} from "components/worlds/worldNavigation";
 
 import type { IOpenNoteItem } from "stores/notes.store";
 
@@ -36,13 +39,13 @@ export function readNotesDestination(
   }
   const entryId = params.get("note-entry-id");
   if (view === "entry" && categoryId && entryId) {
+    const section = params.get("note-entry-section");
     return {
       type,
       itemId,
-      worldView:
-        params.get("note-entry-section") === "places"
-          ? { type: view, categoryId, entryId, section: "places" }
-          : { type: view, categoryId, entryId },
+      worldView: isWorldEntrySection(section)
+        ? { type: view, categoryId, entryId, section }
+        : { type: view, categoryId, entryId },
     };
   }
   return undefined;

@@ -1,6 +1,7 @@
 import { Box, LinearProgress, Typography } from "@mui/material";
 
 import { WorldEntryIcon } from "components/worlds/entries/WorldEntryIcon";
+import { WorldMapScreen } from "components/worlds/maps/WorldMapScreen";
 
 import { useGameStore } from "stores/game.store";
 import { useListenToWorld } from "stores/world.store";
@@ -20,14 +21,16 @@ import { NoteImageMain } from "./NoteImageMain";
 export interface WorldEntryMainProps {
   worldId: string;
   entryId: string;
+  // Its map, rather than its picture and name.
+  map?: boolean;
 }
 
 // A world entry on the second screen, shown like a character: its picture
 // with its name, or its icon and name when it has no picture. An entry only
 // Guides can see, or one from a world this game no longer uses, shows the
-// game's default screen instead.
+// game's default screen instead. Sent as a map, it shows the entry's map.
 export function WorldEntryMain(props: WorldEntryMainProps) {
-  const { worldId, entryId } = props;
+  const { worldId, entryId, map } = props;
 
   const gameWorldId = useGameStore((store) => store.game?.worldId);
   const linked = gameWorldId === worldId;
@@ -46,6 +49,8 @@ export function WorldEntryMain(props: WorldEntryMainProps) {
   if (loading) return <LinearProgress sx={{ flexGrow: 1 }} />;
   if (!entry || entry.readPermissions === ReadPermissions.OnlyGuides)
     return <Default />;
+
+  if (map) return <WorldMapScreen entry={entry} fallback={<Default />} />;
 
   if (entry.imageFilename)
     return (

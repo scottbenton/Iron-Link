@@ -21,6 +21,8 @@ interface ISecondScreenWorldEntryDisplay {
   type: "world_entry";
   worldId: string;
   entryId: string;
+  // Shows the entry's map instead of its picture and name.
+  map?: boolean;
 }
 
 export type ISecondScreenDisplay =
@@ -78,7 +80,11 @@ export class SecondScreenService {
     } else if (settings.type === "world_entry") {
       return SecondScreenRepository.updateSecondScreenSettings(gameId, {
         type: "world_entry",
-        options: { world_id: settings.worldId, entry_id: settings.entryId },
+        options: {
+          world_id: settings.worldId,
+          entry_id: settings.entryId,
+          ...(settings.map ? { map: true } : {}),
+        },
       });
     }
   }
@@ -115,11 +121,16 @@ export class SecondScreenService {
         label: options.label,
       };
     } else if (dto.type === "world_entry") {
-      const options = dto.options as { world_id: string; entry_id: string };
+      const options = dto.options as {
+        world_id: string;
+        entry_id: string;
+        map?: boolean;
+      };
       return {
         type: "world_entry",
         worldId: options.world_id,
         entryId: options.entry_id,
+        ...(options.map === true ? { map: true } : {}),
       };
     } else {
       return null;

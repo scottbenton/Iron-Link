@@ -17,6 +17,13 @@ that are easy to miss. When you learn a new one, add a line here.
   `preventDefault` and, where it tracks loading, ignores a submit while one
   is in flight.
 
+## Layout and input
+
+- Screen width decides layout (`useIsBreakpoint`, `useIsMobile`); never
+  call `useMediaQuery` with a breakpoint by hand. Touch decides control
+  size and gestures (44px targets, long press): `useIsTouchDevice`
+  (`pointer: coarse`), so a tablet gets the wide layout sized for fingers.
+
 ## Accessibility
 
 - Screen reader announcements go through `useSetAnnouncement`. Live regions
