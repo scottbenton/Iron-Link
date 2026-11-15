@@ -136,6 +136,18 @@ that are easy to miss. When you learn a new one, add a line here.
   pixel at the default cell size), snapped to a cell when drawn. A pin is only
   readable with its entry, and moving the child elsewhere removes its pin.
 
+## Bonds
+
+- A character's bond with a world entry is a `world_entry_bonds` row. Its
+  `kind` follows the character's game rules, chosen when the row is made:
+  `bond` (Ironlands, the row is the bond) or `connection` (Starforged: `rank`,
+  `completed_ticks` 0 to 40, `bonded` once Forge a Bond succeeds). A row only
+  exists in a category with bonds, for a character whose game is linked to
+  the entry's world; turning bonds off, unlinking a game or moving a character
+  keeps rows, so readers filter by the world's linked games.
+- Bonds are read with their entry and written by people who can edit the
+  character and read the entry, never by the Guide for someone else's sheet.
+
 ## Rich text
 
 - Live editing rooms are locked by room keys (`room_keys` per note, entry and
