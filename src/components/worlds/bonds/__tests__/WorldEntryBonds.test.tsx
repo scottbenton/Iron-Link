@@ -1,5 +1,11 @@
 import { Datasworn } from "@datasworn-community/core";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfirmProvider } from "material-ui-confirm";
 import { enqueueSnackbar } from "notistack";
@@ -169,6 +175,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  // Unmount before the service spies go, or a listener restarts against the
+  // real repository.
+  cleanup();
   vi.restoreAllMocks();
   vi.mocked(enqueueSnackbar).mockClear();
   roll.mockClear();
