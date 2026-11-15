@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { Datasworn } from "@datasworn-community/core";
 import classic from "@datasworn-community/ironsworn-classic/json/classic.json";
 import starforged from "@datasworn-community/starforged/json/starforged.json";
