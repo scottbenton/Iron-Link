@@ -908,19 +908,41 @@ export type Database = {
       };
       world_entry_bonds: {
         Row: {
+          bonded: boolean;
           character_id: string;
+          completed_ticks: number;
           created_at: string;
           entry_id: string;
+          kind: string;
+          rank: Database["public"]["Enums"]["progress_track_difficulty"] | null;
+          updated_at: string;
+          world_id: string;
         };
         Insert: {
+          bonded?: boolean;
           character_id: string;
+          completed_ticks?: number;
           created_at?: string;
           entry_id: string;
+          kind?: string;
+          rank?:
+            | Database["public"]["Enums"]["progress_track_difficulty"]
+            | null;
+          updated_at?: string;
+          world_id?: string;
         };
         Update: {
+          bonded?: boolean;
           character_id?: string;
+          completed_ticks?: number;
           created_at?: string;
           entry_id?: string;
+          kind?: string;
+          rank?:
+            | Database["public"]["Enums"]["progress_track_difficulty"]
+            | null;
+          updated_at?: string;
+          world_id?: string;
         };
         Relationships: [
           {
@@ -935,6 +957,13 @@ export type Database = {
             columns: ["entry_id"];
             isOneToOne: false;
             referencedRelation: "world_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "world_entry_bonds_world_id_fkey";
+            columns: ["world_id"];
+            isOneToOne: false;
+            referencedRelation: "worlds";
             referencedColumns: ["id"];
           },
         ];
