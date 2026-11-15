@@ -2,8 +2,6 @@ import { Datasworn } from "@datasworn-community/core";
 
 import { Difficulty } from "repositories/tracks.repository";
 
-import type { WorldEntryBondKind } from "services/worldEntryBonds.service";
-
 // Bonds follow the game's rules packages, homebrew included, so nothing is
 // configured per world:
 // - Connections when a move rolls progress on "Connection" tracks (Datasworn's
@@ -14,7 +12,10 @@ import type { WorldEntryBondKind } from "services/worldEntryBonds.service";
 //   prose, so it is found by key ("bonds_legacy", then "bonds"), then by the
 //   label "bonds". Without one, nothing is marked and people are reminded.
 const CONNECTION_TRACK_CATEGORY = "connection";
-const BOND_TRACK_KEYS: Record<WorldEntryBondKind, string[]> = {
+// Ironlands bonds, or Starforged connections.
+export type WorldBondKind = "bond" | "connection";
+
+const BOND_TRACK_KEYS: Record<WorldBondKind, string[]> = {
   bond: ["bonds"],
   connection: ["bonds_legacy", "bonds"],
 };
@@ -25,7 +26,7 @@ export interface WorldBondMove {
 }
 
 export interface WorldBondMechanics {
-  kind: WorldEntryBondKind;
+  kind: WorldBondKind;
   // Key of the special track the bond marks, with its rules label, or null
   // when the rules have no bonds track.
   trackKey: string | null;
@@ -46,7 +47,7 @@ export function getWorldBondMechanics(
     )
     .map((move) => ({ id: move._id, name: move.name }))
     .sort((a, b) => a.name.localeCompare(b.name));
-  const kind: WorldEntryBondKind =
+  const kind: WorldBondKind =
     connectionMoves.length > 0 ? "connection" : "bond";
   const trackKey =
     BOND_TRACK_KEYS[kind].find((key) => specialTrackRules[key]) ??

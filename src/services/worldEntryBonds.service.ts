@@ -7,24 +7,20 @@ import {
   WorldEntryConnectionDTO,
 } from "repositories/worldEntryBonds.repository";
 
-// An Ironlands bond is only the link. A Starforged connection is its own
-// record, one character's or shared by allies; a character's bond row of
-// kind "connection" says it shares one.
-export type WorldEntryBondKind = "bond" | "connection";
-
+// An Ironlands bond is only the link between a character and an entry.
 export interface IWorldEntryBond {
   entryId: string;
   characterId: string;
   worldId: string;
-  kind: WorldEntryBondKind;
-  // The connection the character shares, for kind "connection".
-  connectionId: string | null;
 }
 
+// A Starforged connection: one character's, or the whole party's.
 export interface IWorldEntryConnection {
   id: string;
   entryId: string;
   gameId: string;
+  // Null when every character of the game shares it.
+  characterId: string | null;
   worldId: string;
   rank: Difficulty;
   // 0 to 40, four ticks a box.
@@ -38,7 +34,12 @@ export interface IWorldEntryBondKey {
 }
 
 export type IWorldConnectionUpdate = Partial<
-  Pick<IWorldEntryConnection, "rank" | "ticks" | "bonded">
+  Pick<IWorldEntryConnection, "rank" | "ticks" | "bonded" | "characterId">
+>;
+
+export type IWorldConnectionNew = Pick<
+  IWorldEntryConnection,
+  "entryId" | "gameId" | "characterId" | "rank"
 >;
 
 export const MAX_CONNECTION_TICKS = 40;
@@ -97,7 +98,6 @@ export class WorldEntryBondsService {
       await WorldEntryBondsRepository.createBond({
         entry_id: key.entryId,
         character_id: key.characterId,
-        kind: "bond",
       }),
     );
   }
@@ -119,41 +119,15 @@ export class WorldEntryBondsService {
     );
   }
 
-  // Makes a connection for one character and returns it with the character's
-  // membership.
   public static async addConnection(
-    key: IWorldEntryBondKey,
-    rank: Difficulty,
-  ): Promise<{ connection: IWorldEntryConnection; bond: IWorldEntryBond }> {
-    const connection = this.convertConnection(
-      await WorldEntryBondsRepository.createConnection(
-        key.entryId,
-        key.characterId,
-        rank,
-      ),
-    );
-    return {
-      connection,
-      bond: {
-        ...key,
-        worldId: connection.worldId,
-        kind: "connection",
-        connectionId: connection.id,
-      },
-    };
-  }
-
-  // Adds a character to a connection another character made.
-  public static async shareConnection(
-    key: IWorldEntryBondKey,
-    connectionId: string,
-  ): Promise<IWorldEntryBond> {
-    return this.convert(
-      await WorldEntryBondsRepository.createBond({
-        entry_id: key.entryId,
-        character_id: key.characterId,
-        kind: "connection",
-        connection_id: connectionId,
+    connection: IWorldConnectionNew,
+  ): Promise<IWorldEntryConnection> {
+    return this.convertConnection(
+      await WorldEntryBondsRepository.createConnection({
+        entry_id: connection.entryId,
+        game_id: connection.gameId,
+        character_id: connection.characterId,
+        rank: connection.rank,
       }),
     );
   }
@@ -174,12 +148,17 @@ export class WorldEntryBondsService {
             }
           : {}),
         ...(update.bonded !== undefined ? { bonded: update.bonded } : {}),
+        ...(update.characterId !== undefined
+          ? { character_id: update.characterId }
+          : {}),
       }),
     );
   }
 
-  // Removes a bond, or takes a character out of a connection (the last
-  // member leaving removes the connection).
+  public static removeConnection(connectionId: string): Promise<void> {
+    return WorldEntryBondsRepository.deleteConnection(connectionId);
+  }
+
   public static removeBond(key: IWorldEntryBondKey): Promise<void> {
     return WorldEntryBondsRepository.deleteBond({
       entry_id: key.entryId,
@@ -192,14 +171,10 @@ export class WorldEntryBondsService {
   }
 
   private static convert(bond: WorldEntryBondDTO): IWorldEntryBond {
-    const kind: WorldEntryBondKind =
-      bond.kind === "connection" ? "connection" : "bond";
     return {
       entryId: bond.entry_id,
       characterId: bond.character_id,
       worldId: bond.world_id,
-      kind,
-      connectionId: kind === "connection" ? bond.connection_id : null,
     };
   }
 
@@ -210,6 +185,7 @@ export class WorldEntryBondsService {
       id: connection.id,
       entryId: connection.entry_id,
       gameId: connection.game_id,
+      characterId: connection.character_id,
       worldId: connection.world_id,
       rank: connection.rank as Difficulty,
       ticks: connection.completed_ticks,

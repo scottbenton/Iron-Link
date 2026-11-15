@@ -2,9 +2,8 @@ import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
-import { Difficulty } from "repositories/tracks.repository";
-
 import {
+  IWorldConnectionNew,
   IWorldConnectionUpdate,
   IWorldEntryBond,
   IWorldEntryBondKey,
@@ -16,7 +15,7 @@ import {
 // Bonds as this window sees them, read by entry (the entry page) and by
 // character (the character sheet). Both views share one record keyed by
 // entry and character, so a change made in one shows in the other at once.
-// Connections, which bonds of kind "connection" point at, are read by game.
+// Connections, one character's or the party's, are read by game.
 interface WorldEntryBondsStoreState {
   bonds: Record<string, IWorldEntryBond>;
   connections: Record<string, IWorldEntryConnection>;
@@ -30,17 +29,14 @@ interface WorldEntryBondsStoreActions {
   listenToCharacterBonds: (characterId: string) => () => void;
   listenToGameConnections: (gameId: string) => () => void;
   addBond: (key: IWorldEntryBondKey) => Promise<void>;
-  addConnection: (key: IWorldEntryBondKey, rank: Difficulty) => Promise<void>;
-  shareConnection: (
-    key: IWorldEntryBondKey,
-    connectionId: string,
-  ) => Promise<void>;
-  // Shows at once, and goes back if the database refuses it.
+  addConnection: (connection: IWorldConnectionNew) => Promise<string>;
+  // Shows at once, and goes back if the database refuses it. Sharing with the
+  // party sets characterId to null.
   updateConnection: (
     connectionId: string,
     update: IWorldConnectionUpdate,
   ) => Promise<void>;
-  // Removes a bond, or takes a character out of its connection.
+  removeConnection: (connectionId: string) => Promise<void>;
   removeBond: (key: IWorldEntryBondKey) => Promise<void>;
 }
 
@@ -202,16 +198,13 @@ export const useWorldEntryBondsStore =
         addBond: async (key) => {
           put(await WorldEntryBondsService.addBond(key));
         },
-        addConnection: async (key, rank) => {
-          const { connection, bond } =
-            await WorldEntryBondsService.addConnection(key, rank);
+        addConnection: async (newConnection) => {
+          const connection =
+            await WorldEntryBondsService.addConnection(newConnection);
           set((store) => {
             store.connections[connection.id] = connection;
-            store.bonds[getWorldEntryBondKey(bond)] = bond;
           });
-        },
-        shareConnection: async (key, connectionId) => {
-          put(await WorldEntryBondsService.shareConnection(key, connectionId));
+          return connection.id;
         },
         updateConnection: async (connectionId, update) => {
           const before = get().connections[connectionId];
@@ -242,20 +235,16 @@ export const useWorldEntryBondsStore =
             throw error;
           }
         },
+        removeConnection: async (connectionId) => {
+          await WorldEntryBondsService.removeConnection(connectionId);
+          set((store) => {
+            delete store.connections[connectionId];
+          });
+        },
         removeBond: async (key) => {
           await WorldEntryBondsService.removeBond(key);
           set((store) => {
-            const bondKey = getWorldEntryBondKey(key);
-            const connectionId = store.bonds[bondKey]?.connectionId;
-            delete store.bonds[bondKey];
-            // The database removes a connection with its last member.
-            if (
-              connectionId &&
-              !Object.values(store.bonds).some(
-                (bond) => bond.connectionId === connectionId,
-              )
-            )
-              delete store.connections[connectionId];
+            delete store.bonds[getWorldEntryBondKey(key)];
           });
         },
       };
@@ -295,6 +284,25 @@ export function useEntryConnections(
         ? Object.values(store.connections).filter(
             (connection) =>
               connection.gameId === gameId && connection.entryId === entryId,
+          )
+        : [],
+    shallowArrayEqual,
+  );
+}
+
+// A character's connections in its game: its own and the party's.
+export function useCharacterConnections(
+  gameId: string | undefined,
+  characterId: string | undefined,
+): IWorldEntryConnection[] {
+  return useWorldEntryBondsStore(
+    (store) =>
+      gameId && characterId
+        ? Object.values(store.connections).filter(
+            (connection) =>
+              connection.gameId === gameId &&
+              (connection.characterId === null ||
+                connection.characterId === characterId),
           )
         : [],
     shallowArrayEqual,

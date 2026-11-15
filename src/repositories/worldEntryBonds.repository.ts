@@ -25,6 +25,8 @@ export type WorldEntryBondKey = Pick<
   "entry_id" | "character_id"
 >;
 export type WorldEntryConnectionDTO = Tables<"world_entry_connections">;
+export type WorldEntryConnectionInsertDTO =
+  TablesInsert<"world_entry_connections">;
 export type WorldEntryConnectionUpdateDTO =
   TablesUpdate<"world_entry_connections">;
 
@@ -212,21 +214,13 @@ export class WorldEntryBondsRepository {
     );
   }
 
-  // Makes a connection with its first member, then reads it back.
   public static async createConnection(
-    entryId: string,
-    characterId: string,
-    rank: WorldEntryConnectionDTO["rank"],
+    connection: WorldEntryConnectionInsertDTO,
   ): Promise<WorldEntryConnectionDTO> {
-    const {
-      data: id,
-      error,
-      status,
-    } = await supabase.rpc("create_world_entry_connection", {
-      p_entry_id: entryId,
-      p_character_id: characterId,
-      p_rank: rank,
-    });
+    const { data, error, status } = await this.connections()
+      .insert(connection)
+      .select()
+      .single();
     if (error) {
       console.error(error);
       throw getRepositoryError(
@@ -237,18 +231,33 @@ export class WorldEntryBondsRepository {
         status,
       );
     }
-    const read = await this.connections().select().eq("id", id).single();
-    if (read.error) {
-      console.error(read.error);
+    return data;
+  }
+
+  public static async deleteConnection(connectionId: string): Promise<void> {
+    const { data, error, status } = await this.connections()
+      .delete()
+      .eq("id", connectionId)
+      .select("id");
+    if (error) {
+      console.error(error);
       throw getRepositoryError(
-        read.error,
-        ErrorVerb.Read,
+        error,
+        ErrorVerb.Delete,
         ErrorNoun.WorldEntryBond,
         false,
-        read.status,
+        status,
       );
     }
-    return read.data;
+    if (data.length === 0) {
+      // RLS filters a refused delete instead of raising.
+      throw createRepositoryError(
+        ErrorReason.Forbidden,
+        ErrorVerb.Delete,
+        ErrorNoun.WorldEntryBond,
+        false,
+      );
+    }
   }
 
   public static async updateConnection(

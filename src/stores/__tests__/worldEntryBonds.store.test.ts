@@ -29,8 +29,6 @@ const bond = (
   entryId,
   characterId,
   worldId: "world",
-  kind: "bond",
-  connectionId: null,
   ...extra,
 });
 
@@ -41,6 +39,7 @@ const connection = (
   id,
   entryId: "captain",
   gameId: "game",
+  characterId: "kira",
   worldId: "world",
   rank: Difficulty.Dangerous,
   ticks: 0,
@@ -184,28 +183,24 @@ describe("world entry bonds store", () => {
     expect(store().connections.a.ticks).toBe(4);
   });
 
-  it("makes, shares and leaves connections", async () => {
-    vi.spyOn(WorldEntryBondsService, "addConnection").mockResolvedValue({
-      connection: connection("a"),
-      bond: bond("captain", "kira", { kind: "connection", connectionId: "a" }),
+  it("makes, shares and removes connections", async () => {
+    vi.spyOn(WorldEntryBondsService, "addConnection").mockResolvedValue(
+      connection("a"),
+    );
+    vi.spyOn(WorldEntryBondsService, "updateConnection").mockResolvedValue(
+      connection("a", { characterId: null }),
+    );
+    vi.spyOn(WorldEntryBondsService, "removeConnection").mockResolvedValue();
+    const id = await store().addConnection({
+      entryId: "captain",
+      gameId: "game",
+      characterId: "kira",
+      rank: Difficulty.Dangerous,
     });
-    vi.spyOn(WorldEntryBondsService, "shareConnection").mockResolvedValue(
-      bond("captain", "vex", { kind: "connection", connectionId: "a" }),
-    );
-    vi.spyOn(WorldEntryBondsService, "removeBond").mockResolvedValue();
-    await store().addConnection(
-      { entryId: "captain", characterId: "kira" },
-      Difficulty.Dangerous,
-    );
-    await store().shareConnection(
-      { entryId: "captain", characterId: "vex" },
-      "a",
-    );
-    expect(store().connections.a).toBeDefined();
-    await store().removeBond({ entryId: "captain", characterId: "kira" });
-    // Vex still shares it.
-    expect(store().connections.a).toBeDefined();
-    await store().removeBond({ entryId: "captain", characterId: "vex" });
+    expect(id).toBe("a");
+    await store().updateConnection("a", { characterId: null });
+    expect(store().connections.a.characterId).toBeNull();
+    await store().removeConnection("a");
     expect(store().connections.a).toBeUndefined();
   });
 
