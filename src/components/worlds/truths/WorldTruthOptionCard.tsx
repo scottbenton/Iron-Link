@@ -22,6 +22,11 @@ import { getTruthOptionSubTable } from "lib/worldTruths.lib";
 import { WorldTruthQuestStarter } from "./WorldTruthQuestStarter";
 import { formatTruthRange } from "./worldTruthLabels";
 
+// Datasworn embeds the sub-table in the description; the card lists it below.
+function withoutTableEmbeds(markdown: string) {
+  return markdown.replace(/\n*\{\{table>[^}]+\}\}\n*/g, "\n\n").trim();
+}
+
 export interface WorldTruthOptionCardProps {
   option: Datasworn.TruthOption;
   selected: boolean;
@@ -78,7 +83,7 @@ export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
         />
       )}
       <MarkdownRenderer
-        markdown={option.description}
+        markdown={withoutTableEmbeds(option.description)}
         typographyVariant="body2"
         disableLinks={canEdit && !selected}
       />
@@ -105,7 +110,12 @@ export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
           sx={{
             p: 2,
             pb: subTable || canEdit ? 1 : 2,
-            display: "block",
+            // A button centres its content; keep the text at the top when
+            // the card stretches to its row's height.
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "stretch",
+            justifyContent: "flex-start",
             textAlign: "left",
             flexGrow: subTable ? 0 : 1,
           }}
