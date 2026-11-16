@@ -25,6 +25,7 @@ export enum ErrorNoun {
   WorldMap = "world map",
   WorldMapPin = "world map pin",
   WorldEntryBond = "bond",
+  WorldTruth = "world truth",
   RoomKey = "room key",
   Secrets = "secrets",
 }
