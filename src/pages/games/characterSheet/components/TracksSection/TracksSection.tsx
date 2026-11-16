@@ -11,6 +11,7 @@ import { useTracksStore } from "stores/tracks.store";
 import { TrackStatus } from "repositories/tracks.repository";
 
 import { CharacterConnections } from "./CharacterConnections";
+import { CharacterWorldBonds } from "./CharacterWorldBonds";
 import { TrackItem } from "./TrackItem";
 import { TracksSectionHeader } from "./TracksSectionHeader";
 
@@ -69,6 +70,7 @@ export function TracksSection() {
             : t("character.character-sidebar.no-tracks", "No tracks yet")
         }
       />
+      <CharacterWorldBonds />
       <CharacterConnections />
     </>
   );

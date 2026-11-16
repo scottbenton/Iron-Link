@@ -1,7 +1,6 @@
 import { Box } from "@mui/material";
 
 import { CharacterDetails } from "./CharacterDetails";
-import { CharacterWorldBonds } from "./CharacterWorldBonds";
 import { ConditionMeters } from "./ConditionMeters";
 import { ExperienceSection } from "./ExperienceSection";
 import { ImpactsSection } from "./ImpactsSection";
@@ -16,7 +15,6 @@ export function CharacterSection() {
       <ConditionMeters />
       <ImpactsSection />
       <LegacyTracks />
-      <CharacterWorldBonds />
       <ExperienceSection />
     </Box>
   );

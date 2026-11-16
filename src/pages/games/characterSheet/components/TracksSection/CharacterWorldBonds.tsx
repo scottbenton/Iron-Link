@@ -1,15 +1,8 @@
-import LinkOffIcon from "@mui/icons-material/LinkOff";
-import {
-  Box,
-  IconButton,
-  Link,
-  List,
-  ListItem,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import PersonRemoveIcon from "@mui/icons-material/PersonRemove";
+import { IconButton, Link, List, ListItem, Tooltip } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { EmptyState } from "components/Layout/EmptyState";
 import { useWorldBondActions } from "components/worlds/bonds/useWorldBondActions";
 import { useWorldBondMechanics } from "components/worlds/bonds/useWorldBondMechanics";
 import { useWorldEntryNotesLinkProps } from "components/worlds/bonds/useWorldEntryNotesLinkProps";
@@ -18,21 +11,22 @@ import { useWorldEntriesStore } from "stores/worldEntries.store";
 import {
   useCharacterBonds,
   useListenToCharacterBonds,
+  useWorldEntryBondsStore,
 } from "stores/worldEntryBonds.store";
 
 import { IWorldEntryBond } from "services/worldEntryBonds.service";
 
 import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
-import { useCharacterId } from "../../hooks/useCharacterId";
+import { useCharacterIdOptional } from "../../hooks/useCharacterId";
 import { useGameWorldId } from "../NotesSection/hooks/useGameWorld";
+import { CollapsibleTrackSection } from "./CollapsibleTrackSection";
 
-// The character's Ironlands bonds with entries of the game's world, under
-// the Legacy Tracks they mark. Each links back to its entry in Notes, where
-// bonds are formed. Starforged connections live on the Tracks tab
-// (CharacterConnections).
+// The open character's Ironlands bonds with entries of the game's world,
+// under its other tracks like Starforged connections (CharacterConnections).
+// Each links back to its entry in Notes, where bonds are formed.
 export function CharacterWorldBonds() {
   const { t } = useTranslation();
-  const characterId = useCharacterId();
+  const characterId = useCharacterIdOptional();
   const canEdit = useCanEditCharacter();
   const worldId = useGameWorldId();
   const mechanics = useWorldBondMechanics();
@@ -46,28 +40,28 @@ export function CharacterWorldBonds() {
     );
   const actions = useWorldBondActions(mechanics);
   const getEntryLinkProps = useWorldEntryNotesLinkProps(worldId);
+  const loaded = useWorldEntryBondsStore(
+    (store) => store.loading[`character:${characterId}`] === false,
+  );
 
-  if (!worldId || !isBond) return null;
+  if (!characterId || !worldId || !isBond) return null;
 
   return (
-    <Box>
-      <Typography
-        variant="h6"
-        component="h3"
-        textTransform="uppercase"
-        fontFamily="fontFamilyTitle"
-      >
-        {t("character.bonds.bonds", "Bonds")}
-      </Typography>
+    <CollapsibleTrackSection
+      title={t("character.bonds.bonds", "Bonds")}
+      loaded={loaded}
+      shownCount={bonds.length}
+    >
       {bonds.length === 0 ? (
-        <Typography variant="body2" color="text.secondary">
-          {t(
+        <EmptyState
+          sx={{ my: 3 }}
+          message={t(
             "character.bonds.no-bonds",
             "Form bonds from a world entry's page in Notes.",
           )}
-        </Typography>
+        />
       ) : (
-        <List dense disablePadding>
+        <List dense sx={{ mt: 1 }}>
           {bonds.map((bond: IWorldEntryBond) => {
             const entry = entries[bond.entryId];
             return (
@@ -86,7 +80,7 @@ export function CharacterWorldBonds() {
                         )}
                         onClick={() => actions.setBond(bond, false)}
                       >
-                        <LinkOffIcon />
+                        <PersonRemoveIcon />
                       </IconButton>
                     </Tooltip>
                   )
@@ -100,6 +94,6 @@ export function CharacterWorldBonds() {
           })}
         </List>
       )}
-    </Box>
+    </CollapsibleTrackSection>
   );
 }
