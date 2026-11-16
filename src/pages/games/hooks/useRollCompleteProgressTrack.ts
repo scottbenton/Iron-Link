@@ -40,6 +40,10 @@ export function useRollCompleteProgressTrack() {
       trackLabel: string,
       trackTicks: number,
       moveId: string,
+      // Rolls for this character rather than the open sheet's, such as a
+      // connection's character on a world entry. The caller checks it may
+      // edit that character.
+      forCharacterId?: string,
     ) => {
       const trackProgress = getProgressScore(trackTicks);
 
@@ -64,7 +68,8 @@ export function useRollCompleteProgressTrack() {
         trackProgress,
         trackType,
         result,
-        characterId: canEditCharacter ? (characterId ?? null) : null,
+        characterId:
+          forCharacterId ?? (canEditCharacter ? (characterId ?? null) : null),
         uid,
         guidesOnly: false,
         moveId,

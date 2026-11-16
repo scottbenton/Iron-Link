@@ -9,6 +9,8 @@ import { useTracksStore } from "stores/tracks.store";
 
 import { TrackStatus, TrackTypes } from "repositories/tracks.repository";
 
+import { WorldConnectionRolls } from "./WorldConnectionRolls";
+
 export interface ProgressRollsProps {
   trackType: TrackTypes;
   moveId: string;
@@ -35,6 +37,9 @@ export function ProgressRolls(props: ProgressRollsProps) {
 
   return (
     <Stack spacing={2}>
+      {trackType === TrackTypes.BondProgress && (
+        <WorldConnectionRolls moveId={moveId} moveName={moveName} />
+      )}
       {tracks.map(([trackId, track]) => (
         <Box key={trackId}>
           <ProgressTrack label={track.label} value={track.value} />

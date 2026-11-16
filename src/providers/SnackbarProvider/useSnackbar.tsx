@@ -201,6 +201,10 @@ function getTranslatedNoun(noun: ErrorNoun, plural: boolean): string {
       return plural
         ? i18n.t("errors.worldMapPins", "pins")
         : i18n.t("errors.worldMapPin", "pin");
+    case ErrorNoun.WorldEntryBond:
+      return plural
+        ? i18n.t("errors.worldEntryBonds", "bonds")
+        : i18n.t("errors.worldEntryBond", "bond");
     default:
       return "";
   }

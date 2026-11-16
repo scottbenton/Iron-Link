@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { GridLayout } from "components/Layout";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
@@ -8,10 +10,13 @@ import { useTracksStore } from "stores/tracks.store";
 
 import { TrackStatus } from "repositories/tracks.repository";
 
+import { CharacterConnections } from "./CharacterConnections";
+import { CharacterWorldBonds } from "./CharacterWorldBonds";
 import { TrackItem } from "./TrackItem";
 import { TracksSectionHeader } from "./TracksSectionHeader";
 
 export function TracksSection() {
+  const { t } = useTranslation();
   const campaignId = useGameId();
 
   const showCompletedTracks = useTracksStore(
@@ -19,6 +24,9 @@ export function TracksSection() {
   );
 
   const areTracksLoading = useTracksStore((state) => state.loading);
+  const hasTracks = useTracksStore(
+    (state) => Object.keys(state.tracks).length > 0,
+  );
   const sortedTrackIds = useTracksStore((state) =>
     Object.keys(state.tracks)
       .sort((a, b) => {
@@ -53,7 +61,17 @@ export function TracksSection() {
         )}
         minWidth={325}
         loading={areTracksLoading}
+        emptyStateMessage={
+          hasTracks
+            ? t(
+                "character.character-sidebar.no-active-tracks",
+                "No active tracks",
+              )
+            : t("character.character-sidebar.no-tracks", "No tracks yet")
+        }
       />
+      <CharacterWorldBonds />
+      <CharacterConnections />
     </>
   );
 }

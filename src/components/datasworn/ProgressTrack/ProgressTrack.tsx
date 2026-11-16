@@ -12,6 +12,8 @@ import { TFunction } from "i18next";
 import { useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { NavigationLinkProps } from "components/LinkComponent";
+
 import { useSetAnnouncement } from "stores/appState.store";
 
 import { Difficulty, TrackStatus } from "repositories/tracks.repository";
@@ -29,6 +31,8 @@ export interface ProgressTrackProps {
   onChange?: (newValue: number) => void;
   step?: number;
   onEditClick?: () => void;
+  // Makes the label a link, such as to the thing the track belongs to.
+  labelLinkProps?: NavigationLinkProps;
 }
 
 const maxTicks = 40;
@@ -44,6 +48,7 @@ export function ProgressTrack(props: ProgressTrackProps) {
     onChange,
     onEditClick,
     step = 1,
+    labelLinkProps,
   } = props;
 
   const { t } = useTranslation();
@@ -144,7 +149,13 @@ export function ProgressTrack(props: ProgressTrackProps) {
               variant={"h6"}
               component={"div"}
             >
-              <span id={labelId}>{capitalize(label)}</span>
+              {labelLinkProps ? (
+                <Link id={labelId} color="inherit" {...labelLinkProps}>
+                  {capitalize(label)}
+                </Link>
+              ) : (
+                <span id={labelId}>{capitalize(label)}</span>
+              )}
               {status === TrackStatus.Completed && (
                 <Chip
                   label={"Completed"}

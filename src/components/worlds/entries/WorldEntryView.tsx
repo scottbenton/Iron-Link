@@ -25,6 +25,7 @@ import { getWorldEntrySubtitle } from "lib/worldEntrySubtitle";
 
 import { IWorldCategory } from "services/worldCategories.service";
 
+import { WorldEntryBonds } from "../bonds/WorldEntryBonds";
 import { getEditorErrorMessage } from "../categories/categoryEditor.utils";
 import { WorldEntryMap } from "../maps/WorldEntryMap";
 import type { WorldNavigation } from "../worldNavigation";
@@ -252,6 +253,7 @@ export function WorldEntryView({
             guided={guided}
             navigation={navigation}
           />
+          {category.supportsBonds && <WorldEntryBonds entry={entry} />}
           {notesError && (
             <Alert severity="error" onClose={() => setNotesError(undefined)}>
               {notesError}
