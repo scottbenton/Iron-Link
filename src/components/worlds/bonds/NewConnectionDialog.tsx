@@ -170,7 +170,7 @@ export function NewConnectionDialog({
       slotProps={getDialogFormSlotProps(handleSubmit)}
     >
       <DialogTitleWithCloseButton onClose={onClose}>
-        {t("character.connections.new-title", "New connection")}
+        {t("character.connections.new-title", "New Connection")}
       </DialogTitleWithCloseButton>
       <DialogContent>
         <Stack spacing={2} sx={{ pt: 1 }}>
