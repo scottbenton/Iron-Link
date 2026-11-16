@@ -160,7 +160,7 @@ function ConnectionsSection({
             />
           </ButtonBase>
         </Typography>
-        {open && (
+        <Collapse in={open}>
           <Box
             display="flex"
             alignItems="center"
@@ -195,7 +195,7 @@ function ConnectionsSection({
               </Button>
             )}
           </Box>
-        )}
+        </Collapse>
       </Box>
       <Collapse in={open} id={detailsId}>
         {shown.length === 0 ? (
