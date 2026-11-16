@@ -1327,6 +1327,73 @@ export type Database = {
         };
         Relationships: [];
       };
+      world_truth_quest_starters: {
+        Row: {
+          quest_starter: string;
+          truth_id: string;
+          updated_at: string;
+          world_id: string;
+        };
+        Insert: {
+          quest_starter: string;
+          truth_id: string;
+          updated_at?: string;
+          world_id: string;
+        };
+        Update: {
+          quest_starter?: string;
+          truth_id?: string;
+          updated_at?: string;
+          world_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "world_truth_quest_starters_world_id_truth_id_fkey";
+            columns: ["world_id", "truth_id"];
+            isOneToOne: true;
+            referencedRelation: "world_truths";
+            referencedColumns: ["world_id", "truth_id"];
+          },
+        ];
+      };
+      world_truths: {
+        Row: {
+          created_at: string;
+          custom_description: string | null;
+          option_id: string | null;
+          sub_option_id: string | null;
+          truth_id: string;
+          updated_at: string;
+          world_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          custom_description?: string | null;
+          option_id?: string | null;
+          sub_option_id?: string | null;
+          truth_id: string;
+          updated_at?: string;
+          world_id: string;
+        };
+        Update: {
+          created_at?: string;
+          custom_description?: string | null;
+          option_id?: string | null;
+          sub_option_id?: string | null;
+          truth_id?: string;
+          updated_at?: string;
+          world_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "world_truths_world_id_fkey";
+            columns: ["world_id"];
+            isOneToOne: false;
+            referencedRelation: "worlds";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       worlds: {
         Row: {
           configuration_customized: boolean;
@@ -1431,6 +1498,15 @@ export type Database = {
       seed_world_template: {
         Args: { p_world_id: string; p_template: Json };
         Returns: boolean;
+      };
+      set_world_custom_truth: {
+        Args: {
+          p_world_id: string;
+          p_truth_id: string;
+          p_description: string;
+          p_quest_starter: string;
+        };
+        Returns: undefined;
       };
       update_world_notes: {
         Args: { p_world_id: string; p_notes_content: string };

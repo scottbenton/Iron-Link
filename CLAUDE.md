@@ -136,6 +136,17 @@ that are easy to miss. When you learn a new one, add a line here.
   pixel at the default cell size), snapped to a cell when drawn. A pin is only
   readable with its entry, and moving the child elsewhere removes its pin.
 
+## Truths
+
+- A world keeps one `world_truths` row per Datasworn truth id: an option id
+  (plus a Starforged sub-table row id) or a written description. Choices
+  outlive setting changes and rules updates; the screen shows the current
+  setting's truths, and an id that no longer resolves reads as not chosen.
+- A written truth's quest starter is Guide-only, in
+  `world_truth_quest_starters`, written only through `set_world_custom_truth`
+  and dropped when an option replaces the written truth. Datasworn quest
+  starters and unchosen options come from rules data and show only to Guides.
+
 ## Bonds
 
 - The game's rules decide what a character has with a world entry: an
