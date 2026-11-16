@@ -186,3 +186,72 @@ export function mapLegacyWorldTruths(
 
   return mapping;
 }
+
+// ---------------------------------------------------------------------------
+// Rolling
+// ---------------------------------------------------------------------------
+
+export type RandomInt = (min: number, max: number) => number;
+
+const randomInt: RandomInt = (min, max) =>
+  Math.floor(Math.random() * (max - min + 1)) + min;
+
+function inRange(
+  range: { min: number; max: number } | null | undefined,
+  value: number,
+) {
+  return !!range && value >= range.min && value <= range.max;
+}
+
+function rangeLimits(ranges: ({ min: number; max: number } | null)[]) {
+  const present = ranges.filter((range) => range !== null);
+  if (!present.length) return null;
+  return {
+    min: Math.min(...present.map((range) => range.min)),
+    max: Math.max(...present.map((range) => range.max)),
+  };
+}
+
+// Rolls a row on an option's sub-table, over the sub-table's own ranges.
+export function rollTruthSubTable(
+  subTable: TruthSubTable,
+  random: RandomInt = randomInt,
+): { roll: number; row: Datasworn.OracleRollableRowText } | undefined {
+  const limits = rangeLimits(subTable.rows.map((row) => row.roll));
+  if (!limits) return undefined;
+  const roll = random(limits.min, limits.max);
+  const row = subTable.rows.find((row) => inRange(row.roll, roll));
+  return row ? { roll, row } : undefined;
+}
+
+// Rolls a truth like the book: the option whose range holds the roll and,
+// when that option has a sub-table, a row on it too. A truth whose options
+// carry no ranges picks one at random.
+export function rollTruth(
+  truth: Datasworn.Truth,
+  random: RandomInt = randomInt,
+):
+  | {
+      roll: number;
+      option: Datasworn.TruthOption;
+      subRow?: Datasworn.OracleRollableRowText;
+    }
+  | undefined {
+  if (!truth.options.length) return undefined;
+  const limits = rangeLimits(truth.options.map((option) => option.roll));
+  let roll: number;
+  let option: Datasworn.TruthOption | undefined;
+  if (limits) {
+    roll = random(limits.min, limits.max);
+    option = truth.options.find((candidate) => inRange(candidate.roll, roll));
+  } else {
+    roll = random(1, truth.options.length);
+    option = truth.options[roll - 1];
+  }
+  if (!option) return undefined;
+  const subTable = getTruthOptionSubTable(option);
+  const subRow = subTable
+    ? rollTruthSubTable(subTable, random)?.row
+    : undefined;
+  return { roll, option, subRow };
+}

@@ -7,6 +7,7 @@ import {
   getWorldTruthsPackageId,
   mapLegacyWorldTruths,
   resolveWorldTruthChoice,
+  rollTruth,
 } from "../worldTruths.lib";
 
 const truths = (starforged as unknown as Datasworn.Ruleset).truths!;
@@ -166,5 +167,26 @@ describe("mapLegacyWorldTruths", () => {
       "truth:starforged/homebrew": "Go.",
       "truth:starforged/iron": "Kept anyway.",
     });
+  });
+});
+
+describe("rollTruth", () => {
+  it("picks the option whose range holds the roll, and a sub-table row", () => {
+    const rolls = [50, 31];
+    const rolled = rollTruth(cataclysm, () => rolls.shift() ?? 1);
+    expect(rolled?.roll).toBe(50);
+    expect(rolled?.option._id).toBe("truth.option:starforged/cataclysm.1");
+    expect(rolled?.subRow?._id).toBe(
+      "truth.option.oracle_rollable.row:starforged/cataclysm.1.entities.2",
+    );
+  });
+
+  it("rolls the whole d100", () => {
+    const seen: [number, number][] = [];
+    rollTruth(truths.exodus, (min, max) => {
+      seen.push([min, max]);
+      return max;
+    });
+    expect(seen[0]).toEqual([1, 100]);
   });
 });
