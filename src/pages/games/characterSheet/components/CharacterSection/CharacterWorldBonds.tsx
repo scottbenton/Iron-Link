@@ -223,7 +223,7 @@ function CharacterConnection({
       labelLinkProps={labelLinkProps}
       description={
         isParty
-          ? t("character.bonds.party", "Shared with the party")
+          ? t("character.bonds.party", "Shared with the Party")
           : undefined
       }
       canEdit={members.some((member) => member.canEdit)}

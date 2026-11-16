@@ -19,7 +19,8 @@ import { TrackTypes } from "repositories/tracks.repository";
 
 // The open character's world connections as targets for a connection
 // progress move (Forge a Bond). One dropdown keeps the dialog short however
-// many connections the character has.
+// many connections the character has; its track and roll show once one is
+// picked.
 export function WorldConnectionRolls({
   moveId,
   moveName,
@@ -46,9 +47,9 @@ export function WorldConnectionRolls({
 
   if (!worldId || connections.length === 0) return null;
 
-  const connection =
-    connections.find((c) => c.entryId === selected) ?? connections[0];
-  const name = entries[connection.entryId].name;
+  // Nothing is chosen at first, so a roll is always for the connection the
+  // player picked.
+  const connection = connections.find((c) => c.entryId === selected);
 
   return (
     <Box>
@@ -57,7 +58,7 @@ export function WorldConnectionRolls({
         size="small"
         fullWidth
         label={t("datasworn.move.world-connection", "Connection")}
-        value={connection.entryId}
+        value={connection?.entryId ?? ""}
         onChange={(event) => setSelected(event.target.value)}
         sx={{ mb: 1 }}
       >
@@ -67,28 +68,32 @@ export function WorldConnectionRolls({
           </MenuItem>
         ))}
       </TextField>
-      <ProgressTrack
-        label={name}
-        difficulty={connection.rank}
-        value={connection.ticks}
-      />
-      <Button
-        variant="outlined"
-        color="inherit"
-        sx={{ mt: 1 }}
-        onClick={() =>
-          rollTrackProgress(
-            TrackTypes.BondProgress,
-            name,
-            connection.ticks,
-            moveId,
-          )
-        }
-      >
-        {t("datasworn.move.roll-track-progress", "Roll {{moveName}}", {
-          moveName,
-        })}
-      </Button>
+      {connection && (
+        <>
+          <ProgressTrack
+            label={entries[connection.entryId].name}
+            difficulty={connection.rank}
+            value={connection.ticks}
+          />
+          <Button
+            variant="outlined"
+            color="inherit"
+            sx={{ mt: 1 }}
+            onClick={() =>
+              rollTrackProgress(
+                TrackTypes.BondProgress,
+                entries[connection.entryId].name,
+                connection.ticks,
+                moveId,
+              )
+            }
+          >
+            {t("datasworn.move.roll-track-progress", "Roll {{moveName}}", {
+              moveName,
+            })}
+          </Button>
+        </>
+      )}
     </Box>
   );
 }

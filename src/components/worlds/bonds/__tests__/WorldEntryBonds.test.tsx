@@ -305,18 +305,17 @@ describe("world entry bonds", () => {
       screen.getByRole("button", { name: "Connection options: Kira" }),
     );
     await user.click(
-      screen.getByRole("menuitem", { name: "Share with the party" }),
+      screen.getByRole("menuitem", { name: "Share with the Party" }),
     );
     expect(update).toHaveBeenCalledWith("a", { characterId: null });
     expect(
       await screen.findByRole("button", {
-        name: "Connection options: The party",
+        name: "Connection options: The Party",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Kira and Vex")).toBeInTheDocument();
     // The party shares it, so no one makes another.
     expect(
-      screen.queryByRole("button", { name: /Make a connection/ }),
+      screen.queryByRole("button", { name: /Create a connection/ }),
     ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("checkbox", { name: "Bonded" }));
@@ -353,11 +352,11 @@ describe("world entry bonds", () => {
       screen.getByRole("button", { name: "Connection options: Kira" }),
     );
     expect(
-      screen.getByRole("menuitem", { name: /Share with the party/ }),
+      screen.getByRole("menuitem", { name: /Share with the Party/ }),
     ).toHaveAttribute("aria-disabled", "true");
   });
 
-  it("makes a connection with a chosen rank", async () => {
+  it("creates a connection for a character with a chosen rank", async () => {
     useConnectionRules();
     const add = vi
       .spyOn(WorldEntryBondsService, "addConnection")
@@ -365,7 +364,14 @@ describe("world entry bonds", () => {
     const user = userEvent.setup();
     renderBonds();
 
-    await user.click(screen.getByRole("button", { name: "Make a connection" }));
+    await user.click(
+      screen.getByRole("button", { name: "Create a connection" }),
+    );
+    // Vex isn't this player's, so only the party and Kira are offered.
+    expect(
+      screen.queryByRole("menuitem", { name: "For Vex" }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("menuitem", { name: "For Kira" }));
     await user.click(screen.getByRole("menuitem", { name: "Formidable" }));
     expect(add).toHaveBeenCalledWith({
       entryId: "captain",
@@ -376,5 +382,49 @@ describe("world entry bonds", () => {
     expect(
       await screen.findByRole("button", { name: "Forge a Bond" }),
     ).toBeInTheDocument();
+  });
+
+  it("creates a connection for the party", async () => {
+    useConnectionRules();
+    const add = vi
+      .spyOn(WorldEntryBondsService, "addConnection")
+      .mockResolvedValue(connection("a", { characterId: null }));
+    const user = userEvent.setup();
+    renderBonds();
+
+    await user.click(
+      screen.getByRole("button", { name: "Create a connection" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "For the Party" }));
+    await user.click(screen.getByRole("menuitem", { name: "Dangerous" }));
+    expect(add).toHaveBeenCalledWith({
+      entryId: "captain",
+      gameId: "game",
+      characterId: null,
+      rank: Difficulty.Dangerous,
+    });
+  });
+
+  it("goes straight to the rank with one character", async () => {
+    useConnectionRules();
+    useGameCharactersStore.setState({
+      characters: { kira: character("kira", "Kira", "me") },
+    });
+    const add = vi
+      .spyOn(WorldEntryBondsService, "addConnection")
+      .mockResolvedValue(connection("a"));
+    const user = userEvent.setup();
+    renderBonds();
+
+    await user.click(
+      screen.getByRole("button", { name: "Create a connection" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Extreme" }));
+    expect(add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        characterId: "kira",
+        rank: Difficulty.Extreme,
+      }),
+    );
   });
 });

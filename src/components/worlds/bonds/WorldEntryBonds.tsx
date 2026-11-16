@@ -135,8 +135,28 @@ function WorldEntryConnections({
             (connection) => connection.characterId === character.id,
           ),
       );
+  // Who a new connection can be for: the party while no one has one, and
+  // each of those characters.
+  const targets: ConnectionTarget[] = [
+    ...(connections.length === 0 &&
+    characters.length > 1 &&
+    characters.some((character) => character.canEdit)
+      ? [
+          {
+            characterId: null,
+            label: t("worlds.bonds.connect-party", "For the Party"),
+          },
+        ]
+      : []),
+    ...unconnected.map((character) => ({
+      characterId: character.id,
+      label: t("worlds.bonds.connect-named", "For {{name}}", {
+        name: character.name,
+      }),
+    })),
+  ];
 
-  if (listed.length === 0 && unconnected.length === 0) return null;
+  if (listed.length === 0 && targets.length === 0) return null;
 
   return (
     <WorldBondSection
@@ -154,19 +174,19 @@ function WorldEntryConnections({
       <Stack spacing={3}>
         {listed.map((connection) => {
           const members = getConnectionMembers(connection, characters);
-          const names = formatNames(
-            members.map((member) => member.name),
-            t,
-          );
-          const isParty = connection.characterId === null;
-          const label = isParty ? t("worlds.bonds.party", "The party") : names;
+          const label =
+            connection.characterId === null
+              ? t("worlds.bonds.party", "The Party")
+              : formatNames(
+                  members.map((member) => member.name),
+                  t,
+                );
           const editor = members.find((member) => member.canEdit);
           return (
             <WorldConnectionRow
               key={connection.id}
               connection={connection}
               label={label}
-              description={isParty ? names : undefined}
               canEdit={!!editor}
               connectionMoves={mechanics.connectionMoves}
               onRollMove={(moveId) =>
@@ -199,23 +219,20 @@ function WorldEntryConnections({
             />
           );
         })}
-        {unconnected.length > 0 && (
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-            {unconnected.map((character) => (
-              <MakeConnectionButton
-                key={character.id}
-                character={character}
-                showName={characters.filter((c) => c.canEdit).length > 1}
-                onConnect={(rank) =>
-                  actions.makeConnection({
-                    entryId: entry.id,
-                    gameId,
-                    characterId: character.id,
-                    rank,
-                  })
-                }
-              />
-            ))}
+        {targets.length > 0 && (
+          <Box>
+            <CreateConnectionButton
+              targets={targets}
+              askTarget={characters.length > 1}
+              onCreate={(characterId, rank) =>
+                actions.makeConnection({
+                  entryId: entry.id,
+                  gameId,
+                  characterId,
+                  rank,
+                })
+              }
+            />
           </Box>
         )}
       </Stack>
@@ -223,23 +240,28 @@ function WorldEntryConnections({
   );
 }
 
-function MakeConnectionButton({
-  character,
-  showName,
-  onConnect,
+type ConnectionTarget = { characterId: string | null; label: string };
+
+// "Create a connection", then who it is for (skipped in a game with one
+// character), then its rank.
+function CreateConnectionButton({
+  targets,
+  askTarget,
+  onCreate,
 }: {
-  character: WorldBondCharacter;
-  showName: boolean;
-  onConnect: (rank: Difficulty) => void;
+  targets: ConnectionTarget[];
+  askTarget: boolean;
+  onCreate: (characterId: string | null, rank: Difficulty) => void;
 }) {
   const { t } = useTranslation();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const [target, setTarget] = useState<ConnectionTarget | null>(null);
   const menuId = useId();
-  const label = showName
-    ? t("worlds.bonds.connect-named", "Make a connection for {{name}}", {
-        name: character.name,
-      })
-    : t("worlds.bonds.connect", "Make a connection");
+  const close = () => {
+    setAnchor(null);
+    setTarget(null);
+  };
+  const choosingTarget = askTarget && !target;
   return (
     <>
       <Button
@@ -250,30 +272,44 @@ function MakeConnectionButton({
         aria-haspopup="menu"
         aria-controls={anchor ? menuId : undefined}
         aria-expanded={anchor ? true : undefined}
-        onClick={(event) => setAnchor(event.currentTarget)}
+        onClick={(event) => {
+          setTarget(askTarget ? null : targets[0]);
+          setAnchor(event.currentTarget);
+        }}
       >
-        {label}
+        {t("worlds.bonds.connect", "Create a connection")}
       </Button>
       <Menu
         id={menuId}
         anchorEl={anchor}
         open={!!anchor}
-        onClose={() => setAnchor(null)}
+        onClose={close}
         MenuListProps={{
-          "aria-label": t("worlds.bonds.rank", "Rank"),
+          "aria-label": choosingTarget
+            ? t("worlds.bonds.connect-for", "Create a connection for")
+            : t("worlds.bonds.rank", "Rank"),
         }}
       >
-        {CONNECTION_RANKS.map((rank) => (
-          <MenuItem
-            key={rank}
-            onClick={() => {
-              setAnchor(null);
-              onConnect(rank);
-            }}
-          >
-            {getRankLabel(rank, t)}
-          </MenuItem>
-        ))}
+        {choosingTarget
+          ? targets.map((option) => (
+              <MenuItem
+                key={option.characterId ?? "party"}
+                onClick={() => setTarget(option)}
+              >
+                {option.label}
+              </MenuItem>
+            ))
+          : CONNECTION_RANKS.map((rank) => (
+              <MenuItem
+                key={rank}
+                onClick={() => {
+                  if (target) onCreate(target.characterId, rank);
+                  close();
+                }}
+              >
+                {getRankLabel(rank, t)}
+              </MenuItem>
+            ))}
       </Menu>
     </>
   );
