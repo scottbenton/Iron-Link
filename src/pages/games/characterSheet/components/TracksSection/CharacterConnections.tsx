@@ -1,12 +1,10 @@
-import AddIcon from "@mui/icons-material/Add";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Box,
   Button,
+  ButtonBase,
   Checkbox,
+  Collapse,
   FormControlLabel,
   Stack,
   Typography,
@@ -14,6 +12,7 @@ import {
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { EmptyState } from "components/Layout/EmptyState";
 import type { NavigationLinkProps } from "components/LinkComponent";
 import { NewConnectionDialog } from "components/worlds/bonds/NewConnectionDialog";
 import { WorldConnectionRow } from "components/worlds/bonds/WorldConnectionRow";
@@ -48,9 +47,10 @@ import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterIdOptional } from "../../hooks/useCharacterId";
 import { useGameWorldId } from "../NotesSection/hooks/useGameWorld";
 
-// The open character's connections (its own and the Party's) with NPCs of
-// the game's world, under its other tracks. Closed until opened; bonded ones
-// are hidden unless asked for, like completed tracks.
+// The open character's connections (its own and the party's) with NPCs of
+// the game's world, under its other tracks with a header bar like theirs.
+// Closed until opened; bonded ones are hidden unless asked for, like
+// completed tracks.
 export function CharacterConnections() {
   const characterId = useCharacterIdOptional();
   const worldId = useGameWorldId();
@@ -89,6 +89,7 @@ function ConnectionsSection({
   const getEntryLinkProps = useWorldEntryNotesLinkProps(worldId);
   const [showBonded, setShowBonded] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [open, setOpen] = useState(false);
   const detailsId = useId();
 
   useListenToGameConnections(gameId);
@@ -106,69 +107,102 @@ function ConnectionsSection({
   );
 
   return (
-    <Accordion variant="outlined" disableGutters sx={{ mt: 4 }}>
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        aria-controls={detailsId}
+    <>
+      <Box
+        mx={-2}
+        mt={4}
+        px={2}
+        py={1}
+        bgcolor={(theme) =>
+          theme.palette.mode === "light" ? "grey.300" : "grey.700"
+        }
       >
         <Typography
-          component="span"
+          component="h3"
           variant="h6"
-          textTransform="uppercase"
           fontFamily="fontFamilyTitle"
+          textTransform="uppercase"
         >
-          {t("character.connections.title", "Connections")}
+          <ButtonBase
+            aria-expanded={open}
+            aria-controls={detailsId}
+            onClick={() => setOpen((current) => !current)}
+            sx={{
+              width: "100%",
+              justifyContent: "space-between",
+              font: "inherit",
+              textTransform: "inherit",
+              borderRadius: 1,
+              py: 0.5,
+            }}
+          >
+            <span>
+              {t("character.connections.title", "Connections")}
+              <Box
+                component="span"
+                sx={{ ml: 1, color: "text.secondary", typography: "body2" }}
+              >
+                {connections.length}
+              </Box>
+            </span>
+            <ExpandMoreIcon
+              sx={{
+                transition: (theme) => theme.transitions.create("transform"),
+                transform: open ? "rotate(180deg)" : "none",
+              }}
+            />
+          </ButtonBase>
         </Typography>
-        <Typography
-          component="span"
-          color="text.secondary"
-          sx={{ ml: 1, alignSelf: "center" }}
-        >
-          {connections.length}
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails id={detailsId}>
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          flexWrap="wrap"
-          gap={1}
-        >
-          <FormControlLabel
-            label={t("character.connections.show-bonded", "Show Bonded")}
-            control={
-              <Checkbox
-                checked={showBonded}
-                onChange={(_, checked) => setShowBonded(checked)}
-              />
+        {open && (
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+            flexWrap="wrap"
+            gap={1}
+          >
+            <FormControlLabel
+              label={t("character.connections.show-bonded", "Show Bonded")}
+              control={
+                <Checkbox
+                  checked={showBonded}
+                  onChange={(_, checked) => setShowBonded(checked)}
+                />
+              }
+            />
+            {canEdit && (
+              <Button
+                color="inherit"
+                variant="outlined"
+                // "Add" fits beside Show Bonded in the narrow sidebar; the
+                // section heading says what it adds.
+                aria-label={t(
+                  "character.connections.add-label",
+                  "Add connection",
+                )}
+                onClick={() => setCreating(true)}
+              >
+                {t("character.connections.add", "Add")}
+              </Button>
+            )}
+          </Box>
+        )}
+      </Box>
+      <Collapse in={open} id={detailsId}>
+        {shown.length === 0 ? (
+          <EmptyState
+            sx={{ my: 3 }}
+            message={
+              connections.length === 0
+                ? t("character.connections.empty", "No connections yet")
+                : t(
+                    "character.connections.all-bonded",
+                    "Every connection is bonded",
+                  )
             }
           />
-          {canEdit && (
-            <Button
-              color="inherit"
-              variant="outlined"
-              startIcon={<AddIcon />}
-              onClick={() => setCreating(true)}
-            >
-              {t("character.connections.new", "New Connection")}
-            </Button>
-          )}
-        </Box>
-        {shown.length === 0 ? (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            {connections.length === 0
-              ? t(
-                  "character.connections.empty",
-                  "No connections yet. Make one here or from an NPC's page in Notes.",
-                )
-              : t(
-                  "character.connections.all-bonded",
-                  "Every connection here is a bond. Show Bonded to see them.",
-                )}
-          </Typography>
         ) : (
-          <Stack spacing={2} sx={{ mt: 1 }}>
+          <Stack spacing={4} sx={{ mt: 2 }}>
             {shown.map((connection) => (
               <CharacterConnection
                 key={connection.id}
@@ -182,7 +216,7 @@ function ConnectionsSection({
             ))}
           </Stack>
         )}
-      </AccordionDetails>
+      </Collapse>
       {creating && (
         <NewConnectionDialog
           onClose={() => setCreating(false)}
@@ -194,11 +228,11 @@ function ConnectionsSection({
           onCreate={actions.makeConnection}
         />
       )}
-    </Accordion>
+    </>
   );
 }
 
-// One of the character's connections, its own or the Party's: its track,
+// One of the character's connections, its own or the party's: its track,
 // marked and forged here as on the NPC, named by the NPC. Its menu shares it
 // or keeps it for one character, removes it and changes the rank.
 function CharacterConnection({
@@ -232,7 +266,7 @@ function CharacterConnection({
       labelLinkProps={labelLinkProps}
       description={
         isParty
-          ? t("character.bonds.party", "Shared with the Party")
+          ? t("character.bonds.party", "Shared with the party")
           : undefined
       }
       canEdit={members.some((member) => member.canEdit)}

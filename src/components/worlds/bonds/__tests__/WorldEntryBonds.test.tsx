@@ -305,7 +305,7 @@ describe("world entry bonds", () => {
       screen.getByRole("button", { name: "Connection options: Kira" }),
     );
     await user.click(
-      screen.getByRole("menuitem", { name: "Share with the Party" }),
+      screen.getByRole("menuitem", { name: "Share with the party" }),
     );
     expect(update).toHaveBeenCalledWith("a", { characterId: null });
     expect(
@@ -352,7 +352,7 @@ describe("world entry bonds", () => {
       screen.getByRole("button", { name: "Connection options: Kira" }),
     );
     expect(
-      screen.getByRole("menuitem", { name: /Share with the Party/ }),
+      screen.getByRole("menuitem", { name: /Share with the party/ }),
     ).toHaveAttribute("aria-disabled", "true");
   });
 
@@ -395,7 +395,7 @@ describe("world entry bonds", () => {
     await user.click(
       screen.getByRole("button", { name: "Create a connection" }),
     );
-    await user.click(screen.getByRole("menuitem", { name: "For the Party" }));
+    await user.click(screen.getByRole("menuitem", { name: "For the party" }));
     await user.click(screen.getByRole("menuitem", { name: "Dangerous" }));
     expect(add).toHaveBeenCalledWith({
       entryId: "captain",

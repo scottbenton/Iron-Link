@@ -166,10 +166,10 @@ describe("character connections on the Tracks tab", () => {
     expect(screen.queryByText("Pilot")).not.toBeInTheDocument();
     await user.click(screen.getByRole("checkbox", { name: "Show Bonded" }));
     expect(screen.getByText("Pilot")).toBeInTheDocument();
-    expect(screen.getByText("Shared with the Party")).toBeInTheDocument();
+    expect(screen.getByText("Shared with the party")).toBeInTheDocument();
   });
 
-  it("makes a Party connection with an NPC no one is connected to", async () => {
+  it("makes a party connection with an NPC no one is connected to", async () => {
     loaded = [connection("a")];
     const add = vi
       .spyOn(WorldEntryBondsService, "addConnection")
@@ -178,14 +178,14 @@ describe("character connections on the Tracks tab", () => {
     renderConnections();
 
     await user.click(screen.getByRole("button", { name: /Connections/ }));
-    await user.click(screen.getByRole("button", { name: "New Connection" }));
+    await user.click(screen.getByRole("button", { name: "Add connection" }));
     const dialog = screen.getByRole("dialog");
 
     await user.click(within(dialog).getByRole("combobox", { name: "For" }));
-    await user.click(screen.getByRole("option", { name: "The Party" }));
+    await user.click(screen.getByRole("option", { name: "The party" }));
     await user.click(within(dialog).getByRole("combobox", { name: "NPC" }));
     // Kira already has a connection with the Captain, so only the Pilot can
-    // be the Party's.
+    // be the party's.
     expect(
       screen.queryByRole("option", { name: "Captain" }),
     ).not.toBeInTheDocument();

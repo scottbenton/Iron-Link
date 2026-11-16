@@ -159,10 +159,10 @@ that are easy to miss. When you learn a new one, add a line here.
   changes go through `useWorldBondActions`, which also moves the character's
   Bonds track and offers Undo in a snackbar.
 - On the character sheet, Ironlands bonds list under Legacy Tracks
-  (`CharacterWorldBonds`); connections are a collapsible section under the
-  Tracks tab's tracks (`CharacterConnections`, closed by default, bonded ones
-  behind Show Bonded), where New Connection picks an NPC of a bonds category
-  or creates one, shared with everyone. Every connection has an NPC.
+  (`CharacterWorldBonds`); connections sit under the Tracks tab's tracks
+  (`CharacterConnections`) with a header bar like the tracks' own (Show
+  Bonded, Add), closed by default. Add picks an NPC of a bonds category or
+  creates one, shared with everyone. Every connection has an NPC.
 
 ## Rich text
 

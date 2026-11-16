@@ -37,12 +37,12 @@ export function useConnectionMenuActions(
     if (connection.characterId !== null && characters.length > 1) {
       menu.push({
         key: "share",
-        label: t("worlds.bonds.share-party", "Share with the Party"),
+        label: t("worlds.bonds.share-party", "Share with the party"),
         disabled: othersConnected,
         secondary: othersConnected
           ? t(
               "worlds.bonds.share-party-blocked",
-              "Others in the Party have their own connection",
+              "Others in the party have their own connection",
             )
           : undefined,
         onClick: () =>

@@ -144,7 +144,7 @@ function WorldEntryConnections({
       ? [
           {
             characterId: null,
-            label: t("worlds.bonds.connect-party", "For the Party"),
+            label: t("worlds.bonds.connect-party", "For the party"),
           },
         ]
       : []),

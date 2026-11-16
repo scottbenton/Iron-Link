@@ -49,7 +49,7 @@ export interface NewConnectionDialogProps {
 
 // A new connection from the character sheet: with an NPC of the world (one
 // already there, or a new one named here), for this character or the whole
-// Party, at a rank. Mount it to open it, so each opening starts empty.
+// party, at a rank. Mount it to open it, so each opening starts empty.
 export function NewConnectionDialog({
   onClose,
   gameId,
@@ -99,8 +99,8 @@ export function NewConnectionDialog({
     return byEntry;
   }, [connections, gameId]);
 
-  // An entry can take a Party connection while no one has one with it, and
-  // this character's while neither they nor the Party have one.
+  // An entry can take a party connection while no one has one with it, and
+  // this character's while neither they nor the party have one.
   const available = (entryId: string, forParty: boolean) => {
     const holders = taken[entryId] ?? [];
     return forParty
@@ -249,7 +249,7 @@ export function NewConnectionDialog({
             >
               <MenuItem value={characterId}>{characterName}</MenuItem>
               <MenuItem value={PARTY}>
-                {t("worlds.bonds.party", "The Party")}
+                {t("character.connections.for-party", "The party")}
               </MenuItem>
             </TextField>
           )}

@@ -95,7 +95,7 @@ export function WorldConnectionRow({
             display: "flex",
             alignItems: "center",
             flexWrap: "wrap",
-            columnGap: 2,
+            columnGap: 1,
             mt: 1,
           }}
         >
