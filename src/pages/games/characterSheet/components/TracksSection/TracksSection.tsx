@@ -8,6 +8,7 @@ import { useTracksStore } from "stores/tracks.store";
 
 import { TrackStatus } from "repositories/tracks.repository";
 
+import { CharacterConnections } from "./CharacterConnections";
 import { TrackItem } from "./TrackItem";
 import { TracksSectionHeader } from "./TracksSectionHeader";
 
@@ -54,6 +55,7 @@ export function TracksSection() {
         minWidth={325}
         loading={areTracksLoading}
       />
+      <CharacterConnections />
     </>
   );
 }
