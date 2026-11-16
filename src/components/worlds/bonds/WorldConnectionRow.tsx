@@ -12,6 +12,7 @@ import {
   Menu,
   MenuItem,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -171,20 +172,11 @@ export function WorldConnectionRow({
         </Box>
       ) : (
         connection.bonded && (
-          <Box sx={{ mt: 0.5 }}>
-            <BondedNote />
-          </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            {t("worlds.bonds.bonded-note", "Bonded")}
+          </Typography>
         )
       )}
-    </Box>
-  );
-}
-
-function BondedNote() {
-  const { t } = useTranslation();
-  return (
-    <Box component="span" sx={{ typography: "body2", color: "text.secondary" }}>
-      {t("worlds.bonds.bonded-note", "Bonded")}
     </Box>
   );
 }

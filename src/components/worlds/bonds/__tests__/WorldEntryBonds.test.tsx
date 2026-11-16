@@ -9,7 +9,6 @@ import {
 import userEvent from "@testing-library/user-event";
 import { ConfirmProvider } from "material-ui-confirm";
 import { enqueueSnackbar } from "notistack";
-import { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useDataswornTreeStore } from "stores/dataswornTree.store";
@@ -29,7 +28,6 @@ import {
 
 import { translate } from "../../categories/__tests__/fixtures";
 import { worldEntry } from "../../entries/__tests__/fixtures";
-import { WorldBondsGameContext } from "../WorldBondsGameContext";
 import { WorldEntryBonds } from "../WorldEntryBonds";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
@@ -39,6 +37,10 @@ vi.mock("notistack", () => ({
   closeSnackbar: vi.fn(),
 }));
 const roll = vi.fn();
+let routeGameId: string | undefined;
+vi.mock("pages/games/gamePageLayout/hooks/useGameId", () => ({
+  useGameIdOptional: () => routeGameId,
+}));
 vi.mock("pages/games/hooks/useRollCompleteProgressTrack", () => ({
   useRollCompleteProgressTrack: () => roll,
 }));
@@ -133,17 +135,10 @@ let loaded: IWorldEntryBond[];
 let loadedConnections: IWorldEntryConnection[];
 
 function renderBonds(inGame = true) {
-  const wrap = (children: ReactNode) =>
-    inGame ? (
-      <WorldBondsGameContext.Provider value={{ gameId: "game" }}>
-        {children}
-      </WorldBondsGameContext.Provider>
-    ) : (
-      children
-    );
+  routeGameId = inGame ? "game" : undefined;
   return render(
     <ConfirmProvider>
-      {wrap(<WorldEntryBonds entry={entry} />)}
+      <WorldEntryBonds entry={entry} />
     </ConfirmProvider>,
   );
 }

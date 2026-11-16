@@ -2,7 +2,7 @@ import LinkOffIcon from "@mui/icons-material/LinkOff";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import { Box, Button, Stack } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 
@@ -11,7 +11,6 @@ import { EmptyState } from "components/Layout/EmptyState";
 import { WorldOracleChangeWarning } from "components/worlds/WorldOracleChangeWarning";
 import { WorldPanel } from "components/worlds/WorldPanel";
 import { WorldSettingsSection } from "components/worlds/WorldSettingsSection";
-import { WorldBondsGameContext } from "components/worlds/bonds/WorldBondsGameContext";
 import type {
   WorldNavigation,
   WorldView,
@@ -45,7 +44,6 @@ export function GameWorldView(props: GameWorldViewProps) {
   const { t } = useTranslation();
   const confirm = useConfirm();
   const gameId = useGameId();
-  const bondsGame = useMemo(() => ({ gameId }), [gameId]);
   const location = useLocation();
   const uid = useUID();
   const openItemTab = useNotesStore((store) => store.openItemTab);
@@ -172,48 +170,46 @@ export function GameWorldView(props: GameWorldViewProps) {
         minHeight: 0,
       }}
     >
-      <WorldBondsGameContext.Provider value={bondsGame}>
-        <WorldPanel
-          worldId={worldId}
-          manageSubscription={false}
-          navigation={navigation}
-          rootBreadcrumb={rootBreadcrumb}
-          layout="embedded"
-          onWorldDeleted={() => closeTabsMatching("world", worldId)}
-          additionalSettings={
-            isGuide ? (
-              <WorldSettingsSection
-                title={t("worlds.game.connection", "Game connection")}
-                description={t(
-                  "worlds.game.connection-help",
-                  "Choose which world this game uses, or unlink it. The world itself is kept.",
-                )}
-              >
-                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                  <Button
-                    color="inherit"
-                    variant="outlined"
-                    startIcon={<SwapHorizIcon />}
-                    disabled={unlinking}
-                    onClick={() => setLinkDialogOpen(true)}
-                  >
-                    {t("worlds.game.change-world", "Change World")}
-                  </Button>
-                  <Button
-                    color="inherit"
-                    variant="outlined"
-                    startIcon={<LinkOffIcon />}
-                    disabled={unlinking}
-                    onClick={handleUnlink}
-                  >
-                    {t("worlds.game.unlink-world", "Unlink World")}
-                  </Button>
-                </Box>
-              </WorldSettingsSection>
-            ) : undefined
-          }
-        />
-      </WorldBondsGameContext.Provider>
+      <WorldPanel
+        worldId={worldId}
+        manageSubscription={false}
+        navigation={navigation}
+        rootBreadcrumb={rootBreadcrumb}
+        layout="embedded"
+        onWorldDeleted={() => closeTabsMatching("world", worldId)}
+        additionalSettings={
+          isGuide ? (
+            <WorldSettingsSection
+              title={t("worlds.game.connection", "Game connection")}
+              description={t(
+                "worlds.game.connection-help",
+                "Choose which world this game uses, or unlink it. The world itself is kept.",
+              )}
+            >
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <Button
+                  color="inherit"
+                  variant="outlined"
+                  startIcon={<SwapHorizIcon />}
+                  disabled={unlinking}
+                  onClick={() => setLinkDialogOpen(true)}
+                >
+                  {t("worlds.game.change-world", "Change World")}
+                </Button>
+                <Button
+                  color="inherit"
+                  variant="outlined"
+                  startIcon={<LinkOffIcon />}
+                  disabled={unlinking}
+                  onClick={handleUnlink}
+                >
+                  {t("worlds.game.unlink-world", "Unlink World")}
+                </Button>
+              </Box>
+            </WorldSettingsSection>
+          ) : undefined
+        }
+      />
       {/* Mounted only while open: the dialog loads the user's worlds on mount. */}
       {linkDialogOpen && (
         <LinkWorldDialog open onClose={() => setLinkDialogOpen(false)} />

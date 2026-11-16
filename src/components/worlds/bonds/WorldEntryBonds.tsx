@@ -3,6 +3,7 @@ import { Alert, Box, Button, Menu, MenuItem, Stack } from "@mui/material";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useRollCompleteProgressTrack } from "pages/games/hooks/useRollCompleteProgressTrack";
 
 import {
@@ -19,7 +20,6 @@ import { Difficulty, TrackTypes } from "repositories/tracks.repository";
 import { IWorldEntry } from "services/worldEntries.service";
 
 import { WorldBondSection } from "./WorldBondSection";
-import { useWorldBondsGame } from "./WorldBondsGameContext";
 import { WorldConnectionRow } from "./WorldConnectionRow";
 import { WorldEntryBondList } from "./WorldEntryBondList";
 import {
@@ -40,9 +40,9 @@ import { CONNECTION_RANKS, formatNames, getRankLabel } from "./worldBondLabels";
 // party's. Outside a game there are no characters to show, so it says where
 // bonds live instead.
 export function WorldEntryBonds({ entry }: { entry: IWorldEntry }) {
-  const game = useWorldBondsGame();
-  if (!game) return <WorldEntryBondsElsewhere />;
-  return <GameWorldEntryBonds entry={entry} gameId={game.gameId} />;
+  const gameId = useGameIdOptional();
+  if (!gameId) return <WorldEntryBondsElsewhere />;
+  return <GameWorldEntryBonds entry={entry} gameId={gameId} />;
 }
 
 function WorldEntryBondsElsewhere() {
