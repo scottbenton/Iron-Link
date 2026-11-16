@@ -7,6 +7,7 @@ import {
   Collapse,
   FormControlLabel,
   Stack,
+  Theme,
   Typography,
 } from "@mui/material";
 import { useId, useState } from "react";
@@ -47,6 +48,9 @@ import { IWorldEntryConnection } from "services/worldEntryBonds.service";
 import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterIdOptional } from "../../hooks/useCharacterId";
 import { useGameWorldId } from "../NotesSection/hooks/useGameWorld";
+
+const barColor = (theme: Theme) =>
+  theme.palette.mode === "light" ? "grey.300" : "grey.700";
 
 // Fewer connections than this start open.
 const OPEN_BELOW = 3;
@@ -123,13 +127,7 @@ function ConnectionsSection({
 
   return (
     <>
-      <Box
-        mx={-2}
-        mt={4}
-        bgcolor={(theme) =>
-          theme.palette.mode === "light" ? "grey.300" : "grey.700"
-        }
-      >
+      <Box mx={-2} mt={4} bgcolor={barColor}>
         <Typography
           component="h3"
           variant="h6"
@@ -160,71 +158,76 @@ function ConnectionsSection({
             />
           </ButtonBase>
         </Typography>
-        <Collapse in={open}>
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-            flexWrap="wrap"
-            gap={1}
-            px={2}
-            pb={1}
-          >
-            <FormControlLabel
-              label={t("character.connections.show-bonded", "Show Bonded")}
-              control={
-                <Checkbox
-                  checked={showBonded}
-                  onChange={(_, checked) => setShowBonded(checked)}
-                />
-              }
-            />
-            {canEdit && (
-              <Button
-                color="inherit"
-                variant="outlined"
-                // "Add" fits beside Show Bonded in the narrow sidebar; the
-                // section heading says what it adds.
-                aria-label={t(
-                  "character.connections.add-label",
-                  "Add connection",
-                )}
-                onClick={() => setCreating(true)}
-              >
-                {t("character.connections.add", "Add")}
-              </Button>
-            )}
-          </Box>
-        </Collapse>
       </Box>
-      <Collapse in={open} id={detailsId}>
-        {shown.length === 0 ? (
-          <EmptyState
-            sx={{ my: 3 }}
-            message={
-              connections.length === 0
-                ? t("character.connections.empty", "No connections yet")
-                : t(
-                    "character.connections.all-bonded",
-                    "Every connection is bonded",
-                  )
+      {/* One collapse for the bar's controls and the list, so they fold
+          together. It spans the bar's width, since it clips its contents. */}
+      <Collapse in={open} id={detailsId} sx={{ mx: -2 }}>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          flexWrap="wrap"
+          gap={1}
+          px={2}
+          pb={1}
+          bgcolor={barColor}
+        >
+          <FormControlLabel
+            label={t("character.connections.show-bonded", "Show Bonded")}
+            control={
+              <Checkbox
+                checked={showBonded}
+                onChange={(_, checked) => setShowBonded(checked)}
+              />
             }
           />
-        ) : (
-          <Stack spacing={4} sx={{ mt: 2 }}>
-            {shown.map((connection) => (
-              <CharacterConnection
-                key={connection.id}
-                entry={entries[connection.entryId]}
-                connection={connection}
-                characterId={characterId}
-                characterName={characterName}
-                mechanics={mechanics}
-                labelLinkProps={getEntryLinkProps(entries[connection.entryId])}
-              />
-            ))}
-          </Stack>
-        )}
+          {canEdit && (
+            <Button
+              color="inherit"
+              variant="outlined"
+              // "Add" fits beside Show Bonded in the narrow sidebar; the
+              // section heading says what it adds.
+              aria-label={t(
+                "character.connections.add-label",
+                "Add connection",
+              )}
+              onClick={() => setCreating(true)}
+            >
+              {t("character.connections.add", "Add")}
+            </Button>
+          )}
+        </Box>
+        <Box px={2}>
+          {shown.length === 0 ? (
+            <EmptyState
+              sx={{ my: 3 }}
+              message={
+                connections.length === 0
+                  ? t("character.connections.empty", "No connections yet")
+                  : t(
+                      "character.connections.all-bonded",
+                      "Every connection is bonded",
+                    )
+              }
+            />
+          ) : (
+            <Stack spacing={4} sx={{ mt: 2 }}>
+              {shown.map((connection) => (
+                <CharacterConnection
+                  key={connection.id}
+                  entry={entries[connection.entryId]}
+                  connection={connection}
+                  characterId={characterId}
+                  characterName={characterName}
+                  mechanics={mechanics}
+                  labelLinkProps={getEntryLinkProps(
+                    entries[connection.entryId],
+                  )}
+                />
+              ))}
+            </Stack>
+          )}
+        </Box>
       </Collapse>
       {creating && (
         <NewConnectionDialog
