@@ -150,7 +150,26 @@ function renderConnections() {
 }
 
 describe("character connections on the Tracks tab", () => {
-  it("starts closed and hides bonded connections until asked", async () => {
+  it("starts closed when there are three or more to show", () => {
+    loaded = ["a", "b", "c"].map((id) =>
+      connection(id, { entryId: `entry-${id}` }),
+    );
+    useWorldEntriesStore.setState((state) => {
+      state.entryState.entries = Object.fromEntries(
+        ["a", "b", "c"].map((id) => [
+          `entry-${id}`,
+          worldEntry({ id: `entry-${id}`, name: id }),
+        ]),
+      );
+    });
+    renderConnections();
+    expect(screen.getByRole("button", { name: "Connections" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+  });
+
+  it("starts open with a few, and hides bonded ones until asked", async () => {
     loaded = [
       connection("a"),
       connection("b", { entryId: pilot.id, characterId: null, bonded: true }),
@@ -158,9 +177,10 @@ describe("character connections on the Tracks tab", () => {
     const user = userEvent.setup();
     renderConnections();
 
-    const toggle = screen.getByRole("button", { name: /Connections/ });
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
-    await user.click(toggle);
+    expect(screen.getByRole("button", { name: "Connections" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
 
     expect(screen.getByText("Captain")).toBeInTheDocument();
     expect(screen.queryByText("Pilot")).not.toBeInTheDocument();
@@ -177,7 +197,6 @@ describe("character connections on the Tracks tab", () => {
     const user = userEvent.setup();
     renderConnections();
 
-    await user.click(screen.getByRole("button", { name: /Connections/ }));
     await user.click(screen.getByRole("button", { name: "Add connection" }));
     const dialog = screen.getByRole("dialog");
 

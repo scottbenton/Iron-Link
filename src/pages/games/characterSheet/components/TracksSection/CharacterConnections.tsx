@@ -34,6 +34,7 @@ import {
   useCharacterConnections,
   useEntryConnections,
   useListenToGameConnections,
+  useWorldEntryBondsStore,
 } from "stores/worldEntryBonds.store";
 
 import { WorldBondMechanics } from "lib/worldBonds.lib";
@@ -47,10 +48,13 @@ import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterIdOptional } from "../../hooks/useCharacterId";
 import { useGameWorldId } from "../NotesSection/hooks/useGameWorld";
 
+// Fewer connections than this start open.
+const OPEN_BELOW = 3;
+
 // The open character's connections (its own and the party's) with NPCs of
 // the game's world, under its other tracks with a header bar like theirs.
-// Closed until opened; bonded ones are hidden unless asked for, like
-// completed tracks.
+// Open at first only when there are few; bonded ones are hidden unless
+// asked for, like completed tracks.
 export function CharacterConnections() {
   const characterId = useCharacterIdOptional();
   const worldId = useGameWorldId();
@@ -89,7 +93,8 @@ function ConnectionsSection({
   const getEntryLinkProps = useWorldEntryNotesLinkProps(worldId);
   const [showBonded, setShowBonded] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [open, setOpen] = useState(false);
+  // Null until the person opens or closes it.
+  const [toggled, setToggled] = useState<boolean | null>(null);
   const detailsId = useId();
 
   useListenToGameConnections(gameId);
@@ -105,14 +110,22 @@ function ConnectionsSection({
   const shown = connections.filter(
     (connection) => showBonded || !connection.bonded,
   );
+  // Open at first when there are only a few to show, decided once they have
+  // loaded so adding one later doesn't fold it away.
+  const loaded = useWorldEntryBondsStore(
+    (store) => store.loading[`game:${gameId}`] === false,
+  );
+  const [startOpen, setStartOpen] = useState<boolean | null>(null);
+  if (loaded && startOpen === null) {
+    setStartOpen(shown.length < OPEN_BELOW);
+  }
+  const open = toggled ?? startOpen ?? false;
 
   return (
     <>
       <Box
         mx={-2}
         mt={4}
-        px={2}
-        py={1}
         bgcolor={(theme) =>
           theme.palette.mode === "light" ? "grey.300" : "grey.700"
         }
@@ -126,25 +139,19 @@ function ConnectionsSection({
           <ButtonBase
             aria-expanded={open}
             aria-controls={detailsId}
-            onClick={() => setOpen((current) => !current)}
+            onClick={() => setToggled(!open)}
             sx={{
               width: "100%",
               justifyContent: "space-between",
               font: "inherit",
               textTransform: "inherit",
-              borderRadius: 1,
-              py: 0.5,
+              px: 2,
+              py: 1.5,
+              "&:hover": { bgcolor: "action.hover" },
+              "&.Mui-focusVisible": { bgcolor: "action.focus" },
             }}
           >
-            <span>
-              {t("character.connections.title", "Connections")}
-              <Box
-                component="span"
-                sx={{ ml: 1, color: "text.secondary", typography: "body2" }}
-              >
-                {connections.length}
-              </Box>
-            </span>
+            {t("character.connections.title", "Connections")}
             <ExpandMoreIcon
               sx={{
                 transition: (theme) => theme.transitions.create("transform"),
@@ -160,6 +167,8 @@ function ConnectionsSection({
             justifyContent="space-between"
             flexWrap="wrap"
             gap={1}
+            px={2}
+            pb={1}
           >
             <FormControlLabel
               label={t("character.connections.show-bonded", "Show Bonded")}

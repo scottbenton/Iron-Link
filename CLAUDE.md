@@ -161,7 +161,8 @@ that are easy to miss. When you learn a new one, add a line here.
 - On the character sheet, Ironlands bonds list under Legacy Tracks
   (`CharacterWorldBonds`); connections sit under the Tracks tab's tracks
   (`CharacterConnections`) with a header bar like the tracks' own (Show
-  Bonded, Add), closed by default. Add picks an NPC of a bonds category or
+  Bonded, Add); the whole bar toggles it, open at first only with fewer than
+  three to show. Add picks an NPC of a bonds category or
   creates one, shared with everyone. Every connection has an NPC.
 
 ## Rich text
