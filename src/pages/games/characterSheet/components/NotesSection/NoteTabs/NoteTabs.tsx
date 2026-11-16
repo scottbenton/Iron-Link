@@ -72,6 +72,7 @@ export function NoteTabs() {
     const view = item.worldView ?? { type: "world" };
     if (view.type === "settings")
       return t("worlds.settings.title", "World settings");
+    if (view.type === "truths") return t("worlds.truths.title", "Truths");
     if (view.type === "entry") {
       return entryNames[view.entryId] ?? t("worlds.entries.unknown", "Entry");
     }

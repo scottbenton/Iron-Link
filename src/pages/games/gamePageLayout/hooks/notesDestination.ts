@@ -31,7 +31,7 @@ export function readNotesDestination(
     return undefined;
   if (type !== "world") return { type: type as "note" | "folder", itemId };
   const view = params.get("note-world-view") ?? "world";
-  if (view === "world" || view === "settings")
+  if (view === "world" || view === "settings" || view === "truths")
     return { type, itemId, worldView: { type: view } };
   const categoryId = params.get("note-category-id");
   if ((view === "category" || view === "category-settings") && categoryId) {

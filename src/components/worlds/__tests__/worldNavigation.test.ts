@@ -13,6 +13,7 @@ const views: WorldView[] = [
   { type: "entry", categoryId: "c", entryId: "e" },
   { type: "entry", categoryId: "c", entryId: "e", section: "places" },
   { type: "entry", categoryId: "c", entryId: "e", section: "map" },
+  { type: "truths" },
   { type: "settings" },
   { type: "category-settings", categoryId: "c" },
 ];
