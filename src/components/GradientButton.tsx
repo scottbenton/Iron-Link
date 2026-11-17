@@ -26,7 +26,6 @@ export function GradientButton(props: GradientButtonProps) {
           color: "common.white",
           borderRadius: 1,
           overflow: "hidden",
-          "& .gradient-box::before": { opacity: 1000 },
           "& .gradient-box": {
             p: 0.25,
             transitionProperty: "padding",
@@ -38,7 +37,6 @@ export function GradientButton(props: GradientButtonProps) {
           "&:hover .gradient-box": {
             p: 0.4,
           },
-          "&:hover .gradient-box::before": { opacity: 100 },
           "&:hover .inner-box": {
             px: 1.6,
             py: 0.6,
