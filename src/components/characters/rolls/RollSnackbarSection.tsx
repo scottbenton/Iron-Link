@@ -1,6 +1,7 @@
+import GameLogIcon from "@mui/icons-material/History";
 import RecentRollsIcon from "@mui/icons-material/Layers";
-import { Box, Button } from "@mui/material";
-import { keyframes } from "@mui/material/styles";
+import { Box, Button, Theme } from "@mui/material";
+import { SystemStyleObject } from "@mui/system";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -12,8 +13,16 @@ import {
   TOUCH_TARGET_SIZE,
 } from "hooks/useIsTouchDevice";
 
-import { useAppState, useIsActiveRollCardHost } from "stores/appState.store";
+import {
+  ReferenceTabs,
+  getReferenceTabId,
+  useAppState,
+  useIsActiveRollCardHost,
+  useIsGameLogVisible,
+} from "stores/appState.store";
 
+import { ExpandableRollStack } from "./ExpandableRollStack";
+import { NewRollRing } from "./NewRollRing";
 import { RecentRollsDialog } from "./RecentRollsDialog";
 import { RollSnackbar } from "./RollSnackbar";
 import { useRollDismissFocus } from "./useRollDismissFocus";
@@ -23,25 +32,28 @@ import {
   useRollDockPosition,
 } from "./useRollDockPosition";
 
-// How many older cards peek out behind the newest one.
+// How many older cards peek out behind the newest one on phones.
 const MAX_PEEKING_CARDS = 2;
 // How far each older card's edge shows above the one in front of it.
 const PEEK_OFFSET = 6;
-// The gap the new roll's gradient ring shows through, around the card.
-const RING_WIDTH = 2;
 
-// Holds the ring on a new roll's card, then lets it fade.
-const newRollRing = keyframes`
-  0%, 55% { opacity: 1; }
-  100% { opacity: 0; }
-`;
+// The dark buttons beside the stack: the phone handle and Visit the log.
+const stackButtonSx: SystemStyleObject<Theme> = {
+  pointerEvents: "all",
+  bgcolor: "grey.800",
+  color: "common.white",
+  "&:hover": { bgcolor: "grey.700" },
+  [TOUCH_DEVICE_MEDIA_QUERY]: { minHeight: TOUCH_TARGET_SIZE },
+};
 
 /**
  * The recent rolls as a stack: the newest card in full, with the edges of up
- * to two older ones peeking out behind it, and a handle that opens every
- * recent roll in a dialog. The page shows it, and so does each open dialog
- * (through `DialogExtrasContext`), since a modal dialog hides the page from
- * screen readers; only the newest place shows it.
+ * to two older ones peeking out behind it. On phones a handle opens every
+ * recent roll in a dialog; wider screens expand the stack on hover or focus
+ * (`ExpandableRollStack`) and offer Visit the log instead. The page shows
+ * it, and so does each open dialog (through `DialogExtrasContext`), since a
+ * modal dialog hides the page from screen readers; only the newest place
+ * shows it.
  */
 export interface RollSnackbarSectionProps {
   // The page's own section, which shows the cards while no dialog is open.
@@ -60,6 +72,18 @@ export function RollSnackbarSection(props: RollSnackbarSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { dismiss, getDismissButtonRef } = useRollDismissFocus(rolls);
+
+  const setReferenceTab = useAppState((state) => state.setCurrentReferenceTab);
+  const isGameLogVisible = useIsGameLogVisible();
+  // Wide screens show the Reference panel beside the sheet in a game; a
+  // dialog would cover it.
+  const canVisitLog = !!isPage && !isMobile && !!gameId && !isGameLogVisible;
+  const visitLog = () => {
+    setReferenceTab(ReferenceTabs.GameLog);
+    document.getElementById(getReferenceTabId(ReferenceTabs.GameLog))?.focus();
+  };
+
+  const isShown = isActive && rolls.length > 0;
 
   const newest = rolls[rolls.length - 1];
   const peekingCount = Math.min(rolls.length - 1, MAX_PEEKING_CARDS);
@@ -90,7 +114,7 @@ export function RollSnackbarSection(props: RollSnackbarSectionProps) {
         data-testid={"roll-dock"}
         position={"fixed"}
         zIndex={10000}
-        display={isActive && rolls.length > 0 ? "flex" : "none"}
+        display={isShown ? "flex" : "none"}
         flexDirection={"column"}
         alignItems={"flex-end"}
         sx={(theme) => ({
@@ -106,29 +130,25 @@ export function RollSnackbarSection(props: RollSnackbarSectionProps) {
           pointerEvents: "none",
         })}
       >
-        {rolls.length > 1 && (
+        {isMobile && rolls.length > 1 && (
           <Button
             variant={"contained"}
             size={"small"}
             aria-haspopup={"dialog"}
             startIcon={<RecentRollsIcon />}
             onClick={() => setIsDialogOpen(true)}
-            sx={{
-              pointerEvents: "all",
+            sx={[
+              stackButtonSx,
               // Clear of the older cards' edges.
-              mb: `${PEEK_OFFSET * peekingCount + 4}px`,
-              bgcolor: "grey.800",
-              color: "common.white",
-              "&:hover": { bgcolor: "grey.700" },
-              [TOUCH_DEVICE_MEDIA_QUERY]: { minHeight: TOUCH_TARGET_SIZE },
-            }}
+              { mb: `${PEEK_OFFSET * peekingCount + 4}px` },
+            ]}
           >
             {t("datasworn.roll-card.roll-count", "{{count}} rolls", {
               count: rolls.length,
             })}
           </Button>
         )}
-        {newest && (
+        {isMobile && newest && (
           <Box
             position={"relative"}
             width={"100%"}
@@ -157,23 +177,7 @@ export function RollSnackbarSection(props: RollSnackbarSectionProps) {
               );
             })}
             {flashRollId === newest.roll.id && (
-              <Box
-                key={`ring-${flashRollId}`}
-                aria-hidden
-                data-testid={"roll-stack-new-ring"}
-                sx={(theme) => ({
-                  position: "absolute",
-                  inset: -RING_WIDTH,
-                  borderRadius: `${theme.shape.borderRadius + RING_WIDTH}px`,
-                  background: theme.palette.gradients.outline,
-                  pointerEvents: "none",
-                  animation: `${newRollRing} 2600ms ease-out forwards`,
-                  "@media (prefers-reduced-motion: reduce)": {
-                    animation: "none",
-                    opacity: 0,
-                  },
-                })}
-              />
+              <NewRollRing key={`ring-${flashRollId}`} />
             )}
             <RollSnackbar
               key={newest.roll.id}
@@ -191,6 +195,29 @@ export function RollSnackbarSection(props: RollSnackbarSectionProps) {
                 )
               }
             />
+          </Box>
+        )}
+        {/* Unmounted while hidden, so it opens collapsed when shown again. */}
+        {!isMobile && isShown && (
+          <ExpandableRollStack
+            rolls={rolls}
+            flashRollId={flashRollId}
+            onDismiss={dismiss}
+            getDismissButtonRef={getDismissButtonRef}
+          />
+        )}
+        {canVisitLog && rolls.length > 0 && (
+          // Below the stack, so it stays put while the stack expands upward.
+          <Box pt={1} sx={{ pointerEvents: "all" }}>
+            <Button
+              variant={"contained"}
+              size={"small"}
+              startIcon={<GameLogIcon />}
+              onClick={visitLog}
+              sx={stackButtonSx}
+            >
+              {t("datasworn.roll-card.visit-log", "Visit the log")}
+            </Button>
           </Box>
         )}
       </Box>

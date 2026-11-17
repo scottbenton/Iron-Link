@@ -14,6 +14,7 @@ import { useIsMobile } from "hooks/useIsMobile";
 
 import {
   ReferenceTabs,
+  getReferenceTabId,
   useAppState,
   useIsGameLogVisible,
 } from "stores/appState.store";
@@ -26,7 +27,7 @@ import { SecondScreenSectionSettings } from "./SecondScreenSection";
 function tabProps(tab: ReferenceTabs) {
   return {
     value: tab,
-    id: `tab-${tab}`,
+    id: getReferenceTabId(tab),
     "aria-controls": `tabpanel-${tab}`,
   };
 }

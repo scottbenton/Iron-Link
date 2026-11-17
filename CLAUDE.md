@@ -68,11 +68,20 @@ that are easy to miss. When you learn a new one, add a line here.
   the newest place show it.
 - Recent rolls (up to `MAX_RECENT_ROLLS`) show as a stack
   (`RollSnackbarSection`): the newest card in full with `clampContent` (long
-  results fold behind Show all), up to two older cards as empty `aria-hidden`
-  edges behind it, and an "N rolls" handle opening `RecentRollsDialog`. That
-  dialog lists every roll, claims the roll card host while open and gives its
-  title a null `DialogExtrasContext`, so no stack shows over it. It renders
-  outside the dock, whose element changes as rolls come and go. The dock sits
+  results fold behind Show all) and the edges of up to two older cards behind
+  it. On phones the edges are empty `aria-hidden` boxes and an "N rolls"
+  handle opens `RecentRollsDialog`. That dialog lists every roll, claims the
+  roll card host while open and gives its title a null `DialogExtrasContext`,
+  so no stack shows over it; Clear all also closes it, and focus falls back
+  to the page start (`focusPageStart`) when its opener went with the rolls.
+  It renders outside the dock, whose element changes as rolls come and go.
+  Wider screens use `ExpandableRollStack` instead: the last three rolls as
+  real cards, the older two `aria-hidden` and `inert` behind the newest until
+  the pointer is over the stack or focus is inside it, when they rise into
+  full cards (transform and opacity only, none under reduced motion, so the
+  dock's layout height stays the collapsed one). Its Visit the log button,
+  below the stack on the page's own host in a game, selects the Reference
+  panel's Game log tab and focuses it (`getReferenceTabId`). The dock sits
   above the phone bottom nav while `isGameBottomNavVisible` (set by
   `GameBottomNav`), at the window's bottom otherwise, and bottom right at
   360px on wider screens (`useRollDockPosition`).

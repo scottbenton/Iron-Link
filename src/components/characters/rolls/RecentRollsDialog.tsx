@@ -10,7 +10,9 @@ import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
+import { MAIN_CONTENT_ID } from "components/Layout/SkipToContentButton";
 import { DialogExtrasContext } from "components/Layout/dialogExtrasContext";
+import { focusPageStart } from "components/Layout/useFocusPageOnNavigate";
 
 import { NormalRollActions } from "pages/games/characterSheet/components/GameLog/NormalRollActions";
 import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
@@ -37,7 +39,8 @@ function RecentRollsHost() {
 
 /**
  * Every recent roll, newest first, each with its actions and its own dismiss
- * button, and Clear all. Opened from the roll stack's handle.
+ * button, and Clear all, which also closes it. Opened from the roll stack's
+ * handle.
  */
 export function RecentRollsDialog(props: RecentRollsDialogProps) {
   const { open, onClose } = props;
@@ -51,10 +54,33 @@ export function RecentRollsDialog(props: RecentRollsDialogProps) {
   // being lost with the last button.
   const emptyMessageRef = useRef<HTMLParagraphElement>(null);
   const focusEmptyMessage = () => emptyMessageRef.current?.focus();
-  const { dismiss, clearAll, getDismissButtonRef } = useRollDismissFocus(
+  const { dismiss, getDismissButtonRef } = useRollDismissFocus(
     rolls,
     focusEmptyMessage,
   );
+
+  // Clear all leaves nothing to show, so it closes the dialog too. The dialog
+  // returns focus to what opened it; when that went with the rolls (the
+  // stack's handle does), focus moves to the start of the page instead.
+  const clearAllRolls = useAppState((state) => state.clearAllRolls);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const wasCleared = useRef(false);
+  const clearAllAndClose = () => {
+    wasCleared.current = true;
+    clearAllRolls();
+    onClose();
+  };
+  const handleExited = () => {
+    if (!wasCleared.current) return;
+    wasCleared.current = false;
+    const active = document.activeElement;
+    const isFocusLost =
+      !active ||
+      active === document.body ||
+      !!dialogRef.current?.contains(active);
+    const main = document.getElementById(MAIN_CONTENT_ID);
+    if (isFocusLost && main) focusPageStart(main);
+  };
 
   const newestFirst = [...rolls].reverse();
 
@@ -62,8 +88,10 @@ export function RecentRollsDialog(props: RecentRollsDialogProps) {
     <>
       {open && <RecentRollsHost />}
       <Dialog
+        ref={dialogRef}
         open={open}
         onClose={onClose}
+        slotProps={{ transition: { onExited: handleExited } }}
         fullScreen={isMobile}
         fullWidth
         maxWidth={"xs"}
@@ -117,7 +145,7 @@ export function RecentRollsDialog(props: RecentRollsDialogProps) {
         </DialogContent>
         {newestFirst.length > 0 && (
           <DialogActions>
-            <Button color={"inherit"} onClick={clearAll}>
+            <Button color={"inherit"} onClick={clearAllAndClose}>
               {t("datasworn.roll-card.clear-all", "Clear all")}
             </Button>
           </DialogActions>
