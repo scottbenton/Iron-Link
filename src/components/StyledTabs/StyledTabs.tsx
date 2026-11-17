@@ -2,9 +2,9 @@ import { Tabs, TabsProps } from "@mui/material";
 
 export interface StyledTabsProps extends TabsProps {
   /**
-   * "large" is the same strip with taller tabs (48px) and larger labels,
-   * filling the width; for a panel's own view switcher on phones, where it
-   * stands alone at the top of the screen.
+   * "large" is the same centred strip with its tabs a little bigger (48px
+   * tall, a little wider) and the same label size; for a panel's own view
+   * switcher on phones, where it stands alone at the top of the screen.
    */
   size?: "medium" | "large";
 }
@@ -40,19 +40,18 @@ export function StyledTabs(props: StyledTabsProps) {
           borderBottom: `1px solid ${theme.palette.divider}`,
           alignItems: "center",
         }),
-        isLarge &&
-          ((theme) => ({
-            "& .MuiTab-root": {
-              height: LARGE_TAB_HEIGHT,
-              fontSize: theme.typography.body1.fontSize,
-            },
-          })),
+        isLarge && {
+          "& .MuiTab-root": {
+            height: LARGE_TAB_HEIGHT,
+            minWidth: 88,
+            px: 2.5,
+          },
+        },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
       scrollButtons
       allowScrollButtonsMobile
       {...otherProps}
-      {...(isLarge && { variant: "fullWidth", centered: false })}
     />
   );
 }
