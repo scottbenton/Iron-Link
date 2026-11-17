@@ -61,12 +61,20 @@ export function Stats() {
         {t("character.character-sidebar.stats", "Stats")}
       </Typography>
       <Box
-        display="grid"
-        // Five across on phones; wider columns fill out as they fit.
-        gridTemplateColumns={
+        // On phones the stats share the row, each at least as wide as its
+        // name, and wrap onto another row only when they don't fit. Wider
+        // screens fill out columns as they fit.
+        sx={
           isMobile
-            ? "repeat(5, minmax(0, 1fr))"
-            : "repeat(auto-fill, minmax(64px, 1fr))"
+            ? {
+                display: "flex",
+                flexWrap: "wrap",
+                "& > *": { flex: "1 1 0", minWidth: "max-content" },
+              }
+            : {
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))",
+              }
         }
         gap={0.25}
         mx={-0.25}
