@@ -313,12 +313,14 @@ export function WorldCategoryManager({
                   startIcon={<AddIcon />}
                   disabled={busy}
                   onClick={() => selected && createEntryIn(selected)}
+                  sx={{ whiteSpace: "nowrap", flexShrink: 0 }}
                 >
                   {t("worlds.entries.new", "Create entry")}
                 </Button>
               )}
             </>
           ),
+          wrap: true,
         }
       : undefined;
   } else if (view.type === "entry") {

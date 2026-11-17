@@ -15,6 +15,9 @@ export interface WorldViewActions {
   start?: ReactNode;
   // Primary actions, right aligned (add category, search, ...).
   end?: ReactNode;
+  // In a Notes tab, wrap the actions onto a second row when they don't fit,
+  // rather than scrolling them sideways.
+  wrap?: boolean;
 }
 
 export interface WorldViewLayoutProps extends PropsWithChildren {
@@ -80,7 +83,7 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
               flexShrink={0}
               borderBottom={(theme) => `1px solid ${theme.palette.divider}`}
             >
-              <ActionToolbarStrip>
+              <ActionToolbarStrip wrap={actions?.wrap}>
                 {actions?.start}
                 {actions?.end && (
                   // Pushed right with a margin rather than grown, so when
@@ -163,8 +166,11 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
                 alignItems: "center",
                 flexWrap: "wrap",
                 gap: 1,
-                // Without a title, the actions are the whole strip.
+                // Without a title, the actions are the whole strip. On
+                // phones they take a row of their own, so a search field
+                // can fill it.
                 flexGrow: title ? 0 : 1,
+                flexBasis: { xs: "100%", sm: "auto" },
               }}
             >
               {actions?.start}
