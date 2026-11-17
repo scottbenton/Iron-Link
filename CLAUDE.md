@@ -33,6 +33,9 @@ that are easy to miss. When you learn a new one, add a line here.
 - The nav rail and `GameBottomNav` share one item look, `NavRailItemView`
   (gradient ring on the selected pill, on the rail's grey.900 surface);
   style nav items there, never per bar.
+- The rotating gradient is `GradientRing`: a layer filling its positioned
+  parent (optional `ringWidth` masks out the middle) whose centred square
+  covers any shape as it turns; `GradientBox` fills a box with it.
 
 ## Accessibility
 

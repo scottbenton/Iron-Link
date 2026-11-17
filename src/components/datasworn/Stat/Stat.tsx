@@ -95,7 +95,7 @@ export function Stat(props: StatProps) {
                   easing: theme.transitions.easing.easeInOut,
                 }),
                 p: 0,
-                "&::before": {
+                "& > .gradient-ring": {
                   opacity: 0,
                 },
               },
@@ -111,7 +111,7 @@ export function Stat(props: StatProps) {
                   "&:hover, &:focus-visible": {
                     "& .gradient-box": {
                       p: borderSize,
-                      "&::before": {
+                      "& > .gradient-ring": {
                         opacity: 1,
                       },
                     },

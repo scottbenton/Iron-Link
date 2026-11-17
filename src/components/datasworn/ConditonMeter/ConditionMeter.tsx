@@ -135,7 +135,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
                   easing: theme.transitions.easing.easeInOut,
                 }),
                 p: 0,
-                "&::before": {
+                "& > .gradient-ring": {
                   opacity: 0,
                 },
               },
@@ -151,7 +151,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
                   "&:hover, &:focus-visible": {
                     "& .gradient-box": {
                       p: borderSize,
-                      "&::before": {
+                      "& > .gradient-ring": {
                         opacity: 1,
                       },
                     },
