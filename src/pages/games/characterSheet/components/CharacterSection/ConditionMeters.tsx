@@ -7,6 +7,8 @@ import { DebouncedConditionMeter } from "components/datasworn/ConditonMeter";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId.ts";
 
+import { useIsMobile } from "hooks/useIsMobile";
+
 import {
   useConditionMeterRules,
   useDataswornTreeStore,
@@ -62,6 +64,7 @@ export function ConditionMeters() {
   );
 
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
 
   const handleConditionMeterChange = useCallback(
     (key: string, value: number, isShared: boolean) => {
@@ -99,7 +102,16 @@ export function ConditionMeters() {
       >
         {t("character.character-sidebar.meters", "Meters")}
       </Typography>
-      <Box display="flex" flexWrap="wrap" gap={1}>
+      <Box
+        display="grid"
+        // Two to a row on phones; as many as fit beside a wider sheet.
+        gridTemplateColumns={
+          isMobile
+            ? "repeat(2, minmax(0, 1fr))"
+            : "repeat(auto-fill, minmax(140px, 1fr))"
+        }
+        gap={1}
+      >
         {Object.entries(conditionMeterRules).map(([key, rule]) => (
           <SingleConditionMeter
             key={key}

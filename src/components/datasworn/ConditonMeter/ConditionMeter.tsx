@@ -1,11 +1,23 @@
 import IncrementIcon from "@mui/icons-material/Add";
 import ExampleIcon from "@mui/icons-material/Casino";
 import DecrementIcon from "@mui/icons-material/Remove";
-import { Box, ButtonBase, Card, IconButton, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  IconButton,
+  SxProps,
+  Theme,
+  Typography,
+} from "@mui/material";
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
 
-import { GradientBox } from "components/GradientBox";
+import { RollButton } from "components/datasworn/RollButton";
+
+import {
+  TOUCH_DEVICE_MEDIA_QUERY,
+  TOUCH_TARGET_SIZE,
+} from "hooks/useIsTouchDevice";
 
 import { formatSignedValue } from "lib/formatSignedValue";
 
@@ -26,10 +38,23 @@ export interface ConditionMeterProps {
   disabled?: boolean;
 }
 
-const normalPx = 1.5;
-const normalPy = 0.5;
-const normalBorderRadius = 0.5;
-const borderSize = 0.5;
+// Minus and plus are plain icon buttons: no frame or fill, only a tint on
+// hover and press. Their current size with a pointer, 44px for fingers.
+const stepButtonSx: SxProps<Theme> = (theme) => ({
+  width: 34,
+  height: 34,
+  p: 0,
+  color: "text.primary",
+  "& svg": { fontSize: 18 },
+  "&.Mui-focusVisible": {
+    outline: `2px solid ${theme.palette.text.primary}`,
+    outlineOffset: -2,
+  },
+  [TOUCH_DEVICE_MEDIA_QUERY]: {
+    width: TOUCH_TARGET_SIZE,
+    height: TOUCH_TARGET_SIZE,
+  },
+});
 
 export function ConditionMeter(props: ConditionMeterProps) {
   const {
@@ -68,10 +93,11 @@ export function ConditionMeter(props: ConditionMeterProps) {
       aria-labelledby={labelId}
       sx={(theme) => ({
         display: "inline-flex",
-        alignItems: "stretch",
         flexDirection: "column",
-        bgcolor: theme.palette.mode === "light" ? "grey.300" : "grey.700",
-        minWidth: 72,
+        gap: 0.5,
+        p: 0.75,
+        bgcolor: theme.palette.mode === "light" ? "grey.100" : "grey.800",
+        borderColor: theme.palette.mode === "light" ? "grey.300" : "grey.700",
       })}
     >
       <Typography
@@ -81,133 +107,56 @@ export function ConditionMeter(props: ConditionMeterProps) {
         textAlign="center"
         color={"textSecondary"}
         textTransform={"uppercase"}
-        py={0.25}
+        fontWeight={600}
+        lineHeight={1.2}
         fontFamily={(theme) => theme.typography.fontFamilyTitle}
-        px={1}
       >
         {label}
       </Typography>
-      <Box display="flex" alignItems="center" px={onChange ? 0 : 0.5} pb={0.5}>
+      <Box
+        display="grid"
+        gridTemplateColumns="auto minmax(0, 1fr) auto"
+        alignItems="center"
+        gap={0.5}
+      >
         <IconButton
           aria-label={t(
             "datasworn.meter-subtract-1",
             "subtract 1 from {{label}}",
             { label },
           )}
-          size={"small"}
           disabled={!onChange || currentValue <= min || disabled}
           onClick={() => handleChange(currentValue - 1)}
+          sx={stepButtonSx}
         >
           <DecrementIcon />
         </IconButton>
-        <Box
-          component={isActionButton ? ButtonBase : "div"}
+        <RollButton
+          value={valueText}
+          ActionIcon={ActionIcon}
+          iconTestId={label + actionLabel}
           data-testid={isActionButton ? "roll-button" : undefined}
-          onClick={onActionClick}
-          {...(isActionButton
-            ? {
-                focusRipple: true,
-                "aria-label": actionLabel
-                  ? t(
-                      "datasworn.meter-action-named",
-                      "{{action}} {{label}}, {{value}}",
-                      { action: actionLabel, label, value: valueText },
-                    )
-                  : t("datasworn.meter-value-named", "{{label}}, {{value}}", {
-                      label,
-                      value: valueText,
-                    }),
-              }
-            : {})}
-          display="block"
-          color="common.white"
-          borderRadius={normalBorderRadius}
-          overflow="hidden"
-          flexGrow={1}
-          sx={[
-            (theme) => ({
-              ".MuiTouchRipple-root": {
-                zIndex: 3,
-              },
-              "& .gradient-box": {
-                transition: theme.transitions.create(["padding"], {
-                  duration: theme.transitions.duration.short,
-                  easing: theme.transitions.easing.easeInOut,
-                }),
-                p: 0,
-                "&::before": {
-                  opacity: 0,
-                },
-              },
-              "& .inner-box": {
-                transition: theme.transitions.create(["padding"], {
-                  duration: theme.transitions.duration.short,
-                  easing: theme.transitions.easing.easeInOut,
-                }),
-              },
-            }),
-            isActionButton
-              ? {
-                  "&:hover, &:focus-visible": {
-                    "& .gradient-box": {
-                      p: borderSize,
-                      "&::before": {
-                        opacity: 1,
-                      },
-                    },
-                    "& .inner-box": {
-                      px: normalPx - borderSize,
-                      py: normalPy - borderSize,
-                      borderRadius: normalBorderRadius - borderSize,
-                    },
-                  },
-                }
-              : {},
-          ]}
-        >
-          <GradientBox className="gradient-box">
-            <Box
-              className="inner-box"
-              px={normalPx}
-              py={normalPy}
-              display="flex"
-              alignItems="center"
-              bgcolor={(theme) =>
-                theme.palette.mode === "light" ? "grey.700" : "grey.900"
-              }
-              justifyContent="center"
-            >
-              {ActionIcon && (
-                <ActionIcon
-                  data-testid={label + actionLabel}
-                  aria-hidden
-                  color={"inherit"}
-                  fontSize={"small"}
-                  sx={{
-                    ml: -0.5,
-                    mr: 0.5,
-                    color: "grey.300",
-                  }}
-                />
-              )}
-              <Typography
-                component="span"
-                variant="h5"
-                fontFamily={(theme) => theme.typography.fontFamilyTitle}
-                sx={{ width: 24 }}
-              >
-                {valueText}
-              </Typography>
-            </Box>
-          </GradientBox>
-        </Box>
+          onClick={isActionButton ? onActionClick : undefined}
+          aria-label={
+            actionLabel
+              ? t(
+                  "datasworn.meter-action-named",
+                  "{{action}} {{label}}, {{value}}",
+                  { action: actionLabel, label, value: valueText },
+                )
+              : t("datasworn.meter-value-named", "{{label}}, {{value}}", {
+                  label,
+                  value: valueText,
+                })
+          }
+        />
         <IconButton
           aria-label={t("datasworn.meter-add-1", "add 1 to {{label}}", {
             label,
           })}
-          size={"small"}
           disabled={!onChange || currentValue >= max || disabled}
           onClick={() => handleChange(currentValue + 1)}
+          sx={stepButtonSx}
         >
           <IncrementIcon />
         </IconButton>

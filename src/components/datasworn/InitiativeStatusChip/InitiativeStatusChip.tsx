@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 
 import { InitiativeStatus } from "repositories/character.repository";
 
+import { initiativeStatusColors } from "./initiativeStatusColors";
 import { useInitiativeStatusText } from "./useInitiativeStatusText";
 
 export interface InitiativeStatusChipProps {
@@ -12,22 +13,9 @@ export interface InitiativeStatusChipProps {
   variant?: "filled" | "outlined";
 }
 
-const getStatusProps = (status: InitiativeStatus): Partial<ChipProps> => {
-  switch (status) {
-    case InitiativeStatus.HasInitiative:
-      return {
-        color: "success",
-      };
-    case InitiativeStatus.DoesNotHaveInitiative:
-      return {
-        color: "error",
-      };
-    case InitiativeStatus.OutOfCombat:
-      return {
-        color: "primary",
-      };
-  }
-};
+const getStatusProps = (status: InitiativeStatus): Partial<ChipProps> => ({
+  color: initiativeStatusColors[status],
+});
 
 export function InitiativeStatusChip(props: InitiativeStatusChipProps) {
   const { status, handleStatusChange, variant } = props;

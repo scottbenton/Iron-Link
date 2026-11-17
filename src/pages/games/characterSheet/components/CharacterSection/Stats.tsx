@@ -8,6 +8,8 @@ import { Stat } from "components/datasworn/Stat";
 
 import { useRollStatAndAddToLog } from "pages/games/hooks/useRollStatAndAddToLog.ts";
 
+import { useIsMobile } from "hooks/useIsMobile";
+
 import { useStatRules } from "stores/dataswornTree.store.ts";
 import {
   useGameCharacter,
@@ -46,6 +48,7 @@ export function Stats() {
   );
 
   const rollStat = useRollStatAndAddToLog();
+  const isMobile = useIsMobile();
 
   return (
     <Box>
@@ -57,7 +60,17 @@ export function Stats() {
       >
         {t("character.character-sidebar.stats", "Stats")}
       </Typography>
-      <Box display="flex" flexWrap="wrap" gap={1}>
+      <Box
+        display="grid"
+        // Five across on phones; wider columns fill out as they fit.
+        gridTemplateColumns={
+          isMobile
+            ? "repeat(5, minmax(0, 1fr))"
+            : "repeat(auto-fill, minmax(64px, 1fr))"
+        }
+        gap={0.25}
+        mx={-0.25}
+      >
         {Object.entries(statRules).map(([key, statRule]) => (
           <Stat
             key={key}
@@ -85,6 +98,16 @@ export function Stats() {
             }
           />
         ))}
+      </Box>
+      <Box
+        display="grid"
+        gridTemplateColumns={
+          isMobile
+            ? "repeat(2, minmax(0, 1fr))"
+            : "repeat(auto-fill, minmax(140px, 1fr))"
+        }
+        mt={1}
+      >
         <ConditionMeter
           label={t("character.character-sidebar.adds", "Adds")}
           min={-9}

@@ -3,31 +3,24 @@ import { Box, Typography } from "@mui/material";
 import { PortraitAvatar } from "components/characters/PortraitAvatar";
 import { InitiativeStatusChip } from "components/datasworn/InitiativeStatusChip";
 
-import {
-  useGameCharacter,
-  useGameCharactersStore,
-} from "stores/gameCharacters.store";
+import { useIsMobile } from "hooks/useIsMobile";
 
-import { InitiativeStatus } from "repositories/character.repository";
+import { useGameCharacter } from "stores/gameCharacters.store";
 
-import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterId } from "../../hooks/useCharacterId";
 import { CharacterAccessChip } from "./CharacterAccessChip";
+import { useCharacterInitiativeStatus } from "./useCharacterInitiativeStatus";
 
 export function CharacterDetails() {
   const characterId = useCharacterId();
-  const canEditCharacter = useCanEditCharacter();
+  // Phones show initiative as a segmented control at the top of the
+  // Overview tab instead (InitiativeSection).
+  const isMobile = useIsMobile();
 
   const name = useGameCharacter((character) => character?.name ?? "");
-  const initiativeStatus = useGameCharacter(
-    (character) => character?.initiativeStatus,
-  );
+  const initiative = useCharacterInitiativeStatus();
   const portraitSettings = useGameCharacter(
     (character) => character?.profileImage,
-  );
-
-  const updateInitiativeStatus = useGameCharactersStore(
-    (store) => store.updateCharacterInitiativeStatus,
   );
 
   return (
@@ -45,20 +38,12 @@ export function CharacterDetails() {
           {name}
         </Typography>
         <Box display="flex" flexWrap="wrap" alignItems="center" gap={1}>
-          <InitiativeStatusChip
-            status={initiativeStatus ?? InitiativeStatus.OutOfCombat}
-            handleStatusChange={
-              canEditCharacter
-                ? (status) => {
-                    if (characterId) {
-                      updateInitiativeStatus(characterId, status).catch(
-                        () => {},
-                      );
-                    }
-                  }
-                : undefined
-            }
-          />
+          {!isMobile && (
+            <InitiativeStatusChip
+              status={initiative.status}
+              handleStatusChange={initiative.handleStatusChange}
+            />
+          )}
           <CharacterAccessChip />
         </Box>
       </Box>

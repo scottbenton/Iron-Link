@@ -70,9 +70,60 @@ describe("ConditionMeter", () => {
     expect(screen.getByRole("button", { name: /add/i })).toBeDisabled();
   });
 
-  it("should render the ActionIcon when provided", () => {
-    setup({ action: { ActionIcon: ExampleIcon, actionLabel: "Test Action" } });
+  it("should render the ActionIcon on the action button", () => {
+    setup({
+      onActionClick: () => {},
+      action: { ActionIcon: ExampleIcon, actionLabel: "Test Action" },
+    });
     expect(screen.getByTestId("Test LabelTest Action")).toBeInTheDocument();
+  });
+
+  it("should not show the ActionIcon on a value that cannot be pressed", () => {
+    setup({ action: { ActionIcon: ExampleIcon, actionLabel: "Test Action" } });
+    expect(
+      screen.queryByTestId("Test LabelTest Action"),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("roll-button")).not.toBeInTheDocument();
+  });
+
+  it("should name the roll button for its roll", () => {
+    setup({
+      label: "Health",
+      value: 5,
+      max: 5,
+      onActionClick: () => {},
+      action: { ActionIcon: ExampleIcon, actionLabel: "Roll" },
+    });
+    expect(
+      screen.getByRole("button", { name: "Roll Health, +5" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("group")).toHaveAccessibleName("Health");
+  });
+
+  it("should not offer a roll while disabled", () => {
+    setup({
+      label: "Health",
+      onActionClick: () => {},
+      action: { ActionIcon: ExampleIcon, actionLabel: "Roll" },
+      disabled: true,
+    });
+    expect(
+      screen.queryByRole("button", { name: /^Roll Health/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("should allow both steps between the limits", () => {
+    setup({ value: 3, min: 0, max: 5, onChange: () => {} });
+    expect(screen.getByRole("button", { name: /subtract/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /add/i })).toBeEnabled();
+  });
+
+  it("should not step below the minimum or above the maximum", () => {
+    const handleChange = vi.fn();
+    setup({ value: -6, min: -6, max: 10, onChange: handleChange });
+    screen.getByRole("button", { name: /subtract/i }).click();
+    expect(handleChange).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: /add/i })).toBeEnabled();
   });
 
   it("should name the action button with the action, label and value", () => {

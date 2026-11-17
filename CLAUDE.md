@@ -222,6 +222,17 @@ that are easy to miss. When you learn a new one, add a line here.
 - Sheet edit controls check `useCanEditCharacter` (backed by
   `getCharacterAccess`, which mirrors the database's `can_edit_character()`),
   not ownership. Only Edit access and Delete use `useIsOwnerOfCharacter`.
+- Stats and meter values are `RollButton`s (`components/datasworn/RollButton`):
+  a dark raised button named for its action ("Roll Edge, +2"), with the
+  theme's gradient ring on hover, keyboard focus and briefly after a press.
+  `Stat` and `ConditionMeter` use it, so move roll options match the sheet.
+- Initiative is the `InitiativeStatusChip` on wide screens and an
+  `InitiativeSegmentedControl` radio group at the top of the Overview tab on
+  phones; both read their colours from `initiativeStatusColors` and their
+  labels from `useInitiativeStatusText`, which follows the ruleset.
+- A panel's own view switcher (the sheet's Overview, Assets and Tracks) is
+  `StyledTabs appearance="pill"`: centred, the selected tab a filled neutral
+  pill in a 44px target on touch.
 
 ## Reference
 

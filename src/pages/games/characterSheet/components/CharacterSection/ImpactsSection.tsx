@@ -1,53 +1,54 @@
-import EditIcon from "@mui/icons-material/Edit";
 import {
   Box,
-  Card,
   Checkbox,
-  Dialog,
-  DialogActions,
-  DialogContent,
   FormControlLabel,
-  IconButton,
   Typography,
   capitalize,
 } from "@mui/material";
-import { Button } from "@mui/material";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
-import { GridLayout } from "components/Layout";
+import {
+  TOUCH_DEVICE_MEDIA_QUERY,
+  TOUCH_TARGET_SIZE,
+} from "hooks/useIsTouchDevice";
 
-import { useImpactRules } from "stores/dataswornTree.store";
+import {
+  useDataswornTreeStore,
+  useImpactRules,
+} from "stores/dataswornTree.store";
 import {
   useGameCharacter,
   useGameCharactersStore,
 } from "stores/gameCharacters.store";
 
+import { ironswornRulesetConfig } from "data/package.config";
+
 import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterId } from "../../hooks/useCharacterId";
 
+/**
+ * The character's impacts (Ironsworn's debilities) as checkboxes on the
+ * sheet, two to a row, grouped by the rules' categories. Each row is a 44px
+ * target on touch screens.
+ */
 export function ImpactsSection() {
   const characterId = useCharacterId();
   const canEditCharacter = useCanEditCharacter();
 
   const impacts = useGameCharacter((character) => character?.debilities ?? {});
-  const { impactCategories, impacts: impactRules } = useImpactRules();
+  const { impactCategories } = useImpactRules();
   const updateImpactValue = useGameCharactersStore(
     (store) => store.updateCharacterImpactValue,
+  );
+  // Ironsworn calls its impacts debilities.
+  const isIronsworn = useDataswornTreeStore(
+    (store) => !!store.activeRules[ironswornRulesetConfig.id],
   );
 
   const { t } = useTranslation();
 
-  const activeImpactString: string =
-    Object.entries(impacts)
-      .filter(
-        ([impactKey, impactValue]) => impactValue && impactRules[impactKey],
-      )
-      .map(([impactKey]) => impactRules[impactKey].label)
-      .join(", ") || t("character.character-sidebar.no-impacts", "None");
-
-  const [isImpactDialogOpen, setIsImpactDialogOpen] = useState(false);
+  const categories = Object.entries(impactCategories);
+  const showCategoryLabels = categories.length > 1;
 
   return (
     <Box>
@@ -57,99 +58,71 @@ export function ImpactsSection() {
         textTransform="uppercase"
         fontFamily="fontFamilyTitle"
       >
-        {t("character.character-sidebar.impacts", "Impacts")}
+        {isIronsworn
+          ? t("character.character-sidebar.debilities", "Debilities")
+          : t("character.character-sidebar.impacts", "Impacts")}
       </Typography>
-      <Card variant="outlined">
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          sx={{ pl: 2, pr: 1 }}
-        >
-          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-            {t("character.character-sidebar.active-impacts", "Active Impacts")}
-          </Typography>
-          {canEditCharacter && (
-            <IconButton
-              aria-label={t(
-                "character.character-sidebar.edit-impacts",
-                "Edit Impacts",
-              )}
-              onClick={() => setIsImpactDialogOpen(true)}
-            >
-              <EditIcon />
-            </IconButton>
+      {categories.length === 0 && (
+        <Typography variant="body2" color="text.secondary">
+          {t(
+            "character.character-sidebar.no-impacts-found",
+            "No impacts found",
           )}
-        </Box>
-        <Typography pb={2} px={2}>
-          {capitalize(activeImpactString)}
         </Typography>
-      </Card>
-      <Dialog
-        maxWidth="sm"
-        fullWidth
-        open={isImpactDialogOpen}
-        onClose={() => setIsImpactDialogOpen(false)}
-      >
-        <DialogTitleWithCloseButton
-          onClose={() => setIsImpactDialogOpen(false)}
-        >
-          {t("character.character-sidebar.edit-impacts", "Edit Impacts")}
-        </DialogTitleWithCloseButton>
-        <DialogContent>
-          <GridLayout
-            items={Object.entries(impactCategories)}
-            renderItem={([categoryKey, category]) => (
-              <Box key={categoryKey}>
-                <Typography
-                  variant="h6"
-                  component="h3"
-                  textTransform="capitalize"
-                >
-                  {category.label}
-                </Typography>
-                <Box>
-                  {Object.entries(category.contents).map(
-                    ([impactKey, impactRule]) => (
-                      <FormControlLabel
-                        key={impactKey}
-                        control={
-                          <Checkbox
-                            checked={impacts[impactKey]}
-                            onChange={(_, checked) => {
-                              if (characterId) {
-                                updateImpactValue(
-                                  characterId,
-                                  impactKey,
-                                  checked,
-                                ).catch(() => {});
-                              }
-                            }}
-                          />
-                        }
-                        label={capitalize(impactRule.label)}
+      )}
+      <Box display="flex" flexDirection="column" gap={1}>
+        {categories.map(([categoryKey, category]) => (
+          <Box key={categoryKey}>
+            {showCategoryLabels && (
+              <Typography
+                variant="body2"
+                component="h4"
+                color="text.secondary"
+                fontWeight={600}
+                textTransform="capitalize"
+              >
+                {category.label}
+              </Typography>
+            )}
+            <Box display="grid" gridTemplateColumns="repeat(2, minmax(0, 1fr))">
+              {Object.entries(category.contents).map(
+                ([impactKey, impactRule]) => (
+                  <FormControlLabel
+                    key={impactKey}
+                    disabled={!canEditCharacter}
+                    sx={{
+                      m: 0,
+                      minHeight: 36,
+                      gap: 0.5,
+                      minWidth: 0,
+                      [TOUCH_DEVICE_MEDIA_QUERY]: {
+                        minHeight: TOUCH_TARGET_SIZE,
+                      },
+                    }}
+                    control={
+                      <Checkbox
+                        size="small"
+                        sx={{ p: 0.5 }}
+                        checked={!!impacts[impactKey]}
+                        onChange={(_, checked) => {
+                          if (characterId) {
+                            updateImpactValue(
+                              characterId,
+                              impactKey,
+                              checked,
+                            ).catch(() => {});
+                          }
+                        }}
                       />
-                    ),
-                  )}
-                </Box>
-              </Box>
-            )}
-            emptyStateMessage={t(
-              "character.character-sidebar.no-impacts-found",
-              "No impacts found",
-            )}
-            minWidth={150}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            variant={"contained"}
-            onClick={() => setIsImpactDialogOpen(false)}
-          >
-            {t("common.done", "Done")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+                    }
+                    label={capitalize(impactRule.label)}
+                  />
+                ),
+              )}
+            </Box>
+          </Box>
+        ))}
+      </Box>
     </Box>
   );
 }
