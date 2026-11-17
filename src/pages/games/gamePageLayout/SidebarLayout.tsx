@@ -8,6 +8,7 @@ import { NotesSection } from "../characterSheet/components/NotesSection";
 import { ReferenceSidebarContents } from "../characterSheet/components/ReferenceSidebarContents";
 import { MobileTabs } from "./MobileTabs";
 import { SidebarTabPanel } from "./SidebarTabPanel";
+import { GAME_BOTTOM_NAV_CLEARANCE } from "./gameBottomNavItems";
 
 export interface SidebarLayoutProps {
   currentOpenTab: MobileTabs;
@@ -67,7 +68,14 @@ export function SidebarLayout(props: SidebarLayoutProps) {
   }, [isMediumScreen]);
 
   return (
-    <Box display="flex" alignItems="stretch" height="100%" flexGrow={1}>
+    <Box
+      display="flex"
+      alignItems="stretch"
+      height="100%"
+      flexGrow={1}
+      // Keeps the end of the page clear of the phone's bottom nav.
+      pb={isSmallScreen ? GAME_BOTTOM_NAV_CLEARANCE : undefined}
+    >
       <Box
         ref={gridRef}
         sx={{
@@ -83,7 +91,7 @@ export function SidebarLayout(props: SidebarLayoutProps) {
         }}
       >
         <SidebarTabPanel
-          tab={MobileTabs.Outlet}
+          tab={MobileTabs.Sheet}
           currentOpenTab={currentOpenTab}
           isInTabView={isSmallScreen}
           sx={{

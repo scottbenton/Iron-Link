@@ -12,7 +12,11 @@ import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissi
 import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
 import { useIsMobile } from "hooks/useIsMobile";
 
-import { ReferenceTabs, useAppState } from "stores/appState.store";
+import {
+  ReferenceTabs,
+  useAppState,
+  useIsGameLogVisible,
+} from "stores/appState.store";
 
 import { GameType } from "repositories/game.repository";
 
@@ -30,13 +34,15 @@ function tabProps(tab: ReferenceTabs) {
 function tabPanelProps(
   tab: ReferenceTabs,
   value: ReferenceTabs,
+  hasTabs: boolean,
   reversed?: boolean,
 ) {
   return {
     hidden: tab !== value,
-    role: "tabpanel",
+    // Phones have no tab strip: the bottom nav chooses the panel.
+    role: hasTabs ? "tabpanel" : undefined,
     id: `tabpanel-${tab}`,
-    "aria-labelledby": `tab-${tab}`,
+    "aria-labelledby": hasTabs ? `tab-${tab}` : undefined,
     pb: reversed ? 0 : 2,
     sx: {
       display: tab !== value ? "none" : "flex",
@@ -61,26 +67,45 @@ export function ReferenceSidebarContents() {
     (state) => state.gameLogNotificationCount,
   );
 
-  const secondScreenToggleIsActive = useSecondScreenFeature();
+  const isGameLogOpen = useIsGameLogVisible();
+
+  // Phones open the Second Screen settings from the game settings menu
+  // instead of a tab here.
+  const showSecondScreenTab = useSecondScreenFeature() && !isMobile;
 
   useEffect(() => {
-    if (
-      !secondScreenToggleIsActive &&
-      currentTab === ReferenceTabs.SecondScreen
-    ) {
+    if (!showSecondScreenTab && currentTab === ReferenceTabs.SecondScreen) {
       setCurrentTab(ReferenceTabs.Moves);
     }
-  }, [secondScreenToggleIsActive, currentTab, setCurrentTab]);
+  }, [showSecondScreenTab, currentTab, setCurrentTab]);
 
-  // On phones the column is a tab panel with no visible heading, so its
-  // heading is read by screen readers only.
+  const tabLabels: Record<ReferenceTabs, string> = {
+    [ReferenceTabs.Moves]: t("character.reference-sidebar-moves", "Moves"),
+    [ReferenceTabs.Oracles]: t(
+      "character.reference-sidebar-oracles",
+      "Oracles",
+    ),
+    [ReferenceTabs.GameLog]: t(
+      "character.reference-sidebar-game-log",
+      "Game Log",
+    ),
+    [ReferenceTabs.SecondScreen]: t(
+      "character.reference-sidebar-second-screen-tab",
+      "Screen",
+    ),
+  };
+
+  // On phones the bottom nav opens the column on one of its tabs, with no
+  // visible heading, so the heading names that tab for screen readers only.
   const heading = (
     <Typography
       component={"h2"}
       fontFamily={"fontFamilyTitle"}
       textTransform={"uppercase"}
     >
-      {t("character.reference-sidebar-title", "Reference")}
+      {isMobile
+        ? tabLabels[currentTab]
+        : t("character.reference-sidebar-title", "Reference")}
     </Typography>
   );
 
@@ -93,55 +118,58 @@ export function ReferenceSidebarContents() {
           {heading}
         </Box>
       )}
-      <StyledTabs
-        centered
-        value={currentTab}
-        onChange={(_, value) =>
-          setCurrentTab(value as unknown as ReferenceTabs)
-        }
-      >
-        <StyledTab
-          label={t("character.reference-sidebar-moves", "Moves")}
-          {...tabProps(ReferenceTabs.Moves)}
-        />
-        <StyledTab
-          label={t("character.reference-sidebar-oracles", "Oracles")}
-          {...tabProps(ReferenceTabs.Oracles)}
-        />
-        <StyledTab
-          label={t("character.reference-sidebar-game-log", "Game Log")}
-          icon={
-            gameLogNotificationCount > 0 && gameType !== GameType.Solo ? (
-              <Badge badgeContent={gameLogNotificationCount} color="primary">
-                <Box ml={1} />
-              </Badge>
-            ) : undefined
+      {!isMobile && (
+        <StyledTabs
+          centered
+          value={currentTab}
+          onChange={(_, value) =>
+            setCurrentTab(value as unknown as ReferenceTabs)
           }
-          iconPosition="end"
-          {...tabProps(ReferenceTabs.GameLog)}
-        />
-        {secondScreenToggleIsActive && (
+        >
           <StyledTab
-            label={t("character.reference-sidebar-second-screen-tab", "Screen")}
-            {...tabProps(ReferenceTabs.SecondScreen)}
+            label={tabLabels[ReferenceTabs.Moves]}
+            {...tabProps(ReferenceTabs.Moves)}
           />
-        )}
-      </StyledTabs>
-      {/* <Box flexGrow={1}> */}
-      <Box {...tabPanelProps(ReferenceTabs.Moves, currentTab)}>
+          <StyledTab
+            label={tabLabels[ReferenceTabs.Oracles]}
+            {...tabProps(ReferenceTabs.Oracles)}
+          />
+          <StyledTab
+            label={tabLabels[ReferenceTabs.GameLog]}
+            icon={
+              gameLogNotificationCount > 0 && gameType !== GameType.Solo ? (
+                <Badge badgeContent={gameLogNotificationCount} color="primary">
+                  <Box ml={1} />
+                </Badge>
+              ) : undefined
+            }
+            iconPosition="end"
+            {...tabProps(ReferenceTabs.GameLog)}
+          />
+          {showSecondScreenTab && (
+            <StyledTab
+              label={tabLabels[ReferenceTabs.SecondScreen]}
+              {...tabProps(ReferenceTabs.SecondScreen)}
+            />
+          )}
+        </StyledTabs>
+      )}
+      <Box {...tabPanelProps(ReferenceTabs.Moves, currentTab, !isMobile)}>
         <MoveTree />
       </Box>
-      <Box {...tabPanelProps(ReferenceTabs.Oracles, currentTab)}>
+      <Box {...tabPanelProps(ReferenceTabs.Oracles, currentTab, !isMobile)}>
         <OracleTree />
       </Box>
       <Box
-        {...tabPanelProps(ReferenceTabs.GameLog, currentTab, true)}
+        {...tabPanelProps(ReferenceTabs.GameLog, currentTab, !isMobile, true)}
         style={{ overflowAnchor: "none" }}
       >
-        <GameLog open={currentTab === ReferenceTabs.GameLog} />
+        <GameLog open={isGameLogOpen} />
       </Box>
-      {secondScreenToggleIsActive && (
-        <Box {...tabPanelProps(ReferenceTabs.SecondScreen, currentTab)}>
+      {showSecondScreenTab && (
+        <Box
+          {...tabPanelProps(ReferenceTabs.SecondScreen, currentTab, !isMobile)}
+        >
           <SecondScreenSectionSettings
             open={currentTab === ReferenceTabs.SecondScreen}
           />

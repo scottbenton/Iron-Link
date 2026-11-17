@@ -1,4 +1,4 @@
-import { LinearProgress, useMediaQuery, useTheme } from "@mui/material";
+import { LinearProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation } from "react-router";
@@ -8,6 +8,7 @@ import { PageContent, PageHeader } from "components/Layout";
 import { EmptyState } from "components/Layout/EmptyState";
 
 import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
+import { GameBottomNav } from "pages/games/gamePageLayout/GameBottomNav";
 import { GameNavBar } from "pages/games/gamePageLayout/GameNavBar";
 import { MobileTabs } from "pages/games/gamePageLayout/MobileTabs";
 import { SidebarLayout } from "pages/games/gamePageLayout/SidebarLayout";
@@ -18,7 +19,9 @@ import { useSyncColorScheme } from "pages/games/hooks/useSyncColorScheme";
 
 import { useShowWorldsBetaBanner } from "hooks/advancedFeatures/worldsBetaBanner";
 import { useDocumentTitle } from "hooks/useDocumentTitle";
+import { useIsMobile } from "hooks/useIsMobile";
 
+import { useAppState } from "stores/appState.store";
 import { useDataswornTreeStore } from "stores/dataswornTree.store";
 import { useGameStore } from "stores/game.store";
 import { useGameCharacter } from "stores/gameCharacters.store";
@@ -76,14 +79,27 @@ export default function GameLayout() {
   }
   useDocumentTitle(documentTitle);
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobile = useIsMobile();
 
-  const [openMobileTab, setOpenMobileTab] = useState(MobileTabs.Outlet);
+  const [openMobileTab, setOpenMobileTab] = useState(MobileTabs.Sheet);
 
   useEffect(() => {
-    setOpenMobileTab(MobileTabs.Outlet);
+    setOpenMobileTab(MobileTabs.Sheet);
   }, [isOnOverviewPage, characterId]);
+
+  // Phones show the Reference panel only while one of its bottom nav items
+  // is open, which decides whether the game log counts as read.
+  const isReferencePanelVisible =
+    !isMobile || openMobileTab === MobileTabs.Reference;
+  const setIsReferencePanelVisible = useAppState(
+    (state) => state.setIsReferencePanelVisible,
+  );
+  useEffect(() => {
+    setIsReferencePanelVisible(isReferencePanelVisible);
+  }, [isReferencePanelVisible, setIsReferencePanelVisible]);
+  useEffect(() => {
+    return () => setIsReferencePanelVisible(true);
+  }, [setIsReferencePanelVisible]);
 
   if (!hasGame && !error && !rulesPackageLoadError) {
     return <LinearProgress />;
@@ -106,12 +122,7 @@ export default function GameLayout() {
   if (isOnCharacterCreatePage) {
     return (
       <>
-        <GameNavBar
-          tab={openMobileTab}
-          setTab={setOpenMobileTab}
-          isOnCreatePage
-          isOnOverviewPage={false}
-        />
+        <GameNavBar isOnCreatePage />
         {worldsBetaBanner}
 
         {!isMobile && (
@@ -136,12 +147,7 @@ export default function GameLayout() {
 
   return (
     <>
-      <GameNavBar
-        tab={openMobileTab}
-        setTab={setOpenMobileTab}
-        isOnOverviewPage={isOnOverviewPage}
-        isOnCreatePage={isOnCharacterCreatePage}
-      />
+      <GameNavBar isOnCreatePage={isOnCharacterCreatePage} />
       {worldsBetaBanner}
       {!isMobile && (
         <PageHeader
@@ -163,6 +169,13 @@ export default function GameLayout() {
           <SidebarLayout currentOpenTab={openMobileTab} />
         </ErrorBoundary>
       </PageContent>
+      {isMobile && (
+        <GameBottomNav
+          mobileTab={openMobileTab}
+          setMobileTab={setOpenMobileTab}
+          isOnOverviewPage={isOnOverviewPage}
+        />
+      )}
     </>
   );
 }

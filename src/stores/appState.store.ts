@@ -37,6 +37,9 @@ interface AppStateState {
   colorScheme: ColorScheme;
 
   currentReferenceTab: ReferenceTabs;
+  // Whether the Reference panel is on screen: always beside the sheet on
+  // wider screens, only while its bottom nav item is open on phones.
+  isReferencePanelVisible: boolean;
   gameLogNotificationCount: number;
 }
 
@@ -56,6 +59,7 @@ interface AppStateActions {
   addRollCardHost: (hostId: string, isPage?: boolean) => void;
   removeRollCardHost: (hostId: string) => void;
   setCurrentReferenceTab: (tab: ReferenceTabs) => void;
+  setIsReferencePanelVisible: (visible: boolean) => void;
   setGameLogNotificationCount: (count: number) => void;
   resetReference: () => void;
 }
@@ -71,8 +75,19 @@ const defaultAppState: AppStateState = {
   rollCardHosts: [],
   colorScheme: getDefaultColorScheme(),
   currentReferenceTab: ReferenceTabs.Moves,
+  isReferencePanelVisible: true,
   gameLogNotificationCount: 0,
 };
+
+// Whether the game log is on screen, so its new entries are already read.
+export function isGameLogVisible(
+  state: Pick<AppStateState, "currentReferenceTab" | "isReferencePanelVisible">,
+): boolean {
+  return (
+    state.isReferencePanelVisible &&
+    state.currentReferenceTab === ReferenceTabs.GameLog
+  );
+}
 
 export const useAppState = createWithEqualityFn<
   AppStateState & AppStateActions
@@ -163,12 +178,22 @@ export const useAppState = createWithEqualityFn<
     setCurrentReferenceTab: (tab) => {
       set((state) => {
         state.currentReferenceTab = tab;
+        if (isGameLogVisible(state)) {
+          state.gameLogNotificationCount = 0;
+        }
+      });
+    },
+    setIsReferencePanelVisible: (visible) => {
+      set((state) => {
+        state.isReferencePanelVisible = visible;
+        if (isGameLogVisible(state)) {
+          state.gameLogNotificationCount = 0;
+        }
       });
     },
     setGameLogNotificationCount: (count) => {
       set((state) => {
-        state.gameLogNotificationCount =
-          state.currentReferenceTab === ReferenceTabs.GameLog ? 0 : count;
+        state.gameLogNotificationCount = isGameLogVisible(state) ? 0 : count;
       });
     },
     resetReference: () => {
@@ -220,6 +245,10 @@ export function useIsActiveRollCardHost(isPage = false): boolean {
   return useAppState(
     (state) => state.rollCardHosts[state.rollCardHosts.length - 1] === hostId,
   );
+}
+
+export function useIsGameLogVisible() {
+  return useAppState(isGameLogVisible);
 }
 
 export function useAddRollSnackbar() {

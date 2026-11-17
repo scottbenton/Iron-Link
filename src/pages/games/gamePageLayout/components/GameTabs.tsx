@@ -7,16 +7,15 @@ import { LinkComponent } from "components/LinkComponent";
 import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
 import { pathConfig } from "pages/pathConfig";
 
-import { useUID } from "stores/auth.store";
 import { useGameCharactersStore } from "stores/gameCharacters.store";
 
 import { useGameId } from "../hooks/useGameId";
 import { GAME_TAB_ID } from "../hooks/useGameKeybinds";
+import { useSortedGameCharacters } from "../hooks/useSortedGameCharacters";
 
 export function GameTabs() {
   const gameId = useGameId();
   const characterId = useCharacterIdOptional();
-  const uid = useUID();
 
   const { t } = useTranslation();
   const { pathname } = useLocation();
@@ -26,23 +25,7 @@ export function GameTabs() {
 
   const areCharactersLoading = useGameCharactersStore((store) => store.loading);
 
-  const sortedGameCharacters = useGameCharactersStore((store) => {
-    return Object.entries(store.characters)
-      .map(([key, value]) => {
-        return {
-          id: key,
-          name: value.name,
-          uid: value.uid,
-        };
-      })
-      .sort((a, b) => {
-        if (a.uid !== b.uid) {
-          if (a.uid === uid) return -1;
-          if (b.uid === uid) return 1;
-        }
-        return a.name.localeCompare(b.name);
-      });
-  });
+  const sortedGameCharacters = useSortedGameCharacters();
 
   if (areCharactersLoading) {
     return null;

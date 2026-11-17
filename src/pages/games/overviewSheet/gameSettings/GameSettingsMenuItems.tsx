@@ -3,6 +3,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import ThemeIcon from "@mui/icons-material/Palette";
 import RulesetIcon from "@mui/icons-material/PlaylistAdd";
+import SecondScreenIcon from "@mui/icons-material/PresentToAll";
 import { ListItemIcon, ListItemText, MenuItem } from "@mui/material";
 import { ListSubheader } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
@@ -11,6 +12,9 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
 import { pathConfig } from "pages/pathConfig";
+
+import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
+import { useIsMobile } from "hooks/useIsMobile";
 
 import { GamePermission, useGameStore } from "stores/game.store";
 import { useMenuState } from "stores/menuState";
@@ -43,6 +47,14 @@ export function GameSettingsMenuItems(props: GameSettingsMenuItemsProps) {
   const setIsNotificationsDialogOpen = useMenuState(
     (state) => state.setIsNotificationSettingsDialogOpen,
   );
+  const setIsSecondScreenDialogOpen = useMenuState(
+    (state) => state.setIsSecondScreenDialogOpen,
+  );
+
+  // Phones have no Reference panel tab for the Second Screen settings, so
+  // they open from here, for everyone who could open the tab.
+  const isMobile = useIsMobile();
+  const showSecondScreen = useSecondScreenFeature() && isMobile;
 
   const deleteGame = useGameStore((store) => store.deleteGame);
   const gameId = useGameIdOptional();
@@ -81,81 +93,107 @@ export function GameSettingsMenuItems(props: GameSettingsMenuItemsProps) {
     }
   }, [confirm, gameId, deleteGame, t, closeMenu, navigate]);
 
-  if (!gameId || gamePermission !== GamePermission.Guide) {
+  const isGuide = gamePermission === GamePermission.Guide;
+  if (!gameId || (!isGuide && !showSecondScreen)) {
     return null;
   }
 
   return (
     <>
       <ListSubheader>{t("game.game-settings", "Game Settings")}</ListSubheader>
-      <MenuItem
-        onClick={() => {
-          setIsGameNameDialogOpen(true);
-          closeMenu();
-        }}
-      >
-        <ListItemIcon>
-          <EditIcon />
-        </ListItemIcon>
-        <ListItemText
-          primary={t("game.overview-sidebar.edit-game-name", "Edit Game Name")}
-        />
-      </MenuItem>
-      <MenuItem
-        onClick={() => {
-          setIsRulesetDialogOpen(true);
-          closeMenu();
-        }}
-      >
-        <ListItemIcon>
-          <RulesetIcon />
-        </ListItemIcon>
-        <ListItemText
-          primary={t("game.overview-sidebar.change-ruleset", "Edit Rulesets")}
-        />
-      </MenuItem>
-      <MenuItem
-        onClick={() => {
-          setIsGameThemeDialogOpen(true);
-          closeMenu();
-        }}
-      >
-        <ListItemIcon>
-          <ThemeIcon />
-        </ListItemIcon>
-        <ListItemText
-          primary={t(
-            "game.overview-sidebar.change-game-theme",
-            "Change Game Theme",
-          )}
-        />
-      </MenuItem>
-      {gameType !== GameType.Solo && (
+      {showSecondScreen && (
         <MenuItem
           onClick={() => {
-            setIsNotificationsDialogOpen(true);
+            setIsSecondScreenDialogOpen(true);
             closeMenu();
           }}
         >
           <ListItemIcon>
-            <NotificationsActiveIcon />
+            <SecondScreenIcon />
           </ListItemIcon>
           <ListItemText
-            primary={t(
-              "game.overview-sidebar.notification-settings",
-              "Notification Settings",
-            )}
+            primary={t("game.second-screen.title", "Second Screen")}
           />
         </MenuItem>
       )}
-      <MenuItem onClick={confirmDeleteGame}>
-        <ListItemIcon>
-          <DeleteIcon />
-        </ListItemIcon>
-        <ListItemText
-          primary={t("game.overview-sidebar.delete-game", "Delete Game")}
-        />
-      </MenuItem>
+      {isGuide && (
+        <>
+          <MenuItem
+            onClick={() => {
+              setIsGameNameDialogOpen(true);
+              closeMenu();
+            }}
+          >
+            <ListItemIcon>
+              <EditIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary={t(
+                "game.overview-sidebar.edit-game-name",
+                "Edit Game Name",
+              )}
+            />
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setIsRulesetDialogOpen(true);
+              closeMenu();
+            }}
+          >
+            <ListItemIcon>
+              <RulesetIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary={t(
+                "game.overview-sidebar.change-ruleset",
+                "Edit Rulesets",
+              )}
+            />
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setIsGameThemeDialogOpen(true);
+              closeMenu();
+            }}
+          >
+            <ListItemIcon>
+              <ThemeIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary={t(
+                "game.overview-sidebar.change-game-theme",
+                "Change Game Theme",
+              )}
+            />
+          </MenuItem>
+          {gameType !== GameType.Solo && (
+            <MenuItem
+              onClick={() => {
+                setIsNotificationsDialogOpen(true);
+                closeMenu();
+              }}
+            >
+              <ListItemIcon>
+                <NotificationsActiveIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary={t(
+                  "game.overview-sidebar.notification-settings",
+                  "Notification Settings",
+                )}
+              />
+            </MenuItem>
+          )}
+          <MenuItem onClick={confirmDeleteGame}>
+            <ListItemIcon>
+              <DeleteIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary={t("game.overview-sidebar.delete-game", "Delete Game")}
+            />
+          </MenuItem>
+        </>
+      )}
     </>
   );
 }

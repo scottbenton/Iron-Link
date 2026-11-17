@@ -4,6 +4,7 @@ import { GameColorSchemeDialog } from "./GameColorSchemeDialog";
 import { GameNameDialog } from "./GameNameDialog";
 import { GameRulesetChooserDialog } from "./GameRulesetChooserDialog";
 import { NotificationSettingsDialog } from "./NotificationSettingsDialog";
+import { SecondScreenDialog } from "./SecondScreenDialog";
 
 export function GameSettingsMenuDialogs() {
   const menuState = useMenuState();
@@ -25,6 +26,10 @@ export function GameSettingsMenuDialogs() {
       <NotificationSettingsDialog
         open={menuState.isNotificationSettingsDialogOpen}
         onClose={() => menuState.setIsNotificationSettingsDialogOpen(false)}
+      />
+      <SecondScreenDialog
+        open={menuState.isSecondScreenDialogOpen}
+        onClose={() => menuState.setIsSecondScreenDialogOpen(false)}
       />
     </>
   );

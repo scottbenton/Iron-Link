@@ -26,6 +26,10 @@ that are easy to miss. When you learn a new one, add a line here.
   Styles size for fingers in CSS with `TOUCH_DEVICE_MEDIA_QUERY` and
   `TOUCH_TARGET_SIZE` (`hooks/useIsTouchDevice.ts`) as an `sx` key, so the
   first render is already the right size.
+- On phones a game page's sections (Sheet or Overview, Notes, Moves,
+  Oracles, Log) are chosen in `GameBottomNav`, so the Reference panel shows
+  no tab strip there. The game log counts as read only while it is on screen
+  (`isGameLogVisible`: its tab is chosen and `isReferencePanelVisible`).
 
 ## Accessibility
 

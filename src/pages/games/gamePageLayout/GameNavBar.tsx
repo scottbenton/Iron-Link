@@ -1,4 +1,3 @@
-import { Tab, Tabs } from "@mui/material";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,13 +14,9 @@ import { CharacterMenuItems } from "../characterSheet/components/CharacterSettin
 import { useCharacterIdOptional } from "../characterSheet/hooks/useCharacterId";
 import { GameSettingsMenuDialogs } from "../overviewSheet/gameSettings/GameSettingsMenuDialogs";
 import { GameSettingsMenuItems } from "../overviewSheet/gameSettings/GameSettingsMenuItems";
-import { MobileTabs } from "./MobileTabs";
-import { useGameId } from "./hooks/useGameId";
+import { CharacterSwitcherMenu } from "./components/CharacterSwitcherMenu";
 
 export interface GameNavBarProps {
-  tab: MobileTabs;
-  setTab: (tab: MobileTabs) => void;
-  isOnOverviewPage: boolean;
   isOnCreatePage: boolean;
 }
 
@@ -35,10 +30,9 @@ const menuDialogs: MenuAdditionComponent[] = [
 ];
 
 export function GameNavBar(props: GameNavBarProps) {
-  const { tab, setTab, isOnOverviewPage, isOnCreatePage } = props;
+  const { isOnCreatePage } = props;
 
   const hasCharacterId = !!useCharacterIdOptional();
-  const gameId = useGameId();
 
   const { t } = useTranslation();
   const gameName = useGameStore((store) => store.game?.name);
@@ -54,41 +48,16 @@ export function GameNavBar(props: GameNavBarProps) {
 
   return (
     <NavBar
-      goBackTo={
-        hasCharacterId || isOnCreatePage
-          ? pathConfig.game(gameId)
-          : pathConfig.gameSelect
-      }
+      // The title switches between the game's characters and its overview,
+      // so back leaves the game.
+      goBackTo={pathConfig.gameSelect}
+      goBackLabel={t("game.nav.back-to-games", "Back to your games")}
       pageTitle={pageTitle}
-      secondLevel={
-        isOnCreatePage ? undefined : (
-          <Tabs
-            value={tab}
-            onChange={(_, newTab) => setTab(newTab)}
-            variant="fullWidth"
-            sx={{ flexGrow: 1, alignSelf: "flex-end" }}
-          >
-            <Tab
-              id={`tab-${MobileTabs.Outlet}`}
-              label={
-                isOnOverviewPage
-                  ? t("game.overview", "Overview")
-                  : t("game.character", "Character")
-              }
-              value={MobileTabs.Outlet}
-            />
-            <Tab
-              id={`tab-${MobileTabs.Notes}`}
-              label={t("game.notes", "Notes")}
-              value={MobileTabs.Notes}
-            />
-            <Tab
-              id={`tab-${MobileTabs.Reference}`}
-              label={t("game.reference", "Reference")}
-              value={MobileTabs.Reference}
-            />
-          </Tabs>
-        )
+      pageTitleContent={
+        <CharacterSwitcherMenu
+          title={pageTitle}
+          isOnCreatePage={isOnCreatePage}
+        />
       }
       menuAdditions={{
         menuItems: menuItems,

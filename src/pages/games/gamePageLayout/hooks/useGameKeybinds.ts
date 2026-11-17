@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 
 import {
+  GameBottomNavItem,
+  getGameBottomNavItemId,
+} from "pages/games/gamePageLayout/gameBottomNavItems";
+
+import {
   ModifierKeys,
   useAccessibilityState,
 } from "stores/accessibility.store";
@@ -8,10 +13,15 @@ import {
 export const GAME_TAB_ID = "game-tabs";
 // The heading of the character or game overview column (desktop only).
 export const OVERVIEW_ID = "game-overview-heading";
-// The phone layout's tab for that column.
-export const OVERVIEW_MOBILE_TAB_ID = "tab-Outlet";
+// The phone layout's bottom nav item for that column.
+export const OVERVIEW_MOBILE_TAB_ID = getGameBottomNavItemId(
+  GameBottomNavItem.Sheet,
+);
 export const NOTES_ID = "game-notes";
+const NOTES_MOBILE_TAB_ID = getGameBottomNavItemId(GameBottomNavItem.Notes);
 export const REFERENCE_ID = "tab-moves";
+// Phones have no Reference tab strip; its Moves item is in the bottom nav.
+const REFERENCE_MOBILE_TAB_ID = getGameBottomNavItemId(GameBottomNavItem.Moves);
 
 // Focuses the first of the ids that is in the page and not in a hidden
 // panel.
@@ -53,9 +63,9 @@ export function useGameKeybinds() {
         } else if (eventKey === "overview-section") {
           focusFirstElement([OVERVIEW_ID, OVERVIEW_MOBILE_TAB_ID]);
         } else if (eventKey === "notes-section") {
-          focusFirstElement([NOTES_ID]);
+          focusFirstElement([NOTES_ID, NOTES_MOBILE_TAB_ID]);
         } else if (eventKey === "reference-section") {
-          focusFirstElement([REFERENCE_ID]);
+          focusFirstElement([REFERENCE_ID, REFERENCE_MOBILE_TAB_ID]);
         }
       }
     }

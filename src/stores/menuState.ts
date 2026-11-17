@@ -13,6 +13,7 @@ interface MenuStateState {
   isGameThemeDialogOpen: boolean;
 
   isNotificationSettingsDialogOpen: boolean;
+  isSecondScreenDialogOpen: boolean;
 }
 
 interface MenuStateActions {
@@ -26,6 +27,7 @@ interface MenuStateActions {
   setIsGameThemeDialogOpen: (open: boolean) => void;
 
   setIsNotificationSettingsDialogOpen: (open: boolean) => void;
+  setIsSecondScreenDialogOpen: (open: boolean) => void;
 }
 
 export const useMenuState = createWithEqualityFn<
@@ -38,6 +40,7 @@ export const useMenuState = createWithEqualityFn<
     isCharacterEditAccessDialogOpen: false,
 
     isNotificationSettingsDialogOpen: false,
+    isSecondScreenDialogOpen: false,
 
     setIsCharacterDetailsDialogOpen: (open) => {
       set((state) => {
@@ -83,6 +86,11 @@ export const useMenuState = createWithEqualityFn<
     setIsNotificationSettingsDialogOpen: (open) => {
       set((state) => {
         state.isNotificationSettingsDialogOpen = open;
+      });
+    },
+    setIsSecondScreenDialogOpen: (open) => {
+      set((state) => {
+        state.isSecondScreenDialogOpen = open;
       });
     },
   })),

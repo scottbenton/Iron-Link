@@ -13,9 +13,10 @@ import { themeConfig } from "providers/ThemeProvider/themes/themeConfig";
 
 import { ColorScheme } from "repositories/shared.types";
 
-export type AvatarSizes = "small" | "medium" | "large" | "huge";
+export type AvatarSizes = "xsmall" | "small" | "medium" | "large" | "huge";
 
 export const AVATAR_SIZES: { [key in AvatarSizes]: number } = {
+  xsmall: 32,
   small: 44,
   medium: 60,
   large: 88,
@@ -23,6 +24,7 @@ export const AVATAR_SIZES: { [key in AvatarSizes]: number } = {
 };
 
 const variants: { [key in AvatarSizes]: TypographyVariant } = {
+  xsmall: "subtitle1",
   small: "h6",
   medium: "h5",
   large: "h4",

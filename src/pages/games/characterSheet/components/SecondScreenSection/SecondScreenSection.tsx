@@ -4,10 +4,11 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
-  Button,
+  Checkbox,
+  FormControlLabel,
   Typography,
 } from "@mui/material";
-import { useCallback, useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { CopyButton } from "components/CopyButton";
@@ -18,12 +19,15 @@ import { useSecondScreenStore } from "stores/secondScreen.store";
 
 interface SecondScreenSectionSettingsProps {
   open: boolean;
+  // Off where the surroundings already say "Second Screen", as a dialog's
+  // title does.
+  showHeading?: boolean;
 }
 
 export function SecondScreenSectionSettings(
   props: SecondScreenSectionSettingsProps,
 ) {
-  const { open } = props;
+  const { open, showHeading = true } = props;
   const { t } = useTranslation();
 
   const gameId = useGameId();
@@ -39,11 +43,11 @@ export function SecondScreenSectionSettings(
     (store) => store.setAreAllCharactersVisible,
   );
 
-  const updateAreAllCharactersVisible = useCallback(() => {
+  const updateAreAllCharactersVisible = (visible: boolean) => {
     if (gameId) {
-      setAreAllCharactersVisible(gameId, !areAllCharactersVisible);
+      setAreAllCharactersVisible(gameId, visible).catch(() => {});
     }
-  }, [gameId, areAllCharactersVisible, setAreAllCharactersVisible]);
+  };
 
   useLayoutEffect(() => {
     function scaleIFrame() {
@@ -85,9 +89,11 @@ export function SecondScreenSectionSettings(
       gap={2}
       alignItems={"flex-start"}
     >
-      <Typography variant="h6" component="h3">
-        {t("game.second-screen.title", "Second Screen")}
-      </Typography>
+      {showHeading && (
+        <Typography variant="h6" component="h3">
+          {t("game.second-screen.title", "Second Screen")}
+        </Typography>
+      )}
       <CopyButton
         link={link}
         dialogTitle={t(
@@ -99,21 +105,18 @@ export function SecondScreenSectionSettings(
       >
         {t("game.second-screen.copy-button", "Copy Second Screen Link")}
       </CopyButton>
-      <Button
-        variant="outlined"
-        color="inherit"
-        onClick={updateAreAllCharactersVisible}
-      >
-        {areAllCharactersVisible
-          ? t(
-              "game.second-screen.hide-all-characters",
-              "Hide Character Sidebar",
-            )
-          : t(
-              "game.second-screen.show-all-characters",
-              "Show Character Sidebar",
-            )}
-      </Button>
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={areAllCharactersVisible}
+            onChange={(_, checked) => updateAreAllCharactersVisible(checked)}
+          />
+        }
+        label={t(
+          "game.second-screen.show-character-sidebar",
+          "Show character sidebar",
+        )}
+      />
       <Box alignSelf="stretch">
         <Typography variant="overline">
           {t("game.second-screen.current-state", "Current View")}

@@ -9,8 +9,6 @@ import {
   Toolbar,
   Tooltip,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
 import { ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,6 +16,8 @@ import { useTranslation } from "react-i18next";
 import { HideOnScroll } from "components/HideOnScroll";
 import { LinkComponent } from "components/LinkComponent";
 import { ScreenReaderOnly } from "components/ScreenReaderOnly";
+
+import { useIsMobile } from "hooks/useIsMobile";
 
 import { AppSettingsMenu, MenuAdditionComponent } from "./AppSettingsMenu";
 import { IronLinkLogo } from "./IronLinkLogo";
@@ -27,8 +27,12 @@ import { NavRouteConfig } from "./navRoutes";
 export interface NavBarProps {
   topLevelRoutes?: NavRouteConfig[] | undefined;
   goBackTo?: string;
+  // The back button's name, when "Go Back" doesn't say where it goes.
+  goBackLabel?: string;
   pageTitle?: string;
-  secondLevel?: ReactNode;
+  // Shown in the h1 in place of the plain title on phones, such as a button
+  // that switches between pages. Its text should still read as the title.
+  pageTitleContent?: ReactNode;
   menuAdditions?: {
     menuItems?: MenuAdditionComponent[];
     menuDialogs?: MenuAdditionComponent[];
@@ -36,14 +40,20 @@ export interface NavBarProps {
 }
 
 export function NavBar(props: NavBarProps) {
-  const { topLevelRoutes, goBackTo, pageTitle, secondLevel, menuAdditions } =
-    props;
+  const {
+    topLevelRoutes,
+    goBackTo,
+    goBackLabel,
+    pageTitle,
+    pageTitleContent,
+    menuAdditions,
+  } = props;
 
   const { t } = useTranslation();
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobile = useIsMobile();
+  const backLabel = goBackLabel ?? t("nav.go-back-mobile", "Go Back");
 
   if (!isMobile) {
     // The bar is phone only, but its title is the page's heading, so wider
@@ -75,7 +85,7 @@ export function NavBar(props: NavBarProps) {
               justifyContent: "space-between",
             }}
           >
-            <Box display={"flex"} alignItems={"center"}>
+            <Box display={"flex"} alignItems={"center"} flex={1} minWidth={0}>
               {topLevelRoutes && (
                 <Tooltip
                   title={t("nav.open-menu-mobile", "Open Navigation Menu")}
@@ -89,20 +99,31 @@ export function NavBar(props: NavBarProps) {
                 </Tooltip>
               )}
               {goBackTo && (
-                <Tooltip title={t("nav.go-back-mobile", "Go Back")}>
+                <Tooltip title={backLabel}>
                   <div>
                     <IconButton
                       LinkComponent={LinkComponent}
                       color={"inherit"}
                       href={goBackTo}
-                      aria-label={t("nav.go-back-mobile", "Go Back")}
+                      aria-label={backLabel}
                     >
                       <BackIcon />
                     </IconButton>
                   </div>
                 </Tooltip>
               )}
-              {pageTitle ? (
+              {pageTitleContent ? (
+                <Typography
+                  variant={"h6"}
+                  component={"h1"}
+                  ml={1}
+                  flex={1}
+                  minWidth={0}
+                  display={"flex"}
+                >
+                  {pageTitleContent}
+                </Typography>
+              ) : pageTitle ? (
                 <Typography variant={"h6"} component={"h1"} ml={2}>
                   {pageTitle}
                 </Typography>
@@ -115,7 +136,6 @@ export function NavBar(props: NavBarProps) {
               menuDialogs={menuAdditions?.menuDialogs}
             />
           </Toolbar>
-          {secondLevel && <Toolbar>{secondLevel}</Toolbar>}
         </AppBar>
       </HideOnScroll>
       <Drawer
@@ -133,7 +153,6 @@ export function NavBar(props: NavBarProps) {
 
       {/* These are here for spacing purposes */}
       <Toolbar />
-      {secondLevel && <Toolbar />}
     </>
   );
 }

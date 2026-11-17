@@ -15,12 +15,12 @@ export function SidebarTabPanel<T>(
 
   const areContentsVisible = !isInTabView || currentOpenTab === tab;
 
+  // On phones one panel shows at a time, chosen in the bottom nav; each
+  // starts with its own heading, so it is not a tab panel.
   return (
     <Box
       hidden={!areContentsVisible}
-      role={isInTabView ? "tabpanel" : undefined}
       id={`tabpanel-${tab}`}
-      aria-labelledby={isInTabView ? `tab-${tab}` : undefined}
       sx={[
         {
           display: areContentsVisible ? "flex" : "none",
