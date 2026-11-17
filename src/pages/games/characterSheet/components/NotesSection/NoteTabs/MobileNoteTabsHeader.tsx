@@ -18,6 +18,14 @@ import { OpenNotesSheet } from "./OpenNotesSheet";
 // The most the count box spells out; past it, it reads "99+".
 const MAX_SHOWN_COUNT = 99;
 
+// The count box is a fixed rounded square, like a phone browser's tab
+// switcher, so longer counts take a smaller font to stay inside it.
+function getCountFontSize(shownCount: string) {
+  if (shownCount.length <= 1) return 12;
+  if (shownCount.length === 2) return 10;
+  return 8;
+}
+
 export interface MobileNoteTabsHeaderProps {
   getTabLabel: (tabId: string) => string;
 }
@@ -60,6 +68,8 @@ export function MobileNoteTabsHeader(props: MobileNoteTabsHeaderProps) {
   const newNoteRequested = useRef(false);
 
   const count = tabOrder.length;
+  const shownCount =
+    count > MAX_SHOWN_COUNT ? `${MAX_SHOWN_COUNT}+` : `${count}`;
   const title = activeTab ? getTabLabel(activeTab) : "";
 
   const handleCreateNote = (name: string) => {
@@ -138,22 +148,26 @@ export function MobileNoteTabsHeader(props: MobileNoteTabsHeaderProps) {
               component={"span"}
               aria-hidden
               sx={{
-                minWidth: 24,
+                width: 24,
                 height: 24,
-                px: 0.25,
+                flexShrink: 0,
                 boxSizing: "border-box",
                 border: 2,
                 borderColor: "currentColor",
-                borderRadius: 1.5,
+                // A plain length: a theme multiple would round it to a circle.
+                borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 12,
+                overflow: "hidden",
+                fontSize: getCountFontSize(shownCount),
                 fontWeight: 700,
                 lineHeight: 1,
+                letterSpacing: shownCount.length > 2 ? "-0.04em" : 0,
+                fontVariantNumeric: "tabular-nums",
               }}
             >
-              {count > MAX_SHOWN_COUNT ? `${MAX_SHOWN_COUNT}+` : count}
+              {shownCount}
             </Box>
           </IconButton>
         </Tooltip>
