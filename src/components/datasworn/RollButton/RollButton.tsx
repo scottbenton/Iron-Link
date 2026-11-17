@@ -1,7 +1,9 @@
 import type ExampleIcon from "@mui/icons-material/Casino";
-import { Box, ButtonBase, SxProps, Theme, Typography } from "@mui/material";
+import { Box, ButtonBase, Typography } from "@mui/material";
 import { keyframes } from "@mui/material/styles";
 import { useState } from "react";
+
+import { GradientRing } from "components/GradientRing";
 
 import {
   TOUCH_DEVICE_MEDIA_QUERY,
@@ -40,9 +42,9 @@ const justRolledRing = keyframes`
 /**
  * A dark, raised button showing a value, which rolls it (or runs another
  * action, like Reset on momentum). Its face sits on a dark edge and moves
- * down onto it while pressed. The theme's gradient ring shows around the
- * whole button on hover and keyboard focus, and briefly after a press so the
- * one just rolled stands out. Without `onClick` it draws the same face as
+ * down onto it while pressed. The theme's rotating gradient ring
+ * (GradientRing) shows around the whole button on hover and keyboard focus,
+ * and briefly after a press so the one just rolled stands out. Without `onClick` it draws the same face as
  * plain text, with no edge.
  */
 export function RollButton(props: RollButtonProps) {
@@ -127,21 +129,6 @@ export function RollButton(props: RollButtonProps) {
     </Box>
   );
 
-  // Only the ring itself is painted (the middle is masked out), so nothing
-  // inside it can cover it and the space a pressed face leaves stays clear.
-  const ringSx: SxProps<Theme> = (theme) => ({
-    position: "absolute",
-    inset: 0,
-    p: `${RING_WIDTH}px`,
-    borderRadius: "inherit",
-    background: theme.palette.gradients.outline,
-    WebkitMask:
-      "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
-    WebkitMaskComposite: "xor",
-    mask: "linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0)",
-    pointerEvents: "none",
-  });
-
   if (!onClick) {
     return (
       <Box
@@ -212,19 +199,15 @@ export function RollButton(props: RollButtonProps) {
         },
       })}
     >
-      <Box
-        component="span"
-        aria-hidden
-        className="roll-button-ring"
-        sx={ringSx}
-      />
+      {/* Only the ring is painted (the middle is masked out), so nothing
+          inside it can cover it and the space a pressed face leaves stays
+          clear. */}
+      <GradientRing ringWidth={RING_WIDTH} className="roll-button-ring" />
       {pressCount > 0 && (
-        <Box
+        <GradientRing
           key={pressCount}
-          component="span"
-          aria-hidden
+          ringWidth={RING_WIDTH}
           className="roll-button-flash"
-          sx={ringSx}
         />
       )}
       <Box
