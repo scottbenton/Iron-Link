@@ -74,6 +74,22 @@ describe("MobileNoteTabsHeader", () => {
     expect(countBox).toHaveTextContent("3");
   });
 
+  it("caps the count box at 99+ but names the full count", () => {
+    const tabIds = Array.from({ length: 120 }, (_, index) => `tab-${index}`);
+    useNotesStore.setState({
+      noteTabItems: Object.fromEntries(
+        tabIds.map((tabId) => [tabId, { type: "note", itemId: "one" }]),
+      ),
+      noteTabOrder: tabIds,
+      openTabId: tabIds[0],
+    });
+    render(<Header />, { wrapper: TestWrapper });
+
+    expect(
+      screen.getByRole("button", { name: "Open notes, 120" }),
+    ).toHaveTextContent("99+");
+  });
+
   it("lists the open notes, and closing one there closes it", async () => {
     const user = userEvent.setup();
     render(<Header />, { wrapper: TestWrapper });
