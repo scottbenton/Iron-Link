@@ -36,6 +36,9 @@ export interface WorldTruthOptionCardProps {
   onSelect?: () => void;
   onSelectSubOption?: (subOptionId: string) => void;
   onRollSubOption?: () => void;
+  // A Guide's condensed view: the chosen option, read-only, with its quest
+  // starter.
+  showQuestStarter?: boolean;
 }
 
 // One option of a truth: its d100 range, summary and description, a
@@ -52,6 +55,7 @@ export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
     onSelect,
     onSelectSubOption,
     onRollSubOption,
+    showQuestStarter = canEdit,
   } = props;
   const { t } = useTranslation();
   const subTable = getTruthOptionSubTable(option);
@@ -131,13 +135,15 @@ export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
           {body}
         </CardActionArea>
       ) : (
-        <Box sx={{ p: 2, pb: subTable ? 1 : 2 }}>{body}</Box>
+        <Box sx={{ p: 2, pb: subTable || showQuestStarter ? 1 : 2 }}>
+          {body}
+        </Box>
       )}
       {subTable && (
         <Box
           sx={{
             px: 2,
-            pb: canEdit ? 0 : 2,
+            pb: showQuestStarter ? 0 : 2,
             flexGrow: 1,
             // Above the stretched button once chosen, so the radios work.
             position: "relative",
@@ -220,7 +226,7 @@ export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
           )}
         </Box>
       )}
-      {canEdit && (
+      {showQuestStarter && (
         <Box
           sx={{
             px: 2,

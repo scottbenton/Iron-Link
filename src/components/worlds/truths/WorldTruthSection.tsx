@@ -1,5 +1,7 @@
 import type { Datasworn } from "@datasworn-community/core";
 import CasinoIcon from "@mui/icons-material/Casino";
+import CheckIcon from "@mui/icons-material/Check";
+import EditIcon from "@mui/icons-material/Edit";
 import { Box, Button, Card, Typography } from "@mui/material";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -48,8 +50,13 @@ export function WorldTruthSection({
   const { t } = useTranslation();
   const headingId = useId();
   const Heading = useHeadingComponent(2);
+  const optionsId = useId();
   const [writing, setWriting] = useState(false);
   const resolved = resolveWorldTruthChoice(truth, choice);
+  // A chosen truth opens condensed to its choice, and stays open after a
+  // choice until Done, so a sub-table row can still be picked.
+  const [showOptions, setShowOptions] = useState(!resolved);
+  const condensed = canEdit && !!resolved && !showOptions;
   // Sundered Isles asks each truth's question in its summary.
   const question = (truth as { summary?: string }).summary;
 
@@ -68,7 +75,7 @@ export function WorldTruthSection({
         >
           {`${number}. ${truth.name}`}
         </Typography>
-        {canEdit && (
+        {canEdit && !condensed && (
           <Button
             color="inherit"
             variant="outlined"
@@ -81,6 +88,21 @@ export function WorldTruthSection({
             {t("worlds.truths.roll", "Roll")}
           </Button>
         )}
+        {canEdit && resolved && (
+          // One button that changes its label, so focus stays on it.
+          <Button
+            color="inherit"
+            variant="outlined"
+            startIcon={condensed ? <EditIcon /> : <CheckIcon />}
+            aria-expanded={!condensed}
+            aria-controls={optionsId}
+            onClick={() => setShowOptions((show) => !show)}
+          >
+            {condensed
+              ? t("worlds.truths.change", "Change")
+              : t("worlds.truths.done", "Done")}
+          </Button>
+        )}
       </Box>
       {question && (
         <MarkdownRenderer
@@ -89,7 +111,7 @@ export function WorldTruthSection({
           sx={{ fontWeight: 600 }}
         />
       )}
-      {truth.your_character && (
+      {truth.your_character && !condensed && (
         <Box sx={{ color: "text.secondary", mb: 2 }}>
           <MarkdownRenderer
             markdown={truth.your_character}
@@ -98,8 +120,27 @@ export function WorldTruthSection({
           />
         </Box>
       )}
-      {canEdit ? (
-        <Box sx={optionGridSx}>
+      {condensed ? (
+        <Box id={optionsId} sx={{ mt: question ? 2 : 0 }}>
+          {resolved.kind === "option" ? (
+            <WorldTruthOptionCard
+              option={resolved.option}
+              selected={false}
+              selectedSubOptionId={resolved.subRow?._id}
+              canEdit={false}
+              showQuestStarter
+            />
+          ) : (
+            <WorldCustomTruthCard
+              selected
+              description={resolved.description}
+              questStarter={questStarter}
+              onWrite={() => setWriting(true)}
+            />
+          )}
+        </Box>
+      ) : canEdit ? (
+        <Box id={optionsId} sx={optionGridSx}>
           {truth.options.map((option) => {
             const selected =
               resolved?.kind === "option" && resolved.option._id === option._id;

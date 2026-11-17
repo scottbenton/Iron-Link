@@ -41,6 +41,33 @@ const renderSection = (
 };
 
 describe("WorldTruthSection", () => {
+  it("condenses a chosen truth for Guides until they change it", async () => {
+    renderSection(true, {
+      truthId: cataclysm._id,
+      optionId: chosen._id,
+      subOptionId: subRow._id,
+      customDescription: null,
+    });
+    expect(screen.getAllByText("Quest starter")).toHaveLength(1);
+    expect(screen.getByText(subRow.text)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Roll Cataclysm" }),
+    ).not.toBeInTheDocument();
+    const toggle = screen.getByRole("button", { name: "Change" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+    await userEvent.click(toggle);
+    expect(toggle).toHaveAccessibleName("Done");
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getAllByText("Quest starter")).toHaveLength(
+      cataclysm.options.length,
+    );
+
+    await userEvent.click(toggle);
+    expect(toggle).toHaveAccessibleName("Change");
+    expect(screen.getAllByText("Quest starter")).toHaveLength(1);
+  });
+
   it("shows Guides every option with its quest starter and chooses on click", async () => {
     const handlers = renderSection(true, {
       truthId: cataclysm._id,
@@ -51,6 +78,7 @@ describe("WorldTruthSection", () => {
     expect(
       screen.getByRole("heading", { name: "1. Cataclysm" }),
     ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Change" }));
     const cards = screen.getAllByRole("button", { pressed: false });
     expect(cards).toHaveLength(cataclysm.options.length - 1);
     expect(screen.getByRole("button", { pressed: true })).toBeInTheDocument();
