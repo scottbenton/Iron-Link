@@ -25,8 +25,9 @@ create function pg_temp.game(p_n integer) returns uuid language sql as $$
 create function pg_temp.choose(p_truth text,p_option text,p_sub text default null) returns void language sql as $$
   insert into public.world_truths(world_id,truth_id,option_id,sub_option_id)
     values (pg_temp.w('main'),p_truth,p_option,p_sub)
-    on conflict (world_id,truth_id) do update set option_id=excluded.option_id,
-      sub_option_id=excluded.sub_option_id, custom_description=null $$;
+    on conflict (world_id,truth_id) do update set world_id=excluded.world_id, truth_id=excluded.truth_id,
+      option_id=excluded.option_id, sub_option_id=excluded.sub_option_id,
+      custom_description=excluded.custom_description $$;
 create function pg_temp.write(p_truth text,p_description text,p_quest text) returns void language sql as $$
   select public.set_world_custom_truth(pg_temp.w('main'),p_truth,p_description,p_quest) $$;
 create function pg_temp.truths() returns text language sql as $$
@@ -55,9 +56,6 @@ select ok(not has_table_privilege('authenticated','public.world_truth_quest_star
   and not has_table_privilege('authenticated','public.world_truth_quest_starters','UPDATE')
   and not has_table_privilege('authenticated','public.world_truth_quest_starters','DELETE'),
   'clients write quest starters only through set_world_custom_truth');
-select ok(not has_column_privilege('authenticated','public.world_truths','world_id','UPDATE')
-  and not has_column_privilege('authenticated','public.world_truths','truth_id','UPDATE'),
-  'a truth never moves to another world or truth');
 select ok(not has_function_privilege('authenticated','public.world_truths_drop_quest_starter()','EXECUTE'),
   'the quest starter clean-up is not exposed to clients');
 select ok(not has_function_privilege('anon','public.set_world_custom_truth(uuid,text,text,text)','EXECUTE'),
@@ -80,7 +78,8 @@ insert into public.world_players(world_id,user_id,role) values
 
 set local role authenticated;
 
--- Choosing
+-- Choosing (pg_temp.choose sends the statement PostgREST builds for the
+-- client's upsert, which sets the key columns too)
 select pg_temp.as_user(3);
 select is(pg_temp.outcome($$select pg_temp.choose('truth:starforged/cataclysm','truth.option:starforged/cataclysm.0',
   'truth.option.oracle_rollable.row:starforged/cataclysm.0.sun_plague_cause.0')$$),'ok',
@@ -98,6 +97,12 @@ select is(pg_temp.truths(),
   'truth:starforged/cataclysm=truth.option:starforged/cataclysm.0/truth.option.oracle_rollable.row:starforged/cataclysm.0.sun_plague_cause.0, '
   ||'truth:starforged/exodus=truth.option:starforged/exodus.2, truth:starforged/iron=truth.option:starforged/iron.2',
   'one choice per truth, the latest one standing');
+select is(pg_temp.outcome($$update public.world_truths set truth_id='truth:starforged/laws'
+  where world_id=pg_temp.w('main') and truth_id='truth:starforged/iron'$$),
+  '42501 A world truth cannot move to another world or truth','a truth never moves to another truth');
+select is(pg_temp.outcome($$update public.world_truths set world_id=pg_temp.w('other')
+  where world_id=pg_temp.w('main') and truth_id='truth:starforged/iron'$$),
+  '42501 A world truth cannot move to another world or truth','a truth never moves to another world');
 
 select pg_temp.as_user(4);
 select is(pg_temp.outcome($$select pg_temp.choose('truth:starforged/laws','truth.option:starforged/laws.0')$$),

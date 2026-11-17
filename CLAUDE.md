@@ -146,6 +146,10 @@ that are easy to miss. When you learn a new one, add a line here.
   `world_truth_quest_starters`, written only through `set_world_custom_truth`
   and dropped when an option replaces the written truth. Datasworn quest
   starters and unchosen options come from rules data and show only to Guides.
+- PostgREST's upsert sets every column it was sent, the conflict key too, so
+  a table written by client upserts needs UPDATE on its key columns; keep a
+  key fixed with a trigger (`world_truths_keep_key`), not by withholding the
+  grant. Write pgTAP upserts the same way.
 
 ## Bonds
 
