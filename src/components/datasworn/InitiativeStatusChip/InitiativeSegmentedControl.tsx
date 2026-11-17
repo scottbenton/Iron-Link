@@ -9,7 +9,7 @@ import {
 
 import { InitiativeStatus } from "repositories/character.repository";
 
-import { initiativeStatusColors } from "./initiativeStatusColors";
+import { getInitiativeStatusFill } from "./initiativeStatusColors";
 import { useInitiativeStatusText } from "./useInitiativeStatusText";
 
 export interface InitiativeSegmentedControlProps {
@@ -57,7 +57,6 @@ export function InitiativeSegmentedControl(
     >
       {statuses.map((option, index) => {
         const checked = option === status;
-        const color = initiativeStatusColors[option];
         return (
           <Box
             key={option}
@@ -78,9 +77,11 @@ export function InitiativeSegmentedControl(
                   ? `1px solid ${theme.palette.grey[theme.palette.mode === "light" ? 400 : 500]}`
                   : undefined,
               color: checked
-                ? theme.palette[color].contrastText
+                ? getInitiativeStatusFill(theme, option).contrastText
                 : theme.palette.text.secondary,
-              bgcolor: checked ? theme.palette[color].main : "transparent",
+              bgcolor: checked
+                ? getInitiativeStatusFill(theme, option).main
+                : "transparent",
               transition: theme.transitions.create(
                 ["background-color", "color"],
                 { duration: theme.transitions.duration.shortest },
