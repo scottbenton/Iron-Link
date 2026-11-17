@@ -30,6 +30,9 @@ that are easy to miss. When you learn a new one, add a line here.
   Oracles, Log) are chosen in `GameBottomNav`, so the Reference panel shows
   no tab strip there. The game log counts as read only while it is on screen
   (`isGameLogVisible`: its tab is chosen and `isReferencePanelVisible`).
+- The nav rail and `GameBottomNav` share one item look, `NavRailItemView`
+  (gradient ring on the selected pill, on the rail's grey.900 surface);
+  style nav items there, never per bar.
 
 ## Accessibility
 
@@ -232,14 +235,18 @@ that are easy to miss. When you learn a new one, add a line here.
 - Stats and meter values are `RollButton`s (`components/datasworn/RollButton`):
   a dark raised button named for its action ("Roll Edge, +2"), with the
   theme's gradient ring on hover, keyboard focus and briefly after a press.
-  `Stat` and `ConditionMeter` use it, so move roll options match the sheet.
+  The ring is a masked outline around the whole button, dark edge included,
+  so nothing inside can cover it; a press moves the face down onto its edge
+  (transform only). `Stat` and `ConditionMeter` use it, so move roll options
+  match the sheet.
 - Initiative is the `InitiativeStatusChip` on wide screens and an
   `InitiativeSegmentedControl` radio group at the top of the Overview tab on
   phones; both read their colours from `initiativeStatusColors` and their
   labels from `useInitiativeStatusText`, which follows the ruleset.
 - A panel's own view switcher (the sheet's Overview, Assets and Tracks) is
-  `StyledTabs appearance="pill"`: centred, the selected tab a filled neutral
-  pill in a 44px target on touch.
+  the same centred `StyledTabs` as Moves, Oracles and Log on wide screens. On
+  phones, where it stands alone, it passes `size="large"`: the same style,
+  with 48px tabs and larger labels filling the width.
 
 ## Reference
 
