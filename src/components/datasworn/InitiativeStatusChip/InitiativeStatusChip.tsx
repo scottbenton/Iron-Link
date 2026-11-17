@@ -4,7 +4,10 @@ import { useId, useState } from "react";
 
 import { InitiativeStatus } from "repositories/character.repository";
 
-import { initiativeStatusColors } from "./initiativeStatusColors";
+import {
+  getInitiativeStatusFill,
+  initiativeStatusColors,
+} from "./initiativeStatusColors";
 import { useInitiativeStatusText } from "./useInitiativeStatusText";
 
 export interface InitiativeStatusChipProps {
@@ -13,9 +16,25 @@ export interface InitiativeStatusChipProps {
   variant?: "filled" | "outlined";
 }
 
-const getStatusProps = (status: InitiativeStatus): Partial<ChipProps> => ({
-  color: initiativeStatusColors[status],
-});
+const getStatusProps = (status: InitiativeStatus): Partial<ChipProps> => {
+  const color = initiativeStatusColors[status];
+  if (color !== "neutral") return { color };
+  // MUI's default chip is too faint to read as a status, so the neutral one
+  // is filled like the others.
+  return {
+    color: "default",
+    sx: (theme) => {
+      const fill = getInitiativeStatusFill(theme, status);
+      return {
+        bgcolor: fill.main,
+        color: fill.contrastText,
+        "&.MuiChip-clickable:hover, &.Mui-focusVisible": {
+          bgcolor: fill.dark,
+        },
+      };
+    },
+  };
+};
 
 export function InitiativeStatusChip(props: InitiativeStatusChipProps) {
   const { status, handleStatusChange, variant } = props;

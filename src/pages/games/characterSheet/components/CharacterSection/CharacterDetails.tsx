@@ -13,8 +13,6 @@ import { useCharacterInitiativeStatus } from "./useCharacterInitiativeStatus";
 
 export function CharacterDetails() {
   const characterId = useCharacterId();
-  // Phones show initiative as a segmented control at the top of the
-  // Overview tab instead (InitiativeSection).
   const isMobile = useIsMobile();
 
   const name = useGameCharacter((character) => character?.name ?? "");
@@ -22,6 +20,18 @@ export function CharacterDetails() {
   const portraitSettings = useGameCharacter(
     (character) => character?.profileImage,
   );
+
+  if (isMobile) {
+    // On phones the top bar's character switcher shows the portrait and name,
+    // and initiative is a segmented control at the top of the Overview tab
+    // (InitiativeSection), so only the access chip is left. Its box collapses
+    // when the chip renders nothing, leaving no gap.
+    return (
+      <Box display="flex" sx={{ "&:empty": { display: "none" } }}>
+        <CharacterAccessChip />
+      </Box>
+    );
+  }
 
   return (
     <Box display="flex" gap={2}>
@@ -38,12 +48,10 @@ export function CharacterDetails() {
           {name}
         </Typography>
         <Box display="flex" flexWrap="wrap" alignItems="center" gap={1}>
-          {!isMobile && (
-            <InitiativeStatusChip
-              status={initiative.status}
-              handleStatusChange={initiative.handleStatusChange}
-            />
-          )}
+          <InitiativeStatusChip
+            status={initiative.status}
+            handleStatusChange={initiative.handleStatusChange}
+          />
           <CharacterAccessChip />
         </Box>
       </Box>
