@@ -76,6 +76,12 @@ that are easy to miss. When you learn a new one, add a line here.
   above the phone bottom nav while `isGameBottomNavVisible` (set by
   `GameBottomNav`), at the window's bottom otherwise, and bottom right at
   360px on wider screens (`useRollDockPosition`).
+- Snackbars sit above the roll stack: the active roll card host publishes the
+  dock's rendered height as `--roll-dock-height` on the root element
+  (`usePublishRollDockHeight`, "0px" with no rolls), and `SnackbarProvider`
+  places notistack's container from the same `useRollDockPosition` plus that
+  height (centred on phones, bottom right on wider screens). Anything else
+  docked at the bottom stacks the same way rather than overlapping.
 - Snackbars read their message through the live region (dialogs hide the
   snackbar container); the alert itself is not live. Errors persist.
 - Filters announce their result count with `useAnnounceSearchResults`.

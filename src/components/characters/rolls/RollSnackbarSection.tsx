@@ -16,6 +16,7 @@ import { useAppState, useIsActiveRollCardHost } from "stores/appState.store";
 
 import { RecentRollsDialog } from "./RecentRollsDialog";
 import { RollSnackbar } from "./RollSnackbar";
+import { usePublishRollDockHeight } from "./usePublishRollDockHeight";
 import { useRollDismissFocus } from "./useRollDismissFocus";
 import {
   ROLL_DOCK_WIDE_INSET,
@@ -59,6 +60,10 @@ export function RollSnackbarSection(props: RollSnackbarSectionProps) {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // The snackbars sit above the stack, which says how tall it is.
+  const [dockElement, setDockElement] = useState<HTMLElement | null>(null);
+  usePublishRollDockHeight(dockElement, isActive);
+
   const { dismiss, getDismissButtonRef } = useRollDismissFocus(rolls);
 
   const newest = rolls[rolls.length - 1];
@@ -80,6 +85,7 @@ export function RollSnackbarSection(props: RollSnackbarSectionProps) {
   return (
     <>
       <Box
+        ref={setDockElement}
         // A landmark only while there are rolls to find in it.
         component={rolls.length > 0 ? "section" : "div"}
         aria-label={
