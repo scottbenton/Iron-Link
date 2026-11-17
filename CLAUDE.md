@@ -274,8 +274,8 @@ that are easy to miss. When you learn a new one, add a line here.
   which follows the ruleset.
 - A panel's own view switcher (the sheet's Overview, Assets and Tracks) is
   the same centred `StyledTabs` as Moves, Oracles and Log on wide screens. On
-  phones, where it stands alone, it passes `size="large"`: the same style,
-  with 48px tabs and larger labels filling the width.
+  phones, where it stands alone, it passes `size="large"`: the same centred
+  tabs a little bigger (48px tall, wider), with the same label size.
 
 ## Reference
 
