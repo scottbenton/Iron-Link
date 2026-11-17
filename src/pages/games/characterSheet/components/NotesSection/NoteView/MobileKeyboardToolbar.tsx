@@ -1,5 +1,13 @@
 import { Box } from "@mui/material";
-import { PropsWithChildren, useLayoutEffect, useRef, useState } from "react";
+import { useForkRef } from "@mui/material/utils";
+import {
+  PropsWithChildren,
+  ReactNode,
+  Ref,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 
 import { ScrollFadeRow } from "components/Layout/ScrollFadeRow";
@@ -19,6 +27,17 @@ export interface MobileKeyboardToolbarProps extends PropsWithChildren {
   // Hidden, it keeps its layout, and leaves the tab order and the
   // accessibility tree.
   hidden?: boolean;
+  // Names the bar, which makes it a toolbar.
+  label?: string;
+  // Rendered where it is used rather than portalled to the body, so it is
+  // read where it sits in the page (a note's title, then its toolbar, then
+  // its text). Only for a page with no transformed, filtered or contained
+  // ancestor, which would become the fixed bar's containing block.
+  inPlace?: boolean;
+  // Kept at the end of the bar, outside the row that scrolls sideways.
+  end?: ReactNode;
+  // The whole bar, `end` included.
+  ref?: Ref<HTMLDivElement>;
 }
 
 // A toolbar fixed to the bottom of the window and raised by the keyboard's
@@ -26,12 +45,14 @@ export interface MobileKeyboardToolbarProps extends PropsWithChildren {
 // share it. While it shows, it tells the editor whose toolbar it is how much
 // of the window's bottom it covers, keyboard included.
 //
-// Portalled to the body: it belongs to the window's bottom edge rather than
-// to the page, and nothing on the page may become its containing block.
+// Portalled to the body unless `inPlace`: it belongs to the window's bottom
+// edge rather than to the page, and nothing on the page may become its
+// containing block.
 export function MobileKeyboardToolbar(props: MobileKeyboardToolbarProps) {
-  const { hidden, children } = props;
+  const { hidden, label, inPlace, end, ref, children } = props;
 
   const bar = useRef<HTMLDivElement>(null);
+  const handleRef = useForkRef(bar, ref);
   const settledInset = useSettledKeyboardInset();
   const [barHeight, setBarHeight] = useState(0);
   useReportToolbarClearance(hidden ? 0 : barHeight + settledInset);
@@ -67,9 +88,32 @@ export function MobileKeyboardToolbar(props: MobileKeyboardToolbarProps) {
     return () => observer.disconnect();
   }, []);
 
-  return createPortal(
+  const row = (
+    <ScrollFadeRow
+      sx={{
+        height: MIN_TAP_TARGET,
+        px: 2,
+        gap: 0.5,
+        // The buttons are shared with the desktop toolbars, which keep
+        // their own sizes.
+        "& .MuiButtonBase-root": {
+          minWidth: MIN_TAP_TARGET,
+          minHeight: MIN_TAP_TARGET,
+        },
+      }}
+    >
+      {children}
+    </ScrollFadeRow>
+  );
+
+  const toolbar = (
     <Box
-      ref={bar}
+      ref={handleRef}
+      role={label ? "toolbar" : undefined}
+      aria-label={label}
+      // Also said outright, beside `visibility`.
+      aria-hidden={hidden || undefined}
+      inert={hidden || undefined}
       sx={(theme) => ({
         position: "fixed",
         bottom: 0,
@@ -89,22 +133,16 @@ export function MobileKeyboardToolbar(props: MobileKeyboardToolbarProps) {
         visibility: hidden ? "hidden" : undefined,
       })}
     >
-      <ScrollFadeRow
-        sx={{
-          height: MIN_TAP_TARGET,
-          px: 2,
-          gap: 0.5,
-          // The buttons are shared with the desktop toolbars, which keep
-          // their own sizes.
-          "& .MuiButtonBase-root": {
-            minWidth: MIN_TAP_TARGET,
-            minHeight: MIN_TAP_TARGET,
-          },
-        }}
-      >
-        {children}
-      </ScrollFadeRow>
-    </Box>,
-    document.body,
+      {end ? (
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>{row}</Box>
+          <Box sx={{ flexShrink: 0, pr: 1, pl: 0.5 }}>{end}</Box>
+        </Box>
+      ) : (
+        row
+      )}
+    </Box>
   );
+
+  return inPlace ? toolbar : createPortal(toolbar, document.body);
 }

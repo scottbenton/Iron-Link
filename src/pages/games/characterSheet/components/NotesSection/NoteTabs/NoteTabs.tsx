@@ -7,6 +7,7 @@ import { EmptyState } from "components/Layout/EmptyState";
 
 import { notesDestinationKey } from "pages/games/gamePageLayout/hooks/notesDestination";
 
+import { useIsMobile } from "hooks/useIsMobile";
 import {
   TOUCH_DEVICE_MEDIA_QUERY,
   TOUCH_TARGET_SIZE,
@@ -14,86 +15,22 @@ import {
 
 import { useUID } from "stores/auth.store";
 import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
-import { useWorldStore } from "stores/world.store";
-import { useWorldCategoriesStore } from "stores/worldCategories.store";
-import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import { FolderView, FolderViewToolbar } from "../FolderView";
-import { getItemName } from "../FolderView/getFolderName";
 import { OpenItemWrapper } from "../Layout";
 import { NoteView } from "../NoteView";
 import { GameWorldView } from "../WorldView/GameWorldView";
+import { MobileNoteTabsHeader } from "./MobileNoteTabsHeader";
 import { NoteTab } from "./NoteTab";
+import { useNoteTabLabels } from "./useNoteTabLabels";
 
 export function NoteTabs() {
   const { t } = useTranslation();
 
   const openTabs = useNotesStore((store) => store.noteTabItems);
   const tabOrder = useNotesStore((store) => store.noteTabOrder);
-  const itemNames = useNotesStore((store) => {
-    return Object.fromEntries(
-      Object.entries(store.noteTabItems).map(([key, value]) => {
-        if (value.type === "world") {
-          // Resolved from the world store below - the notes store knows
-          // nothing about worlds beyond the tab bookkeeping.
-          return [key, null];
-        }
-        if (value.type === "folder") {
-          const folder = store.folderState.folders[value.itemId];
-          return [
-            key,
-            getItemName({
-              name: folder?.name,
-              isRootPlayerFolder: folder?.isRootPlayerFolder ?? false,
-              t,
-            }),
-          ];
-        } else {
-          const note = store.noteState.notes[value.itemId];
-          if (note) {
-            return [key, note.title];
-          }
-          return [key, t("common.unknown", "Unknown")];
-        }
-      }),
-    );
-  });
-  const world = useWorldStore((store) => store.world);
-  const categories = useWorldCategoriesStore((store) => store.categories);
-  // Entries load only while a category or entry tab is showing.
-  const entryNames = useWorldEntriesStore((store) =>
-    Object.fromEntries(
-      Object.values(openTabs).flatMap((item) => {
-        const entry =
-          item.worldView?.type === "entry"
-            ? store.entryState.entries[item.worldView.entryId]
-            : undefined;
-        return entry?.worldId === item.itemId ? [[entry.id, entry.name]] : [];
-      }),
-    ),
-  );
-  const worldTabLabel = (tabId: string) => {
-    const item = openTabs[tabId];
-    const view = item.worldView ?? { type: "world" };
-    if (view.type === "settings")
-      return t("worlds.settings.title", "World settings");
-    if (view.type === "entry") {
-      return entryNames[view.entryId] ?? t("worlds.entries.unknown", "Entry");
-    }
-    if ("categoryId" in view) {
-      const category = categories[view.categoryId];
-      const name =
-        category?.worldId === item.itemId
-          ? category.name
-          : t("worlds.categories.unknown", "Category");
-      return view.type === "category-settings"
-        ? t("worlds.categories.settings-named", "{{name}} settings", { name })
-        : name;
-    }
-    return world?.id === item.itemId
-      ? world.name
-      : t("worlds.tab.world", "World");
-  };
+  const getTabLabel = useNoteTabLabels();
+  const isMobile = useIsMobile();
 
   const activeTab = useNotesStore((store) => store.openTabId);
   const setActiveTab = useNotesStore((store) => store.switchToTab);
@@ -111,71 +48,75 @@ export function NoteTabs() {
 
   return (
     <Box height={"100%"} display="flex" flexDirection="column">
-      <Box
-        bgcolor="background.default"
-        borderColor="divider"
-        display="flex"
-        flexShrink={0}
-      >
-        {defaultTab && (
-          <Box pl={1} display="flex" alignItems="center">
-            <IconButton
-              size="small"
-              aria-label={t("notes.tabs.new-tab", "Open new tab")}
-              onClick={() =>
-                openNewTab({
-                  type: "folder",
-                  id: defaultTab.id,
-                  openInBackground: false,
-                  replaceCurrent: false,
-                })
-              }
-              sx={{
-                mr: 1,
-                [TOUCH_DEVICE_MEDIA_QUERY]: {
-                  width: TOUCH_TARGET_SIZE,
-                  height: TOUCH_TARGET_SIZE,
-                },
-              }}
-            >
-              <AddIcon />
-            </IconButton>
-          </Box>
-        )}
-        <Tabs
-          value={activeTab ?? null}
-          onChange={(_, newValue) => setActiveTab(newValue)}
-          sx={{ minHeight: 0 }}
-          variant="scrollable"
-          // Do not re-enable the scroller's scrollbar here. MUI hides it by
-          // applying a negative margin-bottom equal to the measured scrollbar
-          // height; making it visible again leaves that margin in place, which
-          // detaches the selection indicator from the tabs by exactly a
-          // scrollbar's height and makes one flash in whenever the strip is
-          // re-measured. Scroll buttons cover overflow instead.
-          scrollButtons="auto"
+      {isMobile ? (
+        <MobileNoteTabsHeader getTabLabel={getTabLabel} />
+      ) : (
+        <Box
+          bgcolor="background.default"
+          borderColor="divider"
+          display="flex"
+          flexShrink={0}
         >
-          {tabOrder.map((tabId) => (
-            <NoteTab
-              name={itemNames[tabId] ?? worldTabLabel(tabId)}
-              onClose={() => closeTab(tabId)}
-              value={tabId}
-              key={tabId}
-              id={`note-tab-${tabId}`}
-              aria-controls={`note-tabpanel-${tabId}`}
-              onAuxClick={(event) => {
-                if (event.button === 1) closeTab(tabId);
-              }}
-              onMouseDown={(event) => {
-                if (event.button === 1) {
-                  event.preventDefault();
-                  return false;
+          {defaultTab && (
+            <Box pl={1} display="flex" alignItems="center">
+              <IconButton
+                size="small"
+                aria-label={t("notes.tabs.new-tab", "Open new tab")}
+                onClick={() =>
+                  openNewTab({
+                    type: "folder",
+                    id: defaultTab.id,
+                    openInBackground: false,
+                    replaceCurrent: false,
+                  })
                 }
-              }}
-            />
-          ))}
-        </Tabs>
-      </Box>
+                sx={{
+                  mr: 1,
+                  [TOUCH_DEVICE_MEDIA_QUERY]: {
+                    width: TOUCH_TARGET_SIZE,
+                    height: TOUCH_TARGET_SIZE,
+                  },
+                }}
+              >
+                <AddIcon />
+              </IconButton>
+            </Box>
+          )}
+          <Tabs
+            value={activeTab ?? null}
+            onChange={(_, newValue) => setActiveTab(newValue)}
+            sx={{ minHeight: 0 }}
+            variant="scrollable"
+            // Do not re-enable the scroller's scrollbar here. MUI hides it by
+            // applying a negative margin-bottom equal to the measured scrollbar
+            // height; making it visible again leaves that margin in place, which
+            // detaches the selection indicator from the tabs by exactly a
+            // scrollbar's height and makes one flash in whenever the strip is
+            // re-measured. Scroll buttons cover overflow instead.
+            scrollButtons="auto"
+          >
+            {tabOrder.map((tabId) => (
+              <NoteTab
+                name={getTabLabel(tabId)}
+                onClose={() => closeTab(tabId)}
+                value={tabId}
+                key={tabId}
+                id={`note-tab-${tabId}`}
+                aria-controls={`note-tabpanel-${tabId}`}
+                onAuxClick={(event) => {
+                  if (event.button === 1) closeTab(tabId);
+                }}
+                onMouseDown={(event) => {
+                  if (event.button === 1) {
+                    event.preventDefault();
+                    return false;
+                  }
+                }}
+              />
+            ))}
+          </Tabs>
+        </Box>
+      )}
       {tabOrder.map((tabId) => {
         const tabItem = openTabs[tabId];
         if (activeTab !== tabId) {
@@ -184,10 +125,15 @@ export function NoteTabs() {
         return (
           <Box
             key={tabId}
-            role="tabpanel"
             hidden={activeTab !== tabId}
-            id={`note-tabpanel-${tabId}`}
-            aria-labelledby={`note-tab-${tabId}`}
+            // Phones show the open note's name above it instead of tabs.
+            {...(isMobile
+              ? {}
+              : {
+                  role: "tabpanel",
+                  id: `note-tabpanel-${tabId}`,
+                  "aria-labelledby": `note-tab-${tabId}`,
+                })}
             flexGrow={1}
             display="flex"
             flexDirection={"column"}

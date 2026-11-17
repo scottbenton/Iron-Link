@@ -19,11 +19,20 @@ export interface CommonToolbarItemsProps {
   openNoteId: string;
   permissions: NotePermissions;
   hideBorders?: boolean;
+  // Left out where the note's actions sit elsewhere, as on phones.
+  hideNoteActions?: boolean;
   secrets?: SecretsToolbarState;
 }
 
 export function CommonToolbarItems(props: CommonToolbarItemsProps) {
-  const { editor, openNoteId, permissions, hideBorders, secrets } = props;
+  const {
+    editor,
+    openNoteId,
+    permissions,
+    hideBorders,
+    hideNoteActions,
+    secrets,
+  } = props;
   const uploadNoteImage = useNotesStore((store) => store.uploadNoteImage);
   const sx = hideBorders ? { border: "none" } : undefined;
 
@@ -45,17 +54,19 @@ export function CommonToolbarItems(props: CommonToolbarItemsProps) {
           <MakeSecretButton secrets={secrets} sx={sx} />
         )}
       </ToggleButtonGroup>
-      <Box
-        flexGrow={1}
-        display="flex"
-        justifyContent={"flex-end"}
-        alignItems="center"
-      >
-        <NoteToolbarActionsMenu
-          openNoteId={openNoteId}
-          permissions={permissions}
-        />
-      </Box>
+      {!hideNoteActions && (
+        <Box
+          flexGrow={1}
+          display="flex"
+          justifyContent={"flex-end"}
+          alignItems="center"
+        >
+          <NoteToolbarActionsMenu
+            openNoteId={openNoteId}
+            permissions={permissions}
+          />
+        </Box>
+      )}
     </>
   );
 }

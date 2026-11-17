@@ -212,6 +212,13 @@ that are easy to miss. When you learn a new one, add a line here.
 - A Notes tab's close button is a sibling of its tab (`NoteTab`), never
   inside it. MUI Tabs' arrow keys walk the strip's direct children, which
   are the wrappers, so `NoteTab` handles arrows, Home and End itself.
+- On phones (`useIsMobile`) the tab strip is `MobileNoteTabsHeader`: the open
+  item's name and a count box opening `OpenNotesSheet` (open items, each with
+  a sibling Close button, plus New note and All notes). There a note's
+  formatting toolbar shows only while its editor has focus, renders in place
+  after the breadcrumbs (`MobileKeyboardToolbar` `inPlace`, so it is read
+  before the text) and ends with Done editing, which Escape in the text
+  matches; the note's actions menu sits in its breadcrumb strip instead.
 - Note and folder RLS follows the app's `getPermissions` (`notes.store.ts`)
   through the `note_permission_allows_read|edit|manage` helpers, and the
   `notes_guard_update`/`note_folders_guard_update` triggers check which columns

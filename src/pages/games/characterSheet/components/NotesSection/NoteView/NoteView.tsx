@@ -1,3 +1,4 @@
+import { Box } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -17,6 +18,7 @@ import { useNotesStore } from "stores/notes.store";
 
 import { NoteToolbar } from "../Layout";
 import { MobileStickyNoteToolbar } from "./MobileStickyToolbar";
+import { NoteToolbarActionsMenu } from "./NoteToolbarActionsMenu";
 import { NoteViewToolbar } from "./NoteViewToolbar";
 import { getNoteSecretsConfig } from "./noteSecrets";
 import { useNotePermission } from "./useNotePermission";
@@ -97,18 +99,25 @@ export function NoteView(props: NoteViewProps) {
     ({ editor, secrets }: RichTextToolbarProps) => (
       <>
         <NoteToolbar>
-          {isMobile ? undefined : (
-            <>
-              {notePermissions.canEdit ? (
-                <NoteViewToolbar
-                  editor={editor}
+          {notePermissions.canEdit ? (
+            isMobile ? (
+              // Phones show formatting only while editing, so the note's
+              // own actions stay here.
+              <Box flexGrow={1} display="flex" justifyContent={"flex-end"}>
+                <NoteToolbarActionsMenu
                   openNoteId={openNoteId}
                   permissions={notePermissions}
-                  secrets={secrets}
                 />
-              ) : undefined}
-            </>
-          )}
+              </Box>
+            ) : (
+              <NoteViewToolbar
+                editor={editor}
+                openNoteId={openNoteId}
+                permissions={notePermissions}
+                secrets={secrets}
+              />
+            )
+          ) : undefined}
         </NoteToolbar>
         <MobileStickyNoteToolbar
           editor={editor}
