@@ -61,7 +61,13 @@ export function WorldTruthSection({
   const question = (truth as { summary?: string }).summary;
 
   return (
-    <Box component="section" aria-labelledby={headingId}>
+    <Box
+      component="section"
+      aria-labelledby={headingId}
+      // A condensed truth keeps to a readable line length, its Change button
+      // beside the card rather than across a wide pane.
+      sx={{ maxWidth: condensed ? "75ch" : undefined }}
+    >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
         <Typography
           id={headingId}
