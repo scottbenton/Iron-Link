@@ -50,6 +50,7 @@ export function ImageInput(props: ImageInputProps) {
         <PortraitAvatarDisplay
           size={"large"}
           name={characterName}
+          decorative
           portraitUrl={imageUrl}
           portraitSettings={
             value?.position && value?.scale !== undefined

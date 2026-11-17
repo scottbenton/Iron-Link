@@ -78,6 +78,9 @@ export function ThemedBox(props: {
         <ButtonBase
           focusRipple
           onClick={onClick}
+          // The check mark is an icon, which screen readers skip, so the
+          // pressed state is what tells them which scheme is chosen.
+          aria-pressed={selected}
           sx={(theme) => ({
             flexGrow: 1,
             display: "flex",
@@ -98,7 +101,7 @@ export function ThemedBox(props: {
                 right: 8,
               }}
             >
-              <CheckCircleIcon aria-label={t("common.selected", "Selected")} />
+              <CheckCircleIcon />
             </Box>
           )}
           <IronLinkLogo sx={{ width: 64, height: 64 }} />

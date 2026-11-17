@@ -71,6 +71,7 @@ export function CharacterCard(props: CharacterCardProps) {
           <PortraitAvatar
             characterId={character.id}
             name={character.name}
+            decorative
             portraitSettings={character.profileImage ?? undefined}
             borderColor={character.colorScheme ?? ColorScheme.Default}
           />

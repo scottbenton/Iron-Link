@@ -31,7 +31,7 @@ export function ScreenshotShowcase() {
         <Box
           component={"img"}
           src="/images/SoloGame.webp"
-          alt="Screenshot of a solo game with a character overview, notes, and the referense sidebar all visible."
+          alt="Screenshot of a solo game with a character overview, notes, and the reference sidebar all visible."
           sx={(theme) => ({
             borderRadius: 1,
             aspectRatio: "16 / 10",

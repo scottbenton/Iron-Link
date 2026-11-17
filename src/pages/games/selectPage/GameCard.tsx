@@ -1,7 +1,9 @@
 import { Box, Card, CardActionArea, Typography } from "@mui/material";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 import { LinkComponent } from "components/LinkComponent";
+import { ScreenReaderOnly } from "components/ScreenReaderOnly";
 
 import { pathConfig } from "pages/pathConfig";
 
@@ -22,6 +24,7 @@ export function GameCard(props: GameCardProps) {
   const { gameId, game } = props;
 
   const { rulesets, expansions } = game;
+  const { t } = useTranslation();
 
   const gameCharacters = useUsersGames(
     (store) => store.characterDisplayDetails[gameId] ?? {},
@@ -48,6 +51,16 @@ export function GameCard(props: GameCardProps) {
 
     return packageNames.join(", ");
   }, [rulesets, expansions]);
+
+  // The portraits are pictures only, so their names are read here.
+  const characterNames = useMemo(
+    () =>
+      Object.values(gameCharacters)
+        .map((character) => character.name)
+        .sort((a, b) => a.localeCompare(b))
+        .join(", "),
+    [gameCharacters],
+  );
 
   return (
     <Card variant={"outlined"} sx={{ height: "100%", overflow: "visible" }}>
@@ -82,6 +95,13 @@ export function GameCard(props: GameCardProps) {
             >
               {rulesPackageString}
             </Typography>
+            {characterNames && (
+              <ScreenReaderOnly>
+                {t("game.list.characters", "Characters: {{names}}", {
+                  names: characterNames,
+                })}
+              </ScreenReaderOnly>
+            )}
           </Box>
         </Box>
       </CardActionArea>

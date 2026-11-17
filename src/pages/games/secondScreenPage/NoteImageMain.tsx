@@ -25,7 +25,9 @@ export function NoteImageMain(props: NoteImageMainProps) {
             objectPosition: "top",
           }}
           src={url}
-          alt={label}
+          // The label is shown as the page heading below, so the image
+          // doesn't repeat it.
+          alt=""
         />
         {label.trim() && (
           <Card
