@@ -29,9 +29,6 @@ export interface RollButtonProps {
 
 // The width of the gradient ring, drawn around the whole button.
 const RING_WIDTH = 2;
-// The dark edge under a raised button's face; a press moves the face down by
-// this much, onto it, so the edge disappears.
-const EDGE_HEIGHT = 3;
 
 // Holds the ring on the button just pressed, then lets it fade.
 const justRolledRing = keyframes`
@@ -40,12 +37,11 @@ const justRolledRing = keyframes`
 `;
 
 /**
- * A dark, raised button showing a value, which rolls it (or runs another
- * action, like Reset on momentum). Its face sits on a dark edge and moves
- * down onto it while pressed. The theme's rotating gradient ring
- * (GradientRing) shows around the whole button on hover and keyboard focus,
- * and briefly after a press so the one just rolled stands out. Without `onClick` it draws the same face as
- * plain text, with no edge.
+ * A dark button showing a value, which rolls it (or runs another action,
+ * like Reset on momentum). The theme's rotating gradient ring (GradientRing)
+ * shows around the whole button on hover and keyboard focus, and briefly
+ * after a press so the one just rolled stands out. Without `onClick` it draws
+ * the same face as plain text.
  */
 export function RollButton(props: RollButtonProps) {
   const {
@@ -63,9 +59,6 @@ export function RollButton(props: RollButtonProps) {
   const [pressCount, setPressCount] = useState(0);
 
   const isStat = size === "stat";
-  // A raised face gives the edge's height to the edge, so the button takes
-  // the same space either way (44px on touch for a meter).
-  const edge = onClick ? EDGE_HEIGHT : 0;
 
   const face = (
     <Box
@@ -79,7 +72,7 @@ export function RollButton(props: RollButtonProps) {
         alignItems: "center",
         justifyContent: "center",
         gap: isStat ? 0 : 0.5,
-        height: (isStat ? 52 : 32) - edge,
+        height: isStat ? 52 : 32,
         // Narrow enough for five across a 320px phone.
         minWidth: isStat ? 56 : 48,
         px: 1,
@@ -87,7 +80,7 @@ export function RollButton(props: RollButtonProps) {
         bgcolor: "grey.700",
         color: "common.white",
         [TOUCH_DEVICE_MEDIA_QUERY]: {
-          height: (isStat ? 56 : TOUCH_TARGET_SIZE - 2 * RING_WIDTH) - edge,
+          height: isStat ? 56 : TOUCH_TARGET_SIZE - 2 * RING_WIDTH,
         },
       })}
     >
@@ -160,20 +153,11 @@ export function RollButton(props: RollButtonProps) {
         p: `${RING_WIDTH}px`,
         borderRadius: `${theme.shape.borderRadius}px`,
         textAlign: "center",
-        // The ripple covers the face and moves with it.
+        // The ripple covers the face, inside the ring.
         ".MuiTouchRipple-root": {
           zIndex: 2,
           m: `${RING_WIDTH}px`,
-          mb: `${RING_WIDTH + EDGE_HEIGHT}px`,
           borderRadius: `${theme.shape.borderRadius - RING_WIDTH}px`,
-        },
-        "& .roll-button-face, & .MuiTouchRipple-root": {
-          transition: theme.transitions.create("transform", {
-            duration: theme.transitions.duration.shortest,
-          }),
-          "@media (prefers-reduced-motion: reduce)": {
-            transition: "none",
-          },
         },
         "& .roll-button-ring": {
           opacity: 0,
@@ -185,11 +169,6 @@ export function RollButton(props: RollButtonProps) {
           "&:hover .roll-button-ring": { opacity: 1 },
         },
         "&.Mui-focusVisible .roll-button-ring": { opacity: 1 },
-        // Pressed (pointer, or Space on the keyboard): the face moves down
-        // onto its edge, covering it.
-        "&:active .roll-button-face, &:active .MuiTouchRipple-root": {
-          transform: `translateY(${EDGE_HEIGHT}px)`,
-        },
         "& .roll-button-flash": {
           animation: `${justRolledRing} 2600ms ease-out forwards`,
           "@media (prefers-reduced-motion: reduce)": {
@@ -200,8 +179,7 @@ export function RollButton(props: RollButtonProps) {
       })}
     >
       {/* Only the ring is painted (the middle is masked out), so nothing
-          inside it can cover it and the space a pressed face leaves stays
-          clear. */}
+          inside it can cover it. */}
       <GradientRing ringWidth={RING_WIDTH} className="roll-button-ring" />
       {pressCount > 0 && (
         <GradientRing
@@ -210,32 +188,7 @@ export function RollButton(props: RollButtonProps) {
           className="roll-button-flash"
         />
       )}
-      <Box
-        component="span"
-        sx={{
-          position: "relative",
-          zIndex: 1,
-          display: "block",
-          pb: `${EDGE_HEIGHT}px`,
-        }}
-      >
-        <Box
-          component="span"
-          aria-hidden
-          className="roll-button-edge"
-          sx={(theme) => ({
-            position: "absolute",
-            inset: 0,
-            top: EDGE_HEIGHT,
-            borderRadius: `${theme.shape.borderRadius - RING_WIDTH}px`,
-            bgcolor:
-              theme.palette.mode === "light"
-                ? theme.palette.grey[900]
-                : theme.palette.background.default,
-          })}
-        />
-        {face}
-      </Box>
+      {face}
     </ButtonBase>
   );
 }
