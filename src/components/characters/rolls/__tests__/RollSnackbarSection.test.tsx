@@ -2,9 +2,15 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { PropsWithChildren } from "react";
 import { MemoryRouter } from "react-router";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useAppState } from "stores/appState.store";
+import { MAIN_CONTENT_ID } from "components/Layout/SkipToContentButton";
+
+import {
+  ReferenceTabs,
+  getReferenceTabId,
+  useAppState,
+} from "stores/appState.store";
 
 import { TestWrapper } from "tests/TestWrapper";
 
@@ -13,6 +19,16 @@ import { RollResult, RollType } from "repositories/shared.types";
 import { IStatRoll, LogType } from "services/gameLog.service";
 
 import { RollSnackbarSection } from "../RollSnackbarSection";
+
+const layout = vi.hoisted(() => ({
+  isMobile: true,
+  gameId: undefined as string | undefined,
+}));
+vi.mock("hooks/useIsMobile", () => ({ useIsMobile: () => layout.isMobile }));
+vi.mock("pages/games/gamePageLayout/hooks/useGameId", () => ({
+  useGameId: () => layout.gameId,
+  useGameIdOptional: () => layout.gameId,
+}));
 
 function makeRoll(id: string, rollLabel: string): IStatRoll {
   return {
@@ -54,12 +70,32 @@ function renderStack(count: number) {
       .slice(0, count)
       .map((label, index) => ({ roll: makeRoll(`roll-${index}`, label) })),
   });
-  return render(<RollSnackbarSection isPage />, { wrapper: Wrapper });
+  return render(
+    <>
+      <main id={MAIN_CONTENT_ID} tabIndex={-1}>
+        <h1>Game</h1>
+        <button id={getReferenceTabId(ReferenceTabs.GameLog)}>Game Log</button>
+      </main>
+      <RollSnackbarSection isPage />
+    </>,
+    { wrapper: Wrapper },
+  );
 }
 
-describe("RollSnackbarSection", () => {
+function resetState(isMobile: boolean) {
+  layout.isMobile = isMobile;
+  layout.gameId = undefined;
+  useAppState.setState({
+    visibleRolls: [],
+    rollCardHosts: [],
+    currentReferenceTab: ReferenceTabs.Moves,
+    isReferencePanelVisible: true,
+  });
+}
+
+describe("RollSnackbarSection on phones", () => {
   beforeEach(() => {
-    useAppState.setState({ visibleRolls: [], rollCardHosts: [] });
+    resetState(true);
   });
 
   it("shows the newest roll in full, older ones only as edges", () => {
@@ -153,7 +189,7 @@ describe("RollSnackbarSection", () => {
     );
   });
 
-  it("clears every roll from the dialog", async () => {
+  it("clears every roll and closes the dialog", async () => {
     renderStack(3);
     await userEvent.click(screen.getByRole("button", { name: "3 rolls" }));
     const dialog = await screen.findByRole("dialog", { name: "Recent rolls" });
@@ -164,8 +200,156 @@ describe("RollSnackbarSection", () => {
 
     expect(useAppState.getState().visibleRolls).toHaveLength(0);
     await waitFor(() =>
-      expect(within(dialog).getByText("No recent rolls")).toHaveFocus(),
+      expect(
+        screen.queryByRole("dialog", { name: "Recent rolls" }),
+      ).not.toBeInTheDocument(),
     );
+    // The handle that opened it went with the rolls, so focus goes to the
+    // start of the page.
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Game" })).toHaveFocus(),
+    );
+  });
+
+  it("offers no Visit the log button", () => {
+    layout.gameId = "game";
+    renderStack(3);
+
+    expect(
+      screen.queryByRole("button", { name: "Visit the log" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("RollSnackbarSection on wider screens", () => {
+  beforeEach(() => {
+    resetState(false);
+  });
+
+  function getStack() {
+    return screen.getByTestId("roll-stack");
+  }
+
+  it("shows the last three rolls, the older two hidden behind the newest", () => {
+    renderStack(4);
+
+    const region = screen.getByRole("region", { name: "Recent rolls" });
+    expect(getStack()).toHaveAttribute("data-expanded", "false");
+    expect(
+      within(region).getByRole("button", { name: "Dismiss Shadow" }),
+    ).toBeInTheDocument();
+    expect(
+      within(region).queryByRole("button", { name: /Dismiss (Iron|Heart)/ }),
+    ).not.toBeInTheDocument();
+    expect(within(region).queryByRole("button", { name: "4 rolls" })).toBe(
+      null,
+    );
+
+    const older = within(region).getAllByTestId("roll-stack-older");
+    expect(older).toHaveLength(2);
+    older.forEach((card) => {
+      expect(card).toHaveAttribute("aria-hidden", "true");
+      expect(card).toHaveAttribute("inert");
+    });
+    // The oldest roll is only in the log.
+    expect(
+      within(region).queryByRole("button", {
+        name: "Dismiss Edge",
+        hidden: true,
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("expands while the pointer is over the stack", async () => {
+    renderStack(3);
+
+    await userEvent.hover(screen.getByRole("button", { name: "Dismiss Iron" }));
+
+    expect(getStack()).toHaveAttribute("data-expanded", "true");
+    screen.getAllByTestId("roll-stack-older").forEach((card) => {
+      expect(card).not.toHaveAttribute("aria-hidden");
+      expect(card).not.toHaveAttribute("inert");
+    });
+    expect(
+      screen.getByRole("button", { name: "Dismiss Heart" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Dismiss Edge" }),
+    ).toBeInTheDocument();
+
+    await userEvent.unhover(getStack());
+
+    expect(getStack()).toHaveAttribute("data-expanded", "false");
+    expect(
+      screen.queryByRole("button", { name: "Dismiss Heart" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("expands while focus is inside the stack", async () => {
+    renderStack(3);
+
+    act(() => {
+      screen.getByRole("button", { name: "Dismiss Iron" }).focus();
+    });
+    expect(getStack()).toHaveAttribute("data-expanded", "true");
+
+    // Older cards are reachable while it is open.
+    const older = screen.getByRole("button", { name: "Dismiss Heart" });
+    act(() => older.focus());
+    expect(older).toHaveFocus();
+    expect(getStack()).toHaveAttribute("data-expanded", "true");
+
+    act(() => {
+      screen.getByRole("button", { name: "Game Log" }).focus();
+    });
+    expect(getStack()).toHaveAttribute("data-expanded", "false");
+  });
+
+  it("dismisses an older card and keeps focus in the stack", async () => {
+    renderStack(3);
+    act(() => {
+      screen.getByRole("button", { name: "Dismiss Iron" }).focus();
+    });
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Dismiss Heart" }),
+    );
+
+    expect(
+      useAppState.getState().visibleRolls.map(({ roll }) => roll.rollLabel),
+    ).toEqual(["Edge", "Iron"]);
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Dismiss Edge" }),
+      ).toHaveFocus(),
+    );
+    expect(getStack()).toHaveAttribute("data-expanded", "true");
+  });
+
+  it("opens the game log from Visit the log", async () => {
+    layout.gameId = "game";
+    renderStack(2);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Visit the log" }),
+    );
+
+    expect(useAppState.getState().currentReferenceTab).toBe(
+      ReferenceTabs.GameLog,
+    );
+    expect(screen.getByRole("button", { name: "Game Log" })).toHaveFocus();
+    // The log is on screen now, so the button goes.
+    expect(
+      screen.queryByRole("button", { name: "Visit the log" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("offers Visit the log only in a game", () => {
+    renderStack(2);
+
+    expect(
+      screen.queryByRole("button", { name: "Visit the log" }),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -180,7 +364,7 @@ describe("RollSnackbarSection long results", () => {
   );
 
   beforeEach(() => {
-    useAppState.setState({ visibleRolls: [], rollCardHosts: [] });
+    resetState(true);
     // jsdom lays nothing out: a clamped card holds more than it shows.
     Object.defineProperty(HTMLElement.prototype, "scrollHeight", {
       configurable: true,

@@ -21,6 +21,12 @@ export enum ReferenceTabs {
   SecondScreen = "second-screen",
 }
 
+// The id of a Reference panel tab (wide screens only), so other places can
+// move focus to it.
+export function getReferenceTabId(tab: ReferenceTabs): string {
+  return `tab-${tab}`;
+}
+
 interface AppStateState {
   announcement: string | null;
   // Goes up with every setAnnouncement call, so a message that repeats the last
