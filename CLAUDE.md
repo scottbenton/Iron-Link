@@ -231,14 +231,15 @@ that are easy to miss. When you learn a new one, add a line here.
 - Stats and meter values are `RollButton`s (`components/datasworn/RollButton`):
   a dark raised button named for its action ("Roll Edge, +2"), with the
   theme's gradient ring on hover, keyboard focus and briefly after a press.
-  The ring is a masked outline around the whole button, dark edge included,
-  so nothing inside can cover it; a press moves the face down onto its edge
-  (transform only). `Stat` and `ConditionMeter` use it, so move roll options
+  The ring is a `GradientRing` outline around the whole button, dark edge
+  included, so nothing inside can cover it; a press moves the face down onto
+  its edge (transform only). `Stat` and `ConditionMeter` use it, so move roll options
   match the sheet.
 - Initiative is the `InitiativeStatusChip` on wide screens and an
   `InitiativeSegmentedControl` radio group at the top of the Overview tab on
-  phones; both read their colours from `initiativeStatusColors` and their
-  labels from `useInitiativeStatusText`, which follows the ruleset.
+  phones; both read their colours from `getInitiativeStatusFill` (Out of
+  combat a neutral grey) and their labels from `useInitiativeStatusText`,
+  which follows the ruleset.
 - A panel's own view switcher (the sheet's Overview, Assets and Tracks) is
   the same centred `StyledTabs` as Moves, Oracles and Log on wide screens. On
   phones, where it stands alone, it passes `size="large"`: the same style,
