@@ -53,18 +53,19 @@ describe("WorldTruthSection", () => {
     expect(
       screen.queryByRole("button", { name: "Roll Cataclysm" }),
     ).not.toBeInTheDocument();
-    const toggle = screen.getByRole("button", { name: "Change" });
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    const change = screen.getByRole("button", { name: "Change" });
+    expect(change).toHaveAttribute("aria-expanded", "false");
 
-    await userEvent.click(toggle);
-    expect(toggle).toHaveAccessibleName("Done");
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await userEvent.click(change);
+    const done = screen.getByRole("button", { name: "Done" });
+    expect(done).toHaveFocus();
+    expect(done).toHaveAttribute("aria-expanded", "true");
     expect(screen.getAllByText("Quest starter")).toHaveLength(
       cataclysm.options.length,
     );
 
-    await userEvent.click(toggle);
-    expect(toggle).toHaveAccessibleName("Change");
+    await userEvent.click(done);
+    expect(screen.getByRole("button", { name: "Change" })).toHaveFocus();
     expect(screen.getAllByText("Quest starter")).toHaveLength(1);
   });
 

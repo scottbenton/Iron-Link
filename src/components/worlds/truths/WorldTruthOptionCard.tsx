@@ -20,12 +20,7 @@ import { MarkdownRenderer } from "components/MarkdownRenderer";
 import { getTruthOptionSubTable } from "lib/worldTruths.lib";
 
 import { WorldTruthQuestStarter } from "./WorldTruthQuestStarter";
-import { formatTruthRange } from "./worldTruthLabels";
-
-// Datasworn embeds the sub-table in the description; the card lists it below.
-function withoutTableEmbeds(markdown: string) {
-  return markdown.replace(/\n*\{\{table>[^}]+\}\}\n*/g, "\n\n").trim();
-}
+import { formatTruthRange, withoutTableEmbeds } from "./worldTruthLabels";
 
 export interface WorldTruthOptionCardProps {
   option: Datasworn.TruthOption;
@@ -36,9 +31,6 @@ export interface WorldTruthOptionCardProps {
   onSelect?: () => void;
   onSelectSubOption?: (subOptionId: string) => void;
   onRollSubOption?: () => void;
-  // A Guide's condensed view: the chosen option, read-only, with its quest
-  // starter.
-  showQuestStarter?: boolean;
 }
 
 // One option of a truth: its d100 range, summary and description, a
@@ -55,7 +47,6 @@ export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
     onSelect,
     onSelectSubOption,
     onRollSubOption,
-    showQuestStarter = canEdit,
   } = props;
   const { t } = useTranslation();
   const subTable = getTruthOptionSubTable(option);
@@ -135,15 +126,13 @@ export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
           {body}
         </CardActionArea>
       ) : (
-        <Box sx={{ p: 2, pb: subTable || showQuestStarter ? 1 : 2 }}>
-          {body}
-        </Box>
+        <Box sx={{ p: 2, pb: subTable || canEdit ? 1 : 2 }}>{body}</Box>
       )}
       {subTable && (
         <Box
           sx={{
             px: 2,
-            pb: showQuestStarter ? 0 : 2,
+            pb: canEdit ? 0 : 2,
             flexGrow: 1,
             // Above the stretched button once chosen, so the radios work.
             position: "relative",
@@ -226,7 +215,7 @@ export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
           )}
         </Box>
       )}
-      {showQuestStarter && (
+      {canEdit && (
         <Box
           sx={{
             px: 2,

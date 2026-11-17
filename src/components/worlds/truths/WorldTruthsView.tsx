@@ -50,15 +50,14 @@ export function WorldTruthsView({
     );
 
   return (
-    // Truths showing only their choice sit side by side, as many to a row as
-    // fit at 50 characters or more; each keeps to 65 (WorldTruthSection).
+    // Truth summaries sit side by side, as many to a row as fit at 40
+    // characters or more, each as tall as its row.
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 50ch), 1fr))",
+        gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 40ch), 1fr))",
         columnGap: 3,
         rowGap: 5,
-        alignItems: "start",
         pb: 4,
       }}
     >

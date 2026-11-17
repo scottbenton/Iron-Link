@@ -5,3 +5,8 @@ export function formatTruthRange(
   if (!range) return "";
   return range.min === range.max ? `${range.min}` : `${range.min}–${range.max}`;
 }
+
+// Datasworn embeds the sub-table in the description; the card lists it below.
+export function withoutTableEmbeds(markdown: string) {
+  return markdown.replace(/\n*\{\{table>[^}]+\}\}\n*/g, "\n\n").trim();
+}
