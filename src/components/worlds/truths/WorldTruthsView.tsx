@@ -1,4 +1,4 @@
-import { Alert, LinearProgress, Stack } from "@mui/material";
+import { Alert, Box, LinearProgress } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
@@ -50,7 +50,18 @@ export function WorldTruthsView({
     );
 
   return (
-    <Stack spacing={5} sx={{ pb: 4 }}>
+    // Truths showing only their choice sit side by side, as many to a row as
+    // fit at 50 characters or more; each keeps to 65 (WorldTruthSection).
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 50ch), 1fr))",
+        columnGap: 3,
+        rowGap: 5,
+        alignItems: "start",
+        pb: 4,
+      }}
+    >
       {truths.map((truth, index) => (
         <WorldTruthSection
           key={truth._id}
@@ -62,6 +73,6 @@ export function WorldTruthsView({
           actions={actions}
         />
       ))}
-    </Stack>
+    </Box>
   );
 }

@@ -64,9 +64,11 @@ export function WorldTruthSection({
     <Box
       component="section"
       aria-labelledby={headingId}
-      // A condensed truth keeps to a readable line length, its Change button
-      // beside the card rather than across a wide pane.
-      sx={{ maxWidth: condensed ? "75ch" : undefined }}
+      // A truth showing only its choice takes one cell of the truths grid, at
+      // most 65 characters wide; one showing every option takes the whole row.
+      sx={
+        canEdit && !condensed ? { gridColumn: "1 / -1" } : { maxWidth: "65ch" }
+      }
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
         <Typography
