@@ -6,7 +6,14 @@ import { MarkdownRenderer } from "components/MarkdownRenderer";
 
 // A truth's quest starter, in an inlay marked Guide only. Only Guides' screens
 // render it; players never receive a written one.
-export function WorldTruthQuestStarter({ markdown }: { markdown: string }) {
+export function WorldTruthQuestStarter({
+  markdown,
+  disableLinks,
+}: {
+  markdown: string;
+  // Inside a card that is itself a button, links can't be followed.
+  disableLinks?: boolean;
+}) {
   const { t } = useTranslation();
   return (
     <Box
@@ -37,7 +44,11 @@ export function WorldTruthQuestStarter({ markdown }: { markdown: string }) {
           {t("worlds.entries.guide-only", "Guide only")}
         </Typography>
       </Box>
-      <MarkdownRenderer markdown={markdown} typographyVariant="body2" />
+      <MarkdownRenderer
+        markdown={markdown}
+        typographyVariant="body2"
+        disableLinks={disableLinks}
+      />
     </Box>
   );
 }

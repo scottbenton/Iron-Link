@@ -40,8 +40,9 @@ export interface WorldTruthOptionCardProps {
 
 // One option of a truth: its d100 range, summary and description, a
 // Starforged sub-table, and for Guides the quest starter. Choosing is the
-// card's main button; the sub-table sits outside it, active only on the
-// chosen card.
+// card's main button. The sub-table and quest starter can't sit inside a
+// button, so until the option is chosen the button stretches over the whole
+// card; once chosen it stops, and the sub-table's radios take clicks.
 export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
   const {
     option,
@@ -94,6 +95,7 @@ export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
     <Card
       variant="outlined"
       sx={(theme) => ({
+        position: "relative",
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -108,6 +110,12 @@ export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
           aria-pressed={selected}
           onClick={selected ? undefined : onSelect}
           sx={{
+            // Static, so its hover highlight, ripple and stretched hit area
+            // all fill the card rather than the text alone.
+            position: "static",
+            "&::before": selected
+              ? undefined
+              : { content: '""', position: "absolute", inset: 0, zIndex: 1 },
             p: 2,
             pb: subTable || canEdit ? 1 : 2,
             // A button centres its content; keep the text at the top when
@@ -126,7 +134,16 @@ export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
         <Box sx={{ p: 2, pb: subTable ? 1 : 2 }}>{body}</Box>
       )}
       {subTable && (
-        <Box sx={{ px: 2, pb: canEdit ? 0 : 2, flexGrow: 1 }}>
+        <Box
+          sx={{
+            px: 2,
+            pb: canEdit ? 0 : 2,
+            flexGrow: 1,
+            // Above the stretched button once chosen, so the radios work.
+            position: "relative",
+            zIndex: selected ? 2 : 0,
+          }}
+        >
           {canEdit ? (
             <>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -204,8 +221,19 @@ export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
         </Box>
       )}
       {canEdit && (
-        <Box sx={{ px: 2, pb: 2, mt: "auto" }}>
-          <WorldTruthQuestStarter markdown={option.quest_starter} />
+        <Box
+          sx={{
+            px: 2,
+            pb: 2,
+            mt: "auto",
+            position: "relative",
+            zIndex: selected ? 2 : 0,
+          }}
+        >
+          <WorldTruthQuestStarter
+            markdown={option.quest_starter}
+            disableLinks={!selected}
+          />
         </Box>
       )}
     </Card>
