@@ -10,6 +10,10 @@ import { IGameLogRoll } from "services/gameLog.service";
 
 export type VisibleRoll = { id?: string; roll: IGameLogRoll };
 
+// How many recent rolls are kept for the roll stack and its Recent rolls
+// dialog; the oldest goes when another arrives.
+export const MAX_RECENT_ROLLS = 10;
+
 export enum ReferenceTabs {
   Moves = "moves",
   Oracles = "oracles",
@@ -41,6 +45,9 @@ interface AppStateState {
   // wider screens, only while its bottom nav item is open on phones.
   isReferencePanelVisible: boolean;
   gameLogNotificationCount: number;
+  // Whether the phone game layout's bottom nav is on screen (mounted and not
+  // hidden for the keyboard), so the roll stack docks above it.
+  isGameBottomNavVisible: boolean;
 }
 
 interface AppStateActions {
@@ -62,6 +69,7 @@ interface AppStateActions {
   setIsReferencePanelVisible: (visible: boolean) => void;
   setGameLogNotificationCount: (count: number) => void;
   resetReference: () => void;
+  setIsGameBottomNavVisible: (visible: boolean) => void;
 }
 
 const defaultAppState: AppStateState = {
@@ -77,6 +85,7 @@ const defaultAppState: AppStateState = {
   currentReferenceTab: ReferenceTabs.Moves,
   isReferencePanelVisible: true,
   gameLogNotificationCount: 0,
+  isGameBottomNavVisible: false,
 };
 
 // Whether the game log is on screen, so its new entries are already read.
@@ -135,8 +144,11 @@ export const useAppState = createWithEqualityFn<
     addRoll: (rollId, roll) => {
       set((state) => {
         state.visibleRolls.push({ id: rollId, roll });
-        if (state.visibleRolls.length > 3) {
-          state.visibleRolls.splice(0, 1);
+        if (state.visibleRolls.length > MAX_RECENT_ROLLS) {
+          state.visibleRolls.splice(
+            0,
+            state.visibleRolls.length - MAX_RECENT_ROLLS,
+          );
         }
       });
     },
@@ -201,6 +213,11 @@ export const useAppState = createWithEqualityFn<
         state.currentReferenceTab = defaultAppState.currentReferenceTab;
         state.gameLogNotificationCount =
           defaultAppState.gameLogNotificationCount;
+      });
+    },
+    setIsGameBottomNavVisible: (visible) => {
+      set((state) => {
+        state.isGameBottomNavVisible = visible;
       });
     },
   })),

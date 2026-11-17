@@ -63,9 +63,19 @@ that are easy to miss. When you learn a new one, add a line here.
   `{ announce: false }` and folds the summary into its own message.
 - Roll cards hide their visual parts and read the summary laid over the
   card. They dismiss only through their named button, never a tap on the
-  card. Dialogs render the recent roll cards through `DialogExtrasContext`
+  card. Dialogs render the recent roll stack through `DialogExtrasContext`
   (from `DialogTitleWithCloseButton`); `useIsActiveRollCardHost` lets only
-  the newest place show them.
+  the newest place show it.
+- Recent rolls (up to `MAX_RECENT_ROLLS`) show as a stack
+  (`RollSnackbarSection`): the newest card in full with `clampContent` (long
+  results fold behind Show all), up to two older cards as empty `aria-hidden`
+  edges behind it, and an "N rolls" handle opening `RecentRollsDialog`. That
+  dialog lists every roll, claims the roll card host while open and gives its
+  title a null `DialogExtrasContext`, so no stack shows over it. It renders
+  outside the dock, whose element changes as rolls come and go. The dock sits
+  above the phone bottom nav while `isGameBottomNavVisible` (set by
+  `GameBottomNav`), at the window's bottom otherwise, and bottom right at
+  360px on wider screens (`useRollDockPosition`).
 - Snackbars read their message through the live region (dialogs hide the
   snackbar container); the alert itself is not live. Errors persist.
 - Filters announce their result count with `useAnnounceSearchResults`.

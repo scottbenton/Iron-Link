@@ -5,7 +5,7 @@ import LogIcon from "@mui/icons-material/History";
 import MovesIcon from "@mui/icons-material/MenuBook";
 import SheetIcon from "@mui/icons-material/Person";
 import { Badge, Box, ButtonBase, SvgIconProps, alpha } from "@mui/material";
-import { ComponentType } from "react";
+import { ComponentType, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
@@ -61,6 +61,13 @@ export function GameBottomNav(props: GameBottomNavProps) {
   const { gameType } = useGamePermissions();
 
   const isKeyboardOpen = useSettledKeyboardInset() > 0;
+
+  // The roll stack docks above the nav while it shows.
+  const setIsVisible = useAppState((state) => state.setIsGameBottomNavVisible);
+  useEffect(() => {
+    setIsVisible(!isKeyboardOpen);
+    return () => setIsVisible(false);
+  }, [isKeyboardOpen, setIsVisible]);
 
   const activeItem = getActiveGameBottomNavItem(mobileTab, referenceTab);
   const unreadLogCount =

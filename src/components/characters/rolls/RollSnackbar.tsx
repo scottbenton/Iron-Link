@@ -1,3 +1,4 @@
+import { SxProps, Theme } from "@mui/material";
 import { ReactNode, Ref } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,6 +25,9 @@ export interface RollSnackbarProps {
   // Read before the roll's summary (who rolled it, and when).
   summaryPrefix?: string;
   actions?: ReactNode;
+  // Cuts a long card to a few lines, with a Show all toggle.
+  clampContent?: boolean;
+  cardSx?: SxProps<Theme>;
 }
 
 export function RollSnackbar(props: RollSnackbarProps) {
@@ -35,6 +39,8 @@ export function RollSnackbar(props: RollSnackbarProps) {
     dismissButtonRef,
     summaryPrefix,
     actions,
+    clampContent,
+    cardSx,
   } = props;
   const { t } = useTranslation();
 
@@ -43,6 +49,8 @@ export function RollSnackbar(props: RollSnackbarProps) {
 
   return (
     <RollCard
+      sx={cardSx}
+      clampContent={clampContent}
       summary={summaryPrefix ? `${summaryPrefix} ${summary}` : summary}
       isExpanded={isExpanded}
       actions={actions}
