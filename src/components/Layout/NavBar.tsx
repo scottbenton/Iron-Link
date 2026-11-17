@@ -1,4 +1,4 @@
-import BackIcon from "@mui/icons-material/ChevronLeft";
+import BackIcon from "@mui/icons-material/ArrowBack";
 import HamburgerMenuIcon from "@mui/icons-material/Menu";
 import {
   AppBar,
