@@ -4,9 +4,11 @@ import OverviewIcon from "@mui/icons-material/Groups";
 import LogIcon from "@mui/icons-material/History";
 import MovesIcon from "@mui/icons-material/MenuBook";
 import SheetIcon from "@mui/icons-material/Person";
-import { Badge, Box, ButtonBase, SvgIconProps, alpha } from "@mui/material";
+import { Badge, Box, SvgIconProps } from "@mui/material";
 import { ComponentType, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+
+import { NavRailItemView } from "components/Layout/NavRailItemView";
 
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
@@ -115,8 +117,9 @@ export function GameBottomNav(props: GameBottomNavProps) {
         bottom: 0,
         // Under the notes toolbar that rides on the keyboard.
         zIndex: theme.zIndex.appBar - 2,
-        bgcolor: "background.paper",
-        borderTop: `1px solid ${theme.palette.divider}`,
+        // The nav rail's surface, so its items look the same here.
+        bgcolor: "grey.900",
+        color: "common.white",
         pb: "env(safe-area-inset-bottom, 0px)",
       })}
     >
@@ -125,8 +128,7 @@ export function GameBottomNav(props: GameBottomNavProps) {
         sx={{
           listStyle: "none",
           m: 0,
-          px: 0.5,
-          py: 0,
+          p: 0,
           height: GAME_BOTTOM_NAV_HEIGHT,
           display: "grid",
           gridTemplateColumns: `repeat(${GAME_BOTTOM_NAV_ITEMS.length}, minmax(0, 1fr))`,
@@ -139,89 +141,54 @@ export function GameBottomNav(props: GameBottomNavProps) {
             item === GameBottomNavItem.Log && !isActive ? unreadLogCount : 0;
 
           return (
-            <Box component={"li"} key={item} display={"flex"}>
-              <ButtonBase
+            <Box component={"li"} key={item} display={"flex"} minWidth={0}>
+              <NavRailItemView
+                component={"button"}
+                type={"button"}
                 id={getGameBottomNavItemId(item)}
                 aria-current={isActive ? "page" : undefined}
                 onClick={() => handleSelect(item)}
-                sx={(theme) => ({
+                isSelected={isActive}
+                icon={
+                  <Badge
+                    badgeContent={badgeCount}
+                    invisible={badgeCount === 0}
+                    color={"primary"}
+                    max={99}
+                  >
+                    <Icon />
+                  </Badge>
+                }
+                label={
+                  <>
+                    {labels[item]}
+                    {badgeCount > 0 && (
+                      <Box component={"span"} sx={visuallyHidden}>
+                        {" "}
+                        {t("game.bottom-nav.unread", "{{count}} unread", {
+                          count: badgeCount,
+                        })}
+                      </Box>
+                    )}
+                  </>
+                }
+                sx={{
+                  // Fills its cell, so the whole cell is the touch target.
                   flex: 1,
                   minWidth: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
                   justifyContent: "center",
                   gap: 0.25,
-                  borderRadius: `${theme.shape.borderRadius}px`,
-                  color: isActive ? "text.primary" : "text.secondary",
-                  ...theme.typography.caption,
-                  fontWeight: isActive ? 600 : 500,
-                  "&.Mui-focusVisible": {
-                    outline: `2px solid ${theme.palette.primary.main}`,
-                    outlineOffset: -2,
-                  },
-                })}
-              >
-                <Box
-                  aria-hidden
-                  sx={(theme) => ({
-                    width: 60,
-                    height: 32,
-                    p: "2px",
-                    borderRadius: 16,
-                    display: "flex",
-                    background: isActive
-                      ? theme.palette.gradients.outline
-                      : undefined,
-                  })}
-                >
-                  <Box
-                    sx={(theme) => {
-                      const tint = alpha(theme.palette.primary.main, 0.16);
-                      return {
-                        flex: 1,
-                        borderRadius: 14,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: isActive ? "primary.main" : "inherit",
-                        background: isActive
-                          ? `linear-gradient(${tint}, ${tint}), ${theme.palette.background.paper}`
-                          : undefined,
-                      };
-                    }}
-                  >
-                    <Badge
-                      badgeContent={badgeCount}
-                      invisible={badgeCount === 0}
-                      color={"primary"}
-                      max={99}
-                    >
-                      <Icon fontSize={"small"} />
-                    </Badge>
-                  </Box>
-                </Box>
-                <Box
-                  component={"span"}
-                  sx={{
-                    maxWidth: "100%",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {labels[item]}
-                </Box>
-                {badgeCount > 0 && (
-                  // A span, since a button holds only phrasing content.
-                  <Box component={"span"} sx={visuallyHidden}>
-                    {" "}
-                    {t("game.bottom-nav.unread", "{{count}} unread", {
-                      count: badgeCount,
-                    })}
-                  </Box>
-                )}
-              </ButtonBase>
+                  // A plain button, so focus shows as it does on the rail's
+                  // links.
+                  m: 0,
+                  p: 0,
+                  border: 0,
+                  background: "none",
+                  font: "inherit",
+                  cursor: "pointer",
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              />
             </Box>
           );
         })}
