@@ -1,5 +1,6 @@
-import { Box } from "@mui/material";
 import { keyframes } from "@mui/material/styles";
+
+import { GradientRing } from "components/GradientRing";
 
 // The gap the new roll's gradient ring shows through, around the card.
 const RING_WIDTH = 2;
@@ -11,20 +12,17 @@ const newRollRing = keyframes`
 `;
 
 /**
- * The gradient ring a new roll's card gets once, drawn behind the card in a
- * positioned parent. Key it by the roll so a later roll rings again.
+ * The rotating gradient ring a new roll's card gets once, drawn behind the
+ * card in a positioned parent (the card covers its middle). Key it by the
+ * roll so a later roll rings again.
  */
 export function NewRollRing() {
   return (
-    <Box
-      aria-hidden
+    <GradientRing
       data-testid={"roll-stack-new-ring"}
       sx={(theme) => ({
-        position: "absolute",
         inset: -RING_WIDTH,
         borderRadius: `${theme.shape.borderRadius + RING_WIDTH}px`,
-        background: theme.palette.gradients.outline,
-        pointerEvents: "none",
         animation: `${newRollRing} 2600ms ease-out forwards`,
         "@media (prefers-reduced-motion: reduce)": {
           animation: "none",
