@@ -1,5 +1,10 @@
 import { Tab, TabProps } from "@mui/material";
 
+import {
+  TOUCH_DEVICE_MEDIA_QUERY,
+  TOUCH_TARGET_SIZE,
+} from "hooks/useIsTouchDevice";
+
 export function StyledTab(props: TabProps) {
   const { ...tabProps } = props;
 
@@ -13,6 +18,9 @@ export function StyledTab(props: TabProps) {
         minWidth: 64,
         minHeight: 1,
         textTransform: "unset",
+        [TOUCH_DEVICE_MEDIA_QUERY]: {
+          height: TOUCH_TARGET_SIZE,
+        },
 
         color:
           theme.palette.text[selected ? "primary" : "secondary"] + "!important",

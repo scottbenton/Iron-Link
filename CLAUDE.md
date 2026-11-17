@@ -23,6 +23,9 @@ that are easy to miss. When you learn a new one, add a line here.
   call `useMediaQuery` with a breakpoint by hand. Touch decides control
   size and gestures (44px targets, long press): `useIsTouchDevice`
   (`pointer: coarse`), so a tablet gets the wide layout sized for fingers.
+  Styles size for fingers in CSS with `TOUCH_DEVICE_MEDIA_QUERY` and
+  `TOUCH_TARGET_SIZE` (`hooks/useIsTouchDevice.ts`) as an `sx` key, so the
+  first render is already the right size.
 
 ## Accessibility
 

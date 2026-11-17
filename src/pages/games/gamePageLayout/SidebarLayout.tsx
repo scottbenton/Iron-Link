@@ -102,7 +102,8 @@ export function SidebarLayout(props: SidebarLayoutProps) {
             overflow="auto"
             px={2}
             pb={2}
-            pt={isSmallScreen ? 0 : 2}
+            // On phones a gap keeps the column's tabs off the bar's tabs.
+            pt={isSmallScreen ? 1 : 2}
             height="100%"
           >
             <Outlet />
@@ -141,6 +142,7 @@ export function SidebarLayout(props: SidebarLayoutProps) {
             borderLeftWidth: 1,
             borderTopWidth: isMediumScreen ? 1 : 0,
             borderColor: "divider",
+            pt: isSmallScreen ? 1 : 0,
           }}
         >
           <Box
@@ -163,6 +165,7 @@ export function SidebarLayout(props: SidebarLayoutProps) {
             gridRow: isMediumScreen ? "1 / span 3" : "1",
             gridColumn: isSmallScreen ? "1" : "2",
             maxWidth: "100vw",
+            pt: isSmallScreen ? 1 : 0,
           }}
         >
           <NotesSection />

@@ -7,6 +7,11 @@ import { EmptyState } from "components/Layout/EmptyState";
 
 import { notesDestinationKey } from "pages/games/gamePageLayout/hooks/notesDestination";
 
+import {
+  TOUCH_DEVICE_MEDIA_QUERY,
+  TOUCH_TARGET_SIZE,
+} from "hooks/useIsTouchDevice";
+
 import { useUID } from "stores/auth.store";
 import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
 import { useWorldStore } from "stores/world.store";
@@ -125,7 +130,13 @@ export function NoteTabs() {
                   replaceCurrent: false,
                 })
               }
-              sx={{ mr: 1 }}
+              sx={{
+                mr: 1,
+                [TOUCH_DEVICE_MEDIA_QUERY]: {
+                  width: TOUCH_TARGET_SIZE,
+                  height: TOUCH_TARGET_SIZE,
+                },
+              }}
             >
               <AddIcon />
             </IconButton>

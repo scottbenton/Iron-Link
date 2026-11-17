@@ -3,6 +3,11 @@ import { Box, IconButton, Tab } from "@mui/material";
 import { KeyboardEvent, MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 
+import {
+  TOUCH_DEVICE_MEDIA_QUERY,
+  TOUCH_TARGET_SIZE,
+} from "hooks/useIsTouchDevice";
+
 export interface NoteTabProps {
   name: string;
   onClose: () => void;
@@ -88,11 +93,18 @@ export function NoteTab(props: NoteTabProps) {
           maxWidth: 328,
           flexGrow: 1,
           pr: 1,
+          [TOUCH_DEVICE_MEDIA_QUERY]: { minHeight: TOUCH_TARGET_SIZE },
         }}
       />
       <IconButton
         className="close-tab-button"
         size="small"
+        sx={{
+          [TOUCH_DEVICE_MEDIA_QUERY]: {
+            width: TOUCH_TARGET_SIZE,
+            height: TOUCH_TARGET_SIZE,
+          },
+        }}
         aria-label={t("notes.tabs.close-tab", "Close {{name}}", { name })}
         onClick={onClose}
       >
