@@ -30,6 +30,9 @@ that are easy to miss. When you learn a new one, add a line here.
   Oracles, Log) are chosen in `GameBottomNav`, so the Reference panel shows
   no tab strip there. The game log counts as read only while it is on screen
   (`isGameLogVisible`: its tab is chosen and `isReferencePanelVisible`).
+- The nav rail and `GameBottomNav` share one item look, `NavRailItemView`
+  (gradient ring on the selected pill, on the rail's grey.900 surface);
+  style nav items there, never per bar.
 
 ## Accessibility
 
