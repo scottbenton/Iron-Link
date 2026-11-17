@@ -1,3 +1,4 @@
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import {
@@ -5,7 +6,10 @@ import {
   WorldTruthsService,
 } from "services/worldTruths.service";
 
-import { useWorldTruthsStore } from "../worldTruths.store";
+import {
+  useWorldTruthChoicesLoaded,
+  useWorldTruthsStore,
+} from "../worldTruths.store";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 
@@ -114,4 +118,16 @@ it("choosing an option drops the written quest starter locally", async () => {
   vi.spyOn(WorldTruthsService, "clearTruth").mockResolvedValue();
   await store().clearTruth("w", "t1");
   expect(store().truths.w.t1).toBeUndefined();
+});
+
+it("counts a world's choices as loaded only once they arrive", () => {
+  const stop = store().listenToWorldTruths("w");
+  const { result, rerender } = renderHook(() =>
+    useWorldTruthChoicesLoaded("w"),
+  );
+  expect(result.current).toBe(false);
+  act(() => onTruths([option("truth:a", "o")], [], true));
+  rerender();
+  expect(result.current).toBe(true);
+  stop();
 });

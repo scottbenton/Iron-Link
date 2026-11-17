@@ -1,6 +1,7 @@
 import {
   useListenToWorldTruths,
   useWorldTruthChoices,
+  useWorldTruthChoicesLoaded,
 } from "stores/worldTruths.store";
 
 import { countChosenTruths } from "lib/worldTruths.lib";
@@ -15,14 +16,15 @@ export function useWorldTruthsSummary(
   settingKey: string | null,
 ) {
   const { truths, loading, error } = useWorldSettingTruths(settingKey);
-  useListenToWorldTruths(
-    loading || (truths?.length ?? 0) > 0 ? worldId : undefined,
-  );
+  const listenTo = loading || (truths?.length ?? 0) > 0 ? worldId : undefined;
+  useListenToWorldTruths(listenTo);
   const choices = useWorldTruthChoices(worldId);
+  const choicesLoaded = useWorldTruthChoicesLoaded(listenTo);
   return {
     truths,
     choices,
-    loading,
+    // Until the choices arrive, so a chosen truth never opens as unchosen.
+    loading: loading || !choicesLoaded,
     error,
     total: truths?.length ?? 0,
     chosen: truths ? countChosenTruths(truths, choices) : 0,

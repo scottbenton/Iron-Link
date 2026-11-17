@@ -194,6 +194,18 @@ export function useListenToWorldTruths(worldId: string | undefined) {
   useEffect(() => (worldId ? listen(worldId) : undefined), [worldId, listen]);
 }
 
+// Whether the world's choices have arrived, so a screen can wait for them
+// rather than show every truth unchosen first.
+export function useWorldTruthChoicesLoaded(
+  worldId: string | undefined,
+): boolean {
+  return useWorldTruthsStore((store) =>
+    worldId
+      ? store.truths[worldId] !== undefined || !!store.errors[worldId]
+      : true,
+  );
+}
+
 const noTruths: Record<string, WorldTruthChoice> = {};
 const noQuestStarters: Record<string, string> = {};
 
