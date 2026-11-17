@@ -23,7 +23,8 @@ export function WorldEntrySearch({
       value={value}
       onChange={(event) => onChange(event.target.value)}
       sx={{
-        width: 240,
+        // A row of its own on phones, with the buttons wrapping below it.
+        width: { xs: "100%", sm: 240 },
         maxWidth: "100%",
         "& .MuiInputBase-root": { bgcolor: "background.paper" },
       }}
