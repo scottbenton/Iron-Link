@@ -10,3 +10,15 @@ export function formatTruthRange(
 export function withoutTableEmbeds(markdown: string) {
   return markdown.replace(/\n*\{\{table>[^}]+\}\}\n*/g, "\n\n").trim();
 }
+
+// Drops the sentence that leads into each sub-table embed ("These entities
+// took the form of:"), for a summary whose sub-table has no row chosen. The
+// lead-in is the sentence ending in a colon just before the embed; the rest
+// of its paragraph stays.
+export function withoutTableLeadIns(markdown: string) {
+  return markdown.replace(
+    /(^|[.!?]\s+|\n)[^.!?\n]*:\s*(\{\{table>[^}]+\}\})/g,
+    (_match, before: string, embed: string) =>
+      `${before.trimEnd() ? before.trimEnd() : before}\n\n${embed}`,
+  );
+}

@@ -12,7 +12,7 @@ import {
 } from "lib/worldTruths.lib";
 
 import { WorldTruthQuestStarter } from "./WorldTruthQuestStarter";
-import { withoutTableEmbeds } from "./worldTruthLabels";
+import { withoutTableEmbeds, withoutTableLeadIns } from "./worldTruthLabels";
 
 // A truth read as its choice alone, in one self-contained card: the truth's
 // name, what was chosen and, for Guides, its quest starter at the foot and a
@@ -96,7 +96,12 @@ export function WorldTruthSummaryCard({
             />
           )}
           <MarkdownRenderer
-            markdown={withoutTableEmbeds(resolved.option.description)}
+            markdown={withoutTableEmbeds(
+              // With no row chosen, a lead-in to the sub-table leads nowhere.
+              subTable && !resolved.subRow
+                ? withoutTableLeadIns(resolved.option.description)
+                : resolved.option.description,
+            )}
             typographyVariant="body2"
           />
           {subTable && resolved.subRow && (

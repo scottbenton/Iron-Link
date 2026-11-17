@@ -56,8 +56,7 @@ export function WorldTruthsView({
       sx={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 40ch), 1fr))",
-        columnGap: 3,
-        rowGap: 5,
+        gap: 3,
         pb: 4,
       }}
     >
