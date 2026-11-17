@@ -1,22 +1,30 @@
 import { Box, SxProps, Theme, useTheme } from "@mui/material";
 import { useId } from "react";
-import { useTranslation } from "react-i18next";
 
 export interface IronLinkLogoProps {
   sx?: SxProps<Theme>;
+  // The logo is branding: the tab title and page heading already say where
+  // you are, so it is hidden from screen readers. Pass a label only where
+  // the mark itself has to say something.
+  label?: string;
 }
 
 export function IronLinkLogo(props: IronLinkLogoProps) {
-  const { sx } = props;
+  const { sx, label } = props;
 
   const theme = useTheme();
   const gradientColors = theme.palette.gradients.icon;
   const id = useId();
-  const { t } = useTranslation();
+
+  // An svg needs role="img" for its label to be read as the image's name;
+  // without it some screen readers announce an unnamed graphic.
+  const a11yProps = label
+    ? { role: "img", "aria-label": label }
+    : { "aria-hidden": true, focusable: false };
 
   return (
     <Box
-      aria-label={t("iron-link.title", "Iron Link")}
+      {...a11yProps}
       component={"svg"}
       sx={sx}
       viewBox="0 0 128 128"
