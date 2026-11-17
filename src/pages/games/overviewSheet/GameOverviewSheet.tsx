@@ -75,7 +75,8 @@ export default function GameOverviewSheet() {
       )}
       <StyledTabs
         sx={{ mx: -2, mb: 2 }}
-        appearance="pill"
+        centered
+        size={isMobile ? "large" : "medium"}
         value={currentTab}
         onChange={(_, value) => setCurrentTab(value as unknown as Tabs)}
       >
