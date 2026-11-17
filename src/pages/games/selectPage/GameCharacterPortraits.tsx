@@ -12,6 +12,8 @@ export interface GameCharacterPortraitsProps {
   gameCharacterDetails: Record<string, GameCharacterDisplayDetails>;
 }
 
+// The portraits are hidden from screen readers; GameCard names the
+// characters in text after the game's name instead.
 export function GameCharacterPortraits(props: GameCharacterPortraitsProps) {
   const { gameCharacterDetails } = props;
 
@@ -38,6 +40,7 @@ export function GameCharacterPortraits(props: GameCharacterPortraitsProps) {
   if (sortedCampaignCharacters.length === 1) {
     return (
       <PortraitAvatar
+        decorative
         characterId={sortedCampaignCharacters[0][0]}
         portraitSettings={
           sortedCampaignCharacters[0][1].profileImageSettings ?? undefined
@@ -58,6 +61,7 @@ export function GameCharacterPortraits(props: GameCharacterPortraitsProps) {
         height={AVATAR_SIZES.large}
       >
         <PortraitAvatar
+          decorative
           characterId={sortedCampaignCharacters[1][0]}
           portraitSettings={
             sortedCampaignCharacters[1][1].profileImageSettings ?? undefined
@@ -66,6 +70,7 @@ export function GameCharacterPortraits(props: GameCharacterPortraitsProps) {
           borderWidth={1}
         />
         <PortraitAvatar
+          decorative
           characterId={sortedCampaignCharacters[0][0]}
           portraitSettings={
             sortedCampaignCharacters[0][1].profileImageSettings ?? undefined
@@ -93,6 +98,7 @@ export function GameCharacterPortraits(props: GameCharacterPortraitsProps) {
         .slice(0, 3)
         .map(([characterId, characterDetails]) => (
           <PortraitAvatar
+            decorative
             key={characterId}
             characterId={characterId}
             portraitSettings={
@@ -105,6 +111,7 @@ export function GameCharacterPortraits(props: GameCharacterPortraitsProps) {
         ))}
       {sortedCampaignCharacters.length === 4 && (
         <PortraitAvatar
+          decorative
           characterId={sortedCampaignCharacters[3][0]}
           portraitSettings={
             sortedCampaignCharacters[3][1].profileImageSettings ?? undefined
@@ -125,7 +132,7 @@ export function GameCharacterPortraits(props: GameCharacterPortraitsProps) {
           width={AVATAR_SIZES.small}
           height={AVATAR_SIZES.small}
         >
-          <Typography fontWeight={600} color="textSecondary">
+          <Typography fontWeight={600} color="textSecondary" aria-hidden>
             +{sortedCampaignCharacters.length - 3}
           </Typography>
         </Box>

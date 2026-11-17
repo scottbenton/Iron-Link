@@ -8,6 +8,7 @@ import {
   TypographyVariant,
 } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { themeConfig } from "providers/ThemeProvider/themes/themeConfig";
 
@@ -45,6 +46,9 @@ export interface PortraitAvatarDisplayProps {
   loading?: boolean;
   borderWidth?: number;
   borderColor?: "folow-theme" | ColorScheme;
+  // Set where the character's name is already shown beside the portrait, so
+  // screen readers skip it instead of reading the name twice.
+  decorative?: boolean;
   sx?: SxProps<Theme>;
 }
 
@@ -58,8 +62,23 @@ export function PortraitAvatarDisplay(props: PortraitAvatarDisplayProps) {
     portraitUrl,
     name,
     loading,
+    decorative,
     sx,
   } = props;
+
+  const { t } = useTranslation();
+
+  // The portrait is one named image, whether it shows a picture or the
+  // name's first letter. Without a name there is nothing useful to say.
+  const a11yProps =
+    decorative || loading || !name
+      ? { "aria-hidden": true }
+      : {
+          role: "img",
+          "aria-label": t("character.portrait-of", "Portrait of {{name}}", {
+            name,
+          }),
+        };
 
   const [isTaller, setIsTaller] = useState<boolean>(true);
 
@@ -74,6 +93,7 @@ export function PortraitAvatarDisplay(props: PortraitAvatarDisplayProps) {
 
   return (
     <Box
+      {...a11yProps}
       width={AVATAR_SIZES[size]}
       height={AVATAR_SIZES[size]}
       overflow={"hidden"}
@@ -117,12 +137,14 @@ export function PortraitAvatarDisplay(props: PortraitAvatarDisplayProps) {
               setIsTaller(true);
             }
           }}
-          alt={"Character Portrait"}
+          alt=""
         />
       ) : !loading ? (
         name ? (
           <Typography
             variant={variants[size]}
+            component="span"
+            aria-hidden
             fontWeight={size === "huge" ? 600 : undefined}
           >
             {name[0]}

@@ -60,6 +60,7 @@ export function CharacterSidebar() {
                 size="large"
                 characterId={character.id}
                 name={character.name}
+                decorative
                 portraitSettings={character.profileImage ?? undefined}
                 sx={{ borderWidth: 0 }}
               />

@@ -27,6 +27,7 @@ export interface PortraitAvatarProps {
   borderColor?: "folow-theme" | ColorScheme;
   borderWidth?: number;
   rounded?: boolean;
+  decorative?: boolean;
   sx?: SxProps<Theme>;
 }
 
@@ -39,6 +40,7 @@ export function PortraitAvatar(props: PortraitAvatarProps) {
     rounded,
     borderColor,
     borderWidth,
+    decorative,
     sx,
   } = props;
 
@@ -56,6 +58,7 @@ export function PortraitAvatar(props: PortraitAvatarProps) {
       loading={!name}
       borderWidth={borderWidth}
       borderColor={borderColor}
+      decorative={decorative}
       sx={sx}
     />
   );

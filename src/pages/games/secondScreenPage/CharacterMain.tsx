@@ -42,7 +42,9 @@ export function CharacterMain(props: CharacterMainProps) {
                 objectPosition: "top",
               }}
               src={portraitUrl}
-              alt={characterName}
+              // The name is the heading below, so the portrait doesn't
+              // repeat it.
+              alt=""
             />
             <Card
               sx={{

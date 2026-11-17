@@ -36,6 +36,7 @@ export function CharacterDetails() {
         <PortraitAvatar
           characterId={characterId ?? ""}
           name={name}
+          decorative
           size={"large"}
           portraitSettings={portraitSettings ?? undefined}
         />

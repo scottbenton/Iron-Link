@@ -57,7 +57,9 @@ beforeEach(() => {
 describe("WorldEntryMain", () => {
   it("shows an entry's picture with its name, and nothing else", () => {
     show(worldEntry({ name: "Kira Vale", imageFilename: "kira.png" }));
-    expect(screen.getByRole("img", { name: "Kira Vale" })).toHaveAttribute(
+    // The name is the heading, so the picture is left unnamed rather than
+    // read twice.
+    expect(screen.getByRole("presentation")).toHaveAttribute(
       "src",
       "https://example.com/kira.png",
     );
