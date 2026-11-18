@@ -318,9 +318,15 @@ function removeHiddenEntries<C extends Collections>(
       collectionWithChildren.collections,
       replacedCollectionIds,
     );
-    Object.values(collectionWithChildren.collections).forEach((subCollection) => {
-      removeHiddenEntries(subCollection, replacedCollectionIds, replacedItemIds);
-    });
+    Object.values(collectionWithChildren.collections).forEach(
+      (subCollection) => {
+        removeHiddenEntries(
+          subCollection,
+          replacedCollectionIds,
+          replacedItemIds,
+        );
+      },
+    );
   }
 }
 
