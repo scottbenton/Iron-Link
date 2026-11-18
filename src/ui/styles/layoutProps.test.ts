@@ -22,11 +22,13 @@ describe("withLayoutProps", () => {
   });
 
   it("passes kept keys through as the component's own props", () => {
-    const result = withLayoutProps({ width: 120, mb: "1" }, ["width"]);
+    const props = { className: undefined, width: 120, mb: "1" };
+    const result = withLayoutProps(props, ["width"]);
     expect(result).toEqual({ width: 120, className: "mb_1" });
   });
 
   it("ignores layout props set to undefined", () => {
-    expect(withLayoutProps({ mt: undefined, id: "a" })).toEqual({ id: "a" });
+    const props = { className: undefined, mt: undefined, id: "a" };
+    expect(withLayoutProps(props)).toEqual({ className: undefined, id: "a" });
   });
 });
