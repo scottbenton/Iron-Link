@@ -4,8 +4,7 @@ import { css } from "styled-system/css";
  * The one look for adds (a bonus or penalty on the next roll) wherever a
  * roll starts: stat cards, condition meter rollers and roll buttons. A small
  * pill in the scheme's solid colour, pinned to the control's top-right
- * corner by `AddsAnchor` and ringed in the page colour so it reads as sitting
- * on top of the control's edge.
+ * corner by `AddsAnchor`. The fill alone carries it: no ring or border.
  */
 export const addsBadgeStyles = css({
   position: "absolute",
@@ -21,8 +20,6 @@ export const addsBadgeStyles = css({
   borderRadius: "full",
   background: "accent.solid",
   color: "accent.onSolid",
-  boxShadow:
-    "0 0 0 2px token(colors.bg.surface), 0 0 0 3px token(colors.accent.edge)",
   fontFamily: "heading",
   fontWeight: "bold",
   fontSize: "2xs",

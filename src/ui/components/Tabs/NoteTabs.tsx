@@ -86,6 +86,10 @@ const chipStyles = css({
   display: "inline-flex",
   alignItems: "center",
   boxSizing: "border-box",
+  // The section tabs' well height, so the notes bar and the columns' tab
+  // wells line up: 34px chips, 44px on touch.
+  minHeight: "34px",
+  _touch: { minHeight: "touch" },
   border: "1px solid transparent",
   borderRadius: "md",
   transition: "background-color token(durations.fast) linear",

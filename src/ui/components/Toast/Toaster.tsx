@@ -15,6 +15,11 @@ const FOOTER_SPACE = 48;
 const toasterStyles = css({
   // Below dialogs and drawers (see the token). Sonner's own value is huge.
   zIndex: "toast!",
+  // The stack rises to make room for Clear All when a second toast arrives.
+  // Without this it jumped there while the new toast slid in, the hitch on
+  // the second toast; it now moves with Sonner's own 400ms toast motion.
+  transition: "bottom 400ms ease",
+  _reducedMotion: { transition: "none" },
 });
 
 /**
@@ -90,6 +95,8 @@ const footerStyles = css({
   alignItems: "center",
   gap: "2",
   whiteSpace: "nowrap",
+  animation: "fadeIn token(durations.normal) ease-out",
+  _reducedMotion: { animation: "none" },
   "& > [data-toast-clear-all]": {
     borderRadius: "full",
     paddingInline: "3",

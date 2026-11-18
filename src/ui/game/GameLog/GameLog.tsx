@@ -4,14 +4,17 @@ import {
   Fragment,
   ReactNode,
   UIEvent,
+  useEffect,
   useLayoutEffect,
   useRef,
+  useState,
 } from "react";
 
 import { css, cx } from "styled-system/css";
 
 import { Button } from "../../components/Button";
 import { Spinner } from "../../components/Spinner";
+import { Tooltip } from "../../components/Tooltip";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
 import {
   RollCard,
@@ -22,6 +25,7 @@ import { RollTextOverrides } from "../RollCard/getRollSummary";
 import { RollData } from "../RollCard/rollTypes";
 import { GameLogComposer, GameLogComposerProps } from "./GameLogComposer";
 import { GameLogStrings, defaultGameLogStrings } from "./gameLogStrings";
+import { formatGameLogRelativeTime, sameDay } from "./gameLogTime";
 
 export interface GameLogAuthor {
   /** The character, or the player when no character wrote it. */
@@ -332,10 +336,6 @@ function initials(name: string): string {
   return letters.map((word) => word[0]?.toUpperCase() ?? "").join("");
 }
 
-function sameDay(a: Date, b: Date): boolean {
-  return a.toDateString() === b.toDateString();
-}
-
 /**
  * How much of each roll the log draws: `detailed` names every die,
  * `standard` draws bare dice, `quiet` keeps the outcome and writes the dice
@@ -356,6 +356,28 @@ export type GameLogHeader = "inline" | "stacked";
  */
 export type GameLogTimePlacement = "header" | "below";
 
+/**
+ * How each entry's time reads: `relative` ("5 minutes ago", the clock time
+ * on hover; entries from before today show the clock time) or `clock`
+ * ("8:42 PM").
+ */
+export type GameLogTimeFormat = "relative" | "clock";
+
+/** How often relative times are brought up to date. */
+const RELATIVE_TIME_TICK_MS = 30_000;
+
+/** The current time, updated every `intervalMs` while `enabled`. */
+function useNow(enabled: boolean, intervalMs: number) {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!enabled) return;
+    setNow(new Date());
+    const id = window.setInterval(() => setNow(new Date()), intervalMs);
+    return () => window.clearInterval(id);
+  }, [enabled, intervalMs]);
+  return now;
+}
+
 const diceDetailByDensity: Record<GameLogDensity, RollCardDiceDetail> = {
   detailed: "captions",
   standard: "dice",
@@ -374,17 +396,19 @@ export interface GameLogProps {
   loading?: boolean;
   /** Day separator text. Today, Yesterday, then the weekday and date. */
   formatDay?: (date: Date) => string;
-  /** Time beside each entry, "8:42 PM". */
+  /** The clock time of each entry, "8:42 PM". */
   formatTime?: (date: Date) => string;
+  /** How each entry's time reads. Relative by default. */
+  timeFormat?: GameLogTimeFormat;
   strings?: Partial<GameLogStrings>;
   composerProps?: Omit<GameLogComposerProps, "onSend">;
   /** Words for roll cards and their summaries. */
   rollText?: RollTextOverrides;
   /** How much of each roll to draw. `standard` by default. */
   density?: GameLogDensity;
-  /** How each entry names its author. `inline` by default. */
+  /** How each entry names its author. `stacked` by default. */
   header?: GameLogHeader;
-  /** Where each entry's time goes. In the header by default. */
+  /** Where each entry's time goes. Below the card by default. */
   timePlacement?: GameLogTimePlacement;
   /**
    * The widest the entries and composer grow, centred, for a log shown in
@@ -416,12 +440,14 @@ export function GameLog(props: GameLogProps) {
     composerProps,
     rollText,
     density = "standard",
-    header = "inline",
-    timePlacement = "header",
+    timeFormat = "relative",
+    header = "stacked",
+    timePlacement = "below",
     maxContentWidth,
     className,
   } = props;
   const strings = { ...defaultGameLogStrings, ...stringsProp };
+  const now = useNow(timeFormat === "relative", RELATIVE_TIME_TICK_MS);
 
   const formatDay =
     formatDayProp ??
@@ -513,6 +539,15 @@ export function GameLog(props: GameLogProps) {
                   <GameLogItem
                     entry={entry}
                     time={formatTime(entry.timestamp)}
+                    relativeTime={
+                      timeFormat === "relative"
+                        ? formatGameLogRelativeTime(
+                            entry.timestamp,
+                            now,
+                            strings.justNow,
+                          )
+                        : undefined
+                    }
                     strings={strings}
                     rollText={rollText}
                     diceDetail={diceDetailByDensity[density]}
@@ -539,7 +574,10 @@ export function GameLog(props: GameLogProps) {
 
 interface GameLogItemProps {
   entry: GameLogEntry;
+  /** The clock time, read by screen readers and shown on hover. */
   time: string;
+  /** Shown in place of the clock time when set. */
+  relativeTime?: string;
   strings: GameLogStrings;
   rollText?: RollTextOverrides;
   diceDetail: RollCardDiceDetail;
@@ -548,8 +586,16 @@ interface GameLogItemProps {
 }
 
 function GameLogItem(props: GameLogItemProps) {
-  const { entry, time, strings, rollText, diceDetail, header, timePlacement } =
-    props;
+  const {
+    entry,
+    time,
+    relativeTime,
+    strings,
+    rollText,
+    diceDetail,
+    header,
+    timePlacement,
+  } = props;
   const { author } = entry;
 
   // Who wrote it and when, read with the entry as one piece of text; the
@@ -563,7 +609,13 @@ function GameLogItem(props: GameLogItemProps) {
     .join(", ");
 
   const portrait = author.portrait ?? initials(author.name);
-  const timeElement = (
+  // A relative time shows the clock time on hover. Screen readers read the
+  // clock time in the entry's heading, so the shown time stays hidden.
+  const timeElement = relativeTime ? (
+    <Tooltip title={time}>
+      <time dateTime={entry.timestamp.toISOString()}>{relativeTime}</time>
+    </Tooltip>
+  ) : (
     <time dateTime={entry.timestamp.toISOString()}>{time}</time>
   );
   const timeInHeader = timePlacement === "header" ? timeElement : null;

@@ -123,11 +123,16 @@ const tabRowStyles = cva({
  */
 function ColumnTabList(props: {
   variant: SectionTabsVariant;
+  align?: "center" | "start";
   children: ReactNode;
 }) {
-  const { variant, children } = props;
+  const { variant, align, children } = props;
   if (variant !== "well") return <>{children}</>;
-  return <SectionTabWell end={<SidebarHeaderEnd />}>{children}</SectionTabWell>;
+  return (
+    <SectionTabWell align={align} end={<SidebarHeaderEnd />}>
+      {children}
+    </SectionTabWell>
+  );
 }
 
 /** Props the game page's columns share for their own tabs. */
@@ -137,6 +142,8 @@ export interface ColumnTabsProps {
    * note tabs' look, so the three columns' tabs read as one family.
    */
   tabsVariant?: SectionTabsVariant;
+  /** In a well: tabs centred (the default) or from the inline start. */
+  tabsAlign?: "center" | "start";
   /** The tab showing. Uncontrolled without it. */
   section?: string;
   onSectionChange?: (section: string) => void;
@@ -190,6 +197,7 @@ export function CharacterColumn(
   const {
     character = sampleCharacters[0],
     tabsVariant = "well",
+    tabsAlign,
     section,
     onSectionChange,
   } = props;
@@ -211,7 +219,7 @@ export function CharacterColumn(
       className={columnTabsStyles}
     >
       <div className={tabRowStyles({ variant: tabsVariant })}>
-        <ColumnTabList variant={tabsVariant}>
+        <ColumnTabList variant={tabsVariant} align={tabsAlign}>
           <SectionTabList
             aria-label="Character Sections"
             variant={tabsVariant}
@@ -559,6 +567,7 @@ export function ReferenceColumn(
   const {
     showLog = true,
     tabsVariant = "well",
+    tabsAlign,
     section,
     onSectionChange,
   } = props;
@@ -570,7 +579,7 @@ export function ReferenceColumn(
       className={referenceTabsStyles}
     >
       <div className={tabRowStyles({ variant: tabsVariant })}>
-        <ColumnTabList variant={tabsVariant}>
+        <ColumnTabList variant={tabsVariant} align={tabsAlign}>
           <SectionTabList
             aria-label="Reference Sections"
             variant={tabsVariant}

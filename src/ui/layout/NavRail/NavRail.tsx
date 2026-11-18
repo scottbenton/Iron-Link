@@ -25,6 +25,10 @@ const railStyles = css({
   borderInlineEnd: "1px solid token(colors.border.default)",
   color: "fg.default",
   fontFamily: "body",
+  // Always dark, as the live rail is: `data-theme="dark"` on the rail gives
+  // it and everything in it the dark tokens in either mode. Its menus and
+  // tooltips portal out, so they follow the page's mode.
+  colorScheme: "dark",
 });
 
 const homeStyles = css({
@@ -148,7 +152,7 @@ export interface NavRailProps {
 }
 
 /**
- * The column of destinations on wide screens, 80px wide. Each item is an
+ * The column of destinations on wide screens, 80px wide, dark in both modes. Each item is an
  * icon over its label; the current page's icon sits in a pill with the
  * scheme's turning gradient border (a GradientBox, as in the live app), and
  * the link has `aria-current="page"`.
@@ -166,7 +170,7 @@ export function NavRail(props: NavRailProps) {
   const Link = useLinkComponent(linkComponent);
 
   return (
-    <div className={cx(railStyles, className)}>
+    <div className={cx(railStyles, className)} data-theme="dark">
       {homeHref ? (
         <Link href={homeHref} className={homeStyles}>
           <Logo size={40} label={homeLabel} />

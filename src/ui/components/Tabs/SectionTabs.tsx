@@ -106,6 +106,7 @@ const listStyles = cva({
       well: {
         gap: "1",
         justifyContent: "flex-start",
+        boxSizing: "border-box",
         padding: "1.5",
         paddingBottom: "calc(token(spacing.1.5) + var(--border-widths-ledge))",
         background: "bg.canvas",
@@ -118,6 +119,11 @@ const listStyles = cva({
         "[data-section-tab-well] > &": {
           background: "transparent",
           borderBottom: "none",
+        },
+        // A well that starts its tabs at the inline start drops the centring.
+        "[data-section-tab-well][data-align=start] > &": {
+          "& > [role=tab]:first-of-type": { marginInlineStart: 0 },
+          "& > [role=tab]:last-of-type": { marginInlineEnd: 0 },
         },
       },
     },
@@ -440,6 +446,12 @@ const tabWellStyles = css({
   background: "bg.canvas",
   borderBottom: "1px solid token(colors.border.default)",
   "& > [role=tablist]": { gridColumn: "2" },
+  // Tabs from the inline start, the controls at the end.
+  "&[data-align=start]": {
+    gridTemplateColumns: "minmax(0, 1fr) max-content",
+    "& > [role=tablist]": { gridColumn: "1" },
+    "& > [data-section-tab-well-end]": { gridColumn: "2" },
+  },
   "& > [data-section-tab-well-end]": {
     gridColumn: "3",
     justifySelf: "end",
@@ -459,6 +471,11 @@ export interface SectionTabWellProps {
    * list, such as a column's menu and Collapse (`SidebarHeaderEnd`).
    */
   end?: ReactNode;
+  /**
+   * Where the tabs sit: centred across the whole band (the default), or
+   * from the inline start with `end` after them.
+   */
+  align?: "center" | "start";
   className?: string;
 }
 
@@ -468,9 +485,13 @@ export interface SectionTabWellProps {
  * only tabs. Without `end`, a well `SectionTabList` alone is the same band.
  */
 export function SectionTabWell(props: SectionTabWellProps) {
-  const { children, end, className } = props;
+  const { children, end, align = "center", className } = props;
   return (
-    <div className={cx(tabWellStyles, className)} data-section-tab-well="">
+    <div
+      className={cx(tabWellStyles, className)}
+      data-section-tab-well=""
+      data-align={align}
+    >
       {children}
       <div data-section-tab-well-end="">{end}</div>
     </div>

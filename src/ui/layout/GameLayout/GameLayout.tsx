@@ -25,12 +25,12 @@ const rootStyles = css({
   fontFamily: "body",
 });
 
+// PageTabs draws its own hairline under the tabs, edge to edge, so the row
+// adds none (the two together were a doubled line).
 const tabsRowStyles = css({
   flex: "none",
   minWidth: 0,
-  paddingInline: "2",
   background: "bg.surface",
-  borderBottom: "1px solid token(colors.border.default)",
 });
 
 /**

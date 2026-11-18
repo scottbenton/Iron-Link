@@ -6,6 +6,8 @@ export interface GameLogStrings {
   loading: string;
   today: string;
   yesterday: string;
+  /** An entry from the last minute, in place of a relative time. */
+  justNow: string;
   /** The log's name for screen readers. */
   label: string;
 }
@@ -18,5 +20,6 @@ export const defaultGameLogStrings: GameLogStrings = {
   loading: "Loading entries",
   today: "Today",
   yesterday: "Yesterday",
+  justNow: "Just now",
   label: "Game log",
 };

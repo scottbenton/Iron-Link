@@ -75,7 +75,7 @@ type Story = StoryObj;
 /** On a character's page the title is the character's name, as live. */
 const pageTitle = "Kira Vale";
 
-function useGameColumns(logInNotes?: boolean) {
+function useGameColumns(logInNotes?: boolean, tabsAlign?: "center" | "start") {
   // The columns' tabs are kept here so a collapsed sidebar's rail can open
   // the column on one of them.
   const [sheetSection, setSheetSection] = useState("overview");
@@ -91,6 +91,7 @@ function useGameColumns(logInNotes?: boolean) {
       <CharacterColumn
         section={sheetSection}
         onSectionChange={setSheetSection}
+        tabsAlign={tabsAlign}
       />
     ),
   };
@@ -111,6 +112,7 @@ function useGameColumns(logInNotes?: boolean) {
         showLog={!logInNotes}
         section={referenceSection}
         onSectionChange={setReferenceSection}
+        tabsAlign={tabsAlign}
       />
     ),
   };
@@ -140,10 +142,18 @@ function WideGamePage(props: {
   stacked?: boolean;
   banner?: boolean;
   logInNotes?: boolean;
-  /** Moves each column's title row into its tab well. */
-  headersInWells?: boolean;
+  /**
+   * Keeps each column's title row above its tabs, as before; by default the
+   * titles are screen reader headings and the controls sit in the well.
+   */
+  columnHeaders?: boolean;
+  /** The column tabs from the inline start rather than centred. */
+  tabsAlign?: "center" | "start";
 }) {
-  const { character, notes, reference } = useGameColumns(props.logInNotes);
+  const { character, notes, reference } = useGameColumns(
+    props.logInNotes,
+    props.tabsAlign,
+  );
   // The app keeps these and remembers them per device.
   const [sheetWidth, setSheetWidth] = useState(350);
   const [referenceWidth, setReferenceWidth] = useState(350);
@@ -180,13 +190,13 @@ function WideGamePage(props: {
         onStackedCollapsedChange={setStackedCollapsed}
         startSidebar={{
           panels: [character],
-          headerInContent: props.headersInWells,
+          headerInContent: !props.columnHeaders,
           width: sheetWidth,
           onWidthChange: setSheetWidth,
         }}
         endSidebar={{
           panels: [reference],
-          headerInContent: props.headersInWells,
+          headerInContent: !props.columnHeaders,
           width: referenceWidth,
           onWidthChange: setReferenceWidth,
         }}
@@ -197,7 +207,9 @@ function WideGamePage(props: {
 
 /**
  * 1200px and up: the character sheet, the notes and the reference side by
- * side, under the game's tabs. Both sidebars resize and collapse.
+ * side, under the game's tabs. Both sidebars resize and collapse. The
+ * columns' titles are screen reader headings; their settings and Collapse
+ * sit at the end of each tab well, so the three wells line up.
  */
 export const Desktop: Story = {
   render: () => <WideGamePage />,
@@ -215,14 +227,18 @@ export const DesktopLogInNotes: Story = {
 };
 
 /**
- * For comparison with Desktop: each column's title row is merged into its
- * tab well, so the Character and Reference tabs line up with the notes tabs.
- * The titles stay as screen reader headings, and each column's settings and
- * Collapse sit at the end of its well.
+ * The column tabs from the inline start, with each column's settings and
+ * Collapse at the end of its well.
  */
-export const DesktopHeadersInWells: Story = {
-  name: "Desktop, headers in the wells",
-  render: () => <WideGamePage headersInWells />,
+export const DesktopTabsAtStart: Story = {
+  name: "Desktop, tabs at the start",
+  render: () => <WideGamePage tabsAlign="start" />,
+};
+
+/** For comparison: each column's title row above its tabs, as before. */
+export const DesktopColumnHeaders: Story = {
+  name: "Desktop, column headers",
+  render: () => <WideGamePage columnHeaders />,
 };
 
 /** With the Worlds beta banner over the tabs, edge to edge. */

@@ -2,6 +2,7 @@ import { css, cx } from "styled-system/css";
 
 import { Badge } from "../../components/Badge";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
+import { GradientBox } from "../../game/GradientBox";
 import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
 import { NavItem } from "../shared/navItem";
 
@@ -33,9 +34,9 @@ const itemStyles = css({
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  gap: "0.5",
+  gap: "1",
   minHeight: "56px",
-  paddingInline: "1",
+  paddingInline: "0.5",
   paddingBlock: "1.5",
   color: "fg.muted",
   textDecoration: "none",
@@ -47,22 +48,30 @@ const itemStyles = css({
   background: "transparent",
   font: "inherit",
   cursor: "pointer",
-  transition:
-    "color token(durations.fast) linear, background-color token(durations.fast) linear",
-  // The gradient bar on the bar's top edge, grown from the middle.
-  _before: {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    insetInline: "25%",
-    height: "3px",
-    borderBottomRadius: "3px",
-    background: "token(gradients.ring)",
-    scale: "0 1",
-    transition: "scale token(durations.normal) token(easings.out)",
-    _reducedMotion: { transition: "none" },
+  transition: "color token(durations.fast) linear",
+  // The rail's items, laid out for the bar: the icon in a pill, the current
+  // one in a GradientBox with the scheme's turning ring. The same box
+  // current or not, so nothing shifts when the page changes.
+  "& [data-part=pill]": {
+    boxSizing: "border-box",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "56px",
+    height: "32px",
+    borderRadius: "full",
   },
-  "& svg": { width: "24px", height: "24px", flex: "none" },
+  "& [data-part=pill]:not([data-gradient])": {
+    border: "1px solid transparent",
+    transitionProperty: "background-color",
+    transitionDuration: "fast",
+    transitionTimingFunction: "linear",
+  },
+  "& [data-part=pill] svg": { width: "22px", height: "22px", flex: "none" },
+  // The ring turns, as on the rail; it holds still under reduced motion.
+  _reducedMotion: {
+    "& [data-part=pill]::before": { animation: "none" },
+  },
   "& [data-part=label]": {
     maxWidth: "100%",
     fontSize: "xs",
@@ -72,17 +81,28 @@ const itemStyles = css({
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
   },
-  _hoverable: { _hover: { color: "fg.default" } },
-  _active: { background: "overlay.pressed" },
+  _hoverable: {
+    _hover: {
+      color: "fg.default",
+      "& [data-part=pill]:not([data-gradient])": {
+        background: "overlay.hover",
+      },
+    },
+  },
+  _active: {
+    "& [data-part=pill]:not([data-gradient])": {
+      background: "overlay.pressed",
+    },
+  },
   _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-4px",
-    borderRadius: "md",
+    "& [data-part=pill]": {
+      outline: "2px solid token(colors.focusRing)",
+      outlineOffset: "2px",
+    },
   },
   _current: {
     color: "fg.default",
-    _before: { scale: "1 1" },
-    "& svg": { color: "accent.fg" },
+    "& [data-part=pill]": { color: "accent.fg" },
   },
 });
 
@@ -116,8 +136,10 @@ export interface MobileNavProps {
 
 /**
  * The bottom tab bar on phones: one item per destination, each the full
- * height of the bar (56px, past the 44px touch target). The current one has
- * the gradient bar on its top edge and `aria-current="page"`. Items are
+ * height of the bar (past the 44px touch target). Items are the rail's: an
+ * icon in a pill over its label, the current one's pill in the scheme's
+ * turning gradient ring (a GradientBox), with `aria-current="page"`. Unlike
+ * the rail it follows the page's mode. Items are
  * links, or buttons that switch the page's section (the game page's Sheet,
  * Notes, Moves, Oracles and Log), and can carry a count badge.
  *
@@ -142,10 +164,24 @@ export function MobileNav(props: MobileNavProps) {
           const icon = item.current
             ? (item.currentIcon ?? item.icon)
             : item.icon;
+          const pill = item.current ? (
+            <GradientBox
+              as="span"
+              data-part="pill"
+              data-gradient=""
+              radius="full"
+              thickness="medium"
+              spin
+            >
+              {icon}
+            </GradientBox>
+          ) : (
+            <span data-part="pill">{icon}</span>
+          );
           const content = (
             <>
               <span aria-hidden="true" className={css({ display: "flex" })}>
-                {badge > 0 ? <Badge count={badge}>{icon}</Badge> : icon}
+                {badge > 0 ? <Badge count={badge}>{pill}</Badge> : pill}
               </span>
               <span data-part="label">{item.label}</span>
               {badge > 0 && (

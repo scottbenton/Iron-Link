@@ -40,7 +40,16 @@ const author = (
 
 const guide: GameLogAuthor = { name: "Jamie", writtenBy: "Guide" };
 
+/**
+ * Earlier days at their clock time. Today's entries are placed as if it were
+ * now 8:15 PM, so they read as minutes and hours ago whenever the story is
+ * opened rather than landing in the future.
+ */
 const at = (daysAgo: number, hours: number, minutes: number) => {
+  if (daysAgo === 0) {
+    const minutesBefore = 20 * 60 + 15 - (hours * 60 + minutes);
+    return new Date(Date.now() - minutesBefore * 60_000);
+  }
   const date = new Date();
   date.setDate(date.getDate() - daysAgo);
   date.setHours(hours, minutes, 0, 0);
@@ -236,7 +245,9 @@ const meta = {
       control: "inline-radio",
       options: ["detailed", "standard", "quiet"],
     },
-    header: { control: "inline-radio", options: ["inline", "stacked"] },
+    header: { control: "inline-radio", options: ["stacked", "inline"] },
+    timePlacement: { control: "inline-radio", options: ["below", "header"] },
+    timeFormat: { control: "inline-radio", options: ["relative", "clock"] },
   },
   decorators: [
     (Story, context) =>
@@ -471,8 +482,8 @@ export const CompareHeaders: Story = {
     >
       {(
         [
-          ["inline", "Inline (the default)"],
-          ["stacked", "Stacked"],
+          ["stacked", "Stacked (the default)"],
+          ["inline", "Inline"],
         ] as [GameLogHeader, string][]
       ).map(([header, title]) => (
         <Stack key={header} gap="2">
@@ -480,7 +491,7 @@ export const CompareHeaders: Story = {
             {title}
           </Text>
           <Frame height="760px">
-            <GameLog {...args} header={header} />
+            <GameLog {...args} header={header} timePlacement="header" />
           </Frame>
         </Stack>
       ))}
@@ -489,8 +500,8 @@ export const CompareHeaders: Story = {
 };
 
 /**
- * Where the time goes: in the header (as now), or in small print under each
- * card or bubble. With the time below, the stacked header holds only the
+ * Where the time goes: in the header, or in small print under each card or
+ * bubble (the default). With the time below, the stacked header holds only the
  * names, so your own entries carry just your character's name, with nothing
  * left under it.
  */
@@ -508,7 +519,7 @@ export const CompareTimePlacement: Story = {
           ["inline", "header", "Inline, time in the header"],
           ["stacked", "header", "Stacked, time in the header"],
           ["inline", "below", "Inline, time under the card"],
-          ["stacked", "below", "Stacked, time under the card"],
+          ["stacked", "below", "Stacked, time under the card (the default)"],
         ] as [GameLogHeader, GameLogTimePlacement, string][]
       ).map(([header, timePlacement, title]) => (
         <Stack key={title} gap="2">
@@ -524,7 +535,16 @@ export const CompareTimePlacement: Story = {
   ),
 };
 
-/** The whole session with the stacked header. */
-export const HeaderStacked: Story = {
-  args: { header: "stacked" },
+/** The whole session with the inline header and the time in it. */
+export const HeaderInline: Story = {
+  args: { header: "inline", timePlacement: "header" },
+};
+
+/**
+ * Clock times ("8:42 PM") instead of relative ones. By default the log says
+ * "5 minutes ago" and shows the clock time on hover; entries from before
+ * today show their clock time either way.
+ */
+export const ClockTimes: Story = {
+  args: { timeFormat: "clock" },
 };
