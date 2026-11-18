@@ -150,21 +150,8 @@ const entryStyles = css({
   "&[data-you]": { alignItems: "flex-end" },
 });
 
-const metaStyles = css({
-  display: "flex",
-  flexWrap: "wrap",
-  alignItems: "center",
-  columnGap: "1.5",
-  rowGap: "0.5",
-  maxWidth: "100%",
-  fontSize: "xs",
-  lineHeight: "snug",
-  color: "fg.muted",
-  "[data-you] > &": { justifyContent: "flex-end" },
-});
-
-// The stacked header: portrait beside two lines, the character's name over
-// the player's name and the time. The viewer's own mirrors it on the right.
+// The header: portrait beside two lines, the character's name over
+// the player's name. The viewer's own mirrors it on the right.
 const stackedMetaStyles = css({
   display: "flex",
   alignItems: "center",
@@ -202,8 +189,6 @@ const stackedSubStyles = css({
   "[data-you] &": { justifyContent: "flex-end" },
 });
 
-const separatorStyles = css({ color: "fg.subtle" });
-
 // The time under a roll or message: small and quiet, on the entry's side.
 const timeBelowStyles = css({
   fontSize: "2xs",
@@ -211,13 +196,6 @@ const timeBelowStyles = css({
   color: "fg.subtle",
   fontVariantNumeric: "tabular-nums",
   paddingInline: "1",
-});
-
-const nameStyles = css({
-  fontFamily: "heading",
-  fontWeight: "bold",
-  fontSize: "sm",
-  color: "fg.default",
 });
 
 const guideStyles = css({
@@ -264,36 +242,21 @@ const rollStyles = css({
   },
 });
 
-// Portraits come in at 32px (`CharacterPortrait` size `sm`): the stacked
-// header shows them at that size, the inline one scales them to 20px.
+// Portraits come in at 32px (`CharacterPortrait` size `sm`).
 const portraitStyles = css({
-  "--log-portrait-size": "20px",
-  position: "relative",
   display: "grid",
   placeItems: "center",
   flex: "none",
-  width: "var(--log-portrait-size)",
-  height: "var(--log-portrait-size)",
+  width: "32px",
+  height: "32px",
   borderRadius: "full",
   overflow: "hidden",
   background: "bg.emphasized",
   color: "fg.muted",
   fontFamily: "heading",
   fontWeight: "bold",
-  fontSize: "2xs",
+  fontSize: "xs",
   "& > img": { width: "100%", height: "100%", objectFit: "cover" },
-  "& > :not(img)": {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    translate: "-50% -50%",
-    scale: "0.625",
-  },
-  "&[data-size=stacked]": {
-    "--log-portrait-size": "32px",
-    fontSize: "xs",
-    "& > :not(img)": { position: "static", translate: "none", scale: "none" },
-  },
 });
 
 const emptyStyles = css({
@@ -359,38 +322,16 @@ function initials(name: string): string {
  */
 export type GameLogDensity = "detailed" | "standard" | "quiet";
 
-/**
- * The header over each entry. `inline` puts portrait, name, player and time
- * on one line; `stacked` puts the character's name over the player's name
- * and the time, beside a larger portrait.
- */
-export type GameLogHeader = "inline" | "stacked";
-
-/**
- * Where each entry's time goes: in its header, or in small type under the
- * roll or message, as chat apps put it.
- */
-export type GameLogTimePlacement = "header" | "below";
-
-/**
- * How each entry's time reads: `relative` ("5 minutes ago", the clock time
- * on hover; entries from before today show the clock time) or `clock`
- * ("8:42 PM").
- */
-export type GameLogTimeFormat = "relative" | "clock";
-
 /** How often relative times are brought up to date. */
 const RELATIVE_TIME_TICK_MS = 30_000;
 
-/** The current time, updated every `intervalMs` while `enabled`. */
-function useNow(enabled: boolean, intervalMs: number) {
+/** The current time, updated every `intervalMs`. */
+function useNow(intervalMs: number) {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    if (!enabled) return;
-    setNow(new Date());
     const id = window.setInterval(() => setNow(new Date()), intervalMs);
     return () => window.clearInterval(id);
-  }, [enabled, intervalMs]);
+  }, [intervalMs]);
   return now;
 }
 
@@ -412,20 +353,18 @@ export interface GameLogProps {
   loading?: boolean;
   /** Day separator text. Today, Yesterday, then the weekday and date. */
   formatDay?: (date: Date) => string;
-  /** The clock time of each entry, "8:42 PM". */
+  /**
+   * The clock time of each entry, "8:42 PM". Entries show a relative time
+   * ("5 minutes ago") with this on hover; entries from before today show it
+   * outright.
+   */
   formatTime?: (date: Date) => string;
-  /** How each entry's time reads. Relative by default. */
-  timeFormat?: GameLogTimeFormat;
   strings?: Partial<GameLogStrings>;
   composerProps?: Omit<GameLogComposerProps, "onSend">;
   /** Words for roll cards and their summaries. */
   rollText?: RollTextOverrides;
   /** How much of each roll to draw. `standard` by default. */
   density?: GameLogDensity;
-  /** How each entry names its author. `stacked` by default. */
-  header?: GameLogHeader;
-  /** Where each entry's time goes. Below the card by default. */
-  timePlacement?: GameLogTimePlacement;
   /**
    * One author's entries this close together (in minutes) group: one
    * header over the first, one time under the last. 5 by default; 0 turns
@@ -462,15 +401,12 @@ export function GameLog(props: GameLogProps) {
     composerProps,
     rollText,
     density = "standard",
-    timeFormat = "relative",
-    header = "stacked",
-    timePlacement = "below",
     groupWithinMinutes = GAME_LOG_GROUP_WINDOW_MS / 60_000,
     maxContentWidth,
     className,
   } = props;
   const strings = { ...defaultGameLogStrings, ...stringsProp };
-  const now = useNow(timeFormat === "relative", RELATIVE_TIME_TICK_MS);
+  const now = useNow(RELATIVE_TIME_TICK_MS);
 
   const formatDay =
     formatDayProp ??
@@ -568,20 +504,14 @@ export function GameLog(props: GameLogProps) {
                   <GameLogItem
                     entry={entry}
                     time={formatTime(entry.timestamp)}
-                    relativeTime={
-                      timeFormat === "relative"
-                        ? formatGameLogRelativeTime(
-                            entry.timestamp,
-                            now,
-                            strings.justNow,
-                          )
-                        : undefined
-                    }
+                    relativeTime={formatGameLogRelativeTime(
+                      entry.timestamp,
+                      now,
+                      strings.justNow,
+                    )}
                     strings={strings}
                     rollText={rollText}
                     diceDetail={diceDetailByDensity[density]}
-                    header={header}
-                    timePlacement={timePlacement}
                     groupPosition={groupPositions[index]}
                   />
                 </Fragment>
@@ -606,13 +536,14 @@ interface GameLogItemProps {
   entry: GameLogEntry;
   /** The clock time, read by screen readers and shown on hover. */
   time: string;
-  /** Shown in place of the clock time when set. */
+  /**
+   * Shown in place of the clock time, which shows on hover. Unset before
+   * today, where the clock time shows outright.
+   */
   relativeTime?: string;
   strings: GameLogStrings;
   rollText?: RollTextOverrides;
   diceDetail: RollCardDiceDetail;
-  header: GameLogHeader;
-  timePlacement: GameLogTimePlacement;
   groupPosition: GameLogGroupPosition;
 }
 
@@ -624,17 +555,13 @@ function GameLogItem(props: GameLogItemProps) {
     strings,
     rollText,
     diceDetail,
-    header,
-    timePlacement,
     groupPosition,
   } = props;
   const { author } = entry;
   // A group shows its header over its first entry and its time under its
-  // last; a time in the header goes with the header.
+  // last.
   const showHeader = groupPosition === "single" || groupPosition === "first";
-  const showTimeBelow =
-    timePlacement === "below" &&
-    (groupPosition === "single" || groupPosition === "last");
+  const showTime = groupPosition === "single" || groupPosition === "last";
 
   // Who wrote it and when, read with the entry as one piece of text; the
   // name and time shown around it are hidden from screen readers.
@@ -647,16 +574,6 @@ function GameLogItem(props: GameLogItemProps) {
     .join(", ");
 
   const portrait = author.portrait ?? initials(author.name);
-  // A relative time shows the clock time on hover. Screen readers read the
-  // clock time in the entry's heading, so the shown time stays hidden.
-  const timeElement = relativeTime ? (
-    <Tooltip title={time}>
-      <time dateTime={entry.timestamp.toISOString()}>{relativeTime}</time>
-    </Tooltip>
-  ) : (
-    <time dateTime={entry.timestamp.toISOString()}>{time}</time>
-  );
-  const timeInHeader = timePlacement === "header" ? timeElement : null;
   const guideBadge = entry.guideOnly && (
     <span className={guideStyles}>
       <LockSimple weight="bold" />
@@ -671,32 +588,18 @@ function GameLogItem(props: GameLogItemProps) {
       data-guide-only={entry.guideOnly || undefined}
       data-continued={showHeader ? undefined : ""}
     >
-      {!showHeader ? null : header === "stacked" ? (
+      {showHeader && (
         <div className={stackedMetaStyles} aria-hidden>
-          <span className={portraitStyles} data-size="stacked">
-            {portrait}
-          </span>
+          <span className={portraitStyles}>{portrait}</span>
           <span className={stackedTextStyles}>
             <span className={stackedNameStyles}>{author.name}</span>
-            {(author.writtenBy || timeInHeader || guideBadge) && (
+            {(author.writtenBy || guideBadge) && (
               <span className={stackedSubStyles}>
                 {author.writtenBy && <span>{author.writtenBy}</span>}
-                {author.writtenBy && timeInHeader && (
-                  <span className={separatorStyles}>·</span>
-                )}
-                {timeInHeader}
                 {guideBadge}
               </span>
             )}
           </span>
-        </div>
-      ) : (
-        <div className={metaStyles} aria-hidden>
-          <span className={portraitStyles}>{portrait}</span>
-          <span className={nameStyles}>{author.name}</span>
-          {author.writtenBy && <span>{author.writtenBy}</span>}
-          {timeInHeader}
-          {guideBadge}
         </div>
       )}
       {entry.kind === "roll" ? (
@@ -716,9 +619,19 @@ function GameLogItem(props: GameLogItemProps) {
           <div className={bubbleStyles}>{entry.message}</div>
         </>
       )}
-      {showTimeBelow && (
+      {showTime && (
+        // A relative time shows the clock time on hover. Screen readers
+        // read the clock time in the entry's heading, so this stays hidden.
         <div className={timeBelowStyles} aria-hidden>
-          {timeElement}
+          {relativeTime ? (
+            <Tooltip title={time}>
+              <time dateTime={entry.timestamp.toISOString()}>
+                {relativeTime}
+              </time>
+            </Tooltip>
+          ) : (
+            <time dateTime={entry.timestamp.toISOString()}>{time}</time>
+          )}
         </div>
       )}
     </li>

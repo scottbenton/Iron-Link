@@ -3,21 +3,14 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ReactNode, useState } from "react";
 import { fn } from "storybook/test";
 
-import { Box, Grid, Stack } from "styled-system/jsx";
+import { Box, Stack } from "styled-system/jsx";
 
 import { Text } from "../../components/Text";
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import { sampleRolls } from "../../stories/fixtures/rolls";
 import { CharacterPortrait } from "../CharacterPortrait";
 import { extraRolls } from "../RollCard/RollCard.fixtures";
-import {
-  GameLog,
-  GameLogAuthor,
-  GameLogDensity,
-  GameLogEntry,
-  GameLogHeader,
-  GameLogTimePlacement,
-} from "./GameLog";
+import { GameLog, GameLogAuthor, GameLogEntry } from "./GameLog";
 
 const [kira, orrin, senna] = sampleCharacters;
 
@@ -245,9 +238,6 @@ const meta = {
       control: "inline-radio",
       options: ["detailed", "standard", "quiet"],
     },
-    header: { control: "inline-radio", options: ["stacked", "inline"] },
-    timePlacement: { control: "inline-radio", options: ["below", "header"] },
-    timeFormat: { control: "inline-radio", options: ["relative", "clock"] },
     groupWithinMinutes: { control: { type: "number", min: 0, step: 1 } },
   },
   decorators: [
@@ -296,23 +286,9 @@ export const FullLog: Story = {
   },
 };
 
-/**
- * For comparison: every entry with its own header and time. By default one
- * author's entries within 5 minutes of each other group, as Senna's and
- * Orrin's do in the full log: one header, one time under the last.
- */
-export const Ungrouped: Story = {
-  args: { groupWithinMinutes: 0 },
-};
-
 /** Every die named. The busiest; good for learning the dice. */
 export const DensityDetailed: Story = {
   args: { density: "detailed" },
-};
-
-/** Bare dice, the default. */
-export const DensityStandard: Story = {
-  args: { density: "standard" },
 };
 
 /**
@@ -321,35 +297,6 @@ export const DensityStandard: Story = {
  */
 export const DensityQuiet: Story = {
   args: { density: "quiet" },
-};
-
-/** The three densities side by side, scrolled to the same entries. */
-export const CompareDensities: Story = {
-  parameters: { noFrame: true, layout: "fullscreen" },
-  render: (args) => (
-    <Grid
-      gridTemplateColumns="repeat(auto-fit, minmax(340px, 1fr))"
-      gap="4"
-      padding="4"
-    >
-      {(
-        [
-          ["detailed", "Detailed"],
-          ["standard", "Standard (the default)"],
-          ["quiet", "Quiet"],
-        ] as [GameLogDensity, string][]
-      ).map(([density, title]) => (
-        <Stack key={density} gap="2">
-          <Text variant="label" as="h2" color="muted">
-            {title}
-          </Text>
-          <Frame height="720px">
-            <GameLog {...args} density={density} />
-          </Frame>
-        </Stack>
-      ))}
-    </Grid>
-  ),
 };
 
 /** Only chat: plain text, line breaks kept, a Guide only note. */
@@ -410,11 +357,6 @@ const longNamed: (typeof sampleCharacters)[number] = {
   playerName: "Alexandria Montgomery-Okafor",
 };
 
-/**
- * Names under each header: long character and player names, the Guide
- * (no character, "Guide" in the player's place), a player writing without
- * a character, a Guide only entry, and your own entries on the right.
- */
 const headerLog: GameLogEntry[] = [
   {
     id: "h1",
@@ -477,84 +419,10 @@ const headerLog: GameLogEntry[] = [
 ];
 
 /**
- * The two headers side by side. Inline: portrait, character, player and
- * time on one line. Stacked: the character's name over the player's name
- * and the time, beside a 32px portrait; yours mirror on the right.
+ * Names under each header: long character and player names, the Guide (no
+ * character, "Guide" in the player's place), a player writing without a
+ * character, a Guide only entry, and your own entries on the right.
  */
-export const CompareHeaders: Story = {
-  parameters: { noFrame: true, layout: "fullscreen" },
+export const Names: Story = {
   args: { entries: headerLog },
-  render: (args) => (
-    <Grid
-      gridTemplateColumns="repeat(auto-fit, minmax(340px, 1fr))"
-      gap="4"
-      padding="4"
-    >
-      {(
-        [
-          ["stacked", "Stacked (the default)"],
-          ["inline", "Inline"],
-        ] as [GameLogHeader, string][]
-      ).map(([header, title]) => (
-        <Stack key={header} gap="2">
-          <Text variant="label" as="h2" color="muted">
-            {title}
-          </Text>
-          <Frame height="760px">
-            <GameLog {...args} header={header} timePlacement="header" />
-          </Frame>
-        </Stack>
-      ))}
-    </Grid>
-  ),
-};
-
-/**
- * Where the time goes: in the header, or in small print under each card or
- * bubble (the default). With the time below, the stacked header holds only the
- * names, so your own entries carry just your character's name, with nothing
- * left under it.
- */
-export const CompareTimePlacement: Story = {
-  parameters: { noFrame: true, layout: "fullscreen" },
-  args: { entries: headerLog },
-  render: (args) => (
-    <Grid
-      gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
-      gap="4"
-      padding="4"
-    >
-      {(
-        [
-          ["inline", "header", "Inline, time in the header"],
-          ["stacked", "header", "Stacked, time in the header"],
-          ["inline", "below", "Inline, time under the card"],
-          ["stacked", "below", "Stacked, time under the card (the default)"],
-        ] as [GameLogHeader, GameLogTimePlacement, string][]
-      ).map(([header, timePlacement, title]) => (
-        <Stack key={title} gap="2">
-          <Text variant="label" as="h2" color="muted">
-            {title}
-          </Text>
-          <Frame height="760px">
-            <GameLog {...args} header={header} timePlacement={timePlacement} />
-          </Frame>
-        </Stack>
-      ))}
-    </Grid>
-  ),
-};
-
-/** The whole session with the inline header and the time in it. */
-export const HeaderInline: Story = {
-  args: { header: "inline", timePlacement: "header" },
-};
-
-/**
- * Clock times ("8:42 PM") instead of relative ones. By default the log says
- * "5 minutes ago" and shows the clock time on hover; entries from before
- * today show their clock time either way.
- */
-export const ClockTimes: Story = {
-  args: { timeFormat: "clock" },
 };
