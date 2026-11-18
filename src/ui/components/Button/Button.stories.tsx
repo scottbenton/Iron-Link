@@ -86,7 +86,7 @@ export const Gradient: Story = {
           >
             Create Character
           </Button>
-          <Button variant="gradient" size="sm" startIcon={<Plus />}>
+          <Button variant="gradient" startIcon={<Plus />}>
             Add World
           </Button>
           <Button variant="gradient" disabled>
@@ -135,7 +135,7 @@ export const GradientSchemes: Story = {
               <Text variant="bodySm" color="muted">
                 {schemes[name].label}
               </Text>
-              <Button variant="gradient" size="sm" startIcon={<Plus />}>
+              <Button variant="gradient" startIcon={<Plus />}>
                 Create Game
               </Button>
             </HStack>
