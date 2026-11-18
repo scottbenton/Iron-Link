@@ -12,10 +12,12 @@ export interface OracleRollableColumnProps {
     | Datasworn.EmbeddedOracleColumnText
     | Datasworn.EmbeddedOracleColumnText2
     | Datasworn.EmbeddedOracleColumnText3;
+  label?: string;
+  hideLabel?: boolean;
 }
 
 export function OracleRollableColumn(props: OracleRollableColumnProps) {
-  const { oracle } = props;
+  const { oracle, label, hideLabel } = props;
 
   const columns: SimpleTableColumnDefinition<Datasworn.OracleRollableRow>[] = [
     {
@@ -63,7 +65,12 @@ export function OracleRollableColumn(props: OracleRollableColumnProps) {
 
   return (
     <>
-      <SimpleTable columns={columns} rows={oracle.rows} />
+      <SimpleTable
+        columns={columns}
+        rows={oracle.rows}
+        label={label}
+        hideLabel={hideLabel}
+      />
     </>
   );
 }
