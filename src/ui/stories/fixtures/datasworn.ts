@@ -29,7 +29,10 @@ export const sampleMoves = {
   strike: starforgedMove("combat", "strike"),
   payThePrice: starforgedMove("fate", "pay_the_price"),
   askTheOracle: starforgedMove("fate", "ask_the_oracle"),
-  undertakeAnExpedition: starforgedMove("exploration", "undertake_an_expedition"),
+  undertakeAnExpedition: starforgedMove(
+    "exploration",
+    "undertake_an_expedition",
+  ),
   fulfillYourVow: starforgedMove("quest", "fulfill_your_vow"),
 };
 

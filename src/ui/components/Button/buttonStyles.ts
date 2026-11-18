@@ -140,7 +140,11 @@ export const buttonStyles = cva({
       },
     },
     size: {
-      sm: { minHeight: "32px", paddingInline: "3", _touch: { minHeight: "40px" } },
+      sm: {
+        minHeight: "32px",
+        paddingInline: "3",
+        _touch: { minHeight: "40px" },
+      },
       md: {},
     },
     iconOnly: {

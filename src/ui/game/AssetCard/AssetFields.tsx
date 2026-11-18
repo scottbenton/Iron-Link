@@ -1,8 +1,6 @@
-import { Field } from "@base-ui/react/field";
 import type { Datasworn } from "@datasworn-community/core";
-import { ComponentProps } from "react";
 
-import { Checkbox as LibraryCheckbox } from "ui/components/Checkbox";
+import { Checkbox } from "ui/components/Checkbox";
 import { Select, SelectOptions } from "ui/components/Select";
 import { TextField } from "ui/components/TextField";
 import { Clock } from "ui/game/Clock";
@@ -34,18 +32,6 @@ const impactsStyles = css({
 });
 
 const plainValue = (value: number) => String(value);
-
-/**
- * The library Checkbox renders Base UI's Field.Item, which throws outside a
- * Field.Root. Until Checkbox supplies its own root, each one here gets one.
- */
-function Checkbox(props: ComponentProps<typeof LibraryCheckbox>) {
-  return (
-    <Field.Root>
-      <LibraryCheckbox {...props} />
-    </Field.Root>
-  );
-}
 
 function selectOptions(
   field: Datasworn.SelectValueField | Datasworn.SelectEnhancementField,

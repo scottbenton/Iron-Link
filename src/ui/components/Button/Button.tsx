@@ -86,7 +86,10 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(
     return (
       <BaseButton
         ref={ref}
-        className={cx(buttonStyles({ variant, size, fullWidth, iconOnly }), className)}
+        className={cx(
+          buttonStyles({ variant, size, fullWidth, iconOnly }),
+          className,
+        )}
         disabled={disabled}
         focusableWhenDisabled={loading || undefined}
         aria-disabled={loading || undefined}

@@ -49,7 +49,11 @@ export const dialogPopupStyles = cva({
     transitionProperty: "opacity, translate, scale",
     transitionDuration: "normal",
     transitionTimingFunction: "out",
-    _startingStyle: { opacity: 0, translate: "-50% calc(-50% + 10px)", scale: "0.98" },
+    _startingStyle: {
+      opacity: 0,
+      translate: "-50% calc(-50% + 10px)",
+      scale: "0.98",
+    },
     _endingStyle: {
       opacity: 0,
       translate: "-50% calc(-50% + 10px)",
@@ -252,7 +256,10 @@ export function DialogDescription(props: ComponentProps<"p">) {
   const { className, ...rest } = props;
   return (
     <BaseDialog.Description
-      className={cx(css({ color: "fg.muted", fontSize: "sm", margin: 0 }), className)}
+      className={cx(
+        css({ color: "fg.muted", fontSize: "sm", margin: 0 }),
+        className,
+      )}
       {...rest}
     />
   );
