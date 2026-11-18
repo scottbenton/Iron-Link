@@ -81,9 +81,9 @@ that are easy to miss. When you learn a new one, add a line here.
 
 - Type-check: `npx tsc -b` (what `npm run build` runs).
 - Lint: `npx eslint .`; format: `npx prettier --check .`.
-- Unit tests: `npx vitest run`. Suites that import the Supabase client need
-  `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` set (a gitignored
-  `.env.local` with placeholder values is enough).
+- Unit tests: `npm test` (`npm run test:watch` to watch). Suites that import
+  the Supabase client need `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+  set (a gitignored `.env.local` with placeholder values is enough).
 - GitHub Actions (`.github/workflows/ci.yaml`) runs unit tests, lint, a
   Prettier check (`npm run format` fixes it) and database tests on every PR
   and on main. The Cloudflare Pages build only type-checks and builds, so
