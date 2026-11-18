@@ -32,16 +32,16 @@ const toastItemStyles = css({
   // out above it. Sonner hides the content of its own styled toasts there;
   // ours are custom, so the card is clipped to the li and its content fades,
   // leaving the card's edge. A taller older toast would otherwise hang out
-  // below the front one.
-  // Older toasts are also shaded a little, so the stack reads as a stack.
+  // below the front one. The card keeps its own radius, border and
+  // background (recolouring it made the stack look like a different
+  // component); the stack reads as a stack because each step back fades.
   "&[data-expanded=false][data-front=false] > *": {
     height: "100%",
     minHeight: 0,
     overflow: "hidden",
-    background: "bg.muted!",
-    borderColor: "border.default!",
+    opacity: "calc(1 - var(--toasts-before) * 0.25)",
   },
-  "& > * > *": {
+  "& > *, & > * > *": {
     transition: "opacity token(durations.normal) linear",
     _reducedMotion: { transition: "none" },
   },
