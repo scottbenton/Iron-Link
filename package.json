@@ -12,7 +12,7 @@
     "format": "eslint . --fix && prettier . --write",
     "format:check": "prettier . --check",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest run",
     "test:db": "supabase test db",
     "test:watch": "vitest --watch",
     "extract:i18n": "i18next 'src/**/*.{ts,tsx}' [-oc]",
