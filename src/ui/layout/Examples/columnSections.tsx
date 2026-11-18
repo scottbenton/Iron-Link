@@ -20,13 +20,9 @@ export const characterSections: LayoutSection[] = [
   { id: "tracks", title: "Tracks", icon: <FlagBannerIcon /> },
 ];
 
-/** The reference column's tabs; the log's goes when the notes pin it. */
-export function getReferenceSections(showLog = true): LayoutSection[] {
-  return [
-    { id: "moves", title: "Moves", icon: <HandFistIcon /> },
-    { id: "oracles", title: "Oracles", icon: <DiceFiveIcon /> },
-    ...(showLog
-      ? [{ id: "log", title: "Game Log", icon: <ChatsCircleIcon /> }]
-      : []),
-  ];
-}
+/** The reference column's tabs. */
+export const referenceSections: LayoutSection[] = [
+  { id: "moves", title: "Moves", icon: <HandFistIcon /> },
+  { id: "oracles", title: "Oracles", icon: <DiceFiveIcon /> },
+  { id: "log", title: "Game Log", icon: <ChatsCircleIcon /> },
+];

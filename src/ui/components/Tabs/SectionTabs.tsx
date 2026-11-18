@@ -27,22 +27,14 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
   },
 );
 
-export type SectionTabsVariant =
-  | "segmented"
-  | "chips"
-  | "underline"
-  | "band"
-  | "accent"
-  | "pills"
-  | "well";
+export type SectionTabsVariant = "well" | "underline";
 
 export type SectionTabsSize = "md" | "lg";
 
 const VariantContext = createContext<{
   variant: SectionTabsVariant;
-  fullWidth: boolean;
   size: SectionTabsSize;
-}>({ variant: "segmented", fullWidth: true, size: "md" });
+}>({ variant: "well", size: "md" });
 
 const listStyles = cva({
   base: {
@@ -54,48 +46,11 @@ const listStyles = cva({
   },
   variants: {
     variant: {
-      /** A sunken track with a raised thumb that slides. */
-      segmented: {
-        gap: "0.5",
-        padding: "3px",
-        paddingBottom: "calc(3px + var(--border-widths-ledge))",
-        borderRadius: "md",
-        background: "bg.emphasized",
-        boxShadow: "field",
-      },
-      /** No track; the current section is a raised card, like the open note. */
-      chips: {
-        gap: "1",
-        paddingBottom: "var(--border-widths-ledge)",
-        justifyContent: "flex-start",
-      },
       /** Text on a hairline, the current section underlined in body colour. */
       underline: {
         gap: "4",
         justifyContent: "flex-start",
         boxShadow: "inset 0 -1px 0 token(colors.border.default)",
-      },
-      /**
-       * A strip across the top of a column in the surface colour, the tabs
-       * sharing its width, the current one marked by an accent bar.
-       */
-      band: {
-        gap: 0,
-        background: "bg.surface",
-        boxShadow: "inset 0 -1px 0 token(colors.border.default)",
-      },
-      /**
-       * Plain labels in the heading face with no track or hairline; the
-       * current one turns the accent colour over an accent bar.
-       */
-      accent: {
-        gap: "5",
-        justifyContent: "flex-start",
-      },
-      /** Rounded pills; the current one is tinted with the accent. */
-      pills: {
-        gap: "1",
-        justifyContent: "flex-start",
       },
       /**
        * Chips in a well: a canvas band across the column, edge to edge, the
@@ -120,19 +75,10 @@ const listStyles = cva({
           background: "transparent",
           borderBottom: "none",
         },
-        // A well that starts its tabs at the inline start drops the centring.
-        "[data-section-tab-well][data-align=start] > &": {
-          "& > [role=tab]:first-of-type": { marginInlineStart: 0 },
-          "& > [role=tab]:last-of-type": { marginInlineEnd: 0 },
-        },
       },
     },
-    fullWidth: {
-      true: {},
-      false: { display: "inline-flex", maxWidth: "100%" },
-    },
   },
-  defaultVariants: { variant: "segmented", fullWidth: true },
+  defaultVariants: { variant: "well" },
 });
 
 const tabStyles = cva({
@@ -170,65 +116,12 @@ const tabStyles = cva({
   },
   variants: {
     variant: {
-      segmented: {
-        flex: "1 1 0",
-        minWidth: 0,
-        minHeight: "32px",
-        paddingInline: "3",
-        borderRadius: "sm",
-        _touch: { minHeight: "40px" },
-      },
-      chips: {
-        flex: "none",
-        minHeight: "32px",
-        paddingInline: "3",
-        borderRadius: "md",
-        "&:hover:not([aria-selected=true])": { background: "overlay.hover" },
-        _touch: { minHeight: "40px" },
-      },
       underline: {
         flex: "none",
         minHeight: "38px",
         paddingInline: "0.5",
         borderRadius: "xs",
         _focusVisible: { outlineOffset: "-2px" },
-        _touch: { minHeight: "touch" },
-      },
-      band: {
-        flex: "1 1 0",
-        minWidth: 0,
-        minHeight: "40px",
-        paddingInline: "3",
-        borderRadius: 0,
-        "&:hover:not([aria-selected=true])": { background: "overlay.hover" },
-        _focusVisible: { outlineOffset: "-2px" },
-        _touch: { minHeight: "touch" },
-      },
-      accent: {
-        flex: "none",
-        minHeight: "36px",
-        paddingInline: "0.5",
-        borderRadius: "xs",
-        fontFamily: "heading",
-        fontWeight: "bold",
-        fontSize: "md",
-        textTransform: "uppercase",
-        letterSpacing: "label",
-        "&[aria-selected=true], &[aria-selected=true]:hover": {
-          color: "accent.fg",
-        },
-        _focusVisible: { outlineOffset: "-2px" },
-        _touch: { minHeight: "touch" },
-      },
-      pills: {
-        flex: "none",
-        minHeight: "32px",
-        paddingInline: "3.5",
-        borderRadius: "full",
-        "&:hover:not([aria-selected=true])": { background: "overlay.hover" },
-        "&[aria-selected=true], &[aria-selected=true]:hover": {
-          color: "accent.fg",
-        },
         _touch: { minHeight: "touch" },
       },
       // NoteTabs' chip: 34px with its transparent border, 44px on touch.
@@ -242,21 +135,12 @@ const tabStyles = cva({
         _touch: { minHeight: "touch", paddingInline: "14px" },
       },
     },
-    fullWidth: {
-      true: {},
-      false: {},
-    },
     size: {
       md: {},
       lg: {},
     },
   },
   compoundVariants: [
-    {
-      variant: ["segmented", "band"],
-      fullWidth: false,
-      css: { flex: "none" },
-    },
     // Large: 48px at any pointer, as the phone screens' tabs are.
     {
       size: "lg",
@@ -268,11 +152,11 @@ const tabStyles = cva({
     },
     {
       size: "lg",
-      variant: ["underline", "accent"],
+      variant: "underline",
       css: { paddingInline: "2" },
     },
   ],
-  defaultVariants: { variant: "segmented", size: "md" },
+  defaultVariants: { variant: "well", size: "md" },
 });
 
 const indicatorStyles = cva({
@@ -291,47 +175,11 @@ const indicatorStyles = cva({
   },
   variants: {
     variant: {
-      segmented: {
-        top: "3px",
-        bottom: "calc(3px + var(--border-widths-ledge))",
-        borderRadius: "sm",
-        background: "bg.surface",
-        border: "1px solid token(colors.border.default)",
-        boxShadow: "ledge",
-      },
-      chips: {
-        top: 0,
-        bottom: "var(--border-widths-ledge)",
-        borderRadius: "md",
-        background: "bg.surface",
-        border: "1px solid token(colors.border.default)",
-        boxShadow: "ledge",
-      },
       underline: {
         bottom: 0,
         height: "2px",
         borderRadius: "2px",
         background: "fg.default",
-      },
-      band: {
-        bottom: 0,
-        height: "3px",
-        borderRadius: "3px 3px 0 0",
-        background: "accent.solid",
-      },
-      accent: {
-        bottom: 0,
-        height: "3px",
-        borderRadius: "3px",
-        background: "accent.solid",
-      },
-      pills: {
-        top: 0,
-        bottom: 0,
-        borderRadius: "full",
-        background: "accent.soft",
-        border:
-          "1px solid color-mix(in oklab, token(colors.accent.fg) 35%, transparent)",
       },
       well: {
         top: "token(spacing.1.5)",
@@ -343,7 +191,7 @@ const indicatorStyles = cva({
       },
     },
   },
-  defaultVariants: { variant: "segmented" },
+  defaultVariants: { variant: "well" },
 });
 
 export interface SectionTabListProps
@@ -351,13 +199,9 @@ export interface SectionTabListProps
   /** Names the tab set, such as "Character sections". */
   "aria-label"?: string;
   /**
-   * Segmented (a sunken track), Chips (like the note tabs), Underline (like
-   * the page tabs, in body colour), Band (a surface strip across the
-   * column, an accent bar under the current tab), Accent (heading-face
-   * labels, the current one in the accent colour over a bar) or Pills
-   * (rounded, the current one tinted), or Well (the note tabs' chips in
-   * an edge-to-edge canvas band). The current tab's marker slides between
-   * tabs in all of them.
+   * Well (the default: the note tabs' chips, centred in an edge-to-edge
+   * canvas band) or Underline (like the page tabs, in body colour, on a
+   * hairline). The current tab's marker slides between tabs in both.
    */
   variant?: SectionTabsVariant;
   /**
@@ -365,11 +209,6 @@ export interface SectionTabListProps
    * head a whole phone screen.
    */
   size?: SectionTabsSize;
-  /**
-   * Fill the width, sharing it between the tabs (segmented) or running the
-   * hairline across (underline). On by default.
-   */
-  fullWidth?: boolean;
   /**
    * Select a tab as arrow keys reach it. On by default, since section
    * panels are cheap to show; turn it off for panels that load.
@@ -387,20 +226,19 @@ export interface SectionTabListProps
 export const SectionTabList = forwardRef<HTMLDivElement, SectionTabListProps>(
   function SectionTabList(props, ref) {
     const {
-      variant = "segmented",
+      variant = "well",
       size = "md",
-      fullWidth = true,
       activateOnFocus = true,
       className,
       children,
       ...rest
     } = props;
     return (
-      <VariantContext.Provider value={{ variant, fullWidth, size }}>
+      <VariantContext.Provider value={{ variant, size }}>
         <BaseTabs.List
           ref={ref}
           activateOnFocus={activateOnFocus}
-          className={cx(listStyles({ variant, fullWidth }), className)}
+          className={cx(listStyles({ variant }), className)}
           {...rest}
         >
           <BaseTabs.Indicator className={indicatorStyles({ variant })} />
@@ -422,11 +260,11 @@ export interface SectionTabProps
 export const SectionTab = forwardRef<HTMLButtonElement, SectionTabProps>(
   function SectionTab(props, ref) {
     const { icon, className, children, ...rest } = props;
-    const { variant, fullWidth, size } = useContext(VariantContext);
+    const { variant, size } = useContext(VariantContext);
     return (
       <BaseTabs.Tab
         ref={ref}
-        className={cx(tabStyles({ variant, fullWidth, size }), className)}
+        className={cx(tabStyles({ variant, size }), className)}
         {...rest}
       >
         {icon}
@@ -446,12 +284,6 @@ const tabWellStyles = css({
   background: "bg.canvas",
   borderBottom: "1px solid token(colors.border.default)",
   "& > [role=tablist]": { gridColumn: "2" },
-  // Tabs from the inline start, the controls at the end.
-  "&[data-align=start]": {
-    gridTemplateColumns: "minmax(0, 1fr) max-content",
-    "& > [role=tablist]": { gridColumn: "1" },
-    "& > [data-section-tab-well-end]": { gridColumn: "2" },
-  },
   "& > [data-section-tab-well-end]": {
     gridColumn: "3",
     justifySelf: "end",
@@ -464,18 +296,13 @@ const tabWellStyles = css({
 });
 
 export interface SectionTabWellProps {
-  /** A `SectionTabList` with `variant="well"`. */
+  /** A well `SectionTabList`. */
   children: ReactNode;
   /**
    * Controls at the end of the band, beside the tabs but outside the tab
    * list, such as a column's menu and Collapse (`SidebarHeaderEnd`).
    */
   end?: ReactNode;
-  /**
-   * Where the tabs sit: centred across the whole band (the default), or
-   * from the inline start with `end` after them.
-   */
-  align?: "center" | "start";
   className?: string;
 }
 
@@ -485,13 +312,9 @@ export interface SectionTabWellProps {
  * only tabs. Without `end`, a well `SectionTabList` alone is the same band.
  */
 export function SectionTabWell(props: SectionTabWellProps) {
-  const { children, end, align = "center", className } = props;
+  const { children, end, className } = props;
   return (
-    <div
-      className={cx(tabWellStyles, className)}
-      data-section-tab-well=""
-      data-align={align}
-    >
+    <div className={cx(tabWellStyles, className)} data-section-tab-well="">
       {children}
       <div data-section-tab-well-end="">{end}</div>
     </div>

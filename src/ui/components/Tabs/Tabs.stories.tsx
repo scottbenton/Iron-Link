@@ -28,29 +28,19 @@ import {
   Tabs,
 } from "./SectionTabs";
 
-const sectionTabsVariants: SectionTabsVariant[] = [
-  "segmented",
-  "chips",
-  "underline",
-  "band",
-  "accent",
-  "pills",
-  "well",
-];
+const sectionTabsVariants: SectionTabsVariant[] = ["well", "underline"];
 
 interface PlaygroundArgs {
   variant: SectionTabsVariant;
   size: SectionTabsSize;
-  fullWidth: boolean;
   activateOnFocus: boolean;
 }
 
 const meta: Meta<PlaygroundArgs> = {
   title: "Components/Tabs",
   args: {
-    variant: "segmented",
+    variant: "well",
     size: "md",
-    fullWidth: true,
     activateOnFocus: true,
   },
   argTypes: {
@@ -72,7 +62,7 @@ const frame = css({
 const panelText = css({ color: "fg.muted", fontSize: "sm", margin: 0 });
 
 function SectionTabsDemo(props: PlaygroundArgs) {
-  const { variant, size, fullWidth, activateOnFocus } = props;
+  const { variant, size, activateOnFocus } = props;
   return (
     <Tabs defaultValue="tracks">
       <Stack gap="3">
@@ -80,7 +70,6 @@ function SectionTabsDemo(props: PlaygroundArgs) {
           aria-label="Character sections"
           variant={variant}
           size={size}
-          fullWidth={fullWidth}
           activateOnFocus={activateOnFocus}
         >
           <SectionTab value="overview">Overview</SectionTab>
@@ -106,8 +95,8 @@ function SectionTabsDemo(props: PlaygroundArgs) {
 }
 
 /**
- * Section tabs. See Layout/Examples/Column tab variants for each variant in
- * the character and reference columns.
+ * Section tabs: a well (the default, as the game page's columns use) or an
+ * underline (the phone screens, at size large).
  */
 export const Playground: Story = {
   render: (args) => (
@@ -115,60 +104,22 @@ export const Playground: Story = {
       <SectionTabsDemo
         variant={args.variant}
         size={args.size}
-        fullWidth={args.fullWidth}
         activateOnFocus={args.activateOnFocus}
       />
     </Box>
   ),
 };
 
-/** Every section tab variant. The current tab's marker slides in each. */
-export const SectionTabVariants: Story = {
-  render: () => (
-    <Stack gap="8" maxWidth="420px">
-      {sectionTabsVariants.map((variant) => (
-        <Stack key={variant} gap="2">
-          <Text variant="label" color="muted">
-            {variant}
-          </Text>
-          <SectionTabsDemo
-            variant={variant}
-            size="md"
-            fullWidth={
-              variant === "segmented" ||
-              variant === "band" ||
-              variant === "well"
-            }
-            activateOnFocus
-          />
-        </Stack>
-      ))}
-    </Stack>
-  ),
-};
-
 /**
- * Large tabs: 48px tall at any pointer, for tabs that head a whole phone
- * screen.
+ * Large underline tabs: 48px tall at any pointer, for tabs that head a
+ * whole phone screen.
  */
 export const SectionTabsLarge: Story = {
   name: "Section Tabs, large",
   render: () => (
-    <Stack gap="8" maxWidth="420px">
-      {(["underline", "band", "segmented"] as const).map((variant) => (
-        <Stack key={variant} gap="2">
-          <Text variant="label" color="muted">
-            {variant}
-          </Text>
-          <SectionTabsDemo
-            variant={variant}
-            size="lg"
-            fullWidth
-            activateOnFocus
-          />
-        </Stack>
-      ))}
-    </Stack>
+    <Box maxWidth="420px">
+      <SectionTabsDemo variant="underline" size="lg" activateOnFocus />
+    </Box>
   ),
 };
 

@@ -244,13 +244,6 @@ export interface SidebarProps {
    * title stays as a screen reader h2.
    */
   stackPanels?: boolean;
-  /**
-   * Let a single panel hand its header to its content too, as stacked panels
-   * do: where the content renders `SidebarHeaderEnd` (in its tab well), the
-   * title becomes a screen reader h2 and the controls sit in the well, so
-   * the column's tabs line up with the notes tabs. Off by default.
-   */
-  headerInContent?: boolean;
   labels?: SidebarLabels;
   id?: string;
   className?: string;
@@ -262,6 +255,10 @@ export interface SidebarProps {
  * it to a rail of section buttons, each of which shows that section over
  * the page for a moment; the app owns the width and collapsed state so it
  * can remember them.
+ *
+ * A panel whose content renders `SidebarHeaderEnd` (in its tab well) drops
+ * its visible header: the controls sit in the well and the title stays as
+ * a screen reader h2, so the column's tabs line up with the notes tabs.
  *
  * Panels stay mounted while hidden, so a panel keeps its scroll position
  * and open sections when the reader switches away and back.
@@ -282,7 +279,6 @@ export function Sidebar(props: SidebarProps) {
     resizable = true,
     collapsible = true,
     stackPanels = false,
-    headerInContent = false,
     labels,
     id: idProp,
     className,
@@ -526,13 +522,11 @@ export function Sidebar(props: SidebarProps) {
     </div>
   );
 
-  // A single panel's header, in its header or (`headerInContent`) its well.
+  // A single panel's header, in its header or, where its content renders
+  // `SidebarHeaderEnd`, its well.
   const singleEnd = renderHeaderEnd(activePanel);
   const singleInContent =
-    headerInContent &&
-    !peeking &&
-    !!activePanel &&
-    claimedPanels.has(activePanel.id);
+    !peeking && !!activePanel && claimedPanels.has(activePanel.id);
 
   // While it shows over the page, the column is a non-modal dialog named
   // by its heading.
@@ -752,20 +746,16 @@ export function Sidebar(props: SidebarProps) {
               </div>
             )}
             <div id={panelDomId(activePanel.id)} className={panelStyles}>
-              {headerInContent ? (
-                <SidebarHeaderSlotContext.Provider
-                  value={{
-                    panelId: activePanel.id,
-                    end: singleEnd,
-                    claimed: singleInContent,
-                    claim: claimHeader,
-                  }}
-                >
-                  {activePanel.content}
-                </SidebarHeaderSlotContext.Provider>
-              ) : (
-                activePanel.content
-              )}
+              <SidebarHeaderSlotContext.Provider
+                value={{
+                  panelId: activePanel.id,
+                  end: singleEnd,
+                  claimed: singleInContent,
+                  claim: claimHeader,
+                }}
+              >
+                {activePanel.content}
+              </SidebarHeaderSlotContext.Provider>
             </div>
           </div>
         )

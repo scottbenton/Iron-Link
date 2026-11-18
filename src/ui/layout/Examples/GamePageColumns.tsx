@@ -9,22 +9,20 @@
  *   that order; Assets the asset cards; Tracks the TracksPanel (vows,
  *   journeys, fights, scene challenges, clocks and connections).
  * - Notes (live `NotesSection`): the open notes as tabs, its h2 for screen
- *   readers only. With `pinLog` the game log is a pinned first tab here
- *   instead of a Reference tab (a mockup; the live app has no such option).
+ *   readers only.
  * - Reference (live `ReferenceSidebarContents`): Moves, Oracles and Game
  *   Log tabs, each scrolling under the pinned tab row.
  */
 import {
-  ChatsCircleIcon,
   DotsThreeIcon,
   PlusIcon,
   ShareNetworkIcon,
 } from "@phosphor-icons/react";
-import { ReactNode, useState } from "react";
+import { useState } from "react";
 
 import { Box, Flex, HStack, Stack } from "ui/primitives";
 
-import { css, cva } from "styled-system/css";
+import { css } from "styled-system/css";
 
 import { BreadcrumbItem, Breadcrumbs } from "../../components/Breadcrumbs";
 import { Button } from "../../components/Button";
@@ -35,7 +33,6 @@ import {
   SectionTab,
   SectionTabList,
   SectionTabWell,
-  SectionTabsVariant,
   TabPanel,
   Tabs,
 } from "../../components/Tabs";
@@ -76,7 +73,8 @@ import { ActionToolbar, ActionToolbarIconButton } from "../ActionToolbar";
 import { SectionHeading } from "../SectionHeading";
 import { DemoCharacterSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
 import { SidebarHeaderEnd } from "../Sidebar";
-import { characterSections, getReferenceSections } from "./columnSections";
+import type { LayoutSection } from "../shared/layoutPanel";
+import { characterSections, referenceSections } from "./columnSections";
 
 const capitalize = (text: string) =>
   text.charAt(0).toUpperCase() + text.slice(1);
@@ -89,62 +87,42 @@ const columnTabsStyles = css({
 });
 
 /**
- * The row holding a column's tabs. A band or a well runs edge to edge; the
- * others sit inside the column's margins.
+ * The row holding a column's tabs: a well edge to edge. It stays at the top
+ * while the column scrolls, as the header did, so the tabs and (stacked)
+ * Collapse never scroll away.
  */
-const tabRowStyles = cva({
-  base: { flex: "none", paddingInline: "4", paddingBlock: "3" },
-  variants: {
-    variant: {
-      segmented: {},
-      chips: {},
-      underline: { paddingBlockEnd: "4" },
-      band: { paddingInline: 0, paddingBlock: 0, marginBlockEnd: "4" },
-      accent: { paddingBlock: "1", marginBlockEnd: "3" },
-      pills: {},
-      // Stays at the top while the column scrolls, as the header did, so
-      // the tabs and (stacked) Collapse never scroll away.
-      well: {
-        paddingInline: 0,
-        paddingBlock: 0,
-        marginBlockEnd: "4",
-        position: "sticky",
-        top: 0,
-        zIndex: 2,
-      },
-    },
-  },
-  defaultVariants: { variant: "well" },
+const tabRowStyles = css({
+  flex: "none",
+  marginBlockEnd: "4",
+  position: "sticky",
+  top: 0,
+  zIndex: 2,
 });
 
 /**
- * A column's tab list. In a well, the band also takes the column header's
+ * A column's tabs in a well. The band also takes the column header's
  * controls when the sidebars stack into one column (`SidebarHeaderEnd`), so
  * the stacked column has no title rows and the tabs are its top row.
  */
-function ColumnTabList(props: {
-  variant: SectionTabsVariant;
-  align?: "center" | "start";
-  children: ReactNode;
-}) {
-  const { variant, align, children } = props;
-  if (variant !== "well") return <>{children}</>;
+function ColumnTabList(props: { label: string; sections: LayoutSection[] }) {
+  const { label, sections } = props;
   return (
-    <SectionTabWell align={align} end={<SidebarHeaderEnd />}>
-      {children}
-    </SectionTabWell>
+    <div className={tabRowStyles}>
+      <SectionTabWell end={<SidebarHeaderEnd />}>
+        <SectionTabList aria-label={label}>
+          {sections.map((tab) => (
+            <SectionTab key={tab.id} value={tab.id}>
+              {tab.title}
+            </SectionTab>
+          ))}
+        </SectionTabList>
+      </SectionTabWell>
+    </div>
   );
 }
 
 /** Props the game page's columns share for their own tabs. */
 export interface ColumnTabsProps {
-  /**
-   * The look of the column's tab row: chips in a well by default, the
-   * note tabs' look, so the three columns' tabs read as one family.
-   */
-  tabsVariant?: SectionTabsVariant;
-  /** In a well: tabs centred (the default) or from the inline start. */
-  tabsAlign?: "center" | "start";
   /** The tab showing. Uncontrolled without it. */
   section?: string;
   onSectionChange?: (section: string) => void;
@@ -195,13 +173,7 @@ export function CharacterColumnActions() {
 export function CharacterColumn(
   props: { character?: SampleCharacter } & ColumnTabsProps,
 ) {
-  const {
-    character = sampleCharacters[0],
-    tabsVariant = "well",
-    tabsAlign,
-    section,
-    onSectionChange,
-  } = props;
+  const { character = sampleCharacters[0], section, onSectionChange } = props;
   const [meters, setMeters] = useState(character.meters);
   // Adds apply to the next roll, then reset to 0, as the live app does.
   const [adds, setAdds] = useState(0);
@@ -219,21 +191,7 @@ export function CharacterColumn(
       onValueChange={(value) => onSectionChange?.(String(value))}
       className={columnTabsStyles}
     >
-      <div className={tabRowStyles({ variant: tabsVariant })}>
-        <ColumnTabList variant={tabsVariant} align={tabsAlign}>
-          <SectionTabList
-            aria-label="Character Sections"
-            variant={tabsVariant}
-            fullWidth={tabsVariant !== "accent" && tabsVariant !== "pills"}
-          >
-            {characterSections.map((tab) => (
-              <SectionTab key={tab.id} value={tab.id}>
-                {tab.title}
-              </SectionTab>
-            ))}
-          </SectionTabList>
-        </ColumnTabList>
-      </div>
+      <ColumnTabList label="Character Sections" sections={characterSections} />
 
       <TabPanel value="overview" className={sheetPanelStyles}>
         <Stack gap="6">
@@ -387,59 +345,23 @@ const noteBodyStyles = css({
   marginInline: "auto",
 });
 
-const logTabId = "game-log";
-
-/** The log fills its notes tab, its entries kept to a readable width. */
-const logNotePanelStyles = css({
-  display: "flex",
-  flexDirection: "column",
-  overflow: "hidden",
-  "&[hidden]": { display: "none" },
-});
-
-/**
- * The open notes as tabs, each with its toolbar, as in the live app. With
- * `pinLog`, the game log is a pinned first tab: always open, never closed,
- * and counting what arrived while another note was open.
- */
-export function NotesColumn(props: { pinLog?: boolean }) {
-  const { pinLog } = props;
+/** The open notes as tabs, each with its toolbar, as in the live app. */
+export function NotesColumn() {
   const [notes, setNotes] = useState(openNotes);
   const [value, setValue] = useState<string | null>("session-4");
-  // Two rolls arrived while the session note was open.
-  const [unread, setUnread] = useState(2);
-  const select = (id: string) => {
-    setValue(id);
-    if (id === logTabId) setUnread(0);
-  };
-  const tabs = pinLog
-    ? [
-        {
-          id: logTabId,
-          label: "Game Log",
-          icon: <ChatsCircleIcon aria-hidden />,
-          pinned: true,
-          unread,
-        },
-        ...notes,
-      ]
-    : notes;
   const close = (id: string) => {
     const index = notes.findIndex((note) => note.id === id);
     const next = notes.filter((note) => note.id !== id);
     setNotes(next);
     if (id === value) {
-      setValue(
-        next[Math.min(index, next.length - 1)]?.id ??
-          (pinLog ? logTabId : null),
-      );
+      setValue(next[Math.min(index, next.length - 1)]?.id ?? null);
     }
   };
   return (
     <NoteTabs
-      tabs={tabs}
+      tabs={notes}
       value={value}
-      onValueChange={select}
+      onValueChange={setValue}
       onClose={close}
       onAdd={() => {}}
       className={css({ height: "100%" })}
@@ -486,12 +408,7 @@ export function NotesColumn(props: { pinLog?: boolean }) {
           </Stack>
         </NoteTabPanel>
       ))}
-      {pinLog && (
-        <NoteTabPanel value={logTabId} className={logNotePanelStyles}>
-          <GameLogPanel maxContentWidth="640px" />
-        </NoteTabPanel>
-      )}
-      {tabs.length === 0 && (
+      {notes.length === 0 && (
         <Stack alignItems="center" gap="3" padding="8">
           <Text color="muted">No notes open.</Text>
         </Stack>
@@ -536,12 +453,11 @@ const logPanelStyles = css({
 });
 
 /** The game log with its sample entries, sending as the first character. */
-function GameLogPanel(props: { maxContentWidth?: string }) {
+function GameLogPanel() {
   const [entries, setEntries] = useState<GameLogEntry[]>(gameLogEntries);
   return (
     <GameLog
       entries={entries}
-      maxContentWidth={props.maxContentWidth}
       onSend={(message) =>
         setEntries((current) => [
           ...current,
@@ -558,20 +474,9 @@ function GameLogPanel(props: { maxContentWidth?: string }) {
   );
 }
 
-/**
- * The reference: Moves, Oracles and the Game Log, as in the live app.
- * `showLog={false}` drops the log tab, for when the notes pin it.
- */
-export function ReferenceColumn(
-  props: { showLog?: boolean } & ColumnTabsProps,
-) {
-  const {
-    showLog = true,
-    tabsVariant = "well",
-    tabsAlign,
-    section,
-    onSectionChange,
-  } = props;
+/** The reference: Moves, Oracles and the Game Log, as in the live app. */
+export function ReferenceColumn(props: ColumnTabsProps) {
+  const { section, onSectionChange } = props;
   return (
     <Tabs
       defaultValue="moves"
@@ -579,21 +484,7 @@ export function ReferenceColumn(
       onValueChange={(value) => onSectionChange?.(String(value))}
       className={referenceTabsStyles}
     >
-      <div className={tabRowStyles({ variant: tabsVariant })}>
-        <ColumnTabList variant={tabsVariant} align={tabsAlign}>
-          <SectionTabList
-            aria-label="Reference Sections"
-            variant={tabsVariant}
-            fullWidth={tabsVariant !== "accent" && tabsVariant !== "pills"}
-          >
-            {getReferenceSections(showLog).map((tab) => (
-              <SectionTab key={tab.id} value={tab.id}>
-                {tab.title}
-              </SectionTab>
-            ))}
-          </SectionTabList>
-        </ColumnTabList>
-      </div>
+      <ColumnTabList label="Reference Sections" sections={referenceSections} />
       <TabPanel value="moves" className={referencePanelStyles}>
         <Stack gap="2">
           {starforgedMoveCategories.map((category) => (
@@ -616,18 +507,16 @@ export function ReferenceColumn(
           ))}
         </Stack>
       </TabPanel>
-      {showLog && (
-        <TabPanel value="log" className={logPanelStyles}>
-          <Box
-            flex="1 1 auto"
-            minHeight="0"
-            display="flex"
-            flexDirection="column"
-          >
-            <GameLogPanel />
-          </Box>
-        </TabPanel>
-      )}
+      <TabPanel value="log" className={logPanelStyles}>
+        <Box
+          flex="1 1 auto"
+          minHeight="0"
+          display="flex"
+          flexDirection="column"
+        >
+          <GameLogPanel />
+        </Box>
+      </TabPanel>
     </Tabs>
   );
 }

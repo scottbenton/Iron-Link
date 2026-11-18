@@ -61,7 +61,7 @@ import {
   ReferenceColumn,
 } from "./GamePageColumns";
 import { GamePageTabs, PhoneFrame } from "./StoryPlaceholders";
-import { characterSections, getReferenceSections } from "./columnSections";
+import { characterSections, referenceSections } from "./columnSections";
 import { getNavItems } from "./storyData";
 
 const meta: Meta = {
@@ -75,7 +75,7 @@ type Story = StoryObj;
 /** On a character's page the title is the character's name, as live. */
 const pageTitle = "Kira Vale";
 
-function useGameColumns(logInNotes?: boolean, tabsAlign?: "center" | "start") {
+function useGameColumns() {
   // The columns' tabs are kept here so a collapsed sidebar's rail can open
   // the column on one of them.
   const [sheetSection, setSheetSection] = useState("overview");
@@ -91,7 +91,6 @@ function useGameColumns(logInNotes?: boolean, tabsAlign?: "center" | "start") {
       <CharacterColumn
         section={sheetSection}
         onSectionChange={setSheetSection}
-        tabsAlign={tabsAlign}
       />
     ),
   };
@@ -99,20 +98,18 @@ function useGameColumns(logInNotes?: boolean, tabsAlign?: "center" | "start") {
     id: "notes",
     title: "Notes",
     hideTitle: true,
-    content: <NotesColumn pinLog={logInNotes} />,
+    content: <NotesColumn />,
   };
   const reference: LayoutPanel = {
     id: "reference",
     title: "Reference",
-    sections: getReferenceSections(!logInNotes),
+    sections: referenceSections,
     activeSectionId: referenceSection,
     onActiveSectionChange: setReferenceSection,
     content: (
       <ReferenceColumn
-        showLog={!logInNotes}
         section={referenceSection}
         onSectionChange={setReferenceSection}
-        tabsAlign={tabsAlign}
       />
     ),
   };
@@ -138,22 +135,8 @@ function WorldsBetaBanner() {
   );
 }
 
-function WideGamePage(props: {
-  stacked?: boolean;
-  banner?: boolean;
-  logInNotes?: boolean;
-  /**
-   * Keeps each column's title row above its tabs, as before; by default the
-   * titles are screen reader headings and the controls sit in the well.
-   */
-  columnHeaders?: boolean;
-  /** The column tabs from the inline start rather than centred. */
-  tabsAlign?: "center" | "start";
-}) {
-  const { character, notes, reference } = useGameColumns(
-    props.logInNotes,
-    props.tabsAlign,
-  );
+function WideGamePage(props: { stacked?: boolean; banner?: boolean }) {
+  const { character, notes, reference } = useGameColumns();
   // The app keeps these and remembers them per device.
   const [sheetWidth, setSheetWidth] = useState(350);
   const [referenceWidth, setReferenceWidth] = useState(350);
@@ -190,13 +173,11 @@ function WideGamePage(props: {
         onStackedCollapsedChange={setStackedCollapsed}
         startSidebar={{
           panels: [character],
-          headerInContent: !props.columnHeaders,
           width: sheetWidth,
           onWidthChange: setSheetWidth,
         }}
         endSidebar={{
           panels: [reference],
-          headerInContent: !props.columnHeaders,
           width: referenceWidth,
           onWidthChange: setReferenceWidth,
         }}
@@ -213,32 +194,6 @@ function WideGamePage(props: {
  */
 export const Desktop: Story = {
   render: () => <WideGamePage />,
-};
-
-/**
- * A mockup: the game log as a pinned first tab in the notes, so it gets the
- * page's widest column and stays one click away. It can't be closed, keeps
- * its place while notes scroll past, and counts entries that arrived while
- * a note was open. The reference keeps only Moves and Oracles.
- */
-export const DesktopLogInNotes: Story = {
-  name: "Desktop, game log in notes",
-  render: () => <WideGamePage logInNotes />,
-};
-
-/**
- * The column tabs from the inline start, with each column's settings and
- * Collapse at the end of its well.
- */
-export const DesktopTabsAtStart: Story = {
-  name: "Desktop, tabs at the start",
-  render: () => <WideGamePage tabsAlign="start" />,
-};
-
-/** For comparison: each column's title row above its tabs, as before. */
-export const DesktopColumnHeaders: Story = {
-  name: "Desktop, column headers",
-  render: () => <WideGamePage columnHeaders />,
 };
 
 /** With the Worlds beta banner over the tabs, edge to edge. */
@@ -273,8 +228,8 @@ export const Medium: Story = {
   ),
 };
 
-function PhoneGamePage(props: { logInNotes?: boolean }) {
-  const { character, notes, reference } = useGameColumns(props.logInNotes);
+function PhoneGamePage() {
+  const { character, notes, reference } = useGameColumns();
   return (
     <PhoneFrame>
       <AppShell
@@ -308,11 +263,4 @@ function PhoneGamePage(props: { logInNotes?: boolean }) {
 export const Phone: Story = {
   parameters: { layout: "padded" },
   render: () => <PhoneGamePage />,
-};
-
-/** The game log pinned in the notes on a phone: open the Notes tab. */
-export const PhoneLogInNotes: Story = {
-  name: "Phone, game log in notes",
-  parameters: { layout: "padded" },
-  render: () => <PhoneGamePage logInNotes />,
 };

@@ -32,7 +32,7 @@ import {
   ReferenceColumn,
 } from "./GamePageColumns";
 import { GamePageTabs } from "./StoryPlaceholders";
-import { characterSections, getReferenceSections } from "./columnSections";
+import { characterSections, referenceSections } from "./columnSections";
 import { getNavItems } from "./storyData";
 
 const meta: Meta = {
@@ -71,7 +71,7 @@ function CollapsedGamePage(props: { stacked?: boolean }) {
   const reference: LayoutPanel = {
     id: "reference",
     title: "Reference",
-    sections: getReferenceSections(),
+    sections: referenceSections,
     activeSectionId: referenceSection,
     onActiveSectionChange: setReferenceSection,
     content: (
