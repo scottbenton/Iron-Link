@@ -65,6 +65,11 @@ that are easy to miss. When you learn a new one, add a line here.
 
 ## Deploys
 
+- Cloudflare Pages deploys come from the `deploy` job in
+  `.github/workflows/ci.yaml` (Direct Upload with wrangler), after unit
+  tests, lint and database tests pass; Cloudflare's own Git builds are off.
+  Build variables live in the `production` and `preview` GitHub environments,
+  and `CLOUDFLARE_DEPLOY_ENABLED` (a repository variable) switches the job on.
 - A tab left open across a deploy asks for chunks that are gone (Cloudflare
   Pages answers with index.html). `installStaleChunkReload` reloads once on
   Vite's `vite:preloadError`, whatever the browser's wording, with a 10s

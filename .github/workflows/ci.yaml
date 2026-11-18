@@ -7,6 +7,11 @@ on:
       - main
   workflow_dispatch:
 
+# A newer push to a PR cancels its older run; runs on main always finish.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # Unit tests and lint run here rather than in the Cloudflare Pages build,
   # which has one concurrent runner and queues up PR stacks.
@@ -84,3 +89,109 @@ jobs:
             git diff
             exit 1
           fi
+
+  # Builds and uploads to Cloudflare Pages only once every check above has
+  # passed, in place of Cloudflare's own Git builds (turned off under Branch
+  # control in its dashboard). The job stays off until the
+  # CLOUDFLARE_DEPLOY_ENABLED repository variable is "true". PRs from forks
+  # have no secrets, so they get no preview.
+  deploy:
+    needs: [unit, lint, test]
+    if: >-
+      vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' &&
+      (github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    # Build settings live in two GitHub environments, matching Cloudflare's
+    # Production and Preview settings.
+    environment: ${{ (github.event_name == 'pull_request' || github.ref_name != 'main') && 'preview' || 'production' }}
+
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
+    env:
+      CLOUDFLARE_PAGES_PROJECT_NAME: ${{ vars.CLOUDFLARE_PAGES_PROJECT_NAME || 'iron-link' }}
+      DEPLOY_BRANCH: ${{ github.head_ref || github.ref_name }}
+      DEPLOY_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+    steps:
+      # The branch's own commit, as Cloudflare built it, not the PR's merge
+      # commit.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # scripts/build-cloudflare.sh and vite.config.ts read the variables
+      # Cloudflare's builder set, so they are given the same names here.
+      - name: Build
+        env:
+          CF_PAGES_BRANCH: ${{ env.DEPLOY_BRANCH }}
+          CF_PAGES_COMMIT_SHA: ${{ env.DEPLOY_SHA }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+          VITE_POSTHOG_KEY: ${{ vars.VITE_POSTHOG_KEY }}
+          VITE_POSTHOG_HOST: ${{ vars.VITE_POSTHOG_HOST }}
+          POSTHOG_CLI_PROJECT_ID: ${{ vars.POSTHOG_CLI_PROJECT_ID }}
+          POSTHOG_CLI_HOST: ${{ vars.POSTHOG_CLI_HOST }}
+          POSTHOG_CLI_API_KEY: ${{ secrets.POSTHOG_CLI_API_KEY }}
+        run: npm run build:cloudflare
+
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          output="$(
+            npx --yes wrangler@4 pages deploy dist \
+              --project-name "$CLOUDFLARE_PAGES_PROJECT_NAME" \
+              --branch "$DEPLOY_BRANCH" \
+              --commit-hash "$DEPLOY_SHA" 2>&1
+          )"
+          printf '%s\n' "$output"
+          # The deployment's own URL, then the branch alias when one is made.
+          urls="$(printf '%s\n' "$output" | grep -oE 'https://[^[:space:]]+\.pages\.dev' | awk '!seen[$0]++' | paste -sd ' ' - || true)"
+          echo "urls=$urls" >> "$GITHUB_OUTPUT"
+
+      - name: Comment preview link
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          PREVIEW_URLS: ${{ steps.deploy.outputs.urls }}
+        with:
+          script: |
+            const marker = "<!-- cloudflare-pages-preview -->";
+            const urls = (process.env.PREVIEW_URLS || "").split(" ").filter(Boolean);
+            const body = [
+              marker,
+              "Cloudflare Pages preview deployed after checks passed.",
+              "",
+              ...urls.map((url) => `- ${url}`),
+              "",
+              `Branch: \`${process.env.DEPLOY_BRANCH}\``,
+              `Commit: \`${process.env.DEPLOY_SHA}\``,
+            ].join("\n");
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = comments.find((c) => c.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
