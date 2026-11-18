@@ -138,10 +138,10 @@ export const buttonStyles = cva({
         "--btn-edge": "transparent",
         "--btn-ledge": "var(--border-widths-ledge)",
         // How much darker the ledge is than the ring. Light mode stays
-        // light, since a dark ledge under a bright ring reads as mud; the
+        // lighter, since a dark ledge under a bright ring reads as mud; the
         // saturation keeps it from going grey.
-        "--btn-ledge-filter": "brightness(0.88) saturate(1.15)",
-        _dark: { "--btn-ledge-filter": "brightness(0.68) saturate(1.15)" },
+        "--btn-ledge-filter": "brightness(0.8) saturate(1.15)",
+        _dark: { "--btn-ledge-filter": "brightness(0.62) saturate(1.15)" },
         // The ring's width and the face's colour, read by the parts inside.
         "--btn-ring": "2px",
         "--btn-face": "{colors.gray.900}",
