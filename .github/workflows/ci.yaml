@@ -16,6 +16,7 @@ jobs:
   # Unit tests and lint run here rather than in the Cloudflare Pages build,
   # which has one concurrent runner and queues up PR stacks.
   unit:
+    name: Unit Tests
     runs-on: ubuntu-latest
 
     # The Supabase client throws at import without these; tests never
@@ -38,6 +39,7 @@ jobs:
         run: npx vitest run
 
   lint:
+    name: Lint
     runs-on: ubuntu-latest
 
     steps:
@@ -56,6 +58,7 @@ jobs:
         run: npm run format:check
 
   test:
+    name: Supabase Tests
     runs-on: ubuntu-latest
 
     steps:
