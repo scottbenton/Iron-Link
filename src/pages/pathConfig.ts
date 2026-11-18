@@ -11,6 +11,7 @@ export const pathConfig = {
   worldCreate: "/worlds/create",
   world: (worldId: string) => `/worlds/${worldId}`,
   worldSettings: (worldId: string) => `/worlds/${worldId}/settings`,
+  worldTruths: (worldId: string) => `/worlds/${worldId}/truths`,
   worldCategory: (worldId: string, categoryId: string) =>
     `/worlds/${worldId}/categories/${categoryId}`,
   worldEntry: (worldId: string, categoryId: string, entryId: string) =>

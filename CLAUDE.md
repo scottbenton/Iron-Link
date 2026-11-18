@@ -150,6 +150,11 @@ that are easy to miss. When you learn a new one, add a line here.
   a table written by client upserts needs UPDATE on its key columns; keep a
   key fixed with a trigger (`world_truths_keep_key`), not by withholding the
   grant. Write pgTAP upserts the same way.
+- Truths come from the setting's own package (`getWorldTruthsPackageId`), so
+  the Sundered Isles shows its own, not Starforged's. Iron Fellowship and
+  Crew Link truths (`newTruths`, keyed by dictionary key with option and
+  sub-table indexes) map through `mapLegacyWorldTruths`, which never drops a
+  written truth.
 
 ## Bonds
 

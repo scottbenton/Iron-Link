@@ -14,6 +14,7 @@ export type WorldView =
       entryId: string;
       section?: WorldEntrySection;
     }
+  | { type: "truths" }
   | { type: "settings" }
   | { type: "category-settings"; categoryId: string };
 
@@ -56,6 +57,8 @@ export function getWorldViewPath(worldId: string, view: WorldView): string {
           ? pathConfig.worldEntryMap(world, category, entry)
           : pathConfig.worldEntry(world, category, entry);
     }
+    case "truths":
+      return pathConfig.worldTruths(world);
     case "settings":
       return pathConfig.worldSettings(world);
     case "category-settings":
@@ -96,6 +99,8 @@ export function parseWorldViewPath(
 function parseWorldViewSegments(segments: string[]): WorldView | null {
   const [first, second, third, fourth, fifth, ...extra] = segments;
   if (first === undefined) return { type: "world" };
+  if (first === "truths")
+    return second === undefined ? { type: "truths" } : null;
   if (first === "settings") {
     if (second === undefined) return { type: "settings" };
     if (

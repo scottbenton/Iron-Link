@@ -99,6 +99,9 @@ export function WorldBreadcrumbs({
           : t("worlds.entries.missing", "Entry unavailable")),
     });
   }
+  if (view.type === "truths") {
+    items.push({ key: "truths", label: t("worlds.truths.title", "Truths") });
+  }
   if (view.type === "settings" || view.type === "category-settings") {
     items.push({
       key: "settings",

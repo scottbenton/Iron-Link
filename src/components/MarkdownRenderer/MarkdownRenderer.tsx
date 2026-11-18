@@ -221,8 +221,9 @@ export function MarkdownRenderer(props: MarkdownRendererProps) {
                 </Link>
               );
             } else {
-              // TODO - add error styling
-              return <Typography>{linkProps.children}</Typography>;
+              // An item this page's rules don't have reads as plain text,
+              // inline in its sentence.
+              return <>{linkProps.children}</>;
             }
           }
 
@@ -236,8 +237,7 @@ export function MarkdownRenderer(props: MarkdownRendererProps) {
           if (url) {
             return <a {...linkProps} />;
           } else {
-            // TODO - add error styling
-            return <Typography>{linkProps.children}</Typography>;
+            return <>{linkProps.children}</>;
           }
         },
       }}

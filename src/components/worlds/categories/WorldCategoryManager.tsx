@@ -41,6 +41,11 @@ import { WorldEntryActions } from "../entries/WorldEntryActions";
 import { WorldEntryView } from "../entries/WorldEntryView";
 import { getDefaultWorldEntryPermissions } from "../entries/worldEntryPermissions";
 import { WorldHomeNotes } from "../notes/WorldHomeNotes";
+import {
+  WorldTruthsCount,
+  WorldTruthsRollUnchosenButton,
+} from "../truths/WorldTruthsStrip";
+import { WorldTruthsView } from "../truths/WorldTruthsView";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldCategoryBrowser } from "./WorldCategoryBrowser";
 import { WorldCategoryContents } from "./WorldCategoryContents";
@@ -269,6 +274,19 @@ export function WorldCategoryManager({
       ),
       end: addCategoryButton,
     };
+  } else if (view.type === "truths") {
+    title = t("worlds.truths.title", "Truths");
+    actions = {
+      start: (
+        <WorldTruthsCount worldId={world.id} settingKey={world.settingKey} />
+      ),
+      end: canEdit ? (
+        <WorldTruthsRollUnchosenButton
+          worldId={world.id}
+          settingKey={world.settingKey}
+        />
+      ) : undefined,
+    };
   } else if (view.type === "category") {
     title = selected?.name ?? title;
     titleIcon = selected?.icon?.key ? (
@@ -411,6 +429,14 @@ export function WorldCategoryManager({
           onReorder={(ids) => run(() => reorderCategories(ids))}
         />
       );
+  } else if (view.type === "truths") {
+    content = (
+      <WorldTruthsView
+        worldId={world.id}
+        settingKey={world.settingKey}
+        canEdit={canEdit}
+      />
+    );
   } else if (!loading) {
     content =
       view.type === "category" && selected ? (
@@ -432,7 +458,9 @@ export function WorldCategoryManager({
           <WorldCategoryBrowser
             categories={categories}
             missingCategory={showsEntries && !selected}
+            worldId={world.id}
             worldName={world.name}
+            settingKey={world.settingKey}
             navigation={navigation}
           />
           {view.type === "world" && (

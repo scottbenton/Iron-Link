@@ -14,6 +14,8 @@ import { useLocation } from "react-router";
 import { GridLayout } from "components/Layout";
 import { LinkComponent } from "components/LinkComponent";
 import { WorldCategoryFolder } from "components/worlds/categories/WorldCategoryFolder";
+import { WorldTruthsFolder } from "components/worlds/truths/WorldTruthsFolder";
+import { useWorldTruthsCard } from "components/worlds/truths/useWorldTruthsCard";
 import type { WorldView } from "components/worlds/worldNavigation";
 
 import { getNotesItemLinkProps } from "pages/games/gamePageLayout/hooks/notesDestination";
@@ -29,9 +31,8 @@ import { useGameWorldId } from "../hooks/useGameWorld";
 
 // The linked world at the top of the viewer's root Notes folder: its name
 // (which opens the world home), a cog for people who manage it, and its
-// categories as folder cards, so players reach them in one click.
-//
-// The Truths card joins the categories once the truths screen exists (#263).
+// Truths card and its categories as folder cards, so players reach them in
+// one click.
 export function GameWorldSection() {
   const { t } = useTranslation();
   const location = useLocation();
@@ -45,6 +46,7 @@ export function GameWorldSection() {
     (store) =>
       store.worldId === worldId && (store.worldDeleted || !!store.error),
   );
+  const truthsCard = useWorldTruthsCard(world?.id, world?.settingKey ?? null);
   const permission = useWorldPermission();
   const canManage = permission !== null && isGuideEquivalent(permission);
 
@@ -130,27 +132,35 @@ export function GameWorldSection() {
         />
       ) : (
         <GridLayout
-          items={categories}
+          items={truthsCard ? [truthsCard, ...categories] : categories}
           minWidth={200}
           gap={1}
-          renderItem={(category) => (
-            <WorldCategoryFolder
-              key={category.id}
-              category={category}
-              linkProps={linkProps({
-                type: "category",
-                categoryId: category.id,
-              })}
-              subtitle={
-                entriesLoading
-                  ? undefined
-                  : t("worlds.categories.entry-count", "{{count}} entries", {
-                      count: entryCounts[category.id] ?? 0,
-                      defaultValue_one: "{{count}} entry",
-                    })
-              }
-            />
-          )}
+          renderItem={(category) =>
+            "truths" in category ? (
+              <WorldTruthsFolder
+                key="truths"
+                linkProps={linkProps({ type: "truths" })}
+                subtitle={category.subtitle}
+              />
+            ) : (
+              <WorldCategoryFolder
+                key={category.id}
+                category={category}
+                linkProps={linkProps({
+                  type: "category",
+                  categoryId: category.id,
+                })}
+                subtitle={
+                  entriesLoading
+                    ? undefined
+                    : t("worlds.categories.entry-count", "{{count}} entries", {
+                        count: entryCounts[category.id] ?? 0,
+                        defaultValue_one: "{{count}} entry",
+                      })
+                }
+              />
+            )
+          }
           emptyStateMessage={t(
             "worlds.categories.empty-state",
             "This world has no categories yet.",

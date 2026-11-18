@@ -33,7 +33,7 @@ export interface WorldOracleCatalog {
 const packageLoads = new Map<string, Promise<Datasworn.RulesPackage>>();
 
 /** Independent of the game Datasworn store: package objects are only read. */
-async function loadPackage(id: string) {
+export async function loadRulesPackage(id: string) {
   let promise = packageLoads.get(id);
   if (!promise) {
     promise = allDefaultPackages[id].load().catch((error) => {
@@ -139,7 +139,7 @@ export async function loadWorldOracleCatalog({
   const loaded = await Promise.all(
     ids
       .filter((id) => !!allDefaultPackages[id])
-      .map(async (id) => [id, await loadPackage(id)] as const),
+      .map(async (id) => [id, await loadRulesPackage(id)] as const),
   );
   return buildWorldOracleCatalog(
     Object.fromEntries(loaded),

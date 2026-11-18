@@ -205,8 +205,19 @@ function getTranslatedNoun(noun: ErrorNoun, plural: boolean): string {
       return plural
         ? i18n.t("errors.worldEntryBonds", "bonds")
         : i18n.t("errors.worldEntryBond", "bond");
-    default:
-      return "";
+    case ErrorNoun.WorldTruth:
+      return plural
+        ? i18n.t("errors.worldTruths", "truths")
+        : i18n.t("errors.worldTruth", "truth");
+    case ErrorNoun.RoomKey:
+      return plural
+        ? i18n.t("errors.roomKeys", "room keys")
+        : i18n.t("errors.roomKey", "room key");
+    default: {
+      // Every noun needs a case, or its errors read "Failed to read".
+      const missing: never = noun;
+      return missing;
+    }
   }
 }
 

@@ -7,21 +7,28 @@ import { LinkComponent } from "components/LinkComponent";
 
 import { IWorldCategory } from "services/worldCategories.service";
 
+import { WorldTruthsFolder } from "../truths/WorldTruthsFolder";
+import { useWorldTruthsCard } from "../truths/useWorldTruthsCard";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldCategoryFolder } from "./WorldCategoryFolder";
 
 export function WorldCategoryBrowser({
   categories,
   missingCategory,
+  worldId,
   worldName,
+  settingKey,
   navigation,
 }: {
   categories: IWorldCategory[];
   missingCategory: boolean;
+  worldId: string;
   worldName: string;
+  settingKey: string | null;
   navigation: WorldNavigation;
 }) {
   const { t } = useTranslation();
+  const truthsCard = useWorldTruthsCard(worldId, settingKey);
   if (missingCategory)
     return (
       <EmptyState
@@ -48,18 +55,25 @@ export function WorldCategoryBrowser({
       })}
     >
       <GridLayout
-        items={categories}
+        items={truthsCard ? [truthsCard, ...categories] : categories}
         minWidth={200}
         gap={1}
-        renderItem={(category) => (
-          <WorldCategoryFolder
-            category={category}
-            linkProps={navigation.getLinkProps({
-              type: "category",
-              categoryId: category.id,
-            })}
-          />
-        )}
+        renderItem={(item) =>
+          "truths" in item ? (
+            <WorldTruthsFolder
+              linkProps={navigation.getLinkProps({ type: "truths" })}
+              subtitle={item.subtitle}
+            />
+          ) : (
+            <WorldCategoryFolder
+              category={item}
+              linkProps={navigation.getLinkProps({
+                type: "category",
+                categoryId: item.id,
+              })}
+            />
+          )
+        }
         emptyStateMessage={t(
           "worlds.categories.empty-state",
           "This world has no categories yet.",
