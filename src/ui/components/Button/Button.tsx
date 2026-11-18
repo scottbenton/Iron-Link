@@ -3,7 +3,7 @@ import { ComponentProps, ReactElement, ReactNode, forwardRef } from "react";
 
 import { css, cx } from "styled-system/css";
 
-import { GradientBox } from "../../game/GradientBox";
+import { GradientBox } from "../GradientBox";
 import { Spinner } from "../Spinner";
 import {
   buttonStyles,

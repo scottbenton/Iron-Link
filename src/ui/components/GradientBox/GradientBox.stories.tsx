@@ -6,7 +6,7 @@ import { Grid, Stack } from "ui/primitives";
 import { GradientBox } from "./GradientBox";
 
 const meta: Meta<typeof GradientBox> = {
-  title: "Game/GradientBox",
+  title: "Components/GradientBox",
   component: GradientBox,
   args: {
     gradient: "ring",

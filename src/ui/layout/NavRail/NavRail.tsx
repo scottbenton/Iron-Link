@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 import { css, cx } from "styled-system/css";
 
-import { GradientBox } from "../../game/GradientBox";
+import { GradientBox } from "../../components/GradientBox";
 import { Logo } from "../Logo";
 import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
 import { NavItem } from "../shared/navItem";
