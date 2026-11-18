@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useId, useState } from "react";
 
 import { Text } from "ui/components/Text";
-import { SchemeName } from "ui/theme";
+import { SchemeName, schemes } from "ui/theme";
 
 import { Stack } from "styled-system/jsx";
 
@@ -43,4 +43,33 @@ export const Disabled: Story = {
       <ColorSchemePicker {...args} />
     </Stack>
   ),
+};
+
+/**
+ * With `fallback`, a first option sets no scheme of its own (value null). Its
+ * swatch and second line show what it falls back to. ThemeDialog uses it for
+ * "Use the game's theme".
+ */
+export const WithFallback: Story = {
+  render: function Render() {
+    const [scheme, setScheme] = useState<SchemeName | null>(null);
+    const labelId = useId();
+    return (
+      <Stack gap="3" maxWidth="560px">
+        <Text id={labelId} variant="label" color="muted">
+          Theme for Kira Vale
+        </Text>
+        <ColorSchemePicker
+          value={scheme}
+          onValueChange={setScheme}
+          fallback={{
+            label: "Use the game's theme",
+            scheme: "eidolon",
+            description: `${schemes.eidolon.label}, from this game`,
+          }}
+          aria-labelledby={labelId}
+        />
+      </Stack>
+    );
+  },
 };
