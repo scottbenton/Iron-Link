@@ -5,6 +5,8 @@ import { createWithEqualityFn } from "zustand/traditional";
 
 import { useSyncActiveRulesPackages } from "pages/games/create/hooks/useSyncActiveRulesPackages";
 
+import type { WorldOracleChangeInput } from "lib/worldOracleChanges";
+
 import {
   ExpansionConfig,
   GameType,
@@ -62,11 +64,13 @@ interface GameStoreActions {
     colorScheme: ColorScheme | null,
   ) => Promise<void>;
   deleteGame: (gameId: string) => Promise<void>;
+  // Oracle changes are the save dialog's choices for the linked world.
   updateGameRulesPackages: (
     gameId: string,
     rulesets: RulesetConfig,
     expansions: ExpansionConfig,
     playset: PlaysetConfig,
+    oracleChanges?: WorldOracleChangeInput[],
   ) => Promise<void>;
 
   updateGamePlayerRole: (
@@ -186,8 +190,20 @@ export const useGameStore = createWithEqualityFn<
         colorScheme ?? ColorScheme.Default,
       );
     },
-    updateGameRulesPackages: (gameId, rulesets, expansions, playset) => {
-      return GameService.updateRules(gameId, rulesets, expansions, playset);
+    updateGameRulesPackages: (
+      gameId,
+      rulesets,
+      expansions,
+      playset,
+      oracleChanges,
+    ) => {
+      return GameService.updateRules(
+        gameId,
+        rulesets,
+        expansions,
+        playset,
+        oracleChanges,
+      );
     },
     deleteGame: (gameId) => {
       return GameService.deleteGame(gameId);

@@ -3,13 +3,13 @@ import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
+import type { LinkedGamePlayset } from "lib/effectivePlayset";
 import {
   type WorldOracleCatalog,
-  getBindingPackageIds,
+  getFieldBindingPackageIds,
   loadWorldOracleCatalog,
 } from "lib/worldOracleCatalog";
 
-import type { OracleBinding } from "services/worldFieldDefinitions.service";
 import { WorldPlaysetsService } from "services/worldPlaysets.service";
 
 import { useWorldStore } from "./world.store";
@@ -20,6 +20,10 @@ interface WorldOraclesStoreState {
   // Every oracle the world's field bindings may target, merged across the
   // world's effective playset (and all packages, when asked for).
   catalog: WorldOracleCatalog | null;
+  // What the catalog was built from: the linked games' playsets exactly as
+  // read, and the packages the bindings pointed at.
+  linkedGames: LinkedGamePlayset[] | null;
+  bindingPackageIds: string[] | null;
   allPackages: boolean;
   // Bumped by retry so the loading hook runs again with the same inputs.
   attempt: number;
@@ -42,6 +46,8 @@ interface WorldOraclesStoreActions {
 const defaultWorldOraclesState: WorldOraclesStoreState = {
   worldId: "",
   catalog: null,
+  linkedGames: null,
+  bindingPackageIds: null,
   allPackages: false,
   attempt: 0,
   loading: true,
@@ -59,6 +65,8 @@ export const useWorldOraclesStore = createWithEqualityFn<
       set((state) => {
         if (state.worldId !== worldId) {
           state.catalog = null;
+          state.linkedGames = null;
+          state.bindingPackageIds = null;
         }
         state.worldId = worldId;
         state.loading = true;
@@ -66,18 +74,21 @@ export const useWorldOraclesStore = createWithEqualityFn<
       });
 
       WorldPlaysetsService.getLinkedGamePlaysets(worldId)
-        .then((linkedGames) =>
-          loadWorldOracleCatalog({
+        .then(async (linkedGames) => ({
+          linkedGames,
+          catalog: await loadWorldOracleCatalog({
             settingKey,
             linkedGames,
             bindingPackageIds,
             allPackages,
           }),
-        )
-        .then((catalog) => {
+        }))
+        .then(({ linkedGames, catalog }) => {
           if (!active) return;
           set((state) => {
             state.catalog = catalog;
+            state.linkedGames = linkedGames;
+            state.bindingPackageIds = bindingPackageIds;
             state.loading = false;
           });
           useWorldCategoriesStore
@@ -139,14 +150,7 @@ export function useListenToWorldOracles(worldId: string | undefined) {
   // so stored bindings can still be shown and repaired.
   const bindingPackageIds = useWorldCategoriesStore((store) =>
     store.worldId === worldId && !store.loading
-      ? getBindingPackageIds(
-          Object.values(store.storedFieldDefinitions).flatMap((field) =>
-            [
-              field.binding,
-              ...field.configuration.rules.map((rule) => rule.binding),
-            ].filter((binding): binding is OracleBinding => !!binding),
-          ),
-        ).sort()
+      ? getFieldBindingPackageIds(Object.values(store.storedFieldDefinitions))
       : undefined,
   );
 

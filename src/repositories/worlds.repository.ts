@@ -12,6 +12,7 @@ import {
   getRepositoryError,
 } from "./errors/RepositoryErrors";
 import { WorldPermission } from "./shared.types";
+import type { WorldOracleChangeInputDTO } from "./worldOracleChanges.repository";
 
 // Everything except the Notes: notes_content is a large Yjs byte column
 // fetched on demand (as entries leave out theirs), with its own version.
@@ -38,11 +39,16 @@ export interface WorldWithRoleDTO {
   role: WorldMembershipRole | null;
 }
 
-// Returned by link_game_to_world(). `divergences` reports world oracle
-// bindings whose resolution changes because this game's playset joined the
-// world's effective playset.
+// Returned by link_game_to_world(): how many of the save dialog's oracle
+// choices applied (a choice whose field moved meanwhile is skipped).
 export interface WorldLinkResult {
-  divergences: unknown[];
+  appliedOracleChanges: number;
+}
+
+// A save dialog choice for link_game_to_world(), which also takes choices for
+// the world a game leaves when it moves to another, so each names its world.
+export interface WorldLinkOracleChangeDTO extends WorldOracleChangeInputDTO {
+  worldId: string;
 }
 
 export class WorldsRepository {
@@ -198,16 +204,17 @@ export class WorldsRepository {
   // access to every member of the game, so this RPC is the only way in. It
   // enforces guide-on-the-game plus explicit owner/editor on the world.
   //
-  // The returned divergences list is a seam: once world fields carry oracle
-  // bindings, linking a game can change how they resolve, and the caller is
-  // meant to preview that before committing. Always empty today.
+  // Linking can move what the world's fields roll; the oracle changes are the
+  // save dialog's choices, applied in the same transaction.
   public static async linkGameToWorld(
     gameId: string,
     worldId: string,
+    oracleChanges: WorldLinkOracleChangeDTO[] = [],
   ): Promise<WorldLinkResult> {
     const { data, error, status } = await supabase.rpc("link_game_to_world", {
       p_game_id: gameId,
       p_world_id: worldId,
+      p_oracle_changes: oracleChanges as never,
     });
 
     if (error) {
@@ -221,15 +228,20 @@ export class WorldsRepository {
       );
     }
 
-    return (data ?? { divergences: [] }) as unknown as WorldLinkResult;
+    return (data ?? { appliedOracleChanges: 0 }) as unknown as WorldLinkResult;
   }
 
   // Clears games.world_id. Guide-on-the-game only: unlinking removes an
   // audience from the world rather than adding one, so it needs no rights on
-  // the world itself.
-  public static async unlinkGameFromWorld(gameId: string): Promise<void> {
+  // the world itself. Oracle choices do, and a game's Guide has them until
+  // the unlink.
+  public static async unlinkGameFromWorld(
+    gameId: string,
+    oracleChanges: WorldOracleChangeInputDTO[] = [],
+  ): Promise<void> {
     const { error, status } = await supabase.rpc("unlink_game_from_world", {
       p_game_id: gameId,
+      p_oracle_changes: oracleChanges as never,
     });
 
     if (error) {

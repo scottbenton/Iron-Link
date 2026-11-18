@@ -32,6 +32,10 @@ vi.mock("stores/worldEntries.store", () => ({
 vi.mock("stores/worldOracles.store", () => ({
   useListenToWorldOracles: state.listenOracles,
 }));
+vi.mock("stores/worldOracleChanges.store", () => ({
+  useListenToWorldOracleChanges: vi.fn(),
+  useListenToWorldOracleChangeDismissal: vi.fn(),
+}));
 vi.mock("stores/game.store", () => ({
   GamePermission: { Guide: "guide" },
   useGameStore: (select: (value: typeof state) => unknown) => select(state),

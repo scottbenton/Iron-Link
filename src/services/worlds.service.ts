@@ -1,4 +1,5 @@
 import { byteaToUint8Array } from "lib/bytea.lib";
+import type { WorldOracleChangeInput } from "lib/worldOracleChanges";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import { WorldPermission } from "repositories/shared.types";
@@ -14,6 +15,7 @@ import {
   RichTextContentService,
   RichTextContentStore,
 } from "./richTextContent.service";
+import { toWorldOracleChangeInputDTO } from "./worldOracleChanges.service";
 
 const WORLD_NOTES_IMAGE_FOLDER = "world-notes";
 
@@ -116,15 +118,32 @@ export class WorldsService {
   // Both sides of the game<->world link. The game store already listens to
   // its games row, so callers do not need to update any local state -- the
   // new world_id arrives over realtime.
+  //
+  // Oracle changes are the save dialog's choices for the fields whose roll
+  // this moves; they apply in the same transaction.
   public static linkGameToWorld(
     gameId: string,
     worldId: string,
+    oracleChanges: WorldOracleChangeInput[] = [],
   ): Promise<WorldLinkResult> {
-    return WorldsRepository.linkGameToWorld(gameId, worldId);
+    return WorldsRepository.linkGameToWorld(
+      gameId,
+      worldId,
+      oracleChanges.map((change) => ({
+        ...toWorldOracleChangeInputDTO(change),
+        worldId: change.worldId,
+      })),
+    );
   }
 
-  public static unlinkGameFromWorld(gameId: string): Promise<void> {
-    return WorldsRepository.unlinkGameFromWorld(gameId);
+  public static unlinkGameFromWorld(
+    gameId: string,
+    oracleChanges: WorldOracleChangeInput[] = [],
+  ): Promise<void> {
+    return WorldsRepository.unlinkGameFromWorld(
+      gameId,
+      oracleChanges.map(toWorldOracleChangeInputDTO),
+    );
   }
 
   public static countGamesLinkedToWorld(worldId: string): Promise<number> {

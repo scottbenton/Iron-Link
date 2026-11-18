@@ -7,6 +7,10 @@ import { useNotesStore } from "stores/notes.store";
 import { useListenToWorld, useWorldStore } from "stores/world.store";
 import { useListenToWorldConfiguration } from "stores/worldCategories.store";
 import { useListenToWorldEntries } from "stores/worldEntries.store";
+import {
+  useListenToWorldOracleChangeDismissal,
+  useListenToWorldOracleChanges,
+} from "stores/worldOracleChanges.store";
 import { useListenToWorldOracles } from "stores/worldOracles.store";
 
 // The world linked to the current game, or undefined when the worlds feature
@@ -25,9 +29,12 @@ export function useGameWorldId(): string | undefined {
 // reopening a world tab needs no loading.
 export function useListenToGameWorld(): void {
   const worldId = useGameWorldId();
+  const gameId = useGameStore((store) => store.game?.id);
   useListenToWorld(worldId);
   useListenToWorldConfiguration(worldId);
   useListenToWorldOracles(worldId);
+  useListenToWorldOracleChanges(worldId);
+  useListenToWorldOracleChangeDismissal(gameId, worldId);
   useListenToWorldEntries(worldId);
   const loadedWorldId = useWorldStore((store) => store.world?.id);
   const worldDeleted = useWorldStore((store) => store.worldDeleted);

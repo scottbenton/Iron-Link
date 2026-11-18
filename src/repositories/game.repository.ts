@@ -13,6 +13,7 @@ import {
 } from "./errors/RepositoryErrors";
 import { ColorScheme } from "./shared.types";
 import { SpecialTrack } from "./shared.types";
+import type { WorldOracleChangeInputDTO } from "./worldOracleChanges.repository";
 
 export enum GameType {
   Solo = "solo",
@@ -204,6 +205,34 @@ export class GameRepository {
           }
         });
     });
+  }
+
+  // Saves a game's rules with the save dialog's choices for its world's
+  // fields, in one transaction (update_game_rules).
+  public static async updateGameRules(
+    gameId: string,
+    rulesets: RulesetConfig,
+    expansions: ExpansionConfig,
+    playset: PlaysetConfig,
+    oracleChanges: WorldOracleChangeInputDTO[],
+  ): Promise<void> {
+    const { error, status } = await supabase.rpc("update_game_rules", {
+      p_game_id: gameId,
+      p_rulesets: rulesets,
+      p_expansions: expansions,
+      p_playset: playset as never,
+      p_oracle_changes: oracleChanges as never,
+    });
+    if (error) {
+      console.error(error);
+      throw getRepositoryError(
+        error,
+        ErrorVerb.Update,
+        ErrorNoun.Game,
+        false,
+        status,
+      );
+    }
   }
 
   public static async deleteGame(gameId: string): Promise<void> {

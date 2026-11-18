@@ -10,6 +10,7 @@ import { WorldEntryMentionLinksContext } from "components/RichTextEditor/NoteMen
 import { useListenToWorld, useWorldStore } from "stores/world.store";
 import { useListenToWorldConfiguration } from "stores/worldCategories.store";
 import { useListenToWorldEntries } from "stores/worldEntries.store";
+import { useListenToWorldOracleChanges } from "stores/worldOracleChanges.store";
 import { useListenToWorldOracles } from "stores/worldOracles.store";
 
 import type { WorldLayout } from "./WorldViewLayout";
@@ -52,6 +53,7 @@ export function WorldPanel(props: WorldPanelProps) {
   useListenToWorld(ownedWorldId);
   useListenToWorldConfiguration(ownedWorldId);
   useListenToWorldOracles(ownedWorldId);
+  useListenToWorldOracleChanges(ownedWorldId);
   useListenToWorldEntries(ownedWorldId);
 
   const storedWorldId = useWorldStore((store) => store.worldId);

@@ -1,5 +1,7 @@
 import { enforceExpansionDependencies } from "data/package.config";
 
+import type { WorldOracleChangeInput } from "lib/worldOracleChanges";
+
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import {
   ExpansionConfig,
@@ -15,6 +17,8 @@ import {
   GamePlayersRepository,
 } from "repositories/gamePlayers.repository";
 import { ColorScheme, SpecialTrack } from "repositories/shared.types";
+
+import { toWorldOracleChangeInputDTO } from "./worldOracleChanges.service";
 
 export type IGame = {
   id: string;
@@ -217,13 +221,27 @@ export class GameService {
     await GameRepository.updateGame(gameId, { game_type: gameType });
   }
 
+  // Oracle changes are the save dialog's choices for the linked world's
+  // fields whose roll this moves; they save together with the rules.
   public static async updateRules(
     gameId: string,
     rulesets: RulesetConfig,
     expansions: ExpansionConfig,
     playset: PlaysetConfig,
+    oracleChanges: WorldOracleChangeInput[] = [],
   ): Promise<void> {
     const enforcedExpansions = enforceExpansionDependencies(expansions);
+
+    if (oracleChanges.length) {
+      await GameRepository.updateGameRules(
+        gameId,
+        rulesets,
+        enforcedExpansions,
+        playset,
+        oracleChanges.map(toWorldOracleChangeInputDTO),
+      );
+      return;
+    }
 
     await GameRepository.updateGame(gameId, {
       rulesets,

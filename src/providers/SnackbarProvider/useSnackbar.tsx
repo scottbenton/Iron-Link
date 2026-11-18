@@ -209,6 +209,10 @@ function getTranslatedNoun(noun: ErrorNoun, plural: boolean): string {
       return plural
         ? i18n.t("errors.worldTruths", "truths")
         : i18n.t("errors.worldTruth", "truth");
+    case ErrorNoun.WorldOracleChange:
+      return plural
+        ? i18n.t("errors.worldOracleChanges", "oracle changes")
+        : i18n.t("errors.worldOracleChange", "oracle change");
     case ErrorNoun.RoomKey:
       return plural
         ? i18n.t("errors.roomKeys", "room keys")

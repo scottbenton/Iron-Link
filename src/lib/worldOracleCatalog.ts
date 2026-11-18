@@ -58,6 +58,24 @@ export function getBindingPackageIds(bindings: OracleBinding[]): string[] {
   ];
 }
 
+// The packages a world's stored bindings point at, field and rule bindings
+// alike, sorted so equal sets compare equal.
+export function getFieldBindingPackageIds(
+  fields: {
+    binding: OracleBinding | null;
+    configuration: { rules: { binding?: OracleBinding | null }[] };
+  }[],
+): string[] {
+  return getBindingPackageIds(
+    fields.flatMap((field) =>
+      [
+        field.binding,
+        ...field.configuration.rules.map((rule) => rule.binding),
+      ].filter((binding): binding is OracleBinding => !!binding),
+    ),
+  ).sort();
+}
+
 export function buildWorldOracleCatalog(
   tree: Record<string, Datasworn.RulesPackage>,
   effectivePlayset: EffectivePlayset,

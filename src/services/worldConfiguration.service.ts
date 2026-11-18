@@ -46,7 +46,7 @@ export class WorldConfigurationService {
     return WorldConfigurationRepository.getCategoryCounts(worldId, categoryId);
   }
 
-  private static convertConfigurationDTO(
+  public static convertConfigurationDTO(
     configuration: WorldConfigurationDTO,
   ): IWorldConfiguration {
     return {

@@ -76,6 +76,9 @@ vi.mock("stores/worldCategories.store", () => ({
 vi.mock("stores/worldOracles.store", () => ({
   useListenToWorldOracles: vi.fn(),
 }));
+vi.mock("stores/worldOracleChanges.store", () => ({
+  useListenToWorldOracleChanges: vi.fn(),
+}));
 vi.mock("stores/worldEntries.store", () => ({
   useListenToWorldEntries: vi.fn(),
 }));
