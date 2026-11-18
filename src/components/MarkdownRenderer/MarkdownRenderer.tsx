@@ -72,7 +72,14 @@ export function MarkdownRenderer(props: MarkdownRendererProps) {
               if (oracle) {
                 return <OracleTableRenderer oracle={oracle} />;
               }
-            } else if (content.match(/^{{table:[^/]+\/truths\/[^}]+}}$/)) {
+            }
+            // Any paragraph that is only a table directive: {{table>id}},
+            // {{table:id}}, or {{table_columns>id}}, which asks for every table
+            // of the move it sits in. A move's tables are drawn by MoveOracles
+            // after its text, so a directive with no table to show here, like
+            // one pointing at a table a replacement move dropped, renders
+            // nothing rather than its raw text.
+            if (content.match(/^{{table(_columns)?[>:][^}]+}}$/)) {
               return null;
             }
           }
