@@ -7,22 +7,30 @@ import { schemeNames, schemes } from "../src/ui/theme";
 import type { SchemeName, UIColorMode } from "../src/ui/theme";
 import { applyUITheme } from "../src/ui/theme";
 
-const withTheme: Decorator = (Story, context) => {
-  const mode = (context.globals.mode ?? "light") as UIColorMode;
-  const scheme = (context.globals.scheme ?? "default") as SchemeName;
-  const ringReveal = (context.globals.ringReveal ?? "fade") as string;
-
+/** Applies the toolbar's mode and scheme to the page. */
+function ThemeSync(props: {
+  mode: UIColorMode;
+  scheme: SchemeName;
+  ringReveal: string;
+}) {
+  const { mode, scheme, ringReveal } = props;
   useEffect(() => {
     applyUITheme({ mode, scheme });
     document.documentElement.dataset.ringReveal = ringReveal;
   }, [mode, scheme, ringReveal]);
+  return null;
+}
 
-  return (
-    <UIProvider>
-      <Story />
-    </UIProvider>
-  );
-};
+const withTheme: Decorator = (Story, context) => (
+  <UIProvider>
+    <ThemeSync
+      mode={(context.globals.mode ?? "light") as UIColorMode}
+      scheme={(context.globals.scheme ?? "default") as SchemeName}
+      ringReveal={(context.globals.ringReveal ?? "fade") as string}
+    />
+    <Story />
+  </UIProvider>
+);
 
 const preview: Preview = {
   decorators: [withTheme],
