@@ -101,14 +101,33 @@ export const schemeNames = Object.keys(schemes) as SchemeName[];
 
 /** Zinc's lightness steps, the neutral the redesign tints toward each scheme. */
 const zinc = [
-  "#fafafa", "#f4f4f5", "#e4e4e7", "#d4d4d8", "#a1a1aa", "#71717a",
-  "#52525b", "#3f3f46", "#27272a", "#18181b", "#09090b",
+  "#fafafa",
+  "#f4f4f5",
+  "#e4e4e7",
+  "#d4d4d8",
+  "#a1a1aa",
+  "#71717a",
+  "#52525b",
+  "#3f3f46",
+  "#27272a",
+  "#18181b",
+  "#09090b",
 ];
 const tintChroma = [
   0.0015, 0.002, 0.004, 0.005, 0.008, 0.011, 0.012, 0.012, 0.011, 0.009, 0.007,
 ];
 export const grayStepNames = [
-  "50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950",
+  "50",
+  "100",
+  "200",
+  "300",
+  "400",
+  "500",
+  "600",
+  "700",
+  "800",
+  "900",
+  "950",
 ] as const;
 
 /** The tinted neutral ramp: Zinc's lightness with a little of the scheme's hue. */

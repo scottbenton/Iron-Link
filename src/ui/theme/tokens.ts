@@ -3,13 +3,13 @@
  * generated variables, so `bg.surface` is `--colors-bg-surface`.
  *
  * The scheme-dependent values (`gray.*`, `scheme.*`, `ring.*`, the gradients)
- * are declared here with the Default scheme and overridden per
- * `[data-color-scheme]` in `globalCss.ts`, because Panda has no notion of a
- * second theme axis next to light and dark.
+ * are declared here with the Default scheme. Every other scheme is a Panda
+ * theme (`schemeThemes` in `schemes.ts`) that overrides them under
+ * `[data-panda-theme=<scheme>]`; `applyUITheme` sets that attribute.
  */
+import { toOklch } from "./color";
 import { grayStepNames, schemes, tintedGrays } from "./schemes";
 import { iconGradient, ringGradient } from "./schemes";
-import { toOklch } from "./color";
 
 const defaultScheme = schemes.default;
 const defaultGrays = tintedGrays(defaultScheme);
@@ -169,8 +169,8 @@ export const tokens = {
 
 /**
  * Light and dark values. `_dark` is our own condition (see panda.config.ts),
- * which matches `[data-theme=dark]` and the system preference unless the page
- * says `[data-theme=light]`.
+ * which matches `[data-theme=dark]`. The app always writes `data-theme`
+ * (through `applyUITheme`), resolving "system" itself.
  */
 const lightDark = (light: string, dark: string) => ({
   value: { base: light, _dark: dark },
