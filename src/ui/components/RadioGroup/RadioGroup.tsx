@@ -1,7 +1,7 @@
 import { Fieldset as BaseFieldset } from "@base-ui/react/fieldset";
 import { Radio as BaseRadio } from "@base-ui/react/radio";
 import { RadioGroup as BaseRadioGroup } from "@base-ui/react/radio-group";
-import { ReactNode, Ref, createContext, useContext } from "react";
+import { ReactNode, Ref, createContext, useContext, useId } from "react";
 
 import { css, cx } from "styled-system/css";
 
@@ -12,11 +12,11 @@ import {
   radioDotStyles,
 } from "../Checkbox";
 import {
-  FieldDescription,
   FieldError,
   FieldOwnProps,
   FieldRoot,
   FieldsetLegend,
+  fieldDescriptionStyles,
   fieldsetDescriptionStyles,
   resolveFieldError,
 } from "../Field";
@@ -91,6 +91,9 @@ export function RadioGroup<V = string>(props: RadioGroupProps<V>) {
     requiredIndicator,
   } = props;
   const { invalid, message } = resolveFieldError(error, invalidProp);
+  const descriptionId = useId();
+  const hasDescription =
+    description !== undefined && description !== null && description !== "";
 
   return (
     <FieldRoot
@@ -102,6 +105,7 @@ export function RadioGroup<V = string>(props: RadioGroupProps<V>) {
       <BaseFieldset.Root
         className={groupStyles}
         aria-label={ariaLabel}
+        aria-describedby={hasDescription ? descriptionId : undefined}
         render={
           <BaseRadioGroup<V>
             value={value}
@@ -123,10 +127,16 @@ export function RadioGroup<V = string>(props: RadioGroupProps<V>) {
             {label}
           </FieldsetLegend>
         )}
-        {description !== undefined && description !== null && (
-          <FieldDescription className={fieldsetDescriptionStyles}>
+        {hasDescription && (
+          // A plain element, not a Field description: Base UI would add a
+          // field's description to every choice inside it, so each one would
+          // repeat the group's help. The group alone is described by it.
+          <p
+            id={descriptionId}
+            className={cx(fieldDescriptionStyles, fieldsetDescriptionStyles)}
+          >
             {description}
-          </FieldDescription>
+          </p>
         )}
         <RadioSizeContext.Provider value={size}>
           <div className={cx(choiceListStyles({ orientation }), listClassName)}>

@@ -1,9 +1,9 @@
 import { css } from "styled-system/css";
 
 /**
- * Section tabs, the segmented track: they switch the parts of a column (the
- * sidebar's Character and Reference, the phone's game sections). They never
- * move; the selected one is a raised card on the track.
+ * Section tabs, the segmented track: they switch the parts of a column (a
+ * sidebar's panels, the phone's game sections). They never move; the
+ * selected one is a raised card on the track.
  */
 export const sectionTabListStyles = css({
   boxSizing: "border-box",

@@ -9,7 +9,7 @@ import { toast } from "./toast";
 import { subscribeToToastAnnouncements } from "./toastAnnouncements";
 
 const BASE_OFFSET = "calc(20px + env(safe-area-inset-bottom, 0px))";
-const FOOTER_SPACE = 44;
+const FOOTER_SPACE = 48;
 
 const toasterStyles = css({
   // Below dialogs and drawers (see the token). Sonner's own value is huge.
@@ -17,9 +17,12 @@ const toasterStyles = css({
 });
 
 /**
- * Classes on each toast's `li`. The look is the card's (ToastCard, RollCard);
- * the `li` only holds it, so Sonner's transforms, heights and stacking stay
- * Sonner's. Nothing here sets a transform or a position.
+ * Classes on each toast's `li`. The stacking is Sonner's own: collapsed, each
+ * older toast moves up by the gap and shrinks 5% per step, cut to the front
+ * toast's height, so its top edge peeks out above the front one; hover (or
+ * keyboard focus) fans them out with the gap between. The look is the
+ * card's (ToastCard, RollCard), so a roll card can be a toast too; the `li`
+ * only holds it. Nothing here sets a transform or a position.
  */
 const toastItemStyles = css({
   width: "100%",
@@ -49,6 +52,16 @@ const toastItemStyles = css({
   },
 });
 
+/** A pill-shaped Clear All, sized to the footer. */
+const clearAllStyles = css({
+  "[data-toast-footer] > &": {
+    minHeight: "28px",
+    borderRadius: "full",
+    _touch: { minHeight: "touch" },
+  },
+});
+
+/** Clear All (and the hidden count) under the stack, on a small card. */
 const footerStyles = css({
   position: "fixed",
   zIndex: "toast",
@@ -64,20 +77,13 @@ const footerStyles = css({
   borderRadius: "full",
   borderWidth: "1px",
   borderStyle: "solid",
-  borderColor: "gray.700",
-  background: "gray.800",
-  color: "gray.200",
+  borderColor: "border.control",
+  background: "bg.surface",
+  boxShadow: "popover",
+  color: "fg.muted",
   fontFamily: "body",
   fontSize: "xs",
   whiteSpace: "nowrap",
-  "& button": {
-    "--btn-fg": "{colors.gray.50}",
-    "--btn-hover": "color-mix(in oklab, white 12%, transparent)",
-    "--btn-press": "color-mix(in oklab, white 20%, transparent)",
-    minHeight: "28px",
-    borderRadius: "full",
-    _focusVisible: { outlineColor: "gray.50" },
-  },
 });
 
 export interface ToasterProps {
@@ -173,7 +179,7 @@ export function Toaster(props: ToasterProps) {
         duration={Infinity}
         expand={focusWithin}
         visibleToasts={visibleToasts}
-        gap={8}
+        gap={14}
         customAriaLabel={label}
         className={toasterStyles}
         style={{ "--width": "400px" } as CSSProperties}
@@ -182,9 +188,14 @@ export function Toaster(props: ToasterProps) {
         toastOptions={{ unstyled: true, className: toastItemStyles }}
       />
       {showFooter && (
-        <div className={`ui-root ${footerStyles}`}>
+        <div className={`ui-root ${footerStyles}`} data-toast-footer="">
           {hidden > 0 && <span>{moreLabel(hidden)}</span>}
-          <Button variant="ghost" size="sm" onClick={() => toast.dismissAll()}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={clearAllStyles}
+            onClick={() => toast.dismissAll()}
+          >
             {clearAllLabel}
           </Button>
         </div>

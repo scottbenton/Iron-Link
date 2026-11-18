@@ -20,7 +20,7 @@ const optionStyles = css({
   gap: "3",
   minHeight: "52px",
   paddingBlock: "2",
-  paddingInlineStart: "2.5",
+  paddingInlineStart: "3",
   paddingInlineEnd: "8",
   borderWidth: "1px",
   borderStyle: "solid",

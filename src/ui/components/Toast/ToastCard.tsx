@@ -15,6 +15,11 @@ import { Spinner } from "../Spinner";
 
 export type ToastTone = "info" | "success" | "warning" | "error" | "loading";
 
+/**
+ * Sonner's own toast look in the library's tokens: a light card (dark in
+ * dark mode) with a hairline border and the floating shadow, the tone shown
+ * by its icon alone. Older toasts peek out above it as bare card edges.
+ */
 const toastCardStyles = cva({
   base: {
     boxSizing: "border-box",
@@ -22,32 +27,21 @@ const toastCardStyles = cva({
     alignItems: "center",
     gap: "3",
     width: "100%",
-    minHeight: "48px",
+    minHeight: "52px",
     paddingBlock: "2",
     paddingInlineStart: "4",
     paddingInlineEnd: "2",
     borderRadius: "md",
     borderWidth: "1px",
     borderStyle: "solid",
-    borderColor: "gray.700",
-    background: "gray.800",
-    color: "gray.50",
-    boxShadow: "0 3px 0 token(colors.gray.950)",
+    borderColor: "border.control",
+    background: "bg.surface",
+    color: "fg.default",
+    boxShadow: "popover",
     fontFamily: "body",
     fontSize: "sm",
     lineHeight: "snug",
     textAlign: "start",
-    // Buttons inside are ghost buttons on a dark chip in either colour mode.
-    "& button": {
-      "--btn-fg": "{colors.gray.50}",
-      "--btn-hover": "color-mix(in oklab, white 12%, transparent)",
-      "--btn-press": "color-mix(in oklab, white 20%, transparent)",
-      _focusVisible: { outlineColor: "gray.50" },
-    },
-    "& [data-toast-action]": {
-      "--btn-fg":
-        "color-mix(in oklab, token(colors.scheme.dark.fg) 80%, white)",
-    },
   },
 });
 
@@ -59,11 +53,11 @@ const iconStyles = cva({
   },
   variants: {
     tone: {
-      info: { color: "status.info.dark" },
-      success: { color: "status.success.dark" },
-      warning: { color: "status.warning.dark" },
-      error: { color: "status.danger.dark" },
-      loading: { color: "gray.200" },
+      info: { color: "info.fg" },
+      success: { color: "success.fg" },
+      warning: { color: "warning.fg" },
+      error: { color: "danger.fg" },
+      loading: { color: "fg.muted" },
     },
   },
 });
@@ -76,7 +70,9 @@ const textStyles = css({
   paddingBlock: "1",
 });
 
-const descriptionStyles = css({ color: "gray.300", fontSize: "xs" });
+const messageStyles = css({ fontWeight: "medium" });
+
+const descriptionStyles = css({ color: "fg.muted", fontSize: "xs" });
 
 const actionsStyles = css({
   display: "flex",
@@ -111,7 +107,7 @@ export interface ToastCardProps {
 }
 
 /**
- * The dark chip a toast renders. `toast.*` uses it; a custom toast (such as
+ * The card a toast renders. `toast.*` uses it; a custom toast (such as
  * a roll result) can render it too, so every toast shares the look and has
  * a Dismiss button.
  */
@@ -138,14 +134,14 @@ export function ToastCard(props: ToastCardProps) {
         </span>
       )}
       <div className={textStyles}>
-        <div>{message}</div>
+        <div className={messageStyles}>{message}</div>
         {description && <div className={descriptionStyles}>{description}</div>}
       </div>
       {children}
       <div className={actionsStyles}>
         {action && (
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             data-toast-action=""
             onClick={action.onClick}

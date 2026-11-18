@@ -3,8 +3,13 @@ import { ComponentProps, ReactElement, ReactNode, forwardRef } from "react";
 
 import { css, cx } from "styled-system/css";
 
+import { GradientBox } from "../../game/GradientBox";
 import { Spinner } from "../Spinner";
-import { buttonStyles } from "./buttonStyles";
+import {
+  buttonStyles,
+  gradientFaceStyles,
+  gradientRingStyles,
+} from "./buttonStyles";
 
 const swap = css({
   display: "inline-grid",
@@ -55,9 +60,9 @@ export interface ButtonProps
 
 /**
  * The library's button. Outline by default; `primary` for the main action,
- * `gradient` for a page's one call to action (the hero's Start Playing,
- * Create Game), `danger` for a destructive confirm, `ghost` and `text` for
- * low emphasis.
+ * `gradient` for a main flow's call to action (Start Playing, Create Game:
+ * a dark face in a spinning gradient ring, the app's `GradientButton`),
+ * `danger` for a destructive confirm, `ghost` and `text` for low emphasis.
  */
 export const Button = forwardRef<HTMLElement, ButtonProps>(
   function Button(props, ref) {
@@ -85,6 +90,28 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(
       </>
     );
 
+    const label =
+      loadingLabel === undefined ? (
+        loading ? (
+          <>
+            <Spinner />
+            <span className={css({ opacity: 0.85 })}>{children}</span>
+          </>
+        ) : (
+          content
+        )
+      ) : (
+        <span className={swap}>
+          <span data-on={!loading} aria-hidden={loading || undefined}>
+            {content}
+          </span>
+          <span data-on={loading} aria-hidden={!loading || undefined}>
+            <Spinner />
+            {loadingLabel}
+          </span>
+        </span>
+      );
+
     return (
       <BaseButton
         ref={ref}
@@ -105,25 +132,21 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(
         }}
         {...rest}
       >
-        {loadingLabel === undefined ? (
-          loading ? (
-            <>
-              <Spinner />
-              <span className={css({ opacity: 0.85 })}>{children}</span>
-            </>
-          ) : (
-            content
-          )
+        {variant === "gradient" ? (
+          <GradientBox
+            as="span"
+            variant="fill"
+            radius="md"
+            spin
+            className={gradientRingStyles}
+            data-gradient-ring=""
+          >
+            <span className={gradientFaceStyles} data-gradient-face="">
+              {label}
+            </span>
+          </GradientBox>
         ) : (
-          <span className={swap}>
-            <span data-on={!loading} aria-hidden={loading || undefined}>
-              {content}
-            </span>
-            <span data-on={loading} aria-hidden={!loading || undefined}>
-              <Spinner />
-              {loadingLabel}
-            </span>
-          </span>
+          label
         )}
       </BaseButton>
     );

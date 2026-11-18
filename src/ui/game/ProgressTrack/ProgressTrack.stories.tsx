@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { fn } from "storybook/test";
 
-import { Box, Stack } from "styled-system/jsx";
+import { Box, HStack, Stack } from "styled-system/jsx";
 
 import { IconButton } from "../../components/IconButton";
 import { sampleMoves } from "../../stories/fixtures/datasworn";
@@ -26,9 +26,11 @@ const meta = {
     },
     ticks: { control: { type: "range", min: 0, max: 40 } },
   },
+  // The game sidebar's default width (Sidebar: 280 to 560, 360 by default),
+  // less its panel padding.
   decorators: [
     (Story) => (
-      <Box maxWidth="480px">
+      <Box width="336px" maxWidth="100%">
         <Story />
       </Box>
     ),
@@ -140,6 +142,10 @@ export const ReadOnly: Story = {
   },
 };
 
+/**
+ * Legacy tracks carry no experience pips any more: experience is one meter
+ * (XPMeter), since Ironsworn and Starforged earn it so differently.
+ */
 export const LegacyTracks: Story = {
   render: function Render() {
     const [quests, setQuests] = useState(18);
@@ -150,16 +156,9 @@ export const LegacyTracks: Story = {
           legacy
           ticks={quests}
           onChange={setQuests}
-          xpSpent={4}
         />
         <ProgressTrack label="Bonds" legacy ticks={9} onChange={fn()} />
-        <ProgressTrack
-          label="Discoveries"
-          legacy
-          ticks={40}
-          xpSpent={12}
-          onChange={fn()}
-        />
+        <ProgressTrack label="Discoveries" legacy ticks={40} onChange={fn()} />
       </Stack>
     );
   },
@@ -173,5 +172,70 @@ export const Plain: Story = {
     rank: "dangerous",
     ticks: 20,
     onChange: fn(),
+  },
+};
+
+/**
+ * Inside a sidebar at its narrowest (280px), default (360px) and a mid width,
+ * on the sidebar's muted background with its panel padding.
+ */
+export const InSidebar: Story = {
+  decorators: [(Story) => <Story />],
+  render: function Render() {
+    const [vow, setVow] = useState(14);
+    const [journey, setJourney] = useState(16);
+    return (
+      <HStack gap="6" alignItems="flex-start" flexWrap="wrap">
+        {[280, 320, 360].map((width) => (
+          <Stack
+            key={width}
+            width={`${width}px`}
+            gap="3"
+            padding="3"
+            background="bg.muted"
+            borderWidth="1px"
+            borderStyle="solid"
+            borderColor="border.default"
+          >
+            <Box fontSize="xs" color="fg.muted">
+              {width}px sidebar
+            </Box>
+            <ProgressTrack
+              label="Recover the Hollow Crown"
+              typeLabel="Vow"
+              rank="formidable"
+              ticks={vow}
+              onChange={setVow}
+              headerAction={
+                <IconButton label="Vow options" size="sm">
+                  <DotsThree weight="bold" />
+                </IconButton>
+              }
+              actions={
+                <RollButton size="sm">
+                  {sampleMoves.fulfillYourVow.name}
+                </RollButton>
+              }
+            />
+            <ProgressTrack
+              label="Cross the Shattered Wastes to the Iron Spire of Kael"
+              typeLabel="Journey"
+              rank="dangerous"
+              description="Through the Flooded Lands, before the first snow."
+              ticks={journey}
+              onChange={setJourney}
+            />
+            <ProgressTrack label="Quests" legacy ticks={18} onChange={fn()} />
+            <ProgressTrack
+              label="Rescue Orrin from the Iron Pits"
+              typeLabel="Vow"
+              rank="dangerous"
+              ticks={40}
+              completed
+            />
+          </Stack>
+        ))}
+      </HStack>
+    );
   },
 };

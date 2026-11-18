@@ -1,22 +1,33 @@
-import { Sparkle, X } from "@phosphor-icons/react";
+import { Skull, Sparkle, X } from "@phosphor-icons/react";
 import { ReactNode, Ref } from "react";
 
 import { css, cx } from "styled-system/css";
 
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
-import { DiceDisplay } from "../DiceDisplay/DiceDisplay";
+import {
+  ChallengeDieColors,
+  DiceDisplay,
+  DiceNumbers,
+  OracleDice,
+} from "../DiceDisplay/DiceDisplay";
 import { DiceDisplayStrings } from "../DiceDisplay/diceDisplayStrings";
 import {
   RollTextOverrides,
+  getRollContext,
   getRollSummary,
   getRollText,
   getRollTitle,
 } from "./getRollSummary";
-import { RollData, isRollMatch } from "./rollTypes";
+import {
+  RollData,
+  getRollCritical,
+  isChallengeRoll,
+  isRollMatch,
+} from "./rollTypes";
 
 const cardStyles = css({
-  "--outcome": "{colors.accent.fg}",
+  "--outcome": "{colors.fg.default}",
   position: "relative",
   display: "grid",
   gap: "2",
@@ -24,28 +35,27 @@ const cardStyles = css({
   width: "100%",
   maxWidth: "440px",
   paddingBlock: "3",
-  paddingInlineStart: "4",
-  paddingInlineEnd: "3",
+  paddingInline: "4",
   borderWidth: "1px",
   borderStyle: "solid",
   borderColor: "border.default",
   borderRadius: "lg",
   background: "bg.surface",
   color: "fg.default",
-  boxShadow: "inset 3px 0 0 var(--outcome)",
   textAlign: "start",
   "&[data-outcome=strongHit]": { "--outcome": "{colors.success.fg}" },
   "&[data-outcome=weakHit]": { "--outcome": "{colors.warning.fg}" },
   "&[data-outcome=miss]": { "--outcome": "{colors.danger.fg}" },
-  "&[data-elevated]": {
-    boxShadow: "inset 3px 0 0 var(--outcome), token(shadows.popover)",
-    borderColor: "border.control",
+  "&[data-cursed]": {
+    borderColor:
+      "color-mix(in oklab, {colors.cursed.fg} 45%, {colors.border.default})",
   },
+  "&[data-elevated]": { boxShadow: "popover" },
+  "&[data-elevated]:not([data-cursed])": { borderColor: "border.control" },
   "&[data-variant=compact]": {
     gap: "1.5",
     paddingBlock: "2",
-    paddingInlineStart: "3",
-    paddingInlineEnd: "2",
+    paddingInline: "3",
     borderRadius: "md",
     background: "bg.muted",
   },
@@ -60,62 +70,59 @@ const contentStyles = css({
   display: "grid",
   gap: "2",
   minWidth: 0,
-  "[data-variant=compact] &": { gap: "1.5" },
+  "[data-variant=compact] &": { gap: "1" },
 });
 
+/** What was rolled: "Face Danger · Edge". Quieter than the outcome. */
 const headStyles = css({
-  display: "grid",
-  gap: "0.5",
   minWidth: 0,
+  margin: 0,
+  fontFamily: "heading",
+  fontWeight: "semibold",
+  fontSize: "md",
+  lineHeight: "snug",
+  color: "fg.default",
+  overflowWrap: "anywhere",
   // Room for the dismiss button laid over the top right corner.
   "[data-dismissable] &": { paddingInlineEnd: "8" },
+  "[data-variant=compact] &": { fontSize: "sm" },
 });
 
-const eyebrowStyles = css({
-  fontFamily: "heading",
-  fontWeight: "semibold",
-  fontSize: "xs",
-  lineHeight: "snug",
-  textTransform: "uppercase",
-  letterSpacing: "label",
+const contextStyles = css({
   color: "fg.muted",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
+  fontWeight: "medium",
+  "&::before": {
+    content: '"·"',
+    marginInline: "1.5",
+    color: "fg.subtle",
+  },
 });
 
-const titleRowStyles = css({
+const outcomeRowStyles = css({
   display: "flex",
   flexWrap: "wrap",
-  alignItems: "baseline",
+  alignItems: "center",
   columnGap: "2",
   rowGap: "1",
+  minWidth: 0,
 });
 
-const titleStyles = css({
-  fontFamily: "heading",
-  fontWeight: "semibold",
-  fontSize: "lg",
-  lineHeight: "tight",
-  overflowWrap: "anywhere",
-  "[data-variant=compact] &": { fontSize: "md" },
-});
-
+/** The outcome is the card's loudest element: big, bold, in its colour. */
 const outcomeStyles = css({
   fontFamily: "heading",
   fontWeight: "bold",
-  fontSize: "sm",
-  lineHeight: "snug",
+  fontSize: "xl",
+  lineHeight: "none",
   textTransform: "uppercase",
   letterSpacing: "label",
   color: "var(--outcome)",
   whiteSpace: "nowrap",
+  "[data-variant=compact] &": { fontSize: "lg" },
 });
 
 const chipStyles = css({
   display: "inline-flex",
   alignItems: "center",
-  alignSelf: "center",
   gap: "1",
   paddingInline: "1.5",
   paddingBlock: "0.5",
@@ -129,27 +136,35 @@ const chipStyles = css({
   background: "bg.emphasized",
   color: "fg.muted",
   whiteSpace: "nowrap",
+  verticalAlign: "middle",
   "& svg": { width: "1.2em", height: "1.2em" },
   "&[data-tone=match]": { background: "accent.soft", color: "accent.fg" },
+  "&[data-tone=high]": { background: "success.soft", color: "success.fg" },
+  "&[data-tone=low]": { background: "danger.soft", color: "danger.fg" },
+  "&[data-tone=danger]": { background: "danger.soft", color: "danger.fg" },
+  "&[data-tone=cursed]": { background: "cursed.soft", color: "cursed.fg" },
 });
 
 const resultStyles = css({
   margin: 0,
-  fontFamily: "heading",
+  minWidth: 0,
+  fontSize: "md",
   fontWeight: "semibold",
-  fontSize: "xl",
-  lineHeight: "tight",
+  lineHeight: "snug",
   color: "fg.default",
   overflowWrap: "anywhere",
-  "[data-variant=compact] &": { fontSize: "lg" },
+  "[data-variant=compact] &": { fontSize: "sm" },
+  "[data-cursed-result] &": { color: "cursed.fg" },
+  // The inline d100 sits after the text, with the gap of a word or two.
+  "& > [aria-hidden]": { marginInlineStart: "2" },
 });
 
 const partsStyles = css({
   display: "grid",
-  gridTemplateColumns: "auto 1fr",
+  gridTemplateColumns: "auto minmax(0, 1fr)",
   alignItems: "baseline",
   columnGap: "3",
-  rowGap: "0.5",
+  rowGap: "1",
   margin: 0,
   "& dt": {
     fontFamily: "heading",
@@ -163,9 +178,19 @@ const partsStyles = css({
 });
 
 const cursedStyles = css({
+  display: "flex",
+  alignItems: "flex-start",
+  gap: "1.5",
   margin: 0,
   fontSize: "sm",
+  lineHeight: "snug",
   color: "cursed.fg",
+  "& svg": {
+    flex: "none",
+    width: "1.1em",
+    height: "1.1em",
+    marginTop: "0.15em",
+  },
 });
 
 /**
@@ -213,6 +238,13 @@ export interface RollCardAction {
   disabled?: boolean;
 }
 
+/**
+ * How much of the dice a card draws: `captions` names each die, `dice`
+ * draws them bare, `numbers` writes the score against the challenge dice in
+ * one quiet line beside the outcome and puts an oracle's roll inline.
+ */
+export type RollCardDiceDetail = "captions" | "dice" | "numbers";
+
 export interface RollCardProps {
   roll: RollData;
   /**
@@ -223,11 +255,26 @@ export interface RollCardProps {
   /** The dismiss button's name, "Dismiss Face Danger" by default. */
   dismissLabel?: string;
   dismissButtonRef?: Ref<HTMLElement>;
-  /** Buttons under the roll: Reroll, Burn Momentum, Copy. */
+  /**
+   * Buttons under the roll: Reroll, Burn Momentum, Copy. Full cards show
+   * them with labels; compact cards show icon buttons when there is an icon.
+   */
   actions?: RollCardAction[];
-  /** `compact` for the game log: smaller type, dice without captions. */
+  /**
+   * `compact` for the game log: smaller type and dice, and an oracle's roll
+   * sits inline after its result.
+   */
   variant?: "default" | "compact";
-  /** A floating shadow and no border, for a toast. */
+  /** How much of the dice to draw. `dice` by default. */
+  diceDetail?: RollCardDiceDetail;
+  /**
+   * Colours the challenge dice in place of the status colours, such as
+   * Sundered Isles' cinder and wraith. See `DiceDisplay`.
+   */
+  challengeDieColors?: ChallengeDieColors;
+  /** Names the challenge dice in captions, such as Cinder and Wraith. */
+  challengeDieNames?: [string, string];
+  /** A floating shadow, for a toast. */
   elevated?: boolean;
   /** Rises in on mount (a roll result appearing on the page). */
   animateIn?: boolean;
@@ -244,11 +291,13 @@ export interface RollCardProps {
 }
 
 /**
- * One roll: what was rolled, the outcome (Strong Hit, Weak Hit or Miss in
- * its colour), a match, the dice and an oracle's result. Screen readers read
- * one summary (`getRollSummary`) laid over the card in place of its parts.
- * Works on the page, in the game log (`compact`) and inside a toast
- * (`elevated`, with the toast's dismiss as `onDismiss`).
+ * One roll. For action and progress rolls the outcome (Strong Hit, Weak Hit
+ * or Miss) is the loudest thing on the card, with a match flagged beside it
+ * in green (strong hit with a match) or red (miss with a match). Oracle and
+ * clock rolls lead with their result, and Sundered Isles' curse is marked.
+ * Screen readers read one summary (`getRollSummary`) laid over the card in
+ * place of its parts. Works on the page, in the game log (`compact`) and
+ * inside a toast (`elevated`, with the toast's dismiss as `onDismiss`).
  */
 export function RollCard(props: RollCardProps) {
   const {
@@ -258,6 +307,9 @@ export function RollCard(props: RollCardProps) {
     dismissButtonRef,
     actions,
     variant = "default",
+    diceDetail = "dice",
+    challengeDieColors,
+    challengeDieNames,
     elevated,
     animateIn,
     summaryPrefix,
@@ -270,85 +322,134 @@ export function RollCard(props: RollCardProps) {
 
   const text = getRollText(textProp);
   const title = getRollTitle(roll);
+  const context = getRollContext(roll);
   const summary = getRollSummary(roll, {
     text: textProp,
     prefix: summaryPrefix,
   });
-  const match = isRollMatch(roll);
   const compact = variant === "compact";
+  const inlineDice = compact || diceDetail === "numbers";
 
-  let eyebrow: string | undefined;
-  if (roll.kind === "action")
-    eyebrow = roll.moveName ? roll.statName : undefined;
-  else if (roll.kind === "progress")
-    eyebrow = roll.moveName ? roll.trackName : undefined;
-  else eyebrow = roll.category;
-
-  const extras: string[] = [];
+  const critical = getRollCritical(roll);
+  const chips: ReactNode[] = [];
+  if (isRollMatch(roll)) {
+    chips.push(
+      <span key="match" className={chipStyles} data-tone={critical ?? "match"}>
+        <Sparkle weight="fill" />
+        {text.match}
+      </span>,
+    );
+  }
   if (roll.kind === "action") {
     if (roll.actionDie === 1 && !roll.momentumBurned) {
-      extras.push(oneOnActionDieLabel);
+      chips.push(
+        <span key="one" className={chipStyles}>
+          {oneOnActionDieLabel}
+        </span>,
+      );
     }
-    if (roll.negativeMomentumCancelled) extras.push(cancelledLabel);
+    if (roll.negativeMomentumCancelled) {
+      chips.push(
+        <span key="cancelled" className={chipStyles} data-tone="danger">
+          {cancelledLabel}
+        </span>,
+      );
+    }
   }
+  if (roll.kind === "oracle" && roll.cursed) {
+    chips.push(
+      <span key="cursed" className={chipStyles} data-tone="cursed">
+        <Skull weight="fill" />
+        {text.cursed}
+      </span>,
+    );
+  }
+
+  const dice =
+    diceDetail === "numbers" ? null : (
+      <DiceDisplay
+        roll={roll}
+        size={compact ? "sm" : "md"}
+        captions={diceDetail === "captions"}
+        challengeDieColors={challengeDieColors}
+        challengeDieNames={challengeDieNames}
+        strings={diceStrings}
+      />
+    );
+
+  let body: ReactNode;
+  if (isChallengeRoll(roll)) {
+    body = (
+      <>
+        <div className={outcomeRowStyles}>
+          <span className={outcomeStyles}>{text.outcomes[roll.outcome]}</span>
+          {chips}
+          {diceDetail === "numbers" && (
+            <DiceNumbers roll={roll} strings={diceStrings} />
+          )}
+        </div>
+        {dice}
+      </>
+    );
+  } else {
+    const result = roll.result;
+    body = (
+      <>
+        {typeof result === "string" ? (
+          <p className={resultStyles}>
+            {result}
+            {inlineDice && <OracleDice roll={roll} />}
+          </p>
+        ) : (
+          <dl className={partsStyles}>
+            {result.map((part, index) => (
+              <div key={index} className={css({ display: "contents" })}>
+                <dt>{part.label}</dt>
+                <dd className={resultStyles}>
+                  {part.text}
+                  {inlineDice && (
+                    <OracleDice
+                      roll={roll}
+                      part={index}
+                      hideCursedDie={index < result.length - 1}
+                    />
+                  )}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {chips.length > 0 && <div className={outcomeRowStyles}>{chips}</div>}
+        {roll.kind === "oracle" && roll.cursedResult && (
+          <p className={cursedStyles}>
+            <Skull weight="fill" />
+            <span>{text.cursedDieAdds(roll.cursedResult)}</span>
+          </p>
+        )}
+        {!inlineDice && dice}
+      </>
+    );
+  }
+
+  const cursed = roll.kind === "oracle" && (roll.cursed || !!roll.cursedResult);
 
   return (
     <div
       className={cx(cardStyles, className)}
-      data-outcome={roll.kind === "oracle" ? undefined : roll.outcome}
+      data-outcome={isChallengeRoll(roll) ? roll.outcome : undefined}
       data-variant={variant}
       data-elevated={elevated || undefined}
       data-animate={animateIn || undefined}
       data-dismissable={onDismiss ? "" : undefined}
+      data-cursed={cursed || undefined}
+      data-cursed-result={(roll.kind === "oracle" && roll.cursed) || undefined}
     >
       <div className={contentStyles} aria-hidden>
-        <div className={headStyles}>
-          {eyebrow && <span className={eyebrowStyles}>{eyebrow}</span>}
-          <div className={titleRowStyles}>
-            <span className={titleStyles}>{title}</span>
-            {roll.kind !== "oracle" && (
-              <span className={outcomeStyles}>
-                {text.outcomes[roll.outcome]}
-              </span>
-            )}
-            {match && (
-              <span className={chipStyles} data-tone="match">
-                <Sparkle weight="fill" />
-                {text.match}
-              </span>
-            )}
-            {extras.map((extra) => (
-              <span key={extra} className={chipStyles}>
-                {extra}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {roll.kind === "oracle" &&
-          (typeof roll.result === "string" ? (
-            <p className={resultStyles}>{roll.result}</p>
-          ) : (
-            <dl className={partsStyles}>
-              {roll.result.map((part, index) => (
-                <div key={index} className={css({ display: "contents" })}>
-                  <dt>{part.label}</dt>
-                  <dd className={resultStyles}>{part.text}</dd>
-                </div>
-              ))}
-            </dl>
-          ))}
-        {roll.kind === "oracle" && roll.cursedResult && (
-          <p className={cursedStyles}>
-            {text.cursedDieAdds(roll.cursedResult)}
-          </p>
-        )}
-
-        <DiceDisplay
-          roll={roll}
-          size={compact ? "sm" : "md"}
-          strings={diceStrings}
-        />
+        <p className={headStyles}>
+          <span>{title}</span>
+          {context && <span className={contextStyles}>{context}</span>}
+        </p>
+        {body}
       </div>
 
       <div className={summaryStyles}>{summary}</div>

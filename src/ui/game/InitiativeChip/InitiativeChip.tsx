@@ -1,65 +1,55 @@
 import { Menu } from "@base-ui/react/menu";
-import {
-  Campfire,
-  CaretDown,
-  Check,
-  Lightning,
-  WarningCircle,
-} from "@phosphor-icons/react";
-import { ReactNode } from "react";
+import { CaretDown, Check } from "@phosphor-icons/react";
 
 import { css, cx } from "styled-system/css";
 
 import {
+  InitiativeOption,
   InitiativeStatus,
   InitiativeWording,
-  initiativeLabels,
+  getInitiativeOptions,
 } from "./initiativeLabels";
 
-const icons: Record<InitiativeStatus, ReactNode> = {
-  hasInitiative: <Lightning weight="fill" aria-hidden />,
-  noInitiative: <WarningCircle weight="fill" aria-hidden />,
-  outOfCombat: <Campfire weight="fill" aria-hidden />,
-};
-
-const order: InitiativeStatus[] = [
-  "hasInitiative",
-  "noInitiative",
-  "outOfCombat",
-];
-
 const chipStyles = css({
-  "--chip-fg": "{colors.fg.muted}",
-  "--chip-bg": "{colors.bg.muted}",
-  "--chip-border": "{colors.border.default}",
   display: "inline-flex",
   alignItems: "center",
   gap: "1.5",
   minHeight: "28px",
   paddingInlineStart: "2",
-  paddingInlineEnd: "2.5",
+  paddingInlineEnd: "3",
   borderWidth: "1px",
   borderStyle: "solid",
-  borderColor: "var(--chip-border)",
+  borderColor: "color-mix(in oklab, token(colors.accent.fg) 35%, transparent)",
   borderRadius: "full",
-  background: "var(--chip-bg)",
-  color: "var(--chip-fg)",
+  background: "accent.soft",
+  color: "accent.fg",
   fontFamily: "body",
   fontSize: "sm",
   fontWeight: "semibold",
   lineHeight: "1.2",
   whiteSpace: "nowrap",
-  "& svg": { width: "15px", height: "15px", flex: "none" },
-  "&[data-status=hasInitiative]": {
-    "--chip-fg": "{colors.success.fg}",
-    "--chip-bg": "{colors.success.soft}",
-    "--chip-border":
-      "color-mix(in oklab, {colors.success.fg} 40%, transparent)",
+  "& svg": { width: "14px", height: "14px", flex: "none" },
+  // Out of a fight: quiet, so a status in a fight is the one that stands out.
+  "&[data-resting]": {
+    borderColor: "border.default",
+    background: "bg.muted",
+    color: "fg.muted",
   },
-  "&[data-status=noInitiative]": {
-    "--chip-fg": "{colors.danger.fg}",
-    "--chip-bg": "{colors.danger.soft}",
-    "--chip-border": "color-mix(in oklab, {colors.danger.fg} 40%, transparent)",
+});
+
+/**
+ * A dot before the label, filled in a fight and hollow at rest. It marks the
+ * chip as a status without saying whether the status is good or bad.
+ */
+const dotStyles = css({
+  flex: "none",
+  width: "8px",
+  height: "8px",
+  borderRadius: "full",
+  background: "currentColor",
+  "[data-resting] > &": {
+    background: "transparent",
+    boxShadow: "inset 0 0 0 1.5px currentColor",
   },
 });
 
@@ -123,41 +113,63 @@ const indicatorStyles = css({
   color: "accent.fg",
 });
 
-export interface InitiativeChipProps {
-  status: InitiativeStatus;
+export interface InitiativeChipProps<T extends string = InitiativeStatus> {
+  /** The current status, one of the options' values. */
+  status: T;
   /** Lets the chip open a menu to change the status. */
-  onStatusChange?: (status: InitiativeStatus) => void;
-  /** Which game's words to use. Starforged by default. */
+  onStatusChange?: (status: T) => void;
+  /**
+   * The statuses to show and offer, in menu order. Defaults to Iron Link's
+   * three in the chosen game's words; pass rules data here instead.
+   */
+  options?: InitiativeOption<T>[];
+  /** Which game's words the default options use. Starforged by default. */
   wording?: InitiativeWording;
-  /** Overrides the words for each status. */
+  /** Overrides the default options' words. */
   labels?: Partial<Record<InitiativeStatus, string>>;
   /** The trigger's name before the status, "Initiative" ("Initiative: In Control"). */
   changeLabel?: string;
   className?: string;
 }
 
-/** A character's position in a fight: in control, in a bad spot, or neither. */
-export function InitiativeChip(props: InitiativeChipProps) {
+/**
+ * A character's position in a fight, such as In Control or In a Bad Spot.
+ * Statuses in a fight share one look and differ by their words; the resting
+ * one (Out of Combat) is muted.
+ */
+export function InitiativeChip<T extends string = InitiativeStatus>(
+  props: InitiativeChipProps<T>,
+) {
   const {
     status,
     onStatusChange,
+    options: optionsProp,
     wording = "starforged",
-    labels: labelsProp,
+    labels,
     changeLabel = "Initiative",
     className,
   } = props;
-  const labels = { ...initiativeLabels[wording], ...labelsProp };
+  const options =
+    optionsProp ??
+    (getInitiativeOptions(wording, labels) as unknown as InitiativeOption<T>[]);
+  const current = options.find((option) => option.value === status);
+  const label = current?.label ?? status;
+  const resting = current?.resting ? "" : undefined;
 
   const content = (
     <>
-      {icons[status]}
-      {labels[status]}
+      <span className={dotStyles} aria-hidden />
+      {label}
     </>
   );
 
   if (!onStatusChange) {
     return (
-      <span className={cx(chipStyles, className)} data-status={status}>
+      <span
+        className={cx(chipStyles, className)}
+        data-status={status}
+        data-resting={resting}
+      >
         {content}
       </span>
     );
@@ -168,7 +180,8 @@ export function InitiativeChip(props: InitiativeChipProps) {
       <Menu.Trigger
         className={cx(chipStyles, triggerStyles, className)}
         data-status={status}
-        aria-label={`${changeLabel}: ${labels[status]}`}
+        data-resting={resting}
+        aria-label={`${changeLabel}: ${label}`}
       >
         {content}
         <CaretDown weight="bold" aria-hidden />
@@ -178,17 +191,16 @@ export function InitiativeChip(props: InitiativeChipProps) {
           <Menu.Popup className={popupStyles}>
             <Menu.RadioGroup
               value={status}
-              onValueChange={(value: InitiativeStatus) => onStatusChange(value)}
+              onValueChange={(value: T) => onStatusChange(value)}
             >
-              {order.map((option) => (
+              {options.map((option) => (
                 <Menu.RadioItem
-                  key={option}
-                  value={option}
+                  key={option.value}
+                  value={option.value}
                   className={itemStyles}
                   closeOnClick
                 >
-                  {icons[option]}
-                  {labels[option]}
+                  {option.label}
                   <Menu.RadioItemIndicator className={indicatorStyles}>
                     <Check weight="bold" />
                   </Menu.RadioItemIndicator>

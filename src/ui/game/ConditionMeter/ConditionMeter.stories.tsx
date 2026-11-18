@@ -138,6 +138,65 @@ export const MomentumWithImpacts: Story = {
   },
 };
 
+/**
+ * Momentum is the same height as the meters beside it: Burn and Reset live in
+ * the menu its value opens, headed by its max and reset. Aligned to the top,
+ * not stretched, so any height difference would show.
+ */
+export const MomentumBesideMeters: Story = {
+  render: function Render() {
+    const [meters, setMeters] = useState({
+      health: 4,
+      spirit: 3,
+      supply: 2,
+      momentum: 6,
+    });
+    const set = (key: keyof typeof meters) => (value: number) =>
+      setMeters((m) => ({ ...m, [key]: value }));
+    return (
+      <Stack gap="4">
+        <HStack gap="2" alignItems="flex-start" flexWrap="wrap">
+          <ConditionMeter
+            label="Health"
+            value={meters.health}
+            max={5}
+            warnAtMin
+            onChange={set("health")}
+            onRoll={fn()}
+          />
+          <ConditionMeter
+            label="Spirit"
+            value={meters.spirit}
+            max={5}
+            warnAtMin
+            onChange={set("spirit")}
+            onRoll={fn()}
+          />
+          <ConditionMeter
+            label="Supply"
+            value={meters.supply}
+            max={5}
+            warnAtMin
+            onChange={set("supply")}
+            onRoll={fn()}
+          />
+          <MomentumMeter
+            value={meters.momentum}
+            onChange={set("momentum")}
+            onBurn={() => setMeters((m) => ({ ...m, momentum: 2 }))}
+          />
+        </HStack>
+        <HStack gap="2" alignItems="flex-start" flexWrap="wrap">
+          <ConditionMeter label="Health" value={1} max={5} onChange={fn()} />
+          <MomentumMeter value={-3} onChange={fn()} onBurn={fn()} />
+          <MomentumMeter value={10} onChange={fn()} onBurn={fn()} />
+          <MomentumMeter value={2} />
+        </HStack>
+      </Stack>
+    );
+  },
+};
+
 export const AssetMeters: Story = {
   render: () => (
     <HStack gap="2" alignItems="stretch" flexWrap="wrap">
@@ -155,6 +214,51 @@ export const AssetMeters: Story = {
         max={3}
         disabled
         onChange={fn()}
+      />
+    </HStack>
+  ),
+};
+
+/**
+ * Adds for the next roll on the meter rollers: the same pill as stat cards
+ * and roll buttons, after the value. A meter that does not roll never shows
+ * adds.
+ */
+export const WithAdds: Story = {
+  render: () => (
+    <HStack gap="2" alignItems="stretch" flexWrap="wrap">
+      <ConditionMeter
+        label="Health"
+        value={3}
+        max={5}
+        adds={1}
+        onChange={fn()}
+        onRoll={fn()}
+      />
+      <ConditionMeter
+        label="Spirit"
+        value={0}
+        max={5}
+        warnAtMin
+        adds={-1}
+        onChange={fn()}
+        onRoll={fn()}
+      />
+      <ConditionMeter
+        label="Supply"
+        value={4}
+        max={5}
+        adds={2}
+        disabled
+        onChange={fn()}
+        onRoll={fn()}
+      />
+      <ConditionMeter
+        label="Companion Health"
+        value={2}
+        max={4}
+        adds={1}
+        onRoll={fn()}
       />
     </HStack>
   ),

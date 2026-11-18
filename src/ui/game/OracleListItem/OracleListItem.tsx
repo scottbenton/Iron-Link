@@ -10,78 +10,9 @@ import {
 import { IconButton } from "ui/components/IconButton";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 
-import { css, cx } from "styled-system/css";
+import { cx } from "styled-system/css";
 
-const wrapperStyles = css({
-  display: "flex",
-  alignItems: "center",
-  gap: "0.5",
-  minWidth: 0,
-  listStyle: "none",
-  margin: 0,
-  padding: 0,
-});
-
-export const oracleRowStyles = css({
-  flex: "1",
-  minWidth: 0,
-  display: "flex",
-  alignItems: "center",
-  gap: "2.5",
-  minHeight: "40px",
-  paddingInline: "2.5",
-  border: 0,
-  borderRadius: "md",
-  background: "transparent",
-  color: "fg.default",
-  fontFamily: "body",
-  fontSize: "sm",
-  fontWeight: "medium",
-  lineHeight: "snug",
-  textAlign: "left",
-  textDecoration: "none",
-  cursor: "pointer",
-  WebkitTapHighlightColor: "transparent",
-  transition: "background-color token(durations.fast) linear",
-  outline: "none",
-  _hover: { background: "overlay.hover" },
-  _pressed: { background: "overlay.pressed" },
-  _current: {
-    background: "overlay.selected",
-    fontWeight: "semibold",
-    "& [data-row-icon]": { color: "accent.fg" },
-  },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-2px",
-  },
-  "&:is(:disabled, [data-disabled])": {
-    cursor: "not-allowed",
-    color: "fg.disabled",
-    background: "transparent",
-    "& [data-row-icon], & [data-row-action]": { color: "fg.disabled" },
-  },
-  "& [data-row-icon]": {
-    flex: "none",
-    width: "18px",
-    height: "18px",
-    color: "fg.muted",
-  },
-  "& [data-row-name]": {
-    flex: "1",
-    minWidth: 0,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  },
-  "& [data-row-action]": {
-    flex: "none",
-    marginInlineStart: "auto",
-    color: "fg.muted",
-    fontSize: "xs",
-  },
-  _touch: { minHeight: "touch" },
-});
+import { listRowLineStyles, listRowStyles } from "./listRowStyles";
 
 export interface OracleListItemProps
   extends Omit<ComponentPropsWithoutRef<"div">, "children"> {
@@ -89,9 +20,9 @@ export interface OracleListItemProps
   name: string;
   /** Rolls the oracle. The whole row is the button. */
   onRoll?: () => void;
-  /** The word at the row's end and before the name for screen readers. */
+  /** Read before the name, "Roll" by default ("Roll Action"). */
   actionLabel?: string;
-  /** The leading icon, a die by default. */
+  /** The glyph at the row's end, a die by default; `null` for none. */
   icon?: ReactNode;
   /** Opens the full table, as an icon button beside the row. */
   onViewTable?: () => void;
@@ -101,7 +32,7 @@ export interface OracleListItemProps
   secondaryAction?: ReactNode;
   /**
    * Render the row as a link, such as a reference page:
-   * `render={<Link to={href} />}`. The action word is hidden then.
+   * `render={<Link to={href} />}`. It shows no die then.
    */
   render?: ReactElement;
   /** Marks the row as the open page (aria-current). */
@@ -114,8 +45,8 @@ export interface OracleListItemProps
 
 /**
  * A row in an oracle list, like the oracle drawer: the whole row rolls, its
- * name in the middle and "Roll" at the end. An optional icon button beside
- * it opens the full table.
+ * name first and a die at the end, where a move row has its chevron. An
+ * optional View table button lies over the row's end.
  */
 export function OracleListItem(props: OracleListItemProps) {
   const {
@@ -135,42 +66,50 @@ export function OracleListItem(props: OracleListItemProps) {
   } = props;
 
   const isLink = render !== undefined;
-  const iconNode = icon ?? <DiceFive weight="bold" />;
+  const glyph = isLink ? null : icon === undefined ? (
+    <DiceFive weight="bold" />
+  ) : (
+    icon
+  );
+  const action =
+    secondaryAction ??
+    (onViewTable && (
+      <IconButton
+        label={`${viewTableLabel} ${name}`}
+        size="sm"
+        onClick={onViewTable}
+        disabled={disabled}
+      >
+        <Table />
+      </IconButton>
+    ));
 
   return (
-    <Wrapper className={cx(wrapperStyles, className)} {...rest}>
+    <Wrapper
+      data-row-line=""
+      data-has-action={action ? "" : undefined}
+      className={cx(listRowLineStyles, className)}
+      {...rest}
+    >
       <BaseButton
-        className={oracleRowStyles}
+        className={listRowStyles}
         onClick={onRoll}
         disabled={disabled}
         render={render}
         nativeButton={!isLink}
         aria-current={current ? (isLink ? "page" : "true") : undefined}
       >
-        <span data-row-icon="" aria-hidden>
-          {iconNode}
-        </span>
         <span data-row-name="">
           {!isLink && <VisuallyHidden>{actionLabel} </VisuallyHidden>}
           {name}
         </span>
-        {!isLink && (
-          <span data-row-action="" aria-hidden>
-            {actionLabel}
+        {glyph && (
+          <span data-row-glyph="" aria-hidden>
+            {glyph}
           </span>
         )}
       </BaseButton>
-      {secondaryAction ??
-        (onViewTable && (
-          <IconButton
-            label={`${viewTableLabel} ${name}`}
-            size="sm"
-            onClick={onViewTable}
-            disabled={disabled}
-          >
-            <Table />
-          </IconButton>
-        ))}
+      {action && <span data-row-action="">{action}</span>}
     </Wrapper>
   );
 }

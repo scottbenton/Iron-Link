@@ -14,7 +14,6 @@ const meta: Meta<typeof EmptyState> = {
       "A world holds the places, people and truths your games share. Create one to start building.",
     action: <Button variant="primary">Create World</Button>,
     size: "md",
-    bordered: false,
   },
   argTypes: { size: { control: "inline-radio", options: ["sm", "md"] } },
 };
@@ -24,10 +23,9 @@ type Story = StoryObj<typeof EmptyState>;
 
 export const Playground: Story = {};
 
-/** A dashed card, for an empty region inside a page. */
-export const Bordered: Story = {
+/** Two ways forward: the main action and a quieter one beside it. */
+export const WithSecondaryAction: Story = {
   args: {
-    bordered: true,
     secondaryAction: <Button variant="ghost">Import a World</Button>,
   },
 };

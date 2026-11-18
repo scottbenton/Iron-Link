@@ -27,7 +27,7 @@ const spacing = [
 ];
 const radii = [
   { name: "xs", use: "Small marks" },
-  { name: "sm", use: "Tags, kbd" },
+  { name: "sm", use: "Tags, menu rows, buttons inside fields" },
   { name: "md", use: "Controls, fields, menus" },
   { name: "lg", use: "Cards" },
   { name: "xl", use: "Dialogs, sheets" },

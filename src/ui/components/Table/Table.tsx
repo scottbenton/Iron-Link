@@ -200,7 +200,7 @@ const cellStyles = cva({
   },
   variants: {
     density: {
-      comfortable: { paddingBlock: "2.5", paddingInline: "3" },
+      comfortable: { paddingBlock: "3", paddingInline: "3" },
       compact: { paddingBlock: "1", paddingInline: "2" },
     },
     numeric: {

@@ -101,7 +101,7 @@ const marksStyles = css({
   alignItems: "center",
   gap: "1.5",
   paddingBlock: "1.5",
-  paddingInline: "2.5",
+  paddingInline: "3",
   borderRadius: "md",
   background: "warning.soft",
   color: "warning.fg",
@@ -112,7 +112,7 @@ const marksStyles = css({
 
 const abilitiesStyles = css({
   display: "grid",
-  gap: "2.5",
+  gap: "3",
   margin: 0,
   padding: 0,
   listStyle: "none",
@@ -121,10 +121,13 @@ const abilitiesStyles = css({
     display: "grid",
     gridTemplateColumns: "auto minmax(0, 1fr)",
     alignItems: "start",
-    gap: "2.5",
+    // Room between the box and its text, so the text reads as the label.
+    gap: "3",
   },
   // Line the box up with the first line of text.
   "& > li > [data-ability-box]": { marginTop: "1px" },
+  // Collapsed with nothing checked: kept for the toggle's aria-controls.
+  "&:empty": { display: "none" },
 });
 
 const fieldsStyles = css({
@@ -144,8 +147,8 @@ export interface AssetCardStrings {
 export const defaultAssetCardStrings: AssetCardStrings = {
   shared: "Shared asset",
   outOfUse: (marks) => `${marks.join(", ")}: this asset is out of use`,
-  expand: "Show abilities",
-  collapse: "Hide abilities",
+  expand: "Show all abilities",
+  collapse: "Hide unchecked abilities",
   rollLabel: "Roll",
 };
 
@@ -165,13 +168,13 @@ export interface AssetCardProps
   onRollControl?: (key: string, control: AssetControl, value: number) => void;
   /** Shows everything as it is, with no way to change it. */
   readOnly?: boolean;
-  /** Hides abilities that are not ticked, as on a character sheet. */
-  hideUnavailableAbilities?: boolean;
   /** Marks shared assets (a command vehicle) with an icon. */
   showSharedIcon?: boolean;
   /**
-   * Only the header, name and meters. With `onCollapsedChange` the header
-   * carries a toggle.
+   * Hides the abilities that are not checked, as the character sheet does.
+   * Everything else stays: the requirement, fields, checked abilities,
+   * meters and other controls. With `onCollapsedChange` the header carries
+   * a toggle.
    */
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
@@ -200,7 +203,6 @@ export function AssetCard(props: AssetCardProps) {
     onControlChange,
     onRollControl,
     readOnly,
-    hideUnavailableAbilities,
     showSharedIcon,
     collapsed,
     onCollapsedChange,
@@ -240,7 +242,7 @@ export function AssetCard(props: AssetCardProps) {
       index,
       enabled: isAbilityEnabled(asset, state, index),
     }))
-    .filter(({ enabled }) => enabled || !hideUnavailableAbilities);
+    .filter(({ enabled }) => enabled || !collapsed);
 
   const sortedControls = sortByLabel(controls);
   const meters = sortedControls.filter(
@@ -310,7 +312,7 @@ export function AssetCard(props: AssetCardProps) {
           </div>
         )}
 
-        {!collapsed && asset.requirement && (
+        {asset.requirement && (
           <RulesText
             markdown={asset.requirement}
             size="sm"
@@ -319,21 +321,19 @@ export function AssetCard(props: AssetCardProps) {
           />
         )}
 
-        {!collapsed && (
-          <div className={fieldsStyles}>
-            {sortByLabel(options).map(([key, option]) => (
-              <AssetOptionField
-                key={key}
-                optionKey={key}
-                option={option}
-                value={state?.optionValues?.[key]}
-                onChange={changeOption}
-              />
-            ))}
-          </div>
-        )}
+        <div className={fieldsStyles}>
+          {sortByLabel(options).map(([key, option]) => (
+            <AssetOptionField
+              key={key}
+              optionKey={key}
+              option={option}
+              value={state?.optionValues?.[key]}
+              onChange={changeOption}
+            />
+          ))}
+        </div>
 
-        {!collapsed && abilities.length > 0 && (
+        {(abilities.length > 0 || onCollapsedChange) && (
           <ul
             className={abilitiesStyles}
             id={`${idPrefix}-abilities`}
@@ -391,7 +391,7 @@ export function AssetCard(props: AssetCardProps) {
           />
         ))}
 
-        {!collapsed && otherControls.length > 0 && (
+        {otherControls.length > 0 && (
           <div className={fieldsStyles}>
             {otherControls.map(([key, control]) => (
               <AssetControlField

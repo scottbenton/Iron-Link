@@ -90,7 +90,18 @@ export const rollButtonStyles = cva({
       },
     },
     fullWidth: {
-      true: { display: "flex", width: "100%" },
+      // A full-width button in a narrow panel wraps its label rather than
+      // spilling out; the die and the adds pill stay beside it.
+      true: {
+        display: "flex",
+        width: "100%",
+        "& [data-roll-label]": {
+          whiteSpace: "normal",
+          overflowWrap: "anywhere",
+          textAlign: "center",
+        },
+        "& > [data-ring-inner]": { minWidth: 0 },
+      },
     },
   },
   defaultVariants: { size: "md" },

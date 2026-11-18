@@ -1,10 +1,18 @@
 import { Flame, Skull } from "@phosphor-icons/react";
-import { ReactNode } from "react";
+import { CSSProperties, ReactNode } from "react";
 
 import { css, cx } from "styled-system/css";
 
 import { RollTextOverrides, getRollSummary } from "../RollCard/getRollSummary";
-import { RollData, getComparedScore } from "../RollCard/rollTypes";
+import {
+  ChallengeRollData,
+  PercentileRollData,
+  RollCritical,
+  RollData,
+  getComparedScore,
+  getRollCritical,
+  isChallengeRoll,
+} from "../RollCard/rollTypes";
 import { formatSigned } from "../shared/format";
 import {
   DiceDisplayStrings,
@@ -19,6 +27,7 @@ const rootStyles = css({
   alignItems: "flex-start",
   columnGap: "1.5",
   rowGap: "2",
+  minWidth: 0,
   fontVariantNumeric: "tabular-nums",
   "&[data-size=sm]": { "--die-size": "26px", "--die-font": "0.9375rem" },
 });
@@ -36,23 +45,44 @@ const groupStyles = css({
   },
 });
 
+const challengeGroupStyles = css({
+  display: "flex",
+  alignItems: "flex-start",
+  gap: "1",
+  // Room between the crit rings drawn outside each die.
+  "&[data-crit]": { gap: "2" },
+});
+
 const termStyles = css({
   display: "grid",
   justifyItems: "center",
+  alignContent: "start",
   gap: "0.5",
   minWidth: "var(--die-size)",
 });
 
+/**
+ * Captions wrap to two lines at most under their term, then clip with an
+ * ellipsis, so a long stat ("Protocol Bot health") or table name never
+ * pushes the dice apart. Screen readers read the roll's summary instead.
+ */
 const captionStyles = css({
+  display: "none",
+  maxWidth: "calc(var(--die-size) * 3)",
   fontSize: "2xs",
-  lineHeight: "snug",
+  lineHeight: "tight",
   color: "fg.muted",
-  whiteSpace: "nowrap",
+  textAlign: "center",
   textTransform: "uppercase",
   letterSpacing: "label",
   fontFamily: "heading",
   fontWeight: "semibold",
-  "[data-size=sm] &": { display: "none" },
+  overflowWrap: "break-word",
+  textWrap: "balance",
+  // lineClamp sets display, so it lives only under the shown condition,
+  // whose higher specificity beats the hidden default.
+  "[data-captions] &": { lineClamp: 2 },
+  "&[data-tone=danger]": { color: "danger.fg" },
 });
 
 const operatorStyles = css({
@@ -85,23 +115,31 @@ const numberStyles = css({
 });
 
 /**
- * A die. The shape is drawn in SVG behind the number so a match can outline
- * it: a rounded square for the d6, a kite for a d10, a wide plate for d100.
+ * A die. The shape is drawn in SVG behind the number: a rounded square for
+ * the d6, a kite for a d10, a wide plate for a d100. A second, larger shape
+ * draws the ring around a match: green on a strong hit with a match, red on
+ * a miss with a match, the accent colour on an oracle match.
  */
 const dieStyles = css({
   position: "relative",
-  display: "grid",
+  display: "inline-grid",
   placeItems: "center",
+  flex: "none",
   height: "var(--die-size)",
   minWidth: "var(--die-size)",
   fontFamily: "heading",
   fontWeight: "bold",
   fontSize: "var(--die-font)",
   lineHeight: "none",
+  verticalAlign: "middle",
   "--die-fill": "{colors.bg.emphasized}",
   "--die-stroke": "{colors.border.control}",
   "--die-fg": "{colors.fg.default}",
+  "--die-ring": "{colors.accent.fg}",
   color: "var(--die-fg)",
+  "&[data-size=xs]": { "--die-size": "22px", "--die-font": "0.8125rem" },
+  "&[data-size=sm]": { "--die-size": "26px", "--die-font": "0.9375rem" },
+  "&[data-size=md]": { "--die-size": "32px", "--die-font": "1.0625rem" },
   "& > svg": {
     position: "absolute",
     inset: 0,
@@ -109,10 +147,17 @@ const dieStyles = css({
     height: "100%",
     overflow: "visible",
   },
-  "& > svg > *": {
+  "& > svg > [data-face]": {
     fill: "var(--die-fill)",
     stroke: "var(--die-stroke)",
     strokeWidth: 1.5,
+    strokeLinejoin: "round",
+    vectorEffect: "non-scaling-stroke",
+  },
+  "& > svg > [data-ring]": {
+    fill: "none",
+    stroke: "var(--die-ring)",
+    strokeWidth: 2,
     strokeLinejoin: "round",
     vectorEffect: "non-scaling-stroke",
   },
@@ -133,91 +178,147 @@ const dieStyles = css({
     "--die-stroke": "color-mix(in oklab, {colors.danger.fg} 55%, transparent)",
     "--die-fg": "{colors.danger.fg}",
   },
+  // A colour of the caller's (Sundered Isles' cinder and wraith): a beaten
+  // die is solid in it, a held one only outlined, so the status still reads.
+  "&[data-hue][data-state=beaten]": {
+    "--die-fill": "var(--die-hue)",
+    "--die-stroke": "var(--die-hue)",
+    "--die-fg": "{colors.bg.surface}",
+  },
+  "&[data-hue][data-state=held]": {
+    "--die-fill":
+      "color-mix(in oklab, var(--die-hue) 10%, {colors.bg.surface})",
+    "--die-stroke": "var(--die-hue)",
+    "--die-fg": "var(--die-hue)",
+  },
   "&[data-state=cursed]": {
     "--die-fill": "{colors.cursed.soft}",
     "--die-stroke": "{colors.cursed.fg}",
     "--die-fg": "{colors.cursed.fg}",
   },
-  "&[data-match] > svg > *": {
-    stroke: "accent.fg",
-    strokeWidth: 2.5,
+  "&[data-state=quiet]": {
+    "--die-fill": "transparent",
+    "--die-stroke": "{colors.border.default}",
+    "--die-fg": "{colors.fg.muted}",
   },
+  // Negative momentum matched the action die, so it counts as zero.
+  // Two attributes, so it outranks `data-kind=action` whatever the order.
+  "&[data-cancelled][data-kind]": {
+    "--die-fill": "{colors.danger.soft}",
+    "--die-stroke": "{colors.danger.fg}",
+    "--die-fg": "{colors.danger.fg}",
+    "& > span": {
+      textDecoration: "line-through",
+      textDecorationThickness: "2px",
+    },
+  },
+  "&[data-ring=high]": { "--die-ring": "{colors.success.fg}" },
+  "&[data-ring=low]": { "--die-ring": "{colors.danger.fg}" },
 });
 
-const iconTermStyles = css({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "1",
-  height: "var(--die-size)",
-  paddingInline: "2",
-  borderRadius: "sm",
-  fontFamily: "heading",
-  fontWeight: "bold",
-  fontSize: "var(--die-font)",
-  "& svg": { width: "1em", height: "1em", flex: "none" },
-  "&[data-tone=momentum]": {
-    background: "warning.soft",
-    color: "warning.fg",
-  },
-  "&[data-tone=progress]": {
-    background: "bg.emphasized",
-    color: "fg.default",
-  },
-});
+export type DieShape = "d6" | "d10" | "d100";
 
-type DieShape = "d6" | "d10" | "d100";
-
-function DieShapeSvg(props: { shape: DieShape }) {
-  const { shape } = props;
+function DieShapeSvg(props: { shape: DieShape; ring: boolean }) {
+  const { shape, ring } = props;
   if (shape === "d10") {
     return (
       <svg viewBox="0 0 32 32" aria-hidden focusable="false">
-        <polygon points="16,1.5 30.5,12.5 30.5,19.5 16,30.5 1.5,19.5 1.5,12.5" />
+        {ring && (
+          <polygon
+            data-ring=""
+            points="16,-3 34.5,11 34.5,21 16,35 -2.5,21 -2.5,11"
+          />
+        )}
+        <polygon
+          data-face=""
+          points="16,1.5 30.5,12.5 30.5,19.5 16,30.5 1.5,19.5 1.5,12.5"
+        />
       </svg>
     );
   }
+  const width = shape === "d100" ? 43 : 32;
   return (
     <svg
-      viewBox={shape === "d100" ? "0 0 43 32" : "0 0 32 32"}
+      viewBox={`0 0 ${width} 32`}
       preserveAspectRatio="none"
       aria-hidden
       focusable="false"
     >
-      <rect x="1" y="1" width={shape === "d100" ? 41 : 30} height="30" rx="7" />
+      {ring && (
+        <rect
+          data-ring=""
+          x="-2.5"
+          y="-2.5"
+          width={width + 5}
+          height="37"
+          rx="10"
+        />
+      )}
+      <rect data-face="" x="1" y="1" width={width - 2} height="30" rx="7" />
     </svg>
   );
 }
 
-interface DieProps {
+export interface DieProps {
   value: ReactNode;
   shape: DieShape;
   kind?: "action" | "challenge" | "oracle";
-  state?: "beaten" | "held" | "cursed";
-  match?: boolean;
+  /**
+   * `beaten` and `held` colour a challenge die by the score; `cursed` is a
+   * 10 on the cursed die; `quiet` is a cursed die short of 10.
+   */
+  state?: "beaten" | "held" | "cursed" | "quiet";
+  /** Draws the match ring: `high` green, `low` red, `match` the accent. */
+  ring?: RollCritical | "match";
+  /** Strikes the die out: negative momentum cancelled it. */
+  cancelled?: boolean;
+  /**
+   * A colour for the die in place of the status colours, as any CSS colour
+   * (`var(--colors-danger-fg)`). Beaten dice fill with it, held ones are
+   * outlined in it.
+   */
+  color?: string;
+  /** Overrides the size from the surrounding `DiceDisplay`. */
+  size?: "xs" | "sm" | "md";
+  className?: string;
 }
 
-function Die(props: DieProps) {
-  const { value, shape, kind, state, match } = props;
+/** One die, decorative. Something nearby must say what it shows. */
+export function Die(props: DieProps) {
+  const { value, shape, kind, state, ring, cancelled, color, size } = props;
   return (
     <span
-      className={dieStyles}
+      className={cx(dieStyles, props.className)}
       data-shape={shape}
       data-kind={kind}
       data-state={state}
-      data-match={match || undefined}
+      data-ring={ring}
+      data-cancelled={cancelled || undefined}
+      data-hue={color ? "" : undefined}
+      data-size={size}
+      style={color ? ({ "--die-hue": color } as CSSProperties) : undefined}
+      aria-hidden
     >
-      <DieShapeSvg shape={shape} />
+      <DieShapeSvg shape={shape} ring={!!ring} />
       <span data-term-value="">{value}</span>
     </span>
   );
 }
 
-function Term(props: { caption?: string; children: ReactNode }) {
-  const { caption, children } = props;
+function Term(props: {
+  caption?: string;
+  tone?: "danger";
+  children: ReactNode;
+}) {
+  const { caption, tone, children } = props;
   return (
     <span className={termStyles}>
       {children}
-      {caption && <span className={captionStyles}>{caption}</span>}
+      {caption && (
+        <span className={captionStyles} data-tone={tone}>
+          {caption}
+        </span>
+      )}
     </span>
   );
 }
@@ -230,10 +331,35 @@ function Operator(props: { children: ReactNode; word?: boolean }) {
   );
 }
 
+function CursedDieValue(props: { value: number }) {
+  return props.value === 10 ? (
+    <Skull weight="fill" aria-hidden className={css({ display: "block" })} />
+  ) : (
+    props.value
+  );
+}
+
+/** Colours for the two challenge dice, in place of the status colours. */
+export type ChallengeDieColors = [string | undefined, string | undefined];
+
 export interface DiceDisplayProps {
   roll: RollData;
-  /** `sm` drops the captions, for compact cards. */
+  /** `sm` for compact cards and the game log. */
   size?: "sm" | "md";
+  /**
+   * Names each term under it (Action, Edge, Score, Challenge). Off by
+   * default: the card around the dice already says what was rolled, and
+   * the dice read better without. Long names wrap to two lines.
+   */
+  captions?: boolean;
+  /**
+   * Colours the two challenge dice, such as Sundered Isles' cinder (red)
+   * and wraith (blue). Without it they show the status: green where the
+   * score beats a die, red where it doesn't.
+   */
+  challengeDieColors?: ChallengeDieColors;
+  /** Names the two challenge dice in captions, such as Cinder and Wraith. */
+  challengeDieNames?: [string, string];
   /**
    * Names the dice for screen readers with the roll's summary. Leave it off
    * when something nearby already reads the summary (a roll card does).
@@ -245,17 +371,29 @@ export interface DiceDisplayProps {
   className?: string;
 }
 
+function getChallengeState(
+  roll: ChallengeRollData,
+  die: number,
+): "beaten" | "held" {
+  const score = getComparedScore(roll);
+  return score !== undefined && score > die ? "beaten" : "held";
+}
+
 /**
  * The dice of a roll. Action rolls show the action die (dark, like the roll
  * buttons) plus stat and adds, then the score against the challenge dice:
- * green where the score beats a die, red where it doesn't, and outlined in
- * the accent colour on a match. Burned momentum strikes the action score out
- * and takes its place.
+ * green where the score beats a die, red where it doesn't. A match rings
+ * both challenge dice, green on a strong hit and red on a miss. Burned
+ * momentum strikes the action score out and takes its place; negative
+ * momentum that cancels the action die strikes the die out in red.
  */
 export function DiceDisplay(props: DiceDisplayProps) {
   const {
     roll,
     size = "md",
+    captions = false,
+    challengeDieColors,
+    challengeDieNames,
     labelled,
     strings: stringsProp,
     rollText,
@@ -267,43 +405,61 @@ export function DiceDisplay(props: DiceDisplayProps) {
     ? { role: "img", "aria-label": getRollSummary(roll, { text: rollText }) }
     : { "aria-hidden": true };
 
-  const score = getComparedScore(roll);
-
-  const challenge =
-    roll.kind === "oracle" ? null : (
-      <Term caption={s.challengeCaption}>
-        <span className={css({ display: "flex", gap: "1" })}>
-          {roll.challengeDice.map((die, index) => (
-            <Die
-              key={index}
-              shape="d10"
-              kind="challenge"
-              value={die}
-              state={score !== undefined && score > die ? "beaten" : "held"}
-              match={roll.challengeDice[0] === roll.challengeDice[1]}
-            />
-          ))}
-        </span>
-      </Term>
-    );
-
   let left: ReactNode = null;
+  let challenge: ReactNode = null;
+
+  if (isChallengeRoll(roll)) {
+    const crit = getRollCritical(roll);
+    const ring =
+      crit ??
+      (roll.challengeDice[0] === roll.challengeDice[1] ? "match" : undefined);
+    const dice = roll.challengeDice.map((die, index) => {
+      const element = (
+        <Die
+          key={index}
+          shape="d10"
+          kind="challenge"
+          value={die}
+          state={getChallengeState(roll, die)}
+          ring={ring}
+          color={challengeDieColors?.[index]}
+        />
+      );
+      return challengeDieNames ? (
+        <Term key={index} caption={challengeDieNames[index]}>
+          {element}
+        </Term>
+      ) : (
+        element
+      );
+    });
+    const group = (
+      <span className={challengeGroupStyles} data-crit={ring ? "" : undefined}>
+        {dice}
+      </span>
+    );
+    challenge = challengeDieNames ? (
+      group
+    ) : (
+      <Term caption={s.challengeCaption}>{group}</Term>
+    );
+  }
 
   if (roll.kind === "action") {
     const capped = Math.min(roll.actionScore, 10);
+    const cancelled = !!roll.negativeMomentumCancelled;
     const terms: ReactNode[] = [
       <Term
         key="die"
-        caption={
-          roll.negativeMomentumCancelled ? s.cancelledCaption : s.actionCaption
-        }
+        caption={cancelled ? s.cancelledCaption : s.actionCaption}
+        tone={cancelled ? "danger" : undefined}
       >
-        <span
-          className={groupStyles}
-          data-struck={roll.negativeMomentumCancelled || undefined}
-        >
-          <Die shape="d6" kind="action" value={roll.actionDie} />
-        </span>
+        <Die
+          shape="d6"
+          kind="action"
+          value={roll.actionDie}
+          cancelled={cancelled}
+        />
       </Term>,
     ];
     if (roll.statValue) {
@@ -326,7 +482,7 @@ export function DiceDisplay(props: DiceDisplayProps) {
         data-struck={roll.momentumBurned ? "" : undefined}
       >
         {terms}
-        {terms.length > 1 && (
+        {(terms.length > 1 || cancelled) && (
           <>
             <Operator>=</Operator>
             <Term caption={s.scoreCaption}>
@@ -343,10 +499,7 @@ export function DiceDisplay(props: DiceDisplayProps) {
         {equation}
         {roll.momentumBurned ? (
           <Term caption={s.momentumCaption}>
-            <span className={iconTermStyles} data-tone="momentum">
-              <Flame weight="fill" aria-hidden />
-              {roll.momentumBurned}
-            </span>
+            <MomentumChip value={roll.momentumBurned} />
           </Term>
         ) : null}
       </>
@@ -354,27 +507,35 @@ export function DiceDisplay(props: DiceDisplayProps) {
   } else if (roll.kind === "progress") {
     left = (
       <Term caption={s.progressCaption}>
-        <span className={iconTermStyles} data-tone="progress">
-          <ProgressGlyph />
-          {roll.progressScore}
-        </span>
+        <ProgressChip value={roll.progressScore} />
+      </Term>
+    );
+  } else if (roll.kind === "clock") {
+    left = (
+      <Term caption={roll.oddsName}>
+        <Die
+          shape="d100"
+          kind="oracle"
+          value={roll.roll}
+          ring={roll.match ? "match" : undefined}
+        />
       </Term>
     );
   } else {
     const rolls = Array.isArray(roll.roll) ? roll.roll : [roll.roll];
-    const captions =
+    const partCaptions =
       typeof roll.result === "string"
         ? []
         : roll.result.map((part) => part.label);
     left = (
       <>
         {rolls.map((value, index) => (
-          <Term key={index} caption={captions[index] ?? s.oracleCaption}>
+          <Term key={index} caption={partCaptions[index] ?? s.oracleCaption}>
             <Die
               shape="d100"
               kind="oracle"
               value={value}
-              match={!!roll.match && rolls.length === 1}
+              ring={roll.match && rolls.length === 1 ? "match" : undefined}
             />
           </Term>
         ))}
@@ -382,18 +543,8 @@ export function DiceDisplay(props: DiceDisplayProps) {
           <Term caption={s.cursedCaption}>
             <Die
               shape="d10"
-              value={
-                roll.cursedDie === 10 ? (
-                  <Skull
-                    weight="fill"
-                    aria-hidden
-                    className={css({ display: "block" })}
-                  />
-                ) : (
-                  roll.cursedDie
-                )
-              }
-              state={roll.cursedDie === 10 ? "cursed" : undefined}
+              value={<CursedDieValue value={roll.cursedDie} />}
+              state={roll.cursedDie === 10 ? "cursed" : "quiet"}
             />
           </Term>
         ) : null}
@@ -405,6 +556,7 @@ export function DiceDisplay(props: DiceDisplayProps) {
     <div
       className={cx(rootStyles, className)}
       data-size={size}
+      data-captions={captions || undefined}
       data-kind={roll.kind}
       {...a11y}
     >
@@ -416,6 +568,45 @@ export function DiceDisplay(props: DiceDisplayProps) {
         </>
       )}
     </div>
+  );
+}
+
+const chipTermStyles = css({
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "1",
+  height: "var(--die-size)",
+  paddingInline: "2",
+  borderRadius: "sm",
+  fontFamily: "heading",
+  fontWeight: "bold",
+  fontSize: "var(--die-font)",
+  "& svg": { width: "1em", height: "1em", flex: "none" },
+  "&[data-tone=momentum]": {
+    background: "warning.soft",
+    color: "warning.fg",
+  },
+  "&[data-tone=progress]": {
+    background: "bg.emphasized",
+    color: "fg.default",
+  },
+});
+
+function MomentumChip(props: { value: number }) {
+  return (
+    <span className={chipTermStyles} data-tone="momentum">
+      <Flame weight="fill" aria-hidden />
+      {props.value}
+    </span>
+  );
+}
+
+function ProgressChip(props: { value: number }) {
+  return (
+    <span className={chipTermStyles} data-tone="progress">
+      <ProgressGlyph />
+      {props.value}
+    </span>
   );
 }
 
@@ -437,5 +628,116 @@ function ProgressGlyph() {
       <line x1="5" y1="15" x2="15" y2="5" />
       <line x1="5" y1="5" x2="15" y2="15" />
     </svg>
+  );
+}
+
+const inlineStyles = css({
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "1",
+  verticalAlign: "middle",
+  fontVariantNumeric: "tabular-nums",
+});
+
+export interface OracleDiceProps {
+  roll: PercentileRollData;
+  /** For a shared roll, the table's index: shows that table's d100 only. */
+  part?: number;
+  /** Leaves out the cursed die (shown once, beside the first table). */
+  hideCursedDie?: boolean;
+  size?: "xs" | "sm";
+  className?: string;
+}
+
+/**
+ * An oracle's d100 (and cursed die) small enough to sit inline after the
+ * result text. Decorative: the card's summary reads the numbers.
+ */
+export function OracleDice(props: OracleDiceProps) {
+  const { roll, part, hideCursedDie, size = "xs", className } = props;
+  const rolls = Array.isArray(roll.roll) ? roll.roll : [roll.roll];
+  const shown = part === undefined ? rolls : [rolls[part]];
+  const cursedDie = roll.kind === "oracle" ? roll.cursedDie : undefined;
+  return (
+    <span className={cx(inlineStyles, className)} aria-hidden>
+      {shown.map((value, index) => (
+        <Die
+          key={index}
+          shape="d100"
+          kind="oracle"
+          size={size}
+          value={value}
+          ring={roll.match && rolls.length === 1 ? "match" : undefined}
+        />
+      ))}
+      {cursedDie && !hideCursedDie ? (
+        <Die
+          shape="d10"
+          size={size}
+          value={<CursedDieValue value={cursedDie} />}
+          state={cursedDie === 10 ? "cursed" : "quiet"}
+        />
+      ) : null}
+    </span>
+  );
+}
+
+const numbersStyles = css({
+  display: "inline-flex",
+  flexWrap: "wrap",
+  alignItems: "baseline",
+  columnGap: "1",
+  fontFamily: "heading",
+  fontWeight: "semibold",
+  fontSize: "sm",
+  lineHeight: "snug",
+  color: "fg.muted",
+  fontVariantNumeric: "tabular-nums",
+  whiteSpace: "nowrap",
+  "& svg": {
+    width: "1em",
+    height: "1em",
+    alignSelf: "center",
+  },
+  "& [data-state=beaten]": { color: "success.fg" },
+  "& [data-state=held]": { color: "danger.fg" },
+  "& [data-word]": {
+    fontSize: "2xs",
+    textTransform: "uppercase",
+    letterSpacing: "label",
+    color: "fg.subtle",
+  },
+});
+
+export interface DiceNumbersProps {
+  roll: ChallengeRollData;
+  strings?: Partial<DiceDisplayStrings>;
+  className?: string;
+}
+
+/**
+ * The quietest form of a roll's dice: the score against the two challenge
+ * dice as plain numbers, "7 vs 5 5", each challenge die green or red. For
+ * dense logs where the outcome says enough. Decorative.
+ */
+export function DiceNumbers(props: DiceNumbersProps) {
+  const { roll, strings: stringsProp, className } = props;
+  const s = { ...defaultDiceDisplayStrings, ...stringsProp };
+  const score = getComparedScore(roll) ?? 0;
+  return (
+    <span className={cx(numbersStyles, className)} aria-hidden>
+      {roll.kind === "action" && roll.momentumBurned ? (
+        <Flame weight="fill" aria-hidden />
+      ) : roll.kind === "progress" ? (
+        <ProgressGlyph />
+      ) : null}
+      <span className={css({ color: "fg.default" })}>{score}</span>
+      <span data-word="">{s.versus}</span>
+      {roll.challengeDice.map((die, index) => (
+        <span key={index} data-state={getChallengeState(roll, die)}>
+          {die}
+        </span>
+      ))}
+    </span>
   );
 }

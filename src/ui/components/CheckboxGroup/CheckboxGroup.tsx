@@ -1,16 +1,16 @@
 import { CheckboxGroup as BaseCheckboxGroup } from "@base-ui/react/checkbox-group";
 import { Fieldset as BaseFieldset } from "@base-ui/react/fieldset";
-import { ReactNode } from "react";
+import { ReactNode, useId } from "react";
 
 import { css, cx } from "styled-system/css";
 
 import { choiceListStyles } from "../Checkbox";
 import {
-  FieldDescription,
   FieldError,
   FieldOwnProps,
   FieldRoot,
   FieldsetLegend,
+  fieldDescriptionStyles,
   fieldsetDescriptionStyles,
   resolveFieldError,
 } from "../Field";
@@ -78,6 +78,9 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
     requiredIndicator,
   } = props;
   const { invalid, message } = resolveFieldError(error, invalidProp);
+  const descriptionId = useId();
+  const hasDescription =
+    description !== undefined && description !== null && description !== "";
 
   return (
     <FieldRoot
@@ -89,6 +92,7 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
       <BaseFieldset.Root
         className={groupStyles}
         aria-label={ariaLabel}
+        aria-describedby={hasDescription ? descriptionId : undefined}
         render={
           <BaseCheckboxGroup
             value={value}
@@ -108,10 +112,16 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
             {label}
           </FieldsetLegend>
         )}
-        {description !== undefined && description !== null && (
-          <FieldDescription className={fieldsetDescriptionStyles}>
+        {hasDescription && (
+          // A plain element, not a Field description: Base UI would add a
+          // field's description to every choice inside it, so each one would
+          // repeat the group's help. The group alone is described by it.
+          <p
+            id={descriptionId}
+            className={cx(fieldDescriptionStyles, fieldsetDescriptionStyles)}
+          >
             {description}
-          </FieldDescription>
+          </p>
         )}
         <div className={cx(choiceListStyles({ orientation }))}>{children}</div>
       </BaseFieldset.Root>

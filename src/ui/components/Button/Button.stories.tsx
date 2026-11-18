@@ -9,7 +9,7 @@ import {
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Grid, HStack, Stack } from "styled-system/jsx";
+import { Box, Grid, HStack, Stack } from "styled-system/jsx";
 
 import { schemeNames, schemes } from "../../theme";
 import { Text } from "../Text";
@@ -47,10 +47,13 @@ export const Variants: Story = {
 };
 
 /**
- * The brand gradient, for a page's one call to action: the home page's Start
- * Playing, Create Game on an empty games list, the last step of creating a
- * game. It replaces the app's `GradientButton`. Everywhere else the main
- * action is `primary`.
+ * The gradient call to action, as on the app's main flows (Start Playing,
+ * Create Game): white text on a dark face inside a spinning ring of the
+ * scheme's gradient. Hover, keyboard focus and press thicken the ring; a
+ * press also sinks the button onto its ledge. It replaces the app's
+ * `GradientButton` and is built on `GradientBox`. Disabled, the ring goes
+ * flat grey and stops; under reduced motion it holds still. The first one is
+ * a link (`render`).
  */
 export const Gradient: Story = {
   render: function GradientStory() {
@@ -90,32 +93,53 @@ export const Gradient: Story = {
             Join Game
           </Button>
         </HStack>
+        <Box width="320px">
+          <Button variant="gradient" fullWidth>
+            Begin Your Journey
+          </Button>
+        </Box>
       </Stack>
     );
   },
 };
 
 /**
- * The gradient in every colour scheme at once (each row sets its scheme on
- * itself; Default follows the toolbar's scheme). White text keeps at least
- * 4.5:1 in each; switch the Mode toolbar to see dark mode.
+ * Every colour scheme at once, on the page and on a dark panel (each row
+ * sets its scheme on itself; Default follows the toolbar). The ring follows
+ * the scheme; the face stays dark, so the white label reads in every one.
+ * Switch the Mode toolbar to see the page side in dark mode too.
  */
 export const GradientSchemes: Story = {
   render: () => (
-    <Grid columns={{ base: 1, sm: 3 }} gap="4" maxWidth="720px">
-      {schemeNames.map((name) => (
+    <Grid columns={{ base: 1, sm: 2 }} gap="4" maxWidth="640px">
+      {(["light", "dark"] as const).map((mode) => (
         <Stack
-          key={name}
-          gap="2"
-          alignItems="start"
-          data-panda-theme={name === "default" ? undefined : name}
+          key={mode}
+          gap="3"
+          padding="4"
+          borderRadius="lg"
+          background="bg.canvas"
+          color="fg.default"
+          data-theme={mode === "dark" ? "dark" : undefined}
         >
           <Text variant="label" color="muted">
-            {schemes[name].label}
+            {mode === "dark" ? "Dark panel" : "Page"}
           </Text>
-          <Button variant="gradient" startIcon={<Plus />}>
-            Create Game
-          </Button>
+          {schemeNames.map((name) => (
+            <HStack
+              key={name}
+              gap="3"
+              justifyContent="space-between"
+              data-panda-theme={name === "default" ? undefined : name}
+            >
+              <Text variant="bodySm" color="muted">
+                {schemes[name].label}
+              </Text>
+              <Button variant="gradient" size="sm" startIcon={<Plus />}>
+                Create Game
+              </Button>
+            </HStack>
+          ))}
         </Stack>
       ))}
     </Grid>

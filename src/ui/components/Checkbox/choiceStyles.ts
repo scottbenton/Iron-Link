@@ -51,10 +51,14 @@ export const choiceLabelStyles = cva({
   defaultVariants: { size: "md" },
 });
 
-/** The title and description, stacked close so they read as one choice. */
+/**
+ * The title and description, stacked with no gap so they read as one
+ * choice: the space between them is only their leading, about 5px, against
+ * the 24px or more between one choice and the next.
+ */
 export const choiceTextStyles = css({
   display: "grid",
-  gap: "0.5",
+  gap: 0,
   minWidth: 0,
   overflowWrap: "anywhere",
 });
@@ -66,7 +70,7 @@ export const choiceDescriptionStyles = cva({
     margin: 0,
     fontFamily: "body",
     fontSize: "xs",
-    lineHeight: "snug",
+    lineHeight: "16px",
     color: "fg.muted",
     "[data-disabled] &": { color: "fg.disabled" },
   },
@@ -216,15 +220,16 @@ export const radioDotStyles = css({
 
 /**
  * The column or row a group lays its choices in. Choices with descriptions
- * get more room between them, so each title and its description read as a
- * group.
+ * get more room between them (12px on top of each row's own padding), so
+ * each title and its description read as one choice, set apart from the
+ * next.
  */
 export const choiceListStyles = cva({
   base: {
     display: "grid",
     rowGap: "0.5",
     minWidth: 0,
-    "&:has([data-choice-description])": { rowGap: "2" },
+    "&:has([data-choice-description])": { rowGap: "3" },
   },
   variants: {
     orientation: {

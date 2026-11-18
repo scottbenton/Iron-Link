@@ -1,38 +1,118 @@
-import { ArrowCounterClockwise, Flame } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, CaretDown, Flame } from "@phosphor-icons/react";
+import { CSSProperties } from "react";
 
 import { css } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
-import { Button } from "../../components/Button";
+import {
+  Menu,
+  MenuContent,
+  MenuGroup,
+  MenuItem,
+  MenuTrigger,
+} from "../../components/Menu";
 import { formatSigned } from "../shared/format";
-import { ConditionMeter } from "./ConditionMeter";
+import { ConditionMeter, MeterTone } from "./ConditionMeter";
 
-const footStyles = css({
-  display: "grid",
-  gap: "1.5",
-  marginTop: "1",
-});
-
-const captionStyles = css({
-  textAlign: "center",
-  fontSize: "xs",
-  lineHeight: "snug",
-  color: "fg.muted",
+/**
+ * The value as a pressable that opens Burn and Reset. Same height as a
+ * condition meter's value (40px, 44px on touch like the roll buttons), so a
+ * row of meters stays one height.
+ */
+const triggerStyles = css({
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "0.5",
+  minWidth: 0,
+  minHeight: "40px",
+  paddingInline: "1.5",
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: "border.control",
+  borderRadius: "md",
+  background: "bg.surface",
+  color: "fg.default",
+  fontFamily: "heading",
+  fontWeight: "semibold",
+  fontSize: "1.5rem",
+  lineHeight: "none",
   fontVariantNumeric: "tabular-nums",
+  cursor: "pointer",
+  userSelect: "none",
+  WebkitTapHighlightColor: "transparent",
+  outline: "none",
+  boxShadow: "0 var(--border-widths-ledge) 0 token(colors.border.control)",
+  transform: "translateY(0)",
+  transitionProperty: "transform, box-shadow, background-color, color",
+  transitionDuration: "fast",
+  transitionTimingFunction: "out",
+  _touch: { minHeight: "touch" },
+  _focusVisible: {
+    outline: "2px solid token(colors.focusRing)",
+    outlineOffset: "2px",
+  },
+  _hover: { background: "bg.muted" },
+  "&:active, &[data-pressed], &[data-popup-open]": {
+    background: "bg.emphasized",
+  },
+  "&:active, &[data-pressed]": {
+    transform: "translateY(var(--spacing-sink))",
+    boxShadow:
+      "0 max(0px, calc(var(--border-widths-ledge) - var(--spacing-sink))) 0 token(colors.border.control)",
+    transitionDuration: "instant",
+  },
+  "&:is(:disabled, [data-disabled])": {
+    cursor: "not-allowed",
+    color: "fg.subtle",
+    background: "bg.emphasized",
+    boxShadow: "0 var(--border-widths-ledge) 0 token(colors.border.default)",
+  },
+  "&[data-tone=danger]": { color: "danger.fg" },
+  "&[data-tone=success]": { color: "success.fg" },
+  "& svg": {
+    flex: "none",
+    width: "12px",
+    height: "12px",
+    color: "fg.muted",
+    transitionProperty: "transform",
+    transitionDuration: "fast",
+  },
+  "&[data-popup-open] svg": { transform: "rotate(180deg)" },
 });
 
-const warningStyles = css({
-  textAlign: "center",
-  fontSize: "xs",
-  lineHeight: "snug",
-  color: "danger.fg",
-  textWrap: "balance",
-});
-
-const actionsStyles = css({
+/** Momentum's strip, -6 to max, in the place of a meter's pips. */
+const stripStyles = css({
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(0, 1fr))",
-  gap: "1",
+  gridTemplateColumns: "repeat(var(--pip-count), minmax(0, 1fr))",
+  gap: "1px",
+  height: "4px",
+  marginInline: "1",
+});
+
+const stripPipStyles = css({
+  borderRadius: "full",
+  background: "bg.strip",
+  transitionProperty: "background-color",
+  transitionDuration: "fast",
+  "&[data-negative]": {
+    background: "color-mix(in oklab, token(colors.bg.strip) 55%, transparent)",
+  },
+  // A wider gap at zero, so the negative side reads as its own run.
+  "&[data-zero]": { marginInlineStart: "2px" },
+  "&[data-filled]": { background: "accent.solid" },
+  "&[data-negative][data-filled]": { background: "danger.solid" },
+});
+
+const groupLabelLineStyles = css({ display: "block" });
+
+const warningLineStyles = css({
+  display: "block",
+  color: "danger.fg",
+  textTransform: "none",
+  letterSpacing: "normal",
+  fontFamily: "body",
+  fontWeight: "normal",
 });
 
 export interface MomentumMeterProps {
@@ -55,17 +135,25 @@ export interface MomentumMeterProps {
   label?: string;
   burnLabel?: string;
   resetLabel?: string;
-  /** "Max +10, reset +2" under the meter. */
+  /** Under Burn: "Replace an action die with +7, then reset to +2". */
+  burnDescription?: (value: string, reset: string) => string;
+  /** Under Reset: "Set to +2". */
+  resetDescription?: (reset: string) => string;
+  /** The value button's name: "Momentum +5, Burn or Reset". */
+  menuLabel?: (label: string, value: string) => string;
+  /** "Max +10, reset +2", heading the menu. */
   limitsText?: (max: string, reset: string) => string;
-  /** Shown while momentum is negative. */
+  /** Shown while momentum is negative, in the menu and the button's name. */
   negativeText?: (cancels: number) => string;
   changeAnnouncement?: (label: string, value: string) => string;
   className?: string;
 }
 
 /**
- * Momentum: a condition meter from -6 to its max, with Burn and Reset. Below
- * zero it says which action die it cancels.
+ * Momentum: a condition meter from -6 to its max, the same size as Health,
+ * Spirit and Supply beside it. The value opens a menu with Burn and Reset,
+ * headed by the max and reset values; below zero the value turns the danger
+ * colour and the menu says which action die it cancels.
  */
 export function MomentumMeter(props: MomentumMeterProps) {
   const {
@@ -79,6 +167,10 @@ export function MomentumMeter(props: MomentumMeterProps) {
     label = "Momentum",
     burnLabel = "Burn",
     resetLabel = "Reset",
+    burnDescription = (v, r) =>
+      `Replace an action die with ${v}, then reset to ${r}`,
+    resetDescription = (r) => `Set to ${r}`,
+    menuLabel = (l, v) => `${l} ${v}, ${burnLabel} or ${resetLabel}`,
     limitsText = (m, r) => `Max ${m}, reset ${r}`,
     negativeText = (n) => `Cancels an action die of ${n}`,
     changeAnnouncement = (l, v) => `${l} is now ${v}`,
@@ -87,13 +179,82 @@ export function MomentumMeter(props: MomentumMeterProps) {
 
   const announce = useAnnounce();
 
+  const valueText = formatSigned(value);
+  const resetText = formatSigned(resetValue);
+  const negative = value < 0 ? negativeText(Math.abs(value)) : undefined;
+  const tone: MeterTone =
+    value < 0 ? "danger" : value >= max ? "success" : "default";
+
   const handleReset = () => {
     if (!onChange || value === resetValue) return;
     onChange(resetValue);
-    announce(changeAnnouncement(label, formatSigned(resetValue)));
+    announce(changeAnnouncement(label, resetText));
+  };
+
+  const handleBurn = () => {
+    if (!onBurn) return;
+    onBurn();
+    announce(changeAnnouncement(label, resetText));
   };
 
   const canBurn = !!onBurn && value > 0 && value > resetValue;
+  const hasMenu = !!onBurn || !!onChange;
+
+  const triggerName = [menuLabel(label, valueText), negative]
+    .filter(Boolean)
+    .join(". ");
+
+  const valueControl = hasMenu ? (
+    <Menu>
+      <MenuTrigger
+        render={<button type="button" />}
+        className={triggerStyles}
+        data-tone={tone}
+        disabled={disabled}
+        aria-label={triggerName}
+      >
+        {valueText}
+        <CaretDown weight="bold" aria-hidden />
+      </MenuTrigger>
+      <MenuContent align="center">
+        <MenuGroup
+          label={
+            <>
+              <span className={groupLabelLineStyles}>
+                {limitsText(formatSigned(max), resetText)}
+              </span>
+              {negative && (
+                <span className={warningLineStyles}>{negative}</span>
+              )}
+            </>
+          }
+        >
+          {onBurn && (
+            <MenuItem
+              icon={<Flame weight="fill" />}
+              description={burnDescription(valueText, resetText)}
+              disabled={!canBurn}
+              onClick={handleBurn}
+            >
+              {burnLabel}
+            </MenuItem>
+          )}
+          {onChange && (
+            <MenuItem
+              icon={<ArrowCounterClockwise weight="bold" />}
+              description={resetDescription(resetText)}
+              disabled={value === resetValue}
+              onClick={handleReset}
+            >
+              {resetLabel}
+            </MenuItem>
+          )}
+        </MenuGroup>
+      </MenuContent>
+    </Menu>
+  ) : undefined;
+
+  const steps = Math.max(max - min, 0);
 
   return (
     <ConditionMeter
@@ -103,46 +264,31 @@ export function MomentumMeter(props: MomentumMeterProps) {
       max={max}
       onChange={onChange}
       disabled={disabled}
-      tone={value < 0 ? "danger" : value >= max ? "success" : "default"}
+      tone={tone}
       showPips={false}
       changeAnnouncement={changeAnnouncement}
-      wide
+      valueControl={valueControl}
       className={className}
     >
-      <div className={footStyles}>
-        <span className={captionStyles}>
-          {limitsText(formatSigned(max), formatSigned(resetValue))}
-        </span>
-        {value < 0 && (
-          <span className={warningStyles}>{negativeText(Math.abs(value))}</span>
-        )}
-        {(onBurn || onChange) && (
-          <div className={actionsStyles}>
-            {onBurn && (
-              <Button
-                size="sm"
-                startIcon={<Flame weight="fill" />}
-                disabled={disabled || !canBurn}
-                focusableWhenDisabled
-                onClick={() => onBurn()}
-              >
-                {burnLabel}
-              </Button>
-            )}
-            {onChange && (
-              <Button
-                size="sm"
-                variant="ghost"
-                startIcon={<ArrowCounterClockwise weight="bold" />}
-                disabled={disabled || value === resetValue}
-                focusableWhenDisabled
-                onClick={handleReset}
-              >
-                {resetLabel}
-              </Button>
-            )}
-          </div>
-        )}
+      <div
+        className={stripStyles}
+        style={{ "--pip-count": steps } as CSSProperties}
+        aria-hidden
+      >
+        {Array.from({ length: steps }, (_, index) => {
+          const from = min + index;
+          const isNegative = from < 0;
+          const filled = isNegative ? value <= from : from < value;
+          return (
+            <span
+              key={index}
+              className={stripPipStyles}
+              data-negative={isNegative || undefined}
+              data-zero={(from === 0 && min < 0) || undefined}
+              data-filled={filled || undefined}
+            />
+          );
+        })}
       </div>
     </ConditionMeter>
   );

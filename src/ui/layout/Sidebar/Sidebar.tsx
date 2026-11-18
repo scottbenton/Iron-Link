@@ -119,8 +119,9 @@ export interface SidebarLabels {
 
 export interface SidebarProps {
   /**
-   * What the sidebar holds: one panel, or several behind section tabs
-   * (Character and Reference). Each panel's title is its h2.
+   * What the sidebar holds: usually one panel (the game page has the
+   * character sheet in one sidebar and the reference in the other), or
+   * several behind section tabs. Each panel's title is its h2.
    */
   panels: LayoutPanel[];
   /** The panel showing. Uncontrolled without it. */
@@ -151,8 +152,7 @@ export interface SidebarProps {
 }
 
 /**
- * A side column of the game page: the character sheet, the reference, or
- * both behind section tabs. The reader can resize it with the handle on its
+ * A side column of the game page: the character sheet or the reference. The reader can resize it with the handle on its
  * inner edge and collapse it to a rail of panel buttons; the app owns the
  * width and collapsed state so it can remember them.
  *

@@ -129,20 +129,53 @@ export const ReadOnly: Story = {
   ),
 };
 
-/** Collapsed to its name and meters, opened from the header. */
+/**
+ * Collapsed, as on the character sheet: only the unchecked abilities hide.
+ * The name field, the checked abilities and Integrity stay, and stay
+ * editable. Expand from the header to see and check the rest; uncheck one
+ * while collapsed and it hides.
+ */
 export const Collapsed: Story = {
   render: function Render() {
     const [collapsed, setCollapsed] = useState(true);
     return (
       <Stack maxWidth="400px">
-        <AssetCard
+        <Interactive
           asset={sampleAssets.starship}
-          state={{ controlValues: { integrity: 3, battered: true } }}
+          state={{
+            enabledAbilities: { 1: true },
+            optionValues: { name: "Wayfinder" },
+            controlValues: { integrity: 3, battered: true },
+          }}
           collapsed={collapsed}
           onCollapsedChange={setCollapsed}
-          hideUnavailableAbilities
         />
       </Stack>
     );
   },
+};
+
+/** Collapsed side by side with the same asset expanded, a companion. */
+export const CollapsedAndExpanded: Story = {
+  render: () => (
+    <Grid columns={{ base: 1, md: 2 }} gap="4" alignItems="start">
+      <Interactive
+        asset={sampleAssets.protocolBot}
+        state={{
+          enabledAbilities: { 1: true },
+          optionValues: { name: "Tock" },
+          controlValues: { health: 3 },
+        }}
+        collapsed
+      />
+      <Interactive
+        asset={sampleAssets.protocolBot}
+        state={{
+          enabledAbilities: { 1: true },
+          optionValues: { name: "Tock" },
+          controlValues: { health: 3 },
+        }}
+      />
+    </Grid>
+  ),
 };

@@ -1,5 +1,6 @@
 import { DiceFiveIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useEffect } from "react";
 
 import { Grid } from "styled-system/jsx";
 
@@ -92,7 +93,7 @@ export const Playground: Story = {
   },
 };
 
-/** The chip itself, as each toast renders it. */
+/** The card itself, as each toast renders it. */
 export const Cards: Story = {
   render: () => (
     <Grid gap="3" width="400px">
@@ -126,32 +127,37 @@ export const Cards: Story = {
   ),
 };
 
+function showFourToasts(toasts: ReturnType<typeof useToast>) {
+  toasts.info("Invite link copied");
+  toasts.error(
+    "Could not save your notes. Check your connection and try again.",
+  );
+  toasts.success("Asset removed", {
+    action: {
+      label: "Undo",
+      onClick: () => toasts.info("Asset restored"),
+    },
+  });
+  toasts.warning("Starsmith is off, so its oracles are hidden");
+}
+
 /**
- * Several toasts stack front to back: the newest in front, two older ones
- * peeking out behind it, the rest behind "N more". Hover the stack, or Tab
- * into it, to fan it out.
+ * Sonner's own stacking, in our cards: the newest toast in front, the two
+ * before it peeking out above it, each a little smaller, with "1 more" and
+ * Clear All under the stack. Hover the stack, or Tab into it, to fan the
+ * toasts out with a gap between them. Nothing closes by itself (the error
+ * stays until dismissed). The toasts open with the story; the button shows
+ * them again.
  */
 export const Stacked: Story = {
   render: function Render() {
     const toasts = useToast();
+    useEffect(() => {
+      showFourToasts(toasts);
+      return () => toasts.dismissAll();
+    }, [toasts]);
     return (
-      <Button
-        onClick={() => {
-          toasts.info("Invite link copied");
-          toasts.error(
-            "Could not save your notes. Check your connection and try again.",
-          );
-          toasts.success("Asset removed", {
-            action: {
-              label: "Undo",
-              onClick: () => toasts.info("Asset restored"),
-            },
-          });
-          toasts.warning("Starsmith is off, so its oracles are hidden");
-        }}
-      >
-        Show Four Toasts
-      </Button>
+      <Button onClick={() => showFourToasts(toasts)}>Show Four Toasts</Button>
     );
   },
 };

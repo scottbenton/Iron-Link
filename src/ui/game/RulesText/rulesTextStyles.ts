@@ -17,7 +17,7 @@ export const compactTableStyles = css({
   fontVariantNumeric: "tabular-nums",
   "& th": {
     paddingBlock: "1.5",
-    paddingInline: "2.5",
+    paddingInline: "3",
     background: "bg.muted",
     borderBottomWidth: "1px",
     borderBottomStyle: "solid",
@@ -33,7 +33,7 @@ export const compactTableStyles = css({
   },
   "& td": {
     paddingBlock: "1",
-    paddingInline: "2.5",
+    paddingInline: "3",
     textAlign: "left",
     verticalAlign: "top",
     color: "fg.default",

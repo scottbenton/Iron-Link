@@ -67,7 +67,7 @@ const toolbarButtonStyles = cva({
     flex: "none",
     minHeight: "32px",
     minWidth: "32px",
-    paddingInline: "2.5",
+    paddingInline: "3",
     border: 0,
     borderRadius: "sm",
     background: "transparent",

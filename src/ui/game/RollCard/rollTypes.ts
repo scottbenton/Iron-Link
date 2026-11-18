@@ -61,23 +61,87 @@ export interface OracleRollData {
   result: string | OracleResultPart[];
   /** The oracle rolled a match (11, 22, 33). */
   match?: boolean;
-  /** Sundered Isles' cursed die, and what it adds. */
+  /**
+   * Sundered Isles' cursed die, a d10 rolled with an oracle that has a
+   * cursed version. On a 10 the curse takes hold: the cursed table either
+   * replaces the result (`cursed`) or adds to it (`cursedResult`).
+   */
   cursedDie?: number | null;
+  /** The cursed table's result added to the normal one. */
   cursedResult?: string | null;
+  /**
+   * The result came from the cursed table in place of the normal one, such
+   * as Cursed Island Name in place of Island Name.
+   */
+  cursed?: boolean;
 }
 
-export type RollData = ActionRollData | ProgressRollData | OracleRollData;
+/**
+ * A clock advance roll: Ask the Oracle with the clock's odds, and on a yes
+ * the clock fills a segment.
+ */
+export interface ClockRollData {
+  kind: "clock";
+  /** The clock, such as "The Iron Syndicate seizes the mines". */
+  clockName: string;
+  /** The odds asked with, such as "Likely". */
+  oddsName: string;
+  /** The d100. */
+  roll: number;
+  /** The answer, such as "Yes" or "No". */
+  result: string;
+  /** Matching digits (11, 22, 33). */
+  match?: boolean;
+}
+
+export type RollData =
+  | ActionRollData
+  | ProgressRollData
+  | OracleRollData
+  | ClockRollData;
+
+/** A roll against the challenge dice. */
+export type ChallengeRollData = ActionRollData | ProgressRollData;
+
+/** A d100 roll: an oracle or a clock. */
+export type PercentileRollData = OracleRollData | ClockRollData;
+
+export function isChallengeRoll(roll: RollData): roll is ChallengeRollData {
+  return roll.kind === "action" || roll.kind === "progress";
+}
 
 /** Both challenge dice show the same number. */
 export function isChallengeMatch(roll: RollData): boolean {
   return (
-    roll.kind !== "oracle" && roll.challengeDice[0] === roll.challengeDice[1]
+    isChallengeRoll(roll) && roll.challengeDice[0] === roll.challengeDice[1]
   );
 }
 
 /** Whether a roll card should flag a match. */
 export function isRollMatch(roll: RollData): boolean {
-  return roll.kind === "oracle" ? !!roll.match : isChallengeMatch(roll);
+  return isChallengeRoll(roll) ? isChallengeMatch(roll) : !!roll.match;
+}
+
+/**
+ * A match on the challenge dice is a critical: both dice show the same
+ * number, so the score beats both or neither. The rules call these a
+ * "strong hit with a match" (`high`) and a "miss with a match" (`low`).
+ */
+export type RollCritical = "high" | "low";
+
+export function getRollCritical(roll: RollData): RollCritical | undefined {
+  if (!isChallengeMatch(roll) || !isChallengeRoll(roll)) return undefined;
+  if (roll.outcome === "strongHit") return "high";
+  if (roll.outcome === "miss") return "low";
+  return undefined;
+}
+
+/** The curse took hold: a 10 on the cursed die, or a cursed table. */
+export function isRollCursed(roll: RollData): boolean {
+  return (
+    roll.kind === "oracle" &&
+    (!!roll.cursed || !!roll.cursedResult || roll.cursedDie === 10)
+  );
 }
 
 /** The score the challenge dice are compared against. */

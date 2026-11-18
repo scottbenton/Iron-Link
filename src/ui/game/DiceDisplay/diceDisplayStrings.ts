@@ -8,7 +8,7 @@ export interface DiceDisplayStrings {
   oracleCaption: string;
   cursedCaption: string;
   versus: string;
-  /** Shown under a cancelled action die. */
+  /** Shown under an action die that negative momentum cancelled. */
   cancelledCaption: string;
 }
 

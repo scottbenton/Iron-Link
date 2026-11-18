@@ -49,6 +49,39 @@ export const Tones: Story = {
   ),
 };
 
+/**
+ * Text colour: the tone colours the icon and the title; the message stays
+ * default text so it keeps full contrast on the tint, even over several
+ * lines. An alert without a title is tone-coloured only by its icon and
+ * border.
+ */
+export const TextColour: Story = {
+  render: () => (
+    <Stack gap="3" maxWidth="560px">
+      <Alert tone="info" title="Guide only">
+        Players cannot see this location or its notes. Share it from the
+        location's menu when the party discovers it.
+      </Alert>
+      <Alert tone="success" title="Character imported">
+        Kayu Stonehand joined The Broken Keep with all four assets and their
+        progress tracks.
+      </Alert>
+      <Alert tone="warning" title="Shared world">
+        This world is shared with 3 players. Changes to its truths show in their
+        games straight away.
+      </Alert>
+      <Alert tone="danger" title="Could not save your notes">
+        Your last change is kept on this device. Check your connection and we
+        will try again.
+      </Alert>
+      <Alert tone="cursed" title="The Cursed Die shows 10">
+        Envision how the curse takes hold. The danger here is greater than it
+        first seemed.
+      </Alert>
+    </Stack>
+  ),
+};
+
 /** With a Dismiss button. */
 export const Dismissible: Story = {
   render: function Render() {

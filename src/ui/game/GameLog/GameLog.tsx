@@ -6,7 +6,11 @@ import { css, cx } from "styled-system/css";
 import { Button } from "../../components/Button";
 import { Spinner } from "../../components/Spinner";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
-import { RollCard, RollCardAction } from "../RollCard/RollCard";
+import {
+  RollCard,
+  RollCardAction,
+  RollCardDiceDetail,
+} from "../RollCard/RollCard";
 import { RollTextOverrides } from "../RollCard/getRollSummary";
 import { RollData } from "../RollCard/rollTypes";
 import { GameLogComposer, GameLogComposerProps } from "./GameLogComposer";
@@ -257,6 +261,19 @@ function sameDay(a: Date, b: Date): boolean {
   return a.toDateString() === b.toDateString();
 }
 
+/**
+ * How much of each roll the log draws: `detailed` names every die,
+ * `standard` draws bare dice, `quiet` keeps the outcome and writes the dice
+ * as one line of numbers beside it.
+ */
+export type GameLogDensity = "detailed" | "standard" | "quiet";
+
+const diceDetailByDensity: Record<GameLogDensity, RollCardDiceDetail> = {
+  detailed: "captions",
+  standard: "dice",
+  quiet: "numbers",
+};
+
 export interface GameLogProps {
   /** Entries oldest first; the newest sits at the bottom by the composer. */
   entries: GameLogEntry[];
@@ -275,6 +292,8 @@ export interface GameLogProps {
   composerProps?: Omit<GameLogComposerProps, "onSend">;
   /** Words for roll cards and their summaries. */
   rollText?: RollTextOverrides;
+  /** How much of each roll to draw. `standard` by default. */
+  density?: GameLogDensity;
   className?: string;
 }
 
@@ -299,6 +318,7 @@ export function GameLog(props: GameLogProps) {
     strings: stringsProp,
     composerProps,
     rollText,
+    density = "standard",
     className,
   } = props;
   const strings = { ...defaultGameLogStrings, ...stringsProp };
@@ -387,6 +407,7 @@ export function GameLog(props: GameLogProps) {
                     time={formatTime(entry.timestamp)}
                     strings={strings}
                     rollText={rollText}
+                    diceDetail={diceDetailByDensity[density]}
                   />
                 </Fragment>
               );
@@ -409,10 +430,11 @@ interface GameLogItemProps {
   time: string;
   strings: GameLogStrings;
   rollText?: RollTextOverrides;
+  diceDetail: RollCardDiceDetail;
 }
 
 function GameLogItem(props: GameLogItemProps) {
-  const { entry, time, strings, rollText } = props;
+  const { entry, time, strings, rollText, diceDetail } = props;
   const { author } = entry;
 
   // Who wrote it and when, read with the entry as one piece of text; the
@@ -450,6 +472,7 @@ function GameLogItem(props: GameLogItemProps) {
           <RollCard
             roll={entry.roll}
             variant="compact"
+            diceDetail={diceDetail}
             actions={entry.actions}
             summaryPrefix={heading}
             text={rollText}

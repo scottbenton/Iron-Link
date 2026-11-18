@@ -37,6 +37,10 @@ export interface RollText {
   cursedDie: (value: number) => string;
   /** "The cursed die adds: a ghost ship" */
   cursedDieAdds: (result: string) => string;
+  /** "Cursed", for a result from the cursed table. */
+  cursed: string;
+  /** "Clock" */
+  clock: string;
 }
 
 export const defaultRollText: RollText = {
@@ -58,6 +62,8 @@ export const defaultRollText: RollText = {
   oracleRoll: (roll) => `Roll ${roll}.`,
   cursedDie: (value) => `Cursed die ${value}.`,
   cursedDieAdds: (result) => `The cursed die adds: ${result}`,
+  cursed: "Cursed",
+  clock: "Clock",
 };
 
 /** Translated words for some or all of `RollText`. */
@@ -92,6 +98,25 @@ export function getRollTitle(roll: RollData): string {
       return roll.moveName ?? roll.trackName;
     case "oracle":
       return roll.oracleName;
+    case "clock":
+      return roll.clockName;
+  }
+}
+
+/**
+ * What a roll card shows beside its title: the stat, the track, the
+ * oracle's category or the clock's odds.
+ */
+export function getRollContext(roll: RollData): string | undefined {
+  switch (roll.kind) {
+    case "action":
+      return roll.moveName ? roll.statName : undefined;
+    case "progress":
+      return roll.moveName ? roll.trackName : undefined;
+    case "oracle":
+      return roll.category;
+    case "clock":
+      return roll.oddsName;
   }
 }
 
@@ -124,7 +149,10 @@ export function getRollSummary(
         sentences.push(t.momentumBurned(roll.momentumBurned));
       } else {
         let action = t.actionDie(roll.actionDie);
-        if (roll.negativeMomentumCancelled) action += t.actionDieCancelled;
+        if (roll.negativeMomentumCancelled) {
+          action += t.actionDieCancelled;
+          if (roll.statValue || roll.adds) action += ",";
+        }
         if (roll.statValue) action += t.plus(roll.statValue);
         if (roll.adds) action += t.plus(roll.adds);
         if (roll.statValue || roll.adds) {
@@ -155,6 +183,7 @@ export function getRollSummary(
       sentences.push(
         endSentence(t.heading(name, getOracleResultText(roll.result))),
       );
+      if (roll.cursed) sentences.push(endSentence(t.cursed));
       if (roll.cursedResult) {
         sentences.push(endSentence(t.cursedDieAdds(roll.cursedResult)));
       }
@@ -164,6 +193,16 @@ export function getRollSummary(
         ),
       );
       if (roll.cursedDie) sentences.push(t.cursedDie(roll.cursedDie));
+      if (roll.match) sentences.push(endSentence(t.match));
+      break;
+    }
+    case "clock": {
+      const name = t.oracleWithCategory(
+        t.moveAndLabel(t.clock, roll.clockName),
+        roll.oddsName,
+      );
+      sentences.push(endSentence(t.heading(name, roll.result)));
+      sentences.push(t.oracleRoll(`${roll.roll}`));
       if (roll.match) sentences.push(endSentence(t.match));
       break;
     }

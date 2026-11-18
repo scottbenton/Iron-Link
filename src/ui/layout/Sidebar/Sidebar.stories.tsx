@@ -33,7 +33,7 @@ const meta: Meta<typeof Sidebar> = {
   component: Sidebar,
   parameters: { layout: "fullscreen" },
   args: {
-    panels,
+    panels: [panels[0]],
     side: "start",
     resizable: true,
     collapsible: true,
@@ -94,16 +94,19 @@ function ControlledSidebar(props: SidebarProps) {
   );
 }
 
-/** The character sheet and the reference behind section tabs. */
+/**
+ * The character sheet as the game page's start column: its title is the
+ * column's h2.
+ */
 export const Playground: Story = {
   render: (args) => <ControlledSidebar {...args} />,
 };
 
-/** Collapsed to a rail: each button opens the sidebar on its panel. */
+/** Collapsed to a rail: the button opens the sidebar again. */
 export const Collapsed: Story = { ...Playground, args: { collapsed: true } };
 
-/** One panel: its title is a visible heading instead of a tab. */
-export const SinglePanel: Story = {
+/** The reference as the end column, its handle on its inner edge. */
+export const EndSide: Story = {
   ...Playground,
   args: { panels: [panels[1]], side: "end" },
 };

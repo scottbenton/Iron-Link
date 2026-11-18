@@ -75,7 +75,8 @@ export const Indeterminate: Story = {
           indeterminate={some && !all}
           onCheckedChange={(checked) => setShared(names.map(() => checked))}
         />
-        <Stack gap="2" paddingInlineStart="7">
+        {/* The box (20px) and its gap (10px): children line up under the title. */}
+        <Stack gap="2" paddingInlineStart="30px">
           {names.map((name, index) => (
             <Checkbox
               key={name}

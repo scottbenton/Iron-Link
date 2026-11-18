@@ -33,6 +33,23 @@ const tabsRowStyles = css({
   borderBottom: "1px solid token(colors.border.default)",
 });
 
+/**
+ * The banner runs edge to edge under the bar: no radius and no side or top
+ * border, so it reads as part of the page rather than a card on it. The
+ * attribute raises these over the Alert's own recipe.
+ */
+const bannerStyles = css({
+  flex: "none",
+  "&[data-part=banner] > *": {
+    width: "100%",
+    maxWidth: "none",
+    marginInline: 0,
+    borderRadius: 0,
+    borderInlineWidth: 0,
+    borderTopWidth: 0,
+  },
+});
+
 const bodyStyles = css({
   // Sidebars cap their width at the room left beside the main column.
   containerType: "inline-size",
@@ -41,6 +58,27 @@ const bodyStyles = css({
   minHeight: 0,
   "--sidebar-cap":
     "calc((100cqi - var(--game-main-min-width, 360px)) / var(--game-sidebar-count, 1))",
+});
+
+/**
+ * Both sidebars in one column, the character sheet over the reference, as
+ * the live app lays out between 900 and 1200px. The column is the start
+ * sidebar's width: the end sidebar is size contained so it adds none, then
+ * stretched to fill. The two share the height.
+ */
+const stackStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  flex: "none",
+  minHeight: 0,
+  "& > [data-side]": { flex: "1 1 0", minHeight: 0 },
+  "& > [data-side=end]": {
+    width: "auto",
+    contain: "inline-size",
+    borderInlineStart: 0,
+    borderInlineEnd: "1px solid token(colors.border.default)",
+    borderTop: "1px solid token(colors.border.default)",
+  },
 });
 
 const mainStyles = css({
@@ -130,7 +168,10 @@ export interface GameLayoutProps {
    * one level of tabs that wears the gradient.
    */
   tabs?: ReactNode;
-  /** A notice above the tabs, such as the Worlds beta banner. */
+  /**
+   * A notice above the tabs, such as the Worlds beta banner (an `Alert`).
+   * It runs edge to edge, with its radius and side borders removed.
+   */
   banner?: ReactNode;
   /** The main column, such as the notes. Its title is the column's h2. */
   main: LayoutPanel & {
@@ -140,13 +181,23 @@ export interface GameLayoutProps {
      */
     hideTitle?: boolean;
   };
-  /** A sidebar before the main column: the character sheet, or the sheet and the reference behind tabs. */
+  /** The column before the main one: the character sheet (or the game's overview). */
   startSidebar?: GameSidebar;
-  /** A sidebar after the main column, such as the reference on very wide screens. */
+  /** The column after the main one: the reference (moves, oracles, game log). */
   endSidebar?: GameSidebar;
   /**
-   * The phone layout: the main column and every sidebar panel become full
-   * screen sections behind one row of tabs. Pass the app's `useIsMobile()`;
+   * Stack the end sidebar under the start one, in a single column beside
+   * the main column, as the live app does between 900 and 1200px. Pass
+   * `!useIsBreakpoint("greater-than", "lg")`. While stacked, the column
+   * keeps the start sidebar's resize handle; neither sidebar collapses, and
+   * the end one has no handle of its own.
+   */
+  stackSidebars?: boolean;
+  /**
+   * The phone layout: every sidebar panel and the main column become full
+   * screen sections behind one row of tabs, in the live app's order (the
+   * start sidebar's, then the main column, then the end sidebar's), opening
+   * on the first. Pass the app's `useIsMobile()`;
    * the roles change with it (tabs and tab panels on phones, columns with
    * headings on wide screens), so CSS alone cannot make this switch.
    */
@@ -162,10 +213,13 @@ export interface GameLayoutProps {
 }
 
 /**
- * The game page: page tabs over the main column and its sidebars. Each
+ * The game page, laid out as the live app's: the game's page tabs over
+ * three columns, the character sheet, the notes and the reference. Each
  * column has its own h2 and scrolls on its own, so the page fills the
  * screen (give AppShell `fill`). The reader can resize and collapse the
- * sidebars; on phones every column is a full screen section behind tabs.
+ * sidebars; between 900 and 1200px the sheet and the reference stack in one
+ * column (`stackSidebars`), and on phones every column is a full screen
+ * section behind tabs (`compact`).
  */
 export function GameLayout(props: GameLayoutProps) {
   const {
@@ -174,6 +228,7 @@ export function GameLayout(props: GameLayoutProps) {
     main,
     startSidebar,
     endSidebar,
+    stackSidebars = false,
     compact = false,
     compactPanelId,
     onCompactPanelChange,
@@ -186,22 +241,27 @@ export function GameLayout(props: GameLayoutProps) {
   const mainHeadingId = main.headingId ?? `${idPrefix}-main-heading`;
 
   const sections: LayoutPanel[] = [
-    main,
     ...(startSidebar?.panels ?? []),
+    main,
     ...(endSidebar?.panels ?? []),
   ];
   const [activeSection, setActiveSection] = useControllableState(
     compactPanelId,
-    main.id,
+    sections[0].id,
     onCompactPanelChange,
+  );
+  const bannerSlot = banner && (
+    <div className={bannerStyles} data-part="banner">
+      {banner}
+    </div>
   );
 
   if (compact) {
     const current =
-      sections.find((section) => section.id === activeSection) ?? main;
+      sections.find((section) => section.id === activeSection) ?? sections[0];
     return (
       <div className={cx(rootStyles, className)}>
-        {banner}
+        {bannerSlot}
         {tabs && <div className={tabsRowStyles}>{tabs}</div>}
         <Tabs.Root
           value={current.id}
@@ -255,11 +315,32 @@ export function GameLayout(props: GameLayoutProps) {
     );
   }
 
-  const sidebarCount = (startSidebar ? 1 : 0) + (endSidebar ? 1 : 0);
+  const stacked = stackSidebars && !!startSidebar && !!endSidebar;
+  const sidebarCount = stacked
+    ? 1
+    : (startSidebar ? 1 : 0) + (endSidebar ? 1 : 0);
+
+  const mainColumn = (
+    <div className={mainStyles}>
+      {main.hideTitle ? (
+        <h2 id={mainHeadingId} tabIndex={-1} className={srOnlyStyles}>
+          {main.title}
+        </h2>
+      ) : (
+        <div className={mainHeaderStyles}>
+          <h2 id={mainHeadingId} tabIndex={-1} className={columnTitleStyles}>
+            {main.title}
+          </h2>
+          {main.actions && <div className={actionsStyles}>{main.actions}</div>}
+        </div>
+      )}
+      <div className={scrollStyles}>{main.content}</div>
+    </div>
+  );
 
   return (
     <div className={cx(rootStyles, className)}>
-      {banner}
+      {bannerSlot}
       {tabs && <div className={tabsRowStyles}>{tabs}</div>}
       <div
         className={bodyStyles}
@@ -270,29 +351,34 @@ export function GameLayout(props: GameLayoutProps) {
           } as CSSProperties
         }
       >
-        {startSidebar && <Sidebar side="start" {...startSidebar} />}
-        <div className={mainStyles}>
-          {main.hideTitle ? (
-            <h2 id={mainHeadingId} tabIndex={-1} className={srOnlyStyles}>
-              {main.title}
-            </h2>
-          ) : (
-            <div className={mainHeaderStyles}>
-              <h2
-                id={mainHeadingId}
-                tabIndex={-1}
-                className={columnTitleStyles}
-              >
-                {main.title}
-              </h2>
-              {main.actions && (
-                <div className={actionsStyles}>{main.actions}</div>
-              )}
+        {stacked ? (
+          // Reading order follows the eye: the column top to bottom, then
+          // the main column.
+          <>
+            <div className={stackStyles}>
+              <Sidebar
+                side="start"
+                {...startSidebar}
+                collapsed={false}
+                collapsible={false}
+              />
+              <Sidebar
+                side="end"
+                {...endSidebar}
+                collapsed={false}
+                collapsible={false}
+                resizable={false}
+              />
             </div>
-          )}
-          <div className={scrollStyles}>{main.content}</div>
-        </div>
-        {endSidebar && <Sidebar side="end" {...endSidebar} />}
+            {mainColumn}
+          </>
+        ) : (
+          <>
+            {startSidebar && <Sidebar side="start" {...startSidebar} />}
+            {mainColumn}
+            {endSidebar && <Sidebar side="end" {...endSidebar} />}
+          </>
+        )}
       </div>
     </div>
   );

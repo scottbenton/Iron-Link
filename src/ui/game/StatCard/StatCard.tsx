@@ -4,14 +4,15 @@ import { ComponentProps, Ref, forwardRef } from "react";
 
 import { cx } from "styled-system/css";
 
+import { AddsBadge } from "../RollButton/AddsBadge";
 import { formatSigned } from "../shared/format";
 import {
-  statAddsStyles,
   statCardBaseStyles,
   statInnerStyles,
   statNameStyles,
   statRollableStyles,
   statStaticStyles,
+  statValueRowStyles,
   statValueStyles,
 } from "./statCardStyles";
 
@@ -26,18 +27,22 @@ export interface StatCardProps
   /** Rolls the stat. Without it the card is a static readout, no ledge. */
   onRoll?: () => void;
   /**
-   * Adds that apply to the next roll, shown as a small badge and read with
-   * the card's name. Zero hides it.
+   * Adds that apply to the next roll, shown as a pill after the value (under
+   * it when the card is too narrow) and read after the value. Zero hides it.
    */
   adds?: number;
   /** The verb in the accessible name, "Roll" by default ("Roll Edge, +3"). */
   rollLabel?: string;
-  /** Read after the value when adds apply, "plus {adds} adds" by default. */
+  /** Read after the value when adds apply, "adds +1" by default. */
   addsLabel?: (adds: string) => string;
   className?: string;
 }
 
-/** A stat: its name and value. With `onRoll`, the whole card rolls it. */
+/**
+ * A stat: its name and value. With `onRoll`, the whole card rolls it. The card
+ * is never narrower than `--stat-min-width` (60px), room for "Shadow" and a
+ * value, so nothing overlaps the name.
+ */
 export const StatCard = forwardRef<HTMLElement, StatCardProps>(
   function StatCard(props, ref) {
     const {
@@ -46,7 +51,7 @@ export const StatCard = forwardRef<HTMLElement, StatCardProps>(
       onRoll,
       adds = 0,
       rollLabel = "Roll",
-      addsLabel = (a) => `plus ${a} adds`,
+      addsLabel = (a) => `adds ${a}`,
       className,
       disabled,
       ...rest
@@ -58,15 +63,13 @@ export const StatCard = forwardRef<HTMLElement, StatCardProps>(
     const content = (
       <span data-stat-inner="" className={statInnerStyles}>
         <span className={statNameStyles}>{name}</span>
-        <span className={statValueStyles}>
-          {onRoll && <DiceFive weight="fill" aria-hidden />}
-          {valueText}
-        </span>
-        {addsText && (
-          <span className={statAddsStyles} aria-hidden>
-            {addsText}
+        <span className={statValueRowStyles}>
+          <span className={statValueStyles}>
+            {onRoll && <DiceFive weight="fill" aria-hidden />}
+            {valueText}
           </span>
-        )}
+          <AddsBadge value={adds} />
+        </span>
       </span>
     );
 

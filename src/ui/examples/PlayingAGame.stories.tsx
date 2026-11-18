@@ -110,51 +110,58 @@ function PlayingAGame() {
     icon: <UserIcon />,
     content: (
       <Stack gap="4" padding="4">
-        <Stack gap="0.5">
-          <Text variant="h3" as="p">
-            {character.name}
-          </Text>
-          <Text variant="bodySm" color="muted">
-            Played by {character.playerName}
-          </Text>
-        </Stack>
-        <StatGrid
-          stats={statKeys.map((key) => ({
-            key,
-            name: capitalize(key),
-            value: stats[key],
-          }))}
-          onRoll={(stat) => showRoll(rollAction(stat.name, stat.value))}
-        />
-        <Stack direction="row" gap="2" flexWrap="wrap">
-          {(["health", "spirit", "supply"] as const).map((meter) => (
-            <ConditionMeter
-              key={meter}
-              label={capitalize(meter)}
-              value={meters[meter]}
-              max={5}
-              warnAtMin
-              onChange={(value) =>
-                setMeters((current) => ({ ...current, [meter]: value }))
-              }
-              onRoll={() =>
-                showRoll(rollAction(capitalize(meter), meters[meter]))
-              }
-            />
-          ))}
-          <MomentumMeter
-            value={meters.momentum}
-            onChange={(value) =>
-              setMeters((current) => ({ ...current, momentum: value }))
-            }
-            onBurn={() => setMeters((current) => ({ ...current, momentum: 2 }))}
-          />
-        </Stack>
-        <Tabs defaultValue="tracks">
+        <Tabs defaultValue="overview">
           <SectionTabList aria-label="Character sections">
-            <SectionTab value="tracks">Tracks</SectionTab>
+            <SectionTab value="overview">Overview</SectionTab>
             <SectionTab value="assets">Assets</SectionTab>
+            <SectionTab value="tracks">Tracks</SectionTab>
           </SectionTabList>
+          <TabPanel value="overview">
+            <Stack gap="4" paddingTop="3">
+              <Stack gap="0.5">
+                <Text variant="h3" as="p">
+                  {character.name}
+                </Text>
+                <Text variant="bodySm" color="muted">
+                  Played by {character.playerName}
+                </Text>
+              </Stack>
+              <StatGrid
+                stats={statKeys.map((key) => ({
+                  key,
+                  name: capitalize(key),
+                  value: stats[key],
+                }))}
+                onRoll={(stat) => showRoll(rollAction(stat.name, stat.value))}
+              />
+              <Stack direction="row" gap="2" flexWrap="wrap">
+                {(["health", "spirit", "supply"] as const).map((meter) => (
+                  <ConditionMeter
+                    key={meter}
+                    label={capitalize(meter)}
+                    value={meters[meter]}
+                    max={5}
+                    warnAtMin
+                    onChange={(value) =>
+                      setMeters((current) => ({ ...current, [meter]: value }))
+                    }
+                    onRoll={() =>
+                      showRoll(rollAction(capitalize(meter), meters[meter]))
+                    }
+                  />
+                ))}
+                <MomentumMeter
+                  value={meters.momentum}
+                  onChange={(value) =>
+                    setMeters((current) => ({ ...current, momentum: value }))
+                  }
+                  onBurn={() =>
+                    setMeters((current) => ({ ...current, momentum: 2 }))
+                  }
+                />
+              </Stack>
+            </Stack>
+          </TabPanel>
           <TabPanel value="tracks">
             <Stack gap="3" paddingTop="3">
               <ProgressTrack
@@ -164,7 +171,7 @@ function PlayingAGame() {
                 ticks={vowTicks}
                 onChange={setVowTicks}
               />
-              <ProgressTrack label="Quests" legacy ticks={18} xpSpent={2} />
+              <ProgressTrack label="Quests" legacy ticks={18} />
             </Stack>
           </TabPanel>
           <TabPanel value="assets">
@@ -172,14 +179,10 @@ function PlayingAGame() {
               <AssetCard
                 asset={sampleAssets.starship}
                 state={{ controlValues: { integrity: 4 } }}
-                hideUnavailableAbilities
+                collapsed
                 headingAs="h3"
               />
-              <AssetCard
-                asset={sampleAssets.ace}
-                hideUnavailableAbilities
-                headingAs="h3"
-              />
+              <AssetCard asset={sampleAssets.ace} collapsed headingAs="h3" />
             </Stack>
           </TabPanel>
         </Tabs>
@@ -271,12 +274,13 @@ function PlayingAGame() {
           ),
         }}
         startSidebar={{
-          panels: [characterPanel, referencePanel],
+          panels: [characterPanel],
           width,
           onWidthChange: setWidth,
           collapsed,
           onCollapsedChange: setCollapsed,
         }}
+        endSidebar={{ panels: [referencePanel], defaultWidth: 350 }}
       />
     </AppShell>
   );

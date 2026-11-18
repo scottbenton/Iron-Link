@@ -127,7 +127,7 @@ const inlineLinkStyles = css({
   display: "inline-flex",
   alignItems: "center",
   gap: "1.5",
-  paddingInline: "2.5",
+  paddingInline: "3",
   color: "fg.muted",
   fontSize: "sm",
   fontWeight: "semibold",

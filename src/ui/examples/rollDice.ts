@@ -20,9 +20,13 @@ export function rollAction(
   statName: string,
   statValue: number,
   moveName?: string,
+  /** The character's momentum: negative momentum can cancel the die. */
+  momentum = 0,
 ): ActionRollData {
   const actionDie = d(6);
-  const actionScore = Math.min(actionDie + statValue, 10);
+  // Negative momentum that matches the action die cancels it to 0.
+  const cancelled = momentum < 0 && Math.abs(momentum) === actionDie;
+  const actionScore = (cancelled ? 0 : actionDie) + statValue;
   const challengeDice: [number, number] = [d(10), d(10)];
   return {
     kind: "action",
@@ -32,7 +36,8 @@ export function rollAction(
     actionDie,
     actionScore,
     challengeDice,
-    outcome: getOutcome(actionScore, challengeDice),
+    outcome: getOutcome(Math.min(actionScore, 10), challengeDice),
+    negativeMomentumCancelled: cancelled || undefined,
   };
 }
 

@@ -1,5 +1,7 @@
 import {
+  Check,
   DotsThreeVertical,
+  Info,
   PencilSimple,
   SignOut,
   UserPlus,
@@ -10,7 +12,9 @@ import { useState } from "react";
 import { Grid } from "styled-system/jsx";
 
 import { PortraitGroup } from "../../game/PortraitGroup";
+import { RulesText } from "../../game/RulesText/RulesText";
 import { sampleCharacters } from "../../stories/fixtures/characters";
+import { classicAsset } from "../../stories/fixtures/datasworn";
 import { Button } from "../Button";
 import { IconButton } from "../IconButton";
 import {
@@ -25,6 +29,7 @@ import {
   Card,
   CardActionArea,
   CardBody,
+  CardButtonOverlay,
   CardFooter,
   CardHeader,
   CardLinkOverlay,
@@ -202,6 +207,84 @@ export const LinkOverlay: Story = {
             </CardFooter>
           </Card>
         ))}
+      </Grid>
+    );
+  },
+};
+
+const talents = ["ironclad", "shield_bearer", "swordmaster"].map((key) =>
+  classicAsset("combat_talent", key),
+);
+
+/**
+ * Choosing combat talents. Select is a button stretched over the whole
+ * card, so a click anywhere on the card presses it, while the info button
+ * in the header stays its own control and only shows the rules. Select is
+ * a toggle named for the card ("Select Ironclad", pressed or not); the card
+ * draws the focus ring and, while selected, the accent outline, which
+ * shows at once even with the pointer still on the card.
+ */
+export const ButtonOverlay: Story = {
+  render: function Render() {
+    const [picked, setPicked] = useState<string[]>([talents[0]._id]);
+    const [shown, setShown] = useState<string[]>([]);
+    return (
+      <Grid columns={{ base: 1, sm: 3 }} gap="4" maxWidth="900px">
+        {talents.map((talent) => {
+          const id: string = talent._id;
+          const selected = picked.includes(id);
+          const open = shown.includes(id);
+          const toggle = (list: string[]) =>
+            list.includes(id)
+              ? list.filter((item) => item !== id)
+              : [...list, id];
+          return (
+            <Card key={id} render={<article />} selected={selected}>
+              <CardHeader
+                overline="Combat Talent"
+                title={talent.name}
+                action={
+                  <IconButton
+                    label={`Rules for ${talent.name}`}
+                    aria-pressed={open}
+                    onClick={() => setShown(toggle)}
+                  >
+                    <Info />
+                  </IconButton>
+                }
+              />
+              <CardBody>
+                <RulesText
+                  markdown={
+                    open
+                      ? talent.abilities
+                          .map(
+                            (ability: { text: string }) => `- ${ability.text}`,
+                          )
+                          .join("\n")
+                      : (talent.abilities[0]?.text ?? "")
+                  }
+                  size="sm"
+                  color="muted"
+                />
+              </CardBody>
+              <CardFooter>
+                <Text variant="caption" color="muted">
+                  {open ? "All three abilities" : "First ability"}
+                </Text>
+                <CardButtonOverlay
+                  aria-label={`Select ${talent.name}`}
+                  pressed={selected}
+                  variant={selected ? "primary" : "outline"}
+                  startIcon={selected ? <Check weight="bold" /> : undefined}
+                  onClick={() => setPicked(toggle)}
+                >
+                  Select
+                </CardButtonOverlay>
+              </CardFooter>
+            </Card>
+          );
+        })}
       </Grid>
     );
   },

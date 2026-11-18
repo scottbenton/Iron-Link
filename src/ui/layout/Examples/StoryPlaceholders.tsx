@@ -126,7 +126,10 @@ export function NotesPlaceholder() {
   );
 }
 
-/** The game's page tabs: Overview and one per character. */
+/**
+ * The game's page tabs, as the live app's `GameTabs`: Overview, one per
+ * character, then Add Character.
+ */
 export function GamePageTabs(props: { current?: string }) {
   const { current = "kira" } = props;
   const pages = [
@@ -134,6 +137,7 @@ export function GamePageTabs(props: { current?: string }) {
     ...sampleCharacters
       .slice(0, 2)
       .map((character) => ({ id: character.id, label: character.name })),
+    { id: "create-character", label: "Add Character" },
   ];
   return (
     <PageTabs aria-label="Game Pages">

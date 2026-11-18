@@ -17,45 +17,39 @@ import {
   collapsiblePanelStyles,
   disclosureChevronStyles,
 } from "../MoveCard/cardStyles";
-import { oracleRowStyles } from "../OracleListItem/OracleListItem";
+import {
+  listRowLineStyles,
+  listRowStyles,
+} from "../OracleListItem/listRowStyles";
 
 const wrapperStyles = css({
   listStyle: "none",
   margin: 0,
   padding: 0,
   minWidth: 0,
-});
-
-const rowLineStyles = css({
-  display: "flex",
-  alignItems: "center",
-  gap: "0.5",
-  minWidth: 0,
+  borderRadius: "md",
+  transitionProperty: "background-color, box-shadow",
+  transitionDuration: "fast",
+  transitionTimingFunction: "linear",
+  // Open, the row and its move read as one inset card: one frame around
+  // both, the move's text starting under the move's name.
+  "&[data-expanded]": {
+    background: "bg.muted",
+    boxShadow: "inset 0 0 0 1px token(colors.border.subtle)",
+  },
 });
 
 const rowStyles = css({
   "&[aria-expanded=true]": {
-    background: "overlay.selected",
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
-  },
-  "& [data-row-chevron]": {
-    flex: "none",
-    marginInlineStart: "auto",
-    color: "fg.muted",
   },
 });
 
 const bodyStyles = css({
-  paddingInline: "2.5",
-  paddingBlock: "3",
-  borderBottomLeftRadius: "md",
-  borderBottomRightRadius: "md",
-  background: "bg.muted",
-  borderWidth: "1px",
-  borderTopWidth: 0,
-  borderStyle: "solid",
-  borderColor: "border.subtle",
+  paddingInline: "3",
+  paddingTop: "1",
+  paddingBottom: "3",
 });
 
 export interface MoveListItemProps
@@ -74,7 +68,10 @@ export interface MoveListItemProps
   render?: ReactElement;
   /** Marks the row as the open page (aria-current). */
   current?: boolean;
-  /** A control beside the row, such as Pin. */
+  /**
+   * A control at the row's end, such as Pin. It lies over the row, which
+   * keeps `--row-action-width` (32px) clear for it.
+   */
   secondaryAction?: ReactNode;
   disabled?: boolean;
   /** The wrapper element; `li` inside a list. */
@@ -105,12 +102,21 @@ export function MoveListItem(props: MoveListItemProps) {
   const [expandedState, setExpandedState] = useState(defaultExpanded);
   const expanded = expandedProp ?? expandedState;
 
+  const lineProps = {
+    "data-row-line": "",
+    "data-has-action": secondaryAction ? "" : undefined,
+    className: listRowLineStyles,
+  };
+  const action = secondaryAction && (
+    <span data-row-action="">{secondaryAction}</span>
+  );
+
   if (render) {
     return (
       <Wrapper className={cx(wrapperStyles, className)} {...rest}>
-        <div className={rowLineStyles}>
+        <div {...lineProps}>
           <BaseButton
-            className={oracleRowStyles}
+            className={listRowStyles}
             render={render}
             nativeButton={false}
             disabled={disabled}
@@ -118,7 +124,7 @@ export function MoveListItem(props: MoveListItemProps) {
           >
             <span data-row-name="">{move.name}</span>
           </BaseButton>
-          {secondaryAction}
+          {action}
         </div>
       </Wrapper>
     );
@@ -134,18 +140,19 @@ export function MoveListItem(props: MoveListItemProps) {
       disabled={disabled}
       render={<Wrapper />}
       className={cx(wrapperStyles, className)}
+      data-expanded={expanded ? "" : undefined}
       {...rest}
     >
-      <div className={rowLineStyles}>
-        <Collapsible.Trigger className={cx(oracleRowStyles, rowStyles)}>
+      <div {...lineProps}>
+        <Collapsible.Trigger className={cx(listRowStyles, rowStyles)}>
           <span data-row-name="">{move.name}</span>
           <CaretDown
-            data-row-chevron=""
+            data-row-glyph=""
             className={disclosureChevronStyles}
             aria-hidden
           />
         </Collapsible.Trigger>
-        {secondaryAction}
+        {action}
       </div>
       <Collapsible.Panel className={collapsiblePanelStyles}>
         <div className={bodyStyles}>

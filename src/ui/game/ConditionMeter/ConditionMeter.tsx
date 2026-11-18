@@ -6,6 +6,7 @@ import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
 import { IconButton } from "../../components/IconButton";
+import { AddsBadge } from "../RollButton/AddsBadge";
 import {
   statCardBaseStyles,
   statInnerStyles,
@@ -72,6 +73,7 @@ const valueStyles = css({
 
 const rollValueStyles = css({
   "--stat-min-height": "40px",
+  "--stat-min-width": "48px",
   "& [data-stat-inner]": {
     flexDirection: "row",
     gap: "1",
@@ -122,6 +124,13 @@ export interface ConditionMeterProps {
    * a stat card.
    */
   onRoll?: () => void;
+  /**
+   * Adds on the next roll, shown as a pill after the value on the roll
+   * button, as on stat cards and roll buttons. Only shown with `onRoll`.
+   */
+  adds?: number;
+  /** Read after the value when adds apply, "adds +1" by default. */
+  addsLabel?: (adds: string) => string;
   /** Steppers and roll stay visible but blocked. */
   disabled?: boolean;
   /** How the value is written, signed by default ("+3"). */
@@ -142,6 +151,11 @@ export interface ConditionMeterProps {
   wide?: boolean;
   /** Content under the meter: buttons, a caption. */
   children?: ReactNode;
+  /**
+   * Your own control in the value's place, such as Momentum's Burn and Reset
+   * menu. Replaces the value and the roll button; the steppers stay.
+   */
+  valueControl?: ReactNode;
   /** Verb for the roll button's name, "Roll" ("Roll Health, +3"). */
   rollLabel?: string;
   decrementLabel?: (label: string) => string;
@@ -164,6 +178,8 @@ export function ConditionMeter(props: ConditionMeterProps) {
     max,
     onChange,
     onRoll,
+    adds = 0,
+    addsLabel = (a) => `adds ${a}`,
     disabled,
     formatValue = formatSigned,
     tone: toneProp,
@@ -171,6 +187,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
     showPips: showPipsProp,
     wide,
     children,
+    valueControl,
     rollLabel = "Roll",
     decrementLabel = (l) => `Subtract 1 from ${l}`,
     incrementLabel = (l) => `Add 1 to ${l}`,
@@ -195,17 +212,24 @@ export function ConditionMeter(props: ConditionMeterProps) {
     announce(changeAnnouncement(label, formatValue(next)));
   };
 
-  const valueNode = onRoll ? (
+  const valueNode = valueControl ? (
+    valueControl
+  ) : onRoll ? (
     <BaseButton
       className={cx(statCardBaseStyles, statRollableStyles, rollValueStyles)}
       data-tone={tone}
       disabled={disabled}
-      aria-label={`${rollLabel} ${label}, ${valueText}`}
+      aria-label={
+        adds
+          ? `${rollLabel} ${label}, ${valueText}, ${addsLabel(formatSigned(adds))}`
+          : `${rollLabel} ${label}, ${valueText}`
+      }
       onClick={() => onRoll()}
     >
       <span data-stat-inner="" className={statInnerStyles}>
         <DiceFive weight="fill" aria-hidden />
         {valueText}
+        <AddsBadge value={adds} />
       </span>
     </BaseButton>
   ) : (

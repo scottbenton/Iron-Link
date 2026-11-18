@@ -297,25 +297,27 @@ export const semanticTokens = {
       value: `0 var(--border-widths-ledge) 0 ${v("border-edge")}`,
     },
     /**
-     * Floating cards (menus, popovers, select lists, toasts): a 3px ledge and
-     * a soft shadow. Give the card a 1px `border.control` border.
+     * Floating cards (menus, popovers, select lists, toasts): a 3px ledge, a
+     * tight contact shadow and a soft one. Give the card a 1px
+     * `border.control` border. Shadow depth says how high a surface floats;
+     * the ledge is what says it can be touched.
      */
     popover: lightDark(
-      `0 3px 0 ${v("border-edge")}, 0 12px 24px -10px ${mix(v("gray-950"), 22, "transparent")}`,
-      `0 3px 0 ${v("border-edge")}, 0 14px 28px -10px ${mix("black", 65, "transparent")}`,
+      `0 3px 0 ${v("border-edge")}, 0 4px 8px -4px ${mix(v("gray-950"), 14, "transparent")}, 0 14px 28px -10px ${mix(v("gray-950"), 32, "transparent")}`,
+      `0 3px 0 ${v("border-edge")}, 0 4px 8px -4px ${mix("black", 50, "transparent")}, 0 16px 32px -10px ${mix("black", 78, "transparent")}`,
     ),
     /** Dialogs: the highest surface, a 4px ledge and a deeper shadow. */
     dialog: lightDark(
-      `0 4px 0 ${v("border-edge")}, 0 24px 48px -12px ${mix(v("gray-950"), 28, "transparent")}`,
-      `0 4px 0 ${v("border-edge")}, 0 24px 48px -12px ${mix("black", 70, "transparent")}`,
+      `0 4px 0 ${v("border-edge")}, 0 6px 12px -6px ${mix(v("gray-950"), 18, "transparent")}, 0 28px 56px -14px ${mix(v("gray-950"), 42, "transparent")}`,
+      `0 4px 0 ${v("border-edge")}, 0 6px 12px -6px ${mix("black", 55, "transparent")}, 0 28px 56px -14px ${mix("black", 85, "transparent")}`,
     ),
     /**
      * Things fixed to an edge of the screen (side drawers, sheets) have no
-     * bottom edge to stand on, so they keep only the soft shadow.
+     * bottom edge to stand on, so they keep only the dialog's soft shadow.
      */
     float: lightDark(
-      `0 24px 48px -12px ${mix(v("gray-950"), 28, "transparent")}`,
-      `0 24px 48px -12px ${mix("black", 70, "transparent")}`,
+      `0 28px 56px -14px ${mix(v("gray-950"), 42, "transparent")}`,
+      `0 28px 56px -14px ${mix("black", 85, "transparent")}`,
     ),
   },
   spacing: {

@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 
 import { css, cx } from "styled-system/css";
 
+import { GradientBox } from "../../game/GradientBox";
 import { Logo } from "../Logo";
 import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
 import { NavItem } from "../shared/navItem";
@@ -14,7 +15,8 @@ const railStyles = css({
   flexDirection: "column",
   alignItems: "stretch",
   gap: "6",
-  width: "88px",
+  // The live rail's width: as narrow as the labels allow.
+  width: "80px",
   height: "var(--app-shell-height, 100dvh)",
   paddingBlock: "4",
   overflowY: "auto",
@@ -55,41 +57,35 @@ const itemStyles = css({
   alignItems: "center",
   gap: "1",
   paddingBlock: "1",
-  paddingInline: "1",
+  paddingInline: "0.5",
   color: "fg.muted",
   textDecoration: "none",
   outline: "none",
   cursor: "pointer",
   WebkitTapHighlightColor: "transparent",
   transition: "color token(durations.fast) linear",
-  // The gradient bar on the rail's edge, grown from the middle when current.
-  _before: {
-    content: '""',
-    position: "absolute",
-    insetInlineStart: 0,
-    top: "1",
-    width: "3px",
-    height: "32px",
-    borderStartEndRadius: "3px",
-    borderEndEndRadius: "3px",
-    background: "token(gradients.ring)",
-    scale: "1 0",
-    transition: "scale token(durations.normal) token(easings.out)",
-    _reducedMotion: { transition: "none" },
-  },
+  // The same box current or not, so nothing shifts when the page changes.
+  // The current pill is a GradientBox, which draws its own ring inside it.
   "& [data-part=pill]": {
+    boxSizing: "border-box",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    width: "56px",
-    height: "32px",
+    width: "60px",
+    height: "36px",
     borderRadius: "full",
+  },
+  "& [data-part=pill]:not([data-gradient])": {
     border: "1px solid transparent",
-    transitionProperty: "background-color, border-color, box-shadow",
+    transitionProperty: "background-color",
     transitionDuration: "fast",
     transitionTimingFunction: "linear",
   },
   "& [data-part=pill] svg": { width: "22px", height: "22px" },
+  // The ring turns, as live; it holds still under reduced motion.
+  _reducedMotion: {
+    "& [data-part=pill]::before": { animation: "none" },
+  },
   "& [data-part=label]": {
     maxWidth: "100%",
     fontSize: "xs",
@@ -101,10 +97,14 @@ const itemStyles = css({
   },
   _hover: {
     color: "fg.default",
-    "& [data-part=pill]": { background: "overlay.hover" },
+    "& [data-part=pill]:not([data-gradient])": {
+      background: "overlay.hover",
+    },
   },
   _active: {
-    "& [data-part=pill]": { background: "overlay.pressed" },
+    "& [data-part=pill]:not([data-gradient])": {
+      background: "overlay.pressed",
+    },
   },
   _focusVisible: {
     "& [data-part=pill]": {
@@ -114,13 +114,7 @@ const itemStyles = css({
   },
   _current: {
     color: "fg.default",
-    _before: { scale: "1 1" },
-    "& [data-part=pill]": {
-      background: "bg.surface",
-      borderColor: "border.default",
-      boxShadow: "ledge",
-      color: "accent.fg",
-    },
+    "& [data-part=pill]": { color: "accent.fg" },
   },
 });
 
@@ -149,9 +143,10 @@ export interface NavRailProps {
 }
 
 /**
- * The column of destinations on wide screens. Each item is an icon over its
- * label; the current page is a raised pill with the gradient bar on the
- * rail's edge, and `aria-current="page"`.
+ * The column of destinations on wide screens, 80px wide. Each item is an
+ * icon over its label; the current page's icon sits in a pill with the
+ * scheme's turning gradient border (a GradientBox, as in the live app), and
+ * the link has `aria-current="page"`.
  */
 export function NavRail(props: NavRailProps) {
   const {
@@ -185,9 +180,23 @@ export function NavRail(props: NavRailProps) {
                 className={itemStyles}
                 aria-current={item.current ? "page" : undefined}
               >
-                <span data-part="pill" aria-hidden="true">
-                  {item.current ? (item.currentIcon ?? item.icon) : item.icon}
-                </span>
+                {item.current ? (
+                  <GradientBox
+                    as="span"
+                    data-part="pill"
+                    data-gradient=""
+                    aria-hidden="true"
+                    radius="full"
+                    thickness="medium"
+                    spin
+                  >
+                    {item.currentIcon ?? item.icon}
+                  </GradientBox>
+                ) : (
+                  <span data-part="pill" aria-hidden="true">
+                    {item.icon}
+                  </span>
+                )}
                 <span data-part="label">{item.label}</span>
               </Link>
             </li>

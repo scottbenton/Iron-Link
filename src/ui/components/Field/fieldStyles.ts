@@ -488,7 +488,12 @@ export const fieldLabelRowStyles = css({
 });
 
 /**
- * Help text right after a fieldset's legend. The legend keeps a small gap
- * below it; this pulls the help up so the two read as one heading.
+ * Help text right after a fieldset's legend, in a group that stacks its
+ * legend, help and choices with a `spacing.2` gap (CheckboxGroup,
+ * RadioGroup, RadioCardGroup). The legend keeps `spacing.1` below it; this
+ * pulls the help up past both, so it sits `spacing.0.5` under the legend
+ * and reads as part of it, with the full gap before the choices.
  */
-export const fieldsetDescriptionStyles = css({ marginTop: "-0.5" });
+export const fieldsetDescriptionStyles = css({
+  marginTop: "calc(token(spacing.0.5) - token(spacing.2) - token(spacing.1))",
+});

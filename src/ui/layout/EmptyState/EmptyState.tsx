@@ -20,16 +20,7 @@ const rootStyles = cva({
       sm: { paddingBlock: "6", paddingInline: "4", maxWidth: "360px" },
       md: { paddingBlock: "12", paddingInline: "6", maxWidth: "480px" },
     },
-    bordered: {
-      true: {
-        border: "1px dashed token(colors.border.control)",
-        borderRadius: "lg",
-        background: "bg.muted",
-      },
-    },
   },
-  // After the size's own width, so a bordered card fills its place.
-  compoundVariants: [{ bordered: true, css: { maxWidth: "none" } }],
   defaultVariants: { size: "md" },
 });
 
@@ -107,14 +98,13 @@ export interface EmptyStateProps {
   /** A second, quieter action beside it. */
   secondaryAction?: ReactNode;
   size?: "sm" | "md";
-  /** A dashed card, for an empty list or grid. */
-  bordered?: boolean;
   className?: string;
 }
 
 /**
  * What a place shows when it holds nothing yet, or failed to load: an
- * icon, a title, a line of explanation and the action that fills it.
+ * icon, a title, a line of explanation and the action that fills it. It
+ * sits straight on the page, with no card or border around it.
  */
 export function EmptyState(props: EmptyStateProps) {
   const {
@@ -125,12 +115,11 @@ export function EmptyState(props: EmptyStateProps) {
     action,
     secondaryAction,
     size,
-    bordered,
     className,
   } = props;
 
   return (
-    <div className={cx(rootStyles({ size, bordered }), className)}>
+    <div className={cx(rootStyles({ size }), className)}>
       {icon && (
         <span className={iconStyles({ size })} aria-hidden="true">
           {icon}

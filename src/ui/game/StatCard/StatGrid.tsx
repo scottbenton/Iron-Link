@@ -5,9 +5,20 @@ import { css, cx } from "styled-system/css";
 import { StatCard } from "./StatCard";
 
 const gridStyles = css({
+  "--stat-gap": "6px",
   display: "grid",
-  gridTemplateColumns: "repeat(var(--stat-columns, 5), minmax(0, 72px))",
-  gap: "6px",
+  // As many columns as fit at the cards' minimum width, so a narrow sidebar
+  // wraps the row (3 and 2) instead of squeezing names under the values.
+  gridTemplateColumns:
+    "repeat(auto-fit, minmax(var(--stat-min-width, 60px), 1fr))",
+  // Wide rooms stop growing the cards at 84px each.
+  maxWidth:
+    "calc(var(--stat-count, 5) * var(--stat-max-width, 84px) + (var(--stat-count, 5) - 1) * var(--stat-gap))",
+  gap: "var(--stat-gap)",
+  "&[data-columns]": {
+    gridTemplateColumns:
+      "repeat(var(--stat-columns), minmax(var(--stat-min-width, 60px), 1fr))",
+  },
   margin: 0,
   padding: 0,
   listStyle: "none",
@@ -30,15 +41,20 @@ export interface StatGridProps {
   disabled?: boolean;
   /** Names the list for screen readers, "Stats" by default. */
   label?: string;
-  /** Overrides the column count (5 by default). */
+  /**
+   * Fixes the column count. By default the row fits as many cards as the
+   * room allows at their minimum width, up to one per stat.
+   */
   columns?: number;
   rollLabel?: string;
   className?: string;
 }
 
 /**
- * The five stats (Edge, Heart, Iron, Shadow, Wits) in one row of cards, each
- * at most 72px wide with 6px between them.
+ * The five stats (Edge, Heart, Iron, Shadow, Wits) in a row of cards, 60px to
+ * 84px wide with 6px between them. Too narrow for all five at 60px (under
+ * 324px), the row wraps. Adds show on every card, since they apply to
+ * whichever stat is rolled next.
  */
 export function StatGrid(props: StatGridProps) {
   const {
@@ -56,8 +72,12 @@ export function StatGrid(props: StatGridProps) {
     <ul
       aria-label={label}
       className={cx(gridStyles, className)}
+      data-columns={columns ? "" : undefined}
       style={
-        columns ? ({ "--stat-columns": columns } as CSSProperties) : undefined
+        {
+          "--stat-count": columns ?? stats.length,
+          ...(columns ? { "--stat-columns": columns } : {}),
+        } as CSSProperties
       }
     >
       {stats.map((stat) => (

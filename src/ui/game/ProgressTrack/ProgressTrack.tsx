@@ -1,19 +1,16 @@
-import { CheckCircle, Eraser, Plus } from "@phosphor-icons/react";
+import { CheckCircle, Minus, Plus } from "@phosphor-icons/react";
 import { ElementType, ReactNode, useId } from "react";
 
 import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
-import { Button } from "../../components/Button";
-import { getXPPipState, xpPipStyles } from "../XPTrack/xpPipStyles";
+import { IconButton } from "../../components/IconButton";
 import { ProgressBoxes } from "./ProgressBoxes";
 import {
   MAX_TICKS,
   ProgressRank,
-  TICKS_PER_BOX,
   clampTicks,
   defaultRankLabels,
-  getProgressScore,
   getProgressValueText,
   ticksPerMark,
 } from "./progress";
@@ -25,7 +22,8 @@ import {
 const cardStyles = css({
   display: "grid",
   gap: "3",
-  padding: "4",
+  minWidth: 0,
+  padding: "3",
   borderWidth: "1px",
   borderStyle: "solid",
   borderColor: "border.default",
@@ -43,17 +41,20 @@ const cardStyles = css({
 });
 
 const headStyles = css({
-  display: "flex",
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) auto",
   alignItems: "start",
-  gap: "3",
+  gap: "2",
 });
 
 const eyebrowStyles = css({
   display: "flex",
   flexWrap: "wrap",
   alignItems: "center",
-  gap: "1.5",
+  columnGap: "1.5",
+  rowGap: "0.5",
   margin: 0,
+  marginBottom: "0.5",
   fontFamily: "heading",
   fontWeight: "semibold",
   fontSize: "xs",
@@ -69,7 +70,7 @@ const titleStyles = css({
   display: "block",
   fontFamily: "heading",
   fontWeight: "semibold",
-  fontSize: "xl",
+  fontSize: "lg",
   lineHeight: "tight",
   textWrap: "balance",
   overflowWrap: "anywhere",
@@ -102,58 +103,20 @@ const badgeStyles = css({
   "& svg": { width: "1.1em", height: "1.1em" },
 });
 
-const footStyles = css({
+const controlsStyles = css({
   display: "flex",
   alignItems: "center",
-  justifyContent: "space-between",
-  gap: "3",
-  flexWrap: "wrap",
-});
-
-const scoreStyles = css({
-  display: "flex",
-  alignItems: "baseline",
-  gap: "2",
-  fontVariantNumeric: "tabular-nums",
-});
-
-const scoreNumberStyles = css({
-  fontFamily: "heading",
-  fontWeight: "semibold",
-  fontSize: "xl",
-  lineHeight: "none",
-});
-
-const scoreTextStyles = css({
-  fontSize: "sm",
-  color: "fg.muted",
-});
-
-const buttonsStyles = css({
-  display: "flex",
-  alignItems: "center",
-  gap: "2",
-  flexWrap: "wrap",
-});
-
-const xpStyles = css({
-  display: "grid",
-  gridTemplateColumns: "repeat(10, minmax(0, 1fr))",
-  gap: "3px",
-  maxWidth: "var(--progress-boxes-max-width, 420px)",
+  gap: "0.5",
+  // Line the buttons up with the title when there is no eyebrow above it.
   marginTop: "-1",
+  marginInlineEnd: "-1",
 });
 
-const xpBoxStyles = css({
+const actionsStyles = css({
   display: "flex",
-  justifyContent: "center",
-  gap: "3px",
-});
-
-const xpTextStyles = css({
-  fontSize: "xs",
-  color: "fg.muted",
-  fontVariantNumeric: "tabular-nums",
+  alignItems: "center",
+  gap: "2",
+  flexWrap: "wrap",
 });
 
 export interface ProgressTrackProps {
@@ -173,15 +136,11 @@ export interface ProgressTrackProps {
   /** A completed track: a badge, success marks and no mark buttons. */
   completed?: boolean;
   /**
-   * A legacy track (Quests, Bonds, Discoveries): no rank, and XP pips under
-   * the boxes, two per filled box.
+   * A legacy track (Quests, Bonds, Discoveries): no rank. Experience is kept
+   * in its own meter (see XPMeter), not on the track.
    */
   legacy?: boolean;
-  /** Legacy XP already spent from this track. */
-  xpSpent?: number;
-  /** XP per filled legacy box, 2 by default (1 once a track is cleared). */
-  xpPerBox?: number;
-  /** Extra actions in the foot, such as a Fulfill Your Vow roll button. */
+  /** Extra actions under the boxes, such as a Fulfill Your Vow roll button. */
   actions?: ReactNode;
   /** A control at the top right, such as the track's menu. */
   headerAction?: ReactNode;
@@ -198,8 +157,9 @@ export interface ProgressTrackProps {
 }
 
 /**
- * A progress track: ten boxes of four ticks, with its rank, Mark Progress and
- * Erase, and the progress score a progress roll would use.
+ * A progress track: ten boxes of four ticks under its name and rank, with
+ * minus and plus buttons that erase and mark progress by the rank's step.
+ * Compact enough for a 280px sidebar.
  */
 export function ProgressTrack(props: ProgressTrackProps) {
   const {
@@ -212,8 +172,6 @@ export function ProgressTrack(props: ProgressTrackProps) {
     step: stepProp,
     completed,
     legacy,
-    xpSpent = 0,
-    xpPerBox = 2,
     actions,
     headerAction,
     titleAs: Title = "span",
@@ -230,7 +188,6 @@ export function ProgressTrack(props: ProgressTrackProps) {
 
   const ticks = clampTicks(rawTicks);
   const step = stepProp ?? (rank && !legacy ? ticksPerMark[rank] : 1);
-  const score = getProgressScore(ticks);
   const valueText = getProgressValueText(ticks, strings);
   const editable = !!onChange && !completed;
 
@@ -247,9 +204,6 @@ export function ProgressTrack(props: ProgressTrackProps) {
   else if (typeLabel) eyebrow.push(typeLabel);
   if (rank && !legacy) eyebrow.push(rankLabels[rank]);
   if (editable && !legacy && rank) eyebrow.push(strings.markDescription(step));
-
-  const xpEarned = legacy ? score * xpPerBox : 0;
-  const spent = Math.min(Math.max(xpSpent, 0), xpEarned);
 
   return (
     <div
@@ -284,7 +238,33 @@ export function ProgressTrack(props: ProgressTrackProps) {
           </Title>
           {description && <p className={descriptionStyles}>{description}</p>}
         </div>
-        {headerAction}
+        {(editable || headerAction) && (
+          <div className={controlsStyles}>
+            {editable && (
+              <>
+                <IconButton
+                  label={strings.eraseLabel(label)}
+                  size="sm"
+                  focusableWhenDisabled
+                  disabled={ticks === 0}
+                  onClick={() => change(-step)}
+                >
+                  <Minus weight="bold" />
+                </IconButton>
+                <IconButton
+                  label={strings.markLabel(label)}
+                  size="sm"
+                  focusableWhenDisabled
+                  disabled={ticks >= MAX_TICKS}
+                  onClick={() => change(step)}
+                >
+                  <Plus weight="bold" />
+                </IconButton>
+              </>
+            )}
+            {headerAction}
+          </div>
+        )}
       </div>
 
       <div
@@ -294,75 +274,11 @@ export function ProgressTrack(props: ProgressTrackProps) {
         aria-valuemax={MAX_TICKS}
         aria-valuenow={ticks}
         aria-valuetext={valueText}
-        className={css({ display: "grid", gap: "1.5" })}
       >
         <ProgressBoxes ticks={ticks} complete={completed} />
-        {legacy && (
-          <div className={xpStyles} aria-hidden>
-            {Array.from({ length: 10 }, (_, box) => (
-              <span key={box} className={xpBoxStyles}>
-                {Array.from({ length: xpPerBox }, (_, pip) => {
-                  const index = box * xpPerBox + pip;
-                  const state = getXPPipState(index, xpEarned, spent);
-                  return (
-                    <span
-                      key={pip}
-                      className={xpPipStyles}
-                      data-state={state}
-                    />
-                  );
-                })}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
-      <div className={footStyles}>
-        <div className={css({ display: "grid", gap: "0.5" })}>
-          <span className={scoreStyles}>
-            <span className={scoreTextStyles}>{strings.scoreLabel}</span>
-            <span className={scoreNumberStyles}>{score}</span>
-            <span className={scoreTextStyles} aria-hidden>
-              {ticks % TICKS_PER_BOX !== 0 &&
-                `+${ticks % TICKS_PER_BOX}/${TICKS_PER_BOX}`}
-            </span>
-          </span>
-          {legacy && (
-            <span className={xpTextStyles}>{strings.xp(xpEarned, spent)}</span>
-          )}
-        </div>
-        {(editable || actions) && (
-          <div className={buttonsStyles}>
-            {actions}
-            {editable && (
-              <>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  startIcon={<Eraser />}
-                  disabled={ticks === 0}
-                  focusableWhenDisabled
-                  aria-label={`${strings.eraseLabel}, ${label}`}
-                  onClick={() => change(-step)}
-                >
-                  {strings.eraseLabel}
-                </Button>
-                <Button
-                  size="sm"
-                  startIcon={<Plus weight="bold" />}
-                  disabled={ticks >= MAX_TICKS}
-                  focusableWhenDisabled
-                  aria-label={`${strings.markLabel}, ${label}`}
-                  onClick={() => change(step)}
-                >
-                  {strings.markLabel}
-                </Button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+      {actions && <div className={actionsStyles}>{actions}</div>}
     </div>
   );
 }

@@ -19,7 +19,8 @@ import {
 export const statCardBaseStyles = css({
   position: "relative",
   display: "flex",
-  minWidth: 0,
+  // Room for the longest core stat name ("Shadow") and a value with its die.
+  minWidth: "var(--stat-min-width, 60px)",
   minHeight: "var(--stat-min-height, 60px)",
   padding: "2px",
   borderWidth: 0,
@@ -197,16 +198,16 @@ export const statValueStyles = css({
   "& svg": { width: "14px", height: "14px", opacity: 0.75, flex: "none" },
 });
 
-export const statAddsStyles = css({
-  position: "absolute",
-  top: "1",
-  right: "1",
-  paddingInline: "1",
-  borderRadius: "full",
-  background: "color-mix(in oklab, token(colors.fg.onChip) 18%, transparent)",
-  fontFamily: "heading",
-  fontWeight: "semibold",
-  fontSize: "2xs",
-  lineHeight: "snug",
-  fontVariantNumeric: "tabular-nums",
+/**
+ * The value and its adds. The adds pill follows the value and wraps under it
+ * when the card is narrow, so it never covers the name or the value.
+ */
+export const statValueRowStyles = css({
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  justifyContent: "center",
+  columnGap: "1",
+  rowGap: "0.5",
+  maxWidth: "100%",
 });
