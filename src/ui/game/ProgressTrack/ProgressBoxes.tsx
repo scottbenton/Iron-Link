@@ -3,7 +3,7 @@ import { CSSProperties, useState } from "react";
 import { css, cx } from "styled-system/css";
 
 import { MAX_TICKS, TICKS_PER_BOX, clampTicks, getBoxTicks } from "./progress";
-import { TickAnimation, getTickAnimationPlan } from "./tickAnimation";
+import { getTickAnimationPlan } from "./tickAnimation";
 
 /** The four marks of a box, drawn in order: two diagonals, then a cross. */
 const MARKS = [
@@ -22,10 +22,12 @@ const trackStyles = css({
 
 /**
  * A line is a 20 unit dash pushed off its own length, so moving the dash
- * offset to 0 draws it from its start. New lines draw over
- * `--tick-duration`, each waiting its `--tick-step` times `--tick-stagger`
- * (set by getTickAnimationPlan, which keeps the whole change under 250ms).
- * Erased lines all draw back out at once, quickly.
+ * offset to 0 draws it from its start. New lines draw in tick order, like
+ * a pen, over `--tick-duration`, each waiting its `--tick-step` times
+ * `--tick-stagger` (set by getTickAnimationPlan, which keeps the whole
+ * change under 250ms). A pen speeds up and slows down, so one line after
+ * another reads as strokes rather than a sweep. Erased lines all draw back
+ * out at once, quickly.
  */
 const boxStyles = css({
   aspectRatio: "1",
@@ -52,32 +54,16 @@ const boxStyles = css({
     overflow: "visible",
   },
   "& line": {
-    "--tick-easing": "token(easings.out)",
     strokeDasharray: "20",
     strokeDashoffset: "20",
-    transition:
-      "stroke-dashoffset var(--durations-fast) var(--easings-in), opacity var(--durations-fast) var(--easings-in)",
+    transition: "stroke-dashoffset var(--durations-fast) var(--easings-in)",
     _reducedMotion: { transition: "none" },
   },
   "& line[data-on]": {
     strokeDashoffset: "0",
     transition:
-      "stroke-dashoffset var(--tick-duration) var(--tick-easing) calc(var(--tick-step, 0) * var(--tick-stagger)), opacity var(--tick-duration) var(--tick-easing) calc(var(--tick-step, 0) * var(--tick-stagger))",
+      "stroke-dashoffset var(--tick-duration) token(easings.inOut) calc(var(--tick-step, 0) * var(--tick-stagger))",
     _reducedMotion: { transition: "none" },
-  },
-  // A pen speeds up and slows down, so one line after another reads as
-  // strokes rather than a sweep.
-  "[data-animation=sequence] &": {
-    "& line": { "--tick-easing": "token(easings.inOut)" },
-  },
-  // Fade: the line starts half drawn and invisible, and fades in as it
-  // finishes, so a short stagger still reads as separate marks.
-  "[data-animation=fade] &": {
-    "& line": { opacity: 0, strokeDashoffset: "10" },
-    "& line[data-on]": { opacity: 1, strokeDashoffset: "0" },
-  },
-  "[data-animation=none] &": {
-    "& line, & line[data-on]": { transition: "none" },
   },
 });
 
@@ -86,27 +72,17 @@ export interface ProgressBoxesProps {
   ticks: number;
   /** Draws the marks in the success colour. */
   complete?: boolean;
-  /**
-   * How new ticks draw in (see TickAnimation). `sequence`, the default,
-   * draws each line in tick order like a pen. Reduced motion shows the end
-   * state at once.
-   */
-  animation?: TickAnimation;
   className?: string;
 }
 
 /**
  * Ten progress boxes, four ticks each. Purely visual (hidden from screen
  * readers); the owner names the value with role="progressbar" or text. New
- * marks draw themselves in; erased ones draw back out.
+ * marks draw themselves in; erased ones draw back out. Reduced motion shows
+ * the end state at once.
  */
 export function ProgressBoxes(props: ProgressBoxesProps) {
-  const {
-    ticks: rawTicks,
-    complete,
-    animation = "sequence",
-    className,
-  } = props;
+  const { ticks: rawTicks, complete, className } = props;
   const ticks = clampTicks(rawTicks);
 
   // The count before the latest change, kept as state (React's pattern for
@@ -114,7 +90,7 @@ export function ProgressBoxes(props: ProgressBoxesProps) {
   const [change, setChange] = useState({ from: ticks, to: ticks });
   if (change.to !== ticks) setChange({ from: change.to, to: ticks });
 
-  const plan = getTickAnimationPlan(animation, change.from, ticks);
+  const plan = getTickAnimationPlan(change.from, ticks);
   const boxes = getBoxTicks(ticks);
   const style = {
     "--tick-duration": `${plan.duration}ms`,
@@ -125,7 +101,6 @@ export function ProgressBoxes(props: ProgressBoxesProps) {
     <div
       className={cx(trackStyles, className)}
       data-complete={complete || undefined}
-      data-animation={animation}
       style={style}
       aria-hidden
     >

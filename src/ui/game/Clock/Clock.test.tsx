@@ -64,10 +64,9 @@ describe("Clock", () => {
     expect(onChange).toHaveBeenCalledExactlyOnceWith(5);
   });
 
-  it("has no centre when read-only, disabled or a bar", () => {
+  it("has no centre when read-only or disabled", () => {
     renderClock({ onChange: undefined });
     renderClock({ disabled: true });
-    renderClock({ variant: "bar" });
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 

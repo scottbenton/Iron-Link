@@ -23,15 +23,7 @@ import {
   trackCardStyles,
   trackCardTitleStyles,
 } from "../ProgressTrack/trackCardStyles";
-import {
-  barCell,
-  gappedWedgePath,
-  pipCentre,
-  pipRadius,
-  rimTick,
-  ringSegmentPath,
-  wedgePath,
-} from "./clockGeometry";
+import { ringSegmentPath, wedgePath } from "./clockGeometry";
 import { ClockStrings, defaultClockStrings } from "./clockStrings";
 import { advanceClock, clampClockValue } from "./clockValue";
 
@@ -49,8 +41,6 @@ const dialStyles = css({
     "color-mix(in oklab, token(colors.accent.solid) 18%, transparent)",
   "--clock-preview":
     "color-mix(in oklab, token(colors.accent.solid) 55%, transparent)",
-  "--clock-pip-off":
-    "color-mix(in oklab, token(colors.accent.solid) 45%, transparent)",
   _dark: {
     "--clock-off":
       "color-mix(in oklab, token(colors.accent.solid) 26%, transparent)",
@@ -70,20 +60,16 @@ const dialStyles = css({
   height: "80px",
   "&[data-size=sm]": { width: "60px", height: "60px" },
   "&[data-size=lg]": { width: "120px", height: "120px" },
-  "&[data-variant=bar]": {
-    borderRadius: "sm",
-    width: "112px",
-    height: "16px",
-    "&[data-size=sm]": { width: "80px", height: "12px" },
-    "&[data-size=lg]": { width: "160px", height: "22px" },
-  },
   "& svg": { display: "block", width: "100%", height: "100%" },
 
-  // Each segment paints with --seg, which its state sets.
+  // Each segment paints with --seg, which its state sets; a stroke in the
+  // same colour rounds its corners.
   "& [data-seg]": {
     "--seg": "var(--clock-off)",
     fill: "var(--seg)",
-    stroke: "none",
+    stroke: "var(--seg)",
+    strokeWidth: 1.5,
+    strokeLinejoin: "round",
     transitionProperty: "fill, stroke, opacity",
     transitionDuration: "fast",
     transitionTimingFunction: "out",
@@ -93,60 +79,6 @@ const dialStyles = css({
   "& [data-seg][data-preview=clear]": { opacity: 0.45 },
   "& [data-hit]": { fill: "transparent", stroke: "none" },
 
-  // Wedges and ring: a stroke in the segment's own colour rounds corners.
-  "&[data-variant=wedges] [data-seg], &[data-variant=ring] [data-seg]": {
-    stroke: "var(--seg)",
-    strokeWidth: 1.5,
-    strokeLinejoin: "round",
-  },
-  // Sweep: a hairline in the same colour hides the seams between wedges.
-  "&[data-variant=sweep] [data-seg]": {
-    stroke: "var(--seg)",
-    strokeWidth: 0.75,
-    strokeLinejoin: "round",
-  },
-  "& [data-tick]": {
-    stroke: "token(colors.border.control)",
-    strokeWidth: 3,
-    strokeLinecap: "round",
-    transitionProperty: "stroke",
-    transitionDuration: "fast",
-  },
-  "& [data-tick][data-filled]": { stroke: "var(--clock-on)" },
-  // Pips: empty ones are rings, filled ones solid.
-  "&[data-variant=pips] [data-seg]": {
-    fill: "transparent",
-    stroke: "var(--clock-pip-off)",
-    strokeWidth: 2.5,
-  },
-  "&[data-variant=pips] [data-seg][data-filled]": {
-    fill: "var(--clock-on)",
-    stroke: "var(--clock-on)",
-  },
-  "&[data-variant=pips] [data-seg][data-preview=fill]": {
-    fill: "var(--clock-preview)",
-    stroke: "var(--clock-preview)",
-  },
-  "& [data-track]": {
-    fill: "none",
-    stroke: "var(--clock-off)",
-    strokeWidth: 1.5,
-  },
-  // Classic: the old pie, with lighter lines that soften over the fill.
-  "&[data-variant=classic] [data-seg]": {
-    fill: "token(colors.bg.surface)",
-    stroke: "token(colors.border.control)",
-    strokeWidth: 2,
-    strokeLinejoin: "round",
-  },
-  "&[data-variant=classic] [data-seg][data-filled]": {
-    fill: "var(--clock-on)",
-    stroke:
-      "color-mix(in oklab, token(colors.accent.solid) 55%, token(colors.bg.surface))",
-  },
-  "&[data-variant=classic] [data-seg][data-preview=fill]": {
-    fill: "var(--clock-preview)",
-  },
   "& [data-count]": {
     fill: "token(colors.fg.default)",
     fontFamily: "heading",
@@ -162,15 +94,13 @@ const dialWrapStyles = css({
   position: "relative",
   display: "grid",
   flex: "none",
-  "--clock-hub": "32%",
-  "&[data-variant=ring]": { "--clock-hub": "62%" },
-  "&[data-variant=pips]": { "--clock-hub": "58%" },
+  "--clock-hub": "62%",
 });
 
 /**
  * The centre: a round button over the dial's middle that adds a segment.
- * Hover tints it (and the dial previews the next segment); a pie, with no
- * count in its middle, also shows a plus. Full, it rests.
+ * Hover tints it behind the count (and the dial previews the next segment).
+ * Full, it rests.
  */
 const hubStyles = css({
   position: "absolute",
@@ -198,9 +128,7 @@ const hubStyles = css({
     outline: "2px solid token(colors.focusRing)",
     outlineOffset: "1px",
   },
-  "& svg": { width: "55%", height: "55%", opacity: 0 },
-  // Ring and pips: a light tint behind the count.
-  "&:not([aria-disabled=true]):is([data-variant=ring], [data-variant=pips])": {
+  "&:not([aria-disabled=true])": {
     _hoverable: {
       _hover: {
         background:
@@ -212,24 +140,7 @@ const hubStyles = css({
         "color-mix(in oklab, token(colors.accent.solid) 22%, transparent)",
     },
   },
-  // Pies: a surface disc with a plus, so it reads over a filled wedge.
-  "&:not([aria-disabled=true]):is([data-variant=wedges], [data-variant=sweep], [data-variant=classic])":
-    {
-      _hoverable: {
-        _hover: {
-          background: "bg.surface",
-          boxShadow: "0 0 0 1px token(colors.border.control)",
-          "& svg": { opacity: 1 },
-        },
-      },
-      _active: {
-        background:
-          "color-mix(in oklab, token(colors.accent.solid) 16%, token(colors.bg.surface))",
-        boxShadow: "0 0 0 1px token(colors.border.control)",
-        "& svg": { opacity: 1 },
-      },
-    },
-  // Full: no tint and no plus, so the middle reads as resting.
+  // Full: no tint, so the middle reads as resting.
   "&[aria-disabled=true]": { cursor: "default" },
 });
 
@@ -250,12 +161,6 @@ const cardActionsStyles = css({
   minWidth: 0,
 });
 
-const cardDialStyles = css({
-  display: "grid",
-  justifyItems: "center",
-  gap: "0.5",
-});
-
 const labelStyles = css({
   maxWidth: "100%",
   fontFamily: "heading",
@@ -266,30 +171,6 @@ const labelStyles = css({
   textWrap: "balance",
   overflowWrap: "anywhere",
 });
-
-const valueStyles = css({
-  fontSize: "xs",
-  color: "fg.muted",
-  fontVariantNumeric: "tabular-nums",
-});
-
-export type ClockVariant =
-  | "wedges"
-  | "ring"
-  | "pips"
-  | "sweep"
-  | "bar"
-  | "classic";
-
-/** Variants that draw the count inside the dial. */
-const countInside: Record<ClockVariant, boolean> = {
-  wedges: false,
-  ring: true,
-  pips: true,
-  sweep: false,
-  bar: false,
-  classic: false,
-};
 
 export interface ClockProps {
   /** The clock's name, such as "The Iron Siege falls". */
@@ -307,16 +188,6 @@ export interface ClockProps {
   onChange?: (value: number) => void;
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
-  /**
-   * How the dial is drawn, always in the accent colour:
-   * - `ring` (default): a segmented donut with the count in the middle.
-   * - `wedges`: a pie of wedges parted by a thin gap, no lines.
-   * - `pips`: a dot per segment around the count.
-   * - `sweep`: a solid pie fill with segment ticks around the rim.
-   * - `bar`: a notched horizontal bar, for tight rows and lists.
-   * - `classic`: the outlined pie, with lighter lines.
-   */
-  variant?: ClockVariant;
   /** Hides the visible name and count; the clock is still named. */
   hideLabel?: boolean;
   /**
@@ -349,10 +220,11 @@ export interface ClockProps {
 }
 
 /**
- * A segmented clock (campaign, tension, an asset's clock), drawn in the
- * accent colour. Interactive with `onChange` (a slider), else an image.
- * When interactive, a click or tap on the dial's middle adds one segment
- * (except on the bar, which has no middle); it rests once the clock is full.
+ * A segmented clock (campaign, tension, an asset's clock): a ring of
+ * segments in the accent colour with the count in the middle. Interactive
+ * with `onChange` (a slider), else an image. When interactive, a click or
+ * tap on the dial's middle adds one segment; it rests once the clock is
+ * full.
  */
 export function Clock(props: ClockProps) {
   const {
@@ -362,7 +234,6 @@ export function Clock(props: ClockProps) {
     onChange: onChangeProp,
     disabled,
     size = "md",
-    variant = "ring",
     hideLabel,
     presentation = "bare",
     completed,
@@ -476,114 +347,21 @@ export function Clock(props: ClockProps) {
     </text>
   );
 
-  const svg =
-    variant === "bar" ? (
-      <svg
-        viewBox="0 0 100 14"
-        preserveAspectRatio="none"
-        aria-hidden
-        focusable="false"
-      >
-        {indexes.map((index) => {
-          const cell = barCell(index, segments, segments > 8 ? 2 : 3);
-          return (
-            <rect
-              key={index}
-              {...segmentProps(index)}
-              x={cell.x}
-              y={0}
-              width={cell.width}
-              height={14}
-              rx={2}
-            />
-          );
-        })}
-        {indexes.map((index) => {
-          const cell = barCell(index, segments, 0);
-          return (
-            <rect
-              key={index}
-              {...hitProps(index)}
-              x={cell.x}
-              y={0}
-              width={cell.width}
-              height={14}
-            />
-          );
-        })}
-      </svg>
-    ) : (
-      <svg viewBox="-2 -2 104 104" aria-hidden focusable="false">
-        {variant === "wedges" &&
-          indexes.map((index) => (
-            <path
-              key={index}
-              {...segmentProps(index)}
-              d={gappedWedgePath(index, segments, 6)}
-            />
-          ))}
-        {variant === "ring" &&
-          indexes.map((index) => (
-            <path
-              key={index}
-              {...segmentProps(index)}
-              d={ringSegmentPath(index, segments, 49, 34, 5)}
-            />
-          ))}
-        {variant === "pips" && (
-          <>
-            <circle data-track="" cx="50" cy="50" r="41" />
-            {indexes.map((index) => {
-              const centre = pipCentre(index, segments, 41);
-              return (
-                <circle
-                  key={index}
-                  {...segmentProps(index)}
-                  cx={centre.x}
-                  cy={centre.y}
-                  r={pipRadius(segments, 41, 8)}
-                />
-              );
-            })}
-          </>
-        )}
-        {variant === "sweep" && (
-          <>
-            {indexes.map((index) => (
-              <path
-                key={index}
-                {...segmentProps(index)}
-                d={wedgePath(index, segments, 41)}
-              />
-            ))}
-            {indexes.map((boundary) => (
-              <line
-                key={boundary}
-                data-tick=""
-                data-filled={(value > 0 && boundary <= value) || undefined}
-                {...rimTick(boundary, segments, 45.5, 50.5)}
-              />
-            ))}
-          </>
-        )}
-        {variant === "classic" &&
-          indexes.map((index) => (
-            <path
-              key={index}
-              {...segmentProps(index)}
-              d={wedgePath(index, segments, 49)}
-            />
-          ))}
-        {countInside[variant] && count}
-        {indexes.map((index) => (
-          <path
-            key={index}
-            {...hitProps(index)}
-            d={wedgePath(index, segments)}
-          />
-        ))}
-      </svg>
-    );
+  const svg = (
+    <svg viewBox="-2 -2 104 104" aria-hidden focusable="false">
+      {indexes.map((index) => (
+        <path
+          key={index}
+          {...segmentProps(index)}
+          d={ringSegmentPath(index, segments, 49, 34, 5)}
+        />
+      ))}
+      {count}
+      {indexes.map((index) => (
+        <path key={index} {...hitProps(index)} d={wedgePath(index, segments)} />
+      ))}
+    </svg>
+  );
 
   const named = card || !hideLabel;
   // The card's minus and plus, like the track's, so the hub is only a
@@ -593,7 +371,6 @@ export function Clock(props: ClockProps) {
   const dialProps = {
     className: dialStyles,
     "data-size": size,
-    "data-variant": variant,
     "data-complete": complete || undefined,
   };
 
@@ -627,12 +404,11 @@ export function Clock(props: ClockProps) {
   // The centre sits beside the slider, not inside it (a slider's content
   // is presentational). It is out of the tab order: on the keyboard, Enter
   // on the slider does the same.
-  const hub = interactive && variant !== "bar" && (
+  const hub = interactive && (
     <Tooltip title={complete ? strings.fullHint : strings.advanceLabel(label)}>
       <button
         type="button"
         className={hubStyles}
-        data-variant={variant}
         tabIndex={-1}
         aria-label={strings.advanceLabel(label)}
         aria-disabled={complete || undefined}
@@ -643,23 +419,15 @@ export function Clock(props: ClockProps) {
           if (event.pointerType === "mouse" && !complete) setHovered(value);
         }}
         onPointerLeave={() => setHovered(null)}
-      >
-        <Plus weight="bold" aria-hidden />
-      </button>
+      />
     </Tooltip>
   );
 
   const dialWithHub = (
-    <div className={dialWrapStyles} data-variant={variant}>
+    <div className={dialWrapStyles}>
       {dial}
       {hub}
     </div>
-  );
-
-  const countText = !countInside[variant] && (
-    <span className={valueStyles} aria-hidden>
-      {value}/{segments}
-    </span>
   );
 
   if (card) {
@@ -721,10 +489,7 @@ export function Clock(props: ClockProps) {
           )}
         </div>
         <div className={cardBodyStyles}>
-          <div className={cardDialStyles}>
-            {dialWithHub}
-            {countText}
-          </div>
+          {dialWithHub}
           {actions && <div className={cardActionsStyles}>{actions}</div>}
         </div>
       </div>
@@ -742,7 +507,6 @@ export function Clock(props: ClockProps) {
           <span id={labelId} className={labelStyles}>
             {label}
           </span>
-          {countText}
         </span>
       )}
     </div>

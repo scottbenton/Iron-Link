@@ -3,8 +3,8 @@ import { ElementType, ReactNode } from "react";
 import { css } from "styled-system/css";
 
 import { Select } from "../../components/Select";
-import { Clock, ClockVariant } from "../Clock";
-import { ProgressRank, ProgressTrack, TickAnimation } from "../ProgressTrack";
+import { Clock } from "../Clock";
+import { ProgressRank, ProgressTrack } from "../ProgressTrack";
 import { RollButton } from "../RollButton";
 import type { TracksPanelStrings } from "./tracksPanelStrings";
 import {
@@ -44,7 +44,6 @@ export interface ProgressTrackEntryProps {
   onTensionChange?: (value: number) => void;
   onRollMove?: (moveId: string) => void;
   titleAs?: ElementType;
-  tickAnimation?: TickAnimation;
   rankLabels?: Partial<Record<ProgressRank, string>>;
   strings: TracksPanelStrings;
 }
@@ -64,7 +63,6 @@ export function ProgressTrackEntry(props: ProgressTrackEntryProps) {
     onTensionChange,
     onRollMove,
     titleAs,
-    tickAnimation,
     rankLabels,
     strings,
   } = props;
@@ -95,7 +93,6 @@ export function ProgressTrackEntry(props: ProgressTrackEntryProps) {
       onChange={editable ? onTicksChange : undefined}
       headerAction={menu}
       titleAs={titleAs}
-      tickAnimation={tickAnimation}
       rankLabels={rankLabels}
       actions={
         (tension || rolls.length > 0) && (
@@ -125,7 +122,6 @@ export interface ClockEntryProps {
   onValueChange?: (value: number) => void;
   onRoll?: () => void;
   onOddsChange?: (odds: OracleOdds) => void;
-  variant?: ClockVariant;
   titleAs?: ElementType;
   strings: TracksPanelStrings;
 }
@@ -142,7 +138,6 @@ export function ClockEntry(props: ClockEntryProps) {
     onValueChange,
     onRoll,
     onOddsChange,
-    variant,
     titleAs,
     strings,
   } = props;
@@ -161,7 +156,6 @@ export function ClockEntry(props: ClockEntryProps) {
       completed={clock.completed}
       onChange={editable ? onValueChange : undefined}
       headerAction={menu}
-      variant={variant}
       titleAs={titleAs}
       actions={
         active &&

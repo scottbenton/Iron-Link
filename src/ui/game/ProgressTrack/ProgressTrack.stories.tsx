@@ -5,14 +5,10 @@ import { fn } from "storybook/test";
 
 import { Box, HStack, Stack } from "ui/primitives";
 
-import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { sampleMoves } from "../../stories/fixtures/datasworn";
 import { RollButton } from "../RollButton";
-import { ProgressBoxes } from "./ProgressBoxes";
 import { ProgressTrack } from "./ProgressTrack";
-import { MAX_TICKS } from "./progress";
-import { TickAnimation } from "./tickAnimation";
 
 const meta = {
   title: "Game/ProgressTrack",
@@ -29,10 +25,6 @@ const meta = {
       options: ["troublesome", "dangerous", "formidable", "extreme", "epic"],
     },
     ticks: { control: { type: "range", min: 0, max: 40 } },
-    tickAnimation: {
-      control: "inline-radio",
-      options: ["sequence", "box", "together", "fade", "none"],
-    },
   },
   // The game sidebar's default width (Sidebar: 280 to 560, 360 by default),
   // less its panel padding.
@@ -248,86 +240,12 @@ export const InSidebar: Story = {
   },
 };
 
-const tickAnimations: { animation: TickAnimation; note: string }[] = [
-  {
-    animation: "sequence",
-    note: "The default. Each line draws in tick order, like a pen: one tick takes 160ms; more ticks shorten each line and the gap between them to fit 240ms.",
-  },
-  {
-    animation: "box",
-    note: "A box's new lines draw together, then the next box. Reads as whole boxes filling; a single tick looks the same as sequence.",
-  },
-  {
-    animation: "together",
-    note: "Every new line draws at once in 180ms. The old animation, shortened; 12 ticks land as one sweep.",
-  },
-  {
-    animation: "fade",
-    note: "Each line starts half drawn and fades in as it finishes, in tick order. The softest; less of a pen stroke.",
-  },
-  {
-    animation: "none",
-    note: "No animation, for comparison. Reduced motion looks like this in every variant.",
-  },
-];
-
 /**
- * The tick animations side by side, all on one count so each button plays
- * them together. Add 1 is an Epic mark, 4 Formidable, 12 Troublesome. Every
- * change finishes within 240ms however many ticks it adds; only CSS
- * transitions run (stroke-dashoffset, plus opacity for fade), with a delay
- * per line, so 40 lines cost no more than one. Erasing draws lines back out
- * together in 140ms.
+ * Tracks marking progress at each rank. New ticks draw in tick order, like
+ * a pen; however many a mark adds (1 at Epic, 4 at Formidable, 12 at
+ * Troublesome), the change finishes within 240ms. Erasing draws lines back
+ * out together.
  */
-export const TickAnimations: Story = {
-  decorators: [(Story) => <Story />],
-  render: function Render() {
-    const [ticks, setTicks] = useState(0);
-    const add = (amount: number) =>
-      setTicks((current) => Math.min(current + amount, MAX_TICKS));
-    return (
-      <Stack gap="5" maxWidth="720px">
-        <HStack gap="2" flexWrap="wrap">
-          <Button size="sm" onClick={() => add(1)}>
-            Add 1 Tick
-          </Button>
-          <Button size="sm" onClick={() => add(4)}>
-            Add 4 Ticks
-          </Button>
-          <Button size="sm" onClick={() => add(12)}>
-            Add 12 Ticks
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setTicks((current) => Math.max(current - 4, 0))}
-          >
-            Erase 4 Ticks
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => setTicks(0)}>
-            Clear
-          </Button>
-          <Box fontSize="sm" color="fg.muted" alignSelf="center">
-            {ticks} of 40 ticks
-          </Box>
-        </HStack>
-        {tickAnimations.map(({ animation, note }) => (
-          <Stack key={animation} gap="1.5">
-            <Box fontFamily="heading" fontWeight="bold">
-              {animation}
-            </Box>
-            <ProgressBoxes ticks={ticks} animation={animation} />
-            <Box fontSize="sm" color="fg.muted" maxWidth="60ch">
-              {note}
-            </Box>
-          </Stack>
-        ))}
-      </Stack>
-    );
-  },
-};
-
-/** A track marking progress at each rank, with the default animation. */
 export const TickAnimationOnTracks: Story = {
   render: function Render() {
     const [epic, setEpic] = useState(5);

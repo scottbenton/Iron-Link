@@ -19,7 +19,6 @@ import {
   ProgressTrackStrings,
   defaultProgressTrackStrings,
 } from "./progressTrackStrings";
-import { TickAnimation } from "./tickAnimation";
 import {
   trackCardActionsStyles as actionsStyles,
   trackCardBadgeStyles as badgeStyles,
@@ -71,8 +70,6 @@ export interface ProgressTrackProps {
   titleAs?: ElementType;
   /** No card around it, for use inside another card. */
   plain?: boolean;
-  /** How new ticks draw in. See ProgressBoxes. */
-  tickAnimation?: TickAnimation;
   strings?: Partial<ProgressTrackStrings>;
   rankLabels?: Partial<Record<ProgressRank, string>>;
   className?: string;
@@ -100,7 +97,6 @@ export function ProgressTrack(props: ProgressTrackProps) {
     titleLinkRender,
     titleAs: Title = "span",
     plain,
-    tickAnimation,
     strings: stringsProp,
     rankLabels: rankLabelsProp,
     className,
@@ -211,11 +207,7 @@ export function ProgressTrack(props: ProgressTrackProps) {
         aria-valuenow={ticks}
         aria-valuetext={valueText}
       >
-        <ProgressBoxes
-          ticks={ticks}
-          complete={completed}
-          animation={tickAnimation}
-        />
+        <ProgressBoxes ticks={ticks} complete={completed} />
       </div>
 
       {actions && <div className={actionsStyles}>{actions}</div>}

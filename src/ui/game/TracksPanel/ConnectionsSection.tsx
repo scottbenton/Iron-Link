@@ -19,7 +19,6 @@ import { EmptyState } from "../../layout/EmptyState";
 import {
   ProgressRank,
   ProgressTrack,
-  TickAnimation,
   defaultRankLabels,
 } from "../ProgressTrack";
 import { RollButton } from "../RollButton";
@@ -56,7 +55,6 @@ export interface ConnectionsSectionProps {
   onAction?: (id: string, key: string) => void;
   onRoll?: (id: string, moveId: string) => void;
   headingAs: "h2" | "h3" | "h4";
-  tickAnimation?: TickAnimation;
   rankLabels?: Partial<Record<ProgressRank, string>>;
   strings: TracksPanelStrings;
 }
@@ -151,7 +149,6 @@ function ConnectionEntry(
     onRankChange,
     onAction,
     onRoll,
-    tickAnimation,
     rankLabels: rankLabelsProp,
     strings,
   } = props;
@@ -266,7 +263,6 @@ function ConnectionEntry(
           : undefined
       }
       headerAction={menu || undefined}
-      tickAnimation={tickAnimation}
       rankLabels={rankLabelsProp}
       actions={
         (roll || bonded) && (

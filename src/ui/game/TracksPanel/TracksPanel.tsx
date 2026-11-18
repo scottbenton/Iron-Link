@@ -23,8 +23,7 @@ import {
   MenuTrigger,
 } from "../../components/Menu";
 import { EmptyState } from "../../layout/EmptyState";
-import type { ClockVariant } from "../Clock";
-import type { ProgressRank, TickAnimation } from "../ProgressTrack";
+import type { ProgressRank } from "../ProgressTrack";
 import { BondsSection } from "./BondsSection";
 import { ConnectionsSection } from "./ConnectionsSection";
 import { ClockEntry, ProgressTrackEntry } from "./TrackEntries";
@@ -137,8 +136,6 @@ export interface TracksPanelProps {
 
   /** The Connections and Bonds headings; h3 under a column's h2. */
   headingAs?: "h2" | "h3" | "h4";
-  clockVariant?: ClockVariant;
-  tickAnimation?: TickAnimation;
   rankLabels?: Partial<Record<ProgressRank, string>>;
   strings?: Partial<TracksPanelStrings>;
   className?: string;
@@ -185,8 +182,6 @@ export function TracksPanel(props: TracksPanelProps) {
     bonds,
     onClearBond,
     headingAs = "h3",
-    clockVariant,
-    tickAnimation,
     rankLabels,
     strings: stringsProp,
     className,
@@ -331,7 +326,6 @@ export function TracksPanel(props: TracksPanelProps) {
                     ? (odds) => onOddsChange(track.id, odds)
                     : undefined
                 }
-                variant={clockVariant}
                 strings={strings}
               />
             ) : (
@@ -356,7 +350,6 @@ export function TracksPanel(props: TracksPanelProps) {
                     ? (moveId) => onRollMove(track.id, moveId)
                     : undefined
                 }
-                tickAnimation={tickAnimation}
                 rankLabels={rankLabels}
                 strings={strings}
               />
@@ -391,7 +384,6 @@ export function TracksPanel(props: TracksPanelProps) {
               onAction={onConnectionAction}
               onRoll={onRollConnection}
               headingAs={headingAs}
-              tickAnimation={tickAnimation}
               rankLabels={rankLabels}
               strings={strings}
             />

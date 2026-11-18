@@ -1,14 +1,4 @@
-import { MAX_TICKS, TICKS_PER_BOX, clampTicks } from "./progress";
-
-/**
- * How new ticks draw in on a progress track:
- * - `sequence` (default): each line draws in tick order, like a pen.
- * - `box`: a box's new lines draw together, box after box.
- * - `together`: every new line draws at once (the old animation, shorter).
- * - `fade`: each line fades in while finishing a short draw, in tick order.
- * - `none`: the marks just appear.
- */
-export type TickAnimation = "sequence" | "box" | "together" | "fade" | "none";
+import { MAX_TICKS, clampTicks } from "./progress";
 
 /**
  * The whole change finishes within this, however many ticks are added: the
@@ -49,9 +39,11 @@ function fit(count: number, min: number, max: number, maxStagger: number) {
   };
 }
 
-/** Plans the draw-in for a change from `from` ticks to `to` ticks. */
+/**
+ * Plans the draw-in for a change from `from` ticks to `to` ticks: each new
+ * line draws in tick order, like a pen.
+ */
 export function getTickAnimationPlan(
-  animation: TickAnimation,
   from: number,
   to: number,
 ): TickAnimationPlan {
@@ -59,28 +51,10 @@ export function getTickAnimationPlan(
   const end = clampTicks(to);
   const steps: (number | undefined)[] = Array(MAX_TICKS).fill(undefined);
   const added = end - start;
-  if (animation === "none" || added <= 0) {
-    return { duration: 0, stagger: 0, steps };
-  }
+  if (added <= 0) return { duration: 0, stagger: 0, steps };
 
-  const firstBox = Math.floor(start / TICKS_PER_BOX);
-  const boxes = Math.floor((end - 1) / TICKS_PER_BOX) - firstBox + 1;
-  const timing = {
-    sequence: () => fit(added, 90, 160, 40),
-    box: () => fit(boxes, 110, 180, 60),
-    together: () => ({ duration: 180, stagger: 0 }),
-    fade: () => fit(added, 100, 140, 30),
-  }[animation]();
-
-  for (let tick = start; tick < end; tick += 1) {
-    steps[tick] =
-      animation === "box"
-        ? Math.floor(tick / TICKS_PER_BOX) - firstBox
-        : animation === "together"
-          ? 0
-          : tick - start;
-  }
-  return { ...timing, steps };
+  for (let tick = start; tick < end; tick += 1) steps[tick] = tick - start;
+  return { ...fit(added, 90, 160, 40), steps };
 }
 
 /** When the last step finishes, in ms. */
