@@ -21,15 +21,17 @@
  *   Overview / Assets / Tracks → `SectionTabList`.
  *   - `CharacterDetails` (`PortraitAvatar`, name, `InitiativeStatusChip`)
  *     → `CharacterPortrait`, `Text`, `InitiativeChip`.
- *   - `Stats` → `StatGrid` (its Adds meter → `AddsMeter` under the
- *     meters); `ConditionMeters` → `ConditionMeter` and
+ *   - `Stats` → `StatGrid` (its Adds meter → `AddsControl`, above the
+ *     stats); `ConditionMeters` → `ConditionMeter` and
  *     `MomentumMeter`; `ImpactsSection` → `ImpactsChecklist`;
  *     `LegacyTracks` → `ProgressTrack legacy`; `ExperienceSection` →
  *     `XPMeter`; their h3s → `SectionHeading`.
  *   - `AssetsSection` → `AssetCard`s under "Show all abilities" (`Checkbox`)
  *     and Add Assets (`Button`).
- *   - `TracksSection` → `ProgressTrack`s and a `Clock` under Show Completed
- *     and Add Track; `CharacterConnections` → a Connections `ProgressTrack`.
+ *   - `TracksSection`, `CharacterConnections` and `CharacterWorldBonds` →
+ *     `TracksPanel` (its own story: Game/TracksPanel, "Tracks tab,
+ *     everything"); `EditOrCreateTrackDialog` and `EditOrCreateClockDialog`
+ *     → `TrackDialog`.
  * - `NotesSection` (h2 for screen readers, `NoteTabs`, note toolbar) → the
  *   main column with `hideTitle`, `NoteTabs` / `NoteTabPanel`,
  *   `ActionToolbar` with `Breadcrumbs`.
@@ -143,6 +145,8 @@ function WideGamePage(props: {
   // The app keeps these and remembers them per device.
   const [sheetWidth, setSheetWidth] = useState(350);
   const [referenceWidth, setReferenceWidth] = useState(350);
+  // Medium's one column collapses on its own, apart from the wide columns.
+  const [stackedCollapsed, setStackedCollapsed] = useState(false);
   return (
     <AppShell
       fill
@@ -151,8 +155,10 @@ function WideGamePage(props: {
           items={getNavItems("games")}
           homeHref="#games"
           actions={
-            // One menu for Kira, the game and the app (Scott is its Guide).
+            // The mode toggle, then one menu for Kira, the game and the app
+            // (Scott is its Guide).
             <DemoSettingsMenu
+              rail
               scenario={guideScenario}
               side="inline-end"
               align="end"
@@ -168,6 +174,8 @@ function WideGamePage(props: {
         tabs={<GamePageTabs current="kira" />}
         main={notes}
         stackSidebars={props.stacked}
+        stackedCollapsed={stackedCollapsed}
+        onStackedCollapsedChange={setStackedCollapsed}
         startSidebar={{
           panels: [character],
           width: sheetWidth,
@@ -221,6 +229,8 @@ const mediumFrame = css({
 /**
  * 900 to 1200px (shown at 1100px): the sheet over the reference in one
  * column, the notes beside them, as the live app does at this width.
+ * Collapse Sidebar, in the Character header, folds the column to a rail of
+ * both columns' tabs (see "Game page, collapsed sidebars" for it collapsed).
  */
 export const Medium: Story = {
   name: "Medium (1100px)",

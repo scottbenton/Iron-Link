@@ -1,3 +1,3 @@
 export * from "./ConditionMeter";
 export * from "./MomentumMeter";
-export * from "./AddsMeter";
+export * from "./AddsControl";

@@ -1,5 +1,4 @@
 import {
-  BellIcon,
   BookOpenIcon,
   ChartBarIcon,
   GearSixIcon,
@@ -12,6 +11,7 @@ import {
   ProjectorScreenIcon,
   ShieldCheckIcon,
   SignOutIcon,
+  SpeakerHighIcon,
   TrashIcon,
   UserGearIcon,
 } from "@phosphor-icons/react";
@@ -40,11 +40,11 @@ import {
   getSettingsMenuSections,
 } from "./settingsMenuSections";
 import {
+  SettingsMenuColorMode,
   SettingsMenuStrings,
+  SettingsMenuThemeScope,
   defaultSettingsMenuStrings,
 } from "./settingsMenuStrings";
-
-export type SettingsMenuColorMode = "light" | "dark";
 
 type PendingDelete = "character" | "game" | null;
 
@@ -74,9 +74,15 @@ interface SharedMenuProps extends MenuOpenProps {
 export interface SettingsMenuProps
   extends SettingsMenuContext,
     SharedMenuProps {
-  /** The colour mode now; the Dark Mode item shows it checked. */
-  colorMode: SettingsMenuColorMode;
-  onColorModeChange: (mode: SettingsMenuColorMode) => void;
+  /**
+   * The colour mode now; the Dark Mode item shows it checked. Unused with
+   * `hideColorMode`, where `ColorModeToggle` takes these instead.
+   */
+  colorMode?: SettingsMenuColorMode;
+  onColorModeChange?: (mode: SettingsMenuColorMode) => void;
+  /** The device's log sound setting, checked when on (shared games only). */
+  logSound?: boolean;
+  onLogSoundChange?: (on: boolean) => void;
   /** Called after the person confirms Delete Game. */
   onDeleteGame?: () => void;
 }
@@ -94,7 +100,7 @@ const itemIcons: Record<SettingsMenuItemId, ReactNode> = {
   deleteCharacter: <TrashIcon />,
   gameName: <PencilSimpleIcon />,
   gameRulesets: <BookOpenIcon />,
-  gameNotifications: <BellIcon />,
+  logSound: <SpeakerHighIcon />,
   secondScreen: <ProjectorScreenIcon />,
   deleteGame: <TrashIcon />,
   theme: <PaletteIcon />,
@@ -106,7 +112,7 @@ const itemIcons: Record<SettingsMenuItemId, ReactNode> = {
 };
 
 const itemLabels: Record<
-  Exclude<SettingsMenuItemId, "colorMode">,
+  Exclude<SettingsMenuItemId, "colorMode" | "logSound">,
   keyof SettingsMenuStrings
 > = {
   characterDetails: "characterDetails",
@@ -115,7 +121,6 @@ const itemLabels: Record<
   deleteCharacter: "deleteCharacter",
   gameName: "gameName",
   gameRulesets: "gameRulesets",
-  gameNotifications: "gameNotifications",
   secondScreen: "secondScreen",
   deleteGame: "deleteGame",
   theme: "theme",
@@ -133,6 +138,8 @@ interface ItemsProps {
   themeDescription?: string;
   colorMode?: SettingsMenuColorMode;
   onColorModeChange?: (mode: SettingsMenuColorMode) => void;
+  logSound?: boolean;
+  onLogSoundChange?: (on: boolean) => void;
 }
 
 function SettingsItems(props: ItemsProps) {
@@ -144,8 +151,23 @@ function SettingsItems(props: ItemsProps) {
     themeDescription,
     colorMode,
     onColorModeChange,
+    logSound,
+    onLogSoundChange,
   } = props;
   return items.map((id) => {
+    if (id === "logSound") {
+      return (
+        <MenuCheckboxItem
+          key={id}
+          icon={itemIcons[id]}
+          description={strings.logSoundDescription}
+          checked={logSound ?? false}
+          onCheckedChange={(checked) => onLogSoundChange?.(checked)}
+        >
+          {strings.logSound}
+        </MenuCheckboxItem>
+      );
+    }
     if (id === "colorMode") {
       return (
         <MenuCheckboxItem
@@ -241,9 +263,10 @@ function DeleteConfirm(props: DeleteConfirmProps) {
   );
 }
 
-function themeScope(game?: SettingsMenuGame) {
+function themeScope(game?: SettingsMenuGame): SettingsMenuThemeScope {
   if (!game) return "app";
-  return game.solo ? "solo" : "game";
+  // A solo game with one character keeps its theme on the game.
+  return game.solo && (game.characterCount ?? 1) < 2 ? "solo" : "game";
 }
 
 function headingFor(
@@ -268,9 +291,11 @@ function headingFor(
  * The one settings menu, from the gear on the nav rail or on a phone's top
  * bar. Its sections appear only where they apply, each under a small label:
  * the open character's settings (when the person can edit it), the game's
- * (inside a game; changes only for its Guides), Change Theme (one item for
- * every level, opening the Theme dialog), then the app's. Each Delete is the
- * last item of its section and asks first.
+ * (inside a game; changes only for its Guides, plus the device's log sound
+ * for everyone in a shared game), Change Theme (one item for every level,
+ * opening the Theme dialog), then the app's. Each Delete is the last item of
+ * its section and asks first. On the rail, pass `hideColorMode` and put a
+ * `ColorModeToggle` above the gear; phones keep Dark Mode in the menu.
  */
 export function SettingsMenu(props: SettingsMenuProps) {
   const {
@@ -278,8 +303,11 @@ export function SettingsMenu(props: SettingsMenuProps) {
     game,
     isAdmin,
     signedIn,
+    hideColorMode,
     colorMode,
     onColorModeChange,
+    logSound,
+    onLogSoundChange,
     onSelect,
     onDeleteCharacter,
     onDeleteGame,
@@ -299,6 +327,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
     game,
     isAdmin,
     signedIn,
+    hideColorMode,
   });
 
   return (
@@ -329,6 +358,8 @@ export function SettingsMenu(props: SettingsMenuProps) {
                   themeDescription={strings.themeDescription(themeScope(game))}
                   colorMode={colorMode}
                   onColorModeChange={onColorModeChange}
+                  logSound={logSound}
+                  onLogSoundChange={onLogSoundChange}
                 />
               </MenuGroup>
             </Fragment>

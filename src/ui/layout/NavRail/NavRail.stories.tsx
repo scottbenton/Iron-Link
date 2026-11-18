@@ -28,9 +28,10 @@ export const Playground: Story = {
 };
 
 /**
- * The settings gear pinned to the foot of the rail. It opens the combined
- * SettingsMenu, which opens beside the rail; on Reference it has only the
- * app's settings and Change Theme.
+ * The light and dark mode toggle and the settings gear pinned to the foot of
+ * the rail. The gear opens the combined SettingsMenu beside the rail; on
+ * Reference it has only the app's settings and Change Theme, without Dark
+ * Mode, which is the toggle here.
  */
 export const WithActions: Story = {
   ...Playground,
@@ -38,6 +39,7 @@ export const WithActions: Story = {
     items: getNavItems("reference"),
     actions: (
       <DemoSettingsMenu
+        rail
         scenario={gamesListScenario}
         side="inline-end"
         align="end"

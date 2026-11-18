@@ -135,11 +135,11 @@ const sunderedIsles: ThemeDialogGame = {
 };
 
 /**
- * Scott as the Guide of his Sundered Isles game, opened from Kira's
- * character menu: his two characters first (Kira open now, so her choices
- * start open), then Senna, whom Morgan shared with him, then the game
- * (Myriad, blue) and his app theme. Kira and Senna use the game's theme;
- * Ashkar has Cinder of his own.
+ * Scott as the Guide of a Sundered Isles game, opened from Kira's character
+ * menu: Scott's two characters first (Kira open now, so that row starts
+ * open), then Senna, whom Morgan shared with Scott, then the game (Myriad,
+ * blue) and Scott's app theme. Kira and Senna use the game's theme; Ashkar
+ * has Cinder set.
  */
 export const GuidedGameAsGuide: Story = {
   args: {
@@ -204,15 +204,41 @@ export const GuidedGameAsPlayer: Story = {
   },
 };
 
+const ashesOfTheIronlands: ThemeDialogGame = {
+  name: "Ashes of the Ironlands",
+  theme: "hinterlands",
+  canEdit: true,
+  solo: true,
+};
+
 /**
- * A solo game has no game row: the character's "Use my app theme" falls
- * straight to Scott's app theme (Hinterlands).
+ * A solo game with one character keeps its theme on the game: no character
+ * row, just This game (Hinterlands, with Use my app theme) and Everywhere.
+ * Opened from Kira's menu, so the game's row starts open instead.
  */
 export const SoloGame: Story = {
+  name: "Solo game, one character",
   args: {
     characters: [{ ...kira, theme: null }],
     currentCharacterId: kira.id,
-    appTheme: "hinterlands",
+    game: ashesOfTheIronlands,
+    appTheme: "myriad",
+    initialOpen: { kind: "character", id: kira.id },
+    date: new Date(2026, 10, 18),
+  },
+};
+
+/**
+ * Once a solo game has a second character, character rows return as in
+ * shared games: each can use the game's theme or set its own.
+ */
+export const SoloGameTwoCharacters: Story = {
+  name: "Solo game, two characters",
+  args: {
+    characters: [{ ...kira, theme: null }, ashkar],
+    currentCharacterId: kira.id,
+    game: ashesOfTheIronlands,
+    appTheme: "myriad",
     initialOpen: { kind: "character", id: kira.id },
     date: new Date(2026, 10, 18),
   },

@@ -72,9 +72,8 @@ import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { characterAuthor, gameLogEntries } from "../../examples/sampleLog";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
-import { Clock } from "../../game/Clock";
 import {
-  AddsMeter,
+  AddsControl,
   ConditionMeter,
   MomentumMeter,
 } from "../../game/ConditionMeter";
@@ -89,6 +88,12 @@ import { OracleListItem } from "../../game/OracleListItem";
 import { ProgressTrack } from "../../game/ProgressTrack";
 import type { RollData } from "../../game/RollCard";
 import { StatGrid } from "../../game/StatCard";
+import { TracksPanelDemo } from "../../game/TracksPanel/TracksPanelDemo";
+import {
+  classicCompletionMoves,
+  classicTracks,
+  sampleBonds,
+} from "../../game/TracksPanel/tracksPanelSamples";
 import { XPMeter } from "../../game/XPTrack";
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import {
@@ -283,8 +288,6 @@ function SheetScreen(props: {
     wounded: true,
   });
   const [xp, setXp] = useState(4);
-  const [vowTicks, setVowTicks] = useState(12);
-  const [clock, setClock] = useState(2);
   const impactGroups = getImpactGroups(ruleset);
 
   const roll = (statName: string, statValue: number) => {
@@ -332,17 +335,22 @@ function SheetScreen(props: {
             onValueChange={setInitiative}
           />
 
-          <Stack gap="2" as="section">
-            <SectionHeading title="Stats" as="h3" variant="band" />
-            <StatGrid
-              stats={statKeys.map((key) => ({
-                key,
-                name: capitalize(key),
-                value: character.stats[key],
-              }))}
-              adds={adds}
-              onRoll={(stat) => roll(stat.name, stat.value)}
-            />
+          {/* Adds sit above the stats: they change whichever stat or meter
+              the next roll uses. */}
+          <Stack gap="3">
+            <AddsControl value={adds} onChange={setAdds} stepperSize="touch" />
+            <Stack gap="2" as="section">
+              <SectionHeading title="Stats" as="h3" variant="band" />
+              <StatGrid
+                stats={statKeys.map((key) => ({
+                  key,
+                  name: capitalize(key),
+                  value: character.stats[key],
+                }))}
+                adds={adds}
+                onRoll={(stat) => roll(stat.name, stat.value)}
+              />
+            </Stack>
           </Stack>
 
           <Stack gap="2" as="section">
@@ -374,7 +382,6 @@ function SheetScreen(props: {
                 }
               />
             </div>
-            <AddsMeter value={adds} onChange={setAdds} stepperSize="touch" />
           </Stack>
 
           <Stack gap="2" as="section">
@@ -427,35 +434,17 @@ function SheetScreen(props: {
       </TabPanel>
 
       <TabPanel value="tracks" className={screenPanelStyles}>
-        <Stack gap="3">
-          <Flex justifyContent="space-between" alignItems="center" gap="2">
-            <Checkbox label="Show Completed" size="sm" />
-            <Button size="sm" startIcon={<PlusIcon />}>
-              Add Track
-            </Button>
-          </Flex>
-          <ProgressTrack
-            label="Recover the Hollow Crown"
-            typeLabel="Vow"
-            rank="formidable"
-            ticks={vowTicks}
-            onChange={setVowTicks}
+        {ruleset === "ironsworn" ? (
+          <TracksPanelDemo
+            initialTracks={classicTracks}
+            initialConnections={null}
+            initialBonds={sampleBonds}
+            completionMoves={classicCompletionMoves}
+            addKinds={["vow", "journey", "combat", "clock"]}
           />
-          <ProgressTrack
-            label="Cross the Shattered Reach to Bleakhold"
-            typeLabel="Journey"
-            rank="dangerous"
-            ticks={16}
-          />
-          <Clock
-            presentation="card"
-            label="The archive floods"
-            typeLabel="Tension Clock"
-            segments={6}
-            value={clock}
-            onChange={setClock}
-          />
-        </Stack>
+        ) : (
+          <TracksPanelDemo />
+        )}
       </TabPanel>
     </Tabs>
   );

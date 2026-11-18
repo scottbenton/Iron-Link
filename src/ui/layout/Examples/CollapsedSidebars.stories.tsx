@@ -6,11 +6,18 @@
  * page or moving focus out closes it, and focus goes back to the button.
  * Expand, at the top of the rail, or Keep Sidebar Open in the column's
  * header puts the sidebar back in place.
+ *
+ * At medium widths (900 to 1200px), where the sheet sits over the reference
+ * in one column, that column collapses the same way: one rail with the
+ * character's tabs, a divider, then the reference's, and a rail button shows
+ * just that column over the notes.
  */
 import { GearSixIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { userEvent, within } from "storybook/test";
+
+import { css } from "styled-system/css";
 
 import { IconButton } from "../../components/IconButton";
 import { AppShell } from "../AppShell";
@@ -36,7 +43,8 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
-function CollapsedGamePage() {
+function CollapsedGamePage(props: { stacked?: boolean }) {
+  const { stacked = false } = props;
   // The app keeps these, so a column opens on the tab the reader last used.
   const [sheetSection, setSheetSection] = useState("overview");
   const [referenceSection, setReferenceSection] = useState("moves");
@@ -44,6 +52,7 @@ function CollapsedGamePage() {
   const [referenceCollapsed, setReferenceCollapsed] = useState(true);
   const [sheetWidth, setSheetWidth] = useState(350);
   const [referenceWidth, setReferenceWidth] = useState(350);
+  const [stackedCollapsed, setStackedCollapsed] = useState(true);
 
   const character: LayoutPanel = {
     id: "character",
@@ -91,6 +100,9 @@ function CollapsedGamePage() {
     >
       <GameLayout
         tabs={<GamePageTabs current="kira" />}
+        stackSidebars={stacked}
+        stackedCollapsed={stackedCollapsed}
+        onStackedCollapsedChange={setStackedCollapsed}
         main={{
           id: "notes",
           title: "Notes",
@@ -153,6 +165,51 @@ export const OverlayOpen: Story = {
 export const ReferenceOverlayOpen: Story = {
   name: "Overlay open (Oracles)",
   render: () => <CollapsedGamePage />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Oracles" }));
+  },
+};
+
+const mediumFrame = css({
+  width: "1100px",
+  maxWidth: "100%",
+  height: "760px",
+  marginInline: "auto",
+  border: "1px solid token(colors.border.default)",
+  overflow: "hidden",
+  "--app-shell-height": "100%",
+});
+
+/**
+ * Medium (1100px): the stacked column collapsed to one rail, the
+ * character's tabs, then the reference's. Expand puts the sheet over the
+ * reference again.
+ */
+export const MediumCollapsed: Story = {
+  name: "Medium, collapsed",
+  parameters: { layout: "padded" },
+  render: () => (
+    <div className={mediumFrame}>
+      <CollapsedGamePage stacked />
+    </div>
+  ),
+};
+
+/**
+ * Medium, Oracles pressed in the rail: only the reference shows over the
+ * notes, at the column's width (never wider than the room beside the
+ * rail), with Keep Sidebar Open and Close in its header. Press Assets to
+ * switch to the sheet; Keep Sidebar Open docks the whole column.
+ */
+export const MediumOverlayOpen: Story = {
+  name: "Medium, overlay open (Oracles)",
+  parameters: { layout: "padded" },
+  render: () => (
+    <div className={mediumFrame}>
+      <CollapsedGamePage stacked />
+    </div>
+  ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole("button", { name: "Oracles" }));

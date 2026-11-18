@@ -116,10 +116,12 @@ const dayStyles = css({
   },
 });
 
-// Entries stack: who and when above, the roll or message below. Rolls fill
-// the column whoever made them, so every card lines up; messages sit on
-// their author's side, the viewer's on the right.
+// Entries stack: who and when above, the roll or message below. Like a
+// chat, each sits on its author's side, the viewer's on the right, and
+// rolls and messages alike are as wide as what they show, up to a cap that
+// leaves a gap on the far side so the side still reads in a narrow column.
 const entryStyles = css({
+  "--game-log-entry-max": "min(100% - 32px, 400px)",
   display: "flex",
   flexDirection: "column",
   alignItems: "flex-start",
@@ -140,6 +142,47 @@ const metaStyles = css({
   color: "fg.muted",
   "[data-you] > &": { justifyContent: "flex-end" },
 });
+
+// The stacked header: portrait beside two lines, the character's name over
+// the player's name and the time. The viewer's own mirrors it on the right.
+const stackedMetaStyles = css({
+  display: "flex",
+  alignItems: "center",
+  gap: "2",
+  maxWidth: "100%",
+  minWidth: 0,
+  "[data-you] > &": { flexDirection: "row-reverse", textAlign: "end" },
+});
+
+const stackedTextStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  minWidth: 0,
+  overflowWrap: "anywhere",
+  "[data-you] &": { alignItems: "flex-end" },
+});
+
+const stackedNameStyles = css({
+  fontFamily: "heading",
+  fontWeight: "bold",
+  fontSize: "sm",
+  lineHeight: "tight",
+  color: "fg.default",
+});
+
+const stackedSubStyles = css({
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  columnGap: "1.5",
+  rowGap: "0.5",
+  fontSize: "xs",
+  lineHeight: "snug",
+  color: "fg.muted",
+  "[data-you] &": { justifyContent: "flex-end" },
+});
+
+const separatorStyles = css({ color: "fg.subtle" });
 
 const nameStyles = css({
   fontFamily: "heading",
@@ -163,7 +206,7 @@ const guideStyles = css({
 // Messages are filled and borderless, so they read as talk beside the
 // bordered roll cards: grey for others, the accent tint for yours.
 const bubbleStyles = css({
-  maxWidth: "min(100%, 440px)",
+  maxWidth: "var(--game-log-entry-max)",
   paddingBlock: "2",
   paddingInline: "3",
   borderRadius: "lg",
@@ -185,19 +228,23 @@ const bubbleStyles = css({
 });
 
 const rollStyles = css({
-  alignSelf: "stretch",
+  "--roll-card-max-width": "var(--game-log-entry-max)",
   "[data-guide-only] &": {
     outline: "1px dashed token(colors.info.fg)",
     outlineOffset: "2px",
   },
 });
 
+// Portraits come in at 32px (`CharacterPortrait` size `sm`): the stacked
+// header shows them at that size, the inline one scales them to 20px.
 const portraitStyles = css({
+  "--log-portrait-size": "20px",
+  position: "relative",
   display: "grid",
   placeItems: "center",
   flex: "none",
-  width: "20px",
-  height: "20px",
+  width: "var(--log-portrait-size)",
+  height: "var(--log-portrait-size)",
   borderRadius: "full",
   overflow: "hidden",
   background: "bg.emphasized",
@@ -206,6 +253,18 @@ const portraitStyles = css({
   fontWeight: "bold",
   fontSize: "2xs",
   "& > img": { width: "100%", height: "100%", objectFit: "cover" },
+  "& > :not(img)": {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    translate: "-50% -50%",
+    scale: "0.625",
+  },
+  "&[data-size=stacked]": {
+    "--log-portrait-size": "32px",
+    fontSize: "xs",
+    "& > :not(img)": { position: "static", translate: "none", scale: "none" },
+  },
 });
 
 const emptyStyles = css({
@@ -275,6 +334,13 @@ function sameDay(a: Date, b: Date): boolean {
  */
 export type GameLogDensity = "detailed" | "standard" | "quiet";
 
+/**
+ * The header over each entry. `inline` puts portrait, name, player and time
+ * on one line; `stacked` puts the character's name over the player's name
+ * and the time, beside a larger portrait.
+ */
+export type GameLogHeader = "inline" | "stacked";
+
 const diceDetailByDensity: Record<GameLogDensity, RollCardDiceDetail> = {
   detailed: "captions",
   standard: "dice",
@@ -301,6 +367,8 @@ export interface GameLogProps {
   rollText?: RollTextOverrides;
   /** How much of each roll to draw. `standard` by default. */
   density?: GameLogDensity;
+  /** How each entry names its author. `inline` by default. */
+  header?: GameLogHeader;
   /**
    * The widest the entries and composer grow, centred, for a log shown in
    * a wide column such as a notes tab ("640px"). Full width by default.
@@ -331,6 +399,7 @@ export function GameLog(props: GameLogProps) {
     composerProps,
     rollText,
     density = "standard",
+    header = "inline",
     maxContentWidth,
     className,
   } = props;
@@ -429,6 +498,7 @@ export function GameLog(props: GameLogProps) {
                     strings={strings}
                     rollText={rollText}
                     diceDetail={diceDetailByDensity[density]}
+                    header={header}
                   />
                 </Fragment>
               );
@@ -454,10 +524,11 @@ interface GameLogItemProps {
   strings: GameLogStrings;
   rollText?: RollTextOverrides;
   diceDetail: RollCardDiceDetail;
+  header: GameLogHeader;
 }
 
 function GameLogItem(props: GameLogItemProps) {
-  const { entry, time, strings, rollText, diceDetail } = props;
+  const { entry, time, strings, rollText, diceDetail, header } = props;
   const { author } = entry;
 
   // Who wrote it and when, read with the entry as one piece of text; the
@@ -470,30 +541,56 @@ function GameLogItem(props: GameLogItemProps) {
     .filter(Boolean)
     .join(", ");
 
+  const portrait = author.portrait ?? initials(author.name);
+  const timeElement = (
+    <time dateTime={entry.timestamp.toISOString()}>{time}</time>
+  );
+  const guideBadge = entry.guideOnly && (
+    <span className={guideStyles}>
+      <LockSimple weight="bold" />
+      {strings.guideOnly}
+    </span>
+  );
+
   return (
     <li
       className={entryStyles}
       data-you={author.isYou || undefined}
       data-guide-only={entry.guideOnly || undefined}
     >
-      <div className={metaStyles} aria-hidden>
-        <span className={portraitStyles}>
-          {author.portrait ?? initials(author.name)}
-        </span>
-        <span className={nameStyles}>{author.name}</span>
-        {author.writtenBy && <span>{author.writtenBy}</span>}
-        <time dateTime={entry.timestamp.toISOString()}>{time}</time>
-        {entry.guideOnly && (
-          <span className={guideStyles}>
-            <LockSimple weight="bold" />
-            {strings.guideOnly}
+      {header === "stacked" ? (
+        <div className={stackedMetaStyles} aria-hidden>
+          <span className={portraitStyles} data-size="stacked">
+            {portrait}
           </span>
-        )}
-      </div>
+          <span className={stackedTextStyles}>
+            <span className={stackedNameStyles}>{author.name}</span>
+            <span className={stackedSubStyles}>
+              {author.writtenBy && (
+                <>
+                  <span>{author.writtenBy}</span>
+                  <span className={separatorStyles}>·</span>
+                </>
+              )}
+              {timeElement}
+              {guideBadge}
+            </span>
+          </span>
+        </div>
+      ) : (
+        <div className={metaStyles} aria-hidden>
+          <span className={portraitStyles}>{portrait}</span>
+          <span className={nameStyles}>{author.name}</span>
+          {author.writtenBy && <span>{author.writtenBy}</span>}
+          {timeElement}
+          {guideBadge}
+        </div>
+      )}
       {entry.kind === "roll" ? (
         <RollCard
           roll={entry.roll}
           variant="compact"
+          width="content"
           diceDetail={diceDetail}
           actions={entry.actions}
           summaryPrefix={heading}

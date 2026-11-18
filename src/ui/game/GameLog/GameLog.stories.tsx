@@ -15,6 +15,7 @@ import {
   GameLogAuthor,
   GameLogDensity,
   GameLogEntry,
+  GameLogHeader,
 } from "./GameLog";
 
 const [kira, orrin, senna] = sampleCharacters;
@@ -205,11 +206,16 @@ const fullLog: GameLogEntry[] = [
   },
 ];
 
-function Frame(props: { children: ReactNode; height?: string }) {
+function Frame(props: {
+  children: ReactNode;
+  height?: string;
+  width?: string;
+}) {
   return (
     <Box
       height={props.height ?? "640px"}
-      maxWidth="420px"
+      width={props.width}
+      maxWidth={props.width ? "100%" : "420px"}
       borderWidth="1px"
       borderColor="border.default"
       borderRadius="lg"
@@ -229,6 +235,7 @@ const meta = {
       control: "inline-radio",
       options: ["detailed", "standard", "quiet"],
     },
+    header: { control: "inline-radio", options: ["inline", "stacked"] },
   },
   decorators: [
     (Story, context) =>
@@ -341,4 +348,146 @@ export const Loading: Story = {
 
 export const ViewerWithoutComposer: Story = {
   args: { entries: fullLog.filter((entry) => !entry.guideOnly) },
+};
+
+/**
+ * Like a chat, entries sit on their author's side (yours on the right) and
+ * rolls and messages are only as wide as they need, up to 400px, always
+ * leaving a gap on the far side. The same log at a narrow column, a phone,
+ * a wide column and a notes tab (centred 640px rail).
+ */
+export const ColumnWidths: Story = {
+  parameters: { noFrame: true, layout: "fullscreen" },
+  render: (args) => (
+    <Stack gap="6" padding="4">
+      {(
+        [
+          ["Narrow column, 300px", "300px", undefined],
+          ["Phone, 375px", "375px", undefined],
+          ["Wide column, 720px", "720px", undefined],
+          ["Notes tab, 960px with a 640px rail", "960px", "640px"],
+        ] as [string, string, string | undefined][]
+      ).map(([title, width, rail]) => (
+        <Stack key={title} gap="2">
+          <Text variant="label" as="h2" color="muted">
+            {title}
+          </Text>
+          <Frame width={width} height="560px">
+            <GameLog {...args} maxContentWidth={rail} onSend={fn()} />
+          </Frame>
+        </Stack>
+      ))}
+    </Stack>
+  ),
+};
+
+const longNamed: (typeof sampleCharacters)[number] = {
+  ...senna,
+  id: "long",
+  name: "Senna Ash-Eye of the Drowned Archive",
+  playerName: "Alexandria Montgomery-Okafor",
+};
+
+/**
+ * Names under each header: long character and player names, the Guide
+ * (no character, "Guide" in the player's place), a player writing without
+ * a character, a Guide only entry, and your own entries on the right.
+ */
+const headerLog: GameLogEntry[] = [
+  {
+    id: "h1",
+    kind: "message",
+    author: guide,
+    timestamp: at(0, 20, 2),
+    message: "The tide is turning. You have until the bell rings twice.",
+  },
+  {
+    id: "h2",
+    kind: "roll",
+    author: author(longNamed),
+    timestamp: at(0, 20, 4),
+    roll: sampleRolls.secureAnAdvantageWeakHit,
+  },
+  {
+    id: "h3",
+    kind: "message",
+    author: author(longNamed),
+    timestamp: at(0, 20, 5),
+    message: "Senna wedges the door with a broken oar.",
+  },
+  {
+    id: "h4",
+    kind: "roll",
+    author: author(kira, true),
+    timestamp: at(0, 20, 7),
+    roll: sampleRolls.faceDangerStrongHit,
+    actions: rollActions,
+  },
+  {
+    id: "h5",
+    kind: "message",
+    author: { name: "Parham", isYou: false },
+    timestamp: at(0, 20, 8),
+    message: "Back in five, grabbing snacks.",
+  },
+  {
+    id: "h6",
+    kind: "roll",
+    author: guide,
+    timestamp: at(0, 20, 9),
+    roll: extraRolls.clockAdvances,
+    guideOnly: true,
+  },
+  {
+    id: "h7",
+    kind: "message",
+    author: { name: "Scott", isYou: true },
+    timestamp: at(0, 20, 10),
+    message: "Same, pausing here.",
+  },
+  {
+    id: "h8",
+    kind: "roll",
+    author: author(orrin),
+    timestamp: at(0, 20, 12),
+    roll: sampleRolls.askTheOracleLikely,
+  },
+];
+
+/**
+ * The two headers side by side. Inline: portrait, character, player and
+ * time on one line. Stacked: the character's name over the player's name
+ * and the time, beside a 32px portrait; yours mirror on the right.
+ */
+export const CompareHeaders: Story = {
+  parameters: { noFrame: true, layout: "fullscreen" },
+  args: { entries: headerLog },
+  render: (args) => (
+    <Grid
+      gridTemplateColumns="repeat(auto-fit, minmax(340px, 1fr))"
+      gap="4"
+      padding="4"
+    >
+      {(
+        [
+          ["inline", "Inline (the default)"],
+          ["stacked", "Stacked"],
+        ] as [GameLogHeader, string][]
+      ).map(([header, title]) => (
+        <Stack key={header} gap="2">
+          <Text variant="label" as="h2" color="muted">
+            {title}
+          </Text>
+          <Frame height="760px">
+            <GameLog {...args} header={header} />
+          </Frame>
+        </Stack>
+      ))}
+    </Grid>
+  ),
+};
+
+/** The whole session with the stacked header. */
+export const HeaderStacked: Story = {
+  args: { header: "stacked" },
 };

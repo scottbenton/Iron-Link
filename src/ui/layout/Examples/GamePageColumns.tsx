@@ -6,8 +6,8 @@
  * - Character (live `CharacterSidebarContents`): the column's h2 with the
  *   character's menu, then Overview, Assets and Tracks tabs. Overview holds
  *   the details, Stats, Meters, Impacts, Legacy Tracks and Experience, in
- *   that order; Assets the asset cards; Tracks the vows, journeys, fights,
- *   clocks and connections.
+ *   that order; Assets the asset cards; Tracks the TracksPanel (vows,
+ *   journeys, fights, scene challenges, clocks and connections).
  * - Notes (live `NotesSection`): the open notes as tabs, its h2 for screen
  *   readers only. With `pinLog` the game log is a pinned first tab here
  *   instead of a Reference tab (a mockup; the live app has no such option).
@@ -28,7 +28,6 @@ import { Box, Flex, HStack, Stack } from "styled-system/jsx";
 import { BreadcrumbItem, Breadcrumbs } from "../../components/Breadcrumbs";
 import { Button } from "../../components/Button";
 import { Checkbox } from "../../components/Checkbox";
-import { IconButton } from "../../components/IconButton";
 import {
   NoteTabPanel,
   NoteTabs,
@@ -42,9 +41,8 @@ import { Text } from "../../components/Text";
 import { characterAuthor, gameLogEntries } from "../../examples/sampleLog";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
-import { Clock } from "../../game/Clock";
 import {
-  AddsMeter,
+  AddsControl,
   ConditionMeter,
   MomentumMeter,
 } from "../../game/ConditionMeter";
@@ -56,6 +54,7 @@ import { InitiativeChip } from "../../game/InitiativeChip";
 import type { InitiativeStatus } from "../../game/InitiativeChip";
 import { ProgressTrack } from "../../game/ProgressTrack";
 import { StatGrid } from "../../game/StatCard";
+import { TracksPanelDemo } from "../../game/TracksPanel/TracksPanelDemo";
 import { XPMeter } from "../../game/XPTrack";
 import {
   SampleCharacter,
@@ -87,8 +86,8 @@ const columnTabsStyles = css({
 });
 
 /**
- * The row holding a column's tabs. A band runs edge to edge; the others
- * sit inside the column's margins.
+ * The row holding a column's tabs. A band or a well runs edge to edge; the
+ * others sit inside the column's margins.
  */
 const tabRowStyles = cva({
   base: { flex: "none", paddingInline: "4", paddingBlock: "3" },
@@ -100,14 +99,18 @@ const tabRowStyles = cva({
       band: { paddingInline: 0, paddingBlock: 0, marginBlockEnd: "4" },
       accent: { paddingBlock: "1", marginBlockEnd: "3" },
       pills: {},
+      well: { paddingInline: 0, paddingBlock: 0, marginBlockEnd: "4" },
     },
   },
-  defaultVariants: { variant: "segmented" },
+  defaultVariants: { variant: "well" },
 });
 
 /** Props the game page's columns share for their own tabs. */
 export interface ColumnTabsProps {
-  /** The look of the column's tab row. */
+  /**
+   * The look of the column's tab row: chips in a well by default, the
+   * note tabs' look, so the three columns' tabs read as one family.
+   */
   tabsVariant?: SectionTabsVariant;
   /** The tab showing. Uncontrolled without it. */
   section?: string;
@@ -161,7 +164,7 @@ export function CharacterColumn(
 ) {
   const {
     character = sampleCharacters[0],
-    tabsVariant,
+    tabsVariant = "well",
     section,
     onSectionChange,
   } = props;
@@ -174,10 +177,6 @@ export function CharacterColumn(
     wounded: true,
   });
   const [xp, setXp] = useState(4);
-  const [vowTicks, setVowTicks] = useState(12);
-  const [journeyTicks, setJourneyTicks] = useState(16);
-  const [clock, setClock] = useState(2);
-  const [showCompleted, setShowCompleted] = useState(false);
 
   return (
     <Tabs
@@ -226,17 +225,22 @@ export function CharacterColumn(
             </Stack>
           </HStack>
 
-          <Stack gap="2" as="section">
-            <SectionHeading title="Stats" as="h3" variant="band" />
-            <StatGrid
-              stats={statKeys.map((key) => ({
-                key,
-                name: capitalize(key),
-                value: character.stats[key],
-              }))}
-              adds={adds}
-              onRoll={rollWithAdds}
-            />
+          {/* Adds sit above the stats: they change whichever stat or meter
+              the next roll uses. */}
+          <Stack gap="3">
+            <AddsControl value={adds} onChange={setAdds} />
+            <Stack gap="2" as="section">
+              <SectionHeading title="Stats" as="h3" variant="band" />
+              <StatGrid
+                stats={statKeys.map((key) => ({
+                  key,
+                  name: capitalize(key),
+                  value: character.stats[key],
+                }))}
+                adds={adds}
+                onRoll={rollWithAdds}
+              />
+            </Stack>
           </Stack>
 
           <Stack gap="2" as="section">
@@ -266,7 +270,6 @@ export function CharacterColumn(
                 }
               />
             </Flex>
-            <AddsMeter value={adds} onChange={setAdds} />
           </Stack>
 
           <Stack gap="2" as="section">
@@ -318,70 +321,7 @@ export function CharacterColumn(
       </TabPanel>
 
       <TabPanel value="tracks" className={sheetPanelStyles}>
-        <Stack gap="3">
-          <Flex justifyContent="space-between" alignItems="center" gap="2">
-            <Checkbox
-              label="Show Completed"
-              size="sm"
-              checked={showCompleted}
-              onCheckedChange={setShowCompleted}
-            />
-            <Button size="sm" startIcon={<PlusIcon />}>
-              Add Track
-            </Button>
-          </Flex>
-          <ProgressTrack
-            label="Recover the Hollow Crown"
-            typeLabel="Vow"
-            rank="formidable"
-            ticks={vowTicks}
-            onChange={setVowTicks}
-          />
-          <ProgressTrack
-            label="Cross the Shattered Reach to Bleakhold"
-            typeLabel="Journey"
-            rank="dangerous"
-            ticks={journeyTicks}
-            onChange={setJourneyTicks}
-          />
-          <ProgressTrack
-            label="Drive off the salvagers at the Drowned Archive"
-            typeLabel="Combat"
-            rank="troublesome"
-            ticks={20}
-          />
-          <Clock
-            presentation="card"
-            label="The archive floods"
-            typeLabel="Tension Clock"
-            segments={6}
-            value={clock}
-            onChange={setClock}
-            headerAction={
-              <IconButton label="The archive floods options" size="sm">
-                <DotsThreeIcon weight="bold" />
-              </IconButton>
-            }
-          />
-          {showCompleted && (
-            <ProgressTrack
-              label="Find the missing courier"
-              typeLabel="Vow"
-              rank="dangerous"
-              ticks={40}
-              completed
-            />
-          )}
-          <Stack gap="2" as="section" paddingBlockStart="3">
-            <SectionHeading title="Connections" as="h3" variant="band" />
-            <ProgressTrack
-              label="Sera Kade, dock salvager"
-              typeLabel="Connection"
-              rank="troublesome"
-              ticks={9}
-            />
-          </Stack>
-        </Stack>
+        <TracksPanelDemo />
       </TabPanel>
     </Tabs>
   );
@@ -589,7 +529,12 @@ function GameLogPanel(props: { maxContentWidth?: string }) {
 export function ReferenceColumn(
   props: { showLog?: boolean } & ColumnTabsProps,
 ) {
-  const { showLog = true, tabsVariant, section, onSectionChange } = props;
+  const {
+    showLog = true,
+    tabsVariant = "well",
+    section,
+    onSectionChange,
+  } = props;
   return (
     <Tabs
       defaultValue="moves"

@@ -86,7 +86,8 @@ export const States: Story = {
 
 /**
  * Every card at the 60px minimum, the width a 328px sidebar gives them. The
- * adds pill has no room beside the value here, so it drops under it.
+ * adds badge sits on each card's corner, outside it, so it never takes room
+ * from the name or the value.
  */
 export const MinimumWidth: Story = {
   render: () => (

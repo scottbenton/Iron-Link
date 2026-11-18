@@ -68,6 +68,10 @@ const expandedStyles = cva({
     flex: "1 1 auto",
     minHeight: 0,
     "&[hidden]": { display: "none" },
+    // Stacked panels: a rule between each shown panel and the next.
+    "& > [data-stack-panel]:not([hidden]) ~ [data-stack-panel]": {
+      borderTop: "1px solid token(colors.border.default)",
+    },
   },
   variants: {
     /**
@@ -151,6 +155,15 @@ const panelStyles = css({
   },
 });
 
+/** One of several panels shown at once, sharing the column's height. */
+const stackPanelStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  flex: "1 1 0",
+  minHeight: 0,
+  "&[hidden]": { display: "none" },
+});
+
 /** The rail's button for the section showing over the page. */
 const railButtonStyles = css({
   "&[aria-expanded=true]": {
@@ -218,6 +231,15 @@ export interface SidebarProps {
   resizable?: boolean;
   /** Offer collapsing to a rail. */
   collapsible?: boolean;
+  /**
+   * Show every panel at once, one over another, each under its own h2
+   * header and sharing the height, instead of behind tabs: the game page's
+   * medium layout, the character sheet over the reference. Collapsing folds
+   * them into one rail, each panel's sections after a divider, and a rail
+   * button shows just that panel over the page. Collapse sits in the first
+   * panel's header.
+   */
+  stackPanels?: boolean;
   labels?: SidebarLabels;
   id?: string;
   className?: string;
@@ -248,6 +270,7 @@ export function Sidebar(props: SidebarProps) {
     side = "start",
     resizable = true,
     collapsible = true,
+    stackPanels = false,
     labels,
     id: idProp,
     className,
@@ -321,7 +344,9 @@ export function Sidebar(props: SidebarProps) {
 
   const activePanel =
     panels.find((panel) => panel.id === activePanelId) ?? panels[0];
-  const multiple = panels.length > 1;
+  const stacked = stackPanels && panels.length > 1;
+  // Several panels behind tabs; stacked panels each keep a visible h2.
+  const tabbed = panels.length > 1 && !stacked;
   const clampedWidth = Math.min(maxWidth, Math.max(minWidth, width));
 
   const closePeek = (returnFocus: boolean) => {
@@ -365,11 +390,14 @@ export function Sidebar(props: SidebarProps) {
     if (target === "trigger") {
       peekTriggerRef.current?.focus();
     } else if (target === "in" && peek) {
-      const tab = multiple ? tabRefs.current.get(peek.panelId) : undefined;
-      const heading = overlayRef.current?.querySelector<HTMLElement>("h2");
+      const tab = tabbed ? tabRefs.current.get(peek.panelId) : undefined;
+      // The shown panel's heading: stacked panels hide the others.
+      const heading = Array.from(
+        overlayRef.current?.querySelectorAll<HTMLElement>("h2") ?? [],
+      ).find((element) => !element.closest("[hidden]"));
       (tab ?? heading ?? overlayRef.current)?.focus();
     }
-  }, [peek, multiple]);
+  }, [peek, tabbed]);
 
   // Escape, a press on the page or focus moving to the page closes it.
   // Presses and focus in popups the column opened (menus, dialogs: other
@@ -411,7 +439,7 @@ export function Sidebar(props: SidebarProps) {
   const expand = (panelId?: string) => {
     if (panelId) {
       setActivePanelId(panelId);
-      pendingFocus.current = multiple
+      pendingFocus.current = tabbed
         ? { kind: "tab", id: panelId }
         : { kind: "collapse" };
     } else {
@@ -431,10 +459,12 @@ export function Sidebar(props: SidebarProps) {
   const tooltipSide = side === "start" ? "right" : "left";
   const overlayId = `${id}-overlay`;
 
-  const headerEnd = (
+  // A panel header's actions, then (with `controls`) the sidebar's own:
+  // Collapse, or Keep Open and Close while it shows over the page.
+  const renderHeaderEnd = (panel: LayoutPanel | undefined, controls = true) => (
     <div className={headerActionsStyles}>
-      {activePanel?.actions}
-      {peeking ? (
+      {panel?.actions}
+      {!controls ? null : peeking ? (
         <>
           <IconButton
             label={dockLabel}
@@ -482,7 +512,7 @@ export function Sidebar(props: SidebarProps) {
 
   const renderPanelBody = (panel: LayoutPanel) => (
     <>
-      {multiple && (
+      {tabbed && (
         // The tab names the panel visually; the heading keeps the column's
         // h2 for heading navigation.
         <h2 id={headingDomId(panel)} tabIndex={-1} className={srOnlyStyles}>
@@ -562,7 +592,7 @@ export function Sidebar(props: SidebarProps) {
         </>
       )}
 
-      {multiple ? (
+      {tabbed ? (
         <Tabs.Root
           value={activePanel?.id}
           onValueChange={(value) => setActivePanelId(String(value))}
@@ -590,7 +620,7 @@ export function Sidebar(props: SidebarProps) {
                 </Tabs.Tab>
               ))}
             </Tabs.List>
-            {headerEnd}
+            {renderHeaderEnd(activePanel)}
           </div>
           {panels.map((panel) => (
             <Tabs.Panel
@@ -604,6 +634,39 @@ export function Sidebar(props: SidebarProps) {
             </Tabs.Panel>
           ))}
         </Tabs.Root>
+      ) : stacked ? (
+        <div
+          className={expandedStyles({ overlay: peeking })}
+          hidden={collapsed && !peeking}
+          {...overlayProps}
+        >
+          {panels.map((panel, index) => {
+            // Over the page, only the panel its rail button opened shows.
+            const shown = !peeking || panel.id === activePanel?.id;
+            return (
+              <div
+                key={panel.id}
+                data-stack-panel=""
+                className={stackPanelStyles}
+                hidden={!shown}
+              >
+                <div className={headerStyles}>
+                  <h2
+                    id={headingDomId(panel)}
+                    tabIndex={-1}
+                    className={headerTitleStyles}
+                  >
+                    {panel.title}
+                  </h2>
+                  {renderHeaderEnd(panel, peeking ? shown : index === 0)}
+                </div>
+                <div id={panelDomId(panel.id)} className={panelStyles}>
+                  {panel.content}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       ) : (
         activePanel && (
           <div
@@ -619,7 +682,7 @@ export function Sidebar(props: SidebarProps) {
               >
                 {activePanel.title}
               </h2>
-              {headerEnd}
+              {renderHeaderEnd(activePanel)}
             </div>
             <div id={panelDomId(activePanel.id)} className={panelStyles}>
               {activePanel.content}

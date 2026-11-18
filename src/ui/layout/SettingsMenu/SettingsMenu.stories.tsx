@@ -21,6 +21,7 @@ import {
   guideScenario,
   playerScenario,
   soloScenario,
+  soloTwoCharactersScenario,
 } from "./settingsMenuScenarios";
 import { SettingsMenuAction } from "./settingsMenuSections";
 import { defaultSettingsMenuStrings } from "./settingsMenuStrings";
@@ -53,7 +54,6 @@ const actionNames: Record<SettingsMenuAction, string> = {
   characterAccess: defaultSettingsMenuStrings.characterAccess,
   gameName: defaultSettingsMenuStrings.gameName,
   gameRulesets: defaultSettingsMenuStrings.gameRulesets,
-  gameNotifications: defaultSettingsMenuStrings.gameNotifications,
   secondScreen: defaultSettingsMenuStrings.secondScreen,
   theme: defaultSettingsMenuStrings.theme,
   accessibility: defaultSettingsMenuStrings.accessibility,
@@ -62,7 +62,10 @@ const actionNames: Record<SettingsMenuAction, string> = {
   signOut: defaultSettingsMenuStrings.signOut,
 };
 
-/** The nav rail with the gear at its foot, beside a page that says who is looking. */
+/**
+ * The nav rail with the mode toggle and the gear at its foot, beside a page
+ * that says who is looking. The toggle switches the story's colour mode.
+ */
 function RailPage(props: { scenario: SettingsScenario; caption: string }) {
   const { scenario, caption } = props;
   const [last, setLast] = useState<string | null>(null);
@@ -73,6 +76,7 @@ function RailPage(props: { scenario: SettingsScenario; caption: string }) {
         homeHref="#games"
         actions={
           <DemoSettingsMenu
+            rail
             scenario={scenario}
             side="inline-end"
             align="end"
@@ -109,10 +113,11 @@ const openSettings: Story["play"] = async ({ canvasElement }) => {
 };
 
 /**
- * Scott, the Guide of a guided game, on his character Kira: Kira Vale
+ * Scott, the Guide of a guided game, on Scott's character Kira: Kira Vale
  * Settings, then Game Settings (all of them, Delete Game last), Change
  * Theme, then App Settings. Change Theme opens the Theme dialog on Kira's
- * row.
+ * row. Light and dark mode is its own button above the gear, so App
+ * Settings has no Dark Mode here.
  */
 export const GuideOnCharacter: Story = {
   name: "Game page, Guide on a character",
@@ -126,9 +131,15 @@ export const GuideOnCharacter: Story = {
 };
 
 /**
- * Parham, a player in that game, on his own Orrin: all of Orrin's settings,
- * but from the game only what applies to him (Notification Settings and
- * Second Screen). The game's theme shows read only in the Theme dialog.
+ * Parham, a player in that game, on their own Orrin: all of Orrin's
+ * settings, but from the game only what applies to them (Sound on New Log
+ * Messages and Second Screen). The game's theme shows read only in the
+ * Theme dialog.
+ *
+ * Sound on New Log Messages is the live app's Notification Settings, whose
+ * dialog holds this one checkbox, so here it is the checkbox itself. It is
+ * stored per device (localStorage), says "On this device only", and stays
+ * for everyone in a shared game; solo games have no log sound.
  */
 export const Player: Story = {
   name: "Game page, player",
@@ -184,15 +195,31 @@ export const GamesListAdmin: Story = {
 };
 
 /**
- * A solo game: no Edit Access, no Notification Settings, and Change Theme
- * covers the characters and the app (a solo game has no theme of its own).
+ * A solo game with one character: no Edit Access, no log sound, and Change
+ * Theme covers this game and the app. The game holds the theme while it has
+ * one character, so the Theme dialog has no character row.
  */
 export const SoloGame: Story = {
-  name: "Solo game",
+  name: "Solo game, one character",
   render: () => (
     <RailPage
       scenario={soloScenario}
       caption="Kira Vale alone in Ashes of the Ironlands."
+    />
+  ),
+  play: openSettings,
+};
+
+/**
+ * The same solo game with a second character: Change Theme covers the
+ * characters again, and the Theme dialog lists Kira and Orrin above the game.
+ */
+export const SoloGameTwoCharacters: Story = {
+  name: "Solo game, two characters",
+  render: () => (
+    <RailPage
+      scenario={soloTwoCharactersScenario}
+      caption="Kira Vale and Orrin Thale in Ashes of the Ironlands."
     />
   ),
   play: openSettings,
@@ -219,6 +246,29 @@ export const LongName: Story = {
   play: openSettings,
 };
 
+/**
+ * The rail's mode toggle on its own, menu closed: a moon named "Switch to
+ * dark mode" in light mode, a sun named "Switch to light mode" in dark.
+ * Press it to switch the story; the toolbar's mode comes back on leaving.
+ */
+export const ModeToggle: Story = {
+  name: "Mode toggle on the rail",
+  render: () => (
+    <RailPage
+      scenario={gamesListScenario}
+      caption="Light and dark mode sit above the gear."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(
+      await canvas.findByRole("button", {
+        name: /^Switch to (dark|light) mode$/,
+      }),
+    );
+  },
+};
+
 /** Delete Game asks first, with Keep Game focused. */
 export const DeleteGameConfirm: Story = {
   name: "Delete Game confirm",
@@ -238,7 +288,8 @@ export const DeleteGameConfirm: Story = {
 
 /**
  * The phone: the top bar's gear opens the same combined menu, Second Screen
- * included (phones have no Reference tab for it).
+ * included (phones have no Reference tab for it). Phones have no rail, so
+ * Dark Mode stays in App Settings.
  */
 export const Phone: Story = {
   parameters: {

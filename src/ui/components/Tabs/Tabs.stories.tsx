@@ -34,6 +34,7 @@ const sectionTabsVariants: SectionTabsVariant[] = [
   "band",
   "accent",
   "pills",
+  "well",
 ];
 
 interface PlaygroundArgs {
@@ -132,7 +133,11 @@ export const SectionTabVariants: Story = {
           <SectionTabsDemo
             variant={variant}
             size="md"
-            fullWidth={variant === "segmented" || variant === "band"}
+            fullWidth={
+              variant === "segmented" ||
+              variant === "band" ||
+              variant === "well"
+            }
             activateOnFocus
           />
         </Stack>

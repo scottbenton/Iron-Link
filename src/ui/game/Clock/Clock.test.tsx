@@ -77,4 +77,44 @@ describe("Clock", () => {
       screen.getByRole("slider", { name: "The archive floods" }),
     ).toHaveAttribute("aria-valuetext", "2 of 6 segments filled");
   });
+
+  it("steps one segment from the card's minus and plus", async () => {
+    const user = userEvent.setup();
+    const { onChange, announce } = renderClock({ presentation: "card" });
+    // The hub shares the plus's name, so it is hidden from the tree there.
+    await user.click(
+      screen.getByRole("button", { name: "Advance The archive floods" }),
+    );
+    expect(onChange).toHaveBeenLastCalledWith(3);
+    expect(announce).toHaveBeenLastCalledWith(
+      "The archive floods, 3 of 6 segments filled",
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: "Remove a segment from The archive floods",
+      }),
+    );
+    expect(onChange).toHaveBeenLastCalledWith(1);
+  });
+
+  it("disables the card's minus when empty and plus when full", () => {
+    const { unmount } = renderClock({ presentation: "card", value: 0 });
+    expect(
+      screen.getByRole("button", {
+        name: "Remove a segment from The archive floods",
+      }),
+    ).toHaveAttribute("data-disabled");
+    unmount();
+    renderClock({ presentation: "card", value: 6 });
+    expect(
+      screen.getByRole("button", { name: "Advance The archive floods" }),
+    ).toHaveAttribute("data-disabled");
+  });
+
+  it("is a record once completed", () => {
+    renderClock({ presentation: "card", completed: true });
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByRole("slider")).not.toBeInTheDocument();
+    expect(screen.getByText("Completed")).toBeInTheDocument();
+  });
 });

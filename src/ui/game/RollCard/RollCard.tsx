@@ -33,7 +33,9 @@ const cardStyles = css({
   gap: "2",
   minWidth: 0,
   width: "100%",
-  maxWidth: "440px",
+  // A place that shows cards side by side with other things (the game log)
+  // sets its own cap through this variable.
+  maxWidth: "var(--roll-card-max-width, 440px)",
   paddingBlock: "3",
   paddingInline: "4",
   borderWidth: "1px",
@@ -50,6 +52,9 @@ const cardStyles = css({
     borderColor:
       "color-mix(in oklab, {colors.cursed.fg} 45%, {colors.border.default})",
   },
+  // Sized to what it shows, up to the max width, rather than filling the
+  // row: the game log, where cards sit on their author's side like messages.
+  "&[data-width=content]": { width: "fit-content" },
   "&[data-elevated]": { boxShadow: "popover" },
   "&[data-elevated]:not([data-cursed])": { borderColor: "border.control" },
   "&[data-variant=compact]": {
@@ -274,6 +279,12 @@ export interface RollCardProps {
   challengeDieColors?: ChallengeDieColors;
   /** Names the challenge dice in captions, such as Cinder and Wraith. */
   challengeDieNames?: [string, string];
+  /**
+   * `fill` (the default) takes the row's width up to 440px; `content` sizes
+   * the card to what it shows, for the game log. Either way the cap can be
+   * changed with the `--roll-card-max-width` custom property.
+   */
+  width?: "fill" | "content";
   /** A floating shadow, for a toast. */
   elevated?: boolean;
   /** Rises in on mount (a roll result appearing on the page). */
@@ -317,6 +328,7 @@ export function RollCard(props: RollCardProps) {
     diceDetail = "dice",
     challengeDieColors,
     challengeDieNames,
+    width = "fill",
     elevated,
     animateIn,
     summaryPrefix,
@@ -446,6 +458,7 @@ export function RollCard(props: RollCardProps) {
       className={cx(cardStyles, className)}
       data-outcome={isChallengeRoll(roll) ? roll.outcome : undefined}
       data-variant={variant}
+      data-width={width}
       data-elevated={elevated || undefined}
       data-animate={animateIn || undefined}
       data-dismissable={onDismiss ? "" : undefined}

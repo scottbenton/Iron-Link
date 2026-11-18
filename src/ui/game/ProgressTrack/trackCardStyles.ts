@@ -3,7 +3,7 @@ import { css } from "styled-system/css";
 /**
  * The card shared by ProgressTrack and Clock's `card` presentation: a static
  * surface with a border, a header of eyebrow, title and description, and
- * controls at the top right.
+ * controls (minus, plus, menu) at the top right, then the boxes or dial.
  */
 export const trackCardStyles = css({
   display: "grid",
@@ -71,4 +71,41 @@ export const trackCardControlsStyles = css({
   // Line the buttons up with the title when there is no eyebrow above it.
   marginTop: "-1",
   marginInlineEnd: "-1",
+  // Small icon buttons are 40px on touch; these are tapped often, so 44px.
+  _touch: { "& button": { minWidth: "touch", minHeight: "touch" } },
+});
+
+/** The header: eyebrow, title and description, then the controls. */
+export const trackCardHeadStyles = css({
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) auto",
+  alignItems: "start",
+  gap: "2",
+});
+
+/** The Completed badge at the end of the eyebrow. */
+export const trackCardBadgeStyles = css({
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "1",
+  paddingInline: "2",
+  paddingBlock: "0.5",
+  borderRadius: "full",
+  background: "success.soft",
+  color: "success.fg",
+  fontFamily: "heading",
+  fontWeight: "bold",
+  fontSize: "xs",
+  lineHeight: "snug",
+  textTransform: "uppercase",
+  letterSpacing: "label",
+  "& svg": { width: "1.1em", height: "1.1em" },
+});
+
+/** Extra actions under the card's track or beside its dial. */
+export const trackCardActionsStyles = css({
+  display: "flex",
+  alignItems: "center",
+  gap: "2",
+  flexWrap: "wrap",
 });

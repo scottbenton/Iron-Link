@@ -13,8 +13,9 @@ export interface ResolvedTheme {
 
 /**
  * The levels to resolve, most specific first. Leave a level out where it does
- * not apply: `character` outside a character, `game` in a solo game (whose
- * characters fall straight back to the app theme).
+ * not apply: `game` outside a game, and `character` outside a character or
+ * where characters have no theme of their own (`charactersHaveThemes`: a
+ * solo game with one character, whose theme is the game's).
  */
 export interface ThemeLevels {
   character?: ThemeChoice;
@@ -25,6 +26,22 @@ export interface ThemeLevels {
 /** The Automatic app theme: Pride through June, Default the rest of the year. */
 export function getAutomaticScheme(date: Date = new Date()): SchemeName {
   return date.getMonth() === 5 ? "pride_traditional" : "default";
+}
+
+/**
+ * Whether a game's characters have themes of their own. A solo game with one
+ * character keeps its theme on the game, so the person sets it once; from a
+ * second character on, each can have its own, as in shared games. Outside a
+ * game every character can.
+ *
+ * Moving there: a solo game with one character whose game has no theme takes
+ * that character's theme as the game's, once, when this ships.
+ */
+export function charactersHaveThemes(
+  game: { solo?: boolean } | undefined,
+  characterCount: number,
+): boolean {
+  return !game?.solo || characterCount > 1;
 }
 
 /**

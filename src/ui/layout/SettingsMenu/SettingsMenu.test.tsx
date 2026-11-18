@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
+import { ColorModeToggle } from "./ColorModeToggle";
 import { SettingsMenu, SettingsMenuProps } from "./SettingsMenu";
 import {
   getCharacterMenuItems,
@@ -41,20 +43,17 @@ describe("getSettingsMenuSections", () => {
     expect(itemsOf({ game: archive }, "game")).toEqual([
       "gameName",
       "gameRulesets",
-      "gameNotifications",
+      "logSound",
       "deleteGame",
     ]);
   });
 
   it("gives a player only what applies to them", () => {
     const game = { ...archive, isGuide: false, secondScreen: true };
-    expect(itemsOf({ game }, "game")).toEqual([
-      "gameNotifications",
-      "secondScreen",
-    ]);
+    expect(itemsOf({ game }, "game")).toEqual(["logSound", "secondScreen"]);
   });
 
-  it("leaves Notification Settings and Edit Access out of a solo game", () => {
+  it("leaves the log sound and Edit Access out of a solo game", () => {
     const game = { ...archive, solo: true };
     expect(itemsOf({ character: kira, game }, "game")).toEqual([
       "gameName",
@@ -87,6 +86,14 @@ describe("getSettingsMenuSections", () => {
     expect(itemsOf({ signedIn: false }, "app")).not.toContain("signOut");
   });
 
+  it("leaves Dark Mode out for the rail, which has its own toggle", () => {
+    expect(itemsOf({ hideColorMode: true }, "app")).toEqual([
+      "accessibility",
+      "advancedFeatures",
+      "signOut",
+    ]);
+  });
+
   it("puts Theme before Delete in the character column's menu", () => {
     expect(getCharacterMenuItems(kira, archive)).toEqual([
       "characterDetails",
@@ -116,6 +123,56 @@ describe("SettingsMenu", () => {
     ).toHaveAttribute("aria-checked", "true");
   });
 
+  it("shows the log sound as a device checkbox", async () => {
+    const onLogSoundChange = vi.fn();
+    render(
+      <SettingsMenu
+        {...baseProps}
+        game={{ ...archive, isGuide: false }}
+        logSound
+        onLogSoundChange={onLogSoundChange}
+      />,
+    );
+    const item = await screen.findByRole("menuitemcheckbox", {
+      name: /Sound on New Log Messages/,
+    });
+    expect(item).toHaveAttribute("aria-checked", "true");
+    expect(item).toHaveTextContent("On this device only");
+    await userEvent.click(item);
+    expect(onLogSoundChange).toHaveBeenCalledWith(false);
+  });
+
+  it("drops Dark Mode with hideColorMode", async () => {
+    render(<SettingsMenu {...baseProps} hideColorMode />);
+    expect(await screen.findByText("App Settings")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitemcheckbox", { name: "Dark Mode" }),
+    ).toBeNull();
+  });
+
+  it("says Change Theme covers the game in a solo game with one character", async () => {
+    const solo = { ...archive, solo: true };
+    const { unmount } = render(
+      <SettingsMenu {...baseProps} character={kira} game={solo} />,
+    );
+    expect(
+      await screen.findByRole("menuitem", { name: /This game or the app/ }),
+    ).toBeInTheDocument();
+    unmount();
+    render(
+      <SettingsMenu
+        {...baseProps}
+        character={kira}
+        game={{ ...solo, characterCount: 2 }}
+      />,
+    );
+    expect(
+      await screen.findByRole("menuitem", {
+        name: /Your characters, this game or the app/,
+      }),
+    ).toBeInTheDocument();
+  });
+
   it("shows no character or game section on the games list", async () => {
     render(<SettingsMenu {...baseProps} />);
     expect(await screen.findByText("App Settings")).toBeInTheDocument();
@@ -124,5 +181,32 @@ describe("SettingsMenu", () => {
     expect(
       screen.getByRole("menuitem", { name: /Change Theme/ }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("ColorModeToggle", () => {
+  it("is named for the mode it switches to and switches to it", async () => {
+    const onColorModeChange = vi.fn();
+    const { rerender } = render(
+      <ColorModeToggle
+        colorMode="light"
+        onColorModeChange={onColorModeChange}
+      />,
+    );
+    const button = screen.getByRole("button", { name: "Switch to dark mode" });
+    expect(button).not.toHaveAttribute("aria-pressed");
+    await userEvent.click(button);
+    expect(onColorModeChange).toHaveBeenCalledWith("dark");
+
+    rerender(
+      <ColorModeToggle
+        colorMode="dark"
+        onColorModeChange={onColorModeChange}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Switch to light mode" }),
+    );
+    expect(onColorModeChange).toHaveBeenLastCalledWith("light");
   });
 });

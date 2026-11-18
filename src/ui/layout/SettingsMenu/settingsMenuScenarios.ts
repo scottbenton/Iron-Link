@@ -17,7 +17,7 @@ export interface SettingsScenario extends SettingsMenuContext {
 
 const drownedArchive = "The Drowned Archive";
 
-/** Scott, the Guide of a guided Starforged game, on his character Kira. */
+/** Scott, the Guide of a guided Starforged game, on Scott's character Kira. */
 export const guideScenario: SettingsScenario = {
   character: { name: kira.name, isOwner: true },
   game: { name: drownedArchive, isGuide: true, secondScreen: true },
@@ -29,7 +29,7 @@ export const guideScenario: SettingsScenario = {
   themeGame: { name: drownedArchive, theme: "myriad", canEdit: true },
 };
 
-/** Parham, a player in that game, on his own character Orrin. */
+/** Parham, a player in that game, on their own character Orrin. */
 export const playerScenario: SettingsScenario = {
   character: { name: orrin.name, isOwner: true },
   game: { name: drownedArchive, isGuide: false, secondScreen: true },
@@ -48,15 +48,37 @@ export const gamesListScenario: SettingsScenario = {
   themeCharacters: [],
 };
 
-/** Scott alone with Kira in a solo Ironsworn game. */
+const ashesOfTheIronlands = "Ashes of the Ironlands";
+const soloGame = {
+  name: ashesOfTheIronlands,
+  isGuide: true,
+  solo: true,
+  secondScreen: true,
+};
+
+/**
+ * Scott alone with Kira in a solo Ironsworn game. With one character the
+ * game holds the theme, so the Theme dialog shows This game and Everywhere.
+ */
 export const soloScenario: SettingsScenario = {
   character: { name: kira.name, isOwner: true },
-  game: {
-    name: "Ashes of the Ironlands",
-    isGuide: true,
-    solo: true,
-    secondScreen: true,
-  },
+  game: { ...soloGame, characterCount: 1 },
   themeCharacters: [{ ...kira, theme: null }],
   currentCharacterId: kira.id,
+  themeGame: {
+    name: ashesOfTheIronlands,
+    theme: "hinterlands",
+    canEdit: true,
+    solo: true,
+  },
+};
+
+/** The same solo game once Scott adds Orrin: character rows come back. */
+export const soloTwoCharactersScenario: SettingsScenario = {
+  ...soloScenario,
+  game: { ...soloGame, characterCount: 2 },
+  themeCharacters: [
+    { ...kira, theme: null },
+    { ...orrin, theme: "cinder" },
+  ],
 };

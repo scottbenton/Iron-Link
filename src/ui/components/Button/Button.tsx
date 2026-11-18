@@ -78,9 +78,15 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(
       children,
       className,
       disabled,
+      focusableWhenDisabled,
       onClick,
       ...rest
     } = props;
+
+    // A busy button, or a disabled one asked to stay focusable, says so to a
+    // screen reader. Base UI's own aria-disabled would be overwritten here.
+    const focusable = loading || focusableWhenDisabled || undefined;
+    const ariaDisabled = loading || (focusableWhenDisabled && disabled);
 
     const content = (
       <>
@@ -120,8 +126,8 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(
           className,
         )}
         disabled={disabled}
-        focusableWhenDisabled={loading || undefined}
-        aria-disabled={loading || undefined}
+        focusableWhenDisabled={focusable}
+        aria-disabled={ariaDisabled || undefined}
         data-busy={loading || undefined}
         onClick={(event) => {
           if (loading) {

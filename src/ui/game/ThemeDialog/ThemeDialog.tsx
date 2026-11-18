@@ -21,6 +21,7 @@ import { ThemeRow } from "./ThemeRow";
 import {
   ThemeChoice,
   ThemeLevels,
+  charactersHaveThemes,
   getAutomaticScheme,
   resolveTheme,
 } from "./resolveTheme";
@@ -51,6 +52,11 @@ export interface ThemeDialogGame {
   canEdit: boolean;
   /** Why it is read only. "Only the game's Guides can change its theme." */
   readOnlyReason?: string;
+  /**
+   * A solo game. With one character the game holds the theme and no
+   * character row shows; from a second character on, the rows return.
+   */
+  solo?: boolean;
 }
 
 /** Something a theme is set on. */
@@ -71,15 +77,13 @@ export interface ThemeDialogProps {
   onClose: () => void;
   /**
    * Every character in the game the person can edit, whichever is open. The
-   * dialog lists their own first, then shared ones, in the given order.
+   * dialog lists their own first, then shared ones, in the given order. In
+   * a solo game with one character they have no rows (see `game.solo`).
    */
   characters: ThemeDialogCharacter[];
   /** The character open now, marked in its row. */
   currentCharacterId?: string;
-  /**
-   * The game. Leave it out in a solo game: it has no game row, and its
-   * characters fall back straight to the app theme.
-   */
+  /** The game, solo games included. Leave it out outside a game. */
   game?: ThemeDialogGame;
   /** The person's app theme, or null for Automatic. */
   appTheme: ThemeChoice;
@@ -104,6 +108,19 @@ interface ThemeDraft {
 
 function targetKey(target: ThemeTarget) {
   return target.kind === "character" ? `character:${target.id}` : target.kind;
+}
+
+/**
+ * The rows open at first. A character's row opens the game's instead where
+ * characters have no rows (a solo game with one character).
+ */
+function initialRows(props: ThemeDialogProps) {
+  const { initialOpen, game, characters } = props;
+  if (!initialOpen) return new Set<string>();
+  const hidden =
+    initialOpen.kind === "character" &&
+    !charactersHaveThemes(game, characters.length);
+  return new Set([targetKey(hidden && game ? { kind: "game" } : initialOpen)]);
 }
 
 function getSavedDraft(props: ThemeDialogProps): ThemeDraft {
@@ -159,7 +176,8 @@ function IconWell(props: { children: ReactNode }) {
 /**
  * Where a person sets every theme that reaches them, in fallback order: each
  * character they can edit in this game, then the game, then their app theme
- * (Everywhere). Each row shows the theme in effect and where it comes from,
+ * (Everywhere). A solo game with one character shows no character row: the
+ * game holds the theme until a second character joins. Each row shows the theme in effect and where it comes from,
  * and opens the scheme choices under it. A form: it edits a draft, Save (or
  * Enter) submits, Cancel discards.
  */
@@ -172,7 +190,6 @@ export function ThemeDialog(props: ThemeDialogProps) {
     game,
     appTheme,
     onSave,
-    initialOpen,
     date: dateProp,
   } = props;
   const strings = { ...defaultThemeDialogStrings, ...props.strings };
@@ -182,8 +199,8 @@ export function ThemeDialog(props: ThemeDialogProps) {
   const isJune = getAutomaticScheme(date) === "pride_traditional";
 
   const [draft, setDraft] = useState(() => getSavedDraft(props));
-  const [openRows, setOpenRows] = useState<Set<string>>(
-    () => new Set(initialOpen ? [targetKey(initialOpen)] : []),
+  const [openRows, setOpenRows] = useState<Set<string>>(() =>
+    initialRows(props),
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -194,23 +211,27 @@ export function ThemeDialog(props: ThemeDialogProps) {
     setWasOpen(open);
     if (open) {
       setDraft(getSavedDraft(props));
-      setOpenRows(new Set(initialOpen ? [targetKey(initialOpen)] : []));
+      setOpenRows(initialRows(props));
       setError(null);
     }
   }
 
+  const showCharacters = charactersHaveThemes(game, characters.length);
   const orderedCharacters = useMemo(
-    () => [
-      ...characters.filter((character) => !character.sharedBy),
-      ...characters.filter((character) => character.sharedBy),
-    ],
-    [characters],
+    () =>
+      showCharacters
+        ? [
+            ...characters.filter((character) => !character.sharedBy),
+            ...characters.filter((character) => character.sharedBy),
+          ]
+        : [],
+    [characters, showCharacters],
   );
 
   const gameLevel: Pick<ThemeLevels, "game"> = game ? { game: draft.game } : {};
 
   const changes: ThemeChange[] = [
-    ...characters
+    ...orderedCharacters
       .filter(
         (character) =>
           (draft.characters[character.id] ?? null) !== character.theme,
@@ -269,10 +290,21 @@ export function ThemeDialog(props: ThemeDialogProps) {
   // Each level's fallback, with the draft applied.
   const gameFallback = resolveTheme({ ...gameLevel, app: draft.app }, date);
   const appFallback = resolveTheme({}, date);
+  const appResolved = resolveTheme({ app: draft.app }, date);
   const gameFallbackText = strings.resolved(
     schemes[gameFallback.scheme].label,
     strings.source(gameFallback.source),
   );
+
+  let description = strings.appDescription;
+  if (game) {
+    description = orderedCharacters.length
+      ? strings.description
+      : strings.soloDescription;
+  }
+  let gameMeta: ReactNode = undefined;
+  if (game?.solo) gameMeta = strings.soloGameHint(orderedCharacters.length > 0);
+  else if (game?.canEdit) gameMeta = strings.gameHint;
 
   return (
     <Dialog
@@ -284,9 +316,7 @@ export function ThemeDialog(props: ThemeDialogProps) {
     >
       <DialogHeader title={strings.title} />
       <DialogBody>
-        <DialogDescription>
-          {game ? strings.description : strings.soloDescription}
-        </DialogDescription>
+        <DialogDescription>{description}</DialogDescription>
         {error && (
           <Alert tone="danger" role="alert">
             {error}
@@ -378,7 +408,7 @@ export function ThemeDialog(props: ThemeDialogProps) {
                   </IconWell>
                 }
                 name={game.name}
-                meta={game.canEdit ? strings.gameHint : undefined}
+                meta={gameMeta}
                 readOnlyReason={
                   game.canEdit
                     ? undefined
@@ -392,8 +422,13 @@ export function ThemeDialog(props: ThemeDialogProps) {
                 }
                 fallback={{
                   label: strings.useAppTheme,
-                  scheme: resolveTheme({ app: draft.app }, date).scheme,
-                  description: strings.useAppThemeForGame,
+                  scheme: appResolved.scheme,
+                  description: game.solo
+                    ? strings.resolved(
+                        schemes[appResolved.scheme].label,
+                        strings.source(appResolved.source),
+                      )
+                    : strings.useAppThemeForGame,
                 }}
               />
             </ul>
@@ -415,7 +450,7 @@ export function ThemeDialog(props: ThemeDialogProps) {
               name={strings.appTitle}
               meta={strings.appHint}
               level="app"
-              resolved={resolveTheme({ app: draft.app }, date)}
+              resolved={appResolved}
               value={draft.app}
               onValueChange={(next) =>
                 setDraft((previous) => ({ ...previous, app: next }))

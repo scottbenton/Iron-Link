@@ -1,4 +1,4 @@
-import { Plus } from "@phosphor-icons/react";
+import { CheckCircle, Minus, Plus } from "@phosphor-icons/react";
 import {
   ElementType,
   KeyboardEvent,
@@ -12,11 +12,14 @@ import {
 import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
+import { IconButton } from "../../components/IconButton";
 import { Tooltip } from "../../components/Tooltip";
 import {
+  trackCardBadgeStyles,
   trackCardControlsStyles,
   trackCardDescriptionStyles,
   trackCardEyebrowStyles,
+  trackCardHeadStyles,
   trackCardStyles,
   trackCardTitleStyles,
 } from "../ProgressTrack/trackCardStyles";
@@ -230,11 +233,21 @@ const hubStyles = css({
   "&[aria-disabled=true]": { cursor: "default" },
 });
 
-const cardRowStyles = css({
-  display: "grid",
-  gridTemplateColumns: "auto minmax(0, 1fr) auto",
+/**
+ * The card's body: the dial, then any actions beside it. On a narrow card
+ * the actions wrap under the dial rather than squeeze it.
+ */
+const cardBodyStyles = css({
+  display: "flex",
+  flexWrap: "wrap",
   alignItems: "center",
-  columnGap: "3",
+  columnGap: "4",
+  rowGap: "3",
+});
+
+const cardActionsStyles = css({
+  flex: "1 1 9rem",
+  minWidth: 0,
 });
 
 const cardDialStyles = css({
@@ -308,10 +321,18 @@ export interface ClockProps {
   hideLabel?: boolean;
   /**
    * `bare` (default): the dial with its name under it, for asset cards and
-   * grids. `card`: a card like ProgressTrack's, the dial beside its name,
-   * with an eyebrow, description and a menu at the top right.
+   * grids. `card`: a card like ProgressTrack's: the same header (eyebrow,
+   * name, description, then minus, plus and the menu at the top right),
+   * with the dial under it where the track has its boxes.
    */
   presentation?: "bare" | "card";
+  /**
+   * Card only: a completed clock. A badge in the eyebrow, no minus or plus,
+   * and the dial reads as an image.
+   */
+  completed?: boolean;
+  /** Card only: actions beside the dial, such as a Roll Progress button. */
+  actions?: ReactNode;
   /** Card only: the clock's kind, shown above the name ("Tension Clock"). */
   typeLabel?: string;
   /** Card only: a line under the name. */
@@ -338,12 +359,14 @@ export function Clock(props: ClockProps) {
     label,
     segments,
     value: rawValue,
-    onChange,
+    onChange: onChangeProp,
     disabled,
     size = "md",
     variant = "ring",
     hideLabel,
     presentation = "bare",
+    completed,
+    actions,
     typeLabel,
     description,
     headerAction,
@@ -357,6 +380,9 @@ export function Clock(props: ClockProps) {
   const announce = useAnnounce();
   const [hovered, setHovered] = useState<number | null>(null);
 
+  const card = presentation === "card";
+  // A completed card clock is a record, not a control.
+  const onChange = card && completed ? undefined : onChangeProp;
   const value = clampClockValue(rawValue, segments);
   const valueText = strings.valueText(value, segments);
   const interactive = !!onChange && !disabled;
@@ -559,8 +585,10 @@ export function Clock(props: ClockProps) {
       </svg>
     );
 
-  const card = presentation === "card";
   const named = card || !hideLabel;
+  // The card's minus and plus, like the track's, so the hub is only a
+  // shortcut for the pointer there.
+  const stepButtons = card && interactive;
 
   const dialProps = {
     className: dialStyles,
@@ -608,6 +636,8 @@ export function Clock(props: ClockProps) {
         tabIndex={-1}
         aria-label={strings.advanceLabel(label)}
         aria-disabled={complete || undefined}
+        // The card's plus has the same name and is in the tab order.
+        aria-hidden={stepButtons || undefined}
         onClick={handleAdvance}
         onPointerEnter={(event) => {
           if (event.pointerType === "mouse" && !complete) setHovered(value);
@@ -636,15 +666,21 @@ export function Clock(props: ClockProps) {
     return (
       <div
         className={cx(trackCardStyles, className)}
-        data-complete={complete || undefined}
+        data-complete={completed || undefined}
       >
-        <div className={cardRowStyles}>
-          <div className={cardDialStyles}>
-            {dialWithHub}
-            {countText}
-          </div>
+        <div className={trackCardHeadStyles}>
           <div className={css({ minWidth: 0 })}>
-            {typeLabel && <p className={trackCardEyebrowStyles}>{typeLabel}</p>}
+            {(typeLabel || completed) && (
+              <p className={trackCardEyebrowStyles}>
+                {typeLabel && <span>{typeLabel}</span>}
+                {completed && (
+                  <span className={trackCardBadgeStyles}>
+                    <CheckCircle weight="fill" aria-hidden />
+                    {strings.completedLabel}
+                  </span>
+                )}
+              </p>
+            )}
             <Title
               id={labelId}
               className={trackCardTitleStyles}
@@ -656,16 +692,40 @@ export function Clock(props: ClockProps) {
               <p className={trackCardDescriptionStyles}>{description}</p>
             )}
           </div>
-          {headerAction && (
-            <div
-              className={cx(
-                trackCardControlsStyles,
-                css({ alignSelf: "start" }),
+          {(stepButtons || headerAction) && (
+            <div className={trackCardControlsStyles}>
+              {stepButtons && (
+                <>
+                  <IconButton
+                    label={strings.removeLabel(label)}
+                    size="sm"
+                    focusableWhenDisabled
+                    disabled={value === 0}
+                    onClick={() => set(value - 1, true)}
+                  >
+                    <Minus weight="bold" />
+                  </IconButton>
+                  <IconButton
+                    label={strings.advanceLabel(label)}
+                    size="sm"
+                    focusableWhenDisabled
+                    disabled={complete}
+                    onClick={() => set(value + 1, true)}
+                  >
+                    <Plus weight="bold" />
+                  </IconButton>
+                </>
               )}
-            >
               {headerAction}
             </div>
           )}
+        </div>
+        <div className={cardBodyStyles}>
+          <div className={cardDialStyles}>
+            {dialWithHub}
+            {countText}
+          </div>
+          {actions && <div className={cardActionsStyles}>{actions}</div>}
         </div>
       </div>
     );

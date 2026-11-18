@@ -51,4 +51,25 @@ export const gameLogEntries: GameLogEntry[] = [
     timestamp: minutesAgo(20),
     message: "I'll keep watch at the hatch while you look around.",
   },
+  {
+    id: "start-4",
+    kind: "roll",
+    author: characterAuthor(orrin),
+    timestamp: minutesAgo(18),
+    roll: sampleRolls.secureAnAdvantageWeakHit,
+  },
+  {
+    id: "start-5",
+    kind: "roll",
+    author: characterAuthor(kira, true),
+    timestamp: minutesAgo(12),
+    roll: sampleRolls.spaceSighting,
+  },
+  {
+    id: "start-6",
+    kind: "message",
+    author: characterAuthor(kira, true),
+    timestamp: minutesAgo(11),
+    message: "Kira follows the flicker down the spine corridor.",
+  },
 ];

@@ -79,3 +79,55 @@ describe("a collapsed sidebar's rail", () => {
     expect(screen.getByText("Showing assets")).toBeVisible();
   });
 });
+
+function StackedHarness() {
+  const [collapsed, setCollapsed] = useState(true);
+  return (
+    <Sidebar
+      stackPanels
+      collapsed={collapsed}
+      onCollapsedChange={setCollapsed}
+      resizable={false}
+      panels={[
+        {
+          id: "character",
+          title: "Character",
+          sections,
+          content: <p>The sheet</p>,
+        },
+        {
+          id: "reference",
+          title: "Reference",
+          sections: [{ id: "oracles", title: "Oracles", icon: <svg /> }],
+          content: <p>The oracles</p>,
+        },
+      ]}
+    />
+  );
+}
+
+describe("stacked panels", () => {
+  it("collapse to one rail and show only the pressed panel", () => {
+    render(<StackedHarness />);
+    fireEvent.click(screen.getByRole("button", { name: "Oracles" }));
+
+    const overlay = screen.getByRole("dialog", { name: "Reference" });
+    expect(overlay).toHaveTextContent("The oracles");
+    expect(screen.getByText("The sheet")).not.toBeVisible();
+    expect(document.activeElement).toBe(
+      screen.getByRole("heading", { name: "Reference" }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Keep Sidebar Open" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByText("The sheet")).toBeVisible();
+    expect(screen.getByText("The oracles")).toBeVisible();
+    // Collapse sits in the first panel's header only.
+    expect(
+      screen.getAllByRole("button", { name: "Collapse Sidebar" }),
+    ).toHaveLength(1);
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Collapse Sidebar" }),
+    );
+  });
+});

@@ -3,7 +3,7 @@ import { CSSProperties, ReactNode, useId } from "react";
 
 import { css, cx } from "styled-system/css";
 
-import { Sidebar, SidebarProps } from "../Sidebar";
+import { Sidebar, SidebarLabels, SidebarProps } from "../Sidebar";
 import { LayoutPanel } from "../shared/layoutPanel";
 import {
   sectionTabListStyles,
@@ -58,27 +58,6 @@ const bodyStyles = css({
   minHeight: 0,
   "--sidebar-cap":
     "calc((100cqi - var(--game-main-min-width, 360px)) / var(--game-sidebar-count, 1))",
-});
-
-/**
- * Both sidebars in one column, the character sheet over the reference, as
- * the live app lays out between 900 and 1200px. The column is the start
- * sidebar's width: the end sidebar is size contained so it adds none, then
- * stretched to fill. The two share the height.
- */
-const stackStyles = css({
-  display: "flex",
-  flexDirection: "column",
-  flex: "none",
-  minHeight: 0,
-  "& > [data-side]": { flex: "1 1 0", minHeight: 0 },
-  "& > [data-side=end]": {
-    width: "auto",
-    contain: "inline-size",
-    borderInlineStart: 0,
-    borderInlineEnd: "1px solid token(colors.border.default)",
-    borderTop: "1px solid token(colors.border.default)",
-  },
 });
 
 const mainStyles = css({
@@ -189,10 +168,25 @@ export interface GameLayoutProps {
    * Stack the end sidebar under the start one, in a single column beside
    * the main column, as the live app does between 900 and 1200px. Pass
    * `!useIsBreakpoint("greater-than", "lg")`. While stacked, the column
-   * keeps the start sidebar's resize handle; neither sidebar collapses, and
-   * the end one has no handle of its own.
+   * keeps the start sidebar's width and resize handle, and collapses as one
+   * (`stackedCollapsed`) to a rail holding both sidebars' sections.
    */
   stackSidebars?: boolean;
+  /**
+   * The stacked column collapsed to a rail: a button per section of the
+   * sheet, then of the reference, each showing just that panel over the
+   * notes. Kept apart from each sidebar's own `collapsed`, since the wide
+   * layout's two columns and the medium layout's one are different
+   * choices. Uncontrolled without it.
+   */
+  stackedCollapsed?: boolean;
+  onStackedCollapsedChange?: (collapsed: boolean) => void;
+  /**
+   * The stacked column's Collapse, Expand and Keep Open names. They act on
+   * both sidebars at once, so they default to "Collapse Sidebar" and so
+   * on rather than the start sidebar's own labels.
+   */
+  stackedLabels?: SidebarLabels;
   /**
    * The phone layout: every sidebar panel and the main column become full
    * screen sections behind one row of tabs, in the live app's order (the
@@ -218,8 +212,8 @@ export interface GameLayoutProps {
  * column has its own h2 and scrolls on its own, so the page fills the
  * screen (give AppShell `fill`). The reader can resize and collapse the
  * sidebars; between 900 and 1200px the sheet and the reference stack in one
- * column (`stackSidebars`), and on phones every column is a full screen
- * section behind tabs (`compact`).
+ * column (`stackSidebars`), which resizes and collapses as one, and on
+ * phones every column is a full screen section behind tabs (`compact`).
  */
 export function GameLayout(props: GameLayoutProps) {
   const {
@@ -229,6 +223,9 @@ export function GameLayout(props: GameLayoutProps) {
     startSidebar,
     endSidebar,
     stackSidebars = false,
+    stackedCollapsed: stackedCollapsedProp,
+    onStackedCollapsedChange,
+    stackedLabels,
     compact = false,
     compactPanelId,
     onCompactPanelChange,
@@ -245,6 +242,11 @@ export function GameLayout(props: GameLayoutProps) {
     main,
     ...(endSidebar?.panels ?? []),
   ];
+  const [stackedCollapsed, setStackedCollapsed] = useControllableState(
+    stackedCollapsedProp,
+    false,
+    onStackedCollapsedChange,
+  );
   const [activeSection, setActiveSection] = useControllableState(
     compactPanelId,
     sections[0].id,
@@ -355,21 +357,24 @@ export function GameLayout(props: GameLayoutProps) {
           // Reading order follows the eye: the column top to bottom, then
           // the main column.
           <>
-            <div className={stackStyles}>
-              <Sidebar
-                side="start"
-                {...startSidebar}
-                collapsed={false}
-                collapsible={false}
-              />
-              <Sidebar
-                side="end"
-                {...endSidebar}
-                collapsed={false}
-                collapsible={false}
-                resizable={false}
-              />
-            </div>
+            <Sidebar
+              side="start"
+              {...startSidebar}
+              panels={[...startSidebar.panels, ...endSidebar.panels]}
+              stackPanels
+              // Which panel a rail button shows is the column's own state.
+              activePanelId={undefined}
+              onActivePanelChange={undefined}
+              collapsed={stackedCollapsed}
+              onCollapsedChange={setStackedCollapsed}
+              labels={{
+                ...startSidebar.labels,
+                collapse: "Collapse Sidebar",
+                expand: "Expand Sidebar",
+                dock: "Keep Sidebar Open",
+                ...stackedLabels,
+              }}
+            />
             {mainColumn}
           </>
         ) : (

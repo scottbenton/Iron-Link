@@ -319,6 +319,45 @@ export const WithActions: Story = {
   ),
 };
 
+/**
+ * `width="content"` sizes a card to what it shows rather than the row, as
+ * the game log does, so short rolls stay short. Long ones wrap at the cap
+ * (`--roll-card-max-width`, 440px unless the place sets it).
+ */
+export const ContentWidth: Story = {
+  render: () => (
+    <Stack gap="2" maxWidth="560px" alignItems="flex-start">
+      <RollCard
+        roll={sampleRolls.askTheOracleLikely}
+        variant="compact"
+        width="content"
+      />
+      <RollCard
+        roll={sampleRolls.faceDangerStrongHit}
+        variant="compact"
+        width="content"
+      />
+      <RollCard
+        roll={sampleRolls.compelBurnedMomentum}
+        variant="compact"
+        width="content"
+        diceDetail="captions"
+      />
+      <RollCard
+        roll={extraRolls.sectorTrouble}
+        variant="compact"
+        width="content"
+      />
+      <RollCard
+        roll={extraRolls.compelProtocolBot}
+        variant="compact"
+        width="content"
+        actions={actions}
+      />
+    </Stack>
+  ),
+};
+
 /** Long names wrap; the dismiss button keeps its corner. */
 export const LongText: Story = {
   render: () => (

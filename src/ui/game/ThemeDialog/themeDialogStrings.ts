@@ -3,15 +3,19 @@ import type { ThemeSource } from "./resolveTheme";
 /** Every string ThemeDialog shows, with English defaults, for translation. */
 export interface ThemeDialogStrings {
   title: string;
-  /** Under the title: the fallback order, with a game. */
+  /** Under the title: the fallback order, with a game and characters. */
   description: string;
-  /** Under the title in a solo game, which has no game row. */
+  /** Under the title in a solo game with one character (no character rows). */
   soloDescription: string;
+  /** Under the title outside a game, with only the app row. */
+  appDescription: string;
   charactersHeading: string;
   gameHeading: string;
   appHeading: string;
   /** Under the game's name. */
   gameHint: string;
+  /** Under a solo game's name, given whether its characters have rows. */
+  soloGameHint: (characterRows: boolean) => string;
   /** Under the game's name when the person can't change it. */
   gameReadOnly: string;
   appTitle: string;
@@ -47,11 +51,17 @@ export const defaultThemeDialogStrings: ThemeDialogStrings = {
   title: "Theme",
   description:
     "A character's theme comes first, then the game's, then your app theme.",
-  soloDescription: "A character's theme comes first, then your app theme.",
+  soloDescription: "This game's theme comes first, then your app theme.",
+  appDescription:
+    "Games and characters can have themes of their own, which come first.",
   charactersHeading: "Characters",
   gameHeading: "This game",
   appHeading: "Everywhere",
   gameHint: "Everyone in the game sees it, unless their character has a theme.",
+  soloGameHint: (characterRows) =>
+    characterRows
+      ? "Your characters use it, unless they have a theme of their own."
+      : "Your character uses it. With a second character, each can have its own.",
   gameReadOnly: "Only the game's Guides can change its theme.",
   appTitle: "Your app theme",
   appHint:

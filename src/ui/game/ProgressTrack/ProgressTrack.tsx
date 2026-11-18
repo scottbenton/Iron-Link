@@ -1,10 +1,11 @@
 import { CheckCircle, Minus, Plus } from "@phosphor-icons/react";
-import { ElementType, ReactNode, useId } from "react";
+import { ElementType, ReactElement, ReactNode, useId } from "react";
 
 import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
 import { IconButton } from "../../components/IconButton";
+import { Link } from "../../components/Link";
 import { ProgressBoxes } from "./ProgressBoxes";
 import {
   MAX_TICKS,
@@ -20,45 +21,16 @@ import {
 } from "./progressTrackStrings";
 import { TickAnimation } from "./tickAnimation";
 import {
+  trackCardActionsStyles as actionsStyles,
+  trackCardBadgeStyles as badgeStyles,
   trackCardStyles as cardStyles,
   trackCardControlsStyles as controlsStyles,
   trackCardDescriptionStyles as descriptionStyles,
   trackCardDotStyles as dotStyles,
   trackCardEyebrowStyles as eyebrowStyles,
+  trackCardHeadStyles as headStyles,
   trackCardTitleStyles as titleStyles,
 } from "./trackCardStyles";
-
-const headStyles = css({
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr) auto",
-  alignItems: "start",
-  gap: "2",
-});
-
-const badgeStyles = css({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "1",
-  paddingInline: "2",
-  paddingBlock: "0.5",
-  borderRadius: "full",
-  background: "success.soft",
-  color: "success.fg",
-  fontFamily: "heading",
-  fontWeight: "bold",
-  fontSize: "xs",
-  lineHeight: "snug",
-  textTransform: "uppercase",
-  letterSpacing: "label",
-  "& svg": { width: "1.1em", height: "1.1em" },
-});
-
-const actionsStyles = css({
-  display: "flex",
-  alignItems: "center",
-  gap: "2",
-  flexWrap: "wrap",
-});
 
 export interface ProgressTrackProps {
   /** The vow, journey, fight or connection, such as "Recover the Hollow Crown". */
@@ -85,6 +57,13 @@ export interface ProgressTrackProps {
   actions?: ReactNode;
   /** A control at the top right, such as the track's menu. */
   headerAction?: ReactNode;
+  /**
+   * Makes the title a link, such as a connection's to its NPC's entry in
+   * Notes. Pass `titleLinkRender` for a router link.
+   */
+  titleHref?: string;
+  /** Renders the title's link as another element: `<RouterLink to={path} />`. */
+  titleLinkRender?: ReactElement;
   /**
    * The title's element. A span by default: a track title only looks like a
    * heading (CLAUDE.md).
@@ -117,6 +96,8 @@ export function ProgressTrack(props: ProgressTrackProps) {
     legacy,
     actions,
     headerAction,
+    titleHref,
+    titleLinkRender,
     titleAs: Title = "span",
     plain,
     tickAnimation,
@@ -178,7 +159,18 @@ export function ProgressTrack(props: ProgressTrackProps) {
             </p>
           )}
           <Title id={titleId} className={titleStyles}>
-            {label}
+            {titleHref || titleLinkRender ? (
+              <Link
+                href={titleHref}
+                render={titleLinkRender}
+                color="inherit"
+                underline="hover"
+              >
+                {label}
+              </Link>
+            ) : (
+              label
+            )}
           </Title>
           {description && <p className={descriptionStyles}>{description}</p>}
         </div>

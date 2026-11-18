@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { getAutomaticScheme, resolveTheme } from "./resolveTheme";
+import {
+  charactersHaveThemes,
+  getAutomaticScheme,
+  resolveTheme,
+} from "./resolveTheme";
 
 const november = new Date(2026, 10, 18);
 const june = new Date(2026, 5, 12);
@@ -30,10 +34,19 @@ describe("resolveTheme", () => {
     ).toEqual({ scheme: "myriad", source: "app" });
   });
 
-  it("skips a level that is left out, as in a solo game", () => {
+  it("skips a level that is left out, as outside a game", () => {
     expect(resolveTheme({ character: null, app: "cinder" }, november)).toEqual({
       scheme: "cinder",
       source: "app",
+    });
+  });
+
+  it("takes a one-character solo game's theme from the game", () => {
+    // The character level is left out, so a theme the character kept from
+    // before can't hide the game's.
+    expect(resolveTheme({ game: "eidolon", app: "myriad" }, november)).toEqual({
+      scheme: "eidolon",
+      source: "game",
     });
   });
 
@@ -52,6 +65,23 @@ describe("resolveTheme", () => {
       scheme: "hinterlands",
       source: "game",
     });
+  });
+});
+
+describe("charactersHaveThemes", () => {
+  it("keeps a solo game's one character on the game's theme", () => {
+    expect(charactersHaveThemes({ solo: true }, 1)).toBe(false);
+    expect(charactersHaveThemes({ solo: true }, 0)).toBe(false);
+  });
+
+  it("gives each character its own theme from a second character on", () => {
+    expect(charactersHaveThemes({ solo: true }, 2)).toBe(true);
+  });
+
+  it("always does in shared games and outside a game", () => {
+    expect(charactersHaveThemes({ solo: false }, 1)).toBe(true);
+    expect(charactersHaveThemes({}, 1)).toBe(true);
+    expect(charactersHaveThemes(undefined, 1)).toBe(true);
   });
 });
 

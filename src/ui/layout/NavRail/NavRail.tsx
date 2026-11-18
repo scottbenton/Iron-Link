@@ -136,8 +136,10 @@ export interface NavRailProps {
   /** The navigation landmark's name. */
   label?: string;
   /**
-   * Pinned to the foot of the rail: the settings gear (`SettingsMenu`, with
-   * `side="inline-end"` and `align="end"`).
+   * Pinned to the foot of the rail, stacked: the light and dark mode toggle
+   * (`ColorModeToggle`, `tooltipSide="right"`) above the settings gear
+   * (`SettingsMenu` with `hideColorMode`, `side="inline-end"` and
+   * `align="end"`).
    */
   actions?: ReactNode;
   /** Renders the links; defaults to the LinkComponentProvider's, or `<a>`. */

@@ -33,7 +33,8 @@ export type SectionTabsVariant =
   | "underline"
   | "band"
   | "accent"
-  | "pills";
+  | "pills"
+  | "well";
 
 export type SectionTabsSize = "md" | "lg";
 
@@ -95,6 +96,20 @@ const listStyles = cva({
       pills: {
         gap: "1",
         justifyContent: "flex-start",
+      },
+      /**
+       * Chips in a well: a canvas band across the column, edge to edge, the
+       * current section a raised card on it. The same band, chips and
+       * spacing as the note tabs, so a column's tabs and the open notes
+       * read as one family.
+       */
+      well: {
+        gap: "1",
+        justifyContent: "flex-start",
+        padding: "1.5",
+        paddingBottom: "calc(token(spacing.1.5) + var(--border-widths-ledge))",
+        background: "bg.canvas",
+        borderBottom: "1px solid token(colors.border.default)",
       },
     },
     fullWidth: {
@@ -201,6 +216,16 @@ const tabStyles = cva({
         },
         _touch: { minHeight: "touch" },
       },
+      // NoteTabs' chip: 34px with its transparent border, 44px on touch.
+      well: {
+        flex: "none",
+        minHeight: "34px",
+        paddingInline: "3",
+        borderRadius: "md",
+        "&:hover:not([aria-selected=true])": { background: "overlay.hover" },
+        _focusVisible: { outlineOffset: "-2px" },
+        _touch: { minHeight: "touch", paddingInline: "14px" },
+      },
     },
     fullWidth: {
       true: {},
@@ -293,6 +318,14 @@ const indicatorStyles = cva({
         border:
           "1px solid color-mix(in oklab, token(colors.accent.fg) 35%, transparent)",
       },
+      well: {
+        top: "token(spacing.1.5)",
+        bottom: "calc(token(spacing.1.5) + var(--border-widths-ledge))",
+        borderRadius: "md",
+        background: "bg.surface",
+        border: "1px solid token(colors.border.default)",
+        boxShadow: "ledge",
+      },
     },
   },
   defaultVariants: { variant: "segmented" },
@@ -307,8 +340,9 @@ export interface SectionTabListProps
    * the page tabs, in body colour), Band (a surface strip across the
    * column, an accent bar under the current tab), Accent (heading-face
    * labels, the current one in the accent colour over a bar) or Pills
-   * (rounded, the current one tinted). The current tab's marker slides
-   * between tabs in all of them.
+   * (rounded, the current one tinted), or Well (the note tabs' chips in
+   * an edge-to-edge canvas band). The current tab's marker slides between
+   * tabs in all of them.
    */
   variant?: SectionTabsVariant;
   /**

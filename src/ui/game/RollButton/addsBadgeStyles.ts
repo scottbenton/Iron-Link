@@ -32,9 +32,23 @@ export const addsBadgeStyles = css({
   whiteSpace: "nowrap",
   textTransform: "none",
   pointerEvents: "none",
-  transitionProperty: "translate",
+  // The number moves on its own when adds change, which an inline box can't.
+  "& [data-adds-value]": { display: "inline-block" },
+  // Adds arriving: a quick fade and grow from half size with the out curve.
+  // Leaving uses the `data-hidden` state's own, faster timing (below). A
+  // change of value is a small bump and a number fade run from script
+  // (`AddsBadge`), so it never fights these transitions.
+  transitionProperty: "translate, opacity, scale",
   transitionDuration: "fast",
   transitionTimingFunction: "out",
+  // Adds cleared: the badge keeps its last value and shrinks away over
+  // `instant` with the in curve, faster than it came.
+  "&[data-hidden]": {
+    opacity: 0,
+    scale: "0.5",
+    transitionDuration: "instant",
+    transitionTimingFunction: "in",
+  },
   // The badge follows the control as it sinks on press.
   "[data-adds-anchor]:has(> :active:not(:disabled, [data-disabled])) > &": {
     translate: "0 var(--spacing-sink)",
@@ -42,8 +56,19 @@ export const addsBadgeStyles = css({
   },
   // A blocked roll greys its adds too, so nothing on it looks live.
   "[data-adds-anchor]:has(> :is(:disabled, [data-disabled])) > &": {
-    filter: "grayscale(1)",
-    opacity: 0.7,
+    "&:not([data-hidden])": { filter: "grayscale(1)", opacity: 0.7 },
+  },
+  // Reduced motion (the system's, unless Iron Link's setting says full, or
+  // Iron Link's own): no growing or shrinking, only the short fade.
+  "@media (prefers-reduced-motion: reduce)": {
+    ":root:not([data-motion=full]) &": {
+      scale: "1",
+      transitionProperty: "translate, opacity",
+    },
+  },
+  ":root[data-motion=reduced] &": {
+    scale: "1",
+    transitionProperty: "translate, opacity",
   },
 });
 

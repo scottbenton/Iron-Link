@@ -5,6 +5,9 @@ import { useState } from "react";
 import { Box, Grid, HStack, Stack } from "styled-system/jsx";
 
 import { IconButton } from "../../components/IconButton";
+import { sampleMoves } from "../../stories/fixtures/datasworn";
+import { ProgressTrack } from "../ProgressTrack";
+import { RollButton } from "../RollButton";
 import { Clock, ClockProps, ClockVariant } from "./Clock";
 
 const variants: ClockVariant[] = [
@@ -341,9 +344,12 @@ function CardClock(
 }
 
 /**
- * The card presentation, matching ProgressTrack's card: the same surface,
- * border and header (eyebrow, name, description, menu at the top right),
- * with the dial beside the name.
+ * The card presentation, with ProgressTrack's header: eyebrow, name and
+ * description on the left; minus, plus and the menu at the top right. The
+ * dial sits under the header where a track has its boxes, with room beside
+ * it for actions (here the clock's Roll Progress). Minus and plus step one
+ * segment, are disabled at the ends and grow to 44px on touch; the centre
+ * still advances by one for a mouse or a large finger.
  */
 export const Card: Story = {
   render: () => (
@@ -354,15 +360,112 @@ export const Card: Story = {
         description="Advance when you Pay the Price inside the archive."
         segments={6}
         start={2}
+        actions={<RollButton size="sm">Roll Progress</RollButton>}
       />
     </Box>
   ),
 };
 
 /**
+ * A vow, a clock and a journey in one list: the same eyebrow, title type,
+ * spacing and controls in the same corner, so the eye and the thumb find
+ * them in the same place on every card.
+ */
+export const CardBesideTracks: Story = {
+  render: function Render() {
+    const [vow, setVow] = useState(14);
+    const [journey, setJourney] = useState(16);
+    const menu = (name: string) => (
+      <IconButton label={`Options for ${name}`} size="sm">
+        <DotsThree weight="bold" />
+      </IconButton>
+    );
+    return (
+      <Stack width="336px" maxWidth="100%" gap="3">
+        <ProgressTrack
+          label="Recover the Hollow Crown"
+          typeLabel="Vow"
+          rank="formidable"
+          description="Sworn at the gates of Thornhold, before the elders."
+          ticks={vow}
+          onChange={setVow}
+          headerAction={menu("Recover the Hollow Crown")}
+          actions={
+            <RollButton size="sm">{sampleMoves.fulfillYourVow.name}</RollButton>
+          }
+        />
+        <CardClock
+          label="The archive floods"
+          typeLabel="Tension Clock"
+          description="Advance when you Pay the Price inside the archive."
+          segments={6}
+          start={2}
+          actions={<RollButton size="sm">Roll Progress</RollButton>}
+        />
+        <ProgressTrack
+          label="Cross the Shattered Reach to Bleakhold"
+          typeLabel="Journey"
+          rank="dangerous"
+          ticks={journey}
+          onChange={setJourney}
+          headerAction={menu("Cross the Shattered Reach to Bleakhold")}
+        />
+      </Stack>
+    );
+  },
+};
+
+/**
+ * Empty (minus disabled), full (plus disabled, the centre rests), completed
+ * (a badge, no minus or plus, the dial an image) and read-only (no
+ * controls at all, as a viewer sees it).
+ */
+export const CardStates: Story = {
+  render: () => (
+    <Stack width="336px" maxWidth="100%" gap="3">
+      <CardClock
+        label="Rumours spread"
+        typeLabel="Campaign Clock"
+        segments={8}
+        start={0}
+      />
+      <CardClock
+        label="The bridge collapses"
+        typeLabel="Tension Clock"
+        segments={4}
+        start={4}
+      />
+      <Clock
+        presentation="card"
+        label="The Forgeborn awaken"
+        typeLabel="Campaign Clock"
+        segments={10}
+        value={10}
+        completed
+        onChange={() => {}}
+        headerAction={
+          <IconButton label="Options for The Forgeborn awaken" size="sm">
+            <DotsThree weight="bold" />
+          </IconButton>
+        }
+      />
+      <Clock
+        presentation="card"
+        label="Supplies run out"
+        typeLabel="Tension Clock"
+        description="Advance each day the convoy is stranded."
+        segments={6}
+        value={3}
+      />
+    </Stack>
+  ),
+};
+
+/**
  * Card clocks among progress tracks' widths: the game sidebar at its
  * narrowest (280px), default (360px) and a mid width, on its muted
- * background. Long names wrap beside the dial; full clocks rest.
+ * background. Long names wrap beside the controls, as a track's do; at
+ * 280px the Roll Progress action wraps under the dial. Full clocks rest.
  */
 export const CardsInSidebar: Story = {
   render: () => (
@@ -386,6 +489,7 @@ export const CardsInSidebar: Story = {
             typeLabel="Tension Clock"
             segments={6}
             start={2}
+            actions={<RollButton size="sm">Roll Progress</RollButton>}
           />
           <CardClock
             label="The Iron Prophet's cult takes the Havens of Ashfall"

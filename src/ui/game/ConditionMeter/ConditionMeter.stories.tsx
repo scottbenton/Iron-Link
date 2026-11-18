@@ -2,13 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { fn } from "storybook/test";
 
-import { Box, HStack, Stack } from "styled-system/jsx";
+import { HStack, Stack } from "styled-system/jsx";
 
-import { Text } from "../../components/Text";
 import { sampleCharacters } from "../../stories/fixtures/characters";
-import { StatGrid } from "../StatCard";
-import { formatSigned } from "../shared/format";
-import { AddsMeter } from "./AddsMeter";
 import { ConditionMeter } from "./ConditionMeter";
 import { MomentumMeter } from "./MomentumMeter";
 
@@ -268,96 +264,8 @@ export const WithAdds: Story = {
   ),
 };
 
-/**
- * Adds: set before a roll, shown as the badge on every roll control, added
- * to the next action roll and then reset to 0. A slim strip under the meters,
- * smaller than a meter; once set, the value wears the adds pill's colours.
- */
-export const Adds: Story = {
-  render: () => (
-    <Stack gap="3" width="328px">
-      <AddsMeter value={0} onChange={fn()} />
-      <AddsMeter value={2} onChange={fn()} />
-      <AddsMeter value={-1} onChange={fn()} />
-      <AddsMeter value={9} onChange={fn()} />
-      <AddsMeter value={1} onChange={fn()} disabled />
-      <AddsMeter value={1} />
-      <AddsMeter value={0} onChange={fn()} note={null} />
-    </Stack>
-  ),
-};
-
 const kira = sampleCharacters[0];
-const statKeys = ["edge", "heart", "iron", "shadow", "wits"] as const;
 const capitalize = (text: string) => text[0].toUpperCase() + text.slice(1);
-
-/**
- * The Meters band of a 328px sidebar, as the game page lays it out: the four
- * meters, then Adds on its own line. Set adds, then roll a stat or a meter:
- * the badge shows on every roll control until the roll uses it, and Adds
- * goes back to 0, as the live app does.
- */
-export const AddsClearAfterARoll: Story = {
-  render: function Render() {
-    const [adds, setAdds] = useState(2);
-    const [meters, setMeters] = useState(kira.meters);
-    const [lastRoll, setLastRoll] = useState<string>();
-    const roll = (name: string, value: number) => {
-      setLastRoll(
-        adds
-          ? `Rolled +${name} (${formatSigned(value)}) with adds ${formatSigned(adds)}. Adds reset to 0.`
-          : `Rolled +${name} (${formatSigned(value)}).`,
-      );
-      setAdds(0);
-    };
-    return (
-      <Stack gap="4" width="328px">
-        <StatGrid
-          stats={statKeys.map((key) => ({
-            key,
-            name: capitalize(key),
-            value: kira.stats[key],
-          }))}
-          adds={adds}
-          onRoll={(stat) => roll(stat.name, stat.value)}
-        />
-        <Stack gap="2">
-          <HStack gap="2" flexWrap="wrap">
-            {(["health", "spirit", "supply"] as const).map((meter) => (
-              <ConditionMeter
-                key={meter}
-                label={capitalize(meter)}
-                value={meters[meter]}
-                max={5}
-                warnAtMin
-                adds={adds}
-                onChange={(value) =>
-                  setMeters((current) => ({ ...current, [meter]: value }))
-                }
-                onRoll={() => roll(capitalize(meter), meters[meter])}
-              />
-            ))}
-            <MomentumMeter
-              value={meters.momentum}
-              onChange={(value) =>
-                setMeters((current) => ({ ...current, momentum: value }))
-              }
-              onBurn={() =>
-                setMeters((current) => ({ ...current, momentum: 2 }))
-              }
-            />
-          </HStack>
-          <AddsMeter value={adds} onChange={setAdds} />
-        </Stack>
-        <Box minHeight="2lh">
-          <Text variant="bodySm" color="muted">
-            {lastRoll ?? "Roll a stat or a meter."}
-          </Text>
-        </Box>
-      </Stack>
-    );
-  },
-};
 
 /**
  * `stepperSize="touch"`: 44px steppers at any pointer, for a phone sheet that
@@ -367,7 +275,6 @@ export const AddsClearAfterARoll: Story = {
 export const TouchSteppers: Story = {
   render: function Render() {
     const [meters, setMeters] = useState(kira.meters);
-    const [adds, setAdds] = useState(1);
     return (
       <Stack gap="2" width="360px">
         <HStack gap="2" flexWrap="wrap">
@@ -394,7 +301,6 @@ export const TouchSteppers: Story = {
             onBurn={fn()}
           />
         </HStack>
-        <AddsMeter value={adds} onChange={setAdds} stepperSize="touch" />
       </Stack>
     );
   },

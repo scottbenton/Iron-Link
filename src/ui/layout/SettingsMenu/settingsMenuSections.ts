@@ -14,11 +14,17 @@ export interface SettingsMenuGame {
   /**
    * The person can change the game: its Guides, and everyone in a solo or
    * co-op game (the app's Guide permission). Others get only what applies
-   * to them, such as Notification Settings.
+   * to them, such as the log sound.
    */
   isGuide: boolean;
-  /** A solo game: no Notification Settings and no Edit Access. */
+  /** A solo game: no log sound setting and no Edit Access. */
   solo?: boolean;
+  /**
+   * How many characters a solo game has. With one, the game holds the
+   * theme (Change Theme covers this game and the app); from two on, each
+   * character can have its own again. Defaults to 1.
+   */
+  characterCount?: number;
   /** Second Screen is turned on in Advanced Features. */
   secondScreen?: boolean;
 }
@@ -33,6 +39,11 @@ export interface SettingsMenuContext {
   isAdmin?: boolean;
   /** Signed in people get Sign Out. Defaults to true. */
   signedIn?: boolean;
+  /**
+   * Leaves Dark Mode out of App Settings, for the nav rail, where
+   * `ColorModeToggle` sits above the gear. Phones keep the item.
+   */
+  hideColorMode?: boolean;
 }
 
 export type SettingsMenuItemId =
@@ -42,7 +53,7 @@ export type SettingsMenuItemId =
   | "deleteCharacter"
   | "gameName"
   | "gameRulesets"
-  | "gameNotifications"
+  | "logSound"
   | "secondScreen"
   | "deleteGame"
   | "theme"
@@ -54,12 +65,12 @@ export type SettingsMenuItemId =
 
 /**
  * An item the caller handles. Deletes go through the menu's own confirm
- * (`onDeleteCharacter`, `onDeleteGame`) and the mode toggle through
- * `onColorModeChange`, so they are not actions.
+ * (`onDeleteCharacter`, `onDeleteGame`) and the two checkboxes through
+ * `onColorModeChange` and `onLogSoundChange`, so they are not actions.
  */
 export type SettingsMenuAction = Exclude<
   SettingsMenuItemId,
-  "deleteCharacter" | "deleteGame" | "colorMode"
+  "deleteCharacter" | "deleteGame" | "colorMode" | "logSound"
 >;
 
 export type SettingsMenuSectionId = "character" | "game" | "theme" | "app";
@@ -84,7 +95,7 @@ export function getCharacterItems(
 export function getGameItems(game: SettingsMenuGame): SettingsMenuItemId[] {
   const items: SettingsMenuItemId[] = [];
   if (game.isGuide) items.push("gameName", "gameRulesets");
-  if (!game.solo) items.push("gameNotifications");
+  if (!game.solo) items.push("logSound");
   if (game.secondScreen) items.push("secondScreen");
   if (game.isGuide) items.push("deleteGame");
   return items;
@@ -97,7 +108,7 @@ export function getGameItems(game: SettingsMenuGame): SettingsMenuItemId[] {
 export function getSettingsMenuSections(
   context: SettingsMenuContext,
 ): SettingsMenuSection[] {
-  const { character, game, isAdmin, signedIn = true } = context;
+  const { character, game, isAdmin, signedIn = true, hideColorMode } = context;
   const sections: SettingsMenuSection[] = [];
 
   if (character) {
@@ -112,11 +123,8 @@ export function getSettingsMenuSections(
   }
   sections.push({ id: "theme", items: ["theme"] });
 
-  const app: SettingsMenuItemId[] = [
-    "colorMode",
-    "accessibility",
-    "advancedFeatures",
-  ];
+  const app: SettingsMenuItemId[] = hideColorMode ? [] : ["colorMode"];
+  app.push("accessibility", "advancedFeatures");
   if (isAdmin) app.push("admin");
   if (signedIn) app.push("signOut");
   sections.push({ id: "app", items: app });
