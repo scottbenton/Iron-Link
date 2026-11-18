@@ -1,8 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { HStack, Stack } from "ui/primitives";
 import { schemeNames } from "ui/theme";
-
-import { HStack, Stack } from "styled-system/jsx";
 
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import { CharacterPortrait } from "./CharacterPortrait";

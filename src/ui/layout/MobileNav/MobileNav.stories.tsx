@@ -7,7 +7,7 @@ import {
 } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Flex } from "styled-system/jsx";
+import { Flex } from "ui/primitives";
 
 import { PhoneFrame } from "../Examples/StoryPlaceholders";
 import { getNavItems } from "../Examples/storyData";

@@ -9,7 +9,7 @@ import {
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Grid } from "styled-system/jsx";
+import { Grid } from "ui/primitives";
 
 import { PortraitGroup } from "../../game/PortraitGroup";
 import { RulesText } from "../../game/RulesText/RulesText";

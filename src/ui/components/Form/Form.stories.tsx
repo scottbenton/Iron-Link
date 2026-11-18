@@ -2,7 +2,7 @@ import { User, UserCircleGear, UsersThree } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FormEvent, useState } from "react";
 
-import { Grid, HStack } from "styled-system/jsx";
+import { Grid, HStack } from "ui/primitives";
 
 import { Button } from "../Button";
 import { Checkbox } from "../Checkbox";

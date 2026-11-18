@@ -9,8 +9,9 @@ import {
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
+import { Grid } from "ui/primitives";
+
 import { css } from "styled-system/css";
-import { Grid } from "styled-system/jsx";
 
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import { IconButton } from "../IconButton";

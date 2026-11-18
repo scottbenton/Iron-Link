@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ReactNode } from "react";
 
-import { Grid, Stack } from "styled-system/jsx";
+import { Grid, Stack } from "ui/primitives";
 
 import { Text } from "../../components/Text";
 import { sampleRolls } from "../../stories/fixtures/rolls";

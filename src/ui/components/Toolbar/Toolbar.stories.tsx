@@ -14,7 +14,7 @@ import {
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Stack } from "styled-system/jsx";
+import { Stack } from "ui/primitives";
 
 import { ToggleGroup, ToggleGroupItem } from "../ToggleGroup";
 import {

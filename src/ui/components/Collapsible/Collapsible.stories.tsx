@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useId, useState } from "react";
 
-import { Stack } from "styled-system/jsx";
+import { Stack } from "ui/primitives";
 
 import { sampleMoves } from "../../stories/fixtures/datasworn";
 import { Button } from "../Button";

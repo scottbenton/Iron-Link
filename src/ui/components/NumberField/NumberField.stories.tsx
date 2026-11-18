@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Grid, HStack, Stack } from "styled-system/jsx";
+import { Grid, HStack, Stack } from "ui/primitives";
 
 import { NumberField } from "./NumberField";
 

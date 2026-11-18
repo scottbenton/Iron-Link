@@ -2,7 +2,7 @@ import { DiceFiveIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect } from "react";
 
-import { Grid } from "styled-system/jsx";
+import { Grid } from "ui/primitives";
 
 import { Button } from "../Button";
 import { ToastCard } from "./ToastCard";

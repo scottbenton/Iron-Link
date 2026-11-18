@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { fn } from "storybook/test";
 
-import { HStack, Stack } from "styled-system/jsx";
+import { HStack, Stack } from "ui/primitives";
 
 import { Button } from "../../components/Button";
 import { Text } from "../../components/Text";

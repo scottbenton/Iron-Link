@@ -40,8 +40,9 @@ import {
 } from "@phosphor-icons/react";
 import { FocusEvent, useEffect, useRef, useState } from "react";
 
+import { Flex, Stack } from "ui/primitives";
+
 import { css } from "styled-system/css";
-import { Flex, Stack } from "styled-system/jsx";
 
 import { BreadcrumbItem, Breadcrumbs } from "../../components/Breadcrumbs";
 import { Button } from "../../components/Button";

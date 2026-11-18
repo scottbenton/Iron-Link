@@ -8,7 +8,7 @@ import {
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { HStack, Stack } from "styled-system/jsx";
+import { HStack, Stack } from "ui/primitives";
 
 import { Chip } from "./Chip";
 

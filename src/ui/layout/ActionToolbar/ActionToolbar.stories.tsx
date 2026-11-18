@@ -8,7 +8,7 @@ import {
 } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Box } from "styled-system/jsx";
+import { Box } from "ui/primitives";
 
 import { BreadcrumbItem, Breadcrumbs } from "../../components/Breadcrumbs";
 import {

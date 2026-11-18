@@ -4,8 +4,7 @@ import { useState } from "react";
 
 import { IconButton } from "ui/components/IconButton";
 import { Text } from "ui/components/Text";
-
-import { Grid, Stack } from "styled-system/jsx";
+import { Grid, Stack } from "ui/primitives";
 
 import { classicAsset, sampleAssets } from "../../stories/fixtures/datasworn";
 import { AssetPickerCard } from "./AssetPickerCard";

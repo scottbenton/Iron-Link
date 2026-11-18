@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Stack } from "styled-system/jsx";
+import { Stack } from "ui/primitives";
 
 import { sampleMoves, starforgedRules } from "../../stories/fixtures/datasworn";
 import { OracleTable } from "./OracleTable";

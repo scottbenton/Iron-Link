@@ -5,8 +5,9 @@
  */
 import { ReactNode } from "react";
 
+import { Box, Grid, HStack, Stack } from "ui/primitives";
+
 import { css } from "styled-system/css";
-import { Box, Grid, HStack, Stack } from "styled-system/jsx";
 
 import { PageTab, PageTabs } from "../../components/Tabs";
 import { Text } from "../../components/Text";

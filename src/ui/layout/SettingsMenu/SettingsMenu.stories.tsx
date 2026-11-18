@@ -2,8 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { screen, userEvent, within } from "storybook/test";
 
+import { Box, Stack } from "ui/primitives";
+
 import { css } from "styled-system/css";
-import { Box, Stack } from "styled-system/jsx";
 
 import { Text } from "../../components/Text";
 import { sampleCharacters } from "../../stories/fixtures/characters";

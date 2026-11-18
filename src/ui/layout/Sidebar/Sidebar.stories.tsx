@@ -2,8 +2,9 @@ import { BookOpenIcon, UserIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
+import { Flex, Stack } from "ui/primitives";
+
 import { css } from "styled-system/css";
-import { Flex, Stack } from "styled-system/jsx";
 
 import { Text } from "../../components/Text";
 import { CharacterColumn } from "../Examples/GamePageColumns";

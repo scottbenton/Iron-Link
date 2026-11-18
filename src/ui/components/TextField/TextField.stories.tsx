@@ -2,7 +2,7 @@ import { At, User } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Grid, Stack } from "styled-system/jsx";
+import { Grid, Stack } from "ui/primitives";
 
 import { TextField } from "./TextField";
 

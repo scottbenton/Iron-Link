@@ -1,7 +1,7 @@
 import { Lightning, PencilSimple, Trash } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Stack } from "styled-system/jsx";
+import { Stack } from "ui/primitives";
 
 import { starforgedRules } from "../../stories/fixtures/datasworn";
 import { IconButton } from "../IconButton";

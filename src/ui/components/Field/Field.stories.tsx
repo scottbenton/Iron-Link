@@ -2,8 +2,9 @@ import { DiceFive, Note } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
+import { Box, Grid, HStack, Stack } from "ui/primitives";
+
 import { css } from "styled-system/css";
-import { Box, Grid, HStack, Stack } from "styled-system/jsx";
 
 import { Combobox } from "../Combobox";
 import { Select } from "../Select";

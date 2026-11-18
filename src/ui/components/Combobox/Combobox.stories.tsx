@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect, useState } from "react";
 
-import { Stack } from "styled-system/jsx";
+import { Stack } from "ui/primitives";
 
 import { Combobox, ComboboxOption, ComboboxProps } from "./Combobox";
 

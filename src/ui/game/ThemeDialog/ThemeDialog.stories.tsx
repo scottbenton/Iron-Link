@@ -4,9 +4,8 @@ import { useState } from "react";
 
 import { Button } from "ui/components/Button";
 import { Text } from "ui/components/Text";
+import { Stack } from "ui/primitives";
 import { schemes } from "ui/theme";
-
-import { Stack } from "styled-system/jsx";
 
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import {

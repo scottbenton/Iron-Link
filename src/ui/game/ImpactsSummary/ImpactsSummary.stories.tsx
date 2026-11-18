@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { userEvent, within } from "storybook/test";
 
-import { Box } from "styled-system/jsx";
+import { Box } from "ui/primitives";
 
 import {
   classicRules,

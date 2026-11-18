@@ -9,7 +9,7 @@ import {
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Box, Grid, HStack, Stack } from "styled-system/jsx";
+import { Box, Grid, HStack, Stack } from "ui/primitives";
 
 import { schemeNames, schemes } from "../../theme";
 import { Text } from "../Text";

@@ -2,7 +2,7 @@ import { Compass, Mountains, Sword } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Stack } from "styled-system/jsx";
+import { Stack } from "ui/primitives";
 
 import { Select, SelectOptions, SelectProps } from "./Select";
 

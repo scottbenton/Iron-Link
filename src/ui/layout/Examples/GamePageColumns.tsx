@@ -22,8 +22,9 @@ import {
 } from "@phosphor-icons/react";
 import { ReactNode, useState } from "react";
 
+import { Box, Flex, HStack, Stack } from "ui/primitives";
+
 import { css, cva } from "styled-system/css";
-import { Box, Flex, HStack, Stack } from "styled-system/jsx";
 
 import { BreadcrumbItem, Breadcrumbs } from "../../components/Breadcrumbs";
 import { Button } from "../../components/Button";

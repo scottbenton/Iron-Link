@@ -4,8 +4,7 @@ import { useState } from "react";
 
 import { Button } from "ui/components/Button";
 import { IconButton } from "ui/components/IconButton";
-
-import { Grid, Stack } from "styled-system/jsx";
+import { Grid, Stack } from "ui/primitives";
 
 import {
   sampleAssets,

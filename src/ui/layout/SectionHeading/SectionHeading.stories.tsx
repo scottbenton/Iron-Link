@@ -1,7 +1,7 @@
 import { PlusIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Stack } from "styled-system/jsx";
+import { Stack } from "ui/primitives";
 
 import { Button } from "../../components/Button";
 import { SectionHeading } from "./SectionHeading";

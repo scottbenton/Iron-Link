@@ -2,8 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
 import { Text } from "ui/components/Text";
-
-import { Stack } from "styled-system/jsx";
+import { Stack } from "ui/primitives";
 
 import { sampleMoves } from "../../stories/fixtures/datasworn";
 import { MoveCard } from "./MoveCard";

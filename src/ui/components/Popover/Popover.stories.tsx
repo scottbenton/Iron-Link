@@ -1,7 +1,7 @@
 import { InfoIcon, LinkIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { HStack, Stack } from "styled-system/jsx";
+import { HStack, Stack } from "ui/primitives";
 
 import { Button } from "../Button";
 import { IconButton } from "../IconButton";

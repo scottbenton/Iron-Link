@@ -9,8 +9,9 @@ import {
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
+import { Box, Stack } from "ui/primitives";
+
 import { css, cx } from "styled-system/css";
-import { Box, Stack } from "styled-system/jsx";
 
 import { CharacterPortrait } from "../../game/CharacterPortrait";
 import { samplePortraitSrc } from "../../layout/Examples/storyData";

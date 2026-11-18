@@ -7,8 +7,9 @@ import {
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
+import { Stack } from "ui/primitives";
+
 import { css } from "styled-system/css";
-import { Stack } from "styled-system/jsx";
 
 import { Button } from "../Button";
 import { IconButton } from "../IconButton";

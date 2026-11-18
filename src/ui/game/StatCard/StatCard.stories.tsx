@@ -2,8 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 
 import { Text } from "ui/components/Text";
-
-import { Box, HStack, Stack } from "styled-system/jsx";
+import { Box, HStack, Stack } from "ui/primitives";
 
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import { StatCard } from "./StatCard";

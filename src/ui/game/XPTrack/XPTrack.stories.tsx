@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { fn } from "storybook/test";
 
-import { HStack } from "styled-system/jsx";
+import { HStack } from "ui/primitives";
 
 import { ConditionMeter, MomentumMeter } from "../ConditionMeter";
 import { XPMeter } from "./XPTrack";

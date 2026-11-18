@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Stack } from "styled-system/jsx";
+import { Stack } from "ui/primitives";
 
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import { PortraitGroup, PortraitGroupMember } from "./PortraitGroup";

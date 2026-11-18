@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Grid } from "styled-system/jsx";
+import { Grid } from "ui/primitives";
 
 import { Text } from "../Text";
 import { Surface } from "./Surface";

@@ -8,8 +8,9 @@
 import { PlusIcon, SwordIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { Grid } from "ui/primitives";
+
 import { css } from "styled-system/css";
-import { Grid } from "styled-system/jsx";
 
 import { Button } from "../../components/Button";
 import { Card, CardHeader, CardLinkOverlay } from "../../components/Card";

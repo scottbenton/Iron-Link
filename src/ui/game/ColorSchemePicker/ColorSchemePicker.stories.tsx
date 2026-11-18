@@ -2,9 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useId, useState } from "react";
 
 import { Text } from "ui/components/Text";
+import { Stack } from "ui/primitives";
 import { SchemeName, schemes } from "ui/theme";
-
-import { Stack } from "styled-system/jsx";
 
 import { ColorSchemePicker } from "./ColorSchemePicker";
 

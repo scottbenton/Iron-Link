@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Box } from "styled-system/jsx";
+import { Box } from "ui/primitives";
 
 import { Text } from "../../components/Text";
 import { PhoneFrame } from "../Examples/StoryPlaceholders";

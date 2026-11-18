@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ReactNode, useState } from "react";
 import { fn } from "storybook/test";
 
-import { Box, HStack, Stack } from "styled-system/jsx";
+import { Box, HStack, Stack } from "ui/primitives";
 
 import { Button } from "../../components/Button";
 import { TrackDialog } from "./TrackDialog";

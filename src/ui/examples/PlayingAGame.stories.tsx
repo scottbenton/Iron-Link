@@ -8,7 +8,7 @@ import {
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useCallback, useState } from "react";
 
-import { Stack } from "styled-system/jsx";
+import { Stack } from "ui/primitives";
 
 import { IconButton } from "../components/IconButton";
 import { SectionTab, SectionTabList, TabPanel, Tabs } from "../components/Tabs";

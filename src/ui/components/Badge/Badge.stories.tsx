@@ -1,7 +1,7 @@
 import { BellIcon, ChatCircleIcon, UsersIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { HStack } from "styled-system/jsx";
+import { HStack } from "ui/primitives";
 
 import { IconButton } from "../IconButton";
 import { Badge } from "./Badge";

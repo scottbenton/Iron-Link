@@ -1,11 +1,11 @@
 import type { Decorator, Preview } from "@storybook/react-vite";
 import { useEffect } from "react";
 
+import { UIProvider } from "../src/ui/components/UIProvider";
 import "../src/ui/styles/index.css";
 import { schemeNames, schemes } from "../src/ui/theme";
 import type { SchemeName, UIColorMode } from "../src/ui/theme";
 import { applyUITheme } from "../src/ui/theme";
-import { UIProvider } from "../src/ui/components/UIProvider";
 
 const withTheme: Decorator = (Story, context) => {
   const mode = (context.globals.mode ?? "light") as UIColorMode;

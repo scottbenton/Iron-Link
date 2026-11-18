@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { HStack } from "styled-system/jsx";
+import { HStack } from "ui/primitives";
 
 import { CopyButton } from "./CopyButton";
 

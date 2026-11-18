@@ -1,8 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Button } from "ui/components/Button";
-
-import { Grid } from "styled-system/jsx";
+import { Grid } from "ui/primitives";
 
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import { PlayerCard } from "./PlayerCard";

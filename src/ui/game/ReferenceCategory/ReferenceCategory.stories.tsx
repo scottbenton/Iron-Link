@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ReactNode } from "react";
 
-import { Box, Stack } from "styled-system/jsx";
+import { Box, Stack } from "ui/primitives";
 
 import { starforgedRules } from "../../stories/fixtures/datasworn";
 import {

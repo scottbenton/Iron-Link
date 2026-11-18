@@ -4,8 +4,7 @@ import { ReactNode, useState } from "react";
 
 import { IconButton } from "ui/components/IconButton";
 import { Text } from "ui/components/Text";
-
-import { Box, Stack } from "styled-system/jsx";
+import { Box, Stack } from "ui/primitives";
 
 import { sampleMoves, starforgedRules } from "../../stories/fixtures/datasworn";
 import { MoveListItem } from "../MoveListItem";
