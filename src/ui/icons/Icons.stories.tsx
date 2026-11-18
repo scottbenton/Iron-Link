@@ -297,7 +297,7 @@ const rows: Row[] = [
   {
     mui: "CenterFocusStrong",
     Mui: MuiCenterFocusStrong,
-    phosphor: "CrosshairIcon",
+    phosphor: "FrameCornersIcon",
     files: 1,
   },
   { mui: "Clear", Mui: MuiClear, phosphor: "XIcon", files: 1 },
@@ -310,7 +310,7 @@ const rows: Row[] = [
     files: 1,
   },
   { mui: "Explore", Mui: MuiExplore, phosphor: "CompassIcon", files: 1 },
-  { mui: "Face", Mui: MuiFace, phosphor: "SmileyIcon", files: 1 },
+  { mui: "Face", Mui: MuiFace, phosphor: "UserIcon", files: 1 },
   { mui: "Favorite", Mui: MuiFavorite, phosphor: "HeartIcon", files: 1 },
   {
     mui: "FilterList",
@@ -386,7 +386,7 @@ const rows: Row[] = [
   {
     mui: "HideImage",
     Mui: MuiHideImage,
-    phosphor: "ImageBrokenIcon",
+    phosphor: "ImageSlashIcon",
     files: 1,
   },
   { mui: "HistoryEdu", Mui: MuiHistoryEdu, phosphor: "ScrollIcon", files: 1 },
@@ -484,7 +484,7 @@ const rows: Row[] = [
   {
     mui: "WrapText",
     Mui: MuiWrapText,
-    phosphor: "TextAlignLeftIcon",
+    phosphor: "TextIndentIcon",
     files: 1,
   },
 ];
