@@ -159,8 +159,10 @@ jobs:
               --project-name "$CLOUDFLARE_PAGES_PROJECT_NAME" \
               --branch "$DEPLOY_BRANCH" \
               --commit-hash "$DEPLOY_SHA" 2>&1
-          )"
+          )" || status=$?
           printf '%s\n' "$output"
+          # Print wrangler's own error before failing, rather than exiting silently.
+          if [ "${status:-0}" -ne 0 ]; then exit "$status"; fi
           # The deployment's own URL, then the branch alias when one is made.
           urls="$(printf '%s\n' "$output" | grep -oE 'https://[^[:space:]]+\.pages\.dev' | awk '!seen[$0]++' | paste -sd ' ' - || true)"
           echo "urls=$urls" >> "$GITHUB_OUTPUT"
