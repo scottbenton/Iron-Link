@@ -10,11 +10,13 @@ import { Box, Grid, HStack, Stack } from "styled-system/jsx";
 
 import { PageTab, PageTabs } from "../../components/Tabs";
 import { Text } from "../../components/Text";
+import { CharacterPortrait } from "../../game/CharacterPortrait";
 import {
   SampleCharacter,
   sampleCharacters,
 } from "../../stories/fixtures/characters";
 import { sampleMoves } from "../../stories/fixtures/datasworn";
+import { samplePortraitSrc } from "./storyData";
 
 const cardStyles = css({
   boxSizing: "border-box",
@@ -126,17 +128,44 @@ export function NotesPlaceholder() {
   );
 }
 
+/** A character in the page tabs: a portrait image, or initials without one. */
+export interface PageTabCharacter {
+  id: string;
+  name: string;
+  colorSeed?: number;
+  portraitUrl?: string;
+}
+
+/** Kira with an uploaded portrait, Orrin with none (initials). */
+const defaultTabCharacters: PageTabCharacter[] = [
+  { ...sampleCharacters[0], portraitUrl: samplePortraitSrc },
+  sampleCharacters[1],
+];
+
 /**
  * The game's page tabs, as the live app's `GameTabs`: Overview, one per
- * character, then Add Character.
+ * character, then Add Character. Each character's tab shows their portrait
+ * (initials where they have none); the tab's accessible name is the name
+ * alone.
  */
-export function GamePageTabs(props: { current?: string }) {
-  const { current = "kira" } = props;
+export function GamePageTabs(props: {
+  current?: string;
+  characters?: PageTabCharacter[];
+  /** Show portraits in the character tabs. On by default. */
+  portraits?: boolean;
+}) {
+  const {
+    current = "kira",
+    characters = defaultTabCharacters,
+    portraits = true,
+  } = props;
   const pages = [
     { id: "overview", label: "Overview" },
-    ...sampleCharacters
-      .slice(0, 2)
-      .map((character) => ({ id: character.id, label: character.name })),
+    ...characters.map((character) => ({
+      id: character.id,
+      label: character.name,
+      character,
+    })),
     { id: "create-character", label: "Add Character" },
   ];
   return (
@@ -146,6 +175,17 @@ export function GamePageTabs(props: { current?: string }) {
           key={page.id}
           href={`#${page.id}`}
           current={page.id === current}
+          avatar={
+            portraits && "character" in page ? (
+              <CharacterPortrait
+                name={page.character.name}
+                portraitUrl={page.character.portraitUrl}
+                colorSeed={page.character.colorSeed}
+                size="xs"
+                decorative
+              />
+            ) : undefined
+          }
         >
           {page.label}
         </PageTab>

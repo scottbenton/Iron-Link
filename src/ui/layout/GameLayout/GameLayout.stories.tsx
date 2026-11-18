@@ -1,3 +1,4 @@
+import { BookOpenIcon, UserIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { css } from "styled-system/css";
@@ -17,12 +18,14 @@ import { GameLayout } from "./GameLayout";
 const character: LayoutPanel = {
   id: "character",
   title: "Character",
+  icon: <UserIcon />,
   actions: <CharacterColumnActions />,
   content: <CharacterColumn />,
 };
 const reference: LayoutPanel = {
   id: "reference",
   title: "Reference",
+  icon: <BookOpenIcon />,
   content: <ReferenceColumn />,
 };
 

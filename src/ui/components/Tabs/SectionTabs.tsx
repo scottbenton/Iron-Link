@@ -27,12 +27,21 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
   },
 );
 
-export type SectionTabsVariant = "segmented" | "chips" | "underline";
+export type SectionTabsVariant =
+  | "segmented"
+  | "chips"
+  | "underline"
+  | "band"
+  | "accent"
+  | "pills";
+
+export type SectionTabsSize = "md" | "lg";
 
 const VariantContext = createContext<{
   variant: SectionTabsVariant;
   fullWidth: boolean;
-}>({ variant: "segmented", fullWidth: true });
+  size: SectionTabsSize;
+}>({ variant: "segmented", fullWidth: true, size: "md" });
 
 const listStyles = cva({
   base: {
@@ -64,6 +73,28 @@ const listStyles = cva({
         gap: "4",
         justifyContent: "flex-start",
         boxShadow: "inset 0 -1px 0 token(colors.border.default)",
+      },
+      /**
+       * A strip across the top of a column in the surface colour, the tabs
+       * sharing its width, the current one marked by an accent bar.
+       */
+      band: {
+        gap: 0,
+        background: "bg.surface",
+        boxShadow: "inset 0 -1px 0 token(colors.border.default)",
+      },
+      /**
+       * Plain labels in the heading face with no track or hairline; the
+       * current one turns the accent colour over an accent bar.
+       */
+      accent: {
+        gap: "5",
+        justifyContent: "flex-start",
+      },
+      /** Rounded pills; the current one is tinted with the accent. */
+      pills: {
+        gap: "1",
+        justifyContent: "flex-start",
       },
     },
     fullWidth: {
@@ -133,20 +164,75 @@ const tabStyles = cva({
         _focusVisible: { outlineOffset: "-2px" },
         _touch: { minHeight: "touch" },
       },
+      band: {
+        flex: "1 1 0",
+        minWidth: 0,
+        minHeight: "40px",
+        paddingInline: "3",
+        borderRadius: 0,
+        "&:hover:not([aria-selected=true])": { background: "overlay.hover" },
+        _focusVisible: { outlineOffset: "-2px" },
+        _touch: { minHeight: "touch" },
+      },
+      accent: {
+        flex: "none",
+        minHeight: "36px",
+        paddingInline: "0.5",
+        borderRadius: "xs",
+        fontFamily: "heading",
+        fontWeight: "bold",
+        fontSize: "md",
+        textTransform: "uppercase",
+        letterSpacing: "label",
+        "&[aria-selected=true], &[aria-selected=true]:hover": {
+          color: "accent.fg",
+        },
+        _focusVisible: { outlineOffset: "-2px" },
+        _touch: { minHeight: "touch" },
+      },
+      pills: {
+        flex: "none",
+        minHeight: "32px",
+        paddingInline: "3.5",
+        borderRadius: "full",
+        "&:hover:not([aria-selected=true])": { background: "overlay.hover" },
+        "&[aria-selected=true], &[aria-selected=true]:hover": {
+          color: "accent.fg",
+        },
+        _touch: { minHeight: "touch" },
+      },
     },
     fullWidth: {
       true: {},
       false: {},
     },
+    size: {
+      md: {},
+      lg: {},
+    },
   },
   compoundVariants: [
     {
-      variant: "segmented",
+      variant: ["segmented", "band"],
       fullWidth: false,
       css: { flex: "none" },
     },
+    // Large: 48px at any pointer, as the phone screens' tabs are.
+    {
+      size: "lg",
+      css: {
+        minHeight: "48px",
+        paddingInline: "4",
+        _touch: { minHeight: "48px" },
+      },
+    },
+    {
+      size: "lg",
+      variant: ["underline", "accent"],
+      css: { paddingInline: "2" },
+    },
   ],
-  defaultVariants: { variant: "segmented" },
+  defaultVariants: { variant: "segmented", size: "md" },
 });
 
 const indicatorStyles = cva({
@@ -187,6 +273,26 @@ const indicatorStyles = cva({
         borderRadius: "2px",
         background: "fg.default",
       },
+      band: {
+        bottom: 0,
+        height: "3px",
+        borderRadius: "3px 3px 0 0",
+        background: "accent.solid",
+      },
+      accent: {
+        bottom: 0,
+        height: "3px",
+        borderRadius: "3px",
+        background: "accent.solid",
+      },
+      pills: {
+        top: 0,
+        bottom: 0,
+        borderRadius: "full",
+        background: "accent.soft",
+        border:
+          "1px solid color-mix(in oklab, token(colors.accent.fg) 35%, transparent)",
+      },
     },
   },
   defaultVariants: { variant: "segmented" },
@@ -197,11 +303,19 @@ export interface SectionTabListProps
   /** Names the tab set, such as "Character sections". */
   "aria-label"?: string;
   /**
-   * Segmented (a sunken track), Chips (like the note tabs) or Underline
-   * (like the page tabs, in body colour). The current tab's thumb slides
-   * between tabs in all three.
+   * Segmented (a sunken track), Chips (like the note tabs), Underline (like
+   * the page tabs, in body colour), Band (a surface strip across the
+   * column, an accent bar under the current tab), Accent (heading-face
+   * labels, the current one in the accent colour over a bar) or Pills
+   * (rounded, the current one tinted). The current tab's marker slides
+   * between tabs in all of them.
    */
   variant?: SectionTabsVariant;
+  /**
+   * Medium, or large: 48px tall at any pointer and wider, for tabs that
+   * head a whole phone screen.
+   */
+  size?: SectionTabsSize;
   /**
    * Fill the width, sharing it between the tabs (segmented) or running the
    * hairline across (underline). On by default.
@@ -225,6 +339,7 @@ export const SectionTabList = forwardRef<HTMLDivElement, SectionTabListProps>(
   function SectionTabList(props, ref) {
     const {
       variant = "segmented",
+      size = "md",
       fullWidth = true,
       activateOnFocus = true,
       className,
@@ -232,7 +347,7 @@ export const SectionTabList = forwardRef<HTMLDivElement, SectionTabListProps>(
       ...rest
     } = props;
     return (
-      <VariantContext.Provider value={{ variant, fullWidth }}>
+      <VariantContext.Provider value={{ variant, fullWidth, size }}>
         <BaseTabs.List
           ref={ref}
           activateOnFocus={activateOnFocus}
@@ -258,11 +373,11 @@ export interface SectionTabProps
 export const SectionTab = forwardRef<HTMLButtonElement, SectionTabProps>(
   function SectionTab(props, ref) {
     const { icon, className, children, ...rest } = props;
-    const { variant, fullWidth } = useContext(VariantContext);
+    const { variant, fullWidth, size } = useContext(VariantContext);
     return (
       <BaseTabs.Tab
         ref={ref}
-        className={cx(tabStyles({ variant, fullWidth }), className)}
+        className={cx(tabStyles({ variant, fullWidth, size }), className)}
         {...rest}
       >
         {icon}

@@ -1,5 +1,7 @@
 import { css, cx } from "styled-system/css";
 
+import { Badge } from "../../components/Badge";
+import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
 import { NavItem } from "../shared/navItem";
 
@@ -39,6 +41,12 @@ const itemStyles = css({
   textDecoration: "none",
   outline: "none",
   WebkitTapHighlightColor: "transparent",
+  // As a button (a section of the page rather than a page of its own).
+  margin: 0,
+  border: 0,
+  background: "transparent",
+  font: "inherit",
+  cursor: "pointer",
   transition:
     "color token(durations.fast) linear, background-color token(durations.fast) linear",
   // The gradient bar on the bar's top edge, grown from the middle.
@@ -78,42 +86,97 @@ const itemStyles = css({
   },
 });
 
+/**
+ * A bar item: a link to a page (`href`), or a button that switches a section
+ * of the page in place (`onSelect`), as the game page's Sheet, Notes, Moves,
+ * Oracles and Log do.
+ */
+export interface MobileNavItem extends Omit<NavItem, "href"> {
+  href?: string;
+  /** Chooses the item without navigating. Used when there is no `href`. */
+  onSelect?: () => void;
+  /**
+   * A count on the icon's corner, such as unread log entries. Hidden at
+   * zero; read after the label through `badgeLabel`.
+   */
+  badge?: number;
+}
+
 export interface MobileNavProps {
-  /** The main destinations; four or five fit. */
-  items: NavItem[];
+  /** The main destinations or sections; four or five fit. */
+  items: MobileNavItem[];
   /** The navigation landmark's name. */
   label?: string;
   /** Renders the links; defaults to the LinkComponentProvider's, or `<a>`. */
   linkComponent?: LayoutLinkComponent;
+  /** Read after an item's label when it has a badge, "3 unread". */
+  badgeLabel?: (count: number) => string;
   className?: string;
 }
 
 /**
- * The bottom tab bar on phones: one link per destination, each the full
- * height of the bar (56px, past the 44px touch target). The current page
- * has the gradient bar on its top edge and `aria-current="page"`.
+ * The bottom tab bar on phones: one item per destination, each the full
+ * height of the bar (56px, past the 44px touch target). The current one has
+ * the gradient bar on its top edge and `aria-current="page"`. Items are
+ * links, or buttons that switch the page's section (the game page's Sheet,
+ * Notes, Moves, Oracles and Log), and can carry a count badge.
+ *
+ * Leave it out while the on-screen keyboard is up, so it never sits between
+ * the keyboard and the text being typed.
  */
 export function MobileNav(props: MobileNavProps) {
-  const { items, label = "Main", linkComponent, className } = props;
+  const {
+    items,
+    label = "Main",
+    linkComponent,
+    badgeLabel = (count) => `${count} unread`,
+    className,
+  } = props;
   const Link = useLinkComponent(linkComponent);
 
   return (
     <nav aria-label={label} className={cx(barStyles, className)}>
       <ul className={listStyles}>
-        {items.map((item) => (
-          <li key={item.id}>
-            <Link
-              href={item.href}
-              className={itemStyles}
-              aria-current={item.current ? "page" : undefined}
-            >
+        {items.map((item) => {
+          const badge = item.badge ?? 0;
+          const icon = item.current
+            ? (item.currentIcon ?? item.icon)
+            : item.icon;
+          const content = (
+            <>
               <span aria-hidden="true" className={css({ display: "flex" })}>
-                {item.current ? (item.currentIcon ?? item.icon) : item.icon}
+                {badge > 0 ? <Badge count={badge}>{icon}</Badge> : icon}
               </span>
               <span data-part="label">{item.label}</span>
-            </Link>
-          </li>
-        ))}
+              {badge > 0 && (
+                <VisuallyHidden>, {badgeLabel(badge)}</VisuallyHidden>
+              )}
+            </>
+          );
+          return (
+            <li key={item.id}>
+              {item.href !== undefined ? (
+                <Link
+                  href={item.href}
+                  className={itemStyles}
+                  aria-current={item.current ? "page" : undefined}
+                  onClick={item.onSelect}
+                >
+                  {content}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className={itemStyles}
+                  aria-current={item.current ? "page" : undefined}
+                  onClick={item.onSelect}
+                >
+                  {content}
+                </button>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );

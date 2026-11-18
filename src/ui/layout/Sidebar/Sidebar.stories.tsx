@@ -6,10 +6,12 @@ import { css } from "styled-system/css";
 import { Flex, Stack } from "styled-system/jsx";
 
 import { Text } from "../../components/Text";
+import { CharacterColumn } from "../Examples/GamePageColumns";
 import {
   CharacterSheetPlaceholder,
   ReferencePlaceholder,
 } from "../Examples/StoryPlaceholders";
+import { characterSections } from "../Examples/columnSections";
 import { LayoutPanel } from "../shared/layoutPanel";
 import { Sidebar, SidebarProps } from "./Sidebar";
 
@@ -102,8 +104,46 @@ export const Playground: Story = {
   render: (args) => <ControlledSidebar {...args} />,
 };
 
-/** Collapsed to a rail: the button opens the sidebar again. */
+/**
+ * Collapsed to a rail. A panel's button shows it over the main column for
+ * a moment (Escape or a press outside closes it); Expand, at the top,
+ * opens the sidebar in place.
+ */
 export const Collapsed: Story = { ...Playground, args: { collapsed: true } };
+
+/** The character sheet with its tab kept by the app, as the game page does. */
+function SectionedSidebar(props: SidebarProps) {
+  const [section, setSection] = useState("assets");
+  return (
+    <ControlledSidebar
+      {...props}
+      panels={[
+        {
+          id: "character",
+          title: "Character",
+          sections: characterSections,
+          activeSectionId: section,
+          onActiveSectionChange: setSection,
+          content: (
+            <CharacterColumn section={section} onSectionChange={setSection} />
+          ),
+        },
+      ]}
+    />
+  );
+}
+
+/**
+ * A panel with its own tabs: the rail shows a button per tab (Overview,
+ * Assets, Tracks) instead of one for the panel. Each opens the sheet on
+ * that tab over the main column; Keep Sidebar Open in its header, or
+ * Expand, docks it again.
+ */
+export const CollapsedWithSections: Story = {
+  name: "Collapsed, with sections",
+  render: (args) => <SectionedSidebar {...args} />,
+  args: { collapsed: true },
+};
 
 /** The reference as the end column, its handle on its inner edge. */
 export const EndSide: Story = {

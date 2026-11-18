@@ -178,13 +178,50 @@ export const GridWithAdds: Story = {
 
 /**
  * Narrower than five cards at 60px (the 280px minimum sidebar leaves 248px):
- * the row wraps into three and two rather than squeezing the names.
+ * the row wraps into three and two, never four and one.
  */
 export const NarrowGrid: Story = {
   render: () => (
     <Stack gap="6" width="248px">
       <StatGrid stats={statsOf(kira)} onRoll={fn()} />
       <StatGrid stats={statsOf(kira)} adds={2} onRoll={fn()} />
+    </Stack>
+  ),
+};
+
+const fourStats = statsOf(kira).filter((stat) => stat.key !== "shadow");
+const sixStats: StatGridStat[] = [
+  ...statsOf(kira),
+  { key: "wealth", name: "Wealth", value: 1 },
+];
+
+/**
+ * Wrapping by count and the grid's own width (a container query, never the
+ * window): one row while every card gets 60px, else even rows, so no card is
+ * left alone. Four wrap as 2 + 2 under 258px, five as 3 + 2 under 324px, six
+ * as 3 + 3 under 390px. The four and six stat sets are homebrew examples.
+ */
+export const WrapByCount: Story = {
+  render: () => (
+    <Stack gap="6">
+      {[200, 248, 300, 328, 400, 460].map((width) => (
+        <Stack key={width} gap="2">
+          <Caption>{`${width}px`}</Caption>
+          <HStack gap="4" alignItems="flex-start">
+            {[fourStats, statsOf(kira), sixStats].map((stats) => (
+              <Box
+                key={stats.length}
+                width={`${width}px`}
+                flex="none"
+                outline="1px dashed"
+                outlineColor="border.subtle"
+              >
+                <StatGrid stats={stats} onRoll={fn()} />
+              </Box>
+            ))}
+          </HStack>
+        </Stack>
+      ))}
     </Stack>
   ),
 };

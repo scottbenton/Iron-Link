@@ -1,7 +1,10 @@
+import { Plus } from "@phosphor-icons/react";
 import {
+  ElementType,
   KeyboardEvent,
   MouseEvent,
   PointerEvent,
+  ReactNode,
   useId,
   useState,
 } from "react";
@@ -9,6 +12,14 @@ import {
 import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
+import { Tooltip } from "../../components/Tooltip";
+import {
+  trackCardControlsStyles,
+  trackCardDescriptionStyles,
+  trackCardEyebrowStyles,
+  trackCardStyles,
+  trackCardTitleStyles,
+} from "../ProgressTrack/trackCardStyles";
 import {
   barCell,
   gappedWedgePath,
@@ -19,6 +30,7 @@ import {
   wedgePath,
 } from "./clockGeometry";
 import { ClockStrings, defaultClockStrings } from "./clockStrings";
+import { advanceClock, clampClockValue } from "./clockValue";
 
 const rootStyles = css({
   display: "inline-flex",
@@ -142,6 +154,95 @@ const dialStyles = css({
   "&[data-complete] [data-count]": { fill: "token(colors.accent.fg)" },
 });
 
+/** Holds the dial and, over its middle, the centre button. */
+const dialWrapStyles = css({
+  position: "relative",
+  display: "grid",
+  flex: "none",
+  "--clock-hub": "32%",
+  "&[data-variant=ring]": { "--clock-hub": "62%" },
+  "&[data-variant=pips]": { "--clock-hub": "58%" },
+});
+
+/**
+ * The centre: a round button over the dial's middle that adds a segment.
+ * Hover tints it (and the dial previews the next segment); a pie, with no
+ * count in its middle, also shows a plus. Full, it rests.
+ */
+const hubStyles = css({
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  width: "var(--clock-hub)",
+  aspectRatio: "1",
+  translate: "-50% -50%",
+  display: "grid",
+  placeItems: "center",
+  padding: 0,
+  margin: 0,
+  borderWidth: 0,
+  borderRadius: "full",
+  background: "transparent",
+  color: "accent.fg",
+  cursor: "pointer",
+  touchAction: "manipulation",
+  WebkitTapHighlightColor: "transparent",
+  outline: "none",
+  transitionProperty: "background-color, opacity",
+  transitionDuration: "fast",
+  transitionTimingFunction: "out",
+  _focusVisible: {
+    outline: "2px solid token(colors.focusRing)",
+    outlineOffset: "1px",
+  },
+  "& svg": { width: "55%", height: "55%", opacity: 0 },
+  // Ring and pips: a light tint behind the count.
+  "&:not([aria-disabled=true]):is([data-variant=ring], [data-variant=pips])": {
+    _hoverable: {
+      _hover: {
+        background:
+          "color-mix(in oklab, token(colors.accent.solid) 12%, transparent)",
+      },
+    },
+    _active: {
+      background:
+        "color-mix(in oklab, token(colors.accent.solid) 22%, transparent)",
+    },
+  },
+  // Pies: a surface disc with a plus, so it reads over a filled wedge.
+  "&:not([aria-disabled=true]):is([data-variant=wedges], [data-variant=sweep], [data-variant=classic])":
+    {
+      _hoverable: {
+        _hover: {
+          background: "bg.surface",
+          boxShadow: "0 0 0 1px token(colors.border.control)",
+          "& svg": { opacity: 1 },
+        },
+      },
+      _active: {
+        background:
+          "color-mix(in oklab, token(colors.accent.solid) 16%, token(colors.bg.surface))",
+        boxShadow: "0 0 0 1px token(colors.border.control)",
+        "& svg": { opacity: 1 },
+      },
+    },
+  // Full: no tint and no plus, so the middle reads as resting.
+  "&[aria-disabled=true]": { cursor: "default" },
+});
+
+const cardRowStyles = css({
+  display: "grid",
+  gridTemplateColumns: "auto minmax(0, 1fr) auto",
+  alignItems: "center",
+  columnGap: "3",
+});
+
+const cardDialStyles = css({
+  display: "grid",
+  justifyItems: "center",
+  gap: "0.5",
+});
+
 const labelStyles = css({
   maxWidth: "100%",
   fontFamily: "heading",
@@ -205,6 +306,23 @@ export interface ClockProps {
   variant?: ClockVariant;
   /** Hides the visible name and count; the clock is still named. */
   hideLabel?: boolean;
+  /**
+   * `bare` (default): the dial with its name under it, for asset cards and
+   * grids. `card`: a card like ProgressTrack's, the dial beside its name,
+   * with an eyebrow, description and a menu at the top right.
+   */
+  presentation?: "bare" | "card";
+  /** Card only: the clock's kind, shown above the name ("Tension Clock"). */
+  typeLabel?: string;
+  /** Card only: a line under the name. */
+  description?: string;
+  /** Card only: a control at the top right, such as the clock's menu. */
+  headerAction?: ReactNode;
+  /**
+   * Card only: the name's element. A span by default: a clock's name only
+   * looks like a heading (CLAUDE.md).
+   */
+  titleAs?: ElementType;
   strings?: Partial<ClockStrings>;
   className?: string;
 }
@@ -212,6 +330,8 @@ export interface ClockProps {
 /**
  * A segmented clock (campaign, tension, an asset's clock), drawn in the
  * accent colour. Interactive with `onChange` (a slider), else an image.
+ * When interactive, a click or tap on the dial's middle adds one segment
+ * (except on the bar, which has no middle); it rests once the clock is full.
  */
 export function Clock(props: ClockProps) {
   const {
@@ -223,6 +343,11 @@ export function Clock(props: ClockProps) {
     size = "md",
     variant = "ring",
     hideLabel,
+    presentation = "bare",
+    typeLabel,
+    description,
+    headerAction,
+    titleAs: Title = "span",
     strings: stringsProp,
     className,
   } = props;
@@ -232,7 +357,7 @@ export function Clock(props: ClockProps) {
   const announce = useAnnounce();
   const [hovered, setHovered] = useState<number | null>(null);
 
-  const value = Math.min(Math.max(Math.round(rawValue), 0), segments);
+  const value = clampClockValue(rawValue, segments);
   const valueText = strings.valueText(value, segments);
   const interactive = !!onChange && !disabled;
   const complete = value >= segments;
@@ -267,6 +392,14 @@ export function Clock(props: ClockProps) {
       event.preventDefault();
       action();
     }
+  };
+
+  const handleAdvance = () => {
+    const next = advanceClock(value, segments);
+    if (next === null) return;
+    set(next, true);
+    // Keep previewing the segment after the new one while the pointer stays.
+    setHovered(next < segments ? next : null);
   };
 
   const handleSegmentClick = (event: MouseEvent, index: number) => {
@@ -426,6 +559,9 @@ export function Clock(props: ClockProps) {
       </svg>
     );
 
+  const card = presentation === "card";
+  const named = card || !hideLabel;
+
   const dialProps = {
     className: dialStyles,
     "data-size": size,
@@ -433,34 +569,111 @@ export function Clock(props: ClockProps) {
     "data-complete": complete || undefined,
   };
 
+  const dial = onChange ? (
+    <div
+      {...dialProps}
+      role="slider"
+      tabIndex={disabled ? -1 : 0}
+      aria-labelledby={named ? labelId : undefined}
+      aria-label={named ? undefined : label}
+      aria-valuemin={0}
+      aria-valuemax={segments}
+      aria-valuenow={value}
+      aria-valuetext={valueText}
+      aria-disabled={disabled || undefined}
+      data-interactive={interactive || undefined}
+      onKeyDown={interactive ? handleKeyDown : undefined}
+      // A click that lands on the dial, not a segment (a screen
+      // reader's activate), fills the next segment.
+      onClick={interactive ? () => fillNext(true) : undefined}
+      onPointerLeave={() => setHovered(null)}
+    >
+      {svg}
+    </div>
+  ) : (
+    <div {...dialProps} role="img" aria-label={`${label}, ${valueText}`}>
+      {svg}
+    </div>
+  );
+
+  // The centre sits beside the slider, not inside it (a slider's content
+  // is presentational). It is out of the tab order: on the keyboard, Enter
+  // on the slider does the same.
+  const hub = interactive && variant !== "bar" && (
+    <Tooltip title={complete ? strings.fullHint : strings.advanceLabel(label)}>
+      <button
+        type="button"
+        className={hubStyles}
+        data-variant={variant}
+        tabIndex={-1}
+        aria-label={strings.advanceLabel(label)}
+        aria-disabled={complete || undefined}
+        onClick={handleAdvance}
+        onPointerEnter={(event) => {
+          if (event.pointerType === "mouse" && !complete) setHovered(value);
+        }}
+        onPointerLeave={() => setHovered(null)}
+      >
+        <Plus weight="bold" aria-hidden />
+      </button>
+    </Tooltip>
+  );
+
+  const dialWithHub = (
+    <div className={dialWrapStyles} data-variant={variant}>
+      {dial}
+      {hub}
+    </div>
+  );
+
+  const countText = !countInside[variant] && (
+    <span className={valueStyles} aria-hidden>
+      {value}/{segments}
+    </span>
+  );
+
+  if (card) {
+    return (
+      <div
+        className={cx(trackCardStyles, className)}
+        data-complete={complete || undefined}
+      >
+        <div className={cardRowStyles}>
+          <div className={cardDialStyles}>
+            {dialWithHub}
+            {countText}
+          </div>
+          <div className={css({ minWidth: 0 })}>
+            {typeLabel && <p className={trackCardEyebrowStyles}>{typeLabel}</p>}
+            <Title
+              id={labelId}
+              className={trackCardTitleStyles}
+              aria-hidden={onChange ? undefined : true}
+            >
+              {label}
+            </Title>
+            {description && (
+              <p className={trackCardDescriptionStyles}>{description}</p>
+            )}
+          </div>
+          {headerAction && (
+            <div
+              className={cx(
+                trackCardControlsStyles,
+                css({ alignSelf: "start" }),
+              )}
+            >
+              {headerAction}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={cx(rootStyles, className)}>
-      {onChange ? (
-        <div
-          {...dialProps}
-          role="slider"
-          tabIndex={disabled ? -1 : 0}
-          aria-labelledby={hideLabel ? undefined : labelId}
-          aria-label={hideLabel ? label : undefined}
-          aria-valuemin={0}
-          aria-valuemax={segments}
-          aria-valuenow={value}
-          aria-valuetext={valueText}
-          aria-disabled={disabled || undefined}
-          data-interactive={interactive || undefined}
-          onKeyDown={interactive ? handleKeyDown : undefined}
-          // A click that lands on the dial, not a segment (a screen
-          // reader's activate), fills the next segment.
-          onClick={interactive ? () => fillNext(true) : undefined}
-          onPointerLeave={() => setHovered(null)}
-        >
-          {svg}
-        </div>
-      ) : (
-        <div {...dialProps} role="img" aria-label={`${label}, ${valueText}`}>
-          {svg}
-        </div>
-      )}
+      {dialWithHub}
       {!hideLabel && (
         <span
           className={css({ display: "grid", justifyItems: "center" })}
@@ -469,11 +682,7 @@ export function Clock(props: ClockProps) {
           <span id={labelId} className={labelStyles}>
             {label}
           </span>
-          {!countInside[variant] && (
-            <span className={valueStyles} aria-hidden>
-              {value}/{segments}
-            </span>
-          )}
+          {countText}
         </span>
       )}
     </div>

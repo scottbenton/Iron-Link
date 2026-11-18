@@ -12,6 +12,8 @@ import { useState } from "react";
 import { css, cx } from "styled-system/css";
 import { Box, Stack } from "styled-system/jsx";
 
+import { CharacterPortrait } from "../../game/CharacterPortrait";
+import { samplePortraitSrc } from "../../layout/Examples/storyData";
 import { Button } from "../Button";
 import { Text } from "../Text";
 import { NoteTab, NoteTabPanel, NoteTabs } from "./NoteTabs";
@@ -19,25 +21,39 @@ import { PageTab, PageTabs } from "./PageTabs";
 import {
   SectionTab,
   SectionTabList,
+  SectionTabsSize,
   SectionTabsVariant,
   TabPanel,
   Tabs,
 } from "./SectionTabs";
 
+const sectionTabsVariants: SectionTabsVariant[] = [
+  "segmented",
+  "chips",
+  "underline",
+  "band",
+  "accent",
+  "pills",
+];
+
 interface PlaygroundArgs {
   variant: SectionTabsVariant;
+  size: SectionTabsSize;
   fullWidth: boolean;
   activateOnFocus: boolean;
 }
 
 const meta: Meta<PlaygroundArgs> = {
   title: "Components/Tabs",
-  args: { variant: "segmented", fullWidth: true, activateOnFocus: true },
+  args: {
+    variant: "segmented",
+    size: "md",
+    fullWidth: true,
+    activateOnFocus: true,
+  },
   argTypes: {
-    variant: {
-      control: "inline-radio",
-      options: ["segmented", "chips", "underline"],
-    },
+    variant: { control: "inline-radio", options: sectionTabsVariants },
+    size: { control: "inline-radio", options: ["md", "lg"] },
   },
 };
 
@@ -54,13 +70,14 @@ const frame = css({
 const panelText = css({ color: "fg.muted", fontSize: "sm", margin: 0 });
 
 function SectionTabsDemo(props: PlaygroundArgs) {
-  const { variant, fullWidth, activateOnFocus } = props;
+  const { variant, size, fullWidth, activateOnFocus } = props;
   return (
     <Tabs defaultValue="tracks">
       <Stack gap="3">
         <SectionTabList
           aria-label="Character sections"
           variant={variant}
+          size={size}
           fullWidth={fullWidth}
           activateOnFocus={activateOnFocus}
         >
@@ -86,12 +103,16 @@ function SectionTabsDemo(props: PlaygroundArgs) {
   );
 }
 
-/** Section tabs. The designer has not chosen a variant yet; try all three. */
+/**
+ * Section tabs. See Layout/Examples/Column tab variants for each variant in
+ * the character and reference columns.
+ */
 export const Playground: Story = {
   render: (args) => (
     <Box maxWidth="420px">
       <SectionTabsDemo
         variant={args.variant}
+        size={args.size}
         fullWidth={args.fullWidth}
         activateOnFocus={args.activateOnFocus}
       />
@@ -99,18 +120,44 @@ export const Playground: Story = {
   ),
 };
 
-/** The three section tab variants side by side. The thumb slides in each. */
+/** Every section tab variant. The current tab's marker slides in each. */
 export const SectionTabVariants: Story = {
   render: () => (
     <Stack gap="8" maxWidth="420px">
-      {(["segmented", "chips", "underline"] as const).map((variant) => (
+      {sectionTabsVariants.map((variant) => (
         <Stack key={variant} gap="2">
           <Text variant="label" color="muted">
             {variant}
           </Text>
           <SectionTabsDemo
             variant={variant}
-            fullWidth={variant === "segmented"}
+            size="md"
+            fullWidth={variant === "segmented" || variant === "band"}
+            activateOnFocus
+          />
+        </Stack>
+      ))}
+    </Stack>
+  ),
+};
+
+/**
+ * Large tabs: 48px tall at any pointer, for tabs that head a whole phone
+ * screen.
+ */
+export const SectionTabsLarge: Story = {
+  name: "Section Tabs, large",
+  render: () => (
+    <Stack gap="8" maxWidth="420px">
+      {(["underline", "band", "segmented"] as const).map((variant) => (
+        <Stack key={variant} gap="2">
+          <Text variant="label" color="muted">
+            {variant}
+          </Text>
+          <SectionTabsDemo
+            variant={variant}
+            size="lg"
+            fullWidth
             activateOnFocus
           />
         </Stack>
@@ -175,6 +222,61 @@ export const PageTabsStory: Story = {
         <Box padding="4">
           <Text variant="h2">{page?.label}</Text>
         </Box>
+      </div>
+    );
+  },
+};
+
+const party = [
+  { id: "overview", name: "Overview" },
+  { id: "kira", name: "Kira Vale", colorSeed: 12, portrait: samplePortraitSrc },
+  { id: "orrin", name: "Orrin Thale", colorSeed: 210 },
+  {
+    id: "saska",
+    name: "Saska of Thornhold, Last Warden of the Ember Gate",
+    colorSeed: 140,
+  },
+  { id: "add", name: "Add Character" },
+];
+
+/**
+ * Character pages with their portraits: Kira's uploaded image, Orrin's and
+ * Saska's initials. A portrait is hidden from screen readers, so each tab
+ * is named by the character's name alone. Saska's long name is cut short
+ * at about 16em; hover or focus the tab for the whole name.
+ */
+export const PageTabsWithPortraits: Story = {
+  name: "Page Tabs, with portraits",
+  render: function PageTabsWithPortraitsStory() {
+    const [current, setCurrent] = useState("kira");
+    return (
+      <div className={cx(css({ maxWidth: "720px" }), frame)}>
+        <PageTabs aria-label="Game pages">
+          {party.map((page) => (
+            <PageTab
+              key={page.id}
+              href={`#${page.id}`}
+              current={page.id === current}
+              avatar={
+                page.colorSeed !== undefined ? (
+                  <CharacterPortrait
+                    name={page.name}
+                    portraitUrl={page.portrait}
+                    colorSeed={page.colorSeed}
+                    size="xs"
+                    decorative
+                  />
+                ) : undefined
+              }
+              onClick={(event) => {
+                event.preventDefault();
+                setCurrent(page.id);
+              }}
+            >
+              {page.name}
+            </PageTab>
+          ))}
+        </PageTabs>
       </div>
     );
   },

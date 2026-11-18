@@ -18,71 +18,21 @@ import {
   ProgressTrackStrings,
   defaultProgressTrackStrings,
 } from "./progressTrackStrings";
-
-const cardStyles = css({
-  display: "grid",
-  gap: "3",
-  minWidth: 0,
-  padding: "3",
-  borderWidth: "1px",
-  borderStyle: "solid",
-  borderColor: "border.default",
-  borderRadius: "lg",
-  background: "bg.surface",
-  color: "fg.default",
-  boxShadow: "ledge",
-  "&[data-plain]": {
-    padding: 0,
-    borderWidth: 0,
-    borderRadius: 0,
-    background: "transparent",
-    boxShadow: "none",
-  },
-});
+import { TickAnimation } from "./tickAnimation";
+import {
+  trackCardStyles as cardStyles,
+  trackCardControlsStyles as controlsStyles,
+  trackCardDescriptionStyles as descriptionStyles,
+  trackCardDotStyles as dotStyles,
+  trackCardEyebrowStyles as eyebrowStyles,
+  trackCardTitleStyles as titleStyles,
+} from "./trackCardStyles";
 
 const headStyles = css({
   display: "grid",
   gridTemplateColumns: "minmax(0, 1fr) auto",
   alignItems: "start",
   gap: "2",
-});
-
-const eyebrowStyles = css({
-  display: "flex",
-  flexWrap: "wrap",
-  alignItems: "center",
-  columnGap: "1.5",
-  rowGap: "0.5",
-  margin: 0,
-  marginBottom: "0.5",
-  fontFamily: "heading",
-  fontWeight: "bold",
-  fontSize: "xs",
-  lineHeight: "snug",
-  textTransform: "uppercase",
-  letterSpacing: "label",
-  color: "fg.muted",
-});
-
-const dotStyles = css({ color: "fg.subtle" });
-
-const titleStyles = css({
-  display: "block",
-  fontFamily: "heading",
-  fontWeight: "bold",
-  fontSize: "lg",
-  lineHeight: "tight",
-  textWrap: "balance",
-  overflowWrap: "anywhere",
-});
-
-const descriptionStyles = css({
-  margin: 0,
-  marginTop: "1",
-  fontSize: "sm",
-  lineHeight: "normal",
-  color: "fg.muted",
-  whiteSpace: "pre-wrap",
 });
 
 const badgeStyles = css({
@@ -101,15 +51,6 @@ const badgeStyles = css({
   textTransform: "uppercase",
   letterSpacing: "label",
   "& svg": { width: "1.1em", height: "1.1em" },
-});
-
-const controlsStyles = css({
-  display: "flex",
-  alignItems: "center",
-  gap: "0.5",
-  // Line the buttons up with the title when there is no eyebrow above it.
-  marginTop: "-1",
-  marginInlineEnd: "-1",
 });
 
 const actionsStyles = css({
@@ -151,6 +92,8 @@ export interface ProgressTrackProps {
   titleAs?: ElementType;
   /** No card around it, for use inside another card. */
   plain?: boolean;
+  /** How new ticks draw in. See ProgressBoxes. */
+  tickAnimation?: TickAnimation;
   strings?: Partial<ProgressTrackStrings>;
   rankLabels?: Partial<Record<ProgressRank, string>>;
   className?: string;
@@ -176,6 +119,7 @@ export function ProgressTrack(props: ProgressTrackProps) {
     headerAction,
     titleAs: Title = "span",
     plain,
+    tickAnimation,
     strings: stringsProp,
     rankLabels: rankLabelsProp,
     className,
@@ -275,7 +219,11 @@ export function ProgressTrack(props: ProgressTrackProps) {
         aria-valuenow={ticks}
         aria-valuetext={valueText}
       >
-        <ProgressBoxes ticks={ticks} complete={completed} />
+        <ProgressBoxes
+          ticks={ticks}
+          complete={completed}
+          animation={tickAnimation}
+        />
       </div>
 
       {actions && <div className={actionsStyles}>{actions}</div>}

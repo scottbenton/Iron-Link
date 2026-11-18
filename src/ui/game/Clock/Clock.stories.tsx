@@ -1,8 +1,10 @@
+import { DotsThree } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
 import { Box, Grid, HStack, Stack } from "styled-system/jsx";
 
+import { IconButton } from "../../components/IconButton";
 import { Clock, ClockProps, ClockVariant } from "./Clock";
 
 const variants: ClockVariant[] = [
@@ -39,6 +41,7 @@ const meta = {
     segments: { control: "inline-radio", options: [4, 6, 8, 10] },
     size: { control: "inline-radio", options: ["sm", "md", "lg"] },
     variant: { control: "inline-radio", options: variants },
+    presentation: { control: "inline-radio", options: ["bare", "card"] },
   },
 } satisfies Meta<typeof Clock>;
 
@@ -258,4 +261,155 @@ export const LongLabel: Story = {
 
 export const Disabled: Story = {
   args: { disabled: true, onChange: () => {} },
+};
+
+/**
+ * Click or tap the middle of a dial to add one segment; its tooltip and name
+ * say "Advance" and the clock's name, and the change is announced. Hovering
+ * the middle previews the next segment. A pie (wedges, sweep, classic) shows
+ * a plus there on hover, as it has no count in the middle. Full clocks rest:
+ * no tint, and the tooltip says the clock is full. Clicking a segment still
+ * sets the clock to it. The bar has no middle, so no centre.
+ */
+export const CentreAdvances: Story = {
+  render: () => (
+    <Stack gap="6">
+      {variants
+        .filter((variant) => variant !== "bar")
+        .map((variant) => (
+          <HStack key={variant} gap="6" alignItems="flex-start" flexWrap="wrap">
+            <Box width="96px" fontFamily="heading" fontWeight="bold">
+              {variant}
+            </Box>
+            <Interactive
+              variant={variant}
+              label="Guards notice"
+              segments={4}
+              start={0}
+            />
+            <Interactive
+              variant={variant}
+              label="The storm arrives"
+              segments={6}
+              start={3}
+            />
+            <Interactive
+              variant={variant}
+              label="The Forgeborn awaken"
+              segments={10}
+              start={9}
+            />
+            <Interactive
+              variant={variant}
+              label="The bridge collapses"
+              segments={6}
+              start={6}
+            />
+            <Interactive
+              variant={variant}
+              size="sm"
+              label="Ruin at Thornhold"
+              segments={8}
+              start={2}
+            />
+          </HStack>
+        ))}
+    </Stack>
+  ),
+};
+
+function CardClock(
+  props: Omit<ClockProps, "value" | "onChange" | "presentation"> & {
+    start: number;
+  },
+) {
+  const { start, ...rest } = props;
+  const [value, setValue] = useState(start);
+  return (
+    <Clock
+      {...rest}
+      presentation="card"
+      value={value}
+      onChange={setValue}
+      headerAction={
+        <IconButton label={`${rest.label} options`} size="sm">
+          <DotsThree weight="bold" />
+        </IconButton>
+      }
+    />
+  );
+}
+
+/**
+ * The card presentation, matching ProgressTrack's card: the same surface,
+ * border and header (eyebrow, name, description, menu at the top right),
+ * with the dial beside the name.
+ */
+export const Card: Story = {
+  render: () => (
+    <Box width="336px" maxWidth="100%">
+      <CardClock
+        label="The archive floods"
+        typeLabel="Tension Clock"
+        description="Advance when you Pay the Price inside the archive."
+        segments={6}
+        start={2}
+      />
+    </Box>
+  ),
+};
+
+/**
+ * Card clocks among progress tracks' widths: the game sidebar at its
+ * narrowest (280px), default (360px) and a mid width, on its muted
+ * background. Long names wrap beside the dial; full clocks rest.
+ */
+export const CardsInSidebar: Story = {
+  render: () => (
+    <HStack gap="6" alignItems="flex-start" flexWrap="wrap">
+      {[280, 320, 360].map((width) => (
+        <Stack
+          key={width}
+          width={`${width}px`}
+          gap="3"
+          padding="3"
+          background="bg.muted"
+          borderWidth="1px"
+          borderStyle="solid"
+          borderColor="border.default"
+        >
+          <Box fontSize="xs" color="fg.muted">
+            {width}px sidebar
+          </Box>
+          <CardClock
+            label="The archive floods"
+            typeLabel="Tension Clock"
+            segments={6}
+            start={2}
+          />
+          <CardClock
+            label="The Iron Prophet's cult takes the Havens of Ashfall"
+            typeLabel="Campaign Clock"
+            description="Advance at the end of each session."
+            segments={8}
+            start={5}
+          />
+          <CardClock
+            label="The bridge collapses"
+            typeLabel="Tension Clock"
+            segments={4}
+            start={4}
+          />
+          <CardClock
+            label="Raiders reach the village"
+            typeLabel="Campaign Clock"
+            variant="wedges"
+            segments={10}
+            start={3}
+          />
+          <CardClock label="Rumours spread" segments={6} start={0} size="sm" />
+        </Stack>
+      ))}
+    </HStack>
+  ),
 };

@@ -14,7 +14,6 @@
  * - Reference (live `ReferenceSidebarContents`): Moves, Oracles and Game
  *   Log tabs, each scrolling under the pinned tab row.
  */
-import type { Datasworn } from "@datasworn-community/core";
 import {
   ChatsCircleIcon,
   DotsThreeIcon,
@@ -24,7 +23,7 @@ import {
 } from "@phosphor-icons/react";
 import { useState } from "react";
 
-import { css } from "styled-system/css";
+import { css, cva } from "styled-system/css";
 import { Box, Flex, HStack, Stack } from "styled-system/jsx";
 
 import { BreadcrumbItem, Breadcrumbs } from "../../components/Breadcrumbs";
@@ -36,6 +35,7 @@ import {
   NoteTabs,
   SectionTab,
   SectionTabList,
+  SectionTabsVariant,
   TabPanel,
   Tabs,
 } from "../../components/Tabs";
@@ -44,15 +44,17 @@ import { characterAuthor, gameLogEntries } from "../../examples/sampleLog";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
 import { Clock } from "../../game/Clock";
-import { ConditionMeter, MomentumMeter } from "../../game/ConditionMeter";
+import {
+  AddsMeter,
+  ConditionMeter,
+  MomentumMeter,
+} from "../../game/ConditionMeter";
 import { GameLog } from "../../game/GameLog";
 import type { GameLogEntry } from "../../game/GameLog";
-import { ImpactsChecklist } from "../../game/ImpactsChecklist";
 import type { ImpactGroup } from "../../game/ImpactsChecklist";
+import { ImpactsSummary } from "../../game/ImpactsSummary";
 import { InitiativeChip } from "../../game/InitiativeChip";
 import type { InitiativeStatus } from "../../game/InitiativeChip";
-import { MoveListItem } from "../../game/MoveListItem";
-import { OracleListItem } from "../../game/OracleListItem";
 import { ProgressTrack } from "../../game/ProgressTrack";
 import { StatGrid } from "../../game/StatCard";
 import { XPMeter } from "../../game/XPTrack";
@@ -64,8 +66,15 @@ import {
   sampleAssets,
   starforgedRules,
 } from "../../stories/fixtures/datasworn";
+import {
+  MoveCategoryTree,
+  OracleCollectionTree,
+  starforgedMoveCategories,
+  starforgedOracleCollections,
+} from "../../stories/fixtures/referenceTrees";
 import { ActionToolbar, ActionToolbarIconButton } from "../ActionToolbar";
 import { SectionHeading } from "../SectionHeading";
+import { characterSections, getReferenceSections } from "./columnSections";
 
 const capitalize = (text: string) =>
   text.charAt(0).toUpperCase() + text.slice(1);
@@ -77,11 +86,33 @@ const columnTabsStyles = css({
   minHeight: "100%",
 });
 
-const tabRowStyles = css({
-  flex: "none",
-  paddingInline: "4",
-  paddingBlock: "3",
+/**
+ * The row holding a column's tabs. A band runs edge to edge; the others
+ * sit inside the column's margins.
+ */
+const tabRowStyles = cva({
+  base: { flex: "none", paddingInline: "4", paddingBlock: "3" },
+  variants: {
+    variant: {
+      segmented: {},
+      chips: {},
+      underline: { paddingBlockEnd: "4" },
+      band: { paddingInline: 0, paddingBlock: 0, marginBlockEnd: "4" },
+      accent: { paddingBlock: "1", marginBlockEnd: "3" },
+      pills: {},
+    },
+  },
+  defaultVariants: { variant: "segmented" },
 });
+
+/** Props the game page's columns share for their own tabs. */
+export interface ColumnTabsProps {
+  /** The look of the column's tab row. */
+  tabsVariant?: SectionTabsVariant;
+  /** The tab showing. Uncontrolled without it. */
+  section?: string;
+  onSectionChange?: (section: string) => void;
+}
 
 const sheetPanelStyles = css({
   paddingInline: "4",
@@ -126,9 +157,19 @@ export function CharacterColumnActions() {
 }
 
 /** The character sheet: Overview, Assets and Tracks, as in the live app. */
-export function CharacterColumn(props: { character?: SampleCharacter }) {
-  const { character = sampleCharacters[0] } = props;
+export function CharacterColumn(
+  props: { character?: SampleCharacter } & ColumnTabsProps,
+) {
+  const {
+    character = sampleCharacters[0],
+    tabsVariant,
+    section,
+    onSectionChange,
+  } = props;
   const [meters, setMeters] = useState(character.meters);
+  // Adds apply to the next roll, then reset to 0, as the live app does.
+  const [adds, setAdds] = useState(0);
+  const rollWithAdds = () => setAdds(0);
   const [initiative, setInitiative] = useState<InitiativeStatus>("outOfCombat");
   const [impacts, setImpacts] = useState<Record<string, boolean>>({
     wounded: true,
@@ -140,12 +181,23 @@ export function CharacterColumn(props: { character?: SampleCharacter }) {
   const [showCompleted, setShowCompleted] = useState(false);
 
   return (
-    <Tabs defaultValue="overview" className={columnTabsStyles}>
-      <div className={tabRowStyles}>
-        <SectionTabList aria-label="Character Sections">
-          <SectionTab value="overview">Overview</SectionTab>
-          <SectionTab value="assets">Assets</SectionTab>
-          <SectionTab value="tracks">Tracks</SectionTab>
+    <Tabs
+      defaultValue="overview"
+      value={section}
+      onValueChange={(value) => onSectionChange?.(String(value))}
+      className={columnTabsStyles}
+    >
+      <div className={tabRowStyles({ variant: tabsVariant })}>
+        <SectionTabList
+          aria-label="Character Sections"
+          variant={tabsVariant}
+          fullWidth={tabsVariant !== "accent" && tabsVariant !== "pills"}
+        >
+          {characterSections.map((tab) => (
+            <SectionTab key={tab.id} value={tab.id}>
+              {tab.title}
+            </SectionTab>
+          ))}
         </SectionTabList>
       </div>
 
@@ -183,7 +235,8 @@ export function CharacterColumn(props: { character?: SampleCharacter }) {
                 name: capitalize(key),
                 value: character.stats[key],
               }))}
-              onRoll={() => {}}
+              adds={adds}
+              onRoll={rollWithAdds}
             />
           </Stack>
 
@@ -197,10 +250,11 @@ export function CharacterColumn(props: { character?: SampleCharacter }) {
                   value={meters[meter]}
                   max={5}
                   warnAtMin
+                  adds={adds}
                   onChange={(value) =>
                     setMeters((current) => ({ ...current, [meter]: value }))
                   }
-                  onRoll={() => {}}
+                  onRoll={rollWithAdds}
                 />
               ))}
               <MomentumMeter
@@ -213,18 +267,17 @@ export function CharacterColumn(props: { character?: SampleCharacter }) {
                 }
               />
             </Flex>
+            <AddsMeter value={adds} onChange={setAdds} />
           </Stack>
 
           <Stack gap="2" as="section">
             <SectionHeading title="Impacts" as="h3" variant="band" />
-            <ImpactsChecklist
+            <ImpactsSummary
               groups={impactGroups}
               value={impacts}
-              onChange={(key, marked) =>
+              onImpactChange={(key, marked) =>
                 setImpacts((current) => ({ ...current, [key]: marked }))
               }
-              hideTitle
-              size="sm"
             />
           </Stack>
 
@@ -299,10 +352,17 @@ export function CharacterColumn(props: { character?: SampleCharacter }) {
             ticks={20}
           />
           <Clock
+            presentation="card"
             label="The archive floods"
+            typeLabel="Tension Clock"
             segments={6}
             value={clock}
             onChange={setClock}
+            headerAction={
+              <IconButton label="The archive floods options" size="sm">
+                <DotsThreeIcon weight="bold" />
+              </IconButton>
+            }
           />
           {showCompleted && (
             <ProgressTrack
@@ -338,10 +398,16 @@ const openNotes = [
   { id: "salvagers", label: "The Salvagers" },
 ];
 
+/** The note's toolbar, inset like the other columns' contents. */
+const noteToolbarStyles = css({
+  paddingInline: "4",
+  paddingBlockStart: "3",
+});
+
 const noteBodyStyles = css({
   boxSizing: "border-box",
   maxWidth: "72ch",
-  paddingInline: "6",
+  paddingInline: "4",
   paddingBlock: "5",
   marginInline: "auto",
 });
@@ -405,23 +471,25 @@ export function NotesColumn(props: { pinLog?: boolean }) {
     >
       {notes.map((note) => (
         <NoteTabPanel key={note.id} value={note.id}>
-          <ActionToolbar
-            label="Note Actions"
-            breadcrumbs={
-              <Breadcrumbs>
-                <BreadcrumbItem href="#notes">Notes</BreadcrumbItem>
-                <BreadcrumbItem href="#sessions">Sessions</BreadcrumbItem>
-                <BreadcrumbItem current>{note.label}</BreadcrumbItem>
-              </Breadcrumbs>
-            }
-          >
-            <ActionToolbarIconButton label="Share Note">
-              <ShareNetworkIcon />
-            </ActionToolbarIconButton>
-            <ActionToolbarIconButton label="More Note Actions">
-              <DotsThreeIcon weight="bold" />
-            </ActionToolbarIconButton>
-          </ActionToolbar>
+          <div className={noteToolbarStyles}>
+            <ActionToolbar
+              label="Note Actions"
+              breadcrumbs={
+                <Breadcrumbs>
+                  <BreadcrumbItem href="#notes">Notes</BreadcrumbItem>
+                  <BreadcrumbItem href="#sessions">Sessions</BreadcrumbItem>
+                  <BreadcrumbItem current>{note.label}</BreadcrumbItem>
+                </Breadcrumbs>
+              }
+            >
+              <ActionToolbarIconButton label="Share Note">
+                <ShareNetworkIcon />
+              </ActionToolbarIconButton>
+              <ActionToolbarIconButton label="More Note Actions">
+                <DotsThreeIcon weight="bold" />
+              </ActionToolbarIconButton>
+            </ActionToolbar>
+          </div>
           <Stack gap="3" className={noteBodyStyles}>
             <Text variant="h3" as="h3">
               {note.label}
@@ -461,24 +529,12 @@ export function NotesColumn(props: { pinLog?: boolean }) {
 /* Reference                                                                */
 /* ------------------------------------------------------------------------ */
 
-type LooseCategory = {
-  name: string;
-  contents: Record<string, Datasworn.AnyMove>;
-};
-const moveCategories = (["adventure", "quest", "combat"] as const).map(
-  (key) => starforgedRules.moves[key] as LooseCategory,
-);
-
-type LooseOracle = Datasworn.OracleRollable;
-const coreOracles = Object.values(
-  starforgedRules.oracles.core.contents as Record<string, LooseOracle>,
-);
-const characterOracles = Object.values(
-  (starforgedRules.oracles.character.contents ?? {}) as Record<
-    string,
-    LooseOracle
-  >,
-);
+/** Categories open at first: one of each, so the rows show. */
+const openReferenceIds = new Set([
+  "move_category:starforged/adventure",
+  "oracle_collection:starforged/core",
+  "oracle_collection:starforged/planet",
+]);
 
 /** Moves, Oracles and Game Log behind tabs, the row pinned over each. */
 const referenceTabsStyles = css({
@@ -531,57 +587,50 @@ function GameLogPanel(props: { maxContentWidth?: string }) {
  * The reference: Moves, Oracles and the Game Log, as in the live app.
  * `showLog={false}` drops the log tab, for when the notes pin it.
  */
-export function ReferenceColumn(props: { showLog?: boolean }) {
-  const { showLog = true } = props;
+export function ReferenceColumn(
+  props: { showLog?: boolean } & ColumnTabsProps,
+) {
+  const { showLog = true, tabsVariant, section, onSectionChange } = props;
   return (
-    <Tabs defaultValue="moves" className={referenceTabsStyles}>
-      <div className={tabRowStyles}>
-        <SectionTabList aria-label="Reference Sections">
-          <SectionTab value="moves">Moves</SectionTab>
-          <SectionTab value="oracles">Oracles</SectionTab>
-          {showLog && <SectionTab value="log">Game Log</SectionTab>}
+    <Tabs
+      defaultValue="moves"
+      value={section}
+      onValueChange={(value) => onSectionChange?.(String(value))}
+      className={referenceTabsStyles}
+    >
+      <div className={tabRowStyles({ variant: tabsVariant })}>
+        <SectionTabList
+          aria-label="Reference Sections"
+          variant={tabsVariant}
+          fullWidth={tabsVariant !== "accent" && tabsVariant !== "pills"}
+        >
+          {getReferenceSections(showLog).map((tab) => (
+            <SectionTab key={tab.id} value={tab.id}>
+              {tab.title}
+            </SectionTab>
+          ))}
         </SectionTabList>
       </div>
       <TabPanel value="moves" className={referencePanelStyles}>
-        <Stack gap="5">
-          {moveCategories.map((category) => (
-            <Stack key={category.name} gap="1" as="section">
-              <SectionHeading title={category.name} as="h3" variant="band" />
-              {Object.values(category.contents).map((move) => (
-                <MoveListItem key={move._id} move={move} />
-              ))}
-            </Stack>
+        <Stack gap="2">
+          {starforgedMoveCategories.map((category) => (
+            <MoveCategoryTree
+              key={category._id}
+              category={category}
+              openIds={openReferenceIds}
+            />
           ))}
         </Stack>
       </TabPanel>
       <TabPanel value="oracles" className={referencePanelStyles}>
-        <Stack gap="5">
-          <Stack gap="1" as="section">
-            <SectionHeading title="Core Oracles" as="h3" variant="band" />
-            {coreOracles.map((oracle) => (
-              <OracleListItem
-                key={oracle._id}
-                name={oracle.name}
-                onRoll={() => {}}
-              />
-            ))}
-          </Stack>
-          {characterOracles.length > 0 && (
-            <Stack gap="1" as="section">
-              <SectionHeading
-                title="Character Oracles"
-                as="h3"
-                variant="band"
-              />
-              {characterOracles.slice(0, 6).map((oracle) => (
-                <OracleListItem
-                  key={oracle._id}
-                  name={oracle.name}
-                  onRoll={() => {}}
-                />
-              ))}
-            </Stack>
-          )}
+        <Stack gap="2">
+          {starforgedOracleCollections.map((collection) => (
+            <OracleCollectionTree
+              key={collection._id}
+              collection={collection}
+              openIds={openReferenceIds}
+            />
+          ))}
         </Stack>
       </TabPanel>
       {showLog && (

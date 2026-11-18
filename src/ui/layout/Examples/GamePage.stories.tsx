@@ -20,7 +20,8 @@
  *   Overview / Assets / Tracks → `SectionTabList`.
  *   - `CharacterDetails` (`PortraitAvatar`, name, `InitiativeStatusChip`)
  *     → `CharacterPortrait`, `Text`, `InitiativeChip`.
- *   - `Stats` → `StatGrid`; `ConditionMeters` → `ConditionMeter` and
+ *   - `Stats` → `StatGrid` (its Adds meter → `AddsMeter` under the
+ *     meters); `ConditionMeters` → `ConditionMeter` and
  *     `MomentumMeter`; `ImpactsSection` → `ImpactsChecklist`;
  *     `LegacyTracks` → `ProgressTrack legacy`; `ExperienceSection` →
  *     `XPMeter`; their h3s → `SectionHeading`.
@@ -57,6 +58,7 @@ import {
   ReferenceColumn,
 } from "./GamePageColumns";
 import { GamePageTabs, PhoneFrame } from "./StoryPlaceholders";
+import { characterSections, getReferenceSections } from "./columnSections";
 import { getNavItems } from "./storyData";
 
 const meta: Meta = {
@@ -71,11 +73,23 @@ type Story = StoryObj;
 const pageTitle = "Kira Vale";
 
 function useGameColumns(logInNotes?: boolean) {
+  // The columns' tabs are kept here so a collapsed sidebar's rail can open
+  // the column on one of them.
+  const [sheetSection, setSheetSection] = useState("overview");
+  const [referenceSection, setReferenceSection] = useState("moves");
   const character: LayoutPanel = {
     id: "character",
     title: "Character",
     actions: <CharacterColumnActions />,
-    content: <CharacterColumn />,
+    sections: characterSections,
+    activeSectionId: sheetSection,
+    onActiveSectionChange: setSheetSection,
+    content: (
+      <CharacterColumn
+        section={sheetSection}
+        onSectionChange={setSheetSection}
+      />
+    ),
   };
   const notes: LayoutPanel & { hideTitle: boolean } = {
     id: "notes",
@@ -86,7 +100,16 @@ function useGameColumns(logInNotes?: boolean) {
   const reference: LayoutPanel = {
     id: "reference",
     title: "Reference",
-    content: <ReferenceColumn showLog={!logInNotes} />,
+    sections: getReferenceSections(!logInNotes),
+    activeSectionId: referenceSection,
+    onActiveSectionChange: setReferenceSection,
+    content: (
+      <ReferenceColumn
+        showLog={!logInNotes}
+        section={referenceSection}
+        onSectionChange={setReferenceSection}
+      />
+    ),
   };
   return { character, notes, reference };
 }
@@ -237,6 +260,8 @@ function PhoneGamePage(props: { logInNotes?: boolean }) {
 /**
  * A phone: Character, Notes and Reference tabs under the bar (back to the
  * game, the character's name, its menu), opening on Character as live.
+ * The mobile redesign (bottom nav, character switcher, roll dock) is in
+ * "Layout/Examples/Phone game page".
  */
 export const Phone: Story = {
   parameters: { layout: "padded" },

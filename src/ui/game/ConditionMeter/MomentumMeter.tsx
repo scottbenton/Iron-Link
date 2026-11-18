@@ -47,6 +47,7 @@ const triggerStyles = css({
   transitionDuration: "fast",
   transitionTimingFunction: "out",
   _touch: { minHeight: "touch" },
+  "[data-stepper-size=touch] &": { minHeight: "touch" },
   _focusVisible: {
     outline: "2px solid token(colors.focusRing)",
     outlineOffset: "2px",
@@ -107,6 +108,8 @@ export interface MomentumMeterProps {
   /** What Reset and Burn set momentum to, 2 less impacts (at least 0). */
   resetValue?: number;
   disabled?: boolean;
+  /** 44px steppers at any pointer; see `ConditionMeter`. */
+  stepperSize?: "sm" | "touch";
   /** "Momentum", or "Focus" under Elegy. */
   label?: string;
   burnLabel?: string;
@@ -140,6 +143,7 @@ export function MomentumMeter(props: MomentumMeterProps) {
     max = 10,
     resetValue = 2,
     disabled,
+    stepperSize,
     label = "Momentum",
     burnLabel = "Burn",
     resetLabel = "Reset",
@@ -238,6 +242,7 @@ export function MomentumMeter(props: MomentumMeterProps) {
       max={max}
       onChange={onChange}
       disabled={disabled}
+      stepperSize={stepperSize}
       tone={tone}
       showPips={false}
       changeAnnouncement={changeAnnouncement}

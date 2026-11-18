@@ -1,6 +1,19 @@
 import { Tabs } from "@base-ui/react/tabs";
-import { ArrowLineLeftIcon, ArrowLineRightIcon } from "@phosphor-icons/react";
-import { CSSProperties, ReactNode, useEffect, useId, useRef } from "react";
+import {
+  ArrowLineLeftIcon,
+  ArrowLineRightIcon,
+  PushPinIcon,
+  XIcon,
+} from "@phosphor-icons/react";
+import {
+  CSSProperties,
+  Fragment,
+  ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -48,12 +61,48 @@ const rootStyles = cva({
   },
 });
 
-const expandedStyles = css({
-  display: "flex",
-  flexDirection: "column",
-  flex: "1 1 auto",
-  minHeight: 0,
-  "&[hidden]": { display: "none" },
+const expandedStyles = cva({
+  base: {
+    display: "flex",
+    flexDirection: "column",
+    flex: "1 1 auto",
+    minHeight: 0,
+    "&[hidden]": { display: "none" },
+  },
+  variants: {
+    /**
+     * Shown from the collapsed rail: the column floats over the page beside
+     * the rail, at the width it has when open, until the reader is done.
+     */
+    overlay: {
+      true: {
+        position: "absolute",
+        zIndex: "calc(token(zIndex.sticky) + 1)",
+        top: 0,
+        bottom: 0,
+        // Never wider than the room beside the rail.
+        width:
+          "min(var(--sidebar-width), calc(100cqi - var(--sidebar-rail-width) - 24px))",
+        background: "bg.muted",
+        borderColor: "border.control",
+        borderStyle: "solid",
+        borderWidth: 0,
+        boxShadow: "float",
+        outline: "none",
+        animation: "fadeIn token(durations.fast) token(easings.out)",
+        "[data-side=start] > &": {
+          insetInlineStart: "calc(100% + 1px)",
+          borderInlineEndWidth: "1px",
+        },
+        "[data-side=end] > &": {
+          insetInlineEnd: "calc(100% + 1px)",
+          borderInlineStartWidth: "1px",
+        },
+      },
+      false: {},
+    },
+  },
+  defaultVariants: { overlay: false },
 });
 
 const headerStyles = css({
@@ -102,6 +151,14 @@ const panelStyles = css({
   },
 });
 
+/** The rail's button for the section showing over the page. */
+const railButtonStyles = css({
+  "&[aria-expanded=true]": {
+    background: "overlay.selected",
+    color: "fg.default",
+  },
+});
+
 const railDividerStyles = css({
   width: "24px",
   height: "1px",
@@ -111,7 +168,15 @@ const railDividerStyles = css({
 
 export interface SidebarLabels {
   collapse?: string;
+  /** The rail's button that opens the sidebar in place again. */
   expand?: string;
+  /**
+   * Shown in a column opened over the page from the rail: keeps the
+   * sidebar open in place, as Expand does.
+   */
+  dock?: string;
+  /** Closes a column opened over the page from the rail. */
+  closeOverlay?: string;
   resize?: string;
   /** The tab list's name, where panels share the sidebar. */
   tabs?: string;
@@ -127,7 +192,14 @@ export interface SidebarProps {
   /** The panel showing. Uncontrolled without it. */
   activePanelId?: string;
   onActivePanelChange?: (panelId: string) => void;
-  /** Collapsed to a rail of panel buttons. Uncontrolled without it. */
+  /**
+   * Collapsed to a rail: a button per section of each panel (or per panel,
+   * for panels without sections). A rail button shows that section over the
+   * page, beside the rail, without opening the sidebar: Escape, a press
+   * elsewhere or moving focus out closes it, and focus goes back to the
+   * button. Expand, at the top of the rail, opens the sidebar in place.
+   * Uncontrolled without it.
+   */
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
   /**
@@ -152,9 +224,11 @@ export interface SidebarProps {
 }
 
 /**
- * A side column of the game page: the character sheet or the reference. The reader can resize it with the handle on its
- * inner edge and collapse it to a rail of panel buttons; the app owns the
- * width and collapsed state so it can remember them.
+ * A side column of the game page: the character sheet or the reference.
+ * The reader can resize it with the handle on its inner edge and collapse
+ * it to a rail of section buttons, each of which shows that section over
+ * the page for a moment; the app owns the width and collapsed state so it
+ * can remember them.
  *
  * Panels stay mounted while hidden, so a panel keeps its scroll position
  * and open sections when the reader switches away and back.
@@ -182,6 +256,8 @@ export function Sidebar(props: SidebarProps) {
   const {
     collapse: collapseLabel = "Collapse Sidebar",
     expand: expandLabel = "Expand Sidebar",
+    dock: dockLabel = "Keep Sidebar Open",
+    closeOverlay: closeOverlayLabel = "Close",
     resize: resizeLabel = "Resize Sidebar",
     tabs: tabsLabel = "Sidebar Sections",
   } = labels ?? {};
@@ -204,6 +280,16 @@ export function Sidebar(props: SidebarProps) {
     defaultWidth,
     onWidthChange,
   );
+
+  // The section shown over the page from the collapsed rail.
+  const [peek, setPeek] = useState<{
+    panelId: string;
+    sectionId?: string;
+  } | null>(null);
+  const peeking = collapsed && peek !== null;
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const peekTriggerRef = useRef<HTMLElement | null>(null);
+  const peekFocus = useRef<"in" | "trigger" | null>(null);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const expandButtonRef = useRef<HTMLElement>(null);
@@ -228,10 +314,95 @@ export function Sidebar(props: SidebarProps) {
       (tabRefs.current.get(pending.id) ?? collapseButtonRef.current)?.focus();
   }, [collapsed]);
 
+  // Expanding (from here or by the app) ends a peek.
+  useEffect(() => {
+    if (!collapsed) setPeek(null);
+  }, [collapsed]);
+
   const activePanel =
     panels.find((panel) => panel.id === activePanelId) ?? panels[0];
   const multiple = panels.length > 1;
   const clampedWidth = Math.min(maxWidth, Math.max(minWidth, width));
+
+  const closePeek = (returnFocus: boolean) => {
+    peekFocus.current = returnFocus ? "trigger" : null;
+    setPeek(null);
+  };
+
+  const openPeek = (
+    trigger: HTMLElement,
+    panel: LayoutPanel,
+    sectionId?: string,
+  ) => {
+    const showing =
+      peeking &&
+      peek?.panelId === panel.id &&
+      (sectionId === undefined ||
+        (panel.activeSectionId ?? peek?.sectionId) === sectionId);
+    if (showing) {
+      closePeek(true);
+      return;
+    }
+    peekTriggerRef.current = trigger;
+    setActivePanelId(panel.id);
+    if (sectionId) panel.onActiveSectionChange?.(sectionId);
+    // Moving between rail buttons keeps focus on the rail.
+    peekFocus.current = peeking ? null : "in";
+    setPeek({ panelId: panel.id, sectionId });
+  };
+
+  const dock = () => {
+    pendingFocus.current = { kind: "collapse" };
+    setPeek(null);
+    setCollapsed(false);
+  };
+
+  // Focus moves into the column when it opens, and back to its rail button
+  // when Escape or Close shuts it.
+  useEffect(() => {
+    const target = peekFocus.current;
+    peekFocus.current = null;
+    if (target === "trigger") {
+      peekTriggerRef.current?.focus();
+    } else if (target === "in" && peek) {
+      const tab = multiple ? tabRefs.current.get(peek.panelId) : undefined;
+      const heading = overlayRef.current?.querySelector<HTMLElement>("h2");
+      (tab ?? heading ?? overlayRef.current)?.focus();
+    }
+  }, [peek, multiple]);
+
+  // Escape, a press on the page or focus moving to the page closes it.
+  // Presses and focus in popups the column opened (menus, dialogs: other
+  // top-level nodes in the document) leave it open.
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    const root = rootRef.current;
+    if (!peeking || !overlay || !root) return;
+    const onPage = (node: EventTarget | null) =>
+      node instanceof Node &&
+      node.isConnected &&
+      !root.contains(node) &&
+      topLevelNode(node) === topLevelNode(root);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      event.preventDefault();
+      closePeek(true);
+    };
+    const onPointerDown = (event: PointerEvent) => {
+      if (onPage(event.target)) closePeek(false);
+    };
+    const onFocusOut = (event: FocusEvent) => {
+      if (onPage(event.relatedTarget)) closePeek(false);
+    };
+    overlay.addEventListener("keydown", onKeyDown);
+    overlay.addEventListener("focusout", onFocusOut);
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => {
+      overlay.removeEventListener("keydown", onKeyDown);
+      overlay.removeEventListener("focusout", onFocusOut);
+      document.removeEventListener("pointerdown", onPointerDown, true);
+    };
+  }, [peeking]);
 
   const collapse = () => {
     pendingFocus.current = { kind: "expand" };
@@ -258,23 +429,56 @@ export function Sidebar(props: SidebarProps) {
   const expandIcon =
     side === "start" ? <ArrowLineRightIcon /> : <ArrowLineLeftIcon />;
   const tooltipSide = side === "start" ? "right" : "left";
+  const overlayId = `${id}-overlay`;
 
   const headerEnd = (
     <div className={headerActionsStyles}>
       {activePanel?.actions}
-      {collapsible && (
-        <IconButton
-          ref={collapseButtonRef}
-          label={collapseLabel}
-          size="sm"
-          tooltipSide="bottom"
-          onClick={collapse}
-        >
-          {collapseIcon}
-        </IconButton>
+      {peeking ? (
+        <>
+          <IconButton
+            label={dockLabel}
+            size="sm"
+            tooltipSide="bottom"
+            onClick={dock}
+          >
+            <PushPinIcon />
+          </IconButton>
+          <IconButton
+            label={closeOverlayLabel}
+            size="sm"
+            tooltipSide="bottom"
+            onClick={() => closePeek(true)}
+          >
+            <XIcon />
+          </IconButton>
+        </>
+      ) : (
+        collapsible && (
+          <IconButton
+            ref={collapseButtonRef}
+            label={collapseLabel}
+            size="sm"
+            tooltipSide="bottom"
+            onClick={collapse}
+          >
+            {collapseIcon}
+          </IconButton>
+        )
       )}
     </div>
   );
+
+  // While it shows over the page, the column is a non-modal dialog named
+  // by its heading.
+  const overlayProps = peeking
+    ? {
+        id: overlayId,
+        ref: overlayRef,
+        role: "dialog",
+        "aria-labelledby": activePanel ? headingDomId(activePanel) : undefined,
+      }
+    : {};
 
   const renderPanelBody = (panel: LayoutPanel) => (
     <>
@@ -298,6 +502,7 @@ export function Sidebar(props: SidebarProps) {
         {
           "--sidebar-width": `${clampedWidth}px`,
           "--sidebar-min-width": `${minWidth}px`,
+          "--sidebar-rail-width": "60px",
         } as CSSProperties
       }
       data-side={side}
@@ -313,17 +518,47 @@ export function Sidebar(props: SidebarProps) {
           >
             {expandIcon}
           </IconButton>
-          <span className={railDividerStyles} aria-hidden="true" />
-          {panels.map((panel) => (
-            <IconButton
-              key={panel.id}
-              label={panel.title}
-              tooltipSide={tooltipSide}
-              onClick={() => expand(panel.id)}
-            >
-              {panel.icon ?? <PanelInitial title={panel.title} />}
-            </IconButton>
-          ))}
+          {panels.map((panel) => {
+            const showing = peeking && peek?.panelId === panel.id;
+            const sections = panel.sections ?? [];
+            return (
+              <Fragment key={panel.id}>
+                <span className={railDividerStyles} aria-hidden="true" />
+                {sections.length > 0 ? (
+                  sections.map((section) => (
+                    <IconButton
+                      key={section.id}
+                      label={section.title}
+                      tooltipSide={tooltipSide}
+                      className={railButtonStyles}
+                      aria-expanded={
+                        showing &&
+                        (panel.activeSectionId ?? peek?.sectionId) ===
+                          section.id
+                      }
+                      aria-controls={showing ? overlayId : undefined}
+                      onClick={(event) =>
+                        openPeek(event.currentTarget, panel, section.id)
+                      }
+                    >
+                      {section.icon}
+                    </IconButton>
+                  ))
+                ) : (
+                  <IconButton
+                    label={panel.title}
+                    tooltipSide={tooltipSide}
+                    className={railButtonStyles}
+                    aria-expanded={showing}
+                    aria-controls={showing ? overlayId : undefined}
+                    onClick={(event) => openPeek(event.currentTarget, panel)}
+                  >
+                    {panel.icon ?? <PanelInitial title={panel.title} />}
+                  </IconButton>
+                )}
+              </Fragment>
+            );
+          })}
         </>
       )}
 
@@ -331,8 +566,9 @@ export function Sidebar(props: SidebarProps) {
         <Tabs.Root
           value={activePanel?.id}
           onValueChange={(value) => setActivePanelId(String(value))}
-          className={expandedStyles}
-          hidden={collapsed}
+          className={expandedStyles({ overlay: peeking })}
+          hidden={collapsed && !peeking}
+          {...overlayProps}
         >
           <div className={headerStyles}>
             <Tabs.List
@@ -370,7 +606,11 @@ export function Sidebar(props: SidebarProps) {
         </Tabs.Root>
       ) : (
         activePanel && (
-          <div className={expandedStyles} hidden={collapsed}>
+          <div
+            className={expandedStyles({ overlay: peeking })}
+            hidden={collapsed && !peeking}
+            {...overlayProps}
+          >
             <div className={headerStyles}>
               <h2
                 id={headingDomId(activePanel)}
@@ -412,6 +652,22 @@ const initialStyles = css({
   fontSize: "md",
   lineHeight: "none",
 });
+
+/**
+ * The node under the document's body that holds this one: the app's root,
+ * or a popup's portal.
+ */
+function topLevelNode(node: Node): Node {
+  let current = node;
+  while (
+    current.parentNode &&
+    current.parentNode !== current.ownerDocument?.body &&
+    current.parentNode !== current.ownerDocument
+  ) {
+    current = current.parentNode;
+  }
+  return current;
+}
 
 /** The first letter of a panel without an icon, for the collapsed rail. */
 function PanelInitial(props: { title: string }): ReactNode {

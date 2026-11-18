@@ -20,6 +20,15 @@ const meterStyles = css({
   gap: "1",
   minWidth: "112px",
   "&[data-wide]": { minWidth: "152px" },
+  // 44px steppers at any pointer (a phone sheet's plain +/-), not only
+  // under _touch. The value grows to match.
+  "&[data-stepper-size=touch] [data-meter-stepper]": {
+    width: "touch",
+    minWidth: "touch",
+    height: "touch",
+    minHeight: "touch",
+  },
+  "&[data-stepper-size=touch] [data-meter-value]": { minHeight: "touch" },
   padding: "1.5",
   borderWidth: "1px",
   borderStyle: "solid",
@@ -48,9 +57,8 @@ const rowStyles = css({
   gridTemplateColumns: "auto minmax(48px, 1fr) auto",
   alignItems: "center",
   gap: "1",
+  "&[data-read-only]": { gridTemplateColumns: "minmax(48px, 1fr)" },
 });
-
-const readOnlyRowStyles = css({ gridTemplateColumns: "minmax(48px, 1fr)" });
 
 const valueStyles = css({
   display: "flex",
@@ -72,6 +80,7 @@ const valueStyles = css({
 const rollValueStyles = css({
   "--stat-min-height": "40px",
   "--stat-min-width": "48px",
+  "[data-stepper-size=touch] &": { "--stat-min-height": "44px" },
   "& [data-stat-inner]": {
     flexDirection: "row",
     gap: "1",
@@ -148,6 +157,12 @@ export interface ConditionMeterProps {
   showPips?: boolean;
   /** A wider meter, for one with buttons under it. */
   wide?: boolean;
+  /**
+   * `touch` makes the steppers 44px at any pointer, for a phone layout that
+   * wants them regardless of the device it is previewed on. By default they
+   * are 32px and grow to 40px under a coarse pointer.
+   */
+  stepperSize?: "sm" | "touch";
   /** Content under the meter: buttons, a caption. */
   children?: ReactNode;
   /**
@@ -185,6 +200,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
     warnAtMin,
     showPips: showPipsProp,
     wide,
+    stepperSize = "sm",
     children,
     valueControl,
     rollLabel = "Roll",
@@ -233,7 +249,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
       </BaseButton>
     </AddsAnchor>
   ) : (
-    <span className={valueStyles} data-tone={tone}>
+    <span className={valueStyles} data-tone={tone} data-meter-value="">
       {valueText}
     </span>
   );
@@ -245,15 +261,21 @@ export function ConditionMeter(props: ConditionMeterProps) {
       className={cx(meterStyles, className)}
       data-tone={tone}
       data-wide={wide || undefined}
+      data-stepper-size={stepperSize}
     >
       <span id={labelId} className={labelStyles}>
         {label}
       </span>
-      <div className={cx(rowStyles, !onChange && readOnlyRowStyles)}>
+      <div
+        className={rowStyles}
+        data-meter-row=""
+        data-read-only={!onChange || undefined}
+      >
         {onChange && (
           <IconButton
             label={decrementLabel(label)}
             size="sm"
+            data-meter-stepper=""
             focusableWhenDisabled
             disabled={disabled || value <= min}
             onClick={() => step(-1)}
@@ -266,6 +288,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
           <IconButton
             label={incrementLabel(label)}
             size="sm"
+            data-meter-stepper=""
             focusableWhenDisabled
             disabled={disabled || value >= max}
             onClick={() => step(1)}
