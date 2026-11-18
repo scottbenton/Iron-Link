@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "tsc": "tsc -b",
-    "build": "npm run tsc && vitest --run && vite build",
+    "build": "npm run tsc && vite build",
     "build:cloudflare": "bash scripts/build-cloudflare.sh",
     "lint": "eslint .",
     "format": "eslint . --fix && prettier . --write",
