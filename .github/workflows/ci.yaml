@@ -99,6 +99,7 @@ jobs:
   # CLOUDFLARE_DEPLOY_ENABLED repository variable is "true". PRs from forks
   # have no secrets, so they get no preview.
   deploy:
+    name: Deploy
     needs: [unit, lint, test]
     if: >-
       vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' &&
