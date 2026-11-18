@@ -1,5 +1,4 @@
 import { ArrowCounterClockwise, CaretDown, Flame } from "@phosphor-icons/react";
-import { CSSProperties } from "react";
 
 import { css } from "styled-system/css";
 
@@ -79,29 +78,6 @@ const triggerStyles = css({
     transitionDuration: "fast",
   },
   "&[data-popup-open] svg": { transform: "rotate(180deg)" },
-});
-
-/** Momentum's strip, -6 to max, in the place of a meter's pips. */
-const stripStyles = css({
-  display: "grid",
-  gridTemplateColumns: "repeat(var(--pip-count), minmax(0, 1fr))",
-  gap: "1px",
-  height: "4px",
-  marginInline: "1",
-});
-
-const stripPipStyles = css({
-  borderRadius: "full",
-  background: "bg.strip",
-  transitionProperty: "background-color",
-  transitionDuration: "fast",
-  "&[data-negative]": {
-    background: "color-mix(in oklab, token(colors.bg.strip) 55%, transparent)",
-  },
-  // A wider gap at zero, so the negative side reads as its own run.
-  "&[data-zero]": { marginInlineStart: "2px" },
-  "&[data-filled]": { background: "accent.solid" },
-  "&[data-negative][data-filled]": { background: "danger.solid" },
 });
 
 const groupLabelLineStyles = css({ display: "block" });
@@ -254,8 +230,6 @@ export function MomentumMeter(props: MomentumMeterProps) {
     </Menu>
   ) : undefined;
 
-  const steps = Math.max(max - min, 0);
-
   return (
     <ConditionMeter
       label={label}
@@ -269,27 +243,6 @@ export function MomentumMeter(props: MomentumMeterProps) {
       changeAnnouncement={changeAnnouncement}
       valueControl={valueControl}
       className={className}
-    >
-      <div
-        className={stripStyles}
-        style={{ "--pip-count": steps } as CSSProperties}
-        aria-hidden
-      >
-        {Array.from({ length: steps }, (_, index) => {
-          const from = min + index;
-          const isNegative = from < 0;
-          const filled = isNegative ? value <= from : from < value;
-          return (
-            <span
-              key={index}
-              className={stripPipStyles}
-              data-negative={isNegative || undefined}
-              data-zero={(from === 0 && min < 0) || undefined}
-              data-filled={filled || undefined}
-            />
-          );
-        })}
-      </div>
-    </ConditionMeter>
+    />
   );
 }

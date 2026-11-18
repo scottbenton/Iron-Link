@@ -6,8 +6,8 @@ import { Box, Grid, HStack, Stack } from "styled-system/jsx";
 import { Clock, ClockProps, ClockVariant } from "./Clock";
 
 const variants: ClockVariant[] = [
-  "wedges",
   "ring",
+  "wedges",
   "pips",
   "sweep",
   "bar",
@@ -16,8 +16,8 @@ const variants: ClockVariant[] = [
 
 const variantNotes: Record<ClockVariant, string> = {
   wedges:
-    "Recommended default. A pie of wedges parted by a thin gap, so there are no lines to fight the fill.",
-  ring: "A segmented donut with the count in the middle. Reads well small, on asset cards.",
+    "A pie of wedges parted by a thin gap, so there are no lines to fight the fill.",
+  ring: "The default. A segmented donut with the count in the middle. Reads well small, on asset cards.",
   pips: "A dot per segment around the count. The lightest; best at 8 or more segments.",
   sweep:
     "One solid fill, with segment ticks on the rim instead of lines across the face.",
@@ -33,7 +33,7 @@ const meta = {
     label: "The Iron Siege falls",
     segments: 6,
     value: 2,
-    variant: "wedges",
+    variant: "ring",
   },
   argTypes: {
     segments: { control: "inline-radio", options: [4, 6, 8, 10] },
@@ -205,7 +205,7 @@ export const ReadOnly: Story = {
 export const Sizes: Story = {
   render: () => (
     <Stack gap="6">
-      {(["wedges", "ring", "bar"] as const).map((variant) => (
+      {(["ring", "wedges", "bar"] as const).map((variant) => (
         <HStack key={variant} gap="6" alignItems="flex-end">
           <Clock
             label="Small"

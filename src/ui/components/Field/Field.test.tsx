@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { TextField } from "../TextField";
 
 describe("FieldShell", () => {
-  it("puts help under the label and the error under the control", () => {
+  it("puts help and then the error under the control, so side-by-side fields line up", () => {
     render(
       <TextField
         label="Character Name"
@@ -17,8 +17,8 @@ describe("FieldShell", () => {
     const error = screen.getByText("That name is taken.");
     const follows = (a: Node, b: Node) =>
       Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(follows(help, input)).toBe(true);
-    expect(follows(input, error)).toBe(true);
+    expect(follows(input, help)).toBe(true);
+    expect(follows(help, error)).toBe(true);
     expect(input).toHaveAccessibleDescription(
       expect.stringContaining("Shown on your sheet."),
     );

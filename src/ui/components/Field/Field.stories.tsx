@@ -15,7 +15,6 @@ import {
   Field,
   FieldDescription,
   FieldError,
-  FieldHeader,
   FieldLabel,
   FieldRoot,
 } from "./Field";
@@ -51,19 +50,30 @@ export const Playground: Story = {
   ),
 };
 
-/** The parts, for a custom control: label and help in a FieldHeader. */
+/** The parts, for a custom control: label, control, help, then error. */
 export const Parts: Story = {
   render: () => (
     <Stack maxWidth="360px">
       <FieldRoot invalid>
-        <FieldHeader>
-          <FieldLabel required>Pronouns</FieldLabel>
-          <FieldDescription>For example: she/her, they/them.</FieldDescription>
-        </FieldHeader>
+        <FieldLabel required>Pronouns</FieldLabel>
         <TextField />
+        <FieldDescription>For example: she/her, they/them.</FieldDescription>
         <FieldError>Enter pronouns, or leave the field blank.</FieldError>
       </FieldRoot>
     </Stack>
+  ),
+};
+
+/**
+ * Help sits under the control, so fields side by side line up whether or not
+ * they have any.
+ */
+export const SideBySide: Story = {
+  render: () => (
+    <Grid columns={2} gap="4" maxWidth="560px">
+      <TextField label="Character Name" description="Shown to everyone." />
+      <TextField label="Pronouns" />
+    </Grid>
   ),
 };
 

@@ -283,6 +283,13 @@ export interface RollCardProps {
   /** Translated words for the card and its summary. */
   text?: RollTextOverrides;
   diceStrings?: Partial<DiceDisplayStrings>;
+  /**
+   * Adds a "One on the action die" chip when the die shows a 1. Off by
+   * default: the d6's red ring already marks a 1, and Datasworn doesn't say
+   * when one matters, so set this only when the app knows (an asset of the
+   * character's that cares about it).
+   */
+  oneOnActionDieMatters?: boolean;
   /** "One on the action die" */
   oneOnActionDieLabel?: string;
   /** "Matched negative momentum" */
@@ -315,6 +322,7 @@ export function RollCard(props: RollCardProps) {
     summaryPrefix,
     text: textProp,
     diceStrings,
+    oneOnActionDieMatters,
     oneOnActionDieLabel = "One on the action die",
     cancelledLabel = "Matched negative momentum",
     className,
@@ -341,7 +349,7 @@ export function RollCard(props: RollCardProps) {
     );
   }
   if (roll.kind === "action") {
-    if (roll.actionDie === 1 && !roll.momentumBurned) {
+    if (oneOnActionDieMatters && roll.actionDie === 1 && !roll.momentumBurned) {
       chips.push(
         <span key="one" className={chipStyles}>
           {oneOnActionDieLabel}

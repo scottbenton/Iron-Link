@@ -16,7 +16,7 @@ export type InitiativeWording = "ironsworn" | "starforged";
 export interface InitiativeOption<T extends string = string> {
   value: T;
   label: string;
-  /** The status outside a fight. Drawn muted, with a hollow dot. */
+  /** The status outside a fight. Drawn muted. */
   resting?: boolean;
 }
 

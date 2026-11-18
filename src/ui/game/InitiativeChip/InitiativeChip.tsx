@@ -37,22 +37,6 @@ const chipStyles = css({
   },
 });
 
-/**
- * A dot before the label, filled in a fight and hollow at rest. It marks the
- * chip as a status without saying whether the status is good or bad.
- */
-const dotStyles = css({
-  flex: "none",
-  width: "8px",
-  height: "8px",
-  borderRadius: "full",
-  background: "currentColor",
-  "[data-resting] > &": {
-    background: "transparent",
-    boxShadow: "inset 0 0 0 1.5px currentColor",
-  },
-});
-
 const triggerStyles = css({
   cursor: "pointer",
   outline: "none",
@@ -156,12 +140,7 @@ export function InitiativeChip<T extends string = InitiativeStatus>(
   const label = current?.label ?? status;
   const resting = current?.resting ? "" : undefined;
 
-  const content = (
-    <>
-      <span className={dotStyles} aria-hidden />
-      {label}
-    </>
-  );
+  const content = label;
 
   if (!onStatusChange) {
     return (

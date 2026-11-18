@@ -11,7 +11,7 @@ export const listPositionerStyles = css({
 
 /**
  * The listbox popup Select and Combobox share, from the Workbench: a surface
- * card with a control border and a small ledge, that grows from its anchor
+ * card with a control border and a soft shadow, that grows from its anchor
  * on open and shrinks back faster on close.
  */
 export const listPopupStyles = css({

@@ -2,8 +2,8 @@ import { css } from "styled-system/css";
 
 /**
  * The floating card shared by menus, popovers and preview cards: a raised
- * surface on a 3px ledge with a soft shadow, entering from the trigger with
- * a short fade and scale and leaving faster.
+ * surface with a soft shadow and no ledge (it isn't pressed), entering from
+ * the trigger with a short fade and scale and leaving faster.
  */
 export const popupSurfaceStyles = css({
   boxSizing: "border-box",

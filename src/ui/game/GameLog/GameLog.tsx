@@ -102,34 +102,29 @@ const dayStyles = css({
   },
 });
 
+// Entries stack: who and when above, the roll or message below. Rolls fill
+// the column whoever made them, so every card lines up; messages sit on
+// their author's side, the viewer's on the right.
 const entryStyles = css({
-  display: "flex",
-  alignItems: "flex-start",
-  gap: "2",
-  minWidth: 0,
-  "&[data-you]": { flexDirection: "row-reverse" },
-});
-
-const bodyStyles = css({
   display: "flex",
   flexDirection: "column",
   alignItems: "flex-start",
   gap: "1",
-  flex: "1",
   minWidth: 0,
-  "[data-you] > &": { alignItems: "flex-end" },
+  "&[data-you]": { alignItems: "flex-end" },
 });
 
 const metaStyles = css({
   display: "flex",
   flexWrap: "wrap",
-  alignItems: "baseline",
-  columnGap: "2",
+  alignItems: "center",
+  columnGap: "1.5",
   rowGap: "0.5",
+  maxWidth: "100%",
   fontSize: "xs",
   lineHeight: "snug",
   color: "fg.muted",
-  "[data-you] &": { flexDirection: "row-reverse" },
+  "[data-you] > &": { justifyContent: "flex-end" },
 });
 
 const nameStyles = css({
@@ -151,16 +146,15 @@ const guideStyles = css({
   "& svg": { width: "1.1em", height: "1.1em" },
 });
 
+// Messages are filled and borderless, so they read as talk beside the
+// bordered roll cards: grey for others, the accent tint for yours.
 const bubbleStyles = css({
   maxWidth: "min(100%, 440px)",
   paddingBlock: "2",
   paddingInline: "3",
-  borderWidth: "1px",
-  borderStyle: "solid",
-  borderColor: "border.subtle",
   borderRadius: "lg",
   borderTopLeftRadius: "xs",
-  background: "bg.muted",
+  background: "bg.emphasized",
   fontSize: "sm",
   lineHeight: "normal",
   whiteSpace: "pre-wrap",
@@ -169,16 +163,15 @@ const bubbleStyles = css({
     borderTopLeftRadius: "lg",
     borderTopRightRadius: "xs",
     background: "accent.soft",
-    borderColor:
-      "color-mix(in oklab, token(colors.accent.fg) 20%, transparent)",
   },
   "[data-guide-only] &": {
-    borderStyle: "dashed",
-    borderColor: "info.fg",
+    outline: "1px dashed token(colors.info.fg)",
+    outlineOffset: "2px",
   },
 });
 
-const rollGuideStyles = css({
+const rollStyles = css({
+  alignSelf: "stretch",
   "[data-guide-only] &": {
     outline: "1px dashed token(colors.info.fg)",
     outlineOffset: "2px",
@@ -189,15 +182,15 @@ const portraitStyles = css({
   display: "grid",
   placeItems: "center",
   flex: "none",
-  width: "32px",
-  height: "32px",
+  width: "20px",
+  height: "20px",
   borderRadius: "full",
   overflow: "hidden",
   background: "bg.emphasized",
   color: "fg.muted",
   fontFamily: "heading",
   fontWeight: "semibold",
-  fontSize: "sm",
+  fontSize: "2xs",
   "& > img": { width: "100%", height: "100%", objectFit: "cover" },
 });
 
@@ -453,38 +446,36 @@ function GameLogItem(props: GameLogItemProps) {
       data-you={author.isYou || undefined}
       data-guide-only={entry.guideOnly || undefined}
     >
-      <span className={portraitStyles} aria-hidden>
-        {author.portrait ?? initials(author.name)}
-      </span>
-      <div className={bodyStyles}>
-        <div className={metaStyles} aria-hidden>
-          <span className={nameStyles}>{author.name}</span>
-          {author.writtenBy && <span>{author.writtenBy}</span>}
-          <time dateTime={entry.timestamp.toISOString()}>{time}</time>
-          {entry.guideOnly && (
-            <span className={guideStyles}>
-              <LockSimple weight="bold" />
-              {strings.guideOnly}
-            </span>
-          )}
-        </div>
-        {entry.kind === "roll" ? (
-          <RollCard
-            roll={entry.roll}
-            variant="compact"
-            diceDetail={diceDetail}
-            actions={entry.actions}
-            summaryPrefix={heading}
-            text={rollText}
-            className={rollGuideStyles}
-          />
-        ) : (
-          <>
-            <VisuallyHidden>{`${heading}.`}</VisuallyHidden>
-            <div className={bubbleStyles}>{entry.message}</div>
-          </>
+      <div className={metaStyles} aria-hidden>
+        <span className={portraitStyles}>
+          {author.portrait ?? initials(author.name)}
+        </span>
+        <span className={nameStyles}>{author.name}</span>
+        {author.writtenBy && <span>{author.writtenBy}</span>}
+        <time dateTime={entry.timestamp.toISOString()}>{time}</time>
+        {entry.guideOnly && (
+          <span className={guideStyles}>
+            <LockSimple weight="bold" />
+            {strings.guideOnly}
+          </span>
         )}
       </div>
+      {entry.kind === "roll" ? (
+        <RollCard
+          roll={entry.roll}
+          variant="compact"
+          diceDetail={diceDetail}
+          actions={entry.actions}
+          summaryPrefix={heading}
+          text={rollText}
+          className={rollStyles}
+        />
+      ) : (
+        <>
+          <VisuallyHidden>{`${heading}.`}</VisuallyHidden>
+          <div className={bubbleStyles}>{entry.message}</div>
+        </>
+      )}
     </li>
   );
 }

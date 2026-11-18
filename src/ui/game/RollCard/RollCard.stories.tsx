@@ -161,6 +161,28 @@ export const NegativeMomentumCancels: Story = {
 };
 
 /**
+ * A 1 on the action die gets a red ring on the d6. Datasworn doesn't say when
+ * a 1 matters (only some assets and moves care), so the chip is opt-in:
+ * `oneOnActionDieMatters` for when the app knows, such as an asset of the
+ * character's that mentions it.
+ */
+export const OneOnTheActionDie: Story = {
+  render: () => (
+    <CardGrid>
+      <Labelled label="Ring only (default)">
+        <RollCard roll={sampleRolls.endureHarmOne} />
+      </Labelled>
+      <Labelled label="With the chip, when it matters">
+        <RollCard roll={sampleRolls.endureHarmOne} oneOnActionDieMatters />
+      </Labelled>
+      <Labelled label="Compact">
+        <RollCard roll={sampleRolls.endureHarmOne} variant="compact" />
+      </Labelled>
+    </CardGrid>
+  ),
+};
+
+/**
  * Sundered Isles' cursed die. A 10 brings the curse: the cursed table
  * replaces the result (Cursed Island Name for Island Name) or adds to it
  * (Cursed Crew). Short of 10 the die shows quietly and nothing changes.

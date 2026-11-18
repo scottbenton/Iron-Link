@@ -51,12 +51,14 @@ Each component is a folder: `Name/Name.tsx`, `Name/Name.stories.tsx`,
 
 ## The look: tactile flat
 
-- Elevation is solid: a 1px border plus a ledge, a solid bottom edge drawn
-  with `box-shadow: 0 var(--border-widths-ledge) 0 <edge colour>`. Things
-  you can press stand on a 2px ledge; floating things stand higher, on a
-  3px ledge with a soft shadow (`shadows.popover`: menus, popovers, select
-  lists, toasts) or 4px (`shadows.dialog`). Static cards, alerts and panels
-  are flat. Drawers fixed to a screen edge use `shadows.float`.
+- Two separate signals. A ledge (a solid bottom edge drawn with
+  `box-shadow: 0 var(--border-widths-ledge) 0 <edge colour>`) means you can
+  press it: buttons, chips, selectable cards stand on a 2px ledge. A shadow
+  means it floats above the page, and its depth says how high: menus,
+  popovers, select lists and toasts use `shadows.popover`, dialogs the
+  deeper `shadows.dialog`. Floating things get a 1px border and a shadow,
+  never a ledge. Static cards, alerts and panels are flat. Drawers fixed to
+  a screen edge use `shadows.float`.
 - A press sinks the element `var(--spacing-sink)` (1px) onto its ledge over
   `durations.instant`. Hover changes colour only (`--spacing-lift` is 0
   unless the page opts in). Reduced motion zeroes both.

@@ -445,9 +445,10 @@ export const fieldErrorStyles = css({
 });
 
 /**
- * The grid a field stacks its label, help, control and error in. The label
- * and its help sit together in a `fieldHeaderStyles` block, so help reads as
- * part of the label and the error as part of the control.
+ * The grid a field stacks its label, control, help and error in. Help sits
+ * under the control, so fields in a row line up whether or not they have
+ * any. (`fieldHeaderStyles` keeps a label and help together, for a custom
+ * field that wants help above.)
  */
 export const fieldRootRecipe = cva({
   base: {

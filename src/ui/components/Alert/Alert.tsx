@@ -92,10 +92,9 @@ const titleStyles = css({
   fontSize: "sm",
   fontWeight: "semibold",
   lineHeight: "snug",
-  // The tone colours the icon and the title only, so the alert reads as its
-  // tone at a glance. The body stays default text: tone text on a tint is
-  // lower contrast and tiring over more than a line.
-  color: "var(--alert-fg)",
+  // The tone shows in the icon and border only. Tone-coloured text on the
+  // tint read as loud, and as lower contrast, so the title stays default.
+  color: "fg.default",
 });
 
 const bodyStyles = css({

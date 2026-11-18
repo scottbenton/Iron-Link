@@ -122,15 +122,18 @@ export const buttonStyles = cva({
        * once on a page; `primary` is the main action everywhere else.
        */
       gradient: {
-        "--btn-bg": "transparent",
         "--btn-fg": "{colors.white}",
         "--btn-border": "transparent",
         // The ring's end colour, deepened. Mixed here rather than read from
         // `ringEdge`, so a scheme set on a subtree reaches the ledge too.
         "--btn-edge":
           "color-mix(in oklab, {colors.ring.end} 50%, {colors.black})",
-        "--btn-hover": "transparent",
-        "--btn-press": "transparent",
+        // The button behind the ring is the ledge's colour, so the ring's
+        // anti-aliased rounded edge blends into the ledge instead of showing
+        // a light seam of page between them.
+        "--btn-bg": "var(--btn-edge)",
+        "--btn-hover": "var(--btn-edge)",
+        "--btn-press": "var(--btn-edge)",
         // The ring's width and the face's colour, read by the parts inside.
         "--btn-ring": "2px",
         "--btn-face": "{colors.gray.900}",
@@ -154,7 +157,7 @@ export const buttonStyles = cva({
           background: "transparent",
           borderColor: "transparent",
         },
-        "&[data-busy]": { background: "transparent" },
+        "&[data-busy]": { background: "var(--btn-edge)" },
         [`& .${gradientRingStyles}[data-gradient-ring]`]: {
           display: "flex",
           flex: "1 1 auto",

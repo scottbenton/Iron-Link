@@ -195,8 +195,8 @@ export interface ClockProps {
   size?: "sm" | "md" | "lg";
   /**
    * How the dial is drawn, always in the accent colour:
-   * - `wedges` (default): a pie of wedges parted by a thin gap, no lines.
-   * - `ring`: a segmented donut with the count in the middle.
+   * - `ring` (default): a segmented donut with the count in the middle.
+   * - `wedges`: a pie of wedges parted by a thin gap, no lines.
    * - `pips`: a dot per segment around the count.
    * - `sweep`: a solid pie fill with segment ticks around the rim.
    * - `bar`: a notched horizontal bar, for tight rows and lists.
@@ -221,7 +221,7 @@ export function Clock(props: ClockProps) {
     onChange,
     disabled,
     size = "md",
-    variant = "wedges",
+    variant = "ring",
     hideLabel,
     strings: stringsProp,
     className,

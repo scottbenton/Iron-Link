@@ -297,19 +297,19 @@ export const semanticTokens = {
       value: `0 var(--border-widths-ledge) 0 ${v("border-edge")}`,
     },
     /**
-     * Floating cards (menus, popovers, select lists, toasts): a 3px ledge, a
-     * tight contact shadow and a soft one. Give the card a 1px
-     * `border.control` border. Shadow depth says how high a surface floats;
-     * the ledge is what says it can be touched.
+     * Floating cards (menus, popovers, select lists, toasts): a tight contact
+     * shadow and a soft one, no ledge. Give the card a 1px `border.control`
+     * border. Shadow depth says how high a surface floats; a ledge says it can
+     * be pressed, so floating surfaces (which aren't pressed) don't get one.
      */
     popover: lightDark(
-      `0 3px 0 ${v("border-edge")}, 0 4px 8px -4px ${mix(v("gray-950"), 14, "transparent")}, 0 14px 28px -10px ${mix(v("gray-950"), 32, "transparent")}`,
-      `0 3px 0 ${v("border-edge")}, 0 4px 8px -4px ${mix("black", 50, "transparent")}, 0 16px 32px -10px ${mix("black", 78, "transparent")}`,
+      `0 1px 2px ${mix(v("gray-950"), 10, "transparent")}, 0 4px 10px -2px ${mix(v("gray-950"), 14, "transparent")}, 0 16px 32px -8px ${mix(v("gray-950"), 30, "transparent")}`,
+      `0 1px 2px ${mix("black", 50, "transparent")}, 0 4px 10px -2px ${mix("black", 50, "transparent")}, 0 18px 36px -8px ${mix("black", 78, "transparent")}`,
     ),
-    /** Dialogs: the highest surface, a 4px ledge and a deeper shadow. */
+    /** Dialogs: the highest surface, a deeper shadow and no ledge. */
     dialog: lightDark(
-      `0 4px 0 ${v("border-edge")}, 0 6px 12px -6px ${mix(v("gray-950"), 18, "transparent")}, 0 28px 56px -14px ${mix(v("gray-950"), 42, "transparent")}`,
-      `0 4px 0 ${v("border-edge")}, 0 6px 12px -6px ${mix("black", 55, "transparent")}, 0 28px 56px -14px ${mix("black", 85, "transparent")}`,
+      `0 1px 3px ${mix(v("gray-950"), 12, "transparent")}, 0 8px 16px -6px ${mix(v("gray-950"), 18, "transparent")}, 0 32px 64px -14px ${mix(v("gray-950"), 42, "transparent")}`,
+      `0 1px 3px ${mix("black", 55, "transparent")}, 0 8px 16px -6px ${mix("black", 55, "transparent")}, 0 32px 64px -14px ${mix("black", 85, "transparent")}`,
     ),
     /**
      * Things fixed to an edge of the screen (side drawers, sheets) have no

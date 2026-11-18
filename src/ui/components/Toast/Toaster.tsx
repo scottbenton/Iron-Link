@@ -18,7 +18,7 @@ const toasterStyles = css({
 
 /**
  * Classes on each toast's `li`. The stacking is Sonner's own: collapsed, each
- * older toast moves up by the gap and shrinks 5% per step, cut to the front
+ * older toast moves up 16px and shrinks 5% per step, cut to the front
  * toast's height, so its top edge peeks out above the front one; hover (or
  * keyboard focus) fans them out with the gap between. The look is the
  * card's (ToastCard, RollCard), so a roll card can be a toast too; the `li`
@@ -33,16 +33,24 @@ const toastItemStyles = css({
   // ours are custom, so the card is clipped to the li and its content fades,
   // leaving the card's edge. A taller older toast would otherwise hang out
   // below the front one.
+  // Older toasts are also shaded a little, so the stack reads as a stack.
   "&[data-expanded=false][data-front=false] > *": {
     height: "100%",
     minHeight: 0,
     overflow: "hidden",
+    background: "bg.muted!",
+    borderColor: "border.default!",
   },
   "& > * > *": {
     transition: "opacity token(durations.normal) linear",
     _reducedMotion: { transition: "none" },
   },
   "&[data-expanded=false][data-front=false] > * > *": { opacity: 0 },
+  // Collapsed, each older toast sits a clear step above the one in front
+  // (16px, a little more than Sonner's 14px gap).
+  "&[data-expanded=false][data-front=false]": {
+    "--lift-amount": "calc(var(--lift) * 16px)!",
+  },
   // Toasts past the visible cap fade out; hide them from Tab too.
   "&[data-visible=false]": {
     visibility: "hidden",

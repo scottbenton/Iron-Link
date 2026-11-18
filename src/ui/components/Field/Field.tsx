@@ -43,7 +43,7 @@ export interface FieldOwnProps {
   label?: ReactNode;
   /** Keep the label for screen readers but hide it from view. */
   hideLabel?: boolean;
-  /** Help text under the label, above the control, read as its description. */
+  /** Help text under the control, read as its description. */
   description?: ReactNode;
   /**
    * An error message under the control, also read as its description. Any message marks the field invalid;
@@ -137,8 +137,8 @@ export interface FieldDescriptionProps
 }
 
 /**
- * Help text, read as the control's description. Place it right after the
- * label (inside a `FieldHeader`), above the control.
+ * Help text, read as the control's description. Fields place it under the
+ * control, before any error.
  */
 export function FieldDescription(props: FieldDescriptionProps) {
   const { className, ...rest } = props;
@@ -231,8 +231,8 @@ export interface FieldShellProps extends FieldOwnProps {
 const hiddenLabelRow = css({ display: "contents" });
 
 /**
- * The frame a control renders itself in: a Field.Root with the label and its
- * help text above the control and the error below it. Inside an outer `Field` it renders the control alone
+ * The frame a control renders itself in: a Field.Root with the label above
+ * the control and its help text and error below it. Inside an outer `Field` it renders the control alone
  * (wrapped), so the outer field labels it.
  */
 export function FieldShell(props: FieldShellProps) {
@@ -298,21 +298,13 @@ export function FieldShell(props: FieldShellProps) {
     }
   }
 
-  // Help text belongs to the label, so it sits under it, above the control;
-  // the error belongs to the control, so it sits under that.
+  // Help text sits under the control, like MUI's helper text, so fields
+  // side by side line up whether or not they have any. The error goes after
+  // it.
   const descriptionNode =
     description !== undefined && description !== null && description !== "" ? (
       <FieldDescription>{description}</FieldDescription>
     ) : null;
-  const header =
-    labelNode && descriptionNode ? (
-      <FieldHeader>
-        {labelNode}
-        {descriptionNode}
-      </FieldHeader>
-    ) : (
-      (labelNode ?? descriptionNode)
-    );
 
   return (
     <FieldRoot
@@ -326,10 +318,11 @@ export function FieldShell(props: FieldShellProps) {
     >
       {wrap(
         <>
-          {header}
+          {labelNode}
           {children}
         </>,
       )}
+      {descriptionNode}
       <FieldError>{message}</FieldError>
     </FieldRoot>
   );

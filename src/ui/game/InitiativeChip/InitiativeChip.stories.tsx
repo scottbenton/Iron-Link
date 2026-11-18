@@ -43,7 +43,7 @@ const statuses: InitiativeStatus[] = [
 
 /**
  * No icons and no good or bad colours: statuses in a fight share the accent
- * look and differ by their words; Out of Combat is muted with a hollow dot.
+ * look and differ by their words; Out of Combat is muted.
  */
 export const Wording: Story = {
   render: () => (

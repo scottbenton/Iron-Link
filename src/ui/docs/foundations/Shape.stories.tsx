@@ -142,11 +142,11 @@ export const Elevation: StoryObj = {
         <Text variant="eyebrow">Foundations</Text>
         <Text variant="h1">Elevation</Text>
         <Text color="muted">
-          Tactile flat: height is drawn with solid borders and a ledge. Things
-          you can press stand on a 2px ledge. Things that float over the page
-          stand higher: menus, popovers and toasts on a 3px ledge, dialogs on
-          4px, each with a soft shadow to lift it off what is behind. Static
-          surfaces are flat.
+          Tactile flat uses two separate signals. A ledge, a solid bottom edge,
+          means you can press it: buttons and chips stand on a 2px ledge. A
+          shadow means it floats over the page, and its depth says how high:
+          menus, popovers and toasts float a little, dialogs higher. Floating
+          things never get a ledge. Static surfaces are flat.
         </Text>
       </div>
       <div

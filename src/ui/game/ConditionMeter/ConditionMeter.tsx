@@ -6,7 +6,7 @@ import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
 import { IconButton } from "../../components/IconButton";
-import { AddsBadge } from "../RollButton/AddsBadge";
+import { AddsAnchor } from "../RollButton/AddsBadge";
 import {
   statCardBaseStyles,
   statInnerStyles,
@@ -20,9 +20,7 @@ const meterStyles = css({
   gap: "1",
   minWidth: "112px",
   "&[data-wide]": { minWidth: "152px" },
-  paddingTop: "1.5",
-  paddingBottom: "2",
-  paddingInline: "1.5",
+  padding: "1.5",
   borderWidth: "1px",
   borderStyle: "solid",
   borderColor: "border.default",
@@ -125,8 +123,8 @@ export interface ConditionMeterProps {
    */
   onRoll?: () => void;
   /**
-   * Adds on the next roll, shown as a pill after the value on the roll
-   * button, as on stat cards and roll buttons. Only shown with `onRoll`.
+   * Adds on the next roll, shown as a badge on the roll button's top-right
+   * corner, as on stat cards and roll buttons. Only shown with `onRoll`.
    */
   adds?: number;
   /** Read after the value when adds apply, "adds +1" by default. */
@@ -143,8 +141,9 @@ export interface ConditionMeterProps {
   /** Shows the value in danger colours at the minimum. */
   warnAtMin?: boolean;
   /**
-   * A strip of pips from min to max under the value. On by default for
-   * meters of ten steps or fewer that start at zero.
+   * A strip of pips from min to max under the value, for meters of ten steps
+   * or fewer that start at zero. Off by default: the value and steppers say
+   * it all, and the strip makes the card taller.
    */
   showPips?: boolean;
   /** A wider meter, for one with buttons under it. */
@@ -202,7 +201,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
   const tone: MeterTone =
     toneProp ?? (warnAtMin && value <= min ? "danger" : "default");
   const showPips =
-    showPipsProp ?? (min >= 0 && max - min <= 10 && max - min > 0);
+    !!showPipsProp && min >= 0 && max - min <= 10 && max - min > 0;
 
   const step = (delta: number) => {
     if (!onChange) return;
@@ -215,23 +214,24 @@ export function ConditionMeter(props: ConditionMeterProps) {
   const valueNode = valueControl ? (
     valueControl
   ) : onRoll ? (
-    <BaseButton
-      className={cx(statCardBaseStyles, statRollableStyles, rollValueStyles)}
-      data-tone={tone}
-      disabled={disabled}
-      aria-label={
-        adds
-          ? `${rollLabel} ${label}, ${valueText}, ${addsLabel(formatSigned(adds))}`
-          : `${rollLabel} ${label}, ${valueText}`
-      }
-      onClick={() => onRoll()}
-    >
-      <span data-stat-inner="" className={statInnerStyles}>
-        <DiceFive weight="fill" aria-hidden />
-        {valueText}
-        <AddsBadge value={adds} />
-      </span>
-    </BaseButton>
+    <AddsAnchor adds={adds}>
+      <BaseButton
+        className={cx(statCardBaseStyles, statRollableStyles, rollValueStyles)}
+        data-tone={tone}
+        disabled={disabled}
+        aria-label={
+          adds
+            ? `${rollLabel} ${label}, ${valueText}, ${addsLabel(formatSigned(adds))}`
+            : `${rollLabel} ${label}, ${valueText}`
+        }
+        onClick={() => onRoll()}
+      >
+        <span data-stat-inner="" className={statInnerStyles}>
+          <DiceFive weight="fill" aria-hidden />
+          {valueText}
+        </span>
+      </BaseButton>
+    </AddsAnchor>
   ) : (
     <span className={valueStyles} data-tone={tone}>
       {valueText}

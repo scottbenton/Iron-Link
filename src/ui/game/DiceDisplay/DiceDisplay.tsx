@@ -385,7 +385,8 @@ function getChallengeState(
  * green where the score beats a die, red where it doesn't. A match rings
  * both challenge dice, green on a strong hit and red on a miss. Burned
  * momentum strikes the action score out and takes its place; negative
- * momentum that cancels the action die strikes the die out in red.
+ * momentum that cancels the action die strikes the die out in red, and a 1
+ * on the action die gets a red ring.
  */
 export function DiceDisplay(props: DiceDisplayProps) {
   const {
@@ -459,6 +460,13 @@ export function DiceDisplay(props: DiceDisplayProps) {
           kind="action"
           value={roll.actionDie}
           cancelled={cancelled}
+          // A 1 matters to some assets and moves ("if you roll a 1 on your
+          // action die"), so it gets a red ring. Datasworn doesn't say when.
+          ring={
+            roll.actionDie === 1 && !cancelled && !roll.momentumBurned
+              ? "low"
+              : undefined
+          }
         />
       </Term>,
     ];

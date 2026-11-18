@@ -4,7 +4,7 @@ import { ComponentProps, Ref, forwardRef } from "react";
 
 import { cx } from "styled-system/css";
 
-import { AddsBadge } from "../RollButton/AddsBadge";
+import { AddsAnchor } from "../RollButton/AddsBadge";
 import { formatSigned } from "../shared/format";
 import {
   statCardBaseStyles,
@@ -68,43 +68,46 @@ export const StatCard = forwardRef<HTMLElement, StatCardProps>(
             {onRoll && <DiceFive weight="fill" aria-hidden />}
             {valueText}
           </span>
-          <AddsBadge value={adds} />
         </span>
       </span>
     );
 
     if (!onRoll) {
       return (
-        <div
-          ref={ref as Ref<HTMLDivElement>}
-          className={cx(statCardBaseStyles, statStaticStyles, className)}
-          role="group"
-          aria-label={
-            addsText
-              ? `${name}, ${valueText}, ${addsLabel(addsText)}`
-              : `${name}, ${valueText}`
-          }
-        >
-          {content}
-        </div>
+        <AddsAnchor adds={adds} className={className}>
+          <div
+            ref={ref as Ref<HTMLDivElement>}
+            className={cx(statCardBaseStyles, statStaticStyles)}
+            role="group"
+            aria-label={
+              addsText
+                ? `${name}, ${valueText}, ${addsLabel(addsText)}`
+                : `${name}, ${valueText}`
+            }
+          >
+            {content}
+          </div>
+        </AddsAnchor>
       );
     }
 
     return (
-      <BaseButton
-        ref={ref}
-        className={cx(statCardBaseStyles, statRollableStyles, className)}
-        aria-label={
-          addsText
-            ? `${rollLabel} ${name}, ${valueText}, ${addsLabel(addsText)}`
-            : `${rollLabel} ${name}, ${valueText}`
-        }
-        disabled={disabled}
-        onClick={() => onRoll()}
-        {...rest}
-      >
-        {content}
-      </BaseButton>
+      <AddsAnchor adds={adds} className={className}>
+        <BaseButton
+          ref={ref}
+          className={cx(statCardBaseStyles, statRollableStyles)}
+          aria-label={
+            addsText
+              ? `${rollLabel} ${name}, ${valueText}, ${addsLabel(addsText)}`
+              : `${rollLabel} ${name}, ${valueText}`
+          }
+          disabled={disabled}
+          onClick={() => onRoll()}
+          {...rest}
+        >
+          {content}
+        </BaseButton>
+      </AddsAnchor>
     );
   },
 );
