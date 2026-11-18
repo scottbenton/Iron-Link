@@ -65,6 +65,10 @@ that are easy to miss. When you learn a new one, add a line here.
 
 ## Deploys
 
+- Cloudflare Pages deploys come from the `deploy` job in
+  `.github/workflows/ci.yaml` (Direct Upload with wrangler), after unit
+  tests, lint and database tests pass; Cloudflare's own Git builds are off.
+  Build variables live in the `production` and `preview` GitHub environments.
 - A tab left open across a deploy asks for chunks that are gone (Cloudflare
   Pages answers with index.html). `installStaleChunkReload` reloads once on
   Vite's `vite:preloadError`, whatever the browser's wording, with a 10s
@@ -76,9 +80,13 @@ that are easy to miss. When you learn a new one, add a line here.
 
 - Type-check: `npx tsc -b` (what `npm run build` runs).
 - Lint: `npx eslint .`; format: `npx prettier --check .`.
-- Unit tests: `npx vitest run`. Suites that import the Supabase client need
-  `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` set (a gitignored
-  `.env.local` with placeholder values is enough).
+- Unit tests: `npm test` (`npm run test:watch` to watch). Suites that import
+  the Supabase client need `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+  set (a gitignored `.env.local` with placeholder values is enough).
+- GitHub Actions (`.github/workflows/ci.yaml`) runs unit tests, lint, a
+  Prettier check (`npm run format` fixes it) and database tests on every PR
+  and on main. The Cloudflare Pages build only type-checks and builds, so
+  keep tests out of `npm run build`.
 - Database tests: `npm run test:db` (pgTAP under `supabase/tests/`).
 - After changing a world template migration, regenerate
   `supabase/world-defaults.json` and `.md` with

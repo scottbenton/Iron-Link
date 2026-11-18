@@ -23,9 +23,9 @@ describe("parseCollectionsIntoMaps", () => {
       "oracle_collection:*/*",
     );
 
-    expect(
-      maps.rootCollections.starforged.rootCollectionIds,
-    ).not.toContain("oracle_collection:starforged/character");
+    expect(maps.rootCollections.starforged.rootCollectionIds).not.toContain(
+      "oracle_collection:starforged/character",
+    );
     expect(maps.rootCollections.starforged.rootCollectionIds).toContain(
       "oracle_collection:sundered_isles/character",
     );
@@ -57,9 +57,7 @@ describe("parseCollectionsIntoMaps", () => {
     );
 
     expect(
-      maps.itemAliases[
-        "oracle_rollable:starforged/character/name/given_name"
-      ],
+      maps.itemAliases["oracle_rollable:starforged/character/name/given_name"],
     ).toEqual("oracle_rollable:sundered_isles/character/name/given_name");
     expect(
       maps.itemMap["oracle_rollable:starforged/character/name/given_name"]._id,
