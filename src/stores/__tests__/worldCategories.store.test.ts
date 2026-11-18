@@ -97,10 +97,30 @@ describe("world configuration store", () => {
     ).toBe(goalId);
   });
 
-  it("keeps customized bindings at their stored targets", () => {
+  it("resolves customized bindings against the linked games' playsets", () => {
+    store().listenToWorldConfiguration(worldId);
+    deliver(configuration(true));
+    // Stored targets roll until the playset loads.
+    expect(store().fieldDefinitions[goal.id].binding?.resolvedOracleId).toBe(
+      goalId,
+    );
+
+    store().applyReplacementMap(worldId, { [goalId]: replacementId });
+
+    expect(store().fieldDefinitions[goal.id].binding?.resolvedOracleId).toBe(
+      replacementId,
+    );
+  });
+
+  it("keeps customized bindings pinned to an exact oracle", () => {
     store().listenToWorldConfiguration(worldId);
     store().applyReplacementMap(worldId, { [goalId]: replacementId });
-    deliver(configuration(true));
+    deliver({
+      ...configuration(true),
+      fieldDefinitions: {
+        [goal.id]: { ...goal, binding: { ...goal.binding!, exact: true } },
+      },
+    });
 
     expect(store().fieldDefinitions[goal.id].binding?.resolvedOracleId).toBe(
       goalId,

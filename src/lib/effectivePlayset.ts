@@ -215,9 +215,9 @@ export interface BindingDivergence {
   nextOracleId: string;
 }
 
-// Divergence is a diff against the binding's stored resolvedOracleId; a
-// non-null result must be surfaced (preview at the causing action, game-log
-// entries for everyone else) — never applied silently.
+// Divergence is a diff against the binding's stored resolvedOracleId: the
+// oracle the binding now rolls under the world's playset differs from the
+// one it rolled when it was saved.
 export function getBindingDivergence(
   binding: ResolvableOracleBinding,
   replacementMap: Record<string, string>,

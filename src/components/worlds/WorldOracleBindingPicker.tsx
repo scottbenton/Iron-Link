@@ -161,7 +161,7 @@ export function WorldOracleBindingPicker({
         <Alert severity="warning">
           {t(
             "worlds.fields.pending-binding",
-            "The linked games now resolve this binding differently. Rolls keep the stored oracle until you explicitly rebind it.",
+            "The linked games' rules replace this oracle, so this field rolls the replacement. Check Use this exact oracle to keep rolling this one.",
           )}
         </Alert>
       )}
