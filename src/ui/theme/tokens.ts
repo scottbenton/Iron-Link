@@ -159,10 +159,15 @@ export const tokens = {
   },
   zIndex: {
     sticky: { value: 100 },
+    /**
+     * Below drawers and dialogs: a modal hides the toasts, as in the app
+     * today, so pressing a toast never counts as a press outside the modal.
+     * A dialog shows recent roll cards through its own `extras` instead.
+     */
+    toast: { value: 1100 },
     drawer: { value: 1200 },
     dialog: { value: 1300 },
     popover: { value: 1400 },
-    toast: { value: 1500 },
     tooltip: { value: 1600 },
   },
 };

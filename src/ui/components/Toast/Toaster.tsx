@@ -12,7 +12,7 @@ const BASE_OFFSET = "calc(20px + env(safe-area-inset-bottom, 0px))";
 const FOOTER_SPACE = 44;
 
 const toasterStyles = css({
-  // Above dialogs and drawers, below tooltips. Sonner's own value is huge.
+  // Below dialogs and drawers (see the token). Sonner's own value is huge.
   zIndex: "toast!",
 });
 
