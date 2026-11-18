@@ -145,7 +145,11 @@ jobs:
           POSTHOG_CLI_PROJECT_ID: ${{ vars.POSTHOG_CLI_PROJECT_ID }}
           POSTHOG_CLI_HOST: ${{ vars.POSTHOG_CLI_HOST }}
           POSTHOG_CLI_API_KEY: ${{ secrets.POSTHOG_CLI_API_KEY }}
-        run: npm run build:cloudflare
+        # An unset GitHub variable arrives as an empty string, which the
+        # PostHog CLI rejects as an invalid host instead of using its default.
+        run: |
+          if [ -z "${POSTHOG_CLI_HOST:-}" ]; then unset POSTHOG_CLI_HOST; fi
+          npm run build:cloudflare
 
       - name: Deploy to Cloudflare Pages
         id: deploy
