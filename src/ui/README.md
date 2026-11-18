@@ -96,7 +96,8 @@ Each component is a folder: `Name/Name.tsx`, `Name/Name.stories.tsx`,
 - Radii: controls `md` (8px), cards `lg` (12px), dialogs `xl` (16px), chips
   `full`. Touch targets are 44px under `_touch`.
 - Type: `fonts.heading` (condensed) for titles, labels and numbers;
-  `fonts.body` for everything else. Use `Text` with a `variant`; `as` picks
+  `fonts.body` (Allo, its roundness turned down to 30 in `globalCss`) for
+  everything else. Use `Text` with a `variant`; `as` picks
   the element separately.
 
 ## Iron Link conventions (from CLAUDE.md)

@@ -17,7 +17,6 @@ import {
   CloudCheckIcon,
   CompassIcon,
   CopyIcon,
-  CrosshairIcon,
   DiceFiveIcon,
   DotsSixVerticalIcon,
   DotsThreeIcon,
@@ -31,6 +30,7 @@ import {
   FolderOpenIcon,
   FolderPlusIcon,
   FolderUserIcon,
+  FrameCornersIcon,
   FunnelSimpleIcon,
   GearIcon,
   GithubLogoIcon,
@@ -39,7 +39,6 @@ import {
   HandIcon,
   HashIcon,
   HeartIcon,
-  ImageBrokenIcon,
   ImageIcon,
   ImageSquareIcon,
   InfoIcon,
@@ -76,7 +75,6 @@ import {
   ShareNetworkIcon,
   ShieldIcon,
   SignOutIcon,
-  SmileyIcon,
   SunIcon,
   TargetIcon,
   TextAaIcon,
@@ -99,6 +97,8 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 
+import { ImageSlashIcon } from "./ImageSlashIcon";
+
 /**
  * The MUI icon each Phosphor icon replaces, keyed by the name after
  * `@mui/icons-material/`. Covers every MUI icon the app imported when the
@@ -120,7 +120,7 @@ export const muiIconMap: Record<string, PhosphorIcon> = {
   Brush: PaintBrushIcon,
   Casino: DiceFiveIcon,
   CategoryOutlined: ShapesIcon,
-  CenterFocusStrong: CrosshairIcon,
+  CenterFocusStrong: FrameCornersIcon,
   Check: CheckIcon,
   CheckCircle: CheckCircleIcon,
   ChevronLeft: CaretLeftIcon,
@@ -140,7 +140,7 @@ export const muiIconMap: Record<string, PhosphorIcon> = {
   Edit: PencilSimpleIcon,
   ExpandMore: CaretDownIcon,
   Explore: CompassIcon,
-  Face: SmileyIcon,
+  Face: UserIcon,
   Favorite: HeartIcon,
   FilterList: FunnelSimpleIcon,
   Folder: FolderIcon,
@@ -161,7 +161,7 @@ export const muiIconMap: Record<string, PhosphorIcon> = {
   Group: UsersIcon,
   Groups: UsersThreeIcon,
   Groups2: UsersThreeIcon,
-  HideImage: ImageBrokenIcon,
+  HideImage: ImageSlashIcon,
   HistoryEdu: ScrollIcon,
   HorizontalRule: MinusIcon,
   Info: InfoIcon,
@@ -210,7 +210,7 @@ export const muiIconMap: Record<string, PhosphorIcon> = {
   VisibilityOffOutlined: EyeSlashIcon,
   Wallpaper: ImageIcon,
   Whatshot: FireIcon,
-  WrapText: TextAlignLeftIcon,
+  WrapText: TextIndentIcon,
   ZoomIn: MagnifyingGlassPlusIcon,
   ZoomOut: MagnifyingGlassMinusIcon,
 };
