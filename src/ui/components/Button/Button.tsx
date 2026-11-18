@@ -10,6 +10,7 @@ import { Spinner } from "../Spinner";
 import {
   buttonStyles,
   gradientFaceStyles,
+  gradientLedgeStyles,
   gradientRingStyles,
 } from "./buttonStyles";
 
@@ -142,18 +143,29 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(
         {...rest}
       >
         {variant === "gradient" ? (
-          <GradientBox
-            as="span"
-            variant="fill"
-            radius="md"
-            spin
-            className={gradientRingStyles}
-            data-gradient-ring=""
-          >
-            <span className={gradientFaceStyles} data-gradient-face="">
-              {label}
-            </span>
-          </GradientBox>
+          <>
+            <GradientBox
+              as="span"
+              variant="fill"
+              radius="md"
+              spin
+              className={gradientLedgeStyles}
+              data-gradient-ledge=""
+              aria-hidden
+            />
+            <GradientBox
+              as="span"
+              variant="fill"
+              radius="md"
+              spin
+              className={gradientRingStyles}
+              data-gradient-ring=""
+            >
+              <span className={gradientFaceStyles} data-gradient-face="">
+                {label}
+              </span>
+            </GradientBox>
+          </>
         ) : (
           label
         )}
