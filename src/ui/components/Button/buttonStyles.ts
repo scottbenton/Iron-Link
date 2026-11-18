@@ -124,34 +124,43 @@ export const buttonStyles = cva({
       gradient: {
         "--btn-fg": "{colors.white}",
         "--btn-border": "transparent",
-        // The ring's end colour, deepened. Mixed here rather than read from
-        // `ringEdge`, so a scheme set on a subtree reaches the ledge too.
-        // Darkened only a little, so it reads as the ring's own edge rather
-        // than a black band under it (it was 50% black, which looked like a
-        // taller ledge than other buttons').
-        "--btn-edge":
-          "color-mix(in oklab, {colors.ring.end} 78%, {colors.black})",
-        // The button behind the ring is the ledge's colour, so the ring's
-        // anti-aliased rounded edge blends into the ledge instead of showing
-        // a light seam of page between them.
-        "--btn-bg": "var(--btn-edge)",
-        "--btn-hover": "var(--btn-edge)",
-        "--btn-press": "var(--btn-edge)",
+        // No box-shadow ledge and no button background: both were one fixed
+        // colour (the ring's end colour, darkened), which went brown against
+        // the turning ring and showed as a dark fringe around its rounded
+        // corners. The ring itself reaches below the button instead, and a
+        // shade over that strip makes the ledge, so the ledge is always the
+        // colour of the ring above it.
+        "--btn-bg": "transparent",
+        "--btn-hover": "transparent",
+        "--btn-press": "transparent",
+        "--btn-edge": "transparent",
+        "--btn-ledge": "var(--border-widths-ledge)",
+        // How much the ledge darkens the ring. Light mode keeps it light:
+        // black over a bright ring there reads as mud.
+        "--btn-ledge-shade": "rgb(0 0 0 / 0.18)",
+        _dark: { "--btn-ledge-shade": "rgb(0 0 0 / 0.32)" },
         // The ring's width and the face's colour, read by the parts inside.
         "--btn-ring": "2px",
         "--btn-face": "{colors.gray.900}",
         alignItems: "stretch",
         borderWidth: 0,
+        boxShadow: "none",
         _hover: {
           "--btn-ring": "3px",
+          "--btn-ledge":
+            "calc(var(--border-widths-ledge) - var(--spacing-lift))",
           "--btn-face":
             "color-mix(in oklab, {colors.gray.900} 82%, {colors.gray.700})",
+          boxShadow: "none",
         },
         _focusVisible: { "--btn-ring": "3px" },
         _pressed: {
           "--btn-ring": "3px",
+          "--btn-ledge":
+            "max(0px, calc(var(--border-widths-ledge) - var(--spacing-sink)))",
           "--btn-face":
             "color-mix(in oklab, {colors.gray.900} 60%, {colors.black})",
+          boxShadow: "none",
         },
         [disabled]: {
           "--btn-fg": "{colors.fg.subtle}",
@@ -159,17 +168,35 @@ export const buttonStyles = cva({
           "--btn-face": "{colors.bg.emphasized}",
           background: "transparent",
           borderColor: "transparent",
+          boxShadow: "none",
         },
-        "&[data-busy]": { background: "var(--btn-edge)" },
+        "&[data-busy]": { background: "transparent", boxShadow: "none" },
         [`& .${gradientRingStyles}[data-gradient-ring]`]: {
           display: "flex",
           flex: "1 1 auto",
           minWidth: 0,
           padding: "var(--btn-ring)",
-          transitionProperty: "padding",
+          // The ring hangs below the button by the ledge's height, as the
+          // box-shadow ledge on other buttons does, without changing the
+          // button's own size.
+          paddingBottom: "calc(var(--btn-ring) + var(--btn-ledge))",
+          marginBottom: "calc(-1 * var(--btn-ledge))",
+          transitionProperty: "padding, margin",
           transitionDuration: "fast",
           transitionTimingFunction: "out",
           _reducedMotion: { transitionDuration: "0s" },
+          // The shade over the ring's bottom strip: the ledge. Above the
+          // turning gradient (z-index -2) and under the face.
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            zIndex: -1,
+            insetInline: 0,
+            bottom: 0,
+            height: "var(--btn-ledge)",
+            background: "var(--btn-ledge-shade)",
+            pointerEvents: "none",
+          },
         },
         // Disabled: the ring goes flat grey and stops turning.
         [`&:is(:disabled, [data-disabled]):not([data-busy]) .${gradientRingStyles}[data-gradient-ring]`]:
