@@ -125,3 +125,33 @@ export const Cards: Story = {
     </Grid>
   ),
 };
+
+/**
+ * Several toasts stack front to back: the newest in front, two older ones
+ * peeking out behind it, the rest behind "N more". Hover the stack, or Tab
+ * into it, to fan it out.
+ */
+export const Stacked: Story = {
+  render: function Render() {
+    const toasts = useToast();
+    return (
+      <Button
+        onClick={() => {
+          toasts.info("Invite link copied");
+          toasts.error(
+            "Could not save your notes. Check your connection and try again.",
+          );
+          toasts.success("Asset removed", {
+            action: {
+              label: "Undo",
+              onClick: () => toasts.info("Asset restored"),
+            },
+          });
+          toasts.warning("Starsmith is off, so its oracles are hidden");
+        }}
+      >
+        Show Four Toasts
+      </Button>
+    );
+  },
+};

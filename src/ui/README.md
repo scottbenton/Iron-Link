@@ -37,6 +37,12 @@ Each component is a folder: `Name/Name.tsx`, `Name/Name.stories.tsx`,
   `panda.config.ts` or `theme/` from a component; say what you need instead.
 - Inside a CSS value use `token(colors.border.subtle)`; for a custom
   property's value use `{colors.bg.surface}`.
+- Gradients are not colours: write `background: "token(gradients.ring)"`.
+  A bare `background: "gradients.ring"` compiles to invalid CSS with no
+  error, and the browser drops it.
+- Never override a property by merging two classes that both set it
+  (`cx(base, override)`): Panda's stylesheet order decides which wins, not
+  the order in `cx`. Use a `cva` variant or compound variant instead.
 - Conditions: `_hover`, `_focusVisible`, `_pressed` (`:active` or
   `[data-pressed]`), `_dark`, `_open`, `_current` (aria-current, selected),
   `_disabled`, `_startingStyle`/`_endingStyle` (Base UI transitions),
@@ -46,8 +52,11 @@ Each component is a folder: `Name/Name.tsx`, `Name/Name.stories.tsx`,
 ## The look: tactile flat
 
 - Elevation is solid: a 1px border plus a ledge, a solid bottom edge drawn
-  with `box-shadow: 0 var(--border-widths-ledge) 0 <edge colour>`. Only
-  things you can press have a ledge.
+  with `box-shadow: 0 var(--border-widths-ledge) 0 <edge colour>`. Things
+  you can press stand on a 2px ledge; floating things stand higher, on a
+  3px ledge with a soft shadow (`shadows.popover`: menus, popovers, select
+  lists, toasts) or 4px (`shadows.dialog`). Static cards, alerts and panels
+  are flat. Drawers fixed to a screen edge use `shadows.float`.
 - A press sinks the element `var(--spacing-sink)` (1px) onto its ledge over
   `durations.instant`. Hover changes colour only (`--spacing-lift` is 0
   unless the page opts in). Reduced motion zeroes both.

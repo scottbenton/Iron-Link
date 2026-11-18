@@ -85,6 +85,7 @@ const triggerStyles = css({
 const popupStyles = css({
   minWidth: "180px",
   padding: "1",
+  border: "1px solid token(colors.border.control)",
   borderRadius: "md",
   background: "bg.surface",
   color: "fg.default",

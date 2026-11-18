@@ -131,7 +131,7 @@ const buttonStyles = cva({
     boxSizing: "border-box",
     height: "32px",
     margin: 0,
-    border: "1px solid transparent",
+    border: 0,
     borderRadius: "sm",
     background: "transparent",
     color: "fg.muted",
@@ -142,17 +142,32 @@ const buttonStyles = cva({
     cursor: "pointer",
     userSelect: "none",
     WebkitTapHighlightColor: "transparent",
-    // Toolbar buttons have no ledge: they never move, they change colour.
+    // Toolbar buttons have no ledge: they never move, they change colour,
+    // fill and text together. A pressed toggle is a neutral overlay fill,
+    // like a ghost, neutral ToggleGroup, so the bar stays quiet. The rules
+    // rely on specificity, not source order (Panda sorts atomic rules):
+    // hover 0,3,0; a held press and a hovered pressed toggle 0,4,0 with the
+    // same fill.
     transition:
-      "background-color token(durations.fast) linear, color token(durations.fast) linear, border-color token(durations.fast) linear",
+      "background-color token(durations.fast) linear, color token(durations.fast) linear",
     outline: "none",
-    _hover: { background: "overlay.hover", color: "fg.default" },
-    _pressed: { background: "overlay.pressed" },
+    _hoverable: {
+      "&:hover:not([aria-pressed=true], :disabled, [data-disabled])": {
+        background: "overlay.hover",
+        color: "fg.default",
+      },
+      "&[aria-pressed=true]:hover:not(:disabled, [data-disabled])": {
+        background: "overlay.pressed",
+      },
+    },
+    "&:is(:active, [data-pressed]):not(:disabled):not([data-disabled])": {
+      background: "overlay.pressed",
+      color: "fg.default",
+      transitionDuration: "instant",
+    },
     "&[aria-pressed=true]": {
-      background: "accent.soft",
-      color: "accent.fg",
-      borderColor:
-        "color-mix(in oklab, token(colors.accent.fg) 25%, transparent)",
+      background: "overlay.selected",
+      color: "fg.default",
     },
     _focusVisible: {
       outline: "2px solid token(colors.focusRing)",
@@ -189,8 +204,10 @@ export interface ToolbarButtonProps
   /** Show the label beside the icon. */
   showLabel?: boolean;
   /**
-   * A toggle's state, such as Bold being on: `aria-pressed` and the accent
-   * tint. Leave it out for plain actions.
+   * A toggle's state, such as Bold being on: `aria-pressed` and a neutral
+   * fill. Leave it out for plain actions. For a set of toggles, a
+   * `ToggleGroup` with `variant="ghost"` and `tone="neutral"` looks the
+   * same and joins the toolbar's arrow keys.
    */
   pressed?: boolean;
   /** A keyboard hint for the tooltip, such as "Ctrl+B". */

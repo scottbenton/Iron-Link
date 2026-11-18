@@ -1,6 +1,20 @@
 import { cva } from "styled-system/css";
 
 /**
+ * The scheme's ring gradient as a fill white text can sit on. Each end is the
+ * ring colour with its OKLCH lightness capped at 0.5, so dark hues stay as
+ * they are and light ones (Eidolon's yellow, Hinterlands' mint) deepen: white
+ * text keeps at least 4.5:1 at rest, on hover and pressed in every scheme.
+ * The ends are read on the button itself, so a scheme set on a subtree
+ * applies too. Two ends only: Pride's rainbow reads as red to violet here.
+ */
+const gradientEnd = (end: "start" | "end") =>
+  `oklch(from {colors.ring.${end}} min(l, 0.5) c h)`;
+const gradientFill = `radial-gradient(142% 91% at 111% 84%, ${gradientEnd("start")} 20%, ${gradientEnd("end")} 80%) border-box`;
+const gradientOverlay = (color: string) =>
+  `linear-gradient(${color}, ${color}) border-box`;
+
+/**
  * The tactile button. It sits on a solid ledge (a bottom edge drawn with
  * box-shadow), and a press sinks it 1px onto the ledge. Colours come from
  * the --btn-* variables each variant sets, so hover and press follow the
@@ -99,6 +113,30 @@ export const buttonStyles = cva({
         "--btn-edge": "{colors.danger.edge}",
         "--btn-hover": "{colors.danger.solidHover}",
         "--btn-press": "{colors.danger.solidPressed}",
+      },
+      /**
+       * The brand gradient, for the one call to action on a page: Start
+       * Playing, Create Game. Use it sparingly; `primary` is the main action
+       * everywhere else.
+       */
+      gradient: {
+        // Without relative colour syntax: the ring's end colour, deepened.
+        "--btn-bg":
+          "color-mix(in oklab, {colors.ring.end} 55%, {colors.black})",
+        "--btn-fg": "{colors.white}",
+        "--btn-border": "transparent",
+        "--btn-edge":
+          "color-mix(in oklab, {colors.ring.end} 35%, {colors.black})",
+        "--btn-hover":
+          "color-mix(in oklab, {colors.ring.end} 50%, {colors.black})",
+        "--btn-press":
+          "color-mix(in oklab, {colors.ring.end} 45%, {colors.black})",
+        "@supports (color: oklch(from red l c h))": {
+          "--btn-bg": gradientFill,
+          "--btn-edge": `color-mix(in oklab, ${gradientEnd("end")} 55%, {colors.black})`,
+          "--btn-hover": `${gradientOverlay("color-mix(in oklab, {colors.white} 8%, transparent)")}, ${gradientFill}`,
+          "--btn-press": `${gradientOverlay("color-mix(in oklab, {colors.black} 12%, transparent)")}, ${gradientFill}`,
+        },
       },
       /** No border or ledge: toolbar and dialog-close buttons, low emphasis. */
       ghost: {

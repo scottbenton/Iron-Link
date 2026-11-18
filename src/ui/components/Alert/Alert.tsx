@@ -33,13 +33,12 @@ const alertStyles = cva({
     paddingInlineStart: "4",
     paddingInlineEnd: "3",
     borderRadius: "lg",
-    borderWidth: "1px",
+    // A static message: a tone-coloured border all round on the soft tint,
+    // with no ledge (nothing to press) and no inset (not a field).
+    borderWidth: "2px",
     borderStyle: "solid",
-    borderColor:
-      "color-mix(in oklab, var(--alert-fg) 28%, token(colors.border.subtle))",
+    borderColor: "var(--alert-fg)",
     background: "var(--alert-soft)",
-    // The tone's edge on the leading side, inside the border.
-    boxShadow: "inset 3px 0 0 var(--alert-fg)",
     color: "fg.default",
     fontFamily: "body",
     fontSize: "sm",

@@ -296,11 +296,24 @@ export const semanticTokens = {
     ledge: {
       value: `0 var(--border-widths-ledge) 0 ${v("border-edge")}`,
     },
+    /**
+     * Floating cards (menus, popovers, select lists, toasts): a 3px ledge and
+     * a soft shadow. Give the card a 1px `border.control` border.
+     */
     popover: lightDark(
-      `0 0 0 1px ${v("border-default")}, 0 8px 24px -6px ${mix(v("gray-950"), 18, "transparent")}`,
-      `0 0 0 1px ${v("border-default")}, 0 12px 32px -8px ${mix("black", 60, "transparent")}`,
+      `0 3px 0 ${v("border-edge")}, 0 12px 24px -10px ${mix(v("gray-950"), 22, "transparent")}`,
+      `0 3px 0 ${v("border-edge")}, 0 14px 28px -10px ${mix("black", 65, "transparent")}`,
     ),
+    /** Dialogs: the highest surface, a 4px ledge and a deeper shadow. */
     dialog: lightDark(
+      `0 4px 0 ${v("border-edge")}, 0 24px 48px -12px ${mix(v("gray-950"), 28, "transparent")}`,
+      `0 4px 0 ${v("border-edge")}, 0 24px 48px -12px ${mix("black", 70, "transparent")}`,
+    ),
+    /**
+     * Things fixed to an edge of the screen (side drawers, sheets) have no
+     * bottom edge to stand on, so they keep only the soft shadow.
+     */
+    float: lightDark(
       `0 24px 48px -12px ${mix(v("gray-950"), 28, "transparent")}`,
       `0 24px 48px -12px ${mix("black", 70, "transparent")}`,
     ),

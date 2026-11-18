@@ -10,7 +10,7 @@ import {
   FieldShell,
   fieldAdornmentStyles,
   fieldIconButtonStyles,
-  fieldInputStyles,
+  fieldInputRecipe,
   fieldShellStyles,
   mergeRefs,
   useControllableState,
@@ -79,7 +79,10 @@ interface ComboboxCommonProps<V extends string> extends FieldOwnProps {
   hideSelected?: boolean;
   /** Highlight the first match while typing, so Enter picks it. */
   autoHighlight?: boolean;
+  /** `sm` for dense panels, with a smaller muted label. */
   size?: "sm" | "md";
+  /** `quiet` shows no border or well until hovered or focused. */
+  variant?: "outline" | "quiet";
   name?: string;
   readOnly?: boolean;
   /** An icon before the input. */
@@ -126,29 +129,23 @@ interface ItemGroup {
   items: string[];
 }
 
-const multipleShell = css({
-  flexWrap: "wrap",
-  paddingInlineStart: "1.5",
-  paddingBlock: "1",
-  rowGap: "1",
-});
-
+/**
+ * The chips and the input after them. They take the room left beside the
+ * buttons and wrap onto more rows inside it, so the buttons stay at the
+ * well's end, on the first row.
+ */
 const chipsStyles = css({
   display: "flex",
   flexWrap: "wrap",
   alignItems: "center",
   gap: "1",
-  flex: "1 1 auto",
+  flex: "1 1 0%",
   minWidth: 0,
+  minHeight: "var(--chip-row)",
 });
 
-const chipInputStyles = css({
-  flex: "1 1 64px",
-  minWidth: "64px",
-  height: "28px",
-  alignSelf: "center",
-  paddingInlineStart: "1.5",
-});
+/** A row's height, for parts that line up with the first row of chips. */
+const firstRowStyles = css({ height: "var(--chip-row, auto)" });
 
 const chipStyles = css({
   boxSizing: "border-box",
@@ -156,7 +153,7 @@ const chipStyles = css({
   alignItems: "center",
   gap: "0.5",
   maxWidth: "100%",
-  minHeight: "26px",
+  minHeight: "calc(var(--chip-row, 28px) - 2px)",
   paddingInlineStart: "10px",
   paddingInlineEnd: "2px",
   borderWidth: "1px",
@@ -218,7 +215,6 @@ const endButtonsStyles = css({
   gap: "0.5",
   flex: "none",
   marginInlineEnd: "-1",
-  alignSelf: "center",
 });
 
 const triggerCaretStyles = css({
@@ -268,6 +264,7 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
     hideSelected = false,
     autoHighlight,
     size = "md",
+    variant = "outline",
     name,
     readOnly,
     startAdornment,
@@ -438,11 +435,7 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
     <BaseCombobox.Input
       ref={mergeRefs(ref, inputRef)}
       id={id}
-      className={cx(
-        fieldInputStyles,
-        multiple && chipInputStyles,
-        inputClassName,
-      )}
+      className={cx(fieldInputRecipe({ chips: multiple }), inputClassName)}
       placeholder={multiple && selected.length > 0 ? undefined : placeholder}
       aria-label={ariaLabel}
     />
@@ -462,6 +455,7 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
       requiredIndicator={requiredIndicator}
       name={name}
       className={className}
+      size={size}
       wrap={(content) => (
         <BaseCombobox.Root<string, boolean>
           items={items}
@@ -528,16 +522,15 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
       )}
     >
       <BaseCombobox.InputGroup
-        className={cx(
-          fieldShellStyles({ size }),
-          multiple && selected.length > 0 && multipleShell,
-        )}
+        className={fieldShellStyles({ size, variant, chips: multiple })}
         data-disabled={disabled || undefined}
         data-readonly={readOnly || undefined}
         onMouseDown={(event) => focusInputOnWellPress(event, inputRef.current)}
       >
         {startAdornment && (
-          <span className={fieldAdornmentStyles}>{startAdornment}</span>
+          <span className={cx(fieldAdornmentStyles, firstRowStyles)}>
+            {startAdornment}
+          </span>
         )}
         {multiple ? (
           <BaseCombobox.Chips className={chipsStyles}>
@@ -557,7 +550,7 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
         ) : (
           input
         )}
-        <span className={endButtonsStyles}>
+        <span className={cx(endButtonsStyles, firstRowStyles)}>
           {showClear && (
             <BaseCombobox.Clear
               className={fieldIconButtonStyles}

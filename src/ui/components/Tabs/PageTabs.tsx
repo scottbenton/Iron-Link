@@ -55,6 +55,9 @@ const pageTabStyles = css({
   _touch: { minHeight: "touch" },
   "& svg": { flex: "none", width: "16px", height: "16px" },
   // The bar under the current page: the gradient, growing from the centre.
+  // `background` resolves colour tokens only, so the gradient goes through
+  // token(); a bare "gradients.ring" is written out as-is, which browsers
+  // drop, and the bar never shows.
   _before: {
     content: '""',
     position: "absolute",
@@ -62,7 +65,7 @@ const pageTabStyles = css({
     bottom: 0,
     height: "3px",
     borderRadius: "3px 3px 0 0",
-    background: "gradients.ring",
+    background: "token(gradients.ring)",
     scale: "0 1",
     transition: "scale token(durations.normal) token(easings.out)",
     pointerEvents: "none",

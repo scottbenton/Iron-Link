@@ -1,5 +1,4 @@
 import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox";
-import { Field as BaseField } from "@base-ui/react/field";
 import { ReactNode, Ref } from "react";
 
 import { ChoiceItem } from "./ChoiceItem";
@@ -7,8 +6,6 @@ import {
   checkboxFillStyles,
   checkboxMarkStyles,
   choiceBoxStyles,
-  choiceDescriptionStyles,
-  choiceLabelStyles,
 } from "./choiceStyles";
 
 export interface CheckboxProps {
@@ -20,9 +17,12 @@ export interface CheckboxProps {
   /** Neither ticked nor not: a dash, as for a "select all" over a mixed set. */
   indeterminate?: boolean;
   disabled?: boolean;
-  /** The text beside the box. Pressing it toggles the box. */
+  /** The text beside the box, and the checkbox's name. Pressing it toggles. */
   label?: ReactNode;
-  /** A muted line under the label, read as the checkbox's description. */
+  /**
+   * A muted line under the label, read as the checkbox's description.
+   * Pressing it toggles too.
+   */
   description?: ReactNode;
   /** Submitted with a form. */
   name?: string;
@@ -81,15 +81,15 @@ export function Checkbox(props: CheckboxProps) {
     ref,
   } = props;
 
-  const hasDescription =
-    description !== undefined && description !== null && description !== "";
-
   return (
-    <ChoiceItem className={className} disabled={disabled}>
-      <BaseField.Label
-        className={choiceLabelStyles({ size })}
-        data-disabled={disabled || undefined}
-      >
+    <ChoiceItem
+      className={className}
+      disabled={disabled}
+      size={size}
+      label={label}
+      description={description}
+      hasAriaLabel={Boolean(ariaLabel)}
+      control={(labelledBy) => (
         <BaseCheckbox.Root
           ref={ref}
           id={id}
@@ -105,6 +105,7 @@ export function Checkbox(props: CheckboxProps) {
           readOnly={readOnly}
           parent={parent}
           aria-label={ariaLabel}
+          aria-labelledby={labelledBy}
         >
           <span className={checkboxFillStyles} aria-hidden />
           <svg className={checkboxMarkStyles} viewBox="0 0 24 24" aria-hidden>
@@ -112,13 +113,7 @@ export function Checkbox(props: CheckboxProps) {
             <path data-mark="dash" d={dashPath} />
           </svg>
         </BaseCheckbox.Root>
-        {label}
-      </BaseField.Label>
-      {hasDescription && (
-        <BaseField.Description className={choiceDescriptionStyles({ size })}>
-          {description}
-        </BaseField.Description>
       )}
-    </ChoiceItem>
+    />
   );
 }

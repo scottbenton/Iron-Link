@@ -44,7 +44,7 @@ export const dialogPopupStyles = cva({
     background: "bg.surface",
     color: "fg.default",
     fontFamily: "body",
-    boxShadow: "0 4px 0 token(colors.border.edge), token(shadows.dialog)",
+    boxShadow: "dialog",
     outline: "none",
     transitionProperty: "opacity, translate, scale",
     transitionDuration: "normal",

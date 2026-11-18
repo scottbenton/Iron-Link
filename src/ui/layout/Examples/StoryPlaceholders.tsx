@@ -160,7 +160,7 @@ const phoneFrameStyles = css({
   borderRadius: "xl",
   overflow: "auto",
   background: "bg.canvas",
-  boxShadow: "dialog",
+  boxShadow: "float",
   "--app-shell-height": "100%",
 });
 

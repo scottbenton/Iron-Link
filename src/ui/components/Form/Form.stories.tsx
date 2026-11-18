@@ -13,9 +13,9 @@ import {
   DialogClose,
   DialogHeader,
 } from "../Dialog";
-import { NumberField } from "../NumberField";
 import { RadioCard, RadioCardGroup } from "../RadioCard";
 import { Select } from "../Select";
+import { TextArea } from "../TextArea";
 import { TextField } from "../TextField";
 import { Form, FormActions } from "./Form";
 
@@ -86,7 +86,7 @@ export const FormExample: Story = {
     const [name, setName] = useState("");
     const [ruleset, setRuleset] = useState<Ruleset | null>(null);
     const [type, setType] = useState<GameType>("solo");
-    const [momentum, setMomentum] = useState<number | null>(2);
+    const [pitch, setPitch] = useState("");
     const [showRolls, setShowRolls] = useState(true);
     const [submitted, setSubmitted] = useState(false);
     const [creating, setCreating] = useState(false);
@@ -169,13 +169,13 @@ export const FormExample: Story = {
                 icon={<UserCircleGear />}
               />
             </RadioCardGroup>
-            <NumberField
-              label="Starting momentum"
-              min={-6}
-              max={10}
-              showSign
-              value={momentum}
-              onValueChange={setMomentum}
+            <TextArea
+              label="Pitch"
+              description="A line or two for the players. Optional."
+              minRows={2}
+              value={pitch}
+              onValueChange={setPitch}
+              placeholder="Raiders hold the pass, and winter is coming."
             />
             <Checkbox
               label="Show roll cards in dialogs"

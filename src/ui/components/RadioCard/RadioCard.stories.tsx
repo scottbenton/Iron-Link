@@ -47,6 +47,7 @@ export const GameTypes: Story = {
     return (
       <RadioCardGroup<GameType>
         label="Game type"
+        description="Decides who can see what, and whether a Guide runs the world."
         value={type}
         onValueChange={setType}
         columns={3}

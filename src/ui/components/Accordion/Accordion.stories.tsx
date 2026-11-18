@@ -11,7 +11,6 @@ import {
   AccordionItem,
   AccordionPanel,
   AccordionTrigger,
-  AccordionVariant,
 } from "./Accordion";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,9 +29,9 @@ const categories = (["adventure", "quest", "combat", "fate"] as const).map(
   },
 );
 
-function Moves(props: { variant?: AccordionVariant }) {
+function Moves() {
   return (
-    <Accordion variant={props.variant} defaultValue={["adventure"]}>
+    <Accordion defaultValue={["adventure"]}>
       {categories.map((category) => (
         <AccordionItem key={category.key} value={category.key}>
           <AccordionTrigger
@@ -58,20 +57,11 @@ const meta: Meta<typeof Accordion> = {
 export default meta;
 type Story = StoryObj<typeof Accordion>;
 
-export const Contained: Story = {
+/** One bordered surface with a hairline between sections. */
+export const Default: Story = {
   render: () => (
     <Stack maxWidth="480px">
       <Moves />
-    </Stack>
-  ),
-};
-
-export const Variants: Story = {
-  render: () => (
-    <Stack gap="8" maxWidth="480px">
-      <Moves variant="contained" />
-      <Moves variant="separated" />
-      <Moves variant="flush" />
     </Stack>
   ),
 };

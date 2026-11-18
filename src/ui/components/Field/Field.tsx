@@ -15,11 +15,15 @@ import { visuallyHidden } from "styled-system/patterns";
 import {
   fieldDescriptionStyles,
   fieldErrorStyles,
+  fieldHeaderStyles,
+  fieldLabelRecipe,
   fieldLabelRowStyles,
-  fieldLabelStyles,
   fieldRequiredStyles,
-  fieldRootStyles,
+  fieldRootRecipe,
 } from "./fieldStyles";
+
+/** A field's size: `md` by default, `sm` for dense panels. */
+export type FieldSize = "sm" | "md";
 
 /** True inside a `Field`, so a control inside one does not open another. */
 const InFieldContext = createContext(false);
@@ -39,10 +43,10 @@ export interface FieldOwnProps {
   label?: ReactNode;
   /** Keep the label for screen readers but hide it from view. */
   hideLabel?: boolean;
-  /** Help text under the control, read as its description. */
+  /** Help text under the label, above the control, read as its description. */
   description?: ReactNode;
   /**
-   * An error message under the control. Any message marks the field invalid;
+   * An error message under the control, also read as its description. Any message marks the field invalid;
    * `true` marks it invalid without a message.
    */
   error?: ReactNode;
@@ -68,6 +72,8 @@ export function resolveFieldError(error: ReactNode, invalid?: boolean) {
 export interface FieldRootProps
   extends Omit<ComponentProps<typeof BaseField.Root>, "className"> {
   className?: string;
+  /** `sm` sets the parts closer together. */
+  size?: FieldSize;
 }
 
 /**
@@ -75,10 +81,13 @@ export interface FieldRootProps
  * aria. Most callers want `Field`, or a control's own `label` props.
  */
 export function FieldRoot(props: FieldRootProps) {
-  const { className, ...rest } = props;
+  const { className, size = "md", ...rest } = props;
   return (
     <InFieldContext.Provider value>
-      <BaseField.Root className={cx(fieldRootStyles, className)} {...rest} />
+      <BaseField.Root
+        className={cx(fieldRootRecipe({ size }), className)}
+        {...rest}
+      />
     </InFieldContext.Provider>
   );
 }
@@ -89,6 +98,7 @@ export interface FieldLabelProps
   required?: boolean;
   requiredIndicator?: ReactNode;
   hidden?: boolean;
+  size?: FieldSize;
 }
 
 /** The field's label, tied to its control. */
@@ -98,12 +108,17 @@ export function FieldLabel(props: FieldLabelProps) {
     required,
     requiredIndicator = "*",
     hidden,
+    size = "md",
     children,
     ...rest
   } = props;
   return (
     <BaseField.Label
-      className={cx(fieldLabelStyles, hidden && visuallyHidden(), className)}
+      className={cx(
+        fieldLabelRecipe({ size }),
+        hidden && visuallyHidden(),
+        className,
+      )}
       {...rest}
     >
       {children}
@@ -121,7 +136,10 @@ export interface FieldDescriptionProps
   className?: string;
 }
 
-/** Help text under a control, read as its description. */
+/**
+ * Help text, read as the control's description. Place it right after the
+ * label (inside a `FieldHeader`), above the control.
+ */
 export function FieldDescription(props: FieldDescriptionProps) {
   const { className, ...rest } = props;
   return (
@@ -130,6 +148,20 @@ export function FieldDescription(props: FieldDescriptionProps) {
       {...rest}
     />
   );
+}
+
+export interface FieldHeaderProps {
+  children: ReactNode;
+  className?: string;
+}
+
+/**
+ * Holds a label and its help text close together above the control, for
+ * fields built from parts.
+ */
+export function FieldHeader(props: FieldHeaderProps) {
+  const { children, className } = props;
+  return <div className={cx(fieldHeaderStyles, className)}>{children}</div>;
 }
 
 export interface FieldErrorProps {
@@ -144,7 +176,7 @@ export interface FieldErrorProps {
 }
 
 /**
- * An error message with a warning icon. It joins the control's description
+ * An error message with a warning icon, placed after the control. It joins the control's description
  * while shown, rises in gently and fades out.
  */
 export function FieldError(props: FieldErrorProps) {
@@ -192,13 +224,15 @@ export interface FieldShellProps extends FieldOwnProps {
   /** Passed to Field.Root for Base UI validation. */
   validate?: ComponentProps<typeof BaseField.Root>["validate"];
   validationMode?: ComponentProps<typeof BaseField.Root>["validationMode"];
+  /** `sm` gives a smaller, muted label and tighter spacing. */
+  size?: FieldSize;
 }
 
 const hiddenLabelRow = css({ display: "contents" });
 
 /**
- * The frame a control renders itself in: a Field.Root with the label above,
- * help and error below. Inside an outer `Field` it renders the control alone
+ * The frame a control renders itself in: a Field.Root with the label and its
+ * help text above the control and the error below it. Inside an outer `Field` it renders the control alone
  * (wrapped), so the outer field labels it.
  */
 export function FieldShell(props: FieldShellProps) {
@@ -219,6 +253,7 @@ export function FieldShell(props: FieldShellProps) {
     className,
     validate,
     validationMode,
+    size = "md",
   } = props;
   const inField = useInField();
   if (inField) return <>{wrap(children)}</>;
@@ -235,7 +270,10 @@ export function FieldShell(props: FieldShellProps) {
   if (label !== undefined && label !== null) {
     labelNode = LabelPart ? (
       <LabelPart
-        className={cx(fieldLabelStyles, hideLabel && visuallyHidden())}
+        className={cx(
+          fieldLabelRecipe({ size }),
+          hideLabel && visuallyHidden(),
+        )}
       >
         {label}
         {marker}
@@ -245,6 +283,7 @@ export function FieldShell(props: FieldShellProps) {
         hidden={hideLabel}
         required={required}
         requiredIndicator={requiredIndicator}
+        size={size}
       >
         {label}
       </FieldLabel>
@@ -259,9 +298,26 @@ export function FieldShell(props: FieldShellProps) {
     }
   }
 
+  // Help text belongs to the label, so it sits under it, above the control;
+  // the error belongs to the control, so it sits under that.
+  const descriptionNode =
+    description !== undefined && description !== null && description !== "" ? (
+      <FieldDescription>{description}</FieldDescription>
+    ) : null;
+  const header =
+    labelNode && descriptionNode ? (
+      <FieldHeader>
+        {labelNode}
+        {descriptionNode}
+      </FieldHeader>
+    ) : (
+      (labelNode ?? descriptionNode)
+    );
+
   return (
     <FieldRoot
       className={className}
+      size={size}
       invalid={invalid || undefined}
       disabled={disabled}
       name={name}
@@ -270,12 +326,9 @@ export function FieldShell(props: FieldShellProps) {
     >
       {wrap(
         <>
-          {labelNode}
+          {header}
           {children}
         </>,
-      )}
-      {description !== undefined && description !== null && (
-        <FieldDescription>{description}</FieldDescription>
       )}
       <FieldError>{message}</FieldError>
     </FieldRoot>
@@ -285,6 +338,8 @@ export function FieldShell(props: FieldShellProps) {
 export interface FieldProps extends FieldOwnProps {
   /** The control, or several parts of a custom one. */
   children: ReactNode;
+  /** `sm` gives a smaller, muted label and tighter spacing. */
+  size?: FieldSize;
   name?: string;
   className?: string;
   validate?: ComponentProps<typeof BaseField.Root>["validate"];
@@ -340,6 +395,7 @@ export interface FieldsetLegendProps
   required?: boolean;
   requiredIndicator?: ReactNode;
   hidden?: boolean;
+  size?: FieldSize;
 }
 
 /** A fieldset's legend, styled like a field label. */
@@ -349,13 +405,14 @@ export function FieldsetLegend(props: FieldsetLegendProps) {
     required,
     requiredIndicator = "*",
     hidden,
+    size = "md",
     children,
     ...rest
   } = props;
   return (
     <BaseFieldset.Legend
       className={cx(
-        fieldLabelStyles,
+        fieldLabelRecipe({ size }),
         legendStyles,
         hidden && visuallyHidden(),
         className,

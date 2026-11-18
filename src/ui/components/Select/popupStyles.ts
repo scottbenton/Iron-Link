@@ -29,8 +29,7 @@ export const listPopupStyles = css({
   background: "bg.surface",
   color: "fg.default",
   fontFamily: "body",
-  boxShadow:
-    "0 3px 0 token(colors.border.edge), 0 12px 24px -12px color-mix(in oklab, black 30%, transparent)",
+  boxShadow: "popover",
   outline: "none",
   transformOrigin: "var(--transform-origin)",
   transitionProperty: "opacity, scale, translate",

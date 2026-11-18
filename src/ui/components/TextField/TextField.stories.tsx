@@ -16,6 +16,7 @@ const meta = {
   },
   argTypes: {
     size: { control: "inline-radio", options: ["sm", "md"] },
+    variant: { control: "inline-radio", options: ["outline", "quiet"] },
   },
   decorators: [
     (Story) => (
@@ -68,11 +69,66 @@ export const Adornments: Story = {
   },
 };
 
+/** Help text sits under the label; the error sits under the field. */
+export const HelpAndError: Story = {
+  render: () => (
+    <TextField
+      label="Character Name"
+      description="Shown on your character sheet and in the game log."
+      defaultValue="Kayu"
+      error="A character in this game already has that name."
+    />
+  ),
+};
+
+/** `sm` is the compact size, with a smaller, muted label. */
 export const Sizes: Story = {
   render: () => (
     <Stack gap="4">
-      <TextField size="sm" label="Small" defaultValue="Iron Vow" />
-      <TextField size="md" label="Medium" defaultValue="Iron Vow" />
+      <TextField
+        size="sm"
+        label="Small"
+        description="For dense panels."
+        defaultValue="Iron Vow"
+      />
+      <TextField
+        size="md"
+        label="Medium"
+        description="Everywhere else."
+        defaultValue="Iron Vow"
+      />
+    </Stack>
+  ),
+};
+
+/**
+ * `variant="quiet"` shows no border until hovered or focused, so a value
+ * reads as text. Its text lines up with the label. See Field, World entry
+ * fields.
+ */
+export const Quiet: Story = {
+  render: () => (
+    <Stack gap="3">
+      <TextField
+        size="sm"
+        variant="quiet"
+        label="Trouble"
+        defaultValue="Raiders prey on the weak"
+      />
+      <TextField
+        size="sm"
+        variant="quiet"
+        label="First look"
+        placeholder="Empty"
+      />
+      <TextField
+        size="sm"
+        variant="quiet"
+        label="Leader"
+        defaultValue=""
+        placeholder="Empty"
+        error="Name the settlement's leader."
+      />
     </Stack>
   ),
 };
@@ -84,6 +140,7 @@ export const States: Story = {
         label="Game Name"
         required
         defaultValue=""
+        description="Players see it when they join."
         error="Give your game a name before you create it."
       />
       <TextField

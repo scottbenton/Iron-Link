@@ -9,8 +9,24 @@ import {
 } from "react";
 
 import { css, cva, cx } from "styled-system/css";
+import type { SystemStyleObject } from "styled-system/types";
 
 import { surfaceStyles } from "../Surface";
+
+/** A press target inside the card: an action area, or a link overlay. */
+const action = "> [data-card-action]";
+const link = "[data-card-link]";
+
+/**
+ * With a link overlay, every other control in the card sits above the
+ * overlay (z-index 1) so it stays its own target, as does anything marked
+ * `data-card-raised`. Zero specificity, so a control's own positioning still
+ * wins. Panda's types only take selectors that start or end with `&`.
+ */
+const raisedControls = {
+  [`:where(&:has(${link})) :where(a[href], button, input, select, textarea, summary, label, [role=button], [role=link], [role=checkbox], [role=switch], [role=tab], [tabindex]:not([tabindex="-1"]), [data-card-raised]):where(:not(${link}))`]:
+    { position: "relative", zIndex: 2 },
+} as SystemStyleObject;
 
 const cardStyles = cva({
   base: {
@@ -20,40 +36,39 @@ const cardStyles = cva({
     gap: "3",
     minWidth: 0,
     fontFamily: "body",
-    // A card with an action area is pressable: it gets the ledge, a border
-    // that darkens on hover and the 1px sink on press, all as one piece.
-    "&:has(> [data-card-action])": {
+    // A card with an action area or a link overlay is pressable: it gets the
+    // ledge, a border that darkens on hover and the 1px sink on press, all as
+    // one piece. Hovering or pressing a secondary action inside does neither.
+    [`&:has(${action}, ${link})`]: {
       boxShadow: "ledge",
       transform: "translateY(0)",
       transitionProperty: "transform, box-shadow, border-color",
       transitionDuration: "fast",
       transitionTimingFunction: "out",
     },
-    "&:has(> [data-card-action]:hover)": {
+    [`&:has(${action}:hover, ${link}:hover)`]: {
       borderColor: "border.control",
       transform: "translateY(var(--spacing-lift))",
       boxShadow:
         "0 calc(var(--border-widths-ledge) - var(--spacing-lift)) 0 token(colors.border.edge)",
     },
-    "&:has(> [data-card-action]:active)": {
+    [`&:has(${action}:active, ${link}:active)`]: {
       transform: "translateY(var(--spacing-sink))",
       boxShadow:
         "0 max(0px, calc(var(--border-widths-ledge) - var(--spacing-sink))) 0 token(colors.border.edge)",
       transitionDuration: "instant",
     },
-    "&:has(> [data-card-action]:focus-visible)": {
+    [`&:has(${action}:focus-visible, ${link}:focus-visible)`]: {
       outline: "2px solid token(colors.focusRing)",
       outlineOffset: "2px",
     },
-    "&:has(> [data-card-action]:is(:disabled, [aria-disabled=true]))": {
+    [`&:has(${action}:is(:disabled, [aria-disabled=true]))`]: {
       transform: "none",
       boxShadow: "none",
       borderColor: "border.default",
       opacity: 0.6,
     },
-    "&[data-selected]": {
-      borderColor: "border.control",
-    },
+    ...raisedControls,
   },
   variants: {
     padding: {
@@ -71,21 +86,28 @@ export interface CardProps extends ComponentProps<"div"> {
   padding?: "none" | "sm" | "md" | "lg";
   /** Raise the card on a ledge without making it pressable. */
   raised?: boolean;
-  /** Mark the chosen card in a set, such as the picked ruleset. */
-  selected?: boolean;
   /** Render another element, such as `<article />` or `<li />`. */
   render?: ReactElement;
 }
 
 /**
  * A surface card: border, radius lg, the surface colour. Compose it from
- * `CardHeader`, `CardBody` and `CardFooter`. Put a `CardActionArea` inside
- * to make the whole card a button or link; it gets the ledge and sinks on
- * press, while buttons in a `CardFooter` stay separate controls.
+ * `CardHeader`, `CardBody` and `CardFooter`.
+ *
+ * To make the whole card open something, use one of two parts:
+ * - `CardLinkOverlay` when the card opens a page and holds other controls
+ *   (a menu, an Invite button) anywhere in it. The link is just the title,
+ *   so its name is short, and the other controls keep working.
+ * - `CardActionArea` when the card is one control whose name is everything
+ *   it wraps, such as a button that runs an action. Other controls go in a
+ *   `CardFooter` or the header's `action`, outside it.
+ *
+ * Either gives the card the ledge and the 1px sink on press. To choose one
+ * of a set, use `RadioCard` instead.
  */
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   function Card(props, ref) {
-    const { padding, raised, selected, className, render, ...rest } = props;
+    const { padding, raised, className, render, ...rest } = props;
     return useRender({
       defaultTagName: "div",
       render,
@@ -97,8 +119,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
             cardStyles({ padding }),
             className,
           ),
-          "data-selected": selected ? "" : undefined,
-        } as ComponentProps<"div">,
+        },
         rest,
       ),
     });
@@ -141,7 +162,9 @@ export interface CardActionAreaProps
 /**
  * Makes the whole card a button, or a link through `render`. Wrap the
  * content that names the action (usually the header and body); its text is
- * the control's name. Place it directly inside `Card`.
+ * the control's name. Place it directly inside `Card`. Nothing interactive
+ * may sit inside it; for a card with other controls among its content, or a
+ * link that should be named by the title alone, use `CardLinkOverlay`.
  */
 export const CardActionArea = forwardRef<HTMLElement, CardActionAreaProps>(
   function CardActionArea(props, ref) {
@@ -163,6 +186,69 @@ export const CardActionArea = forwardRef<HTMLElement, CardActionAreaProps>(
     });
   },
 );
+
+const linkOverlayStyles = css({
+  color: "inherit",
+  font: "inherit",
+  textDecoration: "none",
+  cursor: "pointer",
+  WebkitTapHighlightColor: "transparent",
+  outline: "none",
+  // The card draws the focus ring; the link underlines on hover.
+  _hover: {
+    textDecorationLine: "underline",
+    textDecorationThickness: "1px",
+    textUnderlineOffset: "0.2em",
+  },
+  // Stretched over the whole card, border included. The link itself must not
+  // be positioned, nor anything between it and the card.
+  _before: {
+    content: '""',
+    position: "absolute",
+    zIndex: 1,
+    inset: "-1px",
+    borderRadius: "lg",
+  },
+});
+
+export interface CardLinkOverlayProps extends Omit<ComponentProps<"a">, "ref"> {
+  /** Render a router link: `render={<RouterLink to={path} />}`. */
+  render?: ReactElement;
+}
+
+/**
+ * A link whose hit area covers the whole card, so a click anywhere on the
+ * card follows it (Chakra's LinkOverlay, Bootstrap's stretched link). Wrap
+ * the text that names the card, usually the title:
+ * `<CardHeader title={<CardLinkOverlay href={path}>{name}</CardLinkOverlay>} />`.
+ * Its name is that text alone.
+ *
+ * Other controls in the card (buttons, menus, links, fields) sit above the
+ * overlay and keep their own clicks. Text under the overlay opens the link
+ * rather than starting a selection; mark a block `data-card-raised` to keep
+ * its text selectable (it then stops opening the link). A wrapper that
+ * creates a stacking context (`isolation`, `z-index`, `opacity`) around a
+ * control puts the control under the overlay; mark that wrapper
+ * `data-card-raised` too.
+ */
+export const CardLinkOverlay = forwardRef<
+  HTMLAnchorElement,
+  CardLinkOverlayProps
+>(function CardLinkOverlay(props, ref) {
+  const { render, className, ...rest } = props;
+  return useRender({
+    defaultTagName: "a",
+    render,
+    ref,
+    props: mergeProps<"a">(
+      {
+        className: cx(linkOverlayStyles, className),
+        "data-card-link": "",
+      } as ComponentProps<"a">,
+      rest,
+    ),
+  });
+});
 
 const headerStyles = css({
   display: "flex",
@@ -252,7 +338,7 @@ export function CardHeader(props: CardHeaderProps) {
         <div
           className={css({
             position: "relative",
-            zIndex: 1,
+            zIndex: 2,
             flex: "none",
             display: "flex",
             gap: "1",
@@ -292,8 +378,8 @@ export interface CardFooterProps extends ComponentProps<"div"> {
 }
 
 /**
- * The card's actions and meta. Its buttons sit above a `CardActionArea`,
- * so they stay their own controls.
+ * The card's actions and meta. Its buttons sit above a `CardActionArea` or
+ * a `CardLinkOverlay`, so they stay their own controls.
  */
 export function CardFooter(props: CardFooterProps) {
   const { divider, className, ...rest } = props;
@@ -301,8 +387,9 @@ export function CardFooter(props: CardFooterProps) {
     <div
       className={cx(
         css({
+          // Above a CardActionArea by order. Under a CardLinkOverlay, so the
+          // footer's text opens the link; its controls are raised by Card.
           position: "relative",
-          zIndex: 1,
           display: "flex",
           flexWrap: "wrap",
           alignItems: "center",

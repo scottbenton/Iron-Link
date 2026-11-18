@@ -59,7 +59,10 @@ interface SelectCommonProps<V extends SelectValue> extends FieldOwnProps {
   options: SelectOptions<V>;
   /** Shown in the trigger while nothing is chosen. */
   placeholder?: ReactNode;
+  /** `sm` for dense panels, with a smaller muted label. */
   size?: "sm" | "md";
+  /** `quiet` shows no border or well until hovered or focused. */
+  variant?: "outline" | "quiet";
   /** Submitted with a form. */
   name?: string;
   /** Shows the choice but does not open. */
@@ -102,7 +105,6 @@ export type SelectProps<V extends SelectValue = string> = SelectCommonProps<V> &
   (SelectSingleProps<V> | SelectMultipleProps<V>);
 
 const triggerExtra = css({
-  fontSize: "inherit",
   "&[data-readonly]": { cursor: "default" },
 });
 
@@ -174,6 +176,7 @@ export function Select<V extends SelectValue = string>(props: SelectProps<V>) {
     options,
     placeholder,
     size = "md",
+    variant = "outline",
     name,
     readOnly,
     startAdornment,
@@ -280,6 +283,7 @@ export function Select<V extends SelectValue = string>(props: SelectProps<V>) {
       requiredIndicator={requiredIndicator}
       name={name}
       className={className}
+      size={size}
       labelPart={BaseSelect.Label}
       wrap={(content) => (
         <BaseSelect.Root<V, boolean>
@@ -344,7 +348,7 @@ export function Select<V extends SelectValue = string>(props: SelectProps<V>) {
       <BaseSelect.Trigger
         ref={ref}
         className={cx(
-          fieldShellStyles({ kind: "button", size }),
+          fieldShellStyles({ kind: "button", size, variant }),
           triggerExtra,
           triggerClassName,
         )}

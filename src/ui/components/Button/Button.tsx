@@ -29,7 +29,7 @@ const swap = css({
 
 export interface ButtonProps
   extends Omit<ComponentProps<typeof BaseButton>, "className" | "render"> {
-  variant?: "outline" | "primary" | "danger" | "ghost" | "text";
+  variant?: "outline" | "primary" | "gradient" | "danger" | "ghost" | "text";
   size?: "sm" | "md";
   fullWidth?: boolean;
   /** Square, for an icon alone. Prefer IconButton, which names it. */
@@ -55,7 +55,9 @@ export interface ButtonProps
 
 /**
  * The library's button. Outline by default; `primary` for the main action,
- * `danger` for a destructive confirm, `ghost` and `text` for low emphasis.
+ * `gradient` for a page's one call to action (the hero's Start Playing,
+ * Create Game), `danger` for a destructive confirm, `ghost` and `text` for
+ * low emphasis.
  */
 export const Button = forwardRef<HTMLElement, ButtonProps>(
   function Button(props, ref) {

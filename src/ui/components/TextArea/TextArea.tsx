@@ -8,12 +8,12 @@ import {
   useRef,
 } from "react";
 
-import { css, cx } from "styled-system/css";
+import { cx } from "styled-system/css";
 
 import {
   FieldOwnProps,
   FieldShell,
-  fieldInputStyles,
+  fieldInputRecipe,
   fieldShellStyles,
   mergeRefs,
   useControllableState,
@@ -41,7 +41,10 @@ export interface TextAreaProps extends FieldOwnProps, NativeTextAreaProps {
   minRows?: number;
   /** Rows it grows to before it scrolls. */
   maxRows?: number;
+  /** `sm` for dense panels, with a smaller muted label. */
   size?: "sm" | "md";
+  /** `quiet` shows no border or well until hovered or focused. */
+  variant?: "outline" | "quiet";
   /** Class for the field (label, well, help and error together). */
   className?: string;
   /** Class for the well. */
@@ -51,27 +54,6 @@ export interface TextAreaProps extends FieldOwnProps, NativeTextAreaProps {
   validate?: ComponentProps<typeof BaseField.Root>["validate"];
   validationMode?: ComponentProps<typeof BaseField.Root>["validationMode"];
 }
-
-const shell = css({
-  alignItems: "stretch",
-  paddingInline: 0,
-});
-
-const textarea = css({
-  display: "block",
-  paddingBlock: "2",
-  paddingInline: "3",
-  resize: "none",
-  lineHeight: "normal",
-  overflowY: "hidden",
-  textOverflow: "clip",
-  scrollPaddingBlock: "2",
-});
-
-const textareaSm = css({
-  paddingBlock: "1.5",
-  paddingInline: "10px",
-});
 
 /**
  * Multi-line text that grows with its content from `minRows` to `maxRows`,
@@ -96,6 +78,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       minRows = 3,
       maxRows = 8,
       size = "md",
+      variant = "outline",
       className,
       shellClassName,
       inputClassName,
@@ -158,9 +141,13 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         className={className}
         validate={validate}
         validationMode={validationMode}
+        size={size}
       >
         <div
-          className={cx(fieldShellStyles({ size }), shell, shellClassName)}
+          className={cx(
+            fieldShellStyles({ size, variant, multiline: true }),
+            shellClassName,
+          )}
           data-disabled={disabled || undefined}
           data-readonly={readOnly || undefined}
         >
@@ -168,9 +155,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
             render={<textarea />}
             ref={mergeRefs<HTMLElement>(ref as never, elementRef as never)}
             className={cx(
-              fieldInputStyles,
-              textarea,
-              size === "sm" && textareaSm,
+              fieldInputRecipe({ size, multiline: true }),
               inputClassName,
             )}
             value={value}

@@ -1,6 +1,7 @@
 import {
   ArrowClockwise,
   ArrowCounterClockwise,
+  Eye,
   ImageSquare,
   LinkSimple,
   ListBullets,
@@ -15,6 +16,7 @@ import { useState } from "react";
 
 import { Stack } from "styled-system/jsx";
 
+import { ToggleGroup, ToggleGroupItem } from "../ToggleGroup";
 import {
   Toolbar,
   ToolbarButton,
@@ -32,14 +34,16 @@ const meta: Meta<typeof Toolbar> = {
 export default meta;
 type Story = StoryObj<typeof Toolbar>;
 
-/** The rich text editor's toolbar: one Tab stop, arrows move inside. */
+type Mark = "bold" | "italic" | "strike";
+
+/**
+ * The rich text editor's toolbar: one Tab stop, arrows move inside. Text
+ * style is a ghost, neutral ToggleGroup, so its toggles join the toolbar's
+ * arrow keys and match its buttons: an overlay fill, no accent, no movement.
+ */
 export const RichTextEditor: Story = {
   render: function Render() {
-    const [marks, setMarks] = useState<Record<string, boolean>>({
-      bold: true,
-    });
-    const toggle = (mark: string) =>
-      setMarks((current) => ({ ...current, [mark]: !current[mark] }));
+    const [marks, setMarks] = useState<Mark[]>(["bold"]);
     return (
       <Stack maxWidth="720px">
         <Toolbar aria-label="Formatting">
@@ -57,28 +61,32 @@ export const RichTextEditor: Story = {
             />
           </ToolbarGroup>
           <ToolbarSeparator />
-          <ToolbarGroup aria-label="Text style">
-            <ToolbarButton
+          <ToggleGroup<Mark>
+            multiple
+            variant="ghost"
+            tone="neutral"
+            aria-label="Text style"
+            value={marks}
+            onValueChange={setMarks}
+          >
+            <ToggleGroupItem<Mark>
+              value="bold"
               label="Bold"
-              shortcut="Ctrl+B"
-              icon={<TextB />}
-              pressed={!!marks.bold}
-              onClick={() => toggle("bold")}
-            />
-            <ToolbarButton
+              aria-keyshortcuts="Ctrl+B"
+            >
+              <TextB />
+            </ToggleGroupItem>
+            <ToggleGroupItem<Mark>
+              value="italic"
               label="Italic"
-              shortcut="Ctrl+I"
-              icon={<TextItalic />}
-              pressed={!!marks.italic}
-              onClick={() => toggle("italic")}
-            />
-            <ToolbarButton
-              label="Strikethrough"
-              icon={<TextStrikethrough />}
-              pressed={!!marks.strike}
-              onClick={() => toggle("strike")}
-            />
-          </ToolbarGroup>
+              aria-keyshortcuts="Ctrl+I"
+            >
+              <TextItalic />
+            </ToggleGroupItem>
+            <ToggleGroupItem<Mark> value="strike" label="Strikethrough">
+              <TextStrikethrough />
+            </ToggleGroupItem>
+          </ToggleGroup>
           <ToolbarSeparator />
           <ToolbarGroup aria-label="Blocks">
             <ToolbarButton label="Bulleted List" icon={<ListBullets />} />
@@ -97,6 +105,25 @@ export const RichTextEditor: Story = {
           <ToolbarStatus>Saved</ToolbarStatus>
         </Toolbar>
       </Stack>
+    );
+  },
+};
+
+/** ToolbarButton's own `pressed` toggle, for a lone toggle in a bar. */
+export const PressedButton: Story = {
+  render: function Render() {
+    const [preview, setPreview] = useState(false);
+    return (
+      <Toolbar aria-label="Note view">
+        <ToolbarButton label="Share" />
+        <ToolbarButton
+          label="Preview"
+          showLabel
+          icon={<Eye />}
+          pressed={preview}
+          onClick={() => setPreview((current) => !current)}
+        />
+      </Toolbar>
     );
   },
 };

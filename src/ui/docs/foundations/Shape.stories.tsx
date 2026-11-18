@@ -142,9 +142,11 @@ export const Elevation: StoryObj = {
         <Text variant="eyebrow">Foundations</Text>
         <Text variant="h1">Elevation</Text>
         <Text color="muted">
-          Tactile flat: height is drawn with solid borders and a ledge, a 2px
-          solid edge under anything you can press. Shadows are kept for things
-          that float over the page: menus, popovers and dialogs.
+          Tactile flat: height is drawn with solid borders and a ledge. Things
+          you can press stand on a 2px ledge. Things that float over the page
+          stand higher: menus, popovers and toasts on a 3px ledge, dialogs on
+          4px, each with a soft shadow to lift it off what is behind. Static
+          surfaces are flat.
         </Text>
       </div>
       <div
@@ -178,13 +180,19 @@ export const Elevation: StoryObj = {
         </div>
         <div
           className={surfaceDemo}
-          style={{ boxShadow: "var(--shadows-popover)" }}
+          style={{
+            boxShadow: "var(--shadows-popover)",
+            borderColor: "var(--colors-border-control)",
+          }}
         >
           <Text variant="bodySm">Popover</Text>
         </div>
         <div
           className={surfaceDemo}
-          style={{ boxShadow: "var(--shadows-dialog)" }}
+          style={{
+            boxShadow: "var(--shadows-dialog)",
+            borderColor: "var(--colors-border-control)",
+          }}
         >
           <Text variant="bodySm">Dialog</Text>
         </div>

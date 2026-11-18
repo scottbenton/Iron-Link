@@ -15,6 +15,7 @@ const meta = {
     max: 1,
     step: 0.05,
     showValue: true,
+    description: "How loud the dice sound when you roll.",
     format: { style: "percent" },
   },
   decorators: [

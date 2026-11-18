@@ -1,7 +1,7 @@
 import { Check } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode } from "react";
 
-import { css, cva, cx } from "styled-system/css";
+import { css, cx } from "styled-system/css";
 
 import { VisuallyHidden } from "../VisuallyHidden";
 
@@ -13,75 +13,41 @@ export interface StepperStep {
 
 type StepState = "complete" | "current" | "upcoming";
 
-const listStyles = cva({
-  base: {
-    display: "flex",
-    margin: 0,
-    padding: 0,
-    listStyle: "none",
-    fontFamily: "body",
-    "--step-size": "28px",
-    "--step-gap": "{spacing.2}",
-  },
-  variants: {
-    labelPlacement: {
-      below: { alignItems: "flex-start" },
-      end: { alignItems: "center", gap: "2" },
-    },
-  },
+const listStyles = css({
+  display: "flex",
+  alignItems: "flex-start",
+  margin: 0,
+  padding: 0,
+  listStyle: "none",
+  fontFamily: "body",
+  "--step-size": "28px",
+  "--step-gap": "{spacing.2}",
 });
 
-const stepStyles = cva({
-  base: {
-    position: "relative",
-    display: "flex",
-    minWidth: 0,
-    "--connector": "{colors.border.default}",
-    "&[data-state=complete], &[data-state=current]": {
-      "--connector": "{colors.accent.solid}",
-    },
+const stepStyles = css({
+  position: "relative",
+  display: "flex",
+  minWidth: 0,
+  "--connector": "{colors.border.default}",
+  "&[data-state=complete], &[data-state=current]": {
+    "--connector": "{colors.accent.solid}",
   },
-  variants: {
-    labelPlacement: {
-      // The connector runs from the previous indicator to this one.
-      below: {
-        flex: "1 1 0",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "2",
-        textAlign: "center",
-        paddingInline: "1",
-        "&:not(:first-child)::before": {
-          content: '""',
-          position: "absolute",
-          top: "calc(var(--step-size) / 2 - 1px)",
-          left: "calc(-50% + var(--step-size) / 2 + var(--step-gap))",
-          right: "calc(50% + var(--step-size) / 2 + var(--step-gap))",
-          height: "2px",
-          borderRadius: "full",
-          background: "var(--connector)",
-        },
-      },
-      // The connector follows each step and fills the space to the next.
-      end: {
-        flex: "1 1 auto",
-        alignItems: "center",
-        gap: "2",
-        "&:last-child": { flex: "none" },
-        "&:not(:last-child)::after": {
-          content: '""',
-          flex: "1 1 auto",
-          minWidth: "4",
-          height: "2px",
-          marginInline: "1",
-          borderRadius: "full",
-          background: "border.default",
-        },
-        "&[data-state=complete]:not(:last-child)::after": {
-          background: "accent.solid",
-        },
-      },
-    },
+  // The connector runs from the previous indicator to this one.
+  flex: "1 1 0",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: "2",
+  textAlign: "center",
+  paddingInline: "1",
+  "&:not(:first-child)::before": {
+    content: '""',
+    position: "absolute",
+    top: "calc(var(--step-size) / 2 - 1px)",
+    left: "calc(-50% + var(--step-size) / 2 + var(--step-gap))",
+    right: "calc(50% + var(--step-size) / 2 + var(--step-gap))",
+    height: "2px",
+    borderRadius: "full",
+    background: "var(--connector)",
   },
 });
 
@@ -131,42 +97,33 @@ const labelStyles = css({
   },
 });
 
-const stepButtonStyles = cva({
-  base: {
-    display: "flex",
-    alignItems: "center",
-    gap: "2",
-    minWidth: 0,
-    margin: "-1",
-    padding: "1",
-    border: 0,
-    borderRadius: "md",
-    background: "transparent",
-    font: "inherit",
-    color: "inherit",
-    textAlign: "inherit",
-    cursor: "pointer",
-    outline: "none",
-    WebkitTapHighlightColor: "transparent",
-    transition: "background-color token(durations.fast) linear",
-    _hover: { background: "overlay.hover" },
-    _pressed: { background: "overlay.pressed" },
-    _focusVisible: { outline: "2px solid token(colors.focusRing)" },
-  },
-  variants: {
-    labelPlacement: {
-      below: { flexDirection: "column" },
-      end: { flexDirection: "row" },
-    },
-  },
+const stepButtonStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: "2",
+  minWidth: 0,
+  margin: "-1",
+  padding: "1",
+  border: 0,
+  borderRadius: "md",
+  background: "transparent",
+  font: "inherit",
+  color: "inherit",
+  textAlign: "inherit",
+  cursor: "pointer",
+  outline: "none",
+  WebkitTapHighlightColor: "transparent",
+  transition: "background-color token(durations.fast) linear",
+  _hover: { background: "overlay.hover" },
+  _pressed: { background: "overlay.pressed" },
+  _focusVisible: { outline: "2px solid token(colors.focusRing)" },
 });
 
 export interface StepperProps extends Omit<ComponentProps<"ol">, "children"> {
   steps: StepperStep[];
   /** The index of the current step; earlier steps are complete. */
   activeStep: number;
-  /** Labels under the indicators (as in the create game flow) or beside. */
-  labelPlacement?: "below" | "end";
   /**
    * Go back to a completed step. With it, completed steps are buttons.
    */
@@ -186,7 +143,6 @@ export function Stepper(props: StepperProps) {
   const {
     steps,
     activeStep,
-    labelPlacement = "below",
     onStepSelect,
     completedLabel = "Completed",
     "aria-label": ariaLabel = "Progress",
@@ -194,11 +150,7 @@ export function Stepper(props: StepperProps) {
     ...rest
   } = props;
   return (
-    <ol
-      aria-label={ariaLabel}
-      className={cx(listStyles({ labelPlacement }), className)}
-      {...rest}
-    >
+    <ol aria-label={ariaLabel} className={cx(listStyles, className)} {...rest}>
       {steps.map((step, index) => {
         const state: StepState =
           index < activeStep
@@ -229,12 +181,12 @@ export function Stepper(props: StepperProps) {
             key={index}
             data-state={state}
             aria-current={state === "current" ? "step" : undefined}
-            className={stepStyles({ labelPlacement })}
+            className={stepStyles}
           >
             {onStepSelect && state === "complete" ? (
               <button
                 type="button"
-                className={stepButtonStyles({ labelPlacement })}
+                className={stepButtonStyles}
                 onClick={() => onStepSelect(index)}
               >
                 {content}

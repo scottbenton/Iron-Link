@@ -11,6 +11,7 @@ import {
   FieldOwnProps,
   FieldRoot,
   FieldsetLegend,
+  fieldsetDescriptionStyles,
   resolveFieldError,
 } from "../Field";
 
@@ -38,7 +39,7 @@ export interface CheckboxGroupProps extends FieldOwnProps {
 const groupStyles = css({
   boxSizing: "border-box",
   display: "grid",
-  gap: "1",
+  gap: "2",
   minWidth: 0,
   margin: 0,
   padding: 0,
@@ -107,11 +108,13 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
             {label}
           </FieldsetLegend>
         )}
+        {description !== undefined && description !== null && (
+          <FieldDescription className={fieldsetDescriptionStyles}>
+            {description}
+          </FieldDescription>
+        )}
         <div className={cx(choiceListStyles({ orientation }))}>{children}</div>
       </BaseFieldset.Root>
-      {description !== undefined && description !== null && (
-        <FieldDescription>{description}</FieldDescription>
-      )}
       <FieldError>{message}</FieldError>
     </FieldRoot>
   );

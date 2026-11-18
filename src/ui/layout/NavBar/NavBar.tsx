@@ -189,7 +189,7 @@ const drawerStyles = css({
   borderInlineEnd: "1px solid token(colors.border.control)",
   borderStartEndRadius: "xl",
   borderEndEndRadius: "xl",
-  boxShadow: "dialog",
+  boxShadow: "float",
   color: "fg.default",
   outline: "none",
   transition: "translate token(durations.normal) token(easings.out)",

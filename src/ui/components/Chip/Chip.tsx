@@ -31,13 +31,15 @@ const chipStyles = cva({
     lineHeight: "1.2",
     whiteSpace: "nowrap",
     verticalAlign: "middle",
-    transitionProperty: "background-color, border-color, color, transform",
+    transitionProperty: "background-color, border-color, color",
     transitionDuration: "fast",
     transitionTimingFunction: "linear",
-    // A clickable chip's button covers the whole chip.
+    // A clickable chip's button covers the whole chip. Chips have no ledge,
+    // so a press darkens the fill instead of sinking the chip.
     "&:has(> [data-chip-main]:hover)": { background: "var(--chip-hover)" },
     "&:has(> [data-chip-main]:active)": {
-      transform: "translateY(min(var(--spacing-sink), 1px))",
+      background:
+        "color-mix(in oklab, var(--chip-hover) 88%, var(--chip-color))",
       transitionDuration: "instant",
     },
     "&:has(> [data-chip-main]:focus-visible)": {
@@ -52,9 +54,10 @@ const chipStyles = cva({
     },
     "&:has(> [data-chip-main]:disabled)": {
       opacity: 0.55,
-      transform: "none",
+      background: "var(--chip-bg)",
     },
-    "& svg": { flex: "none", width: "15px", height: "15px" },
+    // The leading icon only; the remove button sizes its own.
+    "& [data-chip-icon] svg": { flex: "none", width: "15px", height: "15px" },
   },
   variants: {
     variant: {
@@ -126,12 +129,16 @@ const chipStyles = cva({
     },
     size: {
       sm: {
+        "--chip-remove-size": "16px",
+        "--chip-remove-icon": "10px",
         minHeight: "24px",
         paddingInline: "2",
         fontSize: "xs",
         _touch: { minHeight: "32px" },
       },
       md: {
+        "--chip-remove-size": "20px",
+        "--chip-remove-icon": "12px",
         minHeight: "32px",
         paddingInlineStart: "9px",
         paddingInlineEnd: "3",
@@ -140,7 +147,7 @@ const chipStyles = cva({
       },
     },
     removable: {
-      true: { paddingInlineEnd: "1" },
+      true: {},
     },
   },
   compoundVariants: [
@@ -149,6 +156,11 @@ const chipStyles = cva({
       tone: "neutral",
       css: { "--chip-border": "{colors.border.control}" },
     },
+    // The remove button's circle sits as far from the chip's end as from
+    // its top and bottom, so it follows the pill's round end:
+    // (height - border - button) / 2.
+    { removable: true, size: "sm", css: { paddingInlineEnd: "3px" } },
+    { removable: true, size: "md", css: { paddingInlineEnd: "5px" } },
   ],
   defaultVariants: { variant: "outline", tone: "neutral", size: "md" },
 });
@@ -190,8 +202,8 @@ const removeStyles = css({
   alignItems: "center",
   justifyContent: "center",
   flex: "none",
-  width: "20px",
-  height: "20px",
+  width: "var(--chip-remove-size)",
+  height: "var(--chip-remove-size)",
   margin: 0,
   padding: 0,
   border: 0,
@@ -209,7 +221,10 @@ const removeStyles = css({
     background: "color-mix(in oklab, currentColor 22%, transparent)",
   },
   _focusVisible: { outline: "2px solid token(colors.focusRing)" },
-  "& svg": { width: "12px", height: "12px" },
+  "& svg": {
+    width: "var(--chip-remove-icon)",
+    height: "var(--chip-remove-icon)",
+  },
   // A larger target for fingers, without changing the look.
   _before: {
     content: '""',
@@ -261,7 +276,11 @@ export function Chip(props: ChipProps) {
   const content = (
     <>
       {icon && (
-        <span className={css({ display: "inline-flex" })} aria-hidden>
+        <span
+          className={css({ display: "inline-flex" })}
+          data-chip-icon=""
+          aria-hidden
+        >
           {icon}
         </span>
       )}

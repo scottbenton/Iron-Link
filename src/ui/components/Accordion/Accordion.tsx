@@ -1,64 +1,25 @@
 import { Accordion as BaseAccordion } from "@base-ui/react/accordion";
 import { CaretDown } from "@phosphor-icons/react";
-import {
-  ComponentProps,
-  ReactNode,
-  createContext,
-  forwardRef,
-  useContext,
-} from "react";
+import { ComponentProps, ReactNode, forwardRef } from "react";
 
-import { css, cva, cx } from "styled-system/css";
+import { css, cx } from "styled-system/css";
 
-export type AccordionVariant = "contained" | "separated" | "flush";
-
-const VariantContext = createContext<AccordionVariant>("contained");
-
-const rootStyles = cva({
-  base: {
-    display: "flex",
-    flexDirection: "column",
-    boxSizing: "border-box",
-    fontFamily: "body",
-    color: "fg.default",
-  },
-  variants: {
-    variant: {
-      /** One bordered surface, the items divided by hairlines. */
-      contained: {
-        border: "1px solid token(colors.border.default)",
-        borderRadius: "lg",
-        background: "bg.surface",
-        overflow: "hidden",
-      },
-      /** Each item its own bordered card, with a gap between. */
-      separated: { gap: "2" },
-      /** Hairlines between items and nothing around them. */
-      flush: {},
-    },
-  },
-  defaultVariants: { variant: "contained" },
+/** One bordered surface, the items divided by hairlines. */
+const rootStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  boxSizing: "border-box",
+  fontFamily: "body",
+  color: "fg.default",
+  border: "1px solid token(colors.border.default)",
+  borderRadius: "lg",
+  background: "bg.surface",
+  overflow: "hidden",
 });
 
-const itemStyles = cva({
-  base: { boxSizing: "border-box" },
-  variants: {
-    variant: {
-      contained: {
-        "& + &": { borderTop: "1px solid token(colors.border.subtle)" },
-      },
-      separated: {
-        border: "1px solid token(colors.border.default)",
-        borderRadius: "lg",
-        background: "bg.surface",
-        overflow: "hidden",
-      },
-      flush: {
-        borderBottom: "1px solid token(colors.border.subtle)",
-      },
-    },
-  },
-  defaultVariants: { variant: "contained" },
+const itemStyles = css({
+  boxSizing: "border-box",
+  "& + &": { borderTop: "1px solid token(colors.border.subtle)" },
 });
 
 const headerStyles = css({
@@ -70,57 +31,48 @@ const headerStyles = css({
   "&:has(> [data-accordion-actions])": { paddingInlineEnd: "2" },
 });
 
-const triggerStyles = cva({
-  base: {
-    flex: "1 1 auto",
-    minWidth: 0,
-    display: "flex",
-    alignItems: "center",
-    gap: "3",
-    boxSizing: "border-box",
-    minHeight: "48px",
-    margin: 0,
-    paddingBlock: "3",
-    paddingInline: "4",
-    border: 0,
-    background: "transparent",
-    color: "fg.default",
-    fontFamily: "body",
-    textAlign: "start",
-    cursor: "pointer",
-    WebkitTapHighlightColor: "transparent",
-    transition: "background-color token(durations.fast) linear",
-    outline: "none",
-    _hover: { background: "overlay.hover" },
-    _pressed: { background: "overlay.pressed" },
-    _focusVisible: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "-2px",
-    },
-    _disabled: { cursor: "not-allowed", color: "fg.disabled" },
-    "& [data-caret]": {
-      flex: "none",
-      width: "16px",
-      height: "16px",
-      marginInlineStart: "auto",
-      color: "fg.muted",
-      transition: "rotate token(durations.normal) token(easings.out)",
-      _reducedMotion: { transition: "none" },
-    },
-    "&[data-panel-open] [data-caret]": { rotate: "180deg" },
-    "& [data-icon]": {
-      flex: "none",
-      display: "inline-flex",
-      color: "fg.muted",
-      "& svg": { width: "20px", height: "20px" },
-    },
+const triggerStyles = css({
+  flex: "1 1 auto",
+  minWidth: 0,
+  display: "flex",
+  alignItems: "center",
+  gap: "3",
+  boxSizing: "border-box",
+  minHeight: "48px",
+  margin: 0,
+  paddingBlock: "3",
+  paddingInline: "4",
+  border: 0,
+  background: "transparent",
+  color: "fg.default",
+  fontFamily: "body",
+  textAlign: "start",
+  cursor: "pointer",
+  WebkitTapHighlightColor: "transparent",
+  transition: "background-color token(durations.fast) linear",
+  outline: "none",
+  _hover: { background: "overlay.hover" },
+  _pressed: { background: "overlay.pressed" },
+  _focusVisible: {
+    outline: "2px solid token(colors.focusRing)",
+    outlineOffset: "-2px",
   },
-  variants: {
-    variant: {
-      contained: {},
-      separated: {},
-      flush: { paddingInline: "1", borderRadius: "sm" },
-    },
+  _disabled: { cursor: "not-allowed", color: "fg.disabled" },
+  "& [data-caret]": {
+    flex: "none",
+    width: "16px",
+    height: "16px",
+    marginInlineStart: "auto",
+    color: "fg.muted",
+    transition: "rotate token(durations.normal) token(easings.out)",
+    _reducedMotion: { transition: "none" },
+  },
+  "&[data-panel-open] [data-caret]": { rotate: "180deg" },
+  "& [data-icon]": {
+    flex: "none",
+    display: "inline-flex",
+    color: "fg.muted",
+    "& svg": { width: "20px", height: "20px" },
   },
 });
 
@@ -160,32 +112,18 @@ const panelStyles = css({
   _reducedMotion: { transitionDuration: "0s" },
 });
 
-const panelContentStyles = cva({
-  base: {
-    paddingInline: "4",
-    paddingBottom: "4",
-    paddingTop: "1",
-    fontSize: "sm",
-    lineHeight: "normal",
-    color: "fg.default",
-  },
-  variants: {
-    variant: {
-      contained: {},
-      separated: {},
-      flush: { paddingInline: "1" },
-    },
-  },
+const panelContentStyles = css({
+  paddingInline: "4",
+  paddingBottom: "4",
+  paddingTop: "1",
+  fontSize: "sm",
+  lineHeight: "normal",
+  color: "fg.default",
 });
 
 type RootProps = ComponentProps<typeof BaseAccordion.Root>;
 
 export interface AccordionProps extends Omit<RootProps, "className"> {
-  /**
-   * Contained (one bordered surface), Separated (a card per item) or Flush
-   * (hairlines only, for inside a card or dialog).
-   */
-  variant?: AccordionVariant;
   className?: string;
 }
 
@@ -196,15 +134,13 @@ export interface AccordionProps extends Omit<RootProps, "className"> {
  */
 export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
   function Accordion(props, ref) {
-    const { variant = "contained", className, ...rest } = props;
+    const { className, ...rest } = props;
     return (
-      <VariantContext.Provider value={variant}>
-        <BaseAccordion.Root
-          ref={ref}
-          className={cx(rootStyles({ variant }), className)}
-          {...rest}
-        />
-      </VariantContext.Provider>
+      <BaseAccordion.Root
+        ref={ref}
+        className={cx(rootStyles, className)}
+        {...rest}
+      />
     );
   },
 );
@@ -219,11 +155,10 @@ export interface AccordionItemProps extends Omit<ItemProps, "className"> {
 export const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
   function AccordionItem(props, ref) {
     const { className, ...rest } = props;
-    const variant = useContext(VariantContext);
     return (
       <BaseAccordion.Item
         ref={ref}
-        className={cx(itemStyles({ variant }), className)}
+        className={cx(itemStyles, className)}
         {...rest}
       />
     );
@@ -265,14 +200,13 @@ export const AccordionTrigger = forwardRef<
     disabled,
     className,
   } = props;
-  const variant = useContext(VariantContext);
   const Heading = `h${headingLevel}` as const;
   return (
     <BaseAccordion.Header render={<Heading />} className={headerStyles}>
       <BaseAccordion.Trigger
         ref={ref}
         disabled={disabled}
-        className={cx(triggerStyles({ variant }), className)}
+        className={cx(triggerStyles, className)}
       >
         {icon && (
           <span data-icon="" aria-hidden>
@@ -309,15 +243,9 @@ export interface AccordionPanelProps extends Omit<PanelProps, "className"> {
 export const AccordionPanel = forwardRef<HTMLDivElement, AccordionPanelProps>(
   function AccordionPanel(props, ref) {
     const { className, children, disablePadding, ...rest } = props;
-    const variant = useContext(VariantContext);
     return (
       <BaseAccordion.Panel ref={ref} className={panelStyles} {...rest}>
-        <div
-          className={cx(
-            !disablePadding && panelContentStyles({ variant }),
-            className,
-          )}
-        >
+        <div className={cx(!disablePadding && panelContentStyles, className)}>
           {children}
         </div>
       </BaseAccordion.Panel>

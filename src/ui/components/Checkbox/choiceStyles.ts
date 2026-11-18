@@ -6,18 +6,22 @@ import { css, cva } from "styled-system/css";
  * the tick draws in after it. The whole row presses the box in a little.
  */
 
-/** The item around one choice: the label row, then its description. */
+/** The item around one choice. */
 export const choiceItemStyles = css({
   boxSizing: "border-box",
   display: "grid",
-  gap: "0.5",
   minWidth: 0,
 });
 
-/** The label row: box, then text. Pressing anywhere on it toggles. */
+/**
+ * The label: box, then the title with its description under it. The whole
+ * of it is the click target, description included, while the control's name
+ * stays the title alone (see ChoiceItem).
+ */
 export const choiceLabelStyles = cva({
   base: {
     boxSizing: "border-box",
+    position: "relative",
     display: "flex",
     alignItems: "flex-start",
     gap: "10px",
@@ -35,7 +39,8 @@ export const choiceLabelStyles = cva({
     userSelect: "none",
     WebkitTapHighlightColor: "transparent",
     "&[data-disabled]": { cursor: "not-allowed", color: "fg.subtle" },
-    _touch: { minHeight: "touch", alignItems: "center" },
+    // A 44px row for one line; the box stays beside the title.
+    _touch: { minHeight: "touch", paddingBlock: "3" },
   },
   variants: {
     size: {
@@ -46,12 +51,19 @@ export const choiceLabelStyles = cva({
   defaultVariants: { size: "md" },
 });
 
-/** The muted line under a choice, lined up with its label text. */
+/** The title and description, stacked close so they read as one choice. */
+export const choiceTextStyles = css({
+  display: "grid",
+  gap: "0.5",
+  minWidth: 0,
+  overflowWrap: "anywhere",
+});
+
+/** The muted line under a choice's title, lined up with it. */
 export const choiceDescriptionStyles = cva({
   base: {
+    display: "block",
     margin: 0,
-    marginTop: "-4px",
-    paddingInlineStart: "30px",
     fontFamily: "body",
     fontSize: "xs",
     lineHeight: "snug",
@@ -59,10 +71,7 @@ export const choiceDescriptionStyles = cva({
     "[data-disabled] &": { color: "fg.disabled" },
   },
   variants: {
-    size: {
-      sm: { paddingInlineStart: "24px", marginTop: "-2px" },
-      md: {},
-    },
+    size: { sm: {}, md: {} },
   },
   defaultVariants: { size: "md" },
 });
@@ -205,9 +214,18 @@ export const radioDotStyles = css({
   _reducedMotion: { scale: "1" },
 });
 
-/** The column or row a group lays its choices in. */
+/**
+ * The column or row a group lays its choices in. Choices with descriptions
+ * get more room between them, so each title and its description read as a
+ * group.
+ */
 export const choiceListStyles = cva({
-  base: { display: "grid", gap: "0.5", minWidth: 0 },
+  base: {
+    display: "grid",
+    rowGap: "0.5",
+    minWidth: 0,
+    "&:has([data-choice-description])": { rowGap: "2" },
+  },
   variants: {
     orientation: {
       vertical: {},
@@ -215,7 +233,6 @@ export const choiceListStyles = cva({
         display: "flex",
         flexWrap: "wrap",
         columnGap: "5",
-        rowGap: "0.5",
       },
     },
   },

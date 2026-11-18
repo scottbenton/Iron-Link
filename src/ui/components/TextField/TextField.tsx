@@ -46,8 +46,16 @@ export interface TextFieldProps extends FieldOwnProps, NativeInputProps {
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
   /** The new text, after `onChange`. Also called with "" when cleared. */
   onValueChange?: (value: string) => void;
-  /** `sm` for dense rows and toolbars; `md` (40px) everywhere else. */
+  /**
+   * `sm` (32px, with a smaller muted label) for dense rows, toolbars and
+   * details panels; `md` (40px) everywhere else.
+   */
   size?: "sm" | "md";
+  /**
+   * `quiet` shows no border or well until hovered or focused, so the value
+   * reads as text, as in a world entry's details.
+   */
+  variant?: "outline" | "quiet";
   /** An icon or unit before the text, such as a magnifier. */
   startAdornment?: ReactNode;
   /** An icon, unit or button after the text, such as an oracle roll button. */
@@ -107,6 +115,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       onChange,
       onValueChange,
       size = "md",
+      variant = "outline",
       startAdornment,
       endAdornment,
       clearable,
@@ -145,9 +154,10 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         className={className}
         validate={validate}
         validationMode={validationMode}
+        size={size}
       >
         <div
-          className={cx(fieldShellStyles({ size }), shellClassName)}
+          className={cx(fieldShellStyles({ size, variant }), shellClassName)}
           data-disabled={disabled || undefined}
           data-readonly={readOnly || undefined}
           onMouseDown={(event) =>

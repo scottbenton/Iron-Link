@@ -94,12 +94,55 @@ export const Indeterminate: Story = {
   },
 };
 
+/** Two sizes: `sm` for dense lists and `md`, the default. */
 export const Sizes: Story = {
   render: () => (
     <Stack gap="3">
-      <Checkbox size="sm" label="Small" defaultChecked />
-      <Checkbox size="md" label="Medium" defaultChecked />
-      <Checkbox aria-label="Mark progress" defaultChecked />
+      <Checkbox
+        size="sm"
+        label="Small"
+        description="For dense lists, such as a track's options."
+        defaultChecked
+      />
+      <Checkbox
+        size="md"
+        label="Medium"
+        description="The default, for forms and settings."
+        defaultChecked
+      />
     </Stack>
   ),
+};
+
+/**
+ * The description sits under the title, lined up with it. Pressing the
+ * description toggles too; the checkbox is named by its title and described
+ * by the line under it.
+ */
+export const WithDescriptions: Story = {
+  render: () => (
+    <Stack gap="2" maxWidth="420px">
+      <Checkbox
+        label="Wounded"
+        description="You are injured and suffer -1 to health."
+      />
+      <Checkbox
+        label="Shaken"
+        description="You are frightened or despairing, -1 to spirit."
+        defaultChecked
+      />
+      <Checkbox
+        label="Unprepared"
+        description="You are out of supplies, -1 to supply."
+      />
+    </Stack>
+  ),
+};
+
+/**
+ * A checkbox with no visible text, named by `aria-label` alone, as on a
+ * progress track's boxes.
+ */
+export const WithoutVisibleLabel: Story = {
+  render: () => <Checkbox aria-label="Mark progress" defaultChecked />,
 };

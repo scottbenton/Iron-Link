@@ -52,7 +52,7 @@ const groups: Group[] = [
   {
     title: "Borders",
     description:
-      "Edge is the colour of a ledge, the solid bottom edge of anything you can press.",
+      "Edge is the colour of a ledge, the solid bottom edge of anything you can press and of everything that floats.",
     tokens: [
       { name: "border.subtle" },
       { name: "border.default" },

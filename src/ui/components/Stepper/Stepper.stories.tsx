@@ -16,10 +16,9 @@ const createGameSteps = [
 const meta: Meta<typeof Stepper> = {
   title: "Components/Stepper",
   component: Stepper,
-  args: { steps: createGameSteps, activeStep: 1, labelPlacement: "below" },
+  args: { steps: createGameSteps, activeStep: 1 },
   argTypes: {
     activeStep: { control: { type: "range", min: 0, max: 4 } },
-    labelPlacement: { control: "inline-radio", options: ["below", "end"] },
   },
 };
 
@@ -60,8 +59,4 @@ export const CreateGame: Story = {
       </Stack>
     );
   },
-};
-
-export const LabelsBeside: Story = {
-  args: { labelPlacement: "end", activeStep: 2 },
 };

@@ -49,7 +49,10 @@ const meta = {
     options: regions,
     placeholder: "Search regions",
   },
-  argTypes: { size: { control: "inline-radio", options: ["sm", "md"] } },
+  argTypes: {
+    size: { control: "inline-radio", options: ["sm", "md"] },
+    variant: { control: "inline-radio", options: ["outline", "quiet"] },
+  },
   decorators: [
     (Story) => (
       <Stack maxWidth="380px">
@@ -74,16 +77,46 @@ export const GroupedAssets: Story = {
   },
 };
 
+/**
+ * Chips wrap onto more rows inside the field, with the input after them. The
+ * clear and open buttons stay at the field's end, on the first row.
+ */
 export const MultipleChips: Story = {
   render: () => (
-    <Combobox
-      multiple
-      label="Assets"
-      options={assets}
-      placeholder="Add an asset"
-      defaultValue={["archer", "hawk"]}
-      hideSelected
-    />
+    <Stack gap="4">
+      <Combobox
+        multiple
+        label="Assets"
+        options={assets}
+        placeholder="Add an asset"
+        defaultValue={["archer", "hawk"]}
+        hideSelected
+      />
+      <Combobox
+        multiple
+        label="Many assets"
+        options={assets}
+        placeholder="Add an asset"
+        defaultValue={[
+          "alchemist",
+          "archer",
+          "blademaster",
+          "loyalist",
+          "hawk",
+          "shield-bearer",
+        ]}
+        hideSelected
+      />
+      <Combobox
+        multiple
+        size="sm"
+        label="Small"
+        options={assets}
+        placeholder="Add an asset"
+        defaultValue={["wildblood", "hound", "kindred", "ironclad"]}
+        hideSelected
+      />
+    </Stack>
   ),
 };
 
@@ -167,6 +200,7 @@ export const States: Story = {
         label="Region"
         options={regions}
         required
+        description="Where your journey starts."
         error="Choose the region your journey starts in."
       />
       <Combobox

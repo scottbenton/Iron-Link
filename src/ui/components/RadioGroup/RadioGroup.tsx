@@ -1,4 +1,3 @@
-import { Field as BaseField } from "@base-ui/react/field";
 import { Fieldset as BaseFieldset } from "@base-ui/react/fieldset";
 import { Radio as BaseRadio } from "@base-ui/react/radio";
 import { RadioGroup as BaseRadioGroup } from "@base-ui/react/radio-group";
@@ -9,8 +8,6 @@ import { css, cx } from "styled-system/css";
 import {
   ChoiceItem,
   choiceBoxStyles,
-  choiceDescriptionStyles,
-  choiceLabelStyles,
   choiceListStyles,
   radioDotStyles,
 } from "../Checkbox";
@@ -20,6 +17,7 @@ import {
   FieldOwnProps,
   FieldRoot,
   FieldsetLegend,
+  fieldsetDescriptionStyles,
   resolveFieldError,
 } from "../Field";
 
@@ -49,7 +47,7 @@ export interface RadioGroupProps<V = string> extends FieldOwnProps {
 const groupStyles = css({
   boxSizing: "border-box",
   display: "grid",
-  gap: "1",
+  gap: "2",
   minWidth: 0,
   margin: 0,
   padding: 0,
@@ -125,15 +123,17 @@ export function RadioGroup<V = string>(props: RadioGroupProps<V>) {
             {label}
           </FieldsetLegend>
         )}
+        {description !== undefined && description !== null && (
+          <FieldDescription className={fieldsetDescriptionStyles}>
+            {description}
+          </FieldDescription>
+        )}
         <RadioSizeContext.Provider value={size}>
           <div className={cx(choiceListStyles({ orientation }), listClassName)}>
             {children}
           </div>
         </RadioSizeContext.Provider>
       </BaseFieldset.Root>
-      {description !== undefined && description !== null && (
-        <FieldDescription>{description}</FieldDescription>
-      )}
       <FieldError>{message}</FieldError>
     </FieldRoot>
   );
@@ -142,9 +142,12 @@ export function RadioGroup<V = string>(props: RadioGroupProps<V>) {
 export interface RadioProps<V = string> {
   /** What choosing this radio sets the group to. */
   value: V;
-  /** The text beside the circle. Pressing it chooses the radio. */
+  /** The text beside the circle, and the radio's name. Pressing it chooses. */
   label?: ReactNode;
-  /** A muted line under the label, read as the radio's description. */
+  /**
+   * A muted line under the label, read as the radio's description. Pressing
+   * it chooses too.
+   */
   description?: ReactNode;
   disabled?: boolean;
   /** Names the radio when there is no visible label. */
@@ -165,31 +168,26 @@ export function Radio<V = string>(props: RadioProps<V>) {
     ref,
   } = props;
   const size = useContext(RadioSizeContext);
-  const hasDescription =
-    description !== undefined && description !== null && description !== "";
-
   return (
-    <ChoiceItem className={className} disabled={disabled}>
-      <BaseField.Label
-        className={choiceLabelStyles({ size })}
-        data-disabled={disabled || undefined}
-      >
+    <ChoiceItem
+      className={className}
+      disabled={disabled}
+      size={size}
+      label={label}
+      description={description}
+      hasAriaLabel={Boolean(ariaLabel)}
+      control={(labelledBy) => (
         <BaseRadio.Root
           ref={ref}
           value={value}
           disabled={disabled}
           aria-label={ariaLabel}
+          aria-labelledby={labelledBy}
           className={choiceBoxStyles({ shape: "radio", size })}
         >
           <BaseRadio.Indicator keepMounted className={radioDotStyles} />
         </BaseRadio.Root>
-        {label}
-      </BaseField.Label>
-      {hasDescription && (
-        <BaseField.Description className={choiceDescriptionStyles({ size })}>
-          {description}
-        </BaseField.Description>
       )}
-    </ChoiceItem>
+    />
   );
 }

@@ -1,4 +1,4 @@
-import { CSSProperties, useLayoutEffect, useRef } from "react";
+import { CSSProperties, useLayoutEffect, useRef, useState } from "react";
 import { Toaster as SonnerToaster, useSonner } from "sonner";
 
 import { css } from "styled-system/css";
@@ -16,11 +16,30 @@ const toasterStyles = css({
   zIndex: "toast!",
 });
 
-/** Classes on each toast's `li`; the look is ToastCard's. */
+/**
+ * Classes on each toast's `li`. The look is the card's (ToastCard, RollCard);
+ * the `li` only holds it, so Sonner's transforms, heights and stacking stay
+ * Sonner's. Nothing here sets a transform or a position.
+ */
 const toastItemStyles = css({
   width: "100%",
   borderRadius: "md",
   _focusVisible: { boxShadow: "0 0 0 2px token(colors.focusRing)!" },
+  // Collapsed, an older toast is cut to the front toast's height and peeks
+  // out above it. Sonner hides the content of its own styled toasts there;
+  // ours are custom, so the card is clipped to the li and its content fades,
+  // leaving the card's edge. A taller older toast would otherwise hang out
+  // below the front one.
+  "&[data-expanded=false][data-front=false] > *": {
+    height: "100%",
+    minHeight: 0,
+    overflow: "hidden",
+  },
+  "& > * > *": {
+    transition: "opacity token(durations.normal) linear",
+    _reducedMotion: { transition: "none" },
+  },
+  "&[data-expanded=false][data-front=false] > * > *": { opacity: 0 },
   // Toasts past the visible cap fade out; hide them from Tab too.
   "&[data-visible=false]": {
     visibility: "hidden",
@@ -72,8 +91,43 @@ export interface ToasterProps {
 }
 
 /**
- * Where toasts render, newest at the bottom. UIProvider mounts it once.
- * Show toasts with `toast.*` or `useToast()`.
+ * Whether focus is inside `ref`'s element. `recheckKey` re-reads it when it
+ * changes, since a focused toast that is dismissed leaves focus on nothing
+ * without every browser sending focusout.
+ */
+function useFocusWithin(
+  ref: { current: HTMLElement | null },
+  recheckKey: unknown,
+) {
+  const [focusWithin, setFocusWithin] = useState(false);
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const onFocusIn = () => setFocusWithin(true);
+    const onFocusOut = (event: FocusEvent) => {
+      const next = event.relatedTarget;
+      if (next instanceof Node && element.contains(next)) return;
+      setFocusWithin(false);
+    };
+    element.addEventListener("focusin", onFocusIn);
+    element.addEventListener("focusout", onFocusOut);
+    return () => {
+      element.removeEventListener("focusin", onFocusIn);
+      element.removeEventListener("focusout", onFocusOut);
+    };
+  }, [ref]);
+  useLayoutEffect(() => {
+    const element = ref.current;
+    setFocusWithin(!!element && element.contains(document.activeElement));
+  }, [ref, recheckKey]);
+  return focusWithin;
+}
+
+/**
+ * Where toasts render. They stack front to back, the newest in front and up
+ * to `visibleToasts - 1` older ones peeking out behind it; hovering the
+ * stack, or moving keyboard focus into it, fans them out. UIProvider mounts
+ * it once. Show toasts with `toast.*` or `useToast()`.
  */
 export function Toaster(props: ToasterProps) {
   const {
@@ -98,6 +152,12 @@ export function Toaster(props: ToasterProps) {
   });
 
   const { toasts } = useSonner();
+
+  // Sonner fans the stack out on hover only. Keyboard focus inside it fans
+  // it out too, so the toast or button that has focus is never hidden behind
+  // the front one. Sonner's `expand` is that switch; left on, as it was, the
+  // toasts never stack.
+  const focusWithin = useFocusWithin(regionRef, toasts);
   const count = toasts.filter((item) => !item.delete).length;
   const hidden = Math.max(0, count - visibleToasts);
   const showFooter = count > 1;
@@ -111,7 +171,7 @@ export function Toaster(props: ToasterProps) {
         ref={regionRef}
         position="bottom-center"
         duration={Infinity}
-        expand
+        expand={focusWithin}
         visibleToasts={visibleToasts}
         gap={8}
         customAriaLabel={label}

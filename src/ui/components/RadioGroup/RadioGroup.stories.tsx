@@ -33,7 +33,12 @@ export const WithDescriptions: Story = {
   render: function Render() {
     const [type, setType] = useState("solo");
     return (
-      <RadioGroup label="Game type" value={type} onValueChange={setType}>
+      <RadioGroup
+        label="Game type"
+        description="You can change it later in the game's settings."
+        value={type}
+        onValueChange={setType}
+      >
         <Radio
           value="solo"
           label="Solo"
@@ -52,6 +57,29 @@ export const WithDescriptions: Story = {
       </RadioGroup>
     );
   },
+};
+
+/** The small size, with descriptions. */
+export const Small: Story = {
+  render: () => (
+    <RadioGroup label="Progress rank" size="sm" defaultValue="dangerous">
+      <Radio
+        value="troublesome"
+        label="Troublesome"
+        description="Mark 3 boxes of progress"
+      />
+      <Radio
+        value="dangerous"
+        label="Dangerous"
+        description="Mark 2 boxes of progress"
+      />
+      <Radio
+        value="formidable"
+        label="Formidable"
+        description="Mark 1 box of progress"
+      />
+    </RadioGroup>
+  ),
 };
 
 export const Horizontal: Story = {
@@ -75,6 +103,7 @@ export const Invalid: Story = {
     <RadioGroup
       label="Stat"
       required
+      description="Roll with the stat that fits how you act."
       orientation="horizontal"
       error="Choose the stat to roll with."
     >

@@ -1,14 +1,34 @@
-import { DotsThreeVertical, GameController } from "@phosphor-icons/react";
+import {
+  DotsThreeVertical,
+  PencilSimple,
+  SignOut,
+  UserPlus,
+} from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
 import { Grid } from "styled-system/jsx";
 
+import { PortraitGroup } from "../../game/PortraitGroup";
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import { Button } from "../Button";
 import { IconButton } from "../IconButton";
+import {
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuSeparator,
+  MenuTrigger,
+} from "../Menu";
 import { Text } from "../Text";
-import { Card, CardActionArea, CardBody, CardFooter, CardHeader } from "./Card";
+import {
+  Card,
+  CardActionArea,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  CardLinkOverlay,
+} from "./Card";
 
 const meta: Meta<typeof Card> = {
   title: "Components/Card",
@@ -51,7 +71,9 @@ export const Default: Story = {
 
 /**
  * The whole card is a link to the character; the footer's buttons stay
- * their own controls above it.
+ * their own controls above it. The link's name is everything inside the
+ * action area. For a card with controls among its content, or a link named
+ * by the title alone, use `CardLinkOverlay` (see Link Overlay).
  */
 export const ActionArea: Story = {
   render: () => (
@@ -81,30 +103,103 @@ export const ActionArea: Story = {
   ),
 };
 
-/** A set of choices, such as the ruleset when creating a game. */
-export const Selectable: Story = {
+const games = [
+  {
+    id: "forge-saga",
+    name: "The Forge Saga",
+    ruleset: "Starforged",
+    lastPlayed: "Last played 2 days ago",
+    party: sampleCharacters,
+  },
+  {
+    id: "bleakhold",
+    name: "Bleakhold Vigil",
+    ruleset: "Ironsworn",
+    lastPlayed: "Last played last week",
+    party: sampleCharacters.slice(0, 2),
+  },
+  {
+    id: "salt-and-ruin",
+    name: "Salt and Ruin",
+    ruleset: "Sundered Isles",
+    lastPlayed: "Not played yet",
+    party: sampleCharacters.slice(2),
+  },
+];
+
+/**
+ * A game list. The game's name is a link stretched over the whole card, so a
+ * click anywhere opens the game, while the menu and Invite stay their own
+ * controls. The link's accessible name is the game's name alone. Hover the
+ * card, press it, and tab through it: focus on the link rings the card.
+ */
+export const LinkOverlay: Story = {
   render: function Render() {
-    const [ruleset, setRuleset] = useState("starforged");
-    const rulesets = [
-      { id: "ironsworn", name: "Ironsworn", note: "The Ironlands" },
-      { id: "starforged", name: "Starforged", note: "The Forge" },
-      { id: "sundered", name: "Sundered Isles", note: "Starforged expansion" },
-    ];
+    const [invited, setInvited] = useState<string>();
     return (
       <Grid columns={{ base: 1, sm: 3 }} gap="4" maxWidth="900px">
-        {rulesets.map((option) => (
-          <Card key={option.id} selected={option.id === ruleset}>
-            <CardActionArea
-              aria-pressed={option.id === ruleset}
-              onClick={() => setRuleset(option.id)}
-            >
-              <CardHeader
-                avatar={<GameController size={28} />}
-                titleAs="span"
-                title={option.name}
-                subtitle={option.note}
+        {games.map((game, index) => (
+          <Card key={game.id} render={<article />}>
+            <CardHeader
+              overline={game.ruleset}
+              title={
+                index === 0 ? (
+                  // A router link renders through `render`.
+                  <CardLinkOverlay
+                    render={<a href={`#/games/${game.id}`} data-router="" />}
+                  >
+                    {game.name}
+                  </CardLinkOverlay>
+                ) : (
+                  <CardLinkOverlay href={`#/games/${game.id}`}>
+                    {game.name}
+                  </CardLinkOverlay>
+                )
+              }
+              titleAs="h2"
+              action={
+                <Menu>
+                  <MenuTrigger
+                    render={
+                      <IconButton label={`More options for ${game.name}`}>
+                        <DotsThreeVertical />
+                      </IconButton>
+                    }
+                  />
+                  <MenuContent align="end">
+                    <MenuItem icon={<PencilSimple />}>Rename Game</MenuItem>
+                    <MenuSeparator />
+                    <MenuItem icon={<SignOut />}>Leave Game</MenuItem>
+                  </MenuContent>
+                </Menu>
+              }
+            />
+            <CardBody>
+              <PortraitGroup
+                members={game.party.map((character) => ({
+                  id: character.id,
+                  name: character.name,
+                  colorSeed: character.colorSeed,
+                }))}
+                label="Characters"
+                showNames={false}
               />
-            </CardActionArea>
+              <Text variant="bodySm" color="muted">
+                {game.party.map((character) => character.name).join(", ")}
+              </Text>
+            </CardBody>
+            <CardFooter divider>
+              <Text variant="caption" color="muted">
+                {game.lastPlayed}
+              </Text>
+              <Button
+                size="sm"
+                startIcon={<UserPlus />}
+                onClick={() => setInvited(game.id)}
+              >
+                {invited === game.id ? "Invite Link Copied" : "Invite"}
+              </Button>
+            </CardFooter>
           </Card>
         ))}
       </Grid>

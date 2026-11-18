@@ -12,7 +12,7 @@ import {
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Stack } from "styled-system/jsx";
+import { HStack, Stack } from "styled-system/jsx";
 
 import { SegmentedControl } from "./SegmentedControl";
 import {
@@ -25,7 +25,18 @@ type Tool = "pan" | "paint" | "erase" | "pin";
 
 const meta = {
   title: "Components/ToggleGroup",
-  args: { "aria-label": "Tool", children: null },
+  args: {
+    "aria-label": "Tool",
+    children: null,
+    tone: "accent",
+    variant: "outline",
+    size: "md",
+  },
+  argTypes: {
+    tone: { control: "inline-radio", options: ["accent", "neutral"] },
+    variant: { control: "inline-radio", options: ["outline", "ghost"] },
+    size: { control: "inline-radio", options: ["sm", "md"] },
+  },
 } satisfies Meta<ToggleGroupSingleProps<Tool>>;
 
 export default meta;
@@ -80,9 +91,9 @@ export const TextLabels: Story = {
   ),
 };
 
-export const Multiple: Story = {
-  render: () => (
-    <ToggleGroup multiple aria-label="Text formatting" defaultValue={["bold"]}>
+function FormattingItems() {
+  return (
+    <>
       <ToggleGroupItem value="bold" label="Bold">
         <TextB />
       </ToggleGroupItem>
@@ -92,7 +103,61 @@ export const Multiple: Story = {
       <ToggleGroupItem value="strike" label="Strikethrough" disabled>
         <TextStrikethrough />
       </ToggleGroupItem>
-    </ToggleGroup>
+    </>
+  );
+}
+
+/** Any number pressed. Text formatting is quieter neutral and ghost. */
+export const Multiple: Story = {
+  render: () => (
+    <HStack gap="4">
+      <ToggleGroup
+        multiple
+        aria-label="Text formatting, accent"
+        defaultValue={["bold"]}
+      >
+        <FormattingItems />
+      </ToggleGroup>
+      <ToggleGroup
+        multiple
+        tone="neutral"
+        variant="ghost"
+        aria-label="Text formatting"
+        defaultValue={["bold"]}
+      >
+        <FormattingItems />
+      </ToggleGroup>
+    </HStack>
+  ),
+};
+
+/**
+ * The accent tone marks a choice that matters on screen, like the map tool.
+ * The neutral tone keeps grey for controls that sit among content, like text
+ * formatting. Ghost drops the border and tightens the gaps, for toolbars.
+ * Hover lightens the pressed look (accent text on a faint tint, or a faint
+ * grey), so pressing an item changes its fill once; a pressed item hovered
+ * gets a stronger fill.
+ */
+export const TonesAndVariants: Story = {
+  render: () => (
+    <Stack gap="4" alignItems="flex-start">
+      {(["outline", "ghost"] as const).map((variant) => (
+        <HStack key={variant} gap="4">
+          {(["accent", "neutral"] as const).map((tone) => (
+            <ToggleGroup<Tool>
+              key={tone}
+              aria-label={`Tool, ${tone} ${variant}`}
+              tone={tone}
+              variant={variant}
+              defaultValue="paint"
+            >
+              <MapTools />
+            </ToggleGroup>
+          ))}
+        </HStack>
+      ))}
+    </Stack>
   ),
 };
 

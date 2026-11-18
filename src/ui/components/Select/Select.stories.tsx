@@ -71,7 +71,10 @@ const meta = {
     options: rulesets,
     placeholder: "Choose a ruleset",
   },
-  argTypes: { size: { control: "inline-radio", options: ["sm", "md"] } },
+  argTypes: {
+    size: { control: "inline-radio", options: ["sm", "md"] },
+    variant: { control: "inline-radio", options: ["outline", "quiet"] },
+  },
   decorators: [
     (Story) => (
       <Stack maxWidth="360px">
@@ -131,6 +134,7 @@ export const States: Story = {
         options={rulesets}
         placeholder="Choose a ruleset"
         required
+        description="Sets the moves, oracles and assets for this game."
         error="Choose a ruleset to create the game."
       />
       <Select<Ruleset>
@@ -149,6 +153,13 @@ export const States: Story = {
       <Select<Ruleset>
         size="sm"
         label="Small"
+        options={rulesets}
+        defaultValue="starforged"
+      />
+      <Select<Ruleset>
+        size="sm"
+        variant="quiet"
+        label="Small and quiet"
         options={rulesets}
         defaultValue="starforged"
       />

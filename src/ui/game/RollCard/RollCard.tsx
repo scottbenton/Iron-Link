@@ -39,7 +39,7 @@ const cardStyles = css({
   "&[data-outcome=miss]": { "--outcome": "{colors.danger.fg}" },
   "&[data-elevated]": {
     boxShadow: "inset 3px 0 0 var(--outcome), token(shadows.popover)",
-    borderColor: "transparent",
+    borderColor: "border.control",
   },
   "&[data-variant=compact]": {
     gap: "1.5",

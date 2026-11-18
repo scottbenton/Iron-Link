@@ -47,6 +47,36 @@ export const SelectAll: Story = {
   },
 };
 
+/**
+ * The group's help sits under its legend. Each choice's description sits
+ * under its title, and pressing it toggles the choice.
+ */
+export const WithDescriptions: Story = {
+  render: () => (
+    <CheckboxGroup
+      label="Player permissions"
+      description="Guides can always do these."
+      defaultValue={["add-notes"]}
+    >
+      <Checkbox
+        value="edit-sheets"
+        label="Edit their character sheets"
+        description="Stats, meters, assets and vows."
+      />
+      <Checkbox
+        value="add-notes"
+        label="Add shared notes"
+        description="Notes every player in the game can read."
+      />
+      <Checkbox
+        value="roll-oracles"
+        label="Roll oracles"
+        description="Results are posted to the game log."
+      />
+    </CheckboxGroup>
+  ),
+};
+
 export const Horizontal: Story = {
   render: () => (
     <CheckboxGroup
@@ -66,6 +96,7 @@ export const Invalid: Story = {
     <CheckboxGroup
       label="Player permissions"
       required
+      description="Guides can always do these."
       error="Choose at least one thing players may do."
     >
       <Checkbox value="edit-sheets" label="Edit their character sheets" />
