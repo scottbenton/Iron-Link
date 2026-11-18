@@ -19,6 +19,8 @@ import { ListItemButtonWithSecondaryAction } from "./ListItemButtonWithSecondary
 
 export interface OracleListItemProps {
   oracle: Datasworn.OracleRollable;
+  // Read under the name.
+  description?: string;
   disabled?: boolean;
   visibilitySettings: VisibilitySettings;
   isSearchActive: boolean;
@@ -28,6 +30,7 @@ export interface OracleListItemProps {
 export function OracleListItem(props: OracleListItemProps) {
   const {
     oracle,
+    description,
     disabled,
     visibilitySettings,
     isSearchActive,
@@ -96,7 +99,7 @@ export function OracleListItem(props: OracleListItemProps) {
       disabled={disabled}
       onClick={() => rollOracle(oracle._id, isGuide)}
     >
-      <ListItemText primary={oracle.name} />
+      <ListItemText primary={oracle.name} secondary={description} />
     </ListItemButtonWithSecondaryAction>
   );
 }

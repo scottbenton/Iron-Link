@@ -84,7 +84,6 @@ const props = {
     createdAt: new Date(),
     updatedAt: new Date(),
   },
-  layout: "page" as const,
   rootBreadcrumb: { key: "worlds", label: "Worlds", linkProps: { href: "/" } },
   permission: WorldPermission.Owner,
   generalSettings: <h2>General world settings</h2>,
@@ -128,7 +127,6 @@ function ManagerHarness({
         world={props.world}
         permission={permission}
         navigation={navigation}
-        layout={props.layout}
         rootBreadcrumb={props.rootBreadcrumb}
       />
     );

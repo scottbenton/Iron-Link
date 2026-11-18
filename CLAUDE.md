@@ -106,6 +106,17 @@ that are easy to miss. When you learn a new one, add a line here.
 - World paths are built only by `getWorldViewPath` and read only by
   `parseWorldViewPath` (`worldNavigation.ts`); one `/worlds/:worldId/*`
   route renders `WorldPage`, and a path the parser rejects is a 404.
+- A world destination looks the same on the Worlds page and in a Notes tab
+  (breadcrumbs over the grey action strip); `WorldLayout` only sets where
+  heading levels start. The page is `WorldPageLayout`: Reference docks beside
+  the world while the page's own width has room (`getWorldReferencePlacement`)
+  and is otherwise a strip that opens it over the world; phones get World and
+  Reference tabs. Its oracles come from the world catalog, loaded into the
+  shared rules store with `getWorldReferenceRules`, so rolls there go to a
+  roll card with no game log.
+- An entry's Notes take the main column with its fields in a side panel when
+  the entry's container is wide enough (a container query, so a game's
+  narrower Notes column keeps them stacked).
 - A world is guided (`world_is_guided`, `useWorldIsGuided`) when a linked
   game is guided or a member is a player or viewer. Guide-only controls
   (Share, Guide only wells, lock icons) appear only in guided worlds.

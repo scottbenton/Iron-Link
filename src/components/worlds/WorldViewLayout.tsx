@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { PropsWithChildren, ReactNode } from "react";
 
 import { useHeadingComponent } from "components/HeadingLevel";
@@ -6,8 +6,10 @@ import { ActionToolbarStrip } from "components/Layout/ActionToolbarStrip";
 import { NOTES_PANE_GUTTER } from "components/Layout/notesPaneGutter";
 import { ScreenReaderOnly } from "components/ScreenReaderOnly";
 
-// "page" is the standalone /worlds route; "embedded" is a Notes tab, where
-// the breadcrumbs name the destination and actions sit in the Notes toolbar.
+// "page" is the standalone /worlds route; "embedded" is a Notes tab. Both look
+// the same (the breadcrumbs name the destination over the grey strip of
+// actions); a Notes tab's headings sit under the game's h1 and the Notes
+// column's h2, so the layout sets where the heading levels start.
 export type WorldLayout = "page" | "embedded";
 
 export interface WorldViewActions {
@@ -21,165 +23,99 @@ export interface WorldViewActions {
 }
 
 export interface WorldViewLayoutProps extends PropsWithChildren {
-  layout: WorldLayout;
   breadcrumbs: ReactNode;
   // Omitted when the destination renders its own header (an entry's name is
   // edited in place on both surfaces).
   title?: ReactNode;
-  titleIcon?: ReactNode;
   actions?: WorldViewActions;
 }
 
 export function WorldViewLayout(props: WorldViewLayoutProps) {
-  const { layout, breadcrumbs, title, titleIcon, actions, children } = props;
+  const { breadcrumbs, title, actions, children } = props;
   const hasActions = !!(actions?.start || actions?.end);
   const TitleComponent = useHeadingComponent(1);
 
-  if (layout === "embedded") {
-    return (
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        flexGrow: 1,
+        minHeight: 0,
+      }}
+    >
       <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          flexGrow: 1,
-          minHeight: 0,
-        }}
+        mx={NOTES_PANE_GUTTER}
+        pt={2}
+        pb={hasActions ? 0.5 : 2}
+        borderBottom={
+          hasActions
+            ? undefined
+            : (theme) => `1px solid ${theme.palette.divider}`
+        }
       >
-        <Box
-          mx={NOTES_PANE_GUTTER}
-          pt={2}
-          pb={hasActions ? 0.5 : 2}
-          borderBottom={
-            hasActions
-              ? undefined
-              : (theme) => `1px solid ${theme.palette.divider}`
-          }
-        >
-          {breadcrumbs}
-          {/* The breadcrumbs name the destination on screen; its heading
+        {breadcrumbs}
+        {/* The breadcrumbs name the destination on screen; its heading
               is for screen readers. */}
-          {title && (
-            <ScreenReaderOnly>
-              <TitleComponent>{title}</TitleComponent>
-            </ScreenReaderOnly>
-          )}
-        </Box>
-        {/* One full width scroller, so the scrollbar sits at the column's
+        {title && (
+          <ScreenReaderOnly>
+            <TitleComponent>{title}</TitleComponent>
+          </ScreenReaderOnly>
+        )}
+      </Box>
+      {/* One full width scroller, so the scrollbar sits at the column's
             edge. The breadcrumbs stay put; the actions scroll away with the
             page, and an entry's Notes bar pins on its own. */}
+      <Box
+        sx={{
+          flexGrow: 1,
+          minHeight: 0,
+          overflow: "auto",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {hasActions && (
+          <Box
+            mx={NOTES_PANE_GUTTER}
+            pb={1}
+            flexShrink={0}
+            borderBottom={(theme) => `1px solid ${theme.palette.divider}`}
+          >
+            <ActionToolbarStrip wrap={actions?.wrap}>
+              {actions?.start}
+              {actions?.end && (
+                // Pushed right with a margin rather than grown, so when
+                // the start actions already end in a spacer (an entry's
+                // More menu) the two sit together with a normal gap.
+                <Box
+                  ml="auto"
+                  pl={0.5}
+                  display="flex"
+                  alignItems="center"
+                  gap={1}
+                >
+                  {actions.end}
+                </Box>
+              )}
+            </ActionToolbarStrip>
+          </Box>
+        )}
+        {/* A flex column down to the content, so Notes can take the rest
+              of the page. */}
         <Box
           sx={{
-            flexGrow: 1,
-            minHeight: 0,
-            overflow: "auto",
+            pt: 2,
+            pb: 2,
+            px: NOTES_PANE_GUTTER,
+            flex: "1 0 auto",
             display: "flex",
             flexDirection: "column",
           }}
         >
-          {hasActions && (
-            <Box
-              mx={NOTES_PANE_GUTTER}
-              pb={1}
-              flexShrink={0}
-              borderBottom={(theme) => `1px solid ${theme.palette.divider}`}
-            >
-              <ActionToolbarStrip wrap={actions?.wrap}>
-                {actions?.start}
-                {actions?.end && (
-                  // Pushed right with a margin rather than grown, so when
-                  // the start actions already end in a spacer (an entry's
-                  // More menu) the two sit together with a normal gap.
-                  <Box
-                    ml="auto"
-                    pl={0.5}
-                    display="flex"
-                    alignItems="center"
-                    gap={1}
-                  >
-                    {actions.end}
-                  </Box>
-                )}
-              </ActionToolbarStrip>
-            </Box>
-          )}
-          {/* A flex column down to the content, so Notes can take the rest
-              of the page. */}
-          <Box
-            sx={{
-              pt: 2,
-              pb: 2,
-              px: NOTES_PANE_GUTTER,
-              flex: "1 0 auto",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            {children}
-          </Box>
+          {children}
         </Box>
       </Box>
-    );
-  }
-
-  return (
-    // A flex column down to the content, so Notes can take the rest of the
-    // page.
-    <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
-      {breadcrumbs}
-      {(title || hasActions) && (
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 2,
-            mb: 3,
-          }}
-        >
-          {title && (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1.5,
-                minWidth: 0,
-                flex: "1 1 240px",
-              }}
-            >
-              {titleIcon}
-              <Typography
-                variant="h4"
-                component={TitleComponent}
-                textTransform="uppercase"
-                fontFamily={(theme) => theme.typography.fontFamilyTitle}
-                sx={{ overflowWrap: "anywhere" }}
-              >
-                {title}
-              </Typography>
-            </Box>
-          )}
-          {hasActions && (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: 1,
-                // Without a title, the actions are the whole strip. On
-                // phones they take a row of their own, so a search field
-                // can fill it.
-                flexGrow: title ? 0 : 1,
-                flexBasis: { xs: "100%", sm: "auto" },
-              }}
-            >
-              {actions?.start}
-              {actions?.end}
-            </Box>
-          )}
-        </Box>
-      )}
-      {children}
     </Box>
   );
 }

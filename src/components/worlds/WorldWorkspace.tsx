@@ -10,7 +10,6 @@ import { WorldPermission } from "repositories/shared.types";
 import { IWorld } from "services/worlds.service";
 
 import { WorldGeneralSettings } from "./WorldGeneralSettings";
-import type { WorldLayout } from "./WorldViewLayout";
 import { WorldCategoryManager } from "./categories/WorldCategoryManager";
 import type { WorldNavigation } from "./worldNavigation";
 
@@ -21,7 +20,6 @@ export function WorldWorkspace({
   additionalSettings,
   navigation,
   rootBreadcrumb,
-  layout,
 }: {
   world: IWorld;
   permission: WorldPermission | null;
@@ -29,7 +27,6 @@ export function WorldWorkspace({
   additionalSettings?: ReactNode;
   navigation: WorldNavigation;
   rootBreadcrumb?: BreadcrumbItem;
-  layout: WorldLayout;
 }) {
   const { t } = useTranslation();
   return (
@@ -37,7 +34,6 @@ export function WorldWorkspace({
       world={world}
       permission={permission}
       navigation={navigation}
-      layout={layout}
       rootBreadcrumb={
         rootBreadcrumb ?? {
           key: "worlds",

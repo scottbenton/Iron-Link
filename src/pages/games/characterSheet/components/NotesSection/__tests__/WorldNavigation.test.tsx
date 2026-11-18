@@ -292,7 +292,8 @@ describe("World Notes navigation", () => {
     });
   });
 
-  // Release guard until #236 previews oracle changes.
+  // World fields follow the rules in play, so unlinking can change what
+  // they roll.
   it("warns that world fields may roll different oracles before unlinking", async () => {
     const user = userEvent.setup();
     confirm.mockResolvedValue({ confirmed: false });

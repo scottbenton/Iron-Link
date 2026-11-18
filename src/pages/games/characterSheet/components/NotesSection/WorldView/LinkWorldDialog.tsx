@@ -148,7 +148,8 @@ export function LinkWorldDialog(props: LinkWorldDialogProps) {
             : t("worlds.link.link-world-title", "Link a World")}
       </DialogTitleWithCloseButton>
       <DialogContent>
-        {/* Release guard until #236 previews oracle changes. */}
+        {/* World fields follow the rules in play, so this can change which
+            oracles they roll. */}
         <Box sx={{ mb: 2 }}>
           <WorldOracleChangeWarning />
         </Box>

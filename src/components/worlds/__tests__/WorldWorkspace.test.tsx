@@ -5,7 +5,6 @@ import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { BreadcrumbItem } from "components/Layout/BreadcrumbTrail";
-import type { WorldLayout } from "components/worlds/WorldViewLayout";
 import type {
   WorldNavigation,
   WorldView,
@@ -105,13 +104,11 @@ vi.mock("../categories/WorldCategoryManager", async () => {
     WorldCategoryManager: ({
       world,
       navigation,
-      layout,
       rootBreadcrumb,
       generalSettings,
     }: {
       world: IWorld;
       navigation: WorldNavigation;
-      layout: WorldLayout;
       rootBreadcrumb: BreadcrumbItem;
       generalSettings: ReactNode;
     }) => {
@@ -120,7 +117,6 @@ vi.mock("../categories/WorldCategoryManager", async () => {
         "categoryId" in view ? state.categories[view.categoryId] : undefined;
       return (
         <WorldViewLayout
-          layout={layout}
           title={world.name}
           breadcrumbs={
             <WorldBreadcrumbs
