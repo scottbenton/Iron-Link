@@ -3,6 +3,7 @@ import { ElementType, Fragment, ReactNode } from "react";
 import { cva, cx } from "styled-system/css";
 
 import { VisuallyHidden } from "../../components/VisuallyHidden";
+import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
 
 const subtitleStyles = cva({
   base: {
@@ -44,7 +45,7 @@ const subtitleStyles = cva({
   defaultVariants: { variant: "default" },
 });
 
-export interface SubtitleProps {
+export interface SubtitleProps extends LayoutProps {
   /**
    * The facts to show, joined by a middle dot: "Ironsworn", "Co-op",
    * "3 characters". Each may hold an icon before its text.
@@ -66,7 +67,13 @@ export interface SubtitleProps {
  * by dots. Screen readers hear commas in place of the dots.
  */
 export function Subtitle(props: SubtitleProps) {
-  const { items, children, variant, as: Element = "p", className } = props;
+  const {
+    items,
+    children,
+    variant,
+    as: Element = "p",
+    className,
+  } = withLayoutProps(props);
 
   return (
     <Element className={cx(subtitleStyles({ variant }), className)}>

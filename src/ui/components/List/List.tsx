@@ -9,6 +9,8 @@ import {
   useContext,
 } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cva, cx } from "styled-system/css";
 
 interface ListContextValue {
@@ -50,7 +52,7 @@ const listStyles = cva({
   },
 });
 
-export interface ListProps extends ComponentProps<"ul"> {
+export interface ListProps extends ComponentProps<"ul">, LayoutProps {
   /** Tighter rows, for long lists and side panels. */
   dense?: boolean;
   /** Rounded rows inset from the edges, for navigation and side panels. */
@@ -74,7 +76,7 @@ export const List = forwardRef<HTMLUListElement, ListProps>(
       className,
       render,
       ...rest
-    } = props;
+    } = withLayoutProps(props);
     const element = useRender({
       defaultTagName: "ul",
       render,

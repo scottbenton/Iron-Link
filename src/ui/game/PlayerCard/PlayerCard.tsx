@@ -2,6 +2,7 @@ import { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
 import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -108,7 +109,8 @@ const footStyles = css({
 });
 
 export interface PlayerCardProps
-  extends Omit<ComponentPropsWithoutRef<"article">, "children"> {
+  extends LayoutProps,
+    Omit<ComponentPropsWithoutRef<"article">, "children"> {
   /** The player's display name. */
   name: string;
   /** Their role in the game. Leave out in games without roles (solo, co-op). */
@@ -152,7 +154,7 @@ export function PlayerCard(props: PlayerCardProps) {
     headingAs = "h3",
     className,
     ...rest
-  } = props;
+  } = withLayoutProps(props);
 
   const hasFoot = (characters && characters.length > 0) || actions;
 

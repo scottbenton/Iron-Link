@@ -1,6 +1,7 @@
 import { UserCircle } from "@phosphor-icons/react";
 import { CSSProperties, ComponentPropsWithoutRef, useState } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import type { SchemeName } from "ui/theme";
 
 import { cva, cx } from "styled-system/css";
@@ -147,7 +148,8 @@ export interface PortraitCrop {
 }
 
 export interface CharacterPortraitProps
-  extends Omit<ComponentPropsWithoutRef<"span">, "children"> {
+  extends LayoutProps,
+    Omit<ComponentPropsWithoutRef<"span">, "children"> {
   /** The character's name: the initials and the accessible name. */
   name: string;
   /** The portrait image. Without one, initials on a gradient. */
@@ -201,7 +203,7 @@ export function CharacterPortrait(props: CharacterPortraitProps) {
     className,
     style,
     ...rest
-  } = props;
+  } = withLayoutProps(props);
 
   const [fit, setFit] = useState<"tall" | "wide">("tall");
   const [failedUrl, setFailedUrl] = useState<string>();

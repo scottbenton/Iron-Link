@@ -2,6 +2,8 @@ import { Combobox as BaseCombobox } from "@base-ui/react/combobox";
 import { CaretDown, Check, Plus, X } from "@phosphor-icons/react";
 import { ReactNode, Ref, useMemo, useRef } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 import { visuallyHidden } from "styled-system/patterns";
 
@@ -44,7 +46,9 @@ export interface ComboboxOption<V extends string = string> {
   group?: string;
 }
 
-interface ComboboxCommonProps<V extends string> extends FieldOwnProps {
+interface ComboboxCommonProps<V extends string>
+  extends FieldOwnProps,
+    LayoutProps {
   /** The choices. For async search, pass the latest results. */
   options: ComboboxOption<V>[];
   /** The typed text, when controlled (async search reads it). */
@@ -286,7 +290,7 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
     required,
     disabled,
     requiredIndicator,
-  } = props;
+  } = withLayoutProps(props);
   const multiple = props.multiple === true;
 
   const inputRef = useRef<HTMLInputElement>(null);

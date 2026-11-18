@@ -4,6 +4,7 @@ import { ComponentPropsWithoutRef, ElementType, useId } from "react";
 import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { RollButton } from "ui/game/RollButton";
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 import { visuallyHidden } from "styled-system/patterns";
@@ -68,7 +69,8 @@ const sizeStyles = {
 };
 
 export interface OracleTableProps
-  extends Omit<ComponentPropsWithoutRef<"div">, "children"> {
+  extends LayoutProps,
+    Omit<ComponentPropsWithoutRef<"div">, "children"> {
   /** A rollable oracle, standalone or embedded in a move or asset. */
   oracle: AnyOracleRollable;
   /** Highlights the row with this id, as the result of a roll. */
@@ -109,7 +111,7 @@ export function OracleTable(props: OracleTableProps) {
     size = "sm",
     className,
     ...rest
-  } = props;
+  } = withLayoutProps(props);
 
   const titleId = useId();
   const rows = oracle.rows as Datasworn.OracleRollableRow[];

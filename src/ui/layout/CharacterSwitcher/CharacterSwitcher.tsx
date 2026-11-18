@@ -7,7 +7,7 @@ import {
 } from "@phosphor-icons/react";
 import { ReactNode } from "react";
 
-import { css } from "styled-system/css";
+import { css, cx } from "styled-system/css";
 
 import {
   Menu,
@@ -16,6 +16,7 @@ import {
   MenuLinkItem,
   MenuSeparator,
 } from "../../components/Menu";
+import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
 import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
 
 const triggerStyles = css({
@@ -111,7 +112,7 @@ export interface CharacterSwitcherCharacter {
   portrait?: ReactNode;
 }
 
-export interface CharacterSwitcherProps {
+export interface CharacterSwitcherProps extends LayoutProps {
   /** The game's characters, in the game's order. */
   characters: CharacterSwitcherCharacter[];
   /**
@@ -128,6 +129,7 @@ export interface CharacterSwitcherProps {
   addCharacterLabel?: string;
   overviewLabel?: string;
   linkComponent?: LayoutLinkComponent;
+  className?: string;
 }
 
 /**
@@ -147,7 +149,8 @@ export function CharacterSwitcher(props: CharacterSwitcherProps) {
     addCharacterLabel = "Add Character",
     overviewLabel = "Game overview",
     linkComponent,
-  } = props;
+    className,
+  } = withLayoutProps(props);
   const Link = useLinkComponent(linkComponent);
   const character = characters.find((item) => item.id === current);
   const check = (
@@ -158,7 +161,7 @@ export function CharacterSwitcher(props: CharacterSwitcherProps) {
 
   return (
     <Menu>
-      <BaseMenu.Trigger className={triggerStyles}>
+      <BaseMenu.Trigger className={cx(triggerStyles, className)}>
         {character?.portrait && (
           <span data-part="portrait" aria-hidden>
             {character.portrait}

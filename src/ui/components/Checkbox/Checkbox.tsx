@@ -1,6 +1,8 @@
 import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox";
 import { ReactNode, Ref } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { ChoiceItem } from "./ChoiceItem";
 import {
   checkboxFillStyles,
@@ -8,7 +10,7 @@ import {
   choiceBoxStyles,
 } from "./choiceStyles";
 
-export interface CheckboxProps {
+export interface CheckboxProps extends LayoutProps {
   /** Ticked, when controlled. */
   checked?: boolean;
   /** Ticked at first, when uncontrolled. */
@@ -79,7 +81,7 @@ export function Checkbox(props: CheckboxProps) {
     parent,
     id,
     ref,
-  } = props;
+  } = withLayoutProps(props);
 
   return (
     <ChoiceItem

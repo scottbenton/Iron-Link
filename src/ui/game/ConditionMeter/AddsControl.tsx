@@ -1,6 +1,8 @@
 import { Minus, Plus } from "@phosphor-icons/react";
 import { useId } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
@@ -132,7 +134,7 @@ const hintStyles = css({
   color: "fg.muted",
 });
 
-export interface AddsControlProps {
+export interface AddsControlProps extends LayoutProps {
   /** Adds on the next roll, -9 to +9 in Iron Link. */
   value: number;
   /** Changes the adds. Without it the chip is read-only (no steppers). */
@@ -178,7 +180,7 @@ export function AddsControl(props: AddsControlProps) {
     incrementLabel = (l) => `Add 1 to ${l}`,
     changeAnnouncement = (l, v) => `${l} is now ${v}`,
     className,
-  } = props;
+  } = withLayoutProps<AddsControlProps>(props);
 
   const labelId = useId();
   const valueId = useId();

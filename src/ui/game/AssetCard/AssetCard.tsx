@@ -17,6 +17,7 @@ import {
 import { IconButton } from "ui/components/IconButton";
 import { Text } from "ui/components/Text";
 import { Tooltip } from "ui/components/Tooltip";
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 
@@ -153,7 +154,8 @@ export const defaultAssetCardStrings: AssetCardStrings = {
 };
 
 export interface AssetCardProps
-  extends RulesTextOptions,
+  extends LayoutProps,
+    RulesTextOptions,
     Omit<ComponentPropsWithoutRef<"article">, "children"> {
   asset: Datasworn.Asset;
   /** The character's ticks and values on it. */
@@ -217,7 +219,7 @@ export function AssetCard(props: AssetCardProps) {
     resolveOracle,
     renderMacro,
     ...rest
-  } = props;
+  } = withLayoutProps(props);
 
   const strings = { ...defaultAssetCardStrings, ...stringsProp };
   const rulesOptions: RulesTextOptions = {

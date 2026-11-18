@@ -1,6 +1,8 @@
 import { PencilSimpleIcon } from "@phosphor-icons/react";
 import { ReactNode, useRef, useState } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css } from "styled-system/css";
 
 import { Alert } from "../../components/Alert";
@@ -61,7 +63,7 @@ const noneStyles = css({
 const sentenceCase = (text: string) =>
   text.charAt(0).toUpperCase() + text.slice(1);
 
-export interface ImpactsSummaryProps {
+export interface ImpactsSummaryProps extends LayoutProps {
   /** Groups in rules order, such as `rules.impacts` from Datasworn. */
   groups: ImpactGroup[];
   /** Marked impacts by key. Keys the rules do not know are ignored. */
@@ -99,7 +101,7 @@ export function ImpactsSummary(props: ImpactsSummaryProps) {
     strings: stringsProp,
     dialogFooter,
     className,
-  } = props;
+  } = withLayoutProps(props);
   const strings = { ...impactsSummaryWording[wording], ...stringsProp };
 
   const [open, setOpen] = useState(false);

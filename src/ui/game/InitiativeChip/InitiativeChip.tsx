@@ -1,6 +1,8 @@
 import { Menu } from "@base-ui/react/menu";
 import { CaretDown, Check } from "@phosphor-icons/react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import {
@@ -97,7 +99,8 @@ const indicatorStyles = css({
   color: "accent.fg",
 });
 
-export interface InitiativeChipProps<T extends string = InitiativeStatus> {
+export interface InitiativeChipProps<T extends string = InitiativeStatus>
+  extends LayoutProps {
   /** The current status, one of the options' values. */
   status: T;
   /** Lets the chip open a menu to change the status. */
@@ -132,7 +135,7 @@ export function InitiativeChip<T extends string = InitiativeStatus>(
     labels,
     changeLabel = "Initiative",
     className,
-  } = props;
+  } = withLayoutProps(props);
   const options =
     optionsProp ??
     (getInitiativeOptions(wording, labels) as unknown as InitiativeOption<T>[]);

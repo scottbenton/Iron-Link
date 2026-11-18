@@ -1,6 +1,8 @@
 import { Flame, Skull } from "@phosphor-icons/react";
 import { CSSProperties, ReactNode } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { RollTextOverrides, getRollSummary } from "../RollCard/getRollSummary";
@@ -259,7 +261,7 @@ function DieShapeSvg(props: { shape: DieShape; ring: boolean }) {
   );
 }
 
-export interface DieProps {
+export interface DieProps extends LayoutProps {
   value: ReactNode;
   shape: DieShape;
   kind?: "action" | "challenge" | "oracle";
@@ -285,10 +287,11 @@ export interface DieProps {
 
 /** One die, decorative. Something nearby must say what it shows. */
 export function Die(props: DieProps) {
-  const { value, shape, kind, state, ring, cancelled, color, size } = props;
+  const { value, shape, kind, state, ring, cancelled, color, size, className } =
+    withLayoutProps(props);
   return (
     <span
-      className={cx(dieStyles, props.className)}
+      className={cx(dieStyles, className)}
       data-shape={shape}
       data-kind={kind}
       data-state={state}
@@ -342,7 +345,7 @@ function CursedDieValue(props: { value: number }) {
 /** Colours for the two challenge dice, in place of the status colours. */
 export type ChallengeDieColors = [string | undefined, string | undefined];
 
-export interface DiceDisplayProps {
+export interface DiceDisplayProps extends LayoutProps {
   roll: RollData;
   /** `sm` for compact cards and the game log. */
   size?: "sm" | "md";
@@ -399,7 +402,7 @@ export function DiceDisplay(props: DiceDisplayProps) {
     strings: stringsProp,
     rollText,
     className,
-  } = props;
+  } = withLayoutProps(props);
   const s = { ...defaultDiceDisplayStrings, ...stringsProp };
 
   const a11y = labelled
@@ -647,7 +650,7 @@ const inlineStyles = css({
   fontVariantNumeric: "tabular-nums",
 });
 
-export interface OracleDiceProps {
+export interface OracleDiceProps extends LayoutProps {
   roll: PercentileRollData;
   /** For a shared roll, the table's index: shows that table's d100 only. */
   part?: number;
@@ -662,7 +665,13 @@ export interface OracleDiceProps {
  * result text. Decorative: the card's summary reads the numbers.
  */
 export function OracleDice(props: OracleDiceProps) {
-  const { roll, part, hideCursedDie, size = "xs", className } = props;
+  const {
+    roll,
+    part,
+    hideCursedDie,
+    size = "xs",
+    className,
+  } = withLayoutProps(props);
   const rolls = Array.isArray(roll.roll) ? roll.roll : [roll.roll];
   const shown = part === undefined ? rolls : [rolls[part]];
   const cursedDie = roll.kind === "oracle" ? roll.cursedDie : undefined;

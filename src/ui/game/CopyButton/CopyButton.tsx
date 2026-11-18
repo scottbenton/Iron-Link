@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAnnounce } from "ui/components/Announcer";
 import { Button, ButtonProps } from "ui/components/Button";
 import { IconButton } from "ui/components/IconButton";
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css } from "styled-system/css";
 
@@ -26,10 +27,11 @@ const swapStyles = css({
 });
 
 export interface CopyButtonProps
-  extends Omit<
-    ButtonProps,
-    "children" | "onClick" | "startIcon" | "endIcon" | "iconOnly"
-  > {
+  extends LayoutProps,
+    Omit<
+      ButtonProps,
+      "children" | "onClick" | "startIcon" | "endIcon" | "iconOnly"
+    > {
   /** The text to copy, or a function that returns it when pressed. */
   text: string | (() => string);
   /** The button's name, and its visible label unless `iconOnly`. */
@@ -60,7 +62,7 @@ export function CopyButton(props: CopyButtonProps) {
     onCopied,
     variant,
     ...rest
-  } = props;
+  } = withLayoutProps(props);
 
   const announce = useAnnounce();
   const [copied, setCopied] = useState(false);

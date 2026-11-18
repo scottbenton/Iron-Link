@@ -3,6 +3,7 @@ import { css, cx } from "styled-system/css";
 import { Badge } from "../../components/Badge";
 import { GradientBox } from "../../components/GradientBox";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
+import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
 import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
 import { NavItem } from "../shared/navItem";
 
@@ -122,7 +123,7 @@ export interface MobileNavItem extends Omit<NavItem, "href"> {
   badge?: number;
 }
 
-export interface MobileNavProps {
+export interface MobileNavProps extends LayoutProps {
   /** The main destinations or sections; four or five fit. */
   items: MobileNavItem[];
   /** The navigation landmark's name. */
@@ -151,9 +152,9 @@ export function MobileNav(props: MobileNavProps) {
     items,
     label = "Main",
     linkComponent,
-    badgeLabel = (count) => `${count} unread`,
+    badgeLabel = (count: number) => `${count} unread`,
     className,
-  } = props;
+  } = withLayoutProps(props);
   const Link = useLinkComponent(linkComponent);
 
   return (

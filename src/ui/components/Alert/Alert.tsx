@@ -8,6 +8,8 @@ import {
 } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cva, cx } from "styled-system/css";
 
 import { IconButton } from "../IconButton";
@@ -116,7 +118,8 @@ const closeStyles = css({
 });
 
 export interface AlertProps
-  extends Omit<ComponentProps<"div">, "title" | "children"> {
+  extends Omit<ComponentProps<"div">, "title" | "children">,
+    LayoutProps {
   tone?: AlertTone;
   /** A short summary in bold, like MUI's AlertTitle. */
   title?: ReactNode;
@@ -150,7 +153,7 @@ export function Alert(props: AlertProps) {
     titleAs: TitleTag = "div",
     className,
     ...rest
-  } = props;
+  } = withLayoutProps(props);
 
   const shownIcon = icon === undefined ? toneIcons[tone] : icon;
 

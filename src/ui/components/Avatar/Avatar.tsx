@@ -8,6 +8,8 @@ import {
   useContext,
 } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cva, cx } from "styled-system/css";
 
 import { getAvatarHue, getInitials } from "./avatarUtils";
@@ -72,7 +74,7 @@ const imageStyles = css({
   objectFit: "cover",
 });
 
-export interface AvatarProps {
+export interface AvatarProps extends LayoutProps {
   /** The person or character; names the avatar and seeds its colour. */
   name?: string;
   src?: string;
@@ -105,7 +107,7 @@ export function Avatar(props: AvatarProps) {
     decorative = false,
     className,
     fallback,
-  } = props;
+  } = withLayoutProps(props);
   const groupSize = useContext(SizeContext);
   const shownInitials = initials ?? (name ? getInitials(name) : "");
   const seed = colorSeed ?? name ?? "";
@@ -140,7 +142,7 @@ const groupStyles = css({
   },
 });
 
-export interface AvatarGroupProps {
+export interface AvatarGroupProps extends LayoutProps {
   children: ReactNode;
   /** How many avatars show before "+N". */
   max?: number;
@@ -159,9 +161,9 @@ export function AvatarGroup(props: AvatarGroupProps) {
     max = 4,
     size = "md",
     label,
-    moreLabel = (count) => `${count} more`,
+    moreLabel = (count: number) => `${count} more`,
     className,
-  } = props;
+  } = withLayoutProps(props);
   const items = Children.toArray(children);
   const shown = items.length > max ? items.slice(0, max - 1) : items;
   const rest = items.length - shown.length;

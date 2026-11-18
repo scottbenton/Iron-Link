@@ -10,6 +10,7 @@ import {
 
 import { Card, CardButtonOverlay } from "ui/components/Card";
 import { Text } from "ui/components/Text";
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 
@@ -78,7 +79,8 @@ const abilityListStyles = css({
 });
 
 export interface AssetPickerCardProps
-  extends Omit<ComponentPropsWithoutRef<"article">, "children" | "onSelect"> {
+  extends LayoutProps,
+    Omit<ComponentPropsWithoutRef<"article">, "children" | "onSelect"> {
   asset: Datasworn.Asset;
   /** Called by the Select button, or a click anywhere on the card. */
   onSelect?: (asset: Datasworn.Asset) => void;
@@ -130,7 +132,7 @@ export function AssetPickerCard(props: AssetPickerCardProps) {
     className,
     style,
     ...rest
-  } = props;
+  } = withLayoutProps<AssetPickerCardProps>(props);
 
   const name = selectName(asset.name);
 

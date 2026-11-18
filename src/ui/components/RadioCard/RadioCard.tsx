@@ -4,6 +4,8 @@ import { RadioGroup as BaseRadioGroup } from "@base-ui/react/radio-group";
 import { CheckCircle } from "@phosphor-icons/react";
 import { CSSProperties, ReactNode, Ref, useId } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import {
@@ -16,7 +18,9 @@ import {
   resolveFieldError,
 } from "../Field";
 
-export interface RadioCardGroupProps<V = string> extends FieldOwnProps {
+export interface RadioCardGroupProps<V = string>
+  extends FieldOwnProps,
+    LayoutProps {
   /** The RadioCards. */
   children: ReactNode;
   value?: V;
@@ -89,7 +93,7 @@ export function RadioCardGroup<V = string>(props: RadioCardGroupProps<V>) {
     required,
     disabled,
     requiredIndicator,
-  } = props;
+  } = withLayoutProps(props);
   const { invalid, message } = resolveFieldError(error, invalidProp);
 
   const gridStyle = {
@@ -291,7 +295,7 @@ const footerStyles = css({
   marginTop: "-1",
 });
 
-export interface RadioCardProps<V = string> {
+export interface RadioCardProps<V = string> extends LayoutProps {
   /** What choosing this card sets the group to. */
   value: V;
   /** The card's name, in the heading face. */
@@ -327,7 +331,7 @@ export function RadioCard<V = string>(props: RadioCardProps<V>) {
     footer,
     className,
     ref,
-  } = props;
+  } = withLayoutProps(props);
   const titleId = useId();
   const descriptionId = useId();
   const describedByIds = [

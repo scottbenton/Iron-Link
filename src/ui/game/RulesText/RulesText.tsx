@@ -2,6 +2,8 @@ import { ComponentPropsWithoutRef, ReactNode, useMemo } from "react";
 import ReactMarkdown, { Components, defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { cx } from "styled-system/css";
 
 import { OracleTable } from "../OracleTable";
@@ -28,7 +30,8 @@ const DATASWORN_SCHEME = "datasworn:";
 const TABLE_MACROS = new Set(["table"]);
 
 export interface RulesTextProps
-  extends RulesTextOptions,
+  extends LayoutProps,
+    RulesTextOptions,
     Omit<ComponentPropsWithoutRef<"div">, "children" | "color"> {
   /** Datasworn markdown: a move's text, an ability, a requirement. */
   markdown: string;
@@ -56,7 +59,7 @@ export function RulesText(props: RulesTextProps) {
     resolveOracle,
     renderMacro,
     ...rest
-  } = props;
+  } = withLayoutProps(props);
 
   const contextOptions = useRulesTextOptions();
   const options = mergeRulesTextOptions(contextOptions, {

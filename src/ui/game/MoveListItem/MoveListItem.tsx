@@ -10,6 +10,8 @@ import {
   useState,
 } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { MoveCard, MoveCardProps } from "../MoveCard/MoveCard";
@@ -53,7 +55,8 @@ const bodyStyles = css({
 });
 
 export interface MoveListItemProps
-  extends Omit<ComponentPropsWithoutRef<"div">, "children"> {
+  extends LayoutProps,
+    Omit<ComponentPropsWithoutRef<"div">, "children"> {
   move: Datasworn.AnyMove;
   /** Opens the move in place below the row. */
   expanded?: boolean;
@@ -97,7 +100,7 @@ export function MoveListItem(props: MoveListItemProps) {
     as: Wrapper = "div",
     className,
     ...rest
-  } = props;
+  } = withLayoutProps(props);
 
   const [expandedState, setExpandedState] = useState(defaultExpanded);
   const expanded = expandedProp ?? expandedState;

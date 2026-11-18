@@ -1,5 +1,7 @@
 import { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { cva, cx } from "styled-system/css";
 import type { RecipeVariantProps } from "styled-system/css";
 
@@ -81,6 +83,22 @@ export const textStyles = cva({
       danger: { color: "danger.fg" },
       inherit: { color: "inherit" },
     },
+    /**
+     * Overrides the variant's face: `heading` sets body-sized text in the
+     * condensed heading face (MUI's `fontFamily="fontFamilyTitle"`).
+     */
+    font: {
+      heading: { fontFamily: "heading", letterSpacing: "0.01em" },
+      body: { fontFamily: "body" },
+    },
+    uppercase: {
+      true: { textTransform: "uppercase", letterSpacing: "label" },
+    },
+    align: {
+      start: { textAlign: "start" },
+      center: { textAlign: "center" },
+      end: { textAlign: "end" },
+    },
     /** Overrides the variant's weight, for emphasis within body text. */
     weight: {
       medium: { fontWeight: "medium" },
@@ -119,27 +137,61 @@ const defaultElement: Record<NonNullable<TextVariant>, ElementType> = {
 
 type TextOwnProps<E extends ElementType> = RecipeVariantProps<
   typeof textStyles
-> & {
-  /**
-   * The element. `variant` sets the look and `as` the element, so a label
-   * that only looks like a heading can stay a span (CLAUDE.md, headings).
-   */
-  as?: E;
-  children?: ReactNode;
-  className?: string;
-};
+> &
+  LayoutProps & {
+    /**
+     * The element. `variant` sets the look and `as` the element, so a label
+     * that only looks like a heading can stay a span (CLAUDE.md, headings).
+     */
+    as?: E;
+    children?: ReactNode;
+    className?: string;
+  };
 
 export type TextProps<E extends ElementType = "p"> = TextOwnProps<E> &
   Omit<ComponentPropsWithoutRef<E>, keyof TextOwnProps<E> | "color">;
 
-/** Every piece of text in the library: headings, body, labels, captions. */
+/**
+ * Every piece of text in the library: headings, body, labels, captions.
+ *
+ * MUI `Typography` to `Text`:
+ * - `h1`-`h4` -> the same variant; `h5`/`h6` -> `h4`, or `label` for small
+ *   uppercase group headings
+ * - `overline` -> `eyebrow` (accent) or `label` (neutral)
+ * - `subtitle1` -> `body` with `weight="semibold"`; `subtitle2` -> `bodySm`
+ *   with `weight="semibold"`
+ * - `body1` -> `body`; `body2` -> `bodySm`; `caption` -> `caption`
+ * - `fontFamily="fontFamilyTitle"` -> `font="heading"`
+ * - `textTransform="uppercase"` -> `uppercase`; `textAlign` -> `align`
+ * - `color="text.secondary"` -> `color="muted"`; `noWrap` -> `truncate`
+ * - `ml`, `mt` and other margins -> the same layout props
+ */
 export function Text<E extends ElementType = "p">(props: TextProps<E>) {
-  const { as, variant, color, weight, truncate, className, ...rest } = props;
+  const {
+    as,
+    variant,
+    color,
+    font,
+    uppercase,
+    align,
+    weight,
+    truncate,
+    className,
+    ...rest
+  } = withLayoutProps(props);
   const Element = as ?? defaultElement[variant ?? "body"];
   return (
     <Element
       className={cx(
-        textStyles({ variant, color, weight, truncate }),
+        textStyles({
+          variant,
+          color,
+          font,
+          uppercase,
+          align,
+          weight,
+          truncate,
+        }),
         className,
       )}
       {...rest}

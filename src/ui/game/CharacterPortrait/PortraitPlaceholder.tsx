@@ -2,6 +2,8 @@ import { Button as BaseButton } from "@base-ui/react/button";
 import { Camera } from "@phosphor-icons/react";
 import { CSSProperties, ComponentProps, forwardRef } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { cva, cx } from "styled-system/css";
 
 import { PortraitSize, portraitSizes } from "./portraitData";
@@ -68,10 +70,11 @@ const placeholderStyles = cva({
 });
 
 export interface PortraitPlaceholderProps
-  extends Omit<
-    ComponentProps<typeof BaseButton>,
-    "className" | "children" | "style"
-  > {
+  extends LayoutProps,
+    Omit<
+      ComponentProps<typeof BaseButton>,
+      "className" | "children" | "style"
+    > {
   size?: PortraitSize;
   shape?: "circle" | "rounded";
   /** The button's name, and its visible caption at xl. */
@@ -95,7 +98,7 @@ export const PortraitPlaceholder = forwardRef<
     className,
     style,
     ...rest
-  } = props;
+  } = withLayoutProps(props);
   const pixels = portraitSizes[size];
   const showCaption = pixels >= portraitSizes.xl;
   return (

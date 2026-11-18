@@ -1,5 +1,7 @@
 import { CSSProperties } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { StatCard } from "./StatCard";
@@ -91,7 +93,7 @@ export interface StatGridStat {
   value: number;
 }
 
-export interface StatGridProps {
+export interface StatGridProps extends LayoutProps {
   stats: StatGridStat[];
   /** Rolls a stat. Without it every card is a static readout. */
   onRoll?: (stat: StatGridStat) => void;
@@ -129,7 +131,7 @@ export function StatGrid(props: StatGridProps) {
     columns,
     rollLabel,
     className,
-  } = props;
+  } = withLayoutProps(props);
 
   const count = stats.length;
 

@@ -12,6 +12,8 @@ import {
   useState,
 } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cva, cx } from "styled-system/css";
 
 import { Spinner } from "../Spinner";
@@ -51,7 +53,7 @@ export interface TreeViewItemState {
   loading: boolean;
 }
 
-export interface TreeViewProps<T = unknown> {
+export interface TreeViewProps<T = unknown> extends LayoutProps {
   items: TreeViewItem<T>[];
   /** Names the tree, such as "Moves" or "Destinations". */
   "aria-label": string;
@@ -293,7 +295,7 @@ export function TreeView<T = unknown>(props: TreeViewProps<T>) {
     disabled: treeDisabled = false,
     loadingLabel = "Loading",
     className,
-  } = props;
+  } = withLayoutProps(props);
 
   const selectionMode =
     selectedIdProp !== undefined || onSelectedChange !== undefined;

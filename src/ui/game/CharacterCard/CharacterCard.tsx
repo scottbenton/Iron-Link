@@ -10,6 +10,7 @@ import {
 import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { formatSigned } from "ui/game/shared";
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import type { SchemeName } from "ui/theme";
 
 import { css, cx } from "styled-system/css";
@@ -140,7 +141,8 @@ export interface CharacterCardStat {
 }
 
 export interface CharacterCardProps
-  extends Omit<ComponentPropsWithoutRef<"article">, "children"> {
+  extends LayoutProps,
+    Omit<ComponentPropsWithoutRef<"article">, "children"> {
   name: string;
   /** The player, shown under the name. Leave out in solo games. */
   playerName?: string;
@@ -197,7 +199,7 @@ export function CharacterCard(props: CharacterCardProps) {
     headingAs = "h3",
     className,
     ...rest
-  } = props;
+  } = withLayoutProps(props);
 
   const pressable = !!render || !!onOpen;
   const secondLine = subtitle ?? playerName;

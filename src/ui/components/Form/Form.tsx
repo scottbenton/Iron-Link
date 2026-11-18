@@ -1,9 +1,11 @@
 import { Form as BaseForm } from "@base-ui/react/form";
 import { FormEvent, ReactNode, Ref } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
-export interface FormProps {
+export interface FormProps extends LayoutProps {
   children: ReactNode;
   /**
    * Called when the form is submitted, by a `type="submit"` button or Enter
@@ -70,7 +72,7 @@ export function Form(props: FormProps) {
     "aria-labelledby": ariaLabelledBy,
     className,
     ref,
-  } = props;
+  } = withLayoutProps(props);
 
   return (
     <BaseForm

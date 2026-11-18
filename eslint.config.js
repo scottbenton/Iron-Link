@@ -40,6 +40,10 @@ export default tseslint.config(
               message:
                 "Use ui/primitives for layout and ui components for styling instead of Panda directly.",
             },
+            {
+              group: ["@phosphor-icons/*"],
+              message: "Import icons from ui/icons.",
+            },
           ],
         },
       ],

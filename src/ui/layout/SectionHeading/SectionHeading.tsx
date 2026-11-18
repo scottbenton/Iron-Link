@@ -2,6 +2,8 @@ import { ReactNode } from "react";
 
 import { css, cx } from "styled-system/css";
 
+import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
+
 /** A muted band, for sections inside a dense sheet. */
 const rootStyles = css({
   boxSizing: "border-box",
@@ -57,7 +59,7 @@ const actionsStyles = css({
   gap: "1",
 });
 
-export interface SectionHeadingProps {
+export interface SectionHeadingProps extends LayoutProps {
   title: ReactNode;
   /** The heading level; headings nest by section (CLAUDE.md). */
   as?: "h2" | "h3";
@@ -82,7 +84,7 @@ export function SectionHeading(props: SectionHeadingProps) {
     description,
     actions,
     className,
-  } = props;
+  } = withLayoutProps(props);
 
   return (
     <div className={cx(rootStyles, className)}>

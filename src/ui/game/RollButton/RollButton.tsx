@@ -3,13 +3,15 @@ import { DiceFive } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode, forwardRef } from "react";
 
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { formatSigned } from "../shared/format";
 import { AddsAnchor } from "./AddsBadge";
 import { rollButtonInnerStyles, rollButtonStyles } from "./rollButtonStyles";
 
 export interface RollButtonProps
-  extends Omit<ComponentProps<typeof BaseButton>, "className" | "children"> {
+  extends LayoutProps,
+    Omit<ComponentProps<typeof BaseButton>, "className" | "children"> {
   /** The label, such as "Roll +Iron" or "Ask the Oracle". */
   children: ReactNode;
   /** An icon before the label. A die by default; `null` for none. */
@@ -43,7 +45,7 @@ export const RollButton = forwardRef<HTMLElement, RollButtonProps>(
       addsLabel = (a) => `adds ${a}`,
       className,
       ...rest
-    } = props;
+    } = withLayoutProps<RollButtonProps>(props);
     const iconNode =
       icon === undefined ? <DiceFive weight="bold" aria-hidden /> : icon;
     return (

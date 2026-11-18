@@ -1,6 +1,8 @@
 import { PaperPlaneRight } from "@phosphor-icons/react";
 import { FormEvent, KeyboardEvent, useRef, useState } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
@@ -50,7 +52,7 @@ const textareaStyles = css({
   _touch: { fontSize: "md" },
 });
 
-export interface GameLogComposerProps {
+export interface GameLogComposerProps extends LayoutProps {
   /**
    * Sends the message. Return a promise to keep the text and show the
    * button busy until it settles; a rejection keeps the text.
@@ -79,7 +81,7 @@ export function GameLogComposer(props: GameLogComposerProps) {
     sendLabel = "Send message",
     sentAnnouncement = "Message sent",
     className,
-  } = props;
+  } = withLayoutProps(props);
 
   const [value, setValue] = useState("");
   const [sending, setSending] = useState(false);

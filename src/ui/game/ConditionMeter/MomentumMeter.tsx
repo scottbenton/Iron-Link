@@ -1,5 +1,7 @@
 import { ArrowCounterClockwise, CaretDown, Flame } from "@phosphor-icons/react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
@@ -92,7 +94,7 @@ const warningLineStyles = css({
   fontWeight: "normal",
 });
 
-export interface MomentumMeterProps {
+export interface MomentumMeterProps extends LayoutProps {
   value: number;
   /** Changes momentum. Without it the meter is read-only. */
   onChange?: (value: number) => void;
@@ -155,7 +157,7 @@ export function MomentumMeter(props: MomentumMeterProps) {
     negativeText = (n) => `Cancels an action die of ${n}`,
     changeAnnouncement = (l, v) => `${l} is now ${v}`,
     className,
-  } = props;
+  } = withLayoutProps<MomentumMeterProps>(props);
 
   const announce = useAnnounce();
 

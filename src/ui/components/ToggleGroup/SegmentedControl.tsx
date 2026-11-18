@@ -9,6 +9,8 @@ import {
   useState,
 } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cva, cx } from "styled-system/css";
 
 import { mergeRefs, useControllableState } from "../Field";
@@ -24,7 +26,8 @@ export interface SegmentedControlOption<V extends string = string> {
   disabled?: boolean;
 }
 
-export interface SegmentedControlProps<V extends string = string> {
+export interface SegmentedControlProps<V extends string = string>
+  extends LayoutProps {
   options: SegmentedControlOption<V>[];
   /** The chosen segment, when controlled. One is always chosen. */
   value?: V;
@@ -158,7 +161,7 @@ export function SegmentedControl<V extends string = string>(
     name,
     className,
     ref,
-  } = props;
+  } = withLayoutProps(props);
   const [current, setCurrent] = useControllableState<V | undefined>(
     value,
     defaultValue ?? options[0]?.value,

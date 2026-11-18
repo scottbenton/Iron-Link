@@ -3,6 +3,8 @@ import { useRender } from "@base-ui/react/use-render";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import { ComponentProps, ReactElement, forwardRef } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { cva, cx } from "styled-system/css";
 
 import { VisuallyHidden } from "../VisuallyHidden";
@@ -59,7 +61,9 @@ const linkStyles = cva({
   defaultVariants: { color: "accent", underline: "always" },
 });
 
-export interface LinkProps extends Omit<ComponentProps<"a">, "color" | "ref"> {
+export interface LinkProps
+  extends Omit<ComponentProps<"a">, "color" | "ref">,
+    LayoutProps {
   color?: "accent" | "default" | "muted" | "inherit";
   underline?: "always" | "hover";
   /**
@@ -85,7 +89,7 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(
       className,
       children,
       ...rest
-    } = props;
+    } = withLayoutProps(props);
     return useRender({
       defaultTagName: "a",
       render,

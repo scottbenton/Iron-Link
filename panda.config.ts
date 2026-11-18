@@ -18,13 +18,15 @@ export default defineConfig({
   exclude: ["./src/styled-system/**"],
   outdir: "src/styled-system",
   jsxFramework: "react",
-  // Style props are read only from Panda's own JSX and ui/primitives. Left
-  // to itself Panda reads any capitalised component, so MUI's Box, Stack and
+  // Style props are read only from Panda's own JSX, ui/primitives and the
+  // library's components (their layout props: `<Button mt="2">`). Left to
+  // itself Panda reads any capitalised component, so MUI's Box, Stack and
   // icons (`color="primary"`, `fontSize="small"`) would add stray classes.
   jsxMatchTag: [
     { tag: /./, ignore: true },
     { from: /(^|\/)styled-system\/jsx$/ },
     { from: /(^|\/)ui\/primitives$/ },
+    { from: /(^|\/)ui\/(components|game|layout)(\/|$)/ },
     { tag: /^styled\./ },
   ],
   strictTokens: false,

@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import { css, cx } from "styled-system/css";
 
 import { Text } from "../../components/Text";
+import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
 import { Subtitle } from "../Subtitle";
 import { contentRailStyles } from "../shared/contentRail";
 import { pageInset } from "../shared/shell";
@@ -116,7 +117,7 @@ const actionsStyles = css({
   gap: "2",
 });
 
-export interface PageHeaderProps {
+export interface PageHeaderProps extends LayoutProps {
   /** The page's title. */
   title: ReactNode;
   /**
@@ -166,7 +167,7 @@ export function PageHeader(props: PageHeaderProps) {
     divider,
     children,
     className,
-  } = props;
+  } = withLayoutProps(props);
 
   const Heading = titleAs;
   // An hgroup keeps the eyebrow and subtitle with the heading they belong

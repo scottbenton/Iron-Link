@@ -3,6 +3,7 @@ import { RadioGroup } from "@base-ui/react/radio-group";
 import { CheckCircle } from "@phosphor-icons/react";
 import { CSSProperties, ReactNode } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { SchemeName, ringGradient, schemeNames, schemes } from "ui/theme";
 
 import { css, cx } from "styled-system/css";
@@ -115,7 +116,7 @@ export interface ColorSchemeFallbackOption {
   description?: ReactNode;
 }
 
-interface ColorSchemePickerCommonProps {
+interface ColorSchemePickerCommonProps extends LayoutProps {
   /** Names for each scheme, for translation. Defaults to the scheme's label. */
   labels?: Partial<Record<SchemeName, string>>;
   /** Which schemes to offer, in order. All nine by default. */
@@ -161,7 +162,7 @@ export function ColorSchemePicker(props: ColorSchemePickerProps) {
     fallback,
     "aria-label": ariaLabel,
     "aria-labelledby": ariaLabelledBy,
-  } = props;
+  } = withLayoutProps(props);
 
   const handleChange = (next: unknown) => {
     if (props.fallback) {

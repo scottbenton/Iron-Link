@@ -1,5 +1,7 @@
 import { CSSProperties } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cva, cx } from "styled-system/css";
 
 const skeletonStyles = cva({
@@ -29,7 +31,7 @@ const skeletonStyles = cva({
 
 const linesStyles = css({ display: "grid", gap: "2", width: "100%" });
 
-export interface SkeletonProps {
+export interface SkeletonProps extends Omit<LayoutProps, "width" | "height"> {
   variant?: "text" | "circle" | "rect";
   /** A CSS length or pixels. */
   width?: number | string;
@@ -45,7 +47,13 @@ export interface SkeletonProps {
  * `aria-busy` and a Progress or a visually hidden status.
  */
 export function Skeleton(props: SkeletonProps) {
-  const { variant = "text", width, height, lines = 1, className } = props;
+  const {
+    variant = "text",
+    width,
+    height,
+    lines = 1,
+    className,
+  } = withLayoutProps(props, ["width", "height"]);
   const size: CSSProperties = { width, height };
 
   if (variant === "text" && lines > 1) {

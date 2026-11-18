@@ -13,6 +13,7 @@ import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { RollButton } from "ui/game/RollButton";
 import { formatSigned } from "ui/game/shared";
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 
@@ -110,7 +111,8 @@ const oracleTablesStyles = css({
 });
 
 export interface MoveCardProps
-  extends RulesTextOptions,
+  extends LayoutProps,
+    RulesTextOptions,
     Omit<ComponentPropsWithoutRef<"article">, "children"> {
   move: Datasworn.AnyMove;
   /** The eyebrow above the name. Falls back to the category in the move's id. */
@@ -177,7 +179,7 @@ export function MoveCard(props: MoveCardProps) {
     resolveOracle,
     renderMacro,
     ...rest
-  } = props;
+  } = withLayoutProps(props);
 
   const [expandedState, setExpandedState] = useState(defaultExpanded);
   const expanded = !collapsible || (expandedProp ?? expandedState);

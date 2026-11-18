@@ -10,6 +10,8 @@ import {
   useState,
 } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { Button } from "../../components/Button";
@@ -324,7 +326,7 @@ function useNow(intervalMs: number) {
   return now;
 }
 
-export interface GameLogProps {
+export interface GameLogProps extends LayoutProps {
   /** Entries oldest first; the newest sits at the bottom by the composer. */
   entries: GameLogEntry[];
   /** Sends a message. Without it there is no composer (viewers). */
@@ -384,7 +386,7 @@ export function GameLog(props: GameLogProps) {
     groupWithinMinutes = GAME_LOG_GROUP_WINDOW_MS / 60_000,
     maxContentWidth,
     className,
-  } = props;
+  } = withLayoutProps<GameLogProps>(props);
   const strings = { ...defaultGameLogStrings, ...stringsProp };
   const now = useNow(RELATIVE_TIME_TICK_MS);
 

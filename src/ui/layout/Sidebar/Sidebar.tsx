@@ -19,6 +19,7 @@ import {
 import { css, cva, cx } from "styled-system/css";
 
 import { IconButton } from "../../components/IconButton";
+import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
 import { LayoutPanel } from "../shared/layoutPanel";
 import {
   sectionTabListStyles,
@@ -197,7 +198,8 @@ export interface SidebarLabels {
   tabs?: string;
 }
 
-export interface SidebarProps {
+export interface SidebarProps
+  extends Omit<LayoutProps, "width" | "minWidth" | "maxWidth"> {
   /**
    * What the sidebar holds: usually one panel (the game page has the
    * character sheet in one sidebar and the reference in the other), or
@@ -282,7 +284,7 @@ export function Sidebar(props: SidebarProps) {
     labels,
     id: idProp,
     className,
-  } = props;
+  } = withLayoutProps(props, ["width", "minWidth", "maxWidth"]);
 
   const {
     collapse: collapseLabel = "Collapse Sidebar",

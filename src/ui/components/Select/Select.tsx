@@ -2,6 +2,8 @@ import { Select as BaseSelect } from "@base-ui/react/select";
 import { CaretDown, CaretUp, Check } from "@phosphor-icons/react";
 import { Fragment, ReactNode, Ref, useMemo } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import {
@@ -54,7 +56,9 @@ function isGroup<V extends SelectValue>(
   return "options" in entry;
 }
 
-interface SelectCommonProps<V extends SelectValue> extends FieldOwnProps {
+interface SelectCommonProps<V extends SelectValue>
+  extends FieldOwnProps,
+    LayoutProps {
   /** The choices, flat or in groups. */
   options: SelectOptions<V>;
   /** Shown in the trigger while nothing is chosen. */
@@ -201,7 +205,7 @@ export function Select<V extends SelectValue = string>(props: SelectProps<V>) {
     value,
     defaultValue,
     onValueChange,
-  } = props;
+  } = withLayoutProps(props);
 
   const flat = useMemo(
     () =>

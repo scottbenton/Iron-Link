@@ -1,6 +1,7 @@
 import { CSSProperties, ComponentPropsWithoutRef } from "react";
 
 import { Tooltip } from "ui/components/Tooltip";
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { cva, cx } from "styled-system/css";
 
@@ -64,7 +65,8 @@ export interface PortraitGroupMember
 }
 
 export interface PortraitGroupProps
-  extends Omit<ComponentPropsWithoutRef<"ul">, "children"> {
+  extends LayoutProps,
+    Omit<ComponentPropsWithoutRef<"ul">, "children"> {
   /** The characters, in order. */
   members: PortraitGroupMember[];
   size?: PortraitSize;
@@ -98,7 +100,7 @@ export function PortraitGroup(props: PortraitGroupProps) {
     className,
     style,
     ...rest
-  } = props;
+  } = withLayoutProps<PortraitGroupProps>(props);
 
   const visibleCount =
     max !== undefined && members.length > max

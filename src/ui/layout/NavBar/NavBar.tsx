@@ -5,6 +5,7 @@ import { ReactNode, useRef, useState } from "react";
 import { css, cx } from "styled-system/css";
 
 import { IconButton } from "../../components/IconButton";
+import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
 import { Logo } from "../Logo";
 import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
 import { NavItem } from "../shared/navItem";
@@ -216,7 +217,7 @@ const drawerFooterStyles = css({
   borderTop: "1px solid token(colors.border.subtle)",
 });
 
-export interface NavBarProps {
+export interface NavBarProps extends LayoutProps {
   /**
    * The page's title, rendered as its one h1. Visible on phones; on wide
    * screens it stays for screen readers only (CLAUDE.md), since the page
@@ -278,7 +279,7 @@ export function NavBar(props: NavBarProps) {
     menuFooter,
     linkComponent,
     className,
-  } = props;
+  } = withLayoutProps(props);
 
   const Link = useLinkComponent(linkComponent);
   const [menuOpen, setMenuOpen] = useState(false);

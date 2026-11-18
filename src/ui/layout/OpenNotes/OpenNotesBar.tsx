@@ -1,6 +1,7 @@
 import { css, cx } from "styled-system/css";
 
 import { IconButton } from "../../components/IconButton";
+import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
 
 const barStyles = css({
   boxSizing: "border-box",
@@ -56,7 +57,7 @@ const countStyles = css({
 /** The most the square spells out; past it, it reads "99+". */
 const MAX_SHOWN = 99;
 
-export interface OpenNotesBarProps {
+export interface OpenNotesBarProps extends LayoutProps {
   /** The open note, folder or world page's name. */
   title: string;
   /** How many notes are open. */
@@ -81,9 +82,9 @@ export function OpenNotesBar(props: OpenNotesBarProps) {
     count,
     onOpenList,
     listOpen = false,
-    countLabel = (n) => `Open notes, ${n}`,
+    countLabel = (n: number) => `Open notes, ${n}`,
     className,
-  } = props;
+  } = withLayoutProps(props);
   const shown = count > MAX_SHOWN ? `${MAX_SHOWN}+` : String(count);
   return (
     <div className={cx(barStyles, className)}>

@@ -1,6 +1,8 @@
 import { Separator } from "@base-ui/react/separator";
 import { ComponentProps, ReactNode, forwardRef } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cva, cx } from "styled-system/css";
 
 const lineStyles = cva({
@@ -46,7 +48,9 @@ const labelledStyles = css({
   "&[data-align=start]::before": { flex: "0 0 token(spacing.3)" },
 });
 
-export interface DividerProps extends Omit<ComponentProps<"div">, "children"> {
+export interface DividerProps
+  extends Omit<ComponentProps<"div">, "children">,
+    LayoutProps {
   orientation?: "horizontal" | "vertical";
   /** The lighter hairline, for dividers inside a card. */
   subtle?: boolean;
@@ -72,7 +76,7 @@ export const Divider = forwardRef<HTMLDivElement, DividerProps>(
       labelAlign = "center",
       className,
       ...rest
-    } = props;
+    } = withLayoutProps(props);
     if (children !== undefined && children !== null) {
       return (
         <div

@@ -2,6 +2,8 @@ import { Button as BaseButton } from "@base-ui/react/button";
 import { DiceFive, Minus, Plus } from "@phosphor-icons/react";
 import { CSSProperties, ReactNode, useId } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
@@ -117,7 +119,7 @@ const pipStyles = css({
 
 export type MeterTone = "default" | "danger" | "warning" | "success";
 
-export interface ConditionMeterProps {
+export interface ConditionMeterProps extends LayoutProps {
   /** Health, Spirit, Supply, Integrity, an asset's own meter. */
   label: string;
   value: number;
@@ -204,7 +206,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
     incrementLabel = (l) => `Add 1 to ${l}`,
     changeAnnouncement = (l, v) => `${l} is now ${v}`,
     className,
-  } = props;
+  } = withLayoutProps<ConditionMeterProps>(props);
 
   const labelId = useId();
   const announce = useAnnounce();

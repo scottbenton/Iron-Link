@@ -1,6 +1,8 @@
 import { CheckCircle, Minus, Plus } from "@phosphor-icons/react";
 import { ElementType, ReactElement, ReactNode, useId } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
@@ -31,7 +33,7 @@ import {
   trackCardTitleStyles as titleStyles,
 } from "./trackCardStyles";
 
-export interface ProgressTrackProps {
+export interface ProgressTrackProps extends LayoutProps {
   /** The vow, journey, fight or connection, such as "Recover the Hollow Crown". */
   label: string;
   /** Ticks, 0 to 40. */
@@ -100,7 +102,7 @@ export function ProgressTrack(props: ProgressTrackProps) {
     strings: stringsProp,
     rankLabels: rankLabelsProp,
     className,
-  } = props;
+  } = withLayoutProps(props);
 
   const strings = { ...defaultProgressTrackStrings, ...stringsProp };
   const rankLabels = { ...defaultRankLabels, ...rankLabelsProp };

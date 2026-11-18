@@ -9,6 +9,8 @@ import {
   useRef,
 } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { IconButton } from "../IconButton";
@@ -218,7 +220,7 @@ export interface NoteTab {
   unread?: number;
 }
 
-export interface NoteTabsProps {
+export interface NoteTabsProps extends LayoutProps {
   /** The open notes, in order. */
   tabs: NoteTab[];
   /** The open note's id, or null with none open. */
@@ -267,7 +269,7 @@ export function NoteTabs(props: NoteTabsProps) {
     unreadLabel = (count: number) => `${count} new`,
     children,
     className,
-  } = props;
+  } = withLayoutProps(props);
 
   const listRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);

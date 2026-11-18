@@ -1,5 +1,7 @@
 import { ComponentProps } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 const spinner = css({
@@ -13,7 +15,7 @@ const spinner = css({
   animation: "ringSpin 700ms linear infinite",
 });
 
-export interface SpinnerProps extends ComponentProps<"span"> {
+export interface SpinnerProps extends ComponentProps<"span">, LayoutProps {
   /** Diameter in pixels. */
   size?: number;
   /** Read by screen readers. Leave empty when a label nearby says it. */
@@ -22,7 +24,13 @@ export interface SpinnerProps extends ComponentProps<"span"> {
 
 /** A small busy indicator. Decorative unless given a label. */
 export function Spinner(props: SpinnerProps) {
-  const { size = 14, label, className, style, ...rest } = props;
+  const {
+    size = 14,
+    label,
+    className,
+    style,
+    ...rest
+  } = withLayoutProps(props);
   return (
     <span
       className={cx(spinner, className)}

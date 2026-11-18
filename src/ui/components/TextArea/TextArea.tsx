@@ -8,6 +8,8 @@ import {
   useRef,
 } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { cx } from "styled-system/css";
 
 import {
@@ -32,7 +34,10 @@ type NativeTextAreaProps = Omit<
   | "rows"
 >;
 
-export interface TextAreaProps extends FieldOwnProps, NativeTextAreaProps {
+export interface TextAreaProps
+  extends FieldOwnProps,
+    NativeTextAreaProps,
+    LayoutProps {
   value?: string;
   defaultValue?: string;
   onChange?: (event: ChangeEvent<HTMLTextAreaElement>) => void;
@@ -87,7 +92,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       validate,
       validationMode,
       ...textareaProps
-    } = props;
+    } = withLayoutProps(props);
 
     const elementRef = useRef<HTMLTextAreaElement>(null);
     const [value, setValue] = useControllableState(

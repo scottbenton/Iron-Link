@@ -1,6 +1,8 @@
 import { Check } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { VisuallyHidden } from "../VisuallyHidden";
@@ -120,7 +122,9 @@ const stepButtonStyles = css({
   _focusVisible: { outline: "2px solid token(colors.focusRing)" },
 });
 
-export interface StepperProps extends Omit<ComponentProps<"ol">, "children"> {
+export interface StepperProps
+  extends Omit<ComponentProps<"ol">, "children">,
+    LayoutProps {
   steps: StepperStep[];
   /** The index of the current step; earlier steps are complete. */
   activeStep: number;
@@ -148,7 +152,7 @@ export function Stepper(props: StepperProps) {
     "aria-label": ariaLabel = "Progress",
     className,
     ...rest
-  } = props;
+  } = withLayoutProps(props);
   return (
     <ol aria-label={ariaLabel} className={cx(listStyles, className)} {...rest}>
       {steps.map((step, index) => {

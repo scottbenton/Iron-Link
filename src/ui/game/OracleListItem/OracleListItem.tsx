@@ -9,13 +9,15 @@ import {
 
 import { IconButton } from "ui/components/IconButton";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { cx } from "styled-system/css";
 
 import { listRowLineStyles, listRowStyles } from "./listRowStyles";
 
 export interface OracleListItemProps
-  extends Omit<ComponentPropsWithoutRef<"div">, "children"> {
+  extends LayoutProps,
+    Omit<ComponentPropsWithoutRef<"div">, "children"> {
   /** The oracle's name. */
   name: string;
   /** Rolls the oracle. The whole row is the button. */
@@ -63,7 +65,7 @@ export function OracleListItem(props: OracleListItemProps) {
     as: Wrapper = "div",
     className,
     ...rest
-  } = props;
+  } = withLayoutProps(props);
 
   const isLink = render !== undefined;
   const glyph = isLink ? null : icon === undefined ? (

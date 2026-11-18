@@ -12,6 +12,7 @@ import { css, cx } from "styled-system/css";
 import { Button } from "../../components/Button";
 import { RollCard } from "../../game/RollCard";
 import type { RollData } from "../../game/RollCard";
+import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
 import { RecentRollsSheet } from "./RecentRollsSheet";
 
 /** How far each older card's edge shows above the one in front of it. */
@@ -78,7 +79,7 @@ const showAllRowStyles = css({
   marginBlockStart: "-1",
 });
 
-export interface RollDockProps {
+export interface RollDockProps extends LayoutProps {
   /** Recent rolls, oldest first; the newest shows in full. */
   rolls: DockedRoll[];
   onDismiss: (id: string) => void;
@@ -118,13 +119,13 @@ export function RollDock(props: RollDockProps) {
     notice,
     clampHeight = 240,
     label = "Recent rolls",
-    countLabel = (count) => `${count} rolls`,
+    countLabel = (count: number) => `${count} rolls`,
     showAllLabel = "Show all",
     showLessLabel = "Show less",
     clearAllLabel = "Clear all",
     emptyLabel = "No recent rolls",
     className,
-  } = props;
+  } = withLayoutProps(props);
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const newest = rolls[rolls.length - 1];

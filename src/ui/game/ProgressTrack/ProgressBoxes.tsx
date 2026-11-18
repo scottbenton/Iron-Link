@@ -1,5 +1,7 @@
 import { CSSProperties, useState } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { MAX_TICKS, TICKS_PER_BOX, clampTicks, getBoxTicks } from "./progress";
@@ -67,7 +69,7 @@ const boxStyles = css({
   },
 });
 
-export interface ProgressBoxesProps {
+export interface ProgressBoxesProps extends LayoutProps {
   /** 0 to 40. */
   ticks: number;
   /** Draws the marks in the success colour. */
@@ -82,7 +84,7 @@ export interface ProgressBoxesProps {
  * the end state at once.
  */
 export function ProgressBoxes(props: ProgressBoxesProps) {
-  const { ticks: rawTicks, complete, className } = props;
+  const { ticks: rawTicks, complete, className } = withLayoutProps(props);
   const ticks = clampTicks(rawTicks);
 
   // The count before the latest change, kept as state (React's pattern for

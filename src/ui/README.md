@@ -13,7 +13,8 @@ Run `npm run storybook` to browse it. `npm run prepare` (also run by
 ```
 src/ui/
   theme/        tokens, colour schemes, applyUITheme
-  styles/       the entry stylesheet (import once)
+  styles/       the entry stylesheet (import once) and layout props
+  icons/        Icon and every icon the app uses (Phosphor)
   primitives/   layout: Box, Stack, HStack, Flex, Grid, Container, ...
   components/   general components (Button, Dialog, Menu, Field, Tabs, ...)
   game/         Iron Link's own pieces (stats, tracks, rolls, assets, ...)
@@ -33,10 +34,21 @@ Each component is a folder: `Name/Name.tsx`, `Name/Name.stories.tsx`,
   `HStack`, `VStack`, `Flex`, `Grid`, `GridItem`, `Container`, `Center`,
   `Spacer`), which take style props. They replace MUI's `Box`, `Stack`,
   `Grid` and `Container`.
-- Code outside `src/ui` never imports Panda (`styled-system/*`); ESLint
-  refuses it. That keeps the styling system replaceable inside `src/ui`.
-- Panda reads style props only from `ui/primitives` and
-  `styled-system/jsx`, by name, at build time. Import primitives under their
+- Every other component takes layout props only: margin (`mt`, `mx`,
+  ...), size (`w`, `h`, `minW`, `maxW`, ...), placement in a flex or grid
+  parent (`flex`, `alignSelf`, `gridColumn`, ...) and `hideFrom`/`hideBelow`
+  (`styles/layoutProps.ts`). A component reads them with
+  `withLayoutProps(props)` where it destructures its props. Colours,
+  borders and padding are not props: a visual change is a variant. Layout
+  props place a component; they must not fight a size the component sets
+  itself (see the `cx` rule below), so a component that sizes itself takes
+  a variant for it instead.
+- Code outside `src/ui` never imports Panda (`styled-system/*`) or Phosphor
+  (`@phosphor-icons/*`); ESLint refuses both. Icons come from `ui/icons`,
+  drawn with `<Icon icon={DiceFiveIcon} size="md" />`; components that take
+  an icon (`startIcon`, `IconButton`) size the bare icon themselves. That keeps the styling system replaceable inside `src/ui`.
+- Panda reads style props only from `ui/primitives`, the library's
+  components and `styled-system/jsx`, by name, at build time. Import primitives under their
   own names, and give style props literal values (a ternary of literals is
   fine): a value computed at runtime has no CSS behind it.
 - Use tokens, never raw values: `bg.surface`, `fg.muted`, `border.default`,

@@ -2,6 +2,8 @@ import { Accordion as BaseAccordion } from "@base-ui/react/accordion";
 import { CaretDown } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode, forwardRef } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 /** One bordered surface, the items divided by hairlines. */
@@ -123,7 +125,9 @@ const panelContentStyles = css({
 
 type RootProps = ComponentProps<typeof BaseAccordion.Root>;
 
-export interface AccordionProps extends Omit<RootProps, "className"> {
+export interface AccordionProps
+  extends Omit<RootProps, "className">,
+    LayoutProps {
   className?: string;
 }
 
@@ -134,7 +138,7 @@ export interface AccordionProps extends Omit<RootProps, "className"> {
  */
 export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
   function Accordion(props, ref) {
-    const { className, ...rest } = props;
+    const { className, ...rest } = withLayoutProps(props);
     return (
       <BaseAccordion.Root
         ref={ref}

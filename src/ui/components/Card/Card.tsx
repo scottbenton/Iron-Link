@@ -9,6 +9,8 @@ import {
   forwardRef,
 } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cva, cx } from "styled-system/css";
 import type { SystemStyleObject } from "styled-system/types";
 
@@ -108,7 +110,7 @@ const cardStyles = cva({
   defaultVariants: { padding: "md" },
 });
 
-export interface CardProps extends ComponentProps<"div"> {
+export interface CardProps extends ComponentProps<"div">, LayoutProps {
   /** Inner padding; `none` for a card whose parts bring their own. */
   padding?: "none" | "sm" | "md";
   /** Raise the card on a ledge without making it pressable. */
@@ -143,7 +145,8 @@ export interface CardProps extends ComponentProps<"div"> {
  */
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   function Card(props, ref) {
-    const { padding, raised, selected, className, render, ...rest } = props;
+    const { padding, raised, selected, className, render, ...rest } =
+      withLayoutProps(props);
     return useRender({
       defaultTagName: "div",
       render,

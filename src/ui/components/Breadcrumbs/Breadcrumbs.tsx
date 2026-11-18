@@ -10,6 +10,8 @@ import {
   isValidElement,
 } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 const listStyles = css({
@@ -69,7 +71,7 @@ const crumbStyles = css({
   "&[aria-current=page]": { color: "fg.default", fontWeight: "semibold" },
 });
 
-export interface BreadcrumbsProps extends ComponentProps<"nav"> {
+export interface BreadcrumbsProps extends ComponentProps<"nav">, LayoutProps {
   /** Names the trail. */
   "aria-label"?: string;
   /** `BreadcrumbItem`s, from the top level to the current page. */
@@ -87,7 +89,7 @@ export const Breadcrumbs = forwardRef<HTMLElement, BreadcrumbsProps>(
       children,
       className,
       ...rest
-    } = props;
+    } = withLayoutProps(props);
     const items = Children.toArray(children).filter(isValidElement);
     return (
       <nav ref={ref} aria-label={ariaLabel} className={className} {...rest}>

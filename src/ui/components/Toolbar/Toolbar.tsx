@@ -1,6 +1,8 @@
 import { Toolbar as BaseToolbar } from "@base-ui/react/toolbar";
 import { ComponentProps, ReactElement, ReactNode, forwardRef } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cva, cx } from "styled-system/css";
 
 import { Tooltip } from "../Tooltip";
@@ -35,7 +37,8 @@ const rootStyles = cva({
 });
 
 export interface ToolbarProps
-  extends Omit<ComponentProps<typeof BaseToolbar.Root>, "className"> {
+  extends Omit<ComponentProps<typeof BaseToolbar.Root>, "className">,
+    LayoutProps {
   /** Names the toolbar, such as "Formatting". */
   "aria-label": string;
   variant?: "bar" | "plain";
@@ -49,7 +52,7 @@ export interface ToolbarProps
  */
 export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
   function Toolbar(props, ref) {
-    const { variant, className, ...rest } = props;
+    const { variant, className, ...rest } = withLayoutProps(props);
     return (
       <BaseToolbar.Root
         ref={ref}

@@ -1,5 +1,7 @@
 import { ReactNode, useId } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { Checkbox } from "../../components/Checkbox";
@@ -85,7 +87,7 @@ function sentenceCase(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-export interface ImpactsChecklistProps {
+export interface ImpactsChecklistProps extends LayoutProps {
   /** Groups in rules order, such as `rules.impacts` from Datasworn. */
   groups: ImpactGroup[];
   /** Marked impacts by key. A missing key reads as not marked. */
@@ -122,7 +124,7 @@ export function ImpactsChecklist(props: ImpactsChecklistProps) {
     footer,
     size = "md",
     className,
-  } = props;
+  } = withLayoutProps(props);
   const strings = { ...impactsChecklistWording[wording], ...stringsProp };
   const titleId = useId();
 

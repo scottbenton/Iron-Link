@@ -6,6 +6,8 @@ import {
   useContext,
 } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cva, cx } from "styled-system/css";
 
 interface TableContextValue {
@@ -43,7 +45,10 @@ const tableStyles = css({
   color: "fg.default",
 });
 
-export interface TableProps extends ComponentProps<"table"> {
+export interface TableProps
+  // The table's own width attribute gives way to the layout props.
+  extends Omit<ComponentProps<"table">, "width">,
+    Omit<LayoutProps, "maxHeight"> {
   /** Compact rows for dense data, such as oracle tables. */
   density?: "comfortable" | "compact";
   /**
@@ -70,20 +75,23 @@ export interface TableProps extends ComponentProps<"table"> {
  */
 export const Table = forwardRef<HTMLTableElement, TableProps>(
   function Table(props, ref) {
+    const { className, containerClassName, ...ownProps } = props;
+    // The layout props place the scrolling box, so they join its class.
     const {
       density = "comfortable",
       stickyHeader = false,
       maxHeight,
       "aria-label": ariaLabel,
-      containerClassName,
-      className,
+      className: boxClassName,
       ...rest
-    } = props;
+    } = withLayoutProps({ ...ownProps, className: containerClassName }, [
+      "maxHeight",
+    ]);
     const scrolls = maxHeight !== undefined;
     return (
       <TableContext.Provider value={{ density, stickyHeader }}>
         <div
-          className={cx(containerStyles, containerClassName)}
+          className={cx(containerStyles, boxClassName)}
           style={scrolls ? { maxHeight } : undefined}
           // A box that scrolls must be reachable from the keyboard.
           tabIndex={scrolls ? 0 : undefined}
@@ -94,7 +102,8 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(
             ref={ref}
             className={cx(tableStyles, className)}
             aria-label={scrolls ? undefined : ariaLabel}
-            {...rest}
+            // The layout props are gone from `rest`, though its type keeps them.
+            {...(rest as Omit<ComponentProps<"table">, "width">)}
           />
         </div>
       </TableContext.Provider>

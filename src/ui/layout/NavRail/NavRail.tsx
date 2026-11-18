@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import { css, cx } from "styled-system/css";
 
 import { GradientBox } from "../../components/GradientBox";
+import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
 import { Logo } from "../Logo";
 import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
 import { NavItem } from "../shared/navItem";
@@ -130,7 +131,7 @@ const actionsStyles = css({
   marginBlockStart: "auto",
 });
 
-export interface NavRailProps {
+export interface NavRailProps extends LayoutProps {
   /** The main destinations: Games, Worlds, Homebrew, Reference. */
   items: NavItem[];
   /** Where the logo links to. Leave out to show the logo without a link. */
@@ -166,7 +167,7 @@ export function NavRail(props: NavRailProps) {
     actions,
     linkComponent,
     className,
-  } = props;
+  } = withLayoutProps(props);
   const Link = useLinkComponent(linkComponent);
 
   return (

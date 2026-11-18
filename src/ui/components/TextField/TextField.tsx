@@ -10,6 +10,8 @@ import {
   useRef,
 } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { cx } from "styled-system/css";
 
 import {
@@ -35,9 +37,16 @@ type NativeInputProps = Omit<
   | "ref"
   | "disabled"
   | "required"
+  // The input's own width and height attributes give way to the layout
+  // props, which size the whole field.
+  | "width"
+  | "height"
 >;
 
-export interface TextFieldProps extends FieldOwnProps, NativeInputProps {
+export interface TextFieldProps
+  extends FieldOwnProps,
+    NativeInputProps,
+    LayoutProps {
   /** The text. Use with `onChange` or `onValueChange`. */
   value?: string;
   /** The starting text when uncontrolled. */
@@ -129,7 +138,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       validate,
       validationMode,
       ...inputProps
-    } = props;
+    } = withLayoutProps(props);
 
     const inputRef = useRef<HTMLInputElement>(null);
     const [value, setValue] = useControllableState(
@@ -179,7 +188,9 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
             required={required}
             readOnly={readOnly}
             name={name}
-            {...inputProps}
+            // The layout props are gone from `inputProps`, though its type
+            // keeps them.
+            {...(inputProps as NativeInputProps)}
           />
           {showClear && (
             <Tooltip title={clearLabel}>

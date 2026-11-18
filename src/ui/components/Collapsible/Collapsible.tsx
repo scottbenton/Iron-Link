@@ -2,13 +2,17 @@ import { Collapsible as BaseCollapsible } from "@base-ui/react/collapsible";
 import { CaretRight } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode, forwardRef } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { collapsiblePanelStyles } from "./collapsibleStyles";
 
 type RootProps = ComponentProps<typeof BaseCollapsible.Root>;
 
-export interface CollapsibleProps extends Omit<RootProps, "className"> {
+export interface CollapsibleProps
+  extends Omit<RootProps, "className">,
+    LayoutProps {
   className?: string;
 }
 
@@ -20,7 +24,7 @@ export interface CollapsibleProps extends Omit<RootProps, "className"> {
  */
 export const Collapsible = forwardRef<HTMLDivElement, CollapsibleProps>(
   function Collapsible(props, ref) {
-    const { className, ...rest } = props;
+    const { className, ...rest } = withLayoutProps(props);
     return <BaseCollapsible.Root ref={ref} className={className} {...rest} />;
   },
 );

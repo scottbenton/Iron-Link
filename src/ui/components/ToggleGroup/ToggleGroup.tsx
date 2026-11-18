@@ -8,6 +8,8 @@ import {
   useContext,
 } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cva, cx } from "styled-system/css";
 
 import { useControllableState } from "../Field";
@@ -23,7 +25,7 @@ const ToggleGroupContext = createContext<{
   variant: ToggleGroupVariant;
 }>({ size: "md", tone: "accent", variant: "outline" });
 
-interface ToggleGroupBaseProps {
+interface ToggleGroupBaseProps extends LayoutProps {
   /** The ToggleGroupItems. */
   children: ReactNode;
   /** Names the group for screen readers. Required unless a label is nearby. */
@@ -266,7 +268,7 @@ export function ToggleGroup<V extends string = string>(
     disabled,
     className,
     ref,
-  } = props;
+  } = withLayoutProps(props);
 
   const single = !props.multiple;
   const [current, setCurrent] = useControllableState<V[]>(

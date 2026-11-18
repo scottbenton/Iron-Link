@@ -2,6 +2,8 @@ import { Button as BaseButton } from "@base-ui/react/button";
 import { DiceFive } from "@phosphor-icons/react";
 import { ComponentProps, Ref, forwardRef } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { cx } from "styled-system/css";
 
 import { AddsAnchor } from "../RollButton/AddsBadge";
@@ -17,10 +19,11 @@ import {
 } from "./statCardStyles";
 
 export interface StatCardProps
-  extends Omit<
-    ComponentProps<typeof BaseButton>,
-    "className" | "children" | "onClick"
-  > {
+  extends LayoutProps,
+    Omit<
+      ComponentProps<typeof BaseButton>,
+      "className" | "children" | "onClick"
+    > {
   /** The stat's name: Edge, Heart, Iron, Shadow, Wits. */
   name: string;
   value: number;
@@ -55,7 +58,7 @@ export const StatCard = forwardRef<HTMLElement, StatCardProps>(
       className,
       disabled,
       ...rest
-    } = props;
+    } = withLayoutProps<StatCardProps>(props);
 
     const valueText = formatSigned(value);
     const addsText = adds ? formatSigned(adds) : undefined;

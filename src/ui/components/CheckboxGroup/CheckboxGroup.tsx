@@ -2,6 +2,8 @@ import { CheckboxGroup as BaseCheckboxGroup } from "@base-ui/react/checkbox-grou
 import { Fieldset as BaseFieldset } from "@base-ui/react/fieldset";
 import { ReactNode, useId } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cx } from "styled-system/css";
 
 import { choiceListStyles } from "../Checkbox";
@@ -15,7 +17,7 @@ import {
   resolveFieldError,
 } from "../Field";
 
-export interface CheckboxGroupProps extends FieldOwnProps {
+export interface CheckboxGroupProps extends FieldOwnProps, LayoutProps {
   /** The Checkboxes, each with a `value`. */
   children: ReactNode;
   /** The `value`s of the ticked checkboxes, when controlled. */
@@ -76,7 +78,7 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
     required,
     disabled,
     requiredIndicator,
-  } = props;
+  } = withLayoutProps(props);
   const { invalid, message } = resolveFieldError(error, invalidProp);
   const descriptionId = useId();
   const hasDescription =

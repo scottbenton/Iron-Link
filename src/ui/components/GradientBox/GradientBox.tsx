@@ -1,5 +1,7 @@
 import { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { cva, cx } from "styled-system/css";
 
 const gradientBoxStyles = cva({
@@ -96,7 +98,7 @@ const gradientBoxStyles = cva({
   },
 });
 
-type GradientBoxOwnProps<E extends ElementType> = {
+type GradientBoxOwnProps<E extends ElementType> = LayoutProps & {
   /** A 2px gradient border (the default) or a gradient fill. */
   variant?: "border" | "fill";
   /** Controls `md`, cards `lg` (the default), pills `full`. */
@@ -124,7 +126,8 @@ export type GradientBoxProps<E extends ElementType = "div"> =
 export function GradientBox<E extends ElementType = "div">(
   props: GradientBoxProps<E>,
 ) {
-  const { variant, radius, spin, as, className, ...rest } = props;
+  const { variant, radius, spin, as, className, ...rest } =
+    withLayoutProps(props);
   const Element: ElementType = as ?? "div";
   return (
     <Element

@@ -1,6 +1,8 @@
 import { ScrollArea as BaseScrollArea } from "@base-ui/react/scroll-area";
 import { ReactNode, forwardRef } from "react";
 
+import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
 import { css, cva, cx } from "styled-system/css";
 
 const rootStyles = css({
@@ -67,7 +69,7 @@ const thumbStyles = css({
   },
 });
 
-export interface ScrollAreaProps {
+export interface ScrollAreaProps extends LayoutProps {
   children: ReactNode;
   /** Which way it scrolls. Both draws both scrollbars. */
   orientation?: "vertical" | "horizontal" | "both";
@@ -94,7 +96,7 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
       "aria-label": ariaLabel,
       className,
       contentClassName,
-    } = props;
+    } = withLayoutProps(props);
     const fadeVariant = !fade
       ? "none"
       : orientation === "horizontal"
