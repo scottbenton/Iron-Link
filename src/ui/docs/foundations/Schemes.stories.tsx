@@ -3,13 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { css } from "styled-system/css";
 
 import { Text } from "../../components/Text";
-import {
-  iconGradient,
-  ringGradient,
-  schemeNames,
-  schemes,
-  tintedGrays,
-} from "../../theme";
+import { iconGradient, ringGradient, schemeNames, schemes } from "../../theme";
 import { pageStyles } from "./foundationStyles";
 
 const meta: Meta = {
@@ -40,13 +34,6 @@ const dotStyles = css({
   borderStyle: "solid",
   borderColor: "border.subtle",
 });
-const grayRowStyles = css({
-  display: "grid",
-  gridTemplateColumns: "repeat(11, minmax(0, 1fr))",
-  height: "12px",
-  borderRadius: "xs",
-  overflow: "hidden",
-});
 
 export const AllSchemes: StoryObj = {
   name: "All schemes",
@@ -57,9 +44,9 @@ export const AllSchemes: StoryObj = {
         <Text variant="h1">Colour schemes</Text>
         <Text color="muted">
           A player picks one of nine schemes in Iron Link. Each sets the accent
-          for light and dark mode, the ring and icon gradients, and a faint tint
-          on the grays. Components never name a scheme: they read accent, ring
-          and gray tokens, and the Scheme control in the toolbar switches them
+          for light and dark mode and the ring and icon gradients. The grays are
+          Zinc in every scheme. Components never name a scheme: they read accent
+          and ring tokens, and the Scheme control in the toolbar switches them
           all. In the app, applyUITheme writes data-panda-theme on the html
           element.
         </Text>
@@ -73,7 +60,6 @@ export const AllSchemes: StoryObj = {
       >
         {schemeNames.map((name) => {
           const scheme = schemes[name];
-          const grays = Object.values(tintedGrays(scheme));
           return (
             <div key={name} className={cardStyles}>
               <Text variant="h4" as="h2">
@@ -102,11 +88,6 @@ export const AllSchemes: StoryObj = {
                 <Text variant="caption" color="muted">
                   Icon, light and dark accent
                 </Text>
-              </div>
-              <div className={grayRowStyles} aria-hidden>
-                {grays.map((value) => (
-                  <span key={value} style={{ background: value }} />
-                ))}
               </div>
             </div>
           );

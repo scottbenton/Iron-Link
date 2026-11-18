@@ -1,4 +1,4 @@
-import { distributeStops, hexToOklch, oklch, toOklch } from "./color";
+import { distributeStops, toOklch } from "./color";
 
 /**
  * Iron Link's nine colour schemes, matching `ColorScheme` in
@@ -99,7 +99,7 @@ export const schemes = {
 export type SchemeName = keyof typeof schemes;
 export const schemeNames = Object.keys(schemes) as SchemeName[];
 
-/** Zinc's lightness steps, the neutral the redesign tints toward each scheme. */
+/** Tailwind's Zinc: the one neutral ramp every scheme shares. */
 const zinc = [
   "#fafafa",
   "#f4f4f5",
@@ -112,9 +112,6 @@ const zinc = [
   "#27272a",
   "#18181b",
   "#09090b",
-];
-const tintChroma = [
-  0.0015, 0.002, 0.004, 0.005, 0.008, 0.011, 0.012, 0.012, 0.011, 0.009, 0.007,
 ];
 export const grayStepNames = [
   "50",
@@ -130,16 +127,13 @@ export const grayStepNames = [
   "950",
 ] as const;
 
-/** The tinted neutral ramp: Zinc's lightness with a little of the scheme's hue. */
-export function tintedGrays(scheme: SchemeDefinition) {
-  const hue = hexToOklch(scheme.light.solid)[2];
-  return Object.fromEntries(
-    zinc.map((hex, index) => [
-      grayStepNames[index],
-      oklch(hexToOklch(hex)[0], tintChroma[index], hue),
-    ]),
-  ) as Record<(typeof grayStepNames)[number], string>;
-}
+/**
+ * The neutral ramp, Zinc in OKLCH. Schemes don't tint it: their colour is in
+ * the accent, ring and icon tokens alone.
+ */
+export const zincGrays = Object.fromEntries(
+  zinc.map((hex, index) => [grayStepNames[index], toOklch(hex)]),
+) as Record<(typeof grayStepNames)[number], string>;
 
 export function ringGradient(scheme: SchemeDefinition) {
   return scheme.linearRing
@@ -153,12 +147,8 @@ export function iconGradient(scheme: SchemeDefinition) {
 
 /** The same values as Panda theme tokens, for `themes` in panda.config.ts. */
 export function schemeTokens(scheme: SchemeDefinition) {
-  const grays = tintedGrays(scheme);
   return {
     colors: {
-      gray: Object.fromEntries(
-        grayStepNames.map((step) => [step, { value: grays[step] }]),
-      ),
       scheme: {
         light: {
           fg: { value: toOklch(scheme.light.fg) },

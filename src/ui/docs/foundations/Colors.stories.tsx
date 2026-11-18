@@ -145,9 +145,8 @@ export const Grays: StoryObj = {
         <Text variant="eyebrow">Foundations</Text>
         <Text variant="h1">Gray ramp</Text>
         <Text color="muted">
-          Zinc lightness with a faint tint toward the scheme&apos;s hue, so each
-          scheme&apos;s neutrals lean its way. Prefer the semantic names above
-          in components.
+          Zinc, the same in every scheme. Prefer the semantic names above in
+          components.
         </Text>
       </div>
       <div className={swatchGridStyles}>

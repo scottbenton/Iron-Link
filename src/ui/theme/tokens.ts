@@ -2,17 +2,16 @@
  * Base and semantic tokens for the Iron Link library. Names follow Panda's
  * generated variables, so `bg.surface` is `--colors-bg-surface`.
  *
- * The scheme-dependent values (`gray.*`, `scheme.*`, `ring.*`, the gradients)
+ * The scheme-dependent values (`scheme.*`, `ring.*`, the gradients)
  * are declared here with the Default scheme. Every other scheme is a Panda
  * theme (`schemeThemes` in `schemes.ts`) that overrides them under
  * `[data-panda-theme=<scheme>]`; `applyUITheme` sets that attribute.
  */
 import { toOklch } from "./color";
-import { grayStepNames, schemes, tintedGrays } from "./schemes";
+import { grayStepNames, schemes, zincGrays } from "./schemes";
 import { iconGradient, ringGradient } from "./schemes";
 
 const defaultScheme = schemes.default;
-const defaultGrays = tintedGrays(defaultScheme);
 
 const mix = (a: string, percent: number, b: string) =>
   `color-mix(in oklab, ${a} ${percent}%, ${b})`;
@@ -25,7 +24,7 @@ export const tokens = {
     transparent: { value: "transparent" },
     current: { value: "currentColor" },
     gray: Object.fromEntries(
-      grayStepNames.map((step) => [step, { value: defaultGrays[step] }]),
+      grayStepNames.map((step) => [step, { value: zincGrays[step] }]),
     ),
     scheme: {
       light: {

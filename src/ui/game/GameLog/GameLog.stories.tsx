@@ -248,6 +248,7 @@ const meta = {
     header: { control: "inline-radio", options: ["stacked", "inline"] },
     timePlacement: { control: "inline-radio", options: ["below", "header"] },
     timeFormat: { control: "inline-radio", options: ["relative", "clock"] },
+    groupWithinMinutes: { control: { type: "number", min: 0, step: 1 } },
   },
   decorators: [
     (Story, context) =>
@@ -293,6 +294,15 @@ export const FullLog: Story = {
       />
     );
   },
+};
+
+/**
+ * For comparison: every entry with its own header and time. By default one
+ * author's entries within 5 minutes of each other group, as Senna's and
+ * Orrin's do in the full log: one header, one time under the last.
+ */
+export const Ungrouped: Story = {
+  args: { groupWithinMinutes: 0 },
 };
 
 /** Every die named. The busiest; good for learning the dice. */

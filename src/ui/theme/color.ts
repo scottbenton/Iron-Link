@@ -1,6 +1,6 @@
 /**
  * Colour helpers for building tokens at config time. Panda runs the config in
- * Node, so the tinted neutral ramp and the scheme gradients are computed here
+ * Node, so the neutral ramp and the scheme gradients are computed here
  * rather than shipped as runtime code.
  */
 

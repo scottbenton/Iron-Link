@@ -24,10 +24,20 @@ import {
 import { RollTextOverrides } from "../RollCard/getRollSummary";
 import { RollData } from "../RollCard/rollTypes";
 import { GameLogComposer, GameLogComposerProps } from "./GameLogComposer";
+import {
+  GAME_LOG_GROUP_WINDOW_MS,
+  GameLogGroupPosition,
+  getGameLogGroupPositions,
+} from "./gameLogGroups";
 import { GameLogStrings, defaultGameLogStrings } from "./gameLogStrings";
 import { formatGameLogRelativeTime, sameDay } from "./gameLogTime";
 
 export interface GameLogAuthor {
+  /**
+   * Who this is, so back-to-back entries group by author. The name stands in
+   * without one.
+   */
+  id?: string;
   /** The character, or the player when no character wrote it. */
   name: string;
   /** A portrait or avatar. Initials stand in without one. */
@@ -86,10 +96,12 @@ const railStyles = css({
   marginInline: "auto",
 });
 
+// Entries are spaced apart so each time reads with its own card, and an
+// author's back-to-back entries sit close together as one group.
 const listStyles = css({
   display: "flex",
   flexDirection: "column",
-  gap: "3",
+  gap: "1",
   marginBlock: 0,
   padding: 0,
   listStyle: "none",
@@ -99,7 +111,9 @@ const dayStyles = css({
   display: "flex",
   alignItems: "center",
   gap: "3",
-  marginBlock: "1",
+  marginBlockStart: "4",
+  marginBlockEnd: "2",
+  "&:first-child": { marginBlockStart: 0 },
   fontFamily: "heading",
   fontWeight: "bold",
   fontSize: "xs",
@@ -131,6 +145,8 @@ const entryStyles = css({
   alignItems: "flex-start",
   gap: "1",
   minWidth: 0,
+  marginBlockStart: "4",
+  "&:first-child, [data-day] + &, &[data-continued]": { marginBlockStart: 0 },
   "&[data-you]": { alignItems: "flex-end" },
 });
 
@@ -411,6 +427,12 @@ export interface GameLogProps {
   /** Where each entry's time goes. Below the card by default. */
   timePlacement?: GameLogTimePlacement;
   /**
+   * One author's entries this close together (in minutes) group: one
+   * header over the first, one time under the last. 5 by default; 0 turns
+   * grouping off. Screen readers still hear who and when for every entry.
+   */
+  groupWithinMinutes?: number;
+  /**
    * The widest the entries and composer grow, centred, for a log shown in
    * a wide column such as a notes tab ("640px"). Full width by default.
    */
@@ -443,6 +465,7 @@ export function GameLog(props: GameLogProps) {
     timeFormat = "relative",
     header = "stacked",
     timePlacement = "below",
+    groupWithinMinutes = GAME_LOG_GROUP_WINDOW_MS / 60_000,
     maxContentWidth,
     className,
   } = props;
@@ -484,6 +507,10 @@ export function GameLog(props: GameLogProps) {
   };
 
   let previous: Date | undefined;
+  const groupPositions = getGameLogGroupPositions(
+    entries,
+    groupWithinMinutes * 60_000,
+  );
 
   return (
     <section
@@ -528,13 +555,15 @@ export function GameLog(props: GameLogProps) {
           </div>
         ) : (
           <ol className={cx(listStyles, railStyles)}>
-            {entries.map((entry) => {
+            {entries.map((entry, index) => {
               const showDay = !previous || !sameDay(previous, entry.timestamp);
               previous = entry.timestamp;
               return (
                 <Fragment key={entry.id}>
                   {showDay && (
-                    <li className={dayStyles}>{formatDay(entry.timestamp)}</li>
+                    <li className={dayStyles} data-day="">
+                      {formatDay(entry.timestamp)}
+                    </li>
                   )}
                   <GameLogItem
                     entry={entry}
@@ -553,6 +582,7 @@ export function GameLog(props: GameLogProps) {
                     diceDetail={diceDetailByDensity[density]}
                     header={header}
                     timePlacement={timePlacement}
+                    groupPosition={groupPositions[index]}
                   />
                 </Fragment>
               );
@@ -583,6 +613,7 @@ interface GameLogItemProps {
   diceDetail: RollCardDiceDetail;
   header: GameLogHeader;
   timePlacement: GameLogTimePlacement;
+  groupPosition: GameLogGroupPosition;
 }
 
 function GameLogItem(props: GameLogItemProps) {
@@ -595,8 +626,15 @@ function GameLogItem(props: GameLogItemProps) {
     diceDetail,
     header,
     timePlacement,
+    groupPosition,
   } = props;
   const { author } = entry;
+  // A group shows its header over its first entry and its time under its
+  // last; a time in the header goes with the header.
+  const showHeader = groupPosition === "single" || groupPosition === "first";
+  const showTimeBelow =
+    timePlacement === "below" &&
+    (groupPosition === "single" || groupPosition === "last");
 
   // Who wrote it and when, read with the entry as one piece of text; the
   // name and time shown around it are hidden from screen readers.
@@ -631,8 +669,9 @@ function GameLogItem(props: GameLogItemProps) {
       className={entryStyles}
       data-you={author.isYou || undefined}
       data-guide-only={entry.guideOnly || undefined}
+      data-continued={showHeader ? undefined : ""}
     >
-      {header === "stacked" ? (
+      {!showHeader ? null : header === "stacked" ? (
         <div className={stackedMetaStyles} aria-hidden>
           <span className={portraitStyles} data-size="stacked">
             {portrait}
@@ -677,7 +716,7 @@ function GameLogItem(props: GameLogItemProps) {
           <div className={bubbleStyles}>{entry.message}</div>
         </>
       )}
-      {timePlacement === "below" && (
+      {showTimeBelow && (
         <div className={timeBelowStyles} aria-hidden>
           {timeElement}
         </div>
