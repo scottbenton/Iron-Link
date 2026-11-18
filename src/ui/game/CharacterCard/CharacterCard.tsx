@@ -100,7 +100,7 @@ const statsStyles = css({
   "& dt": {
     order: 2,
     fontFamily: "heading",
-    fontWeight: "semibold",
+    fontWeight: "bold",
     fontSize: "2xs",
     textTransform: "uppercase",
     letterSpacing: "label",
@@ -114,7 +114,7 @@ const statsStyles = css({
     order: 1,
     margin: 0,
     fontFamily: "heading",
-    fontWeight: "semibold",
+    fontWeight: "bold",
     fontSize: "lg",
     lineHeight: "none",
     fontVariantNumeric: "tabular-nums",

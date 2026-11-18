@@ -43,7 +43,7 @@ const groupStyles = cva({
       background: "bg.emphasized",
       color: "fg.muted",
       fontFamily: "heading",
-      fontWeight: "semibold",
+      fontWeight: "bold",
       fontSize: "calc(var(--portrait-size) * 0.36)",
       fontVariantNumeric: "tabular-nums",
       lineHeight: "none",

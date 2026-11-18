@@ -384,7 +384,7 @@ const subheaderStyles = cva({
     paddingTop: "3",
     paddingBottom: "1.5",
     fontFamily: "heading",
-    fontWeight: "semibold",
+    fontWeight: "bold",
     fontSize: "xs",
     lineHeight: "snug",
     textTransform: "uppercase",

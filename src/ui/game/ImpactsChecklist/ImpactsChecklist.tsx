@@ -38,7 +38,7 @@ const headStyles = css({
 
 const titleStyles = css({
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "md",
   lineHeight: "tight",
   textTransform: "uppercase",
@@ -73,7 +73,7 @@ const legendStyles = css({
   padding: 0,
   marginBottom: "1",
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "xs",
   lineHeight: "snug",
   textTransform: "uppercase",

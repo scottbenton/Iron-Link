@@ -29,7 +29,7 @@ const optionStyles = css({
   background: "bg.surface",
   color: "fg.default",
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "md",
   letterSpacing: "0.01em",
   cursor: "pointer",

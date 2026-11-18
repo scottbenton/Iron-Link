@@ -51,7 +51,7 @@ export const portraitStyles = cva({
       background: "var(--portrait-gradient)",
       color: "white",
       fontFamily: "heading",
-      fontWeight: "semibold",
+      fontWeight: "bold",
       fontSize: "var(--portrait-font)",
       lineHeight: "none",
       letterSpacing: "0.02em",

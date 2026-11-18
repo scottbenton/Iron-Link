@@ -33,7 +33,7 @@ const subtitleStyles = cva({
       /** Uppercase heading face, like the old page header sub-label. */
       label: {
         fontFamily: "heading",
-        fontWeight: "semibold",
+        fontWeight: "bold",
         fontSize: "sm",
         lineHeight: "snug",
         textTransform: "uppercase",

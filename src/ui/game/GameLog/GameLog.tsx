@@ -97,7 +97,7 @@ const dayStyles = css({
   gap: "3",
   marginBlock: "1",
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "xs",
   textTransform: "uppercase",
   letterSpacing: "label",
@@ -143,7 +143,7 @@ const metaStyles = css({
 
 const nameStyles = css({
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "sm",
   color: "fg.default",
 });
@@ -203,7 +203,7 @@ const portraitStyles = css({
   background: "bg.emphasized",
   color: "fg.muted",
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "2xs",
   "& > img": { width: "100%", height: "100%", objectFit: "cover" },
 });
@@ -224,7 +224,7 @@ const emptyStyles = css({
 const emptyTitleStyles = css({
   margin: 0,
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "lg",
   color: "fg.default",
 });

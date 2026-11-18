@@ -30,7 +30,7 @@ const labelledStyles = css({
   gap: "3",
   width: "100%",
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "xs",
   lineHeight: "snug",
   textTransform: "uppercase",

@@ -33,7 +33,7 @@ const triggerStyles = css({
   background: "bg.surface",
   color: "fg.default",
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "1.5rem",
   lineHeight: "none",
   fontVariantNumeric: "tabular-nums",

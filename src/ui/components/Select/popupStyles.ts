@@ -139,7 +139,7 @@ export const listGroupLabelStyles = css({
   paddingBottom: "1",
   paddingInline: "10px",
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "xs",
   lineHeight: "snug",
   textTransform: "uppercase",

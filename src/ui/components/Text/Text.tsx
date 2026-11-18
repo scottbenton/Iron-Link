@@ -10,7 +10,7 @@ export const textStyles = cva({
       /** Page titles. */
       display: {
         fontFamily: "heading",
-        fontWeight: "semibold",
+        fontWeight: "bold",
         fontSize: "3xl",
         lineHeight: "none",
         letterSpacing: "-0.005em",
@@ -18,28 +18,28 @@ export const textStyles = cva({
       },
       h1: {
         fontFamily: "heading",
-        fontWeight: "semibold",
+        fontWeight: "bold",
         fontSize: "2xl",
         lineHeight: "tight",
         textWrap: "balance",
       },
       h2: {
         fontFamily: "heading",
-        fontWeight: "semibold",
+        fontWeight: "bold",
         fontSize: "xl",
         lineHeight: "tight",
         textWrap: "balance",
       },
       h3: {
         fontFamily: "heading",
-        fontWeight: "semibold",
+        fontWeight: "bold",
         fontSize: "lg",
         lineHeight: "tight",
         textWrap: "balance",
       },
       h4: {
         fontFamily: "heading",
-        fontWeight: "semibold",
+        fontWeight: "bold",
         fontSize: "md",
         lineHeight: "snug",
         letterSpacing: "0.01em",
@@ -50,7 +50,7 @@ export const textStyles = cva({
       /** Small uppercase heading-face labels: stat names, group headings. */
       label: {
         fontFamily: "heading",
-        fontWeight: "semibold",
+        fontWeight: "bold",
         fontSize: "xs",
         lineHeight: "snug",
         textTransform: "uppercase",
@@ -59,7 +59,7 @@ export const textStyles = cva({
       /** Accent eyebrow above a title. */
       eyebrow: {
         fontFamily: "heading",
-        fontWeight: "semibold",
+        fontWeight: "bold",
         fontSize: "sm",
         lineHeight: "snug",
         textTransform: "uppercase",

@@ -130,7 +130,7 @@ const overflowStyles = css({
   background: "bg.muted",
   color: "fg.muted",
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontVariantNumeric: "tabular-nums",
 });
 

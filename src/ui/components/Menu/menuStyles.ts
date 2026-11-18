@@ -141,7 +141,7 @@ export const menuGroupLabelStyles = css({
   paddingBlockEnd: "1",
   fontFamily: "heading",
   fontSize: "xs",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   lineHeight: "snug",
   letterSpacing: "label",
   textTransform: "uppercase",

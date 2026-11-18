@@ -73,7 +73,7 @@ const headerTitleStyles = css({
   margin: 0,
   paddingInlineStart: "1",
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "lg",
   lineHeight: "tight",
   overflow: "hidden",

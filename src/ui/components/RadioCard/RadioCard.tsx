@@ -247,7 +247,7 @@ const iconStyles = css({
 const titleStyles = css({
   margin: 0,
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "lg",
   lineHeight: "tight",
   textTransform: "uppercase",

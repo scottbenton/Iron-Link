@@ -396,7 +396,7 @@ const headerTextStyles = css({
 const overlineStyles = css({
   margin: 0,
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "xs",
   lineHeight: "snug",
   textTransform: "uppercase",
@@ -407,7 +407,7 @@ const overlineStyles = css({
 const titleStyles = css({
   margin: 0,
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "xl",
   lineHeight: "tight",
   textWrap: "balance",

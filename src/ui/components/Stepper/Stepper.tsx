@@ -63,7 +63,7 @@ const indicatorStyles = css({
   background: "bg.surface",
   color: "fg.muted",
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "sm",
   fontVariantNumeric: "tabular-nums",
   lineHeight: 1,

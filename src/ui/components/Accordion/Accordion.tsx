@@ -83,7 +83,7 @@ const titleStyles = css({
   minWidth: 0,
   "& [data-title]": {
     fontFamily: "heading",
-    fontWeight: "semibold",
+    fontWeight: "bold",
     fontSize: "md",
     lineHeight: "snug",
     letterSpacing: "0.01em",

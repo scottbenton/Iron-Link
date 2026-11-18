@@ -85,7 +85,7 @@ export const Scale: StoryObj = {
 
 const numberStyles = css({
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "3xl",
   lineHeight: "none",
   fontVariantNumeric: "tabular-nums",

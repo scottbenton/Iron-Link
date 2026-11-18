@@ -117,7 +117,7 @@ export const rollButtonInnerStyles = css({
   borderRadius: "calc(token(radii.md) - 2px)",
   background: "bg.chip",
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "inherit",
   letterSpacing: "0.02em",
   textTransform: "uppercase",

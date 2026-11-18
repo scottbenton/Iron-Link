@@ -123,7 +123,7 @@ export function TableCaption(props: ComponentProps<"caption">) {
           paddingInline: "3",
           paddingBlock: "2",
           fontFamily: "heading",
-          fontWeight: "semibold",
+          fontWeight: "bold",
           fontSize: "md",
           color: "fg.default",
         }),
@@ -214,7 +214,7 @@ const cellStyles = cva({
     header: {
       true: {
         fontFamily: "heading",
-        fontWeight: "semibold",
+        fontWeight: "bold",
         fontSize: "xs",
         lineHeight: "snug",
         textTransform: "uppercase",

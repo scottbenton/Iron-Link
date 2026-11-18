@@ -92,7 +92,7 @@ const numberInput = cva({
     "[data-number-field] > &": {
       textAlign: "center",
       fontFamily: "heading",
-      fontWeight: "semibold",
+      fontWeight: "bold",
       fontSize: "lg",
       fontVariantNumeric: "tabular-nums",
       lineHeight: "none",

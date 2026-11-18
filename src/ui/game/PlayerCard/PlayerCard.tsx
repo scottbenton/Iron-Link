@@ -56,7 +56,7 @@ export const roleChipStyles = cva({
     borderWidth: "1px",
     borderStyle: "solid",
     fontFamily: "heading",
-    fontWeight: "semibold",
+    fontWeight: "bold",
     fontSize: "xs",
     lineHeight: "none",
     letterSpacing: "label",

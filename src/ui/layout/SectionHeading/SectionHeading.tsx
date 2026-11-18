@@ -48,7 +48,7 @@ const headingStyles = cva({
   base: {
     margin: 0,
     fontFamily: "heading",
-    fontWeight: "semibold",
+    fontWeight: "bold",
     lineHeight: "tight",
     textWrap: "balance",
     overflowWrap: "anywhere",

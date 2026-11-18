@@ -82,7 +82,7 @@ const groupStyles = css({
 const titleStyles = css({
   margin: 0,
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   lineHeight: "tight",
   letterSpacing: "-0.005em",
   textWrap: "balance",

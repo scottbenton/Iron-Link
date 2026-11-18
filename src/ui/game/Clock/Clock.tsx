@@ -135,7 +135,7 @@ const dialStyles = css({
   "& [data-count]": {
     fill: "token(colors.fg.default)",
     fontFamily: "heading",
-    fontWeight: "semibold",
+    fontWeight: "bold",
     fontVariantNumeric: "tabular-nums",
   },
   "& [data-count-total]": { fill: "token(colors.fg.muted)" },
@@ -145,7 +145,7 @@ const dialStyles = css({
 const labelStyles = css({
   maxWidth: "100%",
   fontFamily: "heading",
-  fontWeight: "semibold",
+  fontWeight: "bold",
   fontSize: "sm",
   lineHeight: "snug",
   textAlign: "center",

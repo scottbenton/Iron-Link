@@ -126,8 +126,11 @@ export const buttonStyles = cva({
         "--btn-border": "transparent",
         // The ring's end colour, deepened. Mixed here rather than read from
         // `ringEdge`, so a scheme set on a subtree reaches the ledge too.
+        // Darkened only a little, so it reads as the ring's own edge rather
+        // than a black band under it (it was 50% black, which looked like a
+        // taller ledge than other buttons').
         "--btn-edge":
-          "color-mix(in oklab, {colors.ring.end} 50%, {colors.black})",
+          "color-mix(in oklab, {colors.ring.end} 78%, {colors.black})",
         // The button behind the ring is the ledge's colour, so the ring's
         // anti-aliased rounded edge blends into the ledge instead of showing
         // a light seam of page between them.

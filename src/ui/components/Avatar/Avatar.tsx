@@ -35,7 +35,7 @@ const avatarStyles = cva({
     boxShadow:
       "var(--avatar-ring, 0 0 0 0 transparent), inset 0 0 0 1px color-mix(in oklab, currentColor 14%, transparent)",
     fontFamily: "heading",
-    fontWeight: "semibold",
+    fontWeight: "bold",
     fontSize: "calc(var(--avatar-size) * 0.4)",
     lineHeight: 1,
     letterSpacing: "0.02em",
