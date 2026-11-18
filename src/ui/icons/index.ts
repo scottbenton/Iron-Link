@@ -23,7 +23,6 @@ export {
   CloudCheckIcon,
   CompassIcon,
   CopyIcon,
-  CrosshairIcon,
   DiceFiveIcon,
   DotsSixVerticalIcon,
   DotsThreeIcon,
@@ -37,6 +36,7 @@ export {
   FolderOpenIcon,
   FolderPlusIcon,
   FolderUserIcon,
+  FrameCornersIcon,
   FunnelSimpleIcon,
   GearIcon,
   GithubLogoIcon,
@@ -46,7 +46,6 @@ export {
   HashIcon,
   HeartIcon,
   ImageIcon,
-  ImageBrokenIcon,
   ImageSquareIcon,
   InfoIcon,
   LightningIcon,
@@ -82,7 +81,6 @@ export {
   ShareNetworkIcon,
   ShieldIcon,
   SignOutIcon,
-  SmileyIcon,
   SunIcon,
   TargetIcon,
   TextAaIcon,
@@ -107,4 +105,5 @@ export {
 
 export type { IconWeight } from "@phosphor-icons/react";
 export { Icon } from "./Icon";
+export { ImageSlashIcon } from "./ImageSlashIcon";
 export type { IconProps, IconSize } from "./Icon";
