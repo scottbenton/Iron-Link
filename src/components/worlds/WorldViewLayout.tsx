@@ -6,6 +6,8 @@ import { ActionToolbarStrip } from "components/Layout/ActionToolbarStrip";
 import { NOTES_PANE_GUTTER } from "components/Layout/notesPaneGutter";
 import { ScreenReaderOnly } from "components/ScreenReaderOnly";
 
+import { useWorldViewHeaderAction } from "./worldViewHeaderAction";
+
 // "page" is the standalone /worlds route; "embedded" is a Notes tab. Both look
 // the same (the breadcrumbs name the destination over the grey strip of
 // actions); a Notes tab's headings sit under the game's h1 and the Notes
@@ -34,6 +36,7 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
   const { breadcrumbs, title, actions, children } = props;
   const hasActions = !!(actions?.start || actions?.end);
   const TitleComponent = useHeadingComponent(1);
+  const headerAction = useWorldViewHeaderAction();
 
   return (
     <Box
@@ -54,7 +57,26 @@ export function WorldViewLayout(props: WorldViewLayoutProps) {
             : (theme) => `1px solid ${theme.palette.divider}`
         }
       >
-        {breadcrumbs}
+        {headerAction ? (
+          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+            <Box sx={{ flexGrow: 1, minWidth: 0 }}>{breadcrumbs}</Box>
+            {/* Overhangs the row rather than making it taller, so the
+                breadcrumbs sit where they do without it. */}
+            <Box
+              sx={{
+                flexShrink: 0,
+                // One breadcrumb line high, the control centred on it.
+                height: 24,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              {headerAction}
+            </Box>
+          </Box>
+        ) : (
+          breadcrumbs
+        )}
         {/* The breadcrumbs name the destination on screen; its heading
               is for screen readers. */}
         {title && (

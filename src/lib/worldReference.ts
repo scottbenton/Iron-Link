@@ -79,14 +79,15 @@ export function getCategoryBoundOracles(
 
 // The Reference column's width, as in a game.
 export const WORLD_REFERENCE_WIDTH = 350;
-// Below this much room for the world beside it, Reference collapses to a strip.
+// Below this much room for the world beside it, Reference opens over the
+// world from a button instead of staying docked.
 export const WORLD_PAGE_MIN_MAIN_WIDTH = 640;
 
 export function getWorldReferencePlacement(
   pageWidth: number | undefined,
-): "docked" | "strip" {
+): "docked" | "overlay" {
   return pageWidth === undefined ||
     pageWidth >= WORLD_PAGE_MIN_MAIN_WIDTH + WORLD_REFERENCE_WIDTH
     ? "docked"
-    : "strip";
+    : "overlay";
 }

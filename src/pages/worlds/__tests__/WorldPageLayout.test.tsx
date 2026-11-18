@@ -2,6 +2,8 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useWorldViewHeaderAction } from "components/worlds/worldViewHeaderAction";
+
 import { TestWrapper } from "tests/TestWrapper";
 
 import { WorldPageLayout } from "../WorldPageLayout";
@@ -15,10 +17,21 @@ vi.mock("hooks/useElementWidth", () => ({
 }));
 vi.mock("hooks/useIsMobile", () => ({ useIsMobile: () => layout.mobile }));
 
+// Stands in for a world destination, which renders the page's header action
+// in its breadcrumb row.
+function WorldStub() {
+  return (
+    <>
+      <nav>{useWorldViewHeaderAction()}</nav>
+      <p>World content</p>
+    </>
+  );
+}
+
 function renderLayout() {
   return render(
     <WorldPageLayout
-      world={<p>World content</p>}
+      world={<WorldStub />}
       reference={({ headingId, headingAction, hideHeading }) => (
         <>
           <h2 id={headingId} hidden={hideHeading}>
@@ -44,15 +57,15 @@ describe("WorldPageLayout", () => {
     expect(screen.getByText("World content")).toBeVisible();
     expect(screen.getByText("Oracles")).toBeVisible();
     expect(
-      screen.queryByRole("button", { name: "Show Reference" }),
+      screen.queryByRole("button", { name: "Reference" }),
     ).not.toBeInTheDocument();
   });
 
-  it("collapses Reference to a strip that opens it, by the page's width", async () => {
+  it("opens Reference over the world from the breadcrumb row without room", async () => {
     const user = userEvent.setup();
     layout.width = 900;
     renderLayout();
-    const show = screen.getByRole("button", { name: "Show Reference" });
+    const show = screen.getByRole("button", { name: "Reference" });
     expect(show).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByText("Oracles")).not.toBeVisible();
 

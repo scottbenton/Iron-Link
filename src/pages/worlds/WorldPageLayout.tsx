@@ -1,8 +1,18 @@
 import CloseIcon from "@mui/icons-material/Close";
 import ReferenceIcon from "@mui/icons-material/MenuBook";
-import { Box, IconButton, Paper, Tab, Tabs, Tooltip } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  Paper,
+  Tab,
+  Tabs,
+  Tooltip,
+} from "@mui/material";
 import { ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { WorldViewHeaderActionContext } from "components/worlds/worldViewHeaderAction";
 
 import { useElementWidth } from "hooks/useElementWidth";
 import { useIsMobile } from "hooks/useIsMobile";
@@ -11,8 +21,6 @@ import {
   WORLD_REFERENCE_WIDTH,
   getWorldReferencePlacement,
 } from "lib/worldReference";
-
-const STRIP_WIDTH = 48;
 
 type WorldPageTab = "world" | "reference";
 
@@ -28,9 +36,10 @@ export interface WorldPageLayoutProps {
 }
 
 // The Worlds page: the world in a Notes-like pane with Reference beside it.
-// Reference is docked whenever the page has room for it and collapses to a
-// strip that opens it over the world when it does not; that reads the page's
-// own width, not the window's. Phones get World and Reference tabs instead.
+// Reference is docked whenever the page has room for it; when it does not, a
+// Reference button at the end of the breadcrumb row opens it over the world.
+// That reads the page's own width, not the window's. Phones get World and
+// Reference tabs instead.
 export function WorldPageLayout(props: WorldPageLayoutProps) {
   const { world, reference } = props;
   const { t } = useTranslation();
@@ -45,17 +54,17 @@ export function WorldPageLayout(props: WorldPageLayoutProps) {
   const id = useId();
   const headingId = `${id}-reference-heading`;
   const panelId = `${id}-reference`;
-  const stripButtonRef = useRef<HTMLButtonElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // A strip opened, then given room, docks rather than staying open over it.
+  // Reference opened over the world, then given room, docks instead.
   useEffect(() => {
     if (placement === "docked") setReferenceOpen(false);
   }, [placement]);
 
   const closeReference = () => {
     setReferenceOpen(false);
-    stripButtonRef.current?.focus();
+    toggleRef.current?.focus();
   };
 
   if (isMobile) {
@@ -115,6 +124,28 @@ export function WorldPageLayout(props: WorldPageLayoutProps) {
   }
 
   const docked = placement === "docked";
+  // Without room, Reference opens over the world from a toggle at the end of
+  // the breadcrumb row.
+  const toggle = docked ? null : (
+    <Button
+      ref={toggleRef}
+      size="small"
+      color="inherit"
+      startIcon={<ReferenceIcon />}
+      aria-expanded={referenceOpen}
+      aria-controls={panelId}
+      onClick={() => {
+        if (referenceOpen) {
+          setReferenceOpen(false);
+        } else {
+          setReferenceOpen(true);
+          requestAnimationFrame(() => closeButtonRef.current?.focus());
+        }
+      }}
+    >
+      {t("game.reference", "Reference")}
+    </Button>
+  );
 
   return (
     <Box
@@ -124,9 +155,9 @@ export function WorldPageLayout(props: WorldPageLayoutProps) {
         flexGrow: 1,
         minHeight: 0,
         display: "grid",
-        gridTemplateColumns: `minmax(0, 1fr) ${
-          docked ? WORLD_REFERENCE_WIDTH : STRIP_WIDTH
-        }px`,
+        gridTemplateColumns: docked
+          ? `minmax(0, 1fr) ${WORLD_REFERENCE_WIDTH}px`
+          : "minmax(0, 1fr)",
       }}
     >
       <Box
@@ -139,40 +170,10 @@ export function WorldPageLayout(props: WorldPageLayoutProps) {
           borderRight: `1px solid ${theme.palette.divider}`,
         })}
       >
-        {world}
+        <WorldViewHeaderActionContext.Provider value={toggle}>
+          {world}
+        </WorldViewHeaderActionContext.Provider>
       </Box>
-
-      {!docked && (
-        <Box
-          sx={(theme) => ({
-            bgcolor: "background.default",
-            borderRight: `1px solid ${theme.palette.divider}`,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "flex-start",
-            pt: 1.5,
-          })}
-        >
-          <Tooltip title={t("worlds.page.show-reference", "Show Reference")}>
-            <IconButton
-              ref={stripButtonRef}
-              aria-label={t("worlds.page.show-reference", "Show Reference")}
-              aria-expanded={referenceOpen}
-              aria-controls={panelId}
-              onClick={() => {
-                if (referenceOpen) {
-                  setReferenceOpen(false);
-                } else {
-                  setReferenceOpen(true);
-                  requestAnimationFrame(() => closeButtonRef.current?.focus());
-                }
-              }}
-            >
-              <ReferenceIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      )}
 
       <Paper
         id={panelId}
@@ -200,9 +201,9 @@ export function WorldPageLayout(props: WorldPageLayoutProps) {
                 position: "absolute",
                 top: 0,
                 bottom: 0,
-                right: STRIP_WIDTH,
+                right: 0,
                 width: WORLD_REFERENCE_WIDTH,
-                maxWidth: `calc(100% - ${STRIP_WIDTH}px)`,
+                maxWidth: "100%",
                 zIndex: theme.zIndex.appBar - 1,
                 borderLeft: `1px solid ${theme.palette.divider}`,
               }),

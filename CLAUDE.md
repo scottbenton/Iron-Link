@@ -109,9 +109,10 @@ that are easy to miss. When you learn a new one, add a line here.
 - A world destination looks the same on the Worlds page and in a Notes tab
   (breadcrumbs over the grey action strip); `WorldLayout` only sets where
   heading levels start. The page is `WorldPageLayout`: Reference docks beside
-  the world while the page's own width has room (`getWorldReferencePlacement`)
-  and is otherwise a strip that opens it over the world; phones get World and
-  Reference tabs. Its oracles come from the world catalog, loaded into the
+  the world while the page's own width has room (`getWorldReferencePlacement`);
+  otherwise a Reference button at the end of the breadcrumb row
+  (`WorldViewHeaderActionContext`) opens it over the world. Never a full-height
+  strip. Phones get World and Reference tabs. Its oracles come from the world catalog, loaded into the
   shared rules store with `getWorldReferenceRules`, so rolls there go to a
   roll card with no game log.
 - An entry's Notes take the main column with its fields in a side panel when

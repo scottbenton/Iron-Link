@@ -175,7 +175,7 @@ describe("getWorldReferencePlacement", () => {
     expect(getWorldReferencePlacement(room)).toBe("docked");
     expect(getWorldReferencePlacement(undefined)).toBe("docked");
   });
-  it("collapses it to a strip below that", () => {
-    expect(getWorldReferencePlacement(room - 1)).toBe("strip");
+  it("opens it over the world below that", () => {
+    expect(getWorldReferencePlacement(room - 1)).toBe("overlay");
   });
 });
