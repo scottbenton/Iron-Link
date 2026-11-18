@@ -1,5 +1,12 @@
 import { ChatCircle, LockSimple } from "@phosphor-icons/react";
-import { Fragment, ReactNode, UIEvent, useLayoutEffect, useRef } from "react";
+import {
+  CSSProperties,
+  Fragment,
+  ReactNode,
+  UIEvent,
+  useLayoutEffect,
+  useRef,
+} from "react";
 
 import { css, cx } from "styled-system/css";
 
@@ -68,11 +75,18 @@ const scrollerStyles = css({
   paddingBlock: "3",
 });
 
+// Wide places (a notes tab) cap the entries and composer to a centred rail.
+const railStyles = css({
+  width: "100%",
+  maxWidth: "var(--game-log-rail, none)",
+  marginInline: "auto",
+});
+
 const listStyles = css({
   display: "flex",
   flexDirection: "column",
   gap: "3",
-  margin: 0,
+  marginBlock: 0,
   padding: 0,
   listStyle: "none",
 });
@@ -287,6 +301,11 @@ export interface GameLogProps {
   rollText?: RollTextOverrides;
   /** How much of each roll to draw. `standard` by default. */
   density?: GameLogDensity;
+  /**
+   * The widest the entries and composer grow, centred, for a log shown in
+   * a wide column such as a notes tab ("640px"). Full width by default.
+   */
+  maxContentWidth?: string;
   className?: string;
 }
 
@@ -312,6 +331,7 @@ export function GameLog(props: GameLogProps) {
     composerProps,
     rollText,
     density = "standard",
+    maxContentWidth,
     className,
   } = props;
   const strings = { ...defaultGameLogStrings, ...stringsProp };
@@ -353,7 +373,15 @@ export function GameLog(props: GameLogProps) {
   let previous: Date | undefined;
 
   return (
-    <section aria-label={strings.label} className={cx(rootStyles, className)}>
+    <section
+      aria-label={strings.label}
+      className={cx(rootStyles, className)}
+      style={
+        maxContentWidth
+          ? ({ "--game-log-rail": maxContentWidth } as CSSProperties)
+          : undefined
+      }
+    >
       <div
         ref={scrollerRef}
         className={scrollerStyles}
@@ -363,7 +391,7 @@ export function GameLog(props: GameLogProps) {
         role="region"
       >
         {(loading || hasMore) && (
-          <div className={moreStyles}>
+          <div className={cx(moreStyles, railStyles)}>
             {loading ? (
               <>
                 <Spinner />
@@ -386,7 +414,7 @@ export function GameLog(props: GameLogProps) {
             <p className={emptyTextStyles}>{strings.emptyText}</p>
           </div>
         ) : (
-          <ol className={listStyles}>
+          <ol className={cx(listStyles, railStyles)}>
             {entries.map((entry) => {
               const showDay = !previous || !sameDay(previous, entry.timestamp);
               previous = entry.timestamp;
@@ -411,7 +439,9 @@ export function GameLog(props: GameLogProps) {
 
       {onSend && (
         <div className={footStyles}>
-          <GameLogComposer onSend={onSend} {...composerProps} />
+          <div className={railStyles}>
+            <GameLogComposer onSend={onSend} {...composerProps} />
+          </div>
         </div>
       )}
     </section>

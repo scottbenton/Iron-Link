@@ -9,12 +9,14 @@
  *   that order; Assets the asset cards; Tracks the vows, journeys, fights,
  *   clocks and connections.
  * - Notes (live `NotesSection`): the open notes as tabs, its h2 for screen
- *   readers only.
+ *   readers only. With `pinLog` the game log is a pinned first tab here
+ *   instead of a Reference tab (a mockup; the live app has no such option).
  * - Reference (live `ReferenceSidebarContents`): Moves, Oracles and Game
  *   Log tabs, each scrolling under the pinned tab row.
  */
 import type { Datasworn } from "@datasworn-community/core";
 import {
+  ChatsCircleIcon,
   DotsThreeIcon,
   GearSixIcon,
   PlusIcon,
@@ -344,23 +346,59 @@ const noteBodyStyles = css({
   marginInline: "auto",
 });
 
-/** The open notes as tabs, each with its toolbar, as in the live app. */
-export function NotesColumn() {
+const logTabId = "game-log";
+
+/** The log fills its notes tab, its entries kept to a readable width. */
+const logNotePanelStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  overflow: "hidden",
+  "&[hidden]": { display: "none" },
+});
+
+/**
+ * The open notes as tabs, each with its toolbar, as in the live app. With
+ * `pinLog`, the game log is a pinned first tab: always open, never closed,
+ * and counting what arrived while another note was open.
+ */
+export function NotesColumn(props: { pinLog?: boolean }) {
+  const { pinLog } = props;
   const [notes, setNotes] = useState(openNotes);
   const [value, setValue] = useState<string | null>("session-4");
+  // Two rolls arrived while the session note was open.
+  const [unread, setUnread] = useState(2);
+  const select = (id: string) => {
+    setValue(id);
+    if (id === logTabId) setUnread(0);
+  };
+  const tabs = pinLog
+    ? [
+        {
+          id: logTabId,
+          label: "Game Log",
+          icon: <ChatsCircleIcon aria-hidden />,
+          pinned: true,
+          unread,
+        },
+        ...notes,
+      ]
+    : notes;
   const close = (id: string) => {
     const index = notes.findIndex((note) => note.id === id);
     const next = notes.filter((note) => note.id !== id);
     setNotes(next);
     if (id === value) {
-      setValue(next[Math.min(index, next.length - 1)]?.id ?? null);
+      setValue(
+        next[Math.min(index, next.length - 1)]?.id ??
+          (pinLog ? logTabId : null),
+      );
     }
   };
   return (
     <NoteTabs
-      tabs={notes}
+      tabs={tabs}
       value={value}
-      onValueChange={setValue}
+      onValueChange={select}
       onClose={close}
       onAdd={() => {}}
       className={css({ height: "100%" })}
@@ -405,7 +443,12 @@ export function NotesColumn() {
           </Stack>
         </NoteTabPanel>
       ))}
-      {notes.length === 0 && (
+      {pinLog && (
+        <NoteTabPanel value={logTabId} className={logNotePanelStyles}>
+          <GameLogPanel maxContentWidth="640px" />
+        </NoteTabPanel>
+      )}
+      {tabs.length === 0 && (
         <Stack alignItems="center" gap="3" padding="8">
           <Text color="muted">No notes open.</Text>
         </Stack>
@@ -461,16 +504,42 @@ const logPanelStyles = css({
   "&[hidden]": { display: "none" },
 });
 
-/** The reference: Moves, Oracles and the Game Log, as in the live app. */
-export function ReferenceColumn() {
+/** The game log with its sample entries, sending as the first character. */
+function GameLogPanel(props: { maxContentWidth?: string }) {
   const [entries, setEntries] = useState<GameLogEntry[]>(gameLogEntries);
+  return (
+    <GameLog
+      entries={entries}
+      maxContentWidth={props.maxContentWidth}
+      onSend={(message) =>
+        setEntries((current) => [
+          ...current,
+          {
+            kind: "message",
+            id: `message-${current.length}`,
+            author: characterAuthor(sampleCharacters[0], true),
+            timestamp: new Date(),
+            message,
+          },
+        ])
+      }
+    />
+  );
+}
+
+/**
+ * The reference: Moves, Oracles and the Game Log, as in the live app.
+ * `showLog={false}` drops the log tab, for when the notes pin it.
+ */
+export function ReferenceColumn(props: { showLog?: boolean }) {
+  const { showLog = true } = props;
   return (
     <Tabs defaultValue="moves" className={referenceTabsStyles}>
       <div className={tabRowStyles}>
         <SectionTabList aria-label="Reference Sections">
           <SectionTab value="moves">Moves</SectionTab>
           <SectionTab value="oracles">Oracles</SectionTab>
-          <SectionTab value="log">Game Log</SectionTab>
+          {showLog && <SectionTab value="log">Game Log</SectionTab>}
         </SectionTabList>
       </div>
       <TabPanel value="moves" className={referencePanelStyles}>
@@ -515,30 +584,18 @@ export function ReferenceColumn() {
           )}
         </Stack>
       </TabPanel>
-      <TabPanel value="log" className={logPanelStyles}>
-        <Box
-          flex="1 1 auto"
-          minHeight="0"
-          display="flex"
-          flexDirection="column"
-        >
-          <GameLog
-            entries={entries}
-            onSend={(message) =>
-              setEntries((current) => [
-                ...current,
-                {
-                  kind: "message",
-                  id: `message-${current.length}`,
-                  author: characterAuthor(sampleCharacters[0], true),
-                  timestamp: new Date(),
-                  message,
-                },
-              ])
-            }
-          />
-        </Box>
-      </TabPanel>
+      {showLog && (
+        <TabPanel value="log" className={logPanelStyles}>
+          <Box
+            flex="1 1 auto"
+            minHeight="0"
+            display="flex"
+            flexDirection="column"
+          >
+            <GameLogPanel />
+          </Box>
+        </TabPanel>
+      )}
     </Tabs>
   );
 }
