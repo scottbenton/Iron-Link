@@ -4,6 +4,8 @@
     "^assets/(.*)$",
     "^providers/(.*)$",
     "^components/(.*)$",
+    "^ui/(.*)$",
+    "^styled-system/(.*)$",
     "^pages/(.*)$",
     "^types/(.*)$",
     "^hooks/(.*)$",
