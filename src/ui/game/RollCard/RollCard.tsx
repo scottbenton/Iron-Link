@@ -8,7 +8,6 @@ import { IconButton } from "../../components/IconButton";
 import {
   ChallengeDieColors,
   DiceDisplay,
-  DiceNumbers,
   OracleDice,
 } from "../DiceDisplay/DiceDisplay";
 import { DiceDisplayStrings } from "../DiceDisplay/diceDisplayStrings";
@@ -244,11 +243,10 @@ export interface RollCardAction {
 }
 
 /**
- * How much of the dice a card draws: `captions` names each die, `dice`
- * draws them bare, `numbers` writes the score against the challenge dice in
- * one quiet line beside the outcome and puts an oracle's roll inline.
+ * How much of the dice a card draws: `dice` draws them bare, `captions`
+ * also names each die (and the challenge dice by `challengeDieNames`).
  */
-export type RollCardDiceDetail = "captions" | "dice" | "numbers";
+export type RollCardDiceDetail = "dice" | "captions";
 
 export interface RollCardProps {
   roll: RollData;
@@ -348,7 +346,6 @@ export function RollCard(props: RollCardProps) {
     prefix: summaryPrefix,
   });
   const compact = variant === "compact";
-  const inlineDice = compact || diceDetail === "numbers";
 
   const critical = getRollCritical(roll);
   const chips: ReactNode[] = [];
@@ -385,17 +382,16 @@ export function RollCard(props: RollCardProps) {
     );
   }
 
-  const dice =
-    diceDetail === "numbers" ? null : (
-      <DiceDisplay
-        roll={roll}
-        size={compact ? "sm" : "md"}
-        captions={diceDetail === "captions"}
-        challengeDieColors={challengeDieColors}
-        challengeDieNames={challengeDieNames}
-        strings={diceStrings}
-      />
-    );
+  const dice = (
+    <DiceDisplay
+      roll={roll}
+      size={compact ? "sm" : "md"}
+      captions={diceDetail === "captions"}
+      challengeDieColors={challengeDieColors}
+      challengeDieNames={challengeDieNames}
+      strings={diceStrings}
+    />
+  );
 
   let body: ReactNode;
   if (isChallengeRoll(roll)) {
@@ -404,9 +400,6 @@ export function RollCard(props: RollCardProps) {
         <div className={outcomeRowStyles}>
           <span className={outcomeStyles}>{text.outcomes[roll.outcome]}</span>
           {chips}
-          {diceDetail === "numbers" && (
-            <DiceNumbers roll={roll} strings={diceStrings} />
-          )}
         </div>
         {dice}
       </>
@@ -418,7 +411,7 @@ export function RollCard(props: RollCardProps) {
         {typeof result === "string" ? (
           <p className={resultStyles}>
             {result}
-            {inlineDice && <OracleDice roll={roll} />}
+            {compact && <OracleDice roll={roll} />}
           </p>
         ) : (
           <dl className={partsStyles}>
@@ -427,7 +420,7 @@ export function RollCard(props: RollCardProps) {
                 <dt>{part.label}</dt>
                 <dd className={resultStyles}>
                   {part.text}
-                  {inlineDice && (
+                  {compact && (
                     <OracleDice
                       roll={roll}
                       part={index}
@@ -446,7 +439,7 @@ export function RollCard(props: RollCardProps) {
             <span>{text.cursedDieAdds(roll.cursedResult)}</span>
           </p>
         )}
-        {!inlineDice && dice}
+        {!compact && dice}
       </>
     );
   }

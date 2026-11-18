@@ -234,10 +234,6 @@ const meta = {
   component: GameLog,
   args: { entries: fullLog },
   argTypes: {
-    density: {
-      control: "inline-radio",
-      options: ["detailed", "standard", "quiet"],
-    },
     groupWithinMinutes: { control: { type: "number", min: 0, step: 1 } },
   },
   decorators: [
@@ -284,19 +280,6 @@ export const FullLog: Story = {
       />
     );
   },
-};
-
-/** Every die named. The busiest; good for learning the dice. */
-export const DensityDetailed: Story = {
-  args: { density: "detailed" },
-};
-
-/**
- * The outcome with the dice as one quiet line of numbers beside it
- * ("7 vs 5 5"), and oracle rolls inline after their result.
- */
-export const DensityQuiet: Story = {
-  args: { density: "quiet" },
 };
 
 /** Only chat: plain text, line breaks kept, a Guide only note. */

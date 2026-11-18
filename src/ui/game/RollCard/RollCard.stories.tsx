@@ -27,7 +27,7 @@ const meta = {
     variant: { control: "inline-radio", options: ["default", "compact"] },
     diceDetail: {
       control: "inline-radio",
-      options: ["captions", "dice", "numbers"],
+      options: ["dice", "captions"],
     },
   },
 } satisfies Meta<typeof RollCard>;
@@ -233,18 +233,14 @@ export const OracleText: Story = {
   ),
 };
 
-/**
- * How much dice to draw: named dice, bare dice (the default), or one quiet
- * line of numbers beside the outcome.
- */
+/** How much dice to draw: bare dice (the default), or named dice. */
 export const DiceDetail: Story = {
   render: () => (
     <Stack gap="6">
       {(
         [
-          ["captions", "Captions"],
           ["dice", "Dice (the default)"],
-          ["numbers", "Numbers"],
+          ["captions", "Captions"],
         ] as const
       ).map(([detail, title]) => (
         <Section key={detail} title={title}>

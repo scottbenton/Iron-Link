@@ -16,11 +16,7 @@ import { Button } from "../../components/Button";
 import { Spinner } from "../../components/Spinner";
 import { Tooltip } from "../../components/Tooltip";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
-import {
-  RollCard,
-  RollCardAction,
-  RollCardDiceDetail,
-} from "../RollCard/RollCard";
+import { RollCard, RollCardAction } from "../RollCard/RollCard";
 import { RollTextOverrides } from "../RollCard/getRollSummary";
 import { RollData } from "../RollCard/rollTypes";
 import { GameLogComposer, GameLogComposerProps } from "./GameLogComposer";
@@ -315,13 +311,6 @@ function initials(name: string): string {
   return letters.map((word) => word[0]?.toUpperCase() ?? "").join("");
 }
 
-/**
- * How much of each roll the log draws: `detailed` names every die,
- * `standard` draws bare dice, `quiet` keeps the outcome and writes the dice
- * as one line of numbers beside it.
- */
-export type GameLogDensity = "detailed" | "standard" | "quiet";
-
 /** How often relative times are brought up to date. */
 const RELATIVE_TIME_TICK_MS = 30_000;
 
@@ -334,12 +323,6 @@ function useNow(intervalMs: number) {
   }, [intervalMs]);
   return now;
 }
-
-const diceDetailByDensity: Record<GameLogDensity, RollCardDiceDetail> = {
-  detailed: "captions",
-  standard: "dice",
-  quiet: "numbers",
-};
 
 export interface GameLogProps {
   /** Entries oldest first; the newest sits at the bottom by the composer. */
@@ -363,8 +346,6 @@ export interface GameLogProps {
   composerProps?: Omit<GameLogComposerProps, "onSend">;
   /** Words for roll cards and their summaries. */
   rollText?: RollTextOverrides;
-  /** How much of each roll to draw. `standard` by default. */
-  density?: GameLogDensity;
   /**
    * One author's entries this close together (in minutes) group: one
    * header over the first, one time under the last. 5 by default; 0 turns
@@ -400,7 +381,6 @@ export function GameLog(props: GameLogProps) {
     strings: stringsProp,
     composerProps,
     rollText,
-    density = "standard",
     groupWithinMinutes = GAME_LOG_GROUP_WINDOW_MS / 60_000,
     maxContentWidth,
     className,
@@ -511,7 +491,6 @@ export function GameLog(props: GameLogProps) {
                     )}
                     strings={strings}
                     rollText={rollText}
-                    diceDetail={diceDetailByDensity[density]}
                     groupPosition={groupPositions[index]}
                   />
                 </Fragment>
@@ -543,20 +522,11 @@ interface GameLogItemProps {
   relativeTime?: string;
   strings: GameLogStrings;
   rollText?: RollTextOverrides;
-  diceDetail: RollCardDiceDetail;
   groupPosition: GameLogGroupPosition;
 }
 
 function GameLogItem(props: GameLogItemProps) {
-  const {
-    entry,
-    time,
-    relativeTime,
-    strings,
-    rollText,
-    diceDetail,
-    groupPosition,
-  } = props;
+  const { entry, time, relativeTime, strings, rollText, groupPosition } = props;
   const { author } = entry;
   // A group shows its header over its first entry and its time under its
   // last.
@@ -607,7 +577,6 @@ function GameLogItem(props: GameLogItemProps) {
           roll={entry.roll}
           variant="compact"
           width="content"
-          diceDetail={diceDetail}
           actions={entry.actions}
           summaryPrefix={heading}
           text={rollText}

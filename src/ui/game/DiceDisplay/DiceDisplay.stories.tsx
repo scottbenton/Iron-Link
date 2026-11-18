@@ -6,8 +6,7 @@ import { Grid, Stack } from "ui/primitives";
 import { Text } from "../../components/Text";
 import { sampleRolls } from "../../stories/fixtures/rolls";
 import { allRolls, extraRolls } from "../RollCard/RollCard.fixtures";
-import { ChallengeRollData } from "../RollCard/rollTypes";
-import { DiceDisplay, DiceNumbers, OracleDice } from "./DiceDisplay";
+import { DiceDisplay, OracleDice } from "./DiceDisplay";
 
 const meta = {
   title: "Game/DiceDisplay",
@@ -246,22 +245,11 @@ export const CursedDie: Story = {
   ),
 };
 
-/** The inline pieces roll cards use in compact and quiet layouts. */
-export const InlinePieces: Story = {
+/** An oracle's dice inline after its result, as compact roll cards show it. */
+export const InlineOracleDice: Story = {
   render: () => {
-    const challenge: ChallengeRollData[] = [
-      sampleRolls.faceDangerStrongHit,
-      sampleRolls.strikeMiss,
-      sampleRolls.compelBurnedMomentum,
-      sampleRolls.fulfillYourVowProgress,
-    ];
     return (
       <Stack gap="4">
-        {challenge.map((roll, index) => (
-          <Row key={index} label="DiceNumbers">
-            <DiceNumbers roll={roll} />
-          </Row>
-        ))}
         <Row label="OracleDice">
           <OracleDice roll={sampleRolls.spaceSighting} />
         </Row>
