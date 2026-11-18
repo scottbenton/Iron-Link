@@ -28,3 +28,7 @@ dist-ssr
 *storybook.log
 *.tsbuildinfo
 .claude/worktrees/
+
+# Panda CSS output (npm run prepare)
+src/styled-system
+storybook-static

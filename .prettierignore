@@ -1,3 +1,4 @@
 *.md
 *.json
 storybook-static
+src/styled-system
