@@ -6,11 +6,21 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  Typography,
 } from "@mui/material";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+
+import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
+
+import { useWorldOracles } from "hooks/useWorldOracles";
+
+import { useWorldOracleFieldChanges } from "stores/worldOracleChanges.store";
 
 import { IWorldFieldDefinition } from "services/worldFieldDefinitions.service";
 
+import { getOracleChangeLabel } from "../oracleChanges/oracleChangeLabels";
+import { WorldFieldOracleChangesMenu } from "./WorldFieldOracleChangesMenu";
 import { getFieldTypeLabel } from "./categoryEditor.utils";
 
 export function WorldCategoryFieldRow({
@@ -59,6 +69,36 @@ export function WorldCategoryFieldRow({
     field.gmOnly ? t("worlds.fields.gm-badge", "Guide only") : undefined,
     subtitle ? t("worlds.fields.subtitle-badge", "Subtitle") : undefined,
   ].filter(Boolean);
+
+  // Saved oracles that moved under the linked games' playsets. Inside a game
+  // the ones it caused are left out: its people chose them when saving.
+  const gameId = useGameIdOptional();
+  const oracleChanges = useWorldOracleFieldChanges(field.id, gameId);
+  const { catalog } = useWorldOracles(field.worldId);
+  const oracleLabels = useMemo(
+    () =>
+      Object.fromEntries(
+        (catalog?.choices ?? []).map((choice) => [choice.id, choice.label]),
+      ),
+    [catalog],
+  );
+  const changeLines = oracleChanges.map((change) => {
+    const values = {
+      previous: getOracleChangeLabel(change.previousOracleId, oracleLabels),
+      next: getOracleChangeLabel(change.nextOracleId, oracleLabels),
+    };
+    return change.ruleIndex === null
+      ? t(
+          "worlds.oracle-changes.field-moved",
+          "Now rolls {{next}} instead of {{previous}}",
+          values,
+        )
+      : t(
+          "worlds.oracle-changes.rule-moved",
+          "Rule {{number}} now rolls {{next}} instead of {{previous}}",
+          { ...values, number: change.ruleIndex + 1 },
+        );
+  });
   return (
     <ListItem
       ref={setNodeRef}
@@ -95,12 +135,36 @@ export function WorldCategoryFieldRow({
       >
         <ListItemText
           primary={label}
-          secondary={details.join(" · ")}
+          secondary={
+            <>
+              {details.join(" · ")}
+              {changeLines.map((line, index) => (
+                <Typography
+                  key={index}
+                  component="span"
+                  variant="body2"
+                  color="warning.main"
+                  display="block"
+                >
+                  {line}
+                </Typography>
+              ))}
+            </>
+          }
           slotProps={{
             primary: { sx: { overflowWrap: "anywhere" } },
+            secondary: { sx: { overflowWrap: "anywhere" } },
           }}
         />
       </ListItemButton>
+      {canEdit && oracleChanges.length > 0 && (
+        <WorldFieldOracleChangesMenu
+          label={label}
+          changes={oracleChanges}
+          disabled={busy || disabled}
+          onChooseAnother={onEdit}
+        />
+      )}
     </ListItem>
   );
 }

@@ -20,7 +20,7 @@ import { WorldsService } from "services/worlds.service";
 
 export interface CreateWorldFormProps {
   creationGame?: LinkedGamePlayset;
-  onCreated: (worldId: string) => void;
+  onCreated: (worldId: string, worldName: string) => void;
   onCancel?: () => void;
 }
 
@@ -90,7 +90,7 @@ export function CreateWorldForm(props: CreateWorldFormProps) {
         selectedOption.settingKey ?? undefined,
       )
         .then((worldId) => {
-          onCreated(worldId);
+          onCreated(worldId, trimmedName);
         })
         .catch(() => {
           // RepositoryErrors already raise their own error snackbar as they

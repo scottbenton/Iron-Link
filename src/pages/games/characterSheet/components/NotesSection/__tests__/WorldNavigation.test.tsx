@@ -15,6 +15,8 @@ import { NoteTabs } from "../NoteTabs/NoteTabs";
 import { GameWorldView } from "../WorldView/GameWorldView";
 
 const confirm = vi.hoisted(() => vi.fn());
+const previewUnlink = vi.hoisted(() => vi.fn());
+const unlinkGameFromWorld = vi.hoisted(() => vi.fn());
 const context = vi.hoisted(() => ({
   worldId: "world-a",
   worldsEnabled: true,
@@ -72,6 +74,12 @@ vi.mock("hooks/advancedFeatures/advancedFeatures", () => ({
   useAdvancedFeatureToggle: () => context.worldsEnabled,
 }));
 vi.mock("material-ui-confirm", () => ({ useConfirm: () => confirm }));
+vi.mock("services/worldOracleChanges.service", () => ({
+  WorldOracleChangesService: { previewUnlink },
+}));
+vi.mock("services/worlds.service", () => ({
+  WorldsService: { unlinkGameFromWorld },
+}));
 vi.mock("pages/games/gamePageLayout/hooks/useGameId", () => ({
   useGameId: () => "game-a",
 }));
@@ -292,21 +300,58 @@ describe("World Notes navigation", () => {
     });
   });
 
-  // Release guard until #236 previews oracle changes.
-  it("warns that world fields may roll different oracles before unlinking", async () => {
+  it("lets Guides choose what moved fields roll when unlinking", async () => {
     const user = userEvent.setup();
-    confirm.mockResolvedValue({ confirmed: false });
+    previewUnlink.mockResolvedValue({
+      worldId: "world-a",
+      worldName: "Ironlands",
+      changes: [
+        {
+          worldId: "world-a",
+          fieldId: "name",
+          ruleIndex: null,
+          previousOracleId: "starsmith/oracles/name",
+          nextOracleId: "starforged/oracles/name",
+        },
+      ],
+      configuration: {
+        fieldDefinitions: {
+          name: { id: "name", label: "Name", categoryId: "npcs" },
+        },
+        categories: { npcs: { id: "npcs", name: "NPCs" } },
+      },
+      oracleLabels: {
+        "starsmith/oracles/name": "Starsmith Names",
+        "starforged/oracles/name": "Starforged Names",
+      },
+    });
+    unlinkGameFromWorld.mockResolvedValue(undefined);
     render(
       <MemoryRouter>
         <GameWorldView worldId="world-a" worldView={{ type: "settings" }} />
       </MemoryRouter>,
     );
     await user.click(screen.getByRole("button", { name: "Unlink World" }));
-    const { description } = confirm.mock.calls[0][0];
-    render(description);
-    expect(
-      screen.getByText("Some world fields may roll different oracles."),
-    ).toBeInTheDocument();
+    const dialog = await screen.findByRole("dialog", { name: "Unlink World" });
+    const field = await within(dialog).findByRole("group", {
+      name: "NPCs: Name",
+    });
+    await user.click(
+      within(field).getByRole("radio", { name: /Keep the old oracle/ }),
+    );
+    await user.click(
+      within(dialog).getByRole("button", { name: "Unlink World" }),
+    );
+    expect(unlinkGameFromWorld).toHaveBeenCalledWith("game-a", [
+      {
+        worldId: "world-a",
+        fieldId: "name",
+        ruleIndex: null,
+        previousOracleId: "starsmith/oracles/name",
+        nextOracleId: "starforged/oracles/name",
+        keep: true,
+      },
+    ]);
   });
 
   it("rejects a deep destination for a world no longer linked to this game", () => {

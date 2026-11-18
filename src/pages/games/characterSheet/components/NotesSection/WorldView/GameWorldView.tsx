@@ -1,16 +1,15 @@
 import LinkOffIcon from "@mui/icons-material/LinkOff";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-import { Box, Button, Stack } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
-import { useCallback, useState } from "react";
+import { Box, Button } from "@mui/material";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 
 import type { BreadcrumbItem } from "components/Layout/BreadcrumbTrail";
 import { EmptyState } from "components/Layout/EmptyState";
-import { WorldOracleChangeWarning } from "components/worlds/WorldOracleChangeWarning";
 import { WorldPanel } from "components/worlds/WorldPanel";
 import { WorldSettingsSection } from "components/worlds/WorldSettingsSection";
+import { useWorldOracleChangesDialog } from "components/worlds/oracleChanges/useWorldOracleChangesDialog";
 import type {
   WorldNavigation,
   WorldView,
@@ -25,6 +24,7 @@ import { useUID } from "stores/auth.store";
 import { GamePermission, useGameStore } from "stores/game.store";
 import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
 
+import { WorldOracleChangesService } from "services/worldOracleChanges.service";
 import { WorldsService } from "services/worlds.service";
 
 import { useGameWorldId } from "../hooks/useGameWorld";
@@ -42,7 +42,8 @@ export function GameWorldView(props: GameWorldViewProps) {
   const { worldId, worldView = { type: "world" } } = props;
 
   const { t } = useTranslation();
-  const confirm = useConfirm();
+  const { confirm: confirmOracleChanges, dialog: oracleChangesDialog } =
+    useWorldOracleChangesDialog();
   const gameId = useGameId();
   const location = useLocation();
   const uid = useUID();
@@ -95,42 +96,47 @@ export function GameWorldView(props: GameWorldViewProps) {
   const worldsEnabled = useAdvancedFeatureToggle("worlds");
   const closeTabsMatching = useNotesStore((store) => store.closeTabsMatching);
 
+  const game = useGameStore((store) => store.game);
+  const gameRules = useMemo(
+    () => ({
+      rulesets: game?.rulesets ?? {},
+      expansions: game?.expansions ?? {},
+      playset: game?.playset ?? {},
+    }),
+    [game?.rulesets, game?.expansions, game?.playset],
+  );
+
   const [unlinking, setUnlinking] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
 
+  // Unlinking takes this game's rules out of the world's playsets, which can
+  // move what world fields roll, so it goes through the shared dialog.
   const handleUnlink = useCallback(() => {
     // Unlinking never deletes the world; it only removes this game's access.
-    confirm({
+    confirmOracleChanges({
       title: t("worlds.game.unlink-world", "Unlink World"),
-      description: (
-        <Stack spacing={2}>
-          <span>
-            {t(
-              "worlds.game.unlink-world-confirmation",
-              "Unlink this world from the game? The world itself is not deleted, but everyone in this game will lose access to it.",
-            )}
-          </span>
-          {/* Release guard until #236 previews oracle changes. */}
-          <WorldOracleChangeWarning />
-        </Stack>
+      description: t(
+        "worlds.game.unlink-world-confirmation",
+        "Unlink this world from the game? The world itself is not deleted, but everyone in this game will lose access to it.",
       ),
-      confirmationText: t("worlds.game.unlink-world", "Unlink World"),
-    })
-      .then((result) => {
-        if (!result?.confirmed) {
-          return;
-        }
+      confirmLabel: t("worlds.game.unlink-world", "Unlink World"),
+      alwaysConfirm: true,
+      loadPreviews: () =>
+        WorldOracleChangesService.previewUnlink(worldId, gameRules).then(
+          (preview) => [preview],
+        ),
+      save: async (changes) => {
         setUnlinking(true);
-        WorldsService.unlinkGameFromWorld(gameId)
-          .then(() => {
-            closeTabsMatching("world", worldId);
-          })
-          .catch(() => {
-            setUnlinking(false);
-          });
-      })
-      .catch(() => {});
-  }, [confirm, t, gameId, worldId, closeTabsMatching]);
+        try {
+          await WorldsService.unlinkGameFromWorld(gameId, changes);
+        } catch (error) {
+          setUnlinking(false);
+          throw error;
+        }
+        closeTabsMatching("world", worldId);
+      },
+    }).catch(() => {});
+  }, [confirmOracleChanges, t, gameId, worldId, gameRules, closeTabsMatching]);
 
   // A link to a world tab still opens one when worlds are turned off here.
   if (!worldsEnabled) {
@@ -214,6 +220,7 @@ export function GameWorldView(props: GameWorldViewProps) {
       {linkDialogOpen && (
         <LinkWorldDialog open onClose={() => setLinkDialogOpen(false)} />
       )}
+      {oracleChangesDialog}
     </Box>
   );
 }

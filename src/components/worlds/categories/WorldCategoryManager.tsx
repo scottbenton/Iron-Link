@@ -41,6 +41,7 @@ import { WorldEntryActions } from "../entries/WorldEntryActions";
 import { WorldEntryView } from "../entries/WorldEntryView";
 import { getDefaultWorldEntryPermissions } from "../entries/worldEntryPermissions";
 import { WorldHomeNotes } from "../notes/WorldHomeNotes";
+import { WorldOracleChangesBanner } from "../oracleChanges/WorldOracleChangesBanner";
 import {
   WorldTruthsCount,
   WorldTruthsRollUnchosenButton,
@@ -455,6 +456,9 @@ export function WorldCategoryManager({
         />
       ) : (
         <Stack spacing={4} sx={{ flexGrow: 1 }}>
+          {view.type === "world" && (
+            <WorldOracleChangesBanner navigation={navigation} />
+          )}
           <WorldCategoryBrowser
             categories={categories}
             missingCategory={showsEntries && !selected}

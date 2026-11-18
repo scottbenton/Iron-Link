@@ -15,6 +15,14 @@ import { useTranslation } from "react-i18next";
 import { LinkComponent } from "components/LinkComponent";
 import type { WorldLinkProps } from "components/worlds/worldNavigation";
 
+import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
+
+import { useWorldCategoriesStore } from "stores/worldCategories.store";
+import {
+  getFlaggedChanges,
+  useWorldOracleChangesStore,
+} from "stores/worldOracleChanges.store";
+
 import { IWorldCategory } from "services/worldCategories.service";
 
 import { WorldCategoryIcon } from "./WorldCategoryIcon";
@@ -47,6 +55,18 @@ export function WorldSettingsCategoryItem({
   const dragLabel = t("worlds.categories.reorder-named", "Reorder {{name}}", {
     name: category.name,
   });
+  // How many of this category's fields roll a different oracle, so the
+  // banner's Review leads somewhere visible when several categories have one.
+  const gameId = useGameIdOptional();
+  const fieldDefinitions = useWorldCategoriesStore(
+    (store) => store.fieldDefinitions,
+  );
+  const changedFieldCount = useWorldOracleChangesStore(
+    (store) =>
+      Object.keys(getFlaggedChanges(store.changes, gameId)).filter(
+        (fieldId) => fieldDefinitions[fieldId]?.categoryId === category.id,
+      ).length,
+  );
   const content = (
     <>
       <ListItemIcon sx={{ minWidth: 36 }}>
@@ -58,7 +78,22 @@ export function WorldSettingsCategoryItem({
       </ListItemIcon>
       <ListItemText
         primary={category.name}
-        slotProps={{ primary: { sx: { overflowWrap: "anywhere" } } }}
+        secondary={
+          changedFieldCount
+            ? t(
+                "worlds.oracle-changes.category-count",
+                "{{count}} fields roll different oracles",
+                {
+                  count: changedFieldCount,
+                  defaultValue_one: "1 field rolls a different oracle",
+                },
+              )
+            : undefined
+        }
+        slotProps={{
+          primary: { sx: { overflowWrap: "anywhere" } },
+          secondary: { color: "warning.main" },
+        }}
       />
     </>
   );

@@ -12,13 +12,12 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 import { CreateWorldForm } from "components/worlds/CreateWorldForm";
-import { WorldOracleChangeWarning } from "components/worlds/WorldOracleChangeWarning";
+import { useWorldOracleChangesDialog } from "components/worlds/oracleChanges/useWorldOracleChangesDialog";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 
@@ -28,6 +27,7 @@ import { useLoadUsersWorlds, useUsersWorlds } from "stores/users.worlds.store";
 
 import { getWorldSettingLabel } from "lib/worldSettings";
 
+import { WorldOracleChangesService } from "services/worldOracleChanges.service";
 import { WorldsService } from "services/worlds.service";
 
 import { useGameWorldId } from "../hooks/useGameWorld";
@@ -44,7 +44,6 @@ export function LinkWorldDialog(props: LinkWorldDialogProps) {
   const { open, onClose } = props;
 
   const { t } = useTranslation();
-  const confirm = useConfirm();
   const gameId = useGameId();
   const game = useGameStore((store) => store.game);
 
@@ -59,6 +58,8 @@ export function LinkWorldDialog(props: LinkWorldDialogProps) {
 
   const [mode, setMode] = useState<"link" | "create">("link");
   const [linkingWorldId, setLinkingWorldId] = useState<string | null>(null);
+  const { confirm: confirmOracleChanges, dialog: oracleChangesDialog } =
+    useWorldOracleChangesDialog();
 
   // Worlds the user can only reach through a linked game (role null) are left
   // out: linking is the one operation that adds an audience to a world, so the
@@ -80,14 +81,58 @@ export function LinkWorldDialog(props: LinkWorldDialogProps) {
     onClose();
   }, [onClose]);
 
+  const gameRules = useMemo(
+    () => ({
+      rulesets: game?.rulesets ?? {},
+      expansions: game?.expansions ?? {},
+      playset: game?.playset ?? {},
+    }),
+    [game?.rulesets, game?.expansions, game?.playset],
+  );
+
+  // Linking adds this game's rules to the world's playsets, and changing
+  // world takes them away from the old one, so either can move what world
+  // fields roll. The shared dialog lists those fields; changing world also
+  // needs confirming, since it takes the old world away from everyone here.
   const linkWorld = useCallback(
-    (worldId: string) => {
+    (worldId: string, worldName: string) => {
+      const changingWorld = !!currentWorldId && currentWorldId !== worldId;
       setLinkingWorldId(worldId);
-      // The result carries divergences for a later task; nothing reads it yet.
-      WorldsService.linkGameToWorld(gameId, worldId)
-        .then(() => {
+      confirmOracleChanges({
+        title: changingWorld
+          ? t("worlds.link.change-world", "Change World")
+          : t("worlds.link.link-world-title", "Link a World"),
+        description: changingWorld
+          ? t(
+              "worlds.link.change-world-confirmation",
+              'Link "{{worldName}}" to this game instead? Everyone in this game will lose access to the world currently linked here.',
+              { worldName },
+            )
+          : undefined,
+        confirmLabel: changingWorld
+          ? t("worlds.link.change-world", "Change World")
+          : t("worlds.link.link-world", "Link World"),
+        alwaysConfirm: changingWorld,
+        loadPreviews: () =>
+          Promise.all([
+            WorldOracleChangesService.previewLink(worldId, gameRules),
+            ...(changingWorld && currentWorldId
+              ? [
+                  WorldOracleChangesService.previewUnlink(
+                    currentWorldId,
+                    gameRules,
+                  ),
+                ]
+              : []),
+          ]),
+        save: async (changes) => {
+          await WorldsService.linkGameToWorld(gameId, worldId, changes);
+        },
+      })
+        .then((saved) => {
           setLinkingWorldId(null);
-          if (currentWorldId && currentWorldId !== worldId) {
+          if (!saved) return;
+          if (changingWorld && currentWorldId) {
             closeTabsMatching("world", currentWorldId);
           }
           openItemTab({
@@ -102,34 +147,16 @@ export function LinkWorldDialog(props: LinkWorldDialogProps) {
           setLinkingWorldId(null);
         });
     },
-    [gameId, currentWorldId, closeTabsMatching, openItemTab, handleClose],
-  );
-
-  const handleSelectWorld = useCallback(
-    (worldId: string, worldName: string) => {
-      if (!currentWorldId) {
-        linkWorld(worldId);
-        return;
-      }
-      // Access to a world is derived from the game link, so swapping really
-      // does take the current world away from everyone in this game.
-      confirm({
-        title: t("worlds.link.change-world", "Change World"),
-        description: t(
-          "worlds.link.change-world-confirmation",
-          'Link "{{worldName}}" to this game instead? Everyone in this game will lose access to the world currently linked here.',
-          { worldName },
-        ),
-        confirmationText: t("worlds.link.change-world", "Change World"),
-      })
-        .then((result) => {
-          if (result?.confirmed) {
-            linkWorld(worldId);
-          }
-        })
-        .catch(() => {});
-    },
-    [confirm, t, currentWorldId, linkWorld],
+    [
+      t,
+      gameId,
+      gameRules,
+      currentWorldId,
+      confirmOracleChanges,
+      closeTabsMatching,
+      openItemTab,
+      handleClose,
+    ],
   );
 
   const hasEligibleWorlds = eligibleWorlds.length > 0;
@@ -148,10 +175,6 @@ export function LinkWorldDialog(props: LinkWorldDialogProps) {
             : t("worlds.link.link-world-title", "Link a World")}
       </DialogTitleWithCloseButton>
       <DialogContent>
-        {/* Release guard until #236 previews oracle changes. */}
-        <Box sx={{ mb: 2 }}>
-          <WorldOracleChangeWarning />
-        </Box>
         {showCreate ? (
           <CreateWorldForm
             creationGame={game ?? undefined}
@@ -173,7 +196,7 @@ export function LinkWorldDialog(props: LinkWorldDialogProps) {
               <Card variant="outlined" key={worldId}>
                 <CardActionArea
                   disabled={linkingWorldId !== null}
-                  onClick={() => handleSelectWorld(worldId, world.name)}
+                  onClick={() => linkWorld(worldId, world.name)}
                   sx={{
                     p: 2,
                     display: "flex",
@@ -227,6 +250,7 @@ export function LinkWorldDialog(props: LinkWorldDialogProps) {
           </Button>
         </DialogActions>
       )}
+      {oracleChangesDialog}
     </Dialog>
   );
 }

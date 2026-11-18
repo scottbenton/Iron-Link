@@ -124,6 +124,14 @@ that are easy to miss. When you learn a new one, add a line here.
 - A world entry mention stores only the entry id (`kind: "worldEntry"`,
   `label: null`); its name is read live from the entries store, so renames
   show at once and an unreadable entry shows "Unavailable entry".
+- A customized world's field rolls its binding's `resolvedOracleId`; when the
+  linked games' playsets move a target, `world_oracle_changes` keeps one open
+  change per binding. Link, unlink and Guide playset changes go through
+  `useWorldOracleChangesDialog` (keep the old oracle or use the new one,
+  applied in the same RPC); moves nobody chose are recorded by editors'
+  clients on read (`record_world_oracle_changes`, refused on stale
+  playsets). Games see a dismissible banner on the world home; World settings
+  flags the fields with their fixes. Nothing goes to a game log.
 
 ## Maps
 
