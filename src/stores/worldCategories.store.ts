@@ -354,13 +354,15 @@ function applyConfiguration(
   resolveFieldDefinitions(state);
 }
 
-// Inherited bindings follow the current playset, so they are re-resolved
-// whenever it changes. Customized bindings keep their stored roll targets
-// until someone deliberately rebinds them.
+// Bindings follow the world's playset (every linked game's rules), so they
+// are re-resolved whenever it changes: a Starforged oracle rolls its Starsmith
+// replacement while a linked game includes Starsmith. Customized worlds work
+// the same way; only a binding pinned to an exact oracle ignores replacements.
+// Until the playset loads, a customized world rolls its stored targets.
 function resolveFieldDefinitions(state: WorldCategoriesStoreState) {
   state.defaultBindingsReady =
     state.configurationCustomized || state.replacementMap !== null;
-  if (state.configurationCustomized || !state.replacementMap) {
+  if (!state.replacementMap) {
     state.fieldDefinitions = state.storedFieldDefinitions;
     return;
   }

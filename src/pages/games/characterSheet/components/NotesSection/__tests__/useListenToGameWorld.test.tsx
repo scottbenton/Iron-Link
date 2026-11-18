@@ -6,7 +6,12 @@ import { useNotesStore } from "stores/notes.store";
 import { useListenToGameWorld } from "../hooks/useGameWorld";
 
 const state = vi.hoisted(() => ({
-  game: { worldId: "world-a" as string | null },
+  game: {
+    worldId: "world-a" as string | null,
+    rulesets: { starforged: true },
+    expansions: { starforged: { starsmith: true } },
+    playset: {},
+  },
   world: { id: "world-a" },
   worldDeleted: false,
   enabled: true,
@@ -87,7 +92,12 @@ describe("Persistent game world subscription owner", () => {
     });
     expect(state.listenWorld).toHaveBeenLastCalledWith("world-a");
     expect(state.listenConfiguration).toHaveBeenLastCalledWith("world-a");
-    expect(state.listenOracles).toHaveBeenLastCalledWith("world-a");
+    // World fields roll with this game's own rules.
+    expect(state.listenOracles).toHaveBeenLastCalledWith("world-a", {
+      rulesets: { starforged: true },
+      expansions: { starforged: { starsmith: true } },
+      playset: {},
+    });
     expect(state.listenEntries).toHaveBeenLastCalledWith("world-a");
   });
 

@@ -15,8 +15,9 @@ export type WorldFieldKind = "text" | "optionList" | "linkedEntry";
 export interface OracleBinding {
   packageId: string;
   oracleId: string;
-  // What the binding actually resolved to last time; a difference against a
-  // fresh resolution is a divergence and must be surfaced, never silent.
+  // What the binding resolved to when it was saved. Rolls re-resolve it
+  // against the world's playset (see resolveFieldDefinitions), so this is
+  // only the fallback until that playset loads.
   resolvedOracleId: string;
   // Escape hatch: ignore replacements, always roll exactly oracleId.
   exact?: boolean;
