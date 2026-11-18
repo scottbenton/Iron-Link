@@ -19,7 +19,6 @@ const meterStyles = css({
   justifyItems: "stretch",
   gap: "1",
   minWidth: "112px",
-  "&[data-wide]": { minWidth: "152px" },
   // 44px steppers at any pointer (a phone sheet's plain +/-), not only
   // under _touch. The value grows to match.
   "&[data-stepper-size=touch] [data-meter-stepper]": {
@@ -155,8 +154,6 @@ export interface ConditionMeterProps {
    * it all, and the strip makes the card taller.
    */
   showPips?: boolean;
-  /** A wider meter, for one with buttons under it. */
-  wide?: boolean;
   /**
    * `touch` makes the steppers 44px at any pointer, for a phone layout that
    * wants them regardless of the device it is previewed on. By default they
@@ -199,7 +196,6 @@ export function ConditionMeter(props: ConditionMeterProps) {
     tone: toneProp,
     warnAtMin,
     showPips: showPipsProp,
-    wide,
     stepperSize = "sm",
     children,
     valueControl,
@@ -260,7 +256,6 @@ export function ConditionMeter(props: ConditionMeterProps) {
       aria-labelledby={labelId}
       className={cx(meterStyles, className)}
       data-tone={tone}
-      data-wide={wide || undefined}
       data-stepper-size={stepperSize}
     >
       <span id={labelId} className={labelStyles}>

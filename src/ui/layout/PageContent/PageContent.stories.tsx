@@ -9,17 +9,9 @@ const meta: Meta<typeof PageContent> = {
   title: "Layout/PageContent",
   component: PageContent,
   parameters: { layout: "fullscreen" },
-  args: { maxWidth: "xl", paddingBlock: "md", surface: "surface" },
+  args: { maxWidth: "xl" },
   argTypes: {
-    maxWidth: {
-      control: "inline-radio",
-      options: ["sm", "md", "lg", "xl", "full"],
-    },
-    paddingBlock: { control: "inline-radio", options: ["none", "sm", "md"] },
-    surface: {
-      control: "inline-radio",
-      options: ["surface", "canvas", "none"],
-    },
+    maxWidth: { control: "inline-radio", options: ["sm", "xl"] },
   },
 };
 

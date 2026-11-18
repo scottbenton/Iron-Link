@@ -3,7 +3,7 @@ import { PreviewCard as BasePreviewCard } from "@base-ui/react/preview-card";
 import { XIcon } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode, forwardRef } from "react";
 
-import { css, cva, cx } from "styled-system/css";
+import { css, cx } from "styled-system/css";
 
 import { Button } from "../Button";
 import { IconButton } from "../IconButton";
@@ -13,27 +13,17 @@ import { popupPositionerStyles, popupSurfaceStyles } from "./popupStyles";
 type Side = "top" | "bottom" | "left" | "right" | "inline-start" | "inline-end";
 type Align = "start" | "center" | "end";
 
-const cardStyles = cva({
-  base: {
-    display: "grid",
-    gap: "3",
-    width: "min(var(--popover-width), calc(100vw - 16px))",
-    maxHeight: "var(--available-height)",
-    overflowY: "auto",
-    overscrollBehavior: "contain",
-    padding: "4",
-    borderRadius: "lg",
-    fontSize: "sm",
-    lineHeight: "normal",
-  },
-  variants: {
-    size: {
-      sm: { "--popover-width": "240px" },
-      md: { "--popover-width": "320px" },
-      lg: { "--popover-width": "420px" },
-    },
-  },
-  defaultVariants: { size: "md" },
+const cardStyles = css({
+  display: "grid",
+  gap: "3",
+  width: "min(320px, calc(100vw - 16px))",
+  maxHeight: "var(--available-height)",
+  overflowY: "auto",
+  overscrollBehavior: "contain",
+  padding: "4",
+  borderRadius: "lg",
+  fontSize: "sm",
+  lineHeight: "normal",
 });
 
 const headerStyles = css({
@@ -89,7 +79,6 @@ export interface PopoverContentProps {
   /** Shows a Close button beside the title. On by default with a title. */
   showClose?: boolean;
   closeLabel?: string;
-  size?: "sm" | "md" | "lg";
   side?: Side;
   align?: Align;
   sideOffset?: number;
@@ -112,7 +101,6 @@ export function PopoverContent(props: PopoverContentProps) {
     children,
     showClose = title !== undefined,
     closeLabel = "Close",
-    size,
     side = "bottom",
     align = "center",
     sideOffset = 8,
@@ -133,12 +121,7 @@ export function PopoverContent(props: PopoverContentProps) {
         collisionPadding={8}
       >
         <BasePopover.Popup
-          className={cx(
-            "ui-root",
-            popupSurfaceStyles,
-            cardStyles({ size }),
-            className,
-          )}
+          className={cx("ui-root", popupSurfaceStyles, cardStyles, className)}
           initialFocus={initialFocus}
           finalFocus={finalFocus}
           aria-label={ariaLabel}
@@ -208,7 +191,6 @@ export const PreviewCardTrigger = BasePreviewCard.Trigger as (
 
 export interface PreviewCardContentProps {
   children: ReactNode;
-  size?: "sm" | "md" | "lg";
   side?: Side;
   align?: Align;
   sideOffset?: number;
@@ -218,7 +200,6 @@ export interface PreviewCardContentProps {
 export function PreviewCardContent(props: PreviewCardContentProps) {
   const {
     children,
-    size,
     side = "bottom",
     align = "center",
     sideOffset = 8,
@@ -234,12 +215,7 @@ export function PreviewCardContent(props: PreviewCardContentProps) {
         collisionPadding={8}
       >
         <BasePreviewCard.Popup
-          className={cx(
-            "ui-root",
-            popupSurfaceStyles,
-            cardStyles({ size }),
-            className,
-          )}
+          className={cx("ui-root", popupSurfaceStyles, cardStyles, className)}
         >
           {children}
         </BasePreviewCard.Popup>

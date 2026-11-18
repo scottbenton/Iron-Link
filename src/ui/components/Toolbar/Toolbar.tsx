@@ -30,12 +30,8 @@ const rootStyles = cva({
       /** Just the controls, for a toolbar inside something else. */
       plain: {},
     },
-    sticky: {
-      true: { position: "sticky", top: 0, zIndex: 2 },
-      false: {},
-    },
   },
-  defaultVariants: { variant: "bar", sticky: false },
+  defaultVariants: { variant: "bar" },
 });
 
 export interface ToolbarProps
@@ -43,8 +39,6 @@ export interface ToolbarProps
   /** Names the toolbar, such as "Formatting". */
   "aria-label": string;
   variant?: "bar" | "plain";
-  /** Stick to the top of the scrolling editor. */
-  sticky?: boolean;
   className?: string;
 }
 
@@ -55,11 +49,11 @@ export interface ToolbarProps
  */
 export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
   function Toolbar(props, ref) {
-    const { variant, sticky = false, className, ...rest } = props;
+    const { variant, className, ...rest } = props;
     return (
       <BaseToolbar.Root
         ref={ref}
-        className={cx(rootStyles({ variant, sticky }), className)}
+        className={cx(rootStyles({ variant }), className)}
         {...rest}
       />
     );

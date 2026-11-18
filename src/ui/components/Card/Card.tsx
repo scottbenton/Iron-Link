@@ -103,7 +103,6 @@ const cardStyles = cva({
       none: { padding: 0 },
       sm: { padding: "3" },
       md: { padding: "4" },
-      lg: { padding: "5" },
     },
   },
   defaultVariants: { padding: "md" },
@@ -111,7 +110,7 @@ const cardStyles = cva({
 
 export interface CardProps extends ComponentProps<"div"> {
   /** Inner padding; `none` for a card whose parts bring their own. */
-  padding?: "none" | "sm" | "md" | "lg";
+  padding?: "none" | "sm" | "md";
   /** Raise the card on a ledge without making it pressable. */
   raised?: boolean;
   /**

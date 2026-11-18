@@ -67,8 +67,6 @@ const triggerStyles = css({
 
 export interface CollapsibleTriggerProps
   extends Omit<ComponentProps<typeof BaseCollapsible.Trigger>, "className"> {
-  /** Hide the caret, for a trigger that shows its state another way. */
-  hideCaret?: boolean;
   className?: string;
 }
 
@@ -80,7 +78,7 @@ export const CollapsibleTrigger = forwardRef<
   HTMLButtonElement,
   CollapsibleTriggerProps
 >(function CollapsibleTrigger(props, ref) {
-  const { hideCaret, className, children, render, ...rest } = props;
+  const { className, children, render, ...rest } = props;
   return (
     <BaseCollapsible.Trigger
       ref={ref}
@@ -88,9 +86,7 @@ export const CollapsibleTrigger = forwardRef<
       className={render ? className : cx(triggerStyles, className)}
       {...rest}
     >
-      {!render && !hideCaret && (
-        <CaretRight data-caret="" weight="bold" aria-hidden />
-      )}
+      {!render && <CaretRight data-caret="" weight="bold" aria-hidden />}
       {children}
     </BaseCollapsible.Trigger>
   );

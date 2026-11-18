@@ -19,10 +19,6 @@ const meta: Meta<typeof PageHeader> = {
   },
   argTypes: {
     titleAs: { control: "inline-radio", options: ["h1", "h2"] },
-    maxWidth: {
-      control: "inline-radio",
-      options: ["sm", "md", "lg", "xl", "full"],
-    },
   },
 };
 

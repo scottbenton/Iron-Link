@@ -223,7 +223,7 @@ function GamesPage(props: { empty?: boolean }) {
     <>
       {/* The page's one heading; the cards' game names are its h2s. */}
       <PageHeader title="Your Games" actions={createGameButton} />
-      <PageContent paddingBlock="md">
+      <PageContent>
         {props.empty ? (
           <EmptyState
             icon={<SwordIcon />}

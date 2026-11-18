@@ -9,24 +9,15 @@ export interface IconButtonProps
   label: string;
   /** The icon. */
   children: ReactNode;
-  /** Hide the tooltip, for buttons whose label is visible nearby. */
-  hideTooltip?: boolean;
   tooltipSide?: "top" | "bottom" | "left" | "right";
 }
 
 /** A square button with an icon, named by `label` and shown as a tooltip. */
 export const IconButton = forwardRef<HTMLElement, IconButtonProps>(
   function IconButton(props, ref) {
-    const {
-      label,
-      children,
-      variant = "ghost",
-      hideTooltip,
-      tooltipSide,
-      ...rest
-    } = props;
+    const { label, children, variant = "ghost", tooltipSide, ...rest } = props;
     return (
-      <Tooltip title={label} disabled={hideTooltip} side={tooltipSide}>
+      <Tooltip title={label} side={tooltipSide}>
         <Button
           ref={ref}
           variant={variant}

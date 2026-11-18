@@ -4,7 +4,7 @@ import { css, cx } from "styled-system/css";
 
 import { Text } from "../../components/Text";
 import { Subtitle } from "../Subtitle";
-import { PageWidth, contentRailStyles } from "../shared/contentRail";
+import { contentRailStyles } from "../shared/contentRail";
 import { pageInset } from "../shared/shell";
 
 const rootStyles = css({
@@ -140,8 +140,6 @@ export interface PageHeaderProps {
   actions?: ReactNode;
   /** A decorative image band above the title, such as a world's cover. */
   heroImage?: { src: string; alt?: string; position?: string };
-  /** The rail's width; match the page's PageContent. */
-  maxWidth?: PageWidth;
   /** A rule under the header, for pages whose content sits on the canvas. */
   divider?: boolean;
   /** Content under the title row, such as page tabs. */
@@ -165,7 +163,6 @@ export function PageHeader(props: PageHeaderProps) {
     breadcrumbs,
     actions,
     heroImage,
-    maxWidth,
     divider,
     children,
     className,
@@ -181,7 +178,7 @@ export function PageHeader(props: PageHeaderProps) {
     <div
       className={cx(rootStyles, pageInset, divider && dividerStyles, className)}
     >
-      <div className={cx(contentRailStyles({ maxWidth }), railStyles)}>
+      <div className={cx(contentRailStyles(), railStyles)}>
         {heroImage && (
           <div className={heroStyles}>
             <img

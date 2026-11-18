@@ -235,19 +235,15 @@ type PanelProps = ComponentProps<typeof BaseAccordion.Panel>;
 
 export interface AccordionPanelProps extends Omit<PanelProps, "className"> {
   className?: string;
-  /** Drop the panel's padding, for content that brings its own (a list). */
-  disablePadding?: boolean;
 }
 
 /** A section's content. Its height animates as it opens and closes. */
 export const AccordionPanel = forwardRef<HTMLDivElement, AccordionPanelProps>(
   function AccordionPanel(props, ref) {
-    const { className, children, disablePadding, ...rest } = props;
+    const { className, children, ...rest } = props;
     return (
       <BaseAccordion.Panel ref={ref} className={panelStyles} {...rest}>
-        <div className={cx(!disablePadding && panelContentStyles, className)}>
-          {children}
-        </div>
+        <div className={cx(panelContentStyles, className)}>{children}</div>
       </BaseAccordion.Panel>
     );
   },

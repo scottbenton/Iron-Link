@@ -28,7 +28,7 @@ function Shell(props: { fill?: boolean }) {
       topBar={<NavBar title="Worlds" />}
       bottomNav={<MobileNav items={getNavItems("worlds")} />}
     >
-      <PageContent paddingBlock="md">
+      <PageContent>
         <Text>
           The page goes here. Press Tab from the top of the canvas for the skip
           link.

@@ -16,7 +16,7 @@ const meta: Meta<typeof Surface> = {
     },
     radius: {
       control: "inline-radio",
-      options: ["none", "sm", "md", "lg", "xl"],
+      options: ["md", "lg", "xl"],
     },
     padding: { control: "inline-radio", options: ["none", "sm", "md", "lg"] },
   },

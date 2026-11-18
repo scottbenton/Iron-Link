@@ -79,14 +79,13 @@ export interface PortraitGroupProps
   label?: string;
   /** What the "+N" count says to screen readers. */
   overflowLabel?: (count: number, names: string[]) => string;
-  /** Show each name in a tooltip on hover. */
-  showNames?: boolean;
   className?: string;
 }
 
 /**
  * A row of character portraits, overlapping by default, with a "+N" count
- * for any past `max`. The active character keeps its gradient ring.
+ * for any past `max`. The active character keeps its gradient ring; each
+ * name shows in a tooltip on hover.
  */
 export function PortraitGroup(props: PortraitGroupProps) {
   const {
@@ -96,7 +95,6 @@ export function PortraitGroup(props: PortraitGroupProps) {
     spacing,
     label = "Characters",
     overflowLabel = (count, names) => `${count} more: ${names.join(", ")}`,
-    showNames = true,
     className,
     style,
     ...rest
@@ -123,12 +121,15 @@ export function PortraitGroup(props: PortraitGroupProps) {
     >
       {visible.map((member, index) => {
         const { id, ...portrait } = member;
-        const node = (
-          <CharacterPortrait data-group-member="" size={size} {...portrait} />
-        );
         return (
           <li key={id} style={{ zIndex: visible.length - index }}>
-            {showNames ? <Tooltip title={member.name}>{node}</Tooltip> : node}
+            <Tooltip title={member.name}>
+              <CharacterPortrait
+                data-group-member=""
+                size={size}
+                {...portrait}
+              />
+            </Tooltip>
           </li>
         );
       })}

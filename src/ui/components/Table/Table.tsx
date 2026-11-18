@@ -31,11 +31,6 @@ const containerStyles = css({
     outline: "2px solid token(colors.focusRing)",
     outlineOffset: "2px",
   },
-  "&[data-borderless]": {
-    border: 0,
-    borderRadius: 0,
-    background: "transparent",
-  },
 });
 
 const tableStyles = css({
@@ -58,8 +53,6 @@ export interface TableProps extends ComponentProps<"table"> {
   stickyHeader?: boolean;
   /** The scrolling box's maximum height, such as "360px". */
   maxHeight?: string;
-  /** Drop the border and radius, for a table inside a card or dialog. */
-  borderless?: boolean;
   /**
    * Names the scrolling box when it scrolls, so keyboard users can reach
    * it. Usually the same as the caption.
@@ -81,7 +74,6 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(
       density = "comfortable",
       stickyHeader = false,
       maxHeight,
-      borderless,
       "aria-label": ariaLabel,
       containerClassName,
       className,
@@ -92,7 +84,6 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(
       <TableContext.Provider value={{ density, stickyHeader }}>
         <div
           className={cx(containerStyles, containerClassName)}
-          data-borderless={borderless || undefined}
           style={scrolls ? { maxHeight } : undefined}
           // A box that scrolls must be reachable from the keyboard.
           tabIndex={scrolls ? 0 : undefined}

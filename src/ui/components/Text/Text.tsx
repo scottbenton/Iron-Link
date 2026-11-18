@@ -81,11 +81,9 @@ export const textStyles = cva({
       danger: { color: "danger.fg" },
       inherit: { color: "inherit" },
     },
+    /** Medium, for a token name or value among body text. */
     weight: {
-      normal: { fontWeight: "normal" },
       medium: { fontWeight: "medium" },
-      semibold: { fontWeight: "semibold" },
-      bold: { fontWeight: "bold" },
     },
     truncate: {
       true: {

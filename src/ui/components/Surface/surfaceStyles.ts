@@ -35,8 +35,6 @@ export const surfaceStyles = cva({
       canvas: { background: "bg.canvas", borderColor: "border.default" },
     },
     radius: {
-      none: { borderRadius: 0 },
-      sm: { borderRadius: "sm" },
       md: { borderRadius: "md" },
       lg: { borderRadius: "lg" },
       xl: { borderRadius: "xl" },

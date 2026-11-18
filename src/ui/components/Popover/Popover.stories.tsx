@@ -59,7 +59,6 @@ export const WithActions: Story = {
       <PopoverContent
         title="Invite Players"
         description="Anyone with the link can join The Iron Wardens."
-        size="md"
       >
         <HStack gap="2" justifyContent="flex-end">
           <PopoverClose render={<Button variant="ghost" />}>

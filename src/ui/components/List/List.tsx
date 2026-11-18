@@ -372,10 +372,7 @@ export function ListItemEnd(props: ComponentProps<"span">) {
   );
 }
 
-export interface ListSubheaderProps extends ComponentProps<"li"> {
-  /** Stick to the top of the scrolling container while its group passes. */
-  sticky?: boolean;
-}
+export type ListSubheaderProps = ComponentProps<"li">;
 
 const subheaderStyles = cva({
   base: {
@@ -393,17 +390,6 @@ const subheaderStyles = cva({
   },
   variants: {
     inset: { true: { paddingInline: "3" }, false: {} },
-    sticky: {
-      true: {
-        position: "sticky",
-        top: 0,
-        zIndex: 1,
-        background: "bg.surface",
-        borderBottom: "1px solid token(colors.border.subtle)",
-        paddingBottom: "2",
-      },
-      false: {},
-    },
   },
 });
 
@@ -413,12 +399,12 @@ const subheaderStyles = cva({
  */
 export const ListSubheader = forwardRef<HTMLLIElement, ListSubheaderProps>(
   function ListSubheader(props, ref) {
-    const { sticky = false, className, ...rest } = props;
+    const { className, ...rest } = props;
     const { inset } = useContext(ListContext);
     return (
       <li
         ref={ref}
-        className={cx(subheaderStyles({ inset, sticky }), className)}
+        className={cx(subheaderStyles({ inset }), className)}
         {...rest}
       />
     );
