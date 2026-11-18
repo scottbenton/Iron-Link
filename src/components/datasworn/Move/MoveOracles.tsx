@@ -9,6 +9,11 @@ import { OracleTable } from "../Oracle/OracleTable";
 export interface MoveOraclesProps {
   move: Datasworn.AnyMove;
 }
+
+// A move's oracles: every roll button first, then the tables. A move with
+// several tables (Delve the Depths' Edge, Shadow and Wits) used to put each
+// button above its own table, so reaching Wits meant going through the other
+// two tables, which is slow with a screen reader.
 export function MoveOracles(props: MoveOraclesProps) {
   const { move } = props;
 
@@ -17,14 +22,28 @@ export function MoveOracles(props: MoveOraclesProps) {
   const { t } = useTranslation();
   const rollOracle = useRollOracleAndAddToLog();
 
-  if (!oracles) {
+  const entries = Object.entries(oracles ?? {});
+
+  if (entries.length === 0) {
     return null;
   }
 
+  // With one table, the roll button right above it already names it.
+  const hideTableLabels = entries.length === 1;
+
   return (
     <Box>
-      {Object.entries(oracles).map(([key, oracle]) => (
-        <Box mt={1} key={key}>
+      <Box
+        role={"group"}
+        aria-label={t("datasworn.move-oracle-rolls", "{{moveName}} rolls", {
+          moveName: move.name,
+        })}
+        display={"flex"}
+        flexWrap={"wrap"}
+        gap={1}
+        mt={1}
+      >
+        {entries.map(([key, oracle]) => (
           <Button
             key={key}
             color="inherit"
@@ -35,7 +54,15 @@ export function MoveOracles(props: MoveOraclesProps) {
               oracleName: oracle.name,
             })}
           </Button>
-          <OracleTable oracle={oracle} />
+        ))}
+      </Box>
+      {entries.map(([key, oracle]) => (
+        <Box mt={1} key={key}>
+          <OracleTable
+            oracle={oracle}
+            label={oracle.name}
+            hideLabel={hideTableLabels}
+          />
         </Box>
       ))}
     </Box>
