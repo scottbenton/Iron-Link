@@ -1,0 +1,97 @@
+# Iron Link UI library
+
+The redesign's component library: Base UI for behaviour, Panda CSS for
+styles, Sonner for toasts, Phosphor for icons. It lives beside MUI while
+screens move over one at a time, so Panda's preflight is off and nothing here
+styles bare elements.
+
+Run `npm run storybook` to browse it. `npm run prepare` (also run by
+`npm install`) generates `src/styled-system`, which is gitignored.
+
+## Layout
+
+```
+src/ui/
+  theme/        tokens, colour schemes, applyUITheme
+  styles/       the entry stylesheet (import once)
+  components/   general components (Button, Dialog, Menu, Field, Tabs, ...)
+  game/         Iron Link's own pieces (stats, tracks, rolls, assets, ...)
+  layout/       app chrome (nav bar, rail, sidebar, page header, ...)
+  docs/         Storybook pages (MDX)
+  stories/      shared story fixtures (Datasworn data, sample characters)
+```
+
+Each component is a folder: `Name/Name.tsx`, `Name/Name.stories.tsx`,
+`Name/index.ts` re-exporting it. Import as `ui/components/Button`.
+
+## Styling
+
+- Style with `css()`, `cva()` or `sva()` from `styled-system/css`, and merge
+  a caller's `className` with `cx`. Every component takes `className`.
+- Layout in stories and screens uses Panda's patterns from
+  `styled-system/jsx` (`Box`, `Stack`, `HStack`, `Grid`, `Flex`), which take
+  style props. They replace MUI's `Box` and `Stack`.
+- Use tokens, never raw values: `bg.surface`, `fg.muted`, `border.default`,
+  `accent.solid`, `radii md`, `spacing 4`. The token list is
+  `theme/tokens.ts`; the Foundations pages show them. Do not edit
+  `panda.config.ts` or `theme/` from a component; say what you need instead.
+- Inside a CSS value use `token(colors.border.subtle)`; for a custom
+  property's value use `{colors.bg.surface}`.
+- Conditions: `_hover`, `_focusVisible`, `_pressed` (`:active` or
+  `[data-pressed]`), `_dark`, `_open`, `_current` (aria-current, selected),
+  `_disabled`, `_startingStyle`/`_endingStyle` (Base UI transitions),
+  `_hoverable` (`@media (hover: hover)`), `_touch` (`pointer: coarse`),
+  `_reducedMotion`, breakpoints `sm` 600, `md` 900, `lg` 1200 and `smDown` etc.
+
+## The look: tactile flat
+
+- Elevation is solid: a 1px border plus a ledge, a solid bottom edge drawn
+  with `box-shadow: 0 var(--border-widths-ledge) 0 <edge colour>`. Only
+  things you can press have a ledge.
+- A press sinks the element `var(--spacing-sink)` (1px) onto its ledge over
+  `durations.instant`. Hover changes colour only (`--spacing-lift` is 0
+  unless the page opts in). Reduced motion zeroes both.
+- Things without a ledge (tabs, menu items, toolbar buttons, list rows) never
+  move; they answer press with `overlay.pressed`.
+- Fields are inset: `bg.field` with `shadows.field`, a 1px
+  `border.control` border, accent border and focus ring on focus.
+- The gradient ring (`gradients.ring`) marks roll and oracle buttons and the
+  current page tab. Stat cards show it only on hover, press and keyboard
+  focus (see `game/StatCard`).
+- Motion: CSS transitions for hover and press; Base UI's
+  `data-starting-style`/`data-ending-style` for enter and exit. Enter with
+  `easings.out` over `durations.normal`, exit faster with `easings.in`.
+  Every movement respects reduced motion.
+- Radii: controls `md` (8px), cards `lg` (12px), dialogs `xl` (16px), chips
+  `full`. Touch targets are 44px under `_touch`.
+- Type: `fonts.heading` (condensed) for titles, labels and numbers;
+  `fonts.body` for everything else. Use `Text` with a `variant`; `as` picks
+  the element separately.
+
+## Iron Link conventions (from CLAUDE.md)
+
+- No ellipsis at the end of a button or menu item label, loading states
+  included ("Creating World").
+- Checkboxes, never switches, for on/off settings in forms.
+- A dialog with inputs and a submit button is a form, so Enter submits:
+  pass `onSubmit` to `Dialog` and give the main button `type="submit"`.
+- Announcements go through `useAnnounce()`; one message per action. A modal
+  dialog makes the page inert, so `Dialog` renders its own live region and
+  `useDialogAnnounce()` reaches it.
+- One h1 per page and headings nest; a label that only looks like a heading
+  keeps a non-heading element (`<Text variant="h3" as="span">`).
+- Roll cards dismiss only through their named button, never a tap on the
+  card. Error toasts persist; in this library no toast dismisses itself.
+- Icon-only buttons are `IconButton` with a `label` (its name and tooltip).
+- Components never call services; data comes in through props and hooks
+  outside the library. Nothing in `src/ui` imports from the app.
+- Strings in components are props with English defaults, so the app can pass
+  translated text.
+
+## Stories
+
+- Every component gets stories: a playground with controls, then one story
+  per meaningful state. Use real Iron Link content (Datasworn moves, assets,
+  oracles from `stories/fixtures`), not lorem ipsum.
+- Check stories in light and dark mode and a few colour schemes from the
+  toolbar, and keep the a11y panel clean.

@@ -1,0 +1,9 @@
+/*
+  Entry stylesheet for the Iron Link library. Import it once, after MUI's
+  CssBaseline. Panda fills the layers below from the components it finds
+  under src/ui; preflight is off while MUI still styles the rest of the app.
+*/
+@import "allo-font";
+@import "@fontsource-variable/sofia-sans-condensed/wght.css";
+
+@layer reset, base, tokens, recipes, utilities;
