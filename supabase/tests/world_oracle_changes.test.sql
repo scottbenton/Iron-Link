@@ -41,7 +41,8 @@ create function pg_temp.change(p_previous text,p_next text,p_rule integer defaul
     || case when p_keep is null then '{}'::jsonb else jsonb_build_object('keep',p_keep) end $$;
 create function pg_temp.record(p_previous text,p_next text,p_rule integer default null) returns integer
   language sql as $$
-  select public.record_world_oracle_changes(pg_temp.w(),jsonb_build_array(pg_temp.change(p_previous,p_next,p_rule))) $$;
+  select public.record_world_oracle_changes(pg_temp.w(),jsonb_build_array(pg_temp.change(p_previous,p_next,p_rule)),
+    public.get_world_playsets(pg_temp.w())) $$;
 create function pg_temp.rolls(p_rule integer default null) returns text language sql security definer as $$
   select replace(coalesce(case when p_rule is null then binding
       else configuration->'rules'->p_rule->'binding' end->>'resolvedOracleId','none'),'oracle_rollable:','')
@@ -74,7 +75,7 @@ select ok(not has_table_privilege('authenticated','public.world_oracle_change_di
   'clients only read dismissals');
 select ok(not has_function_privilege('authenticated','public.world_oracle_apply_changes(uuid,uuid,jsonb)','EXECUTE'),
   'the compare-and-set is not exposed to clients');
-select ok(not has_function_privilege('anon','public.record_world_oracle_changes(uuid,jsonb)','EXECUTE')
+select ok(not has_function_privilege('anon','public.record_world_oracle_changes(uuid,jsonb,jsonb)','EXECUTE')
   and not has_function_privilege('anon','public.update_game_rules(uuid,jsonb,jsonb,jsonb,jsonb)','EXECUTE')
   and not has_function_privilege('anon','public.link_game_to_world(uuid,uuid,jsonb)','EXECUTE')
   and not has_function_privilege('anon','public.unlink_game_from_world(uuid,jsonb)','EXECUTE'),
@@ -139,15 +140,23 @@ select is(pg_temp.record('starforged/name','other/name'),0,'a change from a stal
 reset role;
 select is(pg_temp.rolls(),'starsmith/name','the newer target stays');
 
+-- A reader whose playsets are out of date records nothing.
+set local role authenticated;
+select pg_temp.as_user(2);
+select is(public.record_world_oracle_changes(pg_temp.w(),jsonb_build_array(pg_temp.change('starsmith/name','starforged/name')),
+  '[]'::jsonb),0,'changes worked out from other playsets are not recorded');
+reset role;
+select is(pg_temp.rolls(),'starsmith/name','and move nothing');
+
 -- Nothing moves when the target doesn't.
 set local role authenticated;
 select pg_temp.as_user(2);
 select is(pg_temp.record('starsmith/name','starsmith/name'),0,'a change to the same target is not one');
 select is(pg_temp.outcome($$select public.record_world_oracle_changes(pg_temp.w(),
-  jsonb_build_array(pg_temp.change('starsmith/name','starforged/name',null,true)))$$),
+  jsonb_build_array(pg_temp.change('starsmith/name','starforged/name',null,true)),public.get_world_playsets(pg_temp.w()))$$),
   'P0001 Invalid oracle change','readers cannot pin targets');
 select is(pg_temp.outcome($$select public.record_world_oracle_changes(pg_temp.w(),
-  jsonb_build_array(pg_temp.change('starsmith/name','x/y') || '{"extra":1}'))$$),
+  jsonb_build_array(pg_temp.change('starsmith/name','x/y') || '{"extra":1}'),public.get_world_playsets(pg_temp.w()))$$),
   'P0001 Invalid oracle change','unknown keys are refused');
 reset role;
 select is(pg_temp.changes(),'field: starforged/name -> starsmith/name','nothing new is recorded');

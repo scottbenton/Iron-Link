@@ -271,7 +271,17 @@ revoke all on function public.world_oracle_apply_changes(uuid, uuid, jsonb) from
 -- Nobody chose these, so they always move to the new target (keep is not
 -- accepted) and belong to no game. Only world editors and Guides record, as
 -- they are the people who may change the bindings anyway.
-create function public.record_world_oracle_changes(p_world_id uuid, p_changes jsonb)
+--
+-- p_playsets is the linked playsets (get_world_playsets) the client worked
+-- the targets out from. Realtime brings a game's new playset and the fields a
+-- save dialog moved on separate channels, so a client can briefly hold new
+-- fields and old playsets; recording then would move the fields straight
+-- back. Playsets that no longer match record nothing.
+create function public.record_world_oracle_changes(
+    p_world_id uuid,
+    p_changes jsonb,
+    p_playsets jsonb
+)
  returns integer
  language plpgsql
  security definer
@@ -288,12 +298,21 @@ begin
   ) then
     raise exception 'Invalid oracle change';
   end if;
+  -- Games changing their playsets or links lock the world row too.
+  perform 1 from public.worlds where id = p_world_id for update;
+  if p_playsets is distinct from (
+    select coalesce(jsonb_agg(jsonb_build_object('rulesets', rulesets,
+      'expansions', expansions, 'playset', playset) order by id), '[]'::jsonb)
+    from public.games where world_id = p_world_id
+  ) then
+    return 0;
+  end if;
   return public.world_oracle_apply_changes(p_world_id, null, p_changes);
 end;
 $function$;
 
-revoke execute on function public.record_world_oracle_changes(uuid, jsonb) from public, anon;
-grant execute on function public.record_world_oracle_changes(uuid, jsonb) to authenticated, service_role;
+revoke execute on function public.record_world_oracle_changes(uuid, jsonb, jsonb) from public, anon;
+grant execute on function public.record_world_oracle_changes(uuid, jsonb, jsonb) to authenticated, service_role;
 
 -- ---------------------------------------------------------------------------
 -- 5. The changes that move targets, with the save dialog's choices

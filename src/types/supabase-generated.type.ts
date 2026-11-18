@@ -1593,7 +1593,7 @@ export type Database = {
         Returns: Database["public"]["Tables"]["world_map_chunks"]["Row"][];
       };
       record_world_oracle_changes: {
-        Args: { p_world_id: string; p_changes: Json };
+        Args: { p_world_id: string; p_changes: Json; p_playsets: Json };
         Returns: number;
       };
       reorder_world_categories: {
