@@ -1327,6 +1327,103 @@ export type Database = {
         };
         Relationships: [];
       };
+      world_oracle_change_dismissals: {
+        Row: {
+          dismissed_seq: number;
+          game_id: string;
+          updated_at: string;
+          world_id: string;
+        };
+        Insert: {
+          dismissed_seq: number;
+          game_id: string;
+          updated_at?: string;
+          world_id: string;
+        };
+        Update: {
+          dismissed_seq?: number;
+          game_id?: string;
+          updated_at?: string;
+          world_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "world_oracle_change_dismissals_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "world_oracle_change_dismissals_world_id_fkey";
+            columns: ["world_id"];
+            isOneToOne: false;
+            referencedRelation: "worlds";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      world_oracle_changes: {
+        Row: {
+          created_at: string;
+          field_definition_id: string;
+          id: string;
+          next_oracle_id: string;
+          previous_oracle_id: string;
+          rule_index: number | null;
+          seq: number;
+          source_game_id: string | null;
+          updated_at: string;
+          world_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          field_definition_id: string;
+          id?: string;
+          next_oracle_id: string;
+          previous_oracle_id: string;
+          rule_index?: number | null;
+          seq?: number;
+          source_game_id?: string | null;
+          updated_at?: string;
+          world_id: string;
+        };
+        Update: {
+          created_at?: string;
+          field_definition_id?: string;
+          id?: string;
+          next_oracle_id?: string;
+          previous_oracle_id?: string;
+          rule_index?: number | null;
+          seq?: number;
+          source_game_id?: string | null;
+          updated_at?: string;
+          world_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "world_oracle_changes_field_definition_id_fkey";
+            columns: ["field_definition_id"];
+            isOneToOne: false;
+            referencedRelation: "world_field_definitions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "world_oracle_changes_source_game_id_fkey";
+            columns: ["source_game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "world_oracle_changes_world_id_fkey";
+            columns: ["world_id"];
+            isOneToOne: false;
+            referencedRelation: "worlds";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       world_truth_quest_starters: {
         Row: {
           quest_starter: string;
@@ -1471,8 +1568,16 @@ export type Database = {
         Args: { p_world_id: string };
         Returns: Json;
       };
+      dismiss_world_oracle_changes: {
+        Args: { p_game_id: string; p_seq: number };
+        Returns: undefined;
+      };
       link_game_to_world: {
-        Args: { p_game_id: string; p_world_id: string };
+        Args: {
+          p_game_id: string;
+          p_world_id: string;
+          p_oracle_changes?: Json;
+        };
         Returns: Json;
       };
       mutate_world_configuration: {
@@ -1487,6 +1592,10 @@ export type Database = {
         Args: { p_entry_id: string; p_cells: Json };
         Returns: Database["public"]["Tables"]["world_map_chunks"]["Row"][];
       };
+      record_world_oracle_changes: {
+        Args: { p_world_id: string; p_changes: Json };
+        Returns: number;
+      };
       reorder_world_categories: {
         Args: { p_world_id: string; p_ids: string[] };
         Returns: undefined;
@@ -1494,6 +1603,10 @@ export type Database = {
       reorder_world_fields: {
         Args: { p_category_id: string; p_ids: string[] };
         Returns: undefined;
+      };
+      resolve_world_oracle_change: {
+        Args: { p_change_id: string; p_keep_previous: boolean };
+        Returns: boolean;
       };
       seed_world_template: {
         Args: { p_world_id: string; p_template: Json };
@@ -1521,7 +1634,17 @@ export type Database = {
         Returns: string | null;
       };
       unlink_game_from_world: {
-        Args: { p_game_id: string };
+        Args: { p_game_id: string; p_oracle_changes?: Json };
+        Returns: undefined;
+      };
+      update_game_rules: {
+        Args: {
+          p_game_id: string;
+          p_rulesets: Json;
+          p_expansions: Json;
+          p_playset: Json;
+          p_oracle_changes?: Json;
+        };
         Returns: undefined;
       };
       get_world_effective_categories: {

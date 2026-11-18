@@ -46,13 +46,13 @@ select is((select name from public.worlds where id=pg_temp.existing_world_id('se
 select lives_ok($$select public.update_world_notes(pg_temp.existing_world_id('setting'),'\x00'::bytea)$$,
  'world owners save world notes');
 select is(public.link_game_to_world('e6000000-0000-4000-8000-000000000001',
- pg_temp.existing_world_id('setting')),'{"divergences":[]}'::jsonb,'link RPC retains response contract');
+ pg_temp.existing_world_id('setting')),'{"appliedOracleChanges":0}'::jsonb,'link RPC reports no oracle changes without choices');
 select is((select world_id from public.games where id='e6000000-0000-4000-8000-000000000001'),
  pg_temp.existing_world_id('setting'),'link assigns game world');
 select is((select count(*) from public.games where world_id=pg_temp.existing_world_id('setting')),
  1::bigint,'existing delete confirmation can count linked games');
 select is(public.link_game_to_world('e6000000-0000-4000-8000-000000000001',
- pg_temp.existing_world_id('blank')),'{"divergences":[]}'::jsonb,'change world RPC retains response');
+ pg_temp.existing_world_id('blank')),'{"appliedOracleChanges":0}'::jsonb,'change world RPC reports no oracle changes without choices');
 select lives_ok($$select public.unlink_game_from_world('e6000000-0000-4000-8000-000000000001')$$,
  'existing unlink RPC succeeds');
 select is((select world_id from public.games where id='e6000000-0000-4000-8000-000000000001'),
