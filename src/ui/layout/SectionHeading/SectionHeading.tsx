@@ -1,39 +1,23 @@
 import { ReactNode } from "react";
 
-import { css, cva, cx } from "styled-system/css";
+import { css, cx } from "styled-system/css";
 
-const rootStyles = cva({
-  base: {
-    boxSizing: "border-box",
-    display: "flex",
-    flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "space-between",
-    columnGap: "4",
-    rowGap: "2",
-    color: "fg.default",
-    fontFamily: "body",
-  },
-  variants: {
-    variant: {
-      /** A heading on the page, with a rule under it. */
-      plain: {
-        paddingBlockEnd: "2",
-        borderBottom: "1px solid token(colors.border.subtle)",
-      },
-      /** A muted band, for sections inside a dense sheet. */
-      band: {
-        minHeight: "40px",
-        paddingBlock: "1",
-        paddingInline: "3",
-        borderRadius: "md",
-        background: "bg.emphasized",
-      },
-      /** No rule or band. */
-      bare: {},
-    },
-  },
-  defaultVariants: { variant: "plain" },
+/** A muted band, for sections inside a dense sheet. */
+const rootStyles = css({
+  boxSizing: "border-box",
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  justifyContent: "space-between",
+  columnGap: "4",
+  rowGap: "2",
+  minHeight: "40px",
+  paddingBlock: "1",
+  paddingInline: "3",
+  borderRadius: "md",
+  background: "bg.emphasized",
+  color: "fg.default",
+  fontFamily: "body",
 });
 
 const textStyles = css({
@@ -44,34 +28,19 @@ const textStyles = css({
   minWidth: 0,
 });
 
-const headingStyles = cva({
-  base: {
-    margin: 0,
-    fontFamily: "heading",
-    fontWeight: "bold",
-    lineHeight: "tight",
-    textWrap: "balance",
-    overflowWrap: "anywhere",
-  },
-  variants: {
-    level: { h2: {}, h3: {} },
-    variant: { plain: {}, bare: {}, band: {} },
-  },
-  compoundVariants: [
-    { level: "h2", variant: ["plain", "bare"], css: { fontSize: "xl" } },
-    { level: "h3", variant: ["plain", "bare"], css: { fontSize: "lg" } },
-    // The band's label is quieter: uppercase and muted, like the old grey
-    // section headings on the sheet.
-    {
-      variant: "band",
-      css: {
-        fontSize: "md",
-        textTransform: "uppercase",
-        letterSpacing: "label",
-        color: "fg.muted",
-      },
-    },
-  ],
+// The label is quiet: uppercase and muted, like the old grey section
+// headings on the sheet.
+const headingStyles = css({
+  margin: 0,
+  fontFamily: "heading",
+  fontWeight: "bold",
+  fontSize: "md",
+  lineHeight: "tight",
+  textTransform: "uppercase",
+  letterSpacing: "label",
+  color: "fg.muted",
+  textWrap: "balance",
+  overflowWrap: "anywhere",
 });
 
 const descriptionStyles = css({
@@ -98,11 +67,13 @@ export interface SectionHeadingProps {
   description?: ReactNode;
   /** Buttons at the end of the row. */
   actions?: ReactNode;
-  variant?: "plain" | "band" | "bare";
   className?: string;
 }
 
-/** A section's heading with optional actions beside it. */
+/**
+ * A section's heading in a muted band, with optional actions beside it, for
+ * sections inside a dense sheet.
+ */
 export function SectionHeading(props: SectionHeadingProps) {
   const {
     title,
@@ -110,14 +81,13 @@ export function SectionHeading(props: SectionHeadingProps) {
     id,
     description,
     actions,
-    variant = "plain",
     className,
   } = props;
 
   return (
-    <div className={cx(rootStyles({ variant }), className)}>
+    <div className={cx(rootStyles, className)}>
       <div className={textStyles}>
-        <Heading id={id} className={headingStyles({ level: Heading, variant })}>
+        <Heading id={id} className={headingStyles}>
           {title}
         </Heading>
         {description && <p className={descriptionStyles}>{description}</p>}

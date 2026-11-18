@@ -10,12 +10,9 @@ const gradientBoxStyles = cva({
     borderRadius: "var(--gradient-box-radius)",
     color: "fg.default",
     "--gradient-box-fill": "var(--gradients-ring)",
+    "--gradient-box-border": "2px",
   },
   variants: {
-    gradient: {
-      ring: { "--gradient-box-fill": "var(--gradients-ring)" },
-      icon: { "--gradient-box-fill": "var(--gradients-icon)" },
-    },
     variant: {
       /**
        * A gradient border around a surface. Drawn as two backgrounds (the
@@ -35,29 +32,10 @@ const gradientBoxStyles = cva({
         color: "white",
         textShadow: "0 1px 1px rgb(0 0 0 / 0.25)",
       },
-      /** A faint wash of the gradient over the surface, for soft highlights. */
-      wash: {
-        borderWidth: "1px",
-        borderStyle: "solid",
-        borderColor: "border.default",
-        background:
-          "linear-gradient(color-mix(in oklab, token(colors.bg.surface) 86%, transparent), color-mix(in oklab, token(colors.bg.surface) 86%, transparent)), var(--gradient-box-fill)",
-        _dark: {
-          background:
-            "linear-gradient(color-mix(in oklab, token(colors.bg.surface) 80%, transparent), color-mix(in oklab, token(colors.bg.surface) 80%, transparent)), var(--gradient-box-fill)",
-        },
-      },
-    },
-    thickness: {
-      thin: { "--gradient-box-border": "1px" },
-      medium: { "--gradient-box-border": "2px" },
-      thick: { "--gradient-box-border": "3px" },
     },
     radius: {
-      none: { "--gradient-box-radius": "0" },
       md: { "--gradient-box-radius": "{radii.md}" },
       lg: { "--gradient-box-radius": "{radii.lg}" },
-      xl: { "--gradient-box-radius": "{radii.xl}" },
       full: { "--gradient-box-radius": "{radii.full}" },
     },
     spin: {
@@ -113,21 +91,16 @@ const gradientBoxStyles = cva({
     },
   ],
   defaultVariants: {
-    gradient: "ring",
     variant: "border",
-    thickness: "medium",
     radius: "lg",
   },
 });
 
 type GradientBoxOwnProps<E extends ElementType> = {
-  /** Which brand gradient: `ring` (roll buttons) or `icon` (the logo). */
-  gradient?: "ring" | "icon";
-  /** A gradient border, a gradient fill, or a faint gradient wash. */
-  variant?: "border" | "fill" | "wash";
-  /** Border width for the `border` variant. */
-  thickness?: "thin" | "medium" | "thick";
-  radius?: "none" | "md" | "lg" | "xl" | "full";
+  /** A 2px gradient border (the default) or a gradient fill. */
+  variant?: "border" | "fill";
+  /** Controls `md`, cards `lg` (the default), pills `full`. */
+  radius?: "md" | "lg" | "full";
   /**
    * Turn the gradient slowly, like a roll button's ring. Stops under reduced
    * motion. Off by default: a highlight should not move unless it matters.
@@ -144,26 +117,19 @@ export type GradientBoxProps<E extends ElementType = "div"> =
     Omit<ComponentPropsWithoutRef<E>, keyof GradientBoxOwnProps<E>>;
 
 /**
- * A box marked with one of the scheme's gradients: as a border, a fill, or a
- * faint wash. For highlights, such as the active character or a featured
- * card. Follows the page's colour scheme.
+ * A box marked with the scheme's ring gradient (the roll buttons'), as a
+ * border or a fill: the current page's pill in the nav, the gradient
+ * button. Follows the page's colour scheme.
  */
 export function GradientBox<E extends ElementType = "div">(
   props: GradientBoxProps<E>,
 ) {
-  const { gradient, variant, thickness, radius, spin, as, className, ...rest } =
-    props;
+  const { variant, radius, spin, as, className, ...rest } = props;
   const Element: ElementType = as ?? "div";
   return (
     <Element
       className={cx(
-        gradientBoxStyles({
-          gradient,
-          variant,
-          thickness,
-          radius,
-          spin: spin || undefined,
-        }),
+        gradientBoxStyles({ variant, radius, spin: spin || undefined }),
         className,
       )}
       {...rest}

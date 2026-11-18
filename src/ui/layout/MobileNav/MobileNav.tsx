@@ -170,7 +170,6 @@ export function MobileNav(props: MobileNavProps) {
               data-part="pill"
               data-gradient=""
               radius="full"
-              thickness="medium"
               spin
             >
               {icon}

@@ -175,18 +175,17 @@ function RollButton(props: { label: string; onRoll: () => void }) {
   );
 }
 
-function SettlementDetails(props: { variant: "outline" | "quiet" }) {
-  const { variant } = props;
+function SettlementDetails() {
   const [trouble, setTrouble] = useState("Supply shortage");
   const [firstLook, setFirstLook] = useState("");
   const roll = (from: string[]) =>
     from[Math.floor(Math.random() * from.length)];
 
   return (
-    <section className={panelStyles} aria-labelledby={`details-${variant}`}>
+    <section className={panelStyles} aria-labelledby="settlement-details">
       <div className={panelHeadStyles}>
         <Note aria-hidden />
-        <Text variant="eyebrow" as="h2" id={`details-${variant}`}>
+        <Text variant="eyebrow" as="h2" id="settlement-details">
           Details
         </Text>
       </div>
@@ -199,7 +198,7 @@ function SettlementDetails(props: { variant: "outline" | "quiet" }) {
       >
         <Select
           size="sm"
-          variant={variant}
+          variant="quiet"
           label="Population"
           placeholder="Empty"
           options={populations}
@@ -207,7 +206,7 @@ function SettlementDetails(props: { variant: "outline" | "quiet" }) {
         />
         <Select
           size="sm"
-          variant={variant}
+          variant="quiet"
           label="Authority"
           placeholder="Empty"
           options={authorities}
@@ -215,7 +214,7 @@ function SettlementDetails(props: { variant: "outline" | "quiet" }) {
         />
         <TextField
           size="sm"
-          variant={variant}
+          variant="quiet"
           label="First look"
           placeholder="Empty"
           value={firstLook}
@@ -238,7 +237,7 @@ function SettlementDetails(props: { variant: "outline" | "quiet" }) {
         />
         <TextField
           size="sm"
-          variant={variant}
+          variant="quiet"
           label="Trouble"
           placeholder="Empty"
           value={trouble}
@@ -253,7 +252,7 @@ function SettlementDetails(props: { variant: "outline" | "quiet" }) {
         <Combobox
           className={fullRow}
           size="sm"
-          variant={variant}
+          variant="quiet"
           multiple
           freeText
           label="Projects"
@@ -265,7 +264,7 @@ function SettlementDetails(props: { variant: "outline" | "quiet" }) {
         <TextArea
           className={fullRow}
           size="sm"
-          variant={variant}
+          variant="quiet"
           label="Guide's note"
           placeholder="Empty"
           minRows={2}
@@ -283,13 +282,7 @@ function SettlementDetails(props: { variant: "outline" | "quiet" }) {
  */
 export const WorldEntryFields: Story = {
   name: "World entry fields",
-  render: () => <SettlementDetails variant="quiet" />,
-};
-
-/** The same panel with outlined compact fields, for a form-like entry. */
-export const WorldEntryFieldsOutlined: Story = {
-  name: "World entry fields, outlined",
-  render: () => <SettlementDetails variant="outline" />,
+  render: () => <SettlementDetails />,
 };
 
 /** Default and compact sizes side by side, with help and an error. */

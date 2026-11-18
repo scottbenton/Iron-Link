@@ -1,18 +1,15 @@
 import { PlusIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Stack } from "ui/primitives";
-
 import { Button } from "../../components/Button";
 import { SectionHeading } from "./SectionHeading";
 
 const meta: Meta<typeof SectionHeading> = {
   title: "Layout/SectionHeading",
   component: SectionHeading,
-  args: { title: "Characters", as: "h2", variant: "plain" },
+  args: { title: "Characters", as: "h2" },
   argTypes: {
     as: { control: "inline-radio", options: ["h2", "h3"] },
-    variant: { control: "inline-radio", options: ["plain", "band", "bare"] },
   },
 };
 
@@ -31,14 +28,4 @@ export const WithDescriptionAndAction: Story = {
       </Button>
     ),
   },
-};
-
-export const Variants: Story = {
-  render: () => (
-    <Stack gap="6">
-      <SectionHeading title="Vows" variant="plain" />
-      <SectionHeading title="Assets" variant="band" as="h3" />
-      <SectionHeading title="Bonds" variant="bare" as="h3" />
-    </Stack>
-  ),
 };

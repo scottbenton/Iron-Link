@@ -341,7 +341,7 @@ function SheetScreen(props: {
           <Stack gap="3">
             <AddsControl value={adds} onChange={setAdds} stepperSize="touch" />
             <Stack gap="2" as="section">
-              <SectionHeading title="Stats" as="h3" variant="band" />
+              <SectionHeading title="Stats" as="h3" />
               <StatGrid
                 stats={statKeys.map((key) => ({
                   key,
@@ -355,7 +355,7 @@ function SheetScreen(props: {
           </Stack>
 
           <Stack gap="2" as="section">
-            <SectionHeading title="Meters" as="h3" variant="band" />
+            <SectionHeading title="Meters" as="h3" />
             <div className={meterGridStyles}>
               {meterKeys.map((meter) => (
                 <ConditionMeter
@@ -389,7 +389,6 @@ function SheetScreen(props: {
             <SectionHeading
               title={ruleset === "ironsworn" ? "Debilities" : "Impacts"}
               as="h3"
-              variant="band"
             />
             <ImpactsSummary
               groups={impactGroups}
@@ -403,7 +402,7 @@ function SheetScreen(props: {
 
           {ruleset === "starforged" && (
             <Stack gap="2" as="section">
-              <SectionHeading title="Legacy Tracks" as="h3" variant="band" />
+              <SectionHeading title="Legacy Tracks" as="h3" />
               <ProgressTrack label="Quests" ticks={14} legacy />
               <ProgressTrack label="Bonds" ticks={6} legacy />
               <ProgressTrack label="Discoveries" ticks={9} legacy />
@@ -411,7 +410,7 @@ function SheetScreen(props: {
           )}
 
           <Stack gap="2" as="section">
-            <SectionHeading title="Experience" as="h3" variant="band" />
+            <SectionHeading title="Experience" as="h3" />
             <XPMeter label="Unspent Experience" value={xp} onChange={setXp} />
           </Stack>
         </Stack>
@@ -797,7 +796,7 @@ function MovesScreen(props: { ruleset: PhoneRuleset }) {
     <Stack gap="5" className={referenceStyles}>
       {getMoveCategories(props.ruleset).map((category) => (
         <Stack key={category.name} gap="1" as="section">
-          <SectionHeading title={category.name} as="h3" variant="band" />
+          <SectionHeading title={category.name} as="h3" />
           {Object.values(category.contents).map((move) => (
             <MoveListItem key={move._id} move={move} />
           ))}
@@ -815,7 +814,7 @@ function OraclesScreen(props: {
     <Stack gap="5" className={referenceStyles}>
       {getOracleCollections(props.ruleset).map((collection) => (
         <Stack key={collection.name} gap="1" as="section">
-          <SectionHeading title={collection.name} as="h3" variant="band" />
+          <SectionHeading title={collection.name} as="h3" />
           {collection.oracles.map((oracle) => (
             <OracleListItem
               key={oracle._id}

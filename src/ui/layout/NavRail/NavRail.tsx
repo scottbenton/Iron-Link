@@ -196,7 +196,6 @@ export function NavRail(props: NavRailProps) {
                     data-gradient=""
                     aria-hidden="true"
                     radius="full"
-                    thickness="medium"
                     spin
                   >
                     {item.currentIcon ?? item.icon}

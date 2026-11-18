@@ -224,7 +224,7 @@ export function CharacterColumn(
           <Stack gap="3">
             <AddsControl value={adds} onChange={setAdds} />
             <Stack gap="2" as="section">
-              <SectionHeading title="Stats" as="h3" variant="band" />
+              <SectionHeading title="Stats" as="h3" />
               <StatGrid
                 stats={statKeys.map((key) => ({
                   key,
@@ -238,7 +238,7 @@ export function CharacterColumn(
           </Stack>
 
           <Stack gap="2" as="section">
-            <SectionHeading title="Meters" as="h3" variant="band" />
+            <SectionHeading title="Meters" as="h3" />
             <Flex gap="2" flexWrap="wrap">
               {meterKeys.map((meter) => (
                 <ConditionMeter
@@ -267,7 +267,7 @@ export function CharacterColumn(
           </Stack>
 
           <Stack gap="2" as="section">
-            <SectionHeading title="Impacts" as="h3" variant="band" />
+            <SectionHeading title="Impacts" as="h3" />
             <ImpactsSummary
               groups={impactGroups}
               value={impacts}
@@ -278,7 +278,7 @@ export function CharacterColumn(
           </Stack>
 
           <Stack gap="2" as="section">
-            <SectionHeading title="Legacy Tracks" as="h3" variant="band" />
+            <SectionHeading title="Legacy Tracks" as="h3" />
             {legacyTracks.map((track) => (
               <ProgressTrack
                 key={track.key}
@@ -290,7 +290,7 @@ export function CharacterColumn(
           </Stack>
 
           <Stack gap="2" as="section">
-            <SectionHeading title="Experience" as="h3" variant="band" />
+            <SectionHeading title="Experience" as="h3" />
             <XPMeter label="Unspent Experience" value={xp} onChange={setXp} />
           </Stack>
         </Stack>

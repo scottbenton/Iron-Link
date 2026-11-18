@@ -1,4 +1,4 @@
-import { DotsThreeIcon, ShareNetworkIcon } from "@phosphor-icons/react";
+import { DotsThreeIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { css, cx } from "styled-system/css";
@@ -14,9 +14,6 @@ const meta: Meta<typeof NavBar> = {
   component: NavBar,
   parameters: { layout: "fullscreen" },
   args: { title: "The Iron Expanse", items: getNavItems("games") },
-  argTypes: {
-    wideLayout: { control: "inline-radio", options: ["hidden", "bar"] },
-  },
 };
 
 export default meta;
@@ -73,19 +70,4 @@ export const WideHidden: Story = {
       <NavBar {...args} />
     </div>
   ),
-};
-
-/** A wide screen without a rail: logo, title and links in one bar. */
-export const WideBar: Story = {
-  ...WideHidden,
-  args: {
-    wideLayout: "bar",
-    title: "Reference",
-    items: getNavItems("reference"),
-    actions: (
-      <IconButton label="Share">
-        <ShareNetworkIcon />
-      </IconButton>
-    ),
-  },
 };

@@ -27,7 +27,7 @@ export const Default: Story = {};
 export const Variants: Story = {
   render: () => (
     <Stack gap="3">
-      {(["outline", "soft", "filled"] as const).map((variant) => (
+      {(["outline", "soft"] as const).map((variant) => (
         <HStack key={variant} gap="2" flexWrap="wrap">
           <Chip variant={variant}>Neutral</Chip>
           <Chip variant={variant} tone="accent" icon={<CompassIcon />}>

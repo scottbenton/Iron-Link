@@ -75,56 +75,35 @@ const chipStyles = cva({
         "--chip-border": "color-mix(in oklab, var(--chip-fg) 22%, transparent)",
         "--chip-color": "var(--chip-fg)",
       },
-      filled: {
-        "--chip-bg": "var(--chip-solid)",
-        "--chip-hover":
-          "color-mix(in oklab, var(--chip-solid) 88%, var(--chip-on-solid))",
-        "--chip-border": "var(--chip-solid)",
-        "--chip-color": "var(--chip-on-solid)",
-      },
     },
     tone: {
       neutral: {
         "--chip-fg": "{colors.fg.default}",
         "--chip-soft": "{colors.bg.emphasized}",
-        "--chip-solid": "{colors.fg.default}",
-        "--chip-on-solid": "{colors.bg.surface}",
       },
       accent: {
         "--chip-fg": "{colors.accent.fg}",
         "--chip-soft": "{colors.accent.soft}",
-        "--chip-solid": "{colors.accent.solid}",
-        "--chip-on-solid": "{colors.accent.onSolid}",
       },
       success: {
         "--chip-fg": "{colors.success.fg}",
         "--chip-soft": "{colors.success.soft}",
-        "--chip-solid": "{colors.success.fg}",
-        "--chip-on-solid": "{colors.bg.surface}",
       },
       warning: {
         "--chip-fg": "{colors.warning.fg}",
         "--chip-soft": "{colors.warning.soft}",
-        "--chip-solid": "{colors.warning.fg}",
-        "--chip-on-solid": "{colors.bg.surface}",
       },
       danger: {
         "--chip-fg": "{colors.danger.fg}",
         "--chip-soft": "{colors.danger.soft}",
-        "--chip-solid": "{colors.danger.solid}",
-        "--chip-on-solid": "{colors.danger.onSolid}",
       },
       info: {
         "--chip-fg": "{colors.info.fg}",
         "--chip-soft": "{colors.info.soft}",
-        "--chip-solid": "{colors.info.fg}",
-        "--chip-on-solid": "{colors.bg.surface}",
       },
       cursed: {
         "--chip-fg": "{colors.cursed.fg}",
         "--chip-soft": "{colors.cursed.soft}",
-        "--chip-solid": "{colors.cursed.fg}",
-        "--chip-on-solid": "{colors.bg.surface}",
       },
     },
     size: {
@@ -237,7 +216,7 @@ const removeStyles = css({
 export interface ChipProps {
   /** The chip's text. */
   children: ReactNode;
-  variant?: "outline" | "soft" | "filled";
+  variant?: "outline" | "soft";
   tone?: ChipTone;
   size?: "sm" | "md";
   /** An icon before the text. */

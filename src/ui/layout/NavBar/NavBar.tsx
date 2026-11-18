@@ -8,7 +8,7 @@ import { IconButton } from "../../components/IconButton";
 import { Logo } from "../Logo";
 import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
 import { NavItem } from "../shared/navItem";
-import { phoneOnly, wideOnly } from "../shared/shell";
+import { phoneOnly } from "../shared/shell";
 
 const barStyles = css({
   boxSizing: "border-box",
@@ -22,13 +22,8 @@ const barStyles = css({
   color: "fg.default",
   fontFamily: "body",
   paddingTop: "env(safe-area-inset-top, 0px)",
-});
-
-/**
- * With `wideLayout="hidden"` the bar is gone on wide screens (the rail has
- * the logo and the links), and only its heading stays, for screen readers.
- */
-const hiddenOnWideStyles = css({
+  // On wide screens the bar is gone (the rail has the logo and the links),
+  // and only its heading stays, for screen readers.
   "@container shell (min-width: 900px)": {
     position: "static",
     padding: 0,
@@ -107,54 +102,6 @@ const actionsStyles = css({
   alignItems: "center",
   gap: "1",
   flex: "none",
-});
-
-const inlineNavStyles = css({
-  alignSelf: "stretch",
-  "& ul": {
-    display: "flex",
-    height: "100%",
-    gap: "1",
-    margin: 0,
-    padding: 0,
-    listStyle: "none",
-  },
-  "& li": { display: "flex" },
-});
-
-const inlineLinkStyles = css({
-  position: "relative",
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "1.5",
-  paddingInline: "3",
-  color: "fg.muted",
-  fontSize: "sm",
-  fontWeight: "semibold",
-  textDecoration: "none",
-  whiteSpace: "nowrap",
-  outline: "none",
-  transition: "color token(durations.fast) linear",
-  "& svg": { width: "18px", height: "18px", flex: "none" },
-  _before: {
-    content: '""',
-    position: "absolute",
-    insetInline: "1.5",
-    bottom: "-1px",
-    height: "3px",
-    borderTopRadius: "3px",
-    background: "token(gradients.ring)",
-    scale: "0 1",
-    transition: "scale token(durations.normal) token(easings.out)",
-    _reducedMotion: { transition: "none" },
-  },
-  _hover: { color: "fg.default" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-6px",
-    borderRadius: "md",
-  },
-  _current: { color: "fg.default", _before: { scale: "1 1" } },
 });
 
 const secondaryRowStyles = css({
@@ -284,8 +231,7 @@ export interface NavBarProps {
   homeLabel?: string;
   /**
    * The main destinations. On phones they open from a menu button in a
-   * drawer; with `wideLayout="bar"` they also sit in the bar on wide screens.
-   * Leave out when the page has a MobileNav bottom bar instead.
+   * drawer. Leave out when the page has a MobileNav bottom bar instead.
    */
   items?: NavItem[];
   /** Shows a back button on phones, linking here (a game's character to the game). */
@@ -295,12 +241,6 @@ export interface NavBarProps {
   actions?: ReactNode;
   /** A second row under the bar, such as section tabs on phones. */
   secondaryRow?: ReactNode;
-  /**
-   * `hidden` (default): on wide screens the bar is gone, for pages with a
-   * NavRail, and only the h1 remains for screen readers. `bar`: the bar
-   * stays on wide screens with the logo, links and actions.
-   */
-  wideLayout?: "hidden" | "bar";
   /** The navigation landmark's name. */
   navLabel?: string;
   menuLabel?: string;
@@ -315,8 +255,8 @@ export interface NavBarProps {
 /**
  * The top app bar. On phones it holds the menu or back button, the page
  * title (the page's h1) and actions, with an optional second row of tabs.
- * On wide screens it is either hidden but for its h1 (beside a NavRail) or
- * a bar with the logo, inline links and actions.
+ * On wide screens, beside a NavRail, it is hidden but for its h1, which
+ * stays for screen readers.
  *
  * Put it inside `<main>` (AppShell's `topBar` does), so route focus finds
  * its h1 there.
@@ -332,7 +272,6 @@ export function NavBar(props: NavBarProps) {
     backLabel = "Go Back",
     actions,
     secondaryRow,
-    wideLayout = "hidden",
     navLabel = "Main",
     menuLabel = "Open Navigation Menu",
     closeMenuLabel = "Close Navigation Menu",
@@ -347,7 +286,6 @@ export function NavBar(props: NavBarProps) {
   // not back on the menu button.
   const navigatedRef = useRef(false);
 
-  const hiddenOnWide = wideLayout === "hidden";
   const hasMenu = !!items && items.length > 0;
 
   const logoContent = (
@@ -361,14 +299,8 @@ export function NavBar(props: NavBarProps) {
     <span className={homeLinkStyles}>{logoContent}</span>
   );
 
-  // Phones show the logo when there is no title; wide bars always do.
-  const showLogo = !title || !hiddenOnWide;
-  const logoClass = !title ? (hiddenOnWide ? phoneOnly : undefined) : wideOnly;
-
   return (
-    <header
-      className={cx(barStyles, hiddenOnWide && hiddenOnWideStyles, className)}
-    >
+    <header className={cx(barStyles, className)}>
       <div className={rowStyles} data-part="row">
         {hasMenu && (
           <span className={phoneOnly}>
@@ -447,49 +379,22 @@ export function NavBar(props: NavBarProps) {
             </IconButton>
           </span>
         )}
-        {showLogo && (
-          <span className={cx(logoSlotStyles, logoClass)}>{logo}</span>
+        {/* Phones show the logo when there is no title. */}
+        {!title && (
+          <span className={cx(logoSlotStyles, phoneOnly)}>{logo}</span>
         )}
         {title && (
           <h1 id={titleId} className={cx(titleStyles, srOnlyOnWideStyles)}>
             {title}
           </h1>
         )}
-        {!hiddenOnWide && hasMenu && (
-          <nav aria-label={navLabel} className={cx(inlineNavStyles, wideOnly)}>
-            <ul>
-              {items.map((item) => (
-                <li key={item.id}>
-                  <Link
-                    href={item.href}
-                    className={inlineLinkStyles}
-                    aria-current={item.current ? "page" : undefined}
-                  >
-                    <span aria-hidden="true" className={iconSlotStyles}>
-                      {item.current
-                        ? (item.currentIcon ?? item.icon)
-                        : item.icon}
-                    </span>
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        )}
-        {(!title || !hiddenOnWide) && (
-          <span className={cx(spacerStyles, hiddenOnWide && phoneOnly)} />
-        )}
+        {!title && <span className={cx(spacerStyles, phoneOnly)} />}
         {actions && (
-          <div className={cx(actionsStyles, hiddenOnWide && phoneOnly)}>
-            {actions}
-          </div>
+          <div className={cx(actionsStyles, phoneOnly)}>{actions}</div>
         )}
       </div>
       {secondaryRow && (
-        <div className={cx(secondaryRowStyles, hiddenOnWide && phoneOnly)}>
-          {secondaryRow}
-        </div>
+        <div className={cx(secondaryRowStyles, phoneOnly)}>{secondaryRow}</div>
       )}
     </header>
   );
