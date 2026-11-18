@@ -1,6 +1,7 @@
 import { PropsWithChildren } from "react";
 
 import { Announce, AnnouncerProvider } from "../Announcer";
+import { ConfirmProvider } from "../ConfirmDialog";
 import { Toaster } from "../Toast";
 import { TooltipProvider } from "../Tooltip";
 
@@ -11,15 +12,15 @@ export interface UIProviderProps extends PropsWithChildren {
 
 /**
  * Mount once near the root. Shares the tooltip delay, renders the toast
- * viewport and the announcer. Colour mode and scheme are attributes on
- * <html>; set them with applyUITheme.
+ * viewport, the announcer and the dialog behind `useConfirm()`. Colour
+ * mode and scheme are attributes on <html>; set them with applyUITheme.
  */
 export function UIProvider(props: UIProviderProps) {
   const { announce, children } = props;
   return (
     <AnnouncerProvider announce={announce}>
       <TooltipProvider delay={500} closeDelay={0}>
-        {children}
+        <ConfirmProvider>{children}</ConfirmProvider>
         <Toaster />
       </TooltipProvider>
     </AnnouncerProvider>
