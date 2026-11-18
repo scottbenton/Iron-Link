@@ -47,6 +47,7 @@ export interface IWorldOracleChange {
 // the save dialog: the moves, plus what labels them.
 export interface WorldOracleChangePreview {
   worldId: string;
+  worldName: string;
   changes: WorldOracleTargetChange[];
   configuration: IWorldConfiguration;
   // Oracle labels by id, for both ends of every change.
@@ -172,7 +173,13 @@ export class WorldOracleChangesService {
       WorldConfigurationService.convertConfigurationDTO(configurationDTO);
     const fields = Object.values(configuration.fieldDefinitions);
     if (!configuration.configurationCustomized) {
-      return { worldId, changes: [], configuration, oracleLabels: {} };
+      return {
+        worldId,
+        worldName: world.name,
+        changes: [],
+        configuration,
+        oracleLabels: {},
+      };
     }
     const catalog = await loadWorldOracleCatalog({
       linkedGames: proposeGames(linkedGames),
@@ -196,7 +203,13 @@ export class WorldOracleChangesService {
         .filter((choice) => ids.has(choice.id))
         .map((choice) => [choice.id, choice.label]),
     );
-    return { worldId, changes, configuration, oracleLabels };
+    return {
+      worldId,
+      worldName: world.name,
+      changes,
+      configuration,
+      oracleLabels,
+    };
   }
 
   private static convertDTO(change: WorldOracleChangeDTO): IWorldOracleChange {
