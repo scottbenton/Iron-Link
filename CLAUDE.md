@@ -79,9 +79,10 @@ that are easy to miss. When you learn a new one, add a line here.
 - Unit tests: `npx vitest run`. Suites that import the Supabase client need
   `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` set (a gitignored
   `.env.local` with placeholder values is enough).
-- GitHub Actions (`.github/workflows/ci.yaml`) runs unit tests, lint and
-  database tests on every PR and on main. The Cloudflare Pages build only
-  type-checks and builds, so keep tests out of `npm run build`.
+- GitHub Actions (`.github/workflows/ci.yaml`) runs unit tests, lint, a
+  Prettier check (`npm run format` fixes it) and database tests on every PR
+  and on main. The Cloudflare Pages build only type-checks and builds, so
+  keep tests out of `npm run build`.
 - Database tests: `npm run test:db` (pgTAP under `supabase/tests/`).
 - After changing a world template migration, regenerate
   `supabase/world-defaults.json` and `.md` with

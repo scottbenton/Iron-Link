@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import { ColorScheme } from "repositories/shared.types";
+
 import { CharacterService } from "services/character.service";
 import { GameService } from "services/game.service";
-
-import { ColorScheme } from "repositories/shared.types";
 
 /**
  * Every ColorScheme a user can pick must survive the DTO -> model conversion.

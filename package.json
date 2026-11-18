@@ -10,6 +10,7 @@
     "build:cloudflare": "bash scripts/build-cloudflare.sh",
     "lint": "eslint .",
     "format": "eslint . --fix && prettier . --write",
+    "format:check": "prettier . --check",
     "preview": "vite preview",
     "test": "vitest",
     "test:db": "supabase test db",

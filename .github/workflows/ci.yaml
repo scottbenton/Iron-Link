@@ -47,6 +47,9 @@ jobs:
 
       - run: npm run lint
 
+      - name: Check formatting
+        run: npm run format:check
+
   test:
     runs-on: ubuntu-latest
 
