@@ -95,16 +95,14 @@ jobs:
 
   # Builds and uploads to Cloudflare Pages only once every check above has
   # passed, in place of Cloudflare's own Git builds (turned off under Branch
-  # control in its dashboard). The job stays off until the
-  # CLOUDFLARE_DEPLOY_ENABLED repository variable is "true". PRs from forks
-  # have no secrets, so they get no preview.
+  # control in its dashboard). PRs from forks have no secrets, so they get no
+  # preview.
   deploy:
     name: Deploy
     needs: [unit, lint, test]
     if: >-
-      vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' &&
-      (github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name == github.repository)
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     # Build settings live in two GitHub environments, matching Cloudflare's
     # Production and Preview settings.
