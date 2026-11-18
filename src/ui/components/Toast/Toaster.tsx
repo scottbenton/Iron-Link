@@ -1,3 +1,4 @@
+import { Broom } from "@phosphor-icons/react";
 import { CSSProperties, useLayoutEffect, useRef, useState } from "react";
 import { Toaster as SonnerToaster, useSonner } from "sonner";
 
@@ -60,16 +61,11 @@ const toastItemStyles = css({
   },
 });
 
-/** A pill-shaped Clear All, sized to the footer. */
-const clearAllStyles = css({
-  "[data-toast-footer] > &": {
-    minHeight: "28px",
-    borderRadius: "full",
-    _touch: { minHeight: "touch" },
-  },
-});
-
-/** Clear All (and the hidden count) under the stack, on a small card. */
+/**
+ * Under the stack: Clear All as a pill button of its own (the whole pill is
+ * the button), with the hidden count beside it as a quiet label pill. The
+ * footer itself draws nothing, so the button's label centres in its pill.
+ */
 const footerStyles = css({
   position: "fixed",
   zIndex: "toast",
@@ -78,20 +74,33 @@ const footerStyles = css({
   translate: "-50% 0",
   display: "flex",
   alignItems: "center",
-  gap: "1",
-  minHeight: "36px",
-  paddingInlineStart: "3",
-  paddingInlineEnd: "1",
+  gap: "2",
+  whiteSpace: "nowrap",
+  "& > [data-toast-clear-all]": {
+    borderRadius: "full",
+    paddingInline: "3",
+    boxShadow: "popover",
+    _hover: { boxShadow: "popover", transform: "none" },
+    _pressed: { boxShadow: "popover" },
+  },
+});
+
+/** "2 more", a label pill beside Clear All. */
+const moreStyles = css({
+  display: "inline-flex",
+  alignItems: "center",
+  minHeight: "32px",
+  paddingInline: "3",
   borderRadius: "full",
   borderWidth: "1px",
   borderStyle: "solid",
-  borderColor: "border.control",
+  borderColor: "border.default",
   background: "bg.surface",
   boxShadow: "popover",
   color: "fg.muted",
   fontFamily: "body",
   fontSize: "xs",
-  whiteSpace: "nowrap",
+  fontWeight: "medium",
 });
 
 export interface ToasterProps {
@@ -197,11 +206,14 @@ export function Toaster(props: ToasterProps) {
       />
       {showFooter && (
         <div className={`ui-root ${footerStyles}`} data-toast-footer="">
-          {hidden > 0 && <span>{moreLabel(hidden)}</span>}
+          {hidden > 0 && (
+            <span className={moreStyles}>{moreLabel(hidden)}</span>
+          )}
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className={clearAllStyles}
+            startIcon={<Broom weight="bold" />}
+            data-toast-clear-all=""
             onClick={() => toast.dismissAll()}
           >
             {clearAllLabel}
