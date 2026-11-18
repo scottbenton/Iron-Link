@@ -16,7 +16,8 @@
  *   reference in one column beside the notes (`stackSidebars`); phones,
  *   Character, Notes and Reference tabs (`compact`).
  * - `CharacterSidebarContents` → the start sidebar's panel: h2 "Character"
- *   with `CharacterSettingsMenu` (an `IconButton`), then `StyledTabs`
+ *   with `CharacterSettingsMenu` (the library's `CharacterSettingsMenu`: only
+ *   that character's actions), then `StyledTabs`
  *   Overview / Assets / Tracks → `SectionTabList`.
  *   - `CharacterDetails` (`PortraitAvatar`, name, `InitiativeStatusChip`)
  *     → `CharacterPortrait`, `Text`, `InitiativeChip`.
@@ -37,7 +38,6 @@
  *   `MoveListItem`s by category, `OracleTree` → `OracleListItem`s,
  *   `GameLog` → `GameLog`.
  */
-import { DotsThreeIcon, GearSixIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
@@ -45,11 +45,12 @@ import { css } from "styled-system/css";
 
 import { Alert } from "../../components/Alert";
 import { Button } from "../../components/Button";
-import { IconButton } from "../../components/IconButton";
 import { AppShell } from "../AppShell";
 import { GameLayout } from "../GameLayout";
 import { NavBar } from "../NavBar";
 import { NavRail } from "../NavRail";
+import { DemoSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
+import { guideScenario } from "../SettingsMenu/settingsMenuScenarios";
 import { LayoutPanel } from "../shared/layoutPanel";
 import {
   CharacterColumn,
@@ -150,9 +151,13 @@ function WideGamePage(props: {
           items={getNavItems("games")}
           homeHref="#games"
           actions={
-            <IconButton label="App Settings" tooltipSide="right">
-              <GearSixIcon />
-            </IconButton>
+            // One menu for Kira, the game and the app (Scott is its Guide).
+            <DemoSettingsMenu
+              scenario={guideScenario}
+              side="inline-end"
+              align="end"
+              tooltipSide="right"
+            />
           }
         />
       }
@@ -237,11 +242,7 @@ function PhoneGamePage(props: { logInNotes?: boolean }) {
           <NavBar
             title={pageTitle}
             backHref="#overview"
-            actions={
-              <IconButton label="Game and Character Settings">
-                <DotsThreeIcon weight="bold" />
-              </IconButton>
-            }
+            actions={<DemoSettingsMenu scenario={guideScenario} />}
           />
         }
       >

@@ -17,7 +17,6 @@
 import {
   ChatsCircleIcon,
   DotsThreeIcon,
-  GearSixIcon,
   PlusIcon,
   ShareNetworkIcon,
 } from "@phosphor-icons/react";
@@ -74,6 +73,7 @@ import {
 } from "../../stories/fixtures/referenceTrees";
 import { ActionToolbar, ActionToolbarIconButton } from "../ActionToolbar";
 import { SectionHeading } from "../SectionHeading";
+import { DemoCharacterSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
 import { characterSections, getReferenceSections } from "./columnSections";
 
 const capitalize = (text: string) =>
@@ -147,13 +147,12 @@ const legacyTracks = [
   { key: "discoveries", label: "Discoveries", ticks: 9 },
 ];
 
-/** The character column's menu, as in the live column header. */
+/**
+ * The character column's menu, as in the live column header: only Kira's
+ * own actions, a shortcut to the rail's combined SettingsMenu.
+ */
 export function CharacterColumnActions() {
-  return (
-    <IconButton label="Character Settings" size="sm" tooltipSide="bottom">
-      <GearSixIcon />
-    </IconButton>
-  );
+  return <DemoCharacterSettingsMenu />;
 }
 
 /** The character sheet: Overview, Assets and Tracks, as in the live app. */

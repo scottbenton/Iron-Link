@@ -4,8 +4,8 @@
  * Story-only: PhoneGamePage.stories.tsx renders it.
  *
  * - Top bar: back to your games (an arrow), the character switcher (portrait
- *   and name, the page's h1) and a gear menu with the game and character
- *   settings, Second Screen among them.
+ *   and name, the page's h1) and a gear menu: the combined SettingsMenu
+ *   (character, game with Second Screen, theme and app settings).
  * - Bottom nav: Sheet, Notes, Moves, Oracles and Log, which switch the page's
  *   section in place. Log counts entries that arrived while it was off
  *   screen. The nav hides while the keyboard is up.
@@ -22,7 +22,6 @@
 import type { Datasworn } from "@datasworn-community/core";
 import {
   ArrowCounterClockwiseIcon,
-  BellIcon,
   BookOpenIcon,
   CheckIcon,
   ClockCounterClockwiseIcon,
@@ -30,19 +29,13 @@ import {
   DiceFiveIcon,
   DotsThreeIcon,
   FileTextIcon,
-  GearSixIcon,
   ImageSquareIcon,
   LinkSimpleIcon,
   ListBulletsIcon,
-  PaletteIcon,
-  PencilSimpleIcon,
   PlusIcon,
-  ProjectorScreenIcon,
   ShareNetworkIcon,
-  ShieldIcon,
   TextBIcon,
   TextItalicIcon,
-  TrashIcon,
   UserIcon,
 } from "@phosphor-icons/react";
 import { FocusEvent, useEffect, useRef, useState } from "react";
@@ -60,15 +53,6 @@ import {
   DialogClose,
   DialogHeader,
 } from "../../components/Dialog";
-import { IconButton } from "../../components/IconButton";
-import {
-  Menu,
-  MenuContent,
-  MenuGroup,
-  MenuItem,
-  MenuSeparator,
-  MenuTrigger,
-} from "../../components/Menu";
 import {
   SectionTab,
   SectionTabList,
@@ -122,6 +106,8 @@ import { OpenNotesBar, OpenNotesSheet } from "../OpenNotes";
 import type { OpenNote } from "../OpenNotes";
 import { DockedRoll, RollDock } from "../RollDock";
 import { SectionHeading } from "../SectionHeading";
+import { DemoSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
+import { guideScenario } from "../SettingsMenu/settingsMenuScenarios";
 
 export type PhoneSection = "sheet" | "notes" | "moves" | "oracles" | "log";
 export type PhoneRuleset = "starforged" | "ironsworn";
@@ -232,47 +218,20 @@ function SecondScreenDialog(props: { open: boolean; onClose: () => void }) {
 }
 
 /**
- * The gear menu: the game's settings (Second Screen first on phones, which
- * have no Reference tab for it) and the character's.
+ * The gear menu: the combined SettingsMenu (Kira's settings, the game's with
+ * Second Screen, Change Theme, the app's), as on the wide page's rail.
+ * Phones have no Reference tab, so Second Screen opens its dialog here.
  */
 function GameSettingsMenu() {
   const [secondScreenOpen, setSecondScreenOpen] = useState(false);
   return (
     <>
-      <Menu>
-        <MenuTrigger
-          render={
-            <IconButton label="Game and Character Settings">
-              <GearSixIcon />
-            </IconButton>
-          }
-        />
-        <MenuContent align="end">
-          <MenuGroup label="Game Settings">
-            <MenuItem
-              icon={<ProjectorScreenIcon />}
-              onClick={() => setSecondScreenOpen(true)}
-            >
-              Second Screen
-            </MenuItem>
-            <MenuItem icon={<PencilSimpleIcon />}>Edit Game Name</MenuItem>
-            <MenuItem icon={<BookOpenIcon />}>Edit Rulesets</MenuItem>
-            <MenuItem icon={<PaletteIcon />}>Change Game Theme</MenuItem>
-            <MenuItem icon={<BellIcon />}>Notification Settings</MenuItem>
-            <MenuItem icon={<TrashIcon />} tone="danger">
-              Delete Game
-            </MenuItem>
-          </MenuGroup>
-          <MenuSeparator />
-          <MenuGroup label="Kira Vale Settings">
-            <MenuItem icon={<ShieldIcon />}>Edit Access</MenuItem>
-            <MenuItem icon={<UserIcon />}>Change Portrait</MenuItem>
-            <MenuItem icon={<TrashIcon />} tone="danger">
-              Delete Character
-            </MenuItem>
-          </MenuGroup>
-        </MenuContent>
-      </Menu>
+      <DemoSettingsMenu
+        scenario={guideScenario}
+        onSelect={(action) => {
+          if (action === "secondScreen") setSecondScreenOpen(true);
+        }}
+      />
       <SecondScreenDialog
         open={secondScreenOpen}
         onClose={() => setSecondScreenOpen(false)}

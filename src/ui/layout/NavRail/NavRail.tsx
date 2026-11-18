@@ -135,7 +135,10 @@ export interface NavRailProps {
   homeLabel?: string;
   /** The navigation landmark's name. */
   label?: string;
-  /** Pinned to the foot of the rail: settings, the account menu. */
+  /**
+   * Pinned to the foot of the rail: the settings gear (`SettingsMenu`, with
+   * `side="inline-end"` and `align="end"`).
+   */
   actions?: ReactNode;
   /** Renders the links; defaults to the LinkComponentProvider's, or `<a>`. */
   linkComponent?: LayoutLinkComponent;

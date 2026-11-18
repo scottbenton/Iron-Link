@@ -1,10 +1,10 @@
-import { GearSixIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { css } from "styled-system/css";
 
-import { IconButton } from "../../components/IconButton";
 import { getNavItems } from "../Examples/storyData";
+import { DemoSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
+import { gamesListScenario } from "../SettingsMenu/settingsMenuScenarios";
 import { NavRail } from "./NavRail";
 
 const meta: Meta<typeof NavRail> = {
@@ -27,15 +27,22 @@ export const Playground: Story = {
   ),
 };
 
-/** Settings pinned to the foot of the rail. */
+/**
+ * The settings gear pinned to the foot of the rail. It opens the combined
+ * SettingsMenu, which opens beside the rail; on Reference it has only the
+ * app's settings and Change Theme.
+ */
 export const WithActions: Story = {
   ...Playground,
   args: {
     items: getNavItems("reference"),
     actions: (
-      <IconButton label="Settings" tooltipSide="right">
-        <GearSixIcon />
-      </IconButton>
+      <DemoSettingsMenu
+        scenario={gamesListScenario}
+        side="inline-end"
+        align="end"
+        tooltipSide="right"
+      />
     ),
   },
 };

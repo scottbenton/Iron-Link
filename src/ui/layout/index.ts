@@ -9,6 +9,7 @@ export * from "./NavRail";
 export * from "./PageContent";
 export * from "./PageHeader";
 export * from "./SectionHeading";
+export * from "./SettingsMenu";
 export * from "./shared";
 export * from "./Sidebar";
 export * from "./SkipLink";
