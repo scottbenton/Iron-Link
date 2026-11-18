@@ -39,10 +39,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /** A reference column: 16px in from its edges, the surface colour. */
-function Column(props: { width?: string; children: ReactNode }) {
+function Column(props: { narrow?: boolean; children: ReactNode }) {
   return (
     <Box
-      width={props.width ?? "360px"}
+      width={props.narrow ? "260px" : "360px"}
       maxWidth="100%"
       padding="4"
       borderWidth="1px"
@@ -157,7 +157,7 @@ export const NestedMoves: Story = {
 /** Long names wrap at every depth in a 260px column; the count stays put. */
 export const NarrowColumn: Story = {
   render: () => (
-    <Column width="260px">
+    <Column narrow>
       <OracleCollectionTree collection={oracles.precursor_vault} defaultOpen />
       <OracleCollectionTree
         collection={oracles.launching_your_campaign}

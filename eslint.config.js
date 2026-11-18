@@ -25,4 +25,24 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // Screens lay out with ui/primitives and style through ui components, so
+    // the styling system can be replaced inside src/ui alone.
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/ui/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["styled-system", "styled-system/*", "@pandacss/*"],
+              message:
+                "Use ui/primitives for layout and ui components for styling instead of Panda directly.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

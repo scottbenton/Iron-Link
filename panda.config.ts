@@ -12,10 +12,21 @@ export default defineConfig({
   // (_hover, _focusVisible, ...), utilities and layout patterns; the tokens
   // are all ours, so preset-panda's palette stays out.
   presets: ["@pandacss/preset-base"],
-  include: ["./src/ui/**/*.{ts,tsx}", "./.storybook/**/*.{ts,tsx}"],
+  // The whole app, so screens that lay out with ui/primitives get their
+  // style props extracted.
+  include: ["./src/**/*.{ts,tsx}", "./.storybook/**/*.{ts,tsx}"],
   exclude: ["./src/styled-system/**"],
   outdir: "src/styled-system",
   jsxFramework: "react",
+  // Style props are read only from Panda's own JSX and ui/primitives. Left
+  // to itself Panda reads any capitalised component, so MUI's Box, Stack and
+  // icons (`color="primary"`, `fontSize="small"`) would add stray classes.
+  jsxMatchTag: [
+    { tag: /./, ignore: true },
+    { from: /(^|\/)styled-system\/jsx$/ },
+    { from: /(^|\/)ui\/primitives$/ },
+    { tag: /^styled\./ },
+  ],
   strictTokens: false,
   conditions: {
     extend: {
@@ -28,9 +39,42 @@ export default defineConfig({
       touch: "@media (pointer: coarse)",
       pressed: "&:is(:active, [data-pressed])",
       open: "&:is([data-open], [data-popup-open], [aria-expanded=true])",
-      current: "&:is([aria-current]:not([aria-current=false]), [data-selected], [aria-selected=true])",
+      current:
+        "&:is([aria-current]:not([aria-current=false]), [data-selected], [aria-selected=true])",
       startingStyle: "&[data-starting-style]",
       endingStyle: "&[data-ending-style]",
+    },
+  },
+  patterns: {
+    extend: {
+      // Panda's Container caps at an "8xl" size this theme does not define.
+      // Ours uses the content rail widths the layout already uses.
+      container: {
+        description: "A centred column of content with the page's side padding",
+        properties: {
+          size: { type: "enum", value: ["sm", "md", "lg", "xl", "full"] },
+        },
+        defaultValues: { size: "xl" },
+        transform(props) {
+          const { size, ...rest } = props;
+          const widths: Record<string, string> = {
+            sm: "640px",
+            md: "900px",
+            lg: "1200px",
+            xl: "1440px",
+            full: "none",
+          };
+          return {
+            position: "relative",
+            boxSizing: "border-box",
+            width: "full",
+            maxWidth: widths[size as string] ?? size,
+            marginInline: "auto",
+            paddingInline: { base: "4", md: "6" },
+            ...rest,
+          };
+        },
+      },
     },
   },
   theme: {

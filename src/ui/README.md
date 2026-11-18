@@ -14,6 +14,7 @@ Run `npm run storybook` to browse it. `npm run prepare` (also run by
 src/ui/
   theme/        tokens, colour schemes, applyUITheme
   styles/       the entry stylesheet (import once)
+  primitives/   layout: Box, Stack, HStack, Flex, Grid, Container, ...
   components/   general components (Button, Dialog, Menu, Field, Tabs, ...)
   game/         Iron Link's own pieces (stats, tracks, rolls, assets, ...)
   layout/       app chrome (nav bar, rail, sidebar, page header, ...)
@@ -28,9 +29,16 @@ Each component is a folder: `Name/Name.tsx`, `Name/Name.stories.tsx`,
 
 - Style with `css()`, `cva()` or `sva()` from `styled-system/css`, and merge
   a caller's `className` with `cx`. Every component takes `className`.
-- Layout in stories and screens uses Panda's patterns from
-  `styled-system/jsx` (`Box`, `Stack`, `HStack`, `Grid`, `Flex`), which take
-  style props. They replace MUI's `Box` and `Stack`.
+- Screens and stories lay out with `ui/primitives` (`Box`, `Stack`,
+  `HStack`, `VStack`, `Flex`, `Grid`, `GridItem`, `Container`, `Center`,
+  `Spacer`), which take style props. They replace MUI's `Box`, `Stack`,
+  `Grid` and `Container`.
+- Code outside `src/ui` never imports Panda (`styled-system/*`); ESLint
+  refuses it. That keeps the styling system replaceable inside `src/ui`.
+- Panda reads style props only from `ui/primitives` and
+  `styled-system/jsx`, by name, at build time. Import primitives under their
+  own names, and give style props literal values (a ternary of literals is
+  fine): a value computed at runtime has no CSS behind it.
 - Use tokens, never raw values: `bg.surface`, `fg.muted`, `border.default`,
   `accent.solid`, `radii md`, `spacing 4`. The token list is
   `theme/tokens.ts`; the Foundations pages show them. Do not edit
