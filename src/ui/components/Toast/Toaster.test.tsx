@@ -74,6 +74,26 @@ describe("Toaster", () => {
     }
   });
 
+  // The stack's styles reach the card through this path; a Sonner update
+  // that moves it would leave the older toasts as bare boxes again.
+  it("renders the card where the stack styles expect it", async () => {
+    render(
+      <AnnouncerProvider>
+        <Toaster />
+      </AnnouncerProvider>,
+    );
+    act(() => {
+      toast.info("Invite link copied");
+    });
+    await flush();
+    const [item] = getToastItems();
+    const content = item.querySelector("[data-content]");
+    const title = content?.querySelector("[data-title]");
+    expect(content?.parentElement).toBe(item);
+    expect(title?.parentElement).toBe(content);
+    expect(title?.firstElementChild).toHaveTextContent("Invite link copied");
+  });
+
   it("keeps Sonner's own live region quiet", async () => {
     render(
       <AnnouncerProvider>

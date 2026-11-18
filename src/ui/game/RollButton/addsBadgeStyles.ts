@@ -59,16 +59,17 @@ export const addsBadgeStyles = css({
     "&:not([data-hidden])": { filter: "grayscale(1)", opacity: 0.7 },
   },
   // Reduced motion (the system's, unless Iron Link's setting says full, or
-  // Iron Link's own): no growing or shrinking, only the short fade.
+  // Iron Link's own): no motion at all. The badge appears and goes at once
+  // and a change of value just swaps the number (`playAddsChange` skips).
   "@media (prefers-reduced-motion: reduce)": {
     ":root:not([data-motion=full]) &": {
       scale: "1",
-      transitionProperty: "translate, opacity",
+      transition: "none",
     },
   },
   ":root[data-motion=reduced] &": {
     scale: "1",
-    transitionProperty: "translate, opacity",
+    transition: "none",
   },
 });
 

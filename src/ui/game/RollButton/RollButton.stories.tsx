@@ -109,7 +109,7 @@ const capitalize = (text: string) => text[0].toUpperCase() + text.slice(1);
  * pill and fades the new number in from the side it moved to (200ms); Clear
  * shrinks them away faster (80ms, in curve), still showing the last value.
  * A page that loads with adds already set shows them without animating.
- * Reduced motion keeps only the fade in and out.
+ * Reduced motion has none of it: the badge appears, changes and goes at once.
  */
 export const AddsBadgeMotion: Story = {
   render: function Render() {

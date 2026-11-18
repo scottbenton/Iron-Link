@@ -19,22 +19,27 @@ const toasterStyles = css({
 
 /**
  * Classes on each toast's `li`. The look is the card's (ToastCard, RollCard),
- * so a roll card can be a toast too; the `li` only holds it.
+ * so a roll card can be a toast too; the `li` only holds it. Sonner puts a
+ * custom toast inside `[data-content] > [data-title]`, so those two are
+ * `display: contents` and the rules below reach the card itself.
  *
  * Collapsed, the newest toast is in front and each older one sits a clear
  * step (12px) above it, a little narrower, cut to the front toast's height
  * with its content hidden and its card a shade darker, so its top edge reads
- * as a card behind. Sonner positions and fans out the stack, but its own
- * peek is a chain of custom properties that left the older toasts hidden
- * behind the front one, so the collapsed transform is set here outright
- * (top origin, so each step shows exactly 12px). Hover, or keyboard focus,
- * fans the stack out with the gap between, and Sonner animates between the
- * two. A toast on its way out keeps Sonner's exit.
+ * as a card behind, border and corners included. Sonner positions and fans
+ * out the stack, but its own peek is a chain of custom properties that left
+ * the older toasts hidden behind the front one, so the collapsed transform is
+ * set here outright (top origin, so each step shows exactly 12px). Hover, or
+ * keyboard focus, fans the stack out with the gap between, and Sonner
+ * animates between the two. A toast on its way out keeps Sonner's exit.
  */
 const toastItemStyles = css({
   width: "100%",
   borderRadius: "md",
   _focusVisible: { boxShadow: "0 0 0 2px token(colors.focusRing)!" },
+  "& > [data-content], & > [data-content] > [data-title]": {
+    display: "contents",
+  },
   "&[data-expanded=false][data-front=false][data-removed=false]": {
     transform:
       "translateY(calc(var(--toasts-before) * -12px)) scale(calc(1 - var(--toasts-before) * 0.05))!",
@@ -42,21 +47,25 @@ const toastItemStyles = css({
     // Never zero, even before Sonner has measured the front toast.
     minHeight: "52px",
   },
-  "&[data-expanded=false][data-front=false] > *": {
-    height: "100%",
-    minHeight: 0,
-    overflow: "hidden",
-    background: "bg.muted",
-  },
-  "&[data-expanded=false][data-front=false][data-index='2'] > *": {
-    background: "bg.emphasized",
-  },
-  "& > *, & > * > *": {
-    transition:
-      "opacity token(durations.normal) linear, background-color token(durations.normal) linear",
-    _reducedMotion: { transition: "none" },
-  },
-  "&[data-expanded=false][data-front=false] > * > *": { opacity: 0 },
+  "&[data-expanded=false][data-front=false] > [data-content] > [data-title] > *":
+    {
+      height: "100%",
+      minHeight: 0,
+      overflow: "hidden",
+      background: "bg.muted",
+    },
+  "&[data-expanded=false][data-front=false][data-index='2'] > [data-content] > [data-title] > *":
+    {
+      background: "bg.emphasized",
+    },
+  "& > [data-content] > [data-title] > *, & > [data-content] > [data-title] > * > *":
+    {
+      transition:
+        "opacity token(durations.normal) linear, background-color token(durations.normal) linear",
+      _reducedMotion: { transition: "none" },
+    },
+  "&[data-expanded=false][data-front=false] > [data-content] > [data-title] > * > *":
+    { opacity: 0 },
   // Toasts past the visible cap fade out; hide them from Tab too.
   "&[data-visible=false]": {
     visibility: "hidden",

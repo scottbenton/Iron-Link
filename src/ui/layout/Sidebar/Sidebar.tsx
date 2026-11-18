@@ -9,6 +9,7 @@ import {
   CSSProperties,
   Fragment,
   ReactNode,
+  useCallback,
   useEffect,
   useId,
   useRef,
@@ -26,6 +27,7 @@ import {
 } from "../shared/sectionTabs";
 import { useControllableState } from "../shared/useControllableState";
 import { SidebarResizeHandle } from "./SidebarResizeHandle";
+import { SidebarHeaderSlotContext } from "./sidebarHeaderSlot";
 
 const rootStyles = cva({
   base: {
@@ -237,9 +239,18 @@ export interface SidebarProps {
    * medium layout, the character sheet over the reference. Collapsing folds
    * them into one rail, each panel's sections after a divider, and a rail
    * button shows just that panel over the page. Collapse sits in the first
-   * panel's header.
+   * panel's header. A panel whose content renders `SidebarHeaderEnd` (in its
+   * tab well) drops the visible header: its controls move there and its
+   * title stays as a screen reader h2.
    */
   stackPanels?: boolean;
+  /**
+   * Let a single panel hand its header to its content too, as stacked panels
+   * do: where the content renders `SidebarHeaderEnd` (in its tab well), the
+   * title becomes a screen reader h2 and the controls sit in the well, so
+   * the column's tabs line up with the notes tabs. Off by default.
+   */
+  headerInContent?: boolean;
   labels?: SidebarLabels;
   id?: string;
   className?: string;
@@ -271,6 +282,7 @@ export function Sidebar(props: SidebarProps) {
     resizable = true,
     collapsible = true,
     stackPanels = false,
+    headerInContent = false,
     labels,
     id: idProp,
     className,
@@ -345,6 +357,21 @@ export function Sidebar(props: SidebarProps) {
   const activePanel =
     panels.find((panel) => panel.id === activePanelId) ?? panels[0];
   const stacked = stackPanels && panels.length > 1;
+
+  // Stacked panels whose content shows the header's controls itself
+  // (`SidebarHeaderEnd`, in the tab well): their visible header goes.
+  const [claimedPanels, setClaimedPanels] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const claimHeader = useCallback((panelId: string) => {
+    setClaimedPanels((current) => new Set(current).add(panelId));
+    return () =>
+      setClaimedPanels((current) => {
+        const next = new Set(current);
+        next.delete(panelId);
+        return next;
+      });
+  }, []);
   // Several panels behind tabs; stacked panels each keep a visible h2.
   const tabbed = panels.length > 1 && !stacked;
   const clampedWidth = Math.min(maxWidth, Math.max(minWidth, width));
@@ -499,6 +526,14 @@ export function Sidebar(props: SidebarProps) {
     </div>
   );
 
+  // A single panel's header, in its header or (`headerInContent`) its well.
+  const singleEnd = renderHeaderEnd(activePanel);
+  const singleInContent =
+    headerInContent &&
+    !peeking &&
+    !!activePanel &&
+    claimedPanels.has(activePanel.id);
+
   // While it shows over the page, the column is a non-modal dialog named
   // by its heading.
   const overlayProps = peeking
@@ -643,6 +678,9 @@ export function Sidebar(props: SidebarProps) {
           {panels.map((panel, index) => {
             // Over the page, only the panel its rail button opened shows.
             const shown = !peeking || panel.id === activePanel?.id;
+            const end = renderHeaderEnd(panel, peeking ? shown : index === 0);
+            // Over the page the header stays, with Keep Open and Close.
+            const inContent = !peeking && claimedPanels.has(panel.id);
             return (
               <div
                 key={panel.id}
@@ -650,18 +688,37 @@ export function Sidebar(props: SidebarProps) {
                 className={stackPanelStyles}
                 hidden={!shown}
               >
-                <div className={headerStyles}>
+                {inContent ? (
                   <h2
                     id={headingDomId(panel)}
                     tabIndex={-1}
-                    className={headerTitleStyles}
+                    className={srOnlyStyles}
                   >
                     {panel.title}
                   </h2>
-                  {renderHeaderEnd(panel, peeking ? shown : index === 0)}
-                </div>
+                ) : (
+                  <div className={headerStyles}>
+                    <h2
+                      id={headingDomId(panel)}
+                      tabIndex={-1}
+                      className={headerTitleStyles}
+                    >
+                      {panel.title}
+                    </h2>
+                    {end}
+                  </div>
+                )}
                 <div id={panelDomId(panel.id)} className={panelStyles}>
-                  {panel.content}
+                  <SidebarHeaderSlotContext.Provider
+                    value={{
+                      panelId: panel.id,
+                      end,
+                      claimed: inContent,
+                      claim: claimHeader,
+                    }}
+                  >
+                    {panel.content}
+                  </SidebarHeaderSlotContext.Provider>
                 </div>
               </div>
             );
@@ -674,18 +731,41 @@ export function Sidebar(props: SidebarProps) {
             hidden={collapsed && !peeking}
             {...overlayProps}
           >
-            <div className={headerStyles}>
+            {singleInContent ? (
               <h2
                 id={headingDomId(activePanel)}
                 tabIndex={-1}
-                className={headerTitleStyles}
+                className={srOnlyStyles}
               >
                 {activePanel.title}
               </h2>
-              {renderHeaderEnd(activePanel)}
-            </div>
+            ) : (
+              <div className={headerStyles}>
+                <h2
+                  id={headingDomId(activePanel)}
+                  tabIndex={-1}
+                  className={headerTitleStyles}
+                >
+                  {activePanel.title}
+                </h2>
+                {singleEnd}
+              </div>
+            )}
             <div id={panelDomId(activePanel.id)} className={panelStyles}>
-              {activePanel.content}
+              {headerInContent ? (
+                <SidebarHeaderSlotContext.Provider
+                  value={{
+                    panelId: activePanel.id,
+                    end: singleEnd,
+                    claimed: singleInContent,
+                    claim: claimHeader,
+                  }}
+                >
+                  {activePanel.content}
+                </SidebarHeaderSlotContext.Provider>
+              ) : (
+                activePanel.content
+              )}
             </div>
           </div>
         )

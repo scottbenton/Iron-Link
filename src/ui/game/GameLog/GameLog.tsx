@@ -184,6 +184,15 @@ const stackedSubStyles = css({
 
 const separatorStyles = css({ color: "fg.subtle" });
 
+// The time under a roll or message: small and quiet, on the entry's side.
+const timeBelowStyles = css({
+  fontSize: "2xs",
+  lineHeight: "snug",
+  color: "fg.subtle",
+  fontVariantNumeric: "tabular-nums",
+  paddingInline: "1",
+});
+
 const nameStyles = css({
   fontFamily: "heading",
   fontWeight: "bold",
@@ -341,6 +350,12 @@ export type GameLogDensity = "detailed" | "standard" | "quiet";
  */
 export type GameLogHeader = "inline" | "stacked";
 
+/**
+ * Where each entry's time goes: in its header, or in small type under the
+ * roll or message, as chat apps put it.
+ */
+export type GameLogTimePlacement = "header" | "below";
+
 const diceDetailByDensity: Record<GameLogDensity, RollCardDiceDetail> = {
   detailed: "captions",
   standard: "dice",
@@ -369,6 +384,8 @@ export interface GameLogProps {
   density?: GameLogDensity;
   /** How each entry names its author. `inline` by default. */
   header?: GameLogHeader;
+  /** Where each entry's time goes. In the header by default. */
+  timePlacement?: GameLogTimePlacement;
   /**
    * The widest the entries and composer grow, centred, for a log shown in
    * a wide column such as a notes tab ("640px"). Full width by default.
@@ -400,6 +417,7 @@ export function GameLog(props: GameLogProps) {
     rollText,
     density = "standard",
     header = "inline",
+    timePlacement = "header",
     maxContentWidth,
     className,
   } = props;
@@ -499,6 +517,7 @@ export function GameLog(props: GameLogProps) {
                     rollText={rollText}
                     diceDetail={diceDetailByDensity[density]}
                     header={header}
+                    timePlacement={timePlacement}
                   />
                 </Fragment>
               );
@@ -525,10 +544,12 @@ interface GameLogItemProps {
   rollText?: RollTextOverrides;
   diceDetail: RollCardDiceDetail;
   header: GameLogHeader;
+  timePlacement: GameLogTimePlacement;
 }
 
 function GameLogItem(props: GameLogItemProps) {
-  const { entry, time, strings, rollText, diceDetail, header } = props;
+  const { entry, time, strings, rollText, diceDetail, header, timePlacement } =
+    props;
   const { author } = entry;
 
   // Who wrote it and when, read with the entry as one piece of text; the
@@ -545,6 +566,7 @@ function GameLogItem(props: GameLogItemProps) {
   const timeElement = (
     <time dateTime={entry.timestamp.toISOString()}>{time}</time>
   );
+  const timeInHeader = timePlacement === "header" ? timeElement : null;
   const guideBadge = entry.guideOnly && (
     <span className={guideStyles}>
       <LockSimple weight="bold" />
@@ -565,16 +587,16 @@ function GameLogItem(props: GameLogItemProps) {
           </span>
           <span className={stackedTextStyles}>
             <span className={stackedNameStyles}>{author.name}</span>
-            <span className={stackedSubStyles}>
-              {author.writtenBy && (
-                <>
-                  <span>{author.writtenBy}</span>
+            {(author.writtenBy || timeInHeader || guideBadge) && (
+              <span className={stackedSubStyles}>
+                {author.writtenBy && <span>{author.writtenBy}</span>}
+                {author.writtenBy && timeInHeader && (
                   <span className={separatorStyles}>·</span>
-                </>
-              )}
-              {timeElement}
-              {guideBadge}
-            </span>
+                )}
+                {timeInHeader}
+                {guideBadge}
+              </span>
+            )}
           </span>
         </div>
       ) : (
@@ -582,7 +604,7 @@ function GameLogItem(props: GameLogItemProps) {
           <span className={portraitStyles}>{portrait}</span>
           <span className={nameStyles}>{author.name}</span>
           {author.writtenBy && <span>{author.writtenBy}</span>}
-          {timeElement}
+          {timeInHeader}
           {guideBadge}
         </div>
       )}
@@ -602,6 +624,11 @@ function GameLogItem(props: GameLogItemProps) {
           <VisuallyHidden>{`${heading}.`}</VisuallyHidden>
           <div className={bubbleStyles}>{entry.message}</div>
         </>
+      )}
+      {timePlacement === "below" && (
+        <div className={timeBelowStyles} aria-hidden>
+          {timeElement}
+        </div>
       )}
     </li>
   );

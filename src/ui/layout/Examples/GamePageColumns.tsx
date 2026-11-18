@@ -20,7 +20,7 @@ import {
   PlusIcon,
   ShareNetworkIcon,
 } from "@phosphor-icons/react";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 
 import { css, cva } from "styled-system/css";
 import { Box, Flex, HStack, Stack } from "styled-system/jsx";
@@ -33,6 +33,7 @@ import {
   NoteTabs,
   SectionTab,
   SectionTabList,
+  SectionTabWell,
   SectionTabsVariant,
   TabPanel,
   Tabs,
@@ -73,6 +74,7 @@ import {
 import { ActionToolbar, ActionToolbarIconButton } from "../ActionToolbar";
 import { SectionHeading } from "../SectionHeading";
 import { DemoCharacterSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
+import { SidebarHeaderEnd } from "../Sidebar";
 import { characterSections, getReferenceSections } from "./columnSections";
 
 const capitalize = (text: string) =>
@@ -99,11 +101,34 @@ const tabRowStyles = cva({
       band: { paddingInline: 0, paddingBlock: 0, marginBlockEnd: "4" },
       accent: { paddingBlock: "1", marginBlockEnd: "3" },
       pills: {},
-      well: { paddingInline: 0, paddingBlock: 0, marginBlockEnd: "4" },
+      // Stays at the top while the column scrolls, as the header did, so
+      // the tabs and (stacked) Collapse never scroll away.
+      well: {
+        paddingInline: 0,
+        paddingBlock: 0,
+        marginBlockEnd: "4",
+        position: "sticky",
+        top: 0,
+        zIndex: 2,
+      },
     },
   },
   defaultVariants: { variant: "well" },
 });
+
+/**
+ * A column's tab list. In a well, the band also takes the column header's
+ * controls when the sidebars stack into one column (`SidebarHeaderEnd`), so
+ * the stacked column has no title rows and the tabs are its top row.
+ */
+function ColumnTabList(props: {
+  variant: SectionTabsVariant;
+  children: ReactNode;
+}) {
+  const { variant, children } = props;
+  if (variant !== "well") return <>{children}</>;
+  return <SectionTabWell end={<SidebarHeaderEnd />}>{children}</SectionTabWell>;
+}
 
 /** Props the game page's columns share for their own tabs. */
 export interface ColumnTabsProps {
@@ -186,17 +211,19 @@ export function CharacterColumn(
       className={columnTabsStyles}
     >
       <div className={tabRowStyles({ variant: tabsVariant })}>
-        <SectionTabList
-          aria-label="Character Sections"
-          variant={tabsVariant}
-          fullWidth={tabsVariant !== "accent" && tabsVariant !== "pills"}
-        >
-          {characterSections.map((tab) => (
-            <SectionTab key={tab.id} value={tab.id}>
-              {tab.title}
-            </SectionTab>
-          ))}
-        </SectionTabList>
+        <ColumnTabList variant={tabsVariant}>
+          <SectionTabList
+            aria-label="Character Sections"
+            variant={tabsVariant}
+            fullWidth={tabsVariant !== "accent" && tabsVariant !== "pills"}
+          >
+            {characterSections.map((tab) => (
+              <SectionTab key={tab.id} value={tab.id}>
+                {tab.title}
+              </SectionTab>
+            ))}
+          </SectionTabList>
+        </ColumnTabList>
       </div>
 
       <TabPanel value="overview" className={sheetPanelStyles}>
@@ -543,17 +570,19 @@ export function ReferenceColumn(
       className={referenceTabsStyles}
     >
       <div className={tabRowStyles({ variant: tabsVariant })}>
-        <SectionTabList
-          aria-label="Reference Sections"
-          variant={tabsVariant}
-          fullWidth={tabsVariant !== "accent" && tabsVariant !== "pills"}
-        >
-          {getReferenceSections(showLog).map((tab) => (
-            <SectionTab key={tab.id} value={tab.id}>
-              {tab.title}
-            </SectionTab>
-          ))}
-        </SectionTabList>
+        <ColumnTabList variant={tabsVariant}>
+          <SectionTabList
+            aria-label="Reference Sections"
+            variant={tabsVariant}
+            fullWidth={tabsVariant !== "accent" && tabsVariant !== "pills"}
+          >
+            {getReferenceSections(showLog).map((tab) => (
+              <SectionTab key={tab.id} value={tab.id}>
+                {tab.title}
+              </SectionTab>
+            ))}
+          </SectionTabList>
+        </ColumnTabList>
       </div>
       <TabPanel value="moves" className={referencePanelStyles}>
         <Stack gap="2">

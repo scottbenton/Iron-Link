@@ -16,6 +16,7 @@ import {
   GameLogDensity,
   GameLogEntry,
   GameLogHeader,
+  GameLogTimePlacement,
 } from "./GameLog";
 
 const [kira, orrin, senna] = sampleCharacters;
@@ -480,6 +481,42 @@ export const CompareHeaders: Story = {
           </Text>
           <Frame height="760px">
             <GameLog {...args} header={header} />
+          </Frame>
+        </Stack>
+      ))}
+    </Grid>
+  ),
+};
+
+/**
+ * Where the time goes: in the header (as now), or in small print under each
+ * card or bubble. With the time below, the stacked header holds only the
+ * names, so your own entries carry just your character's name, with nothing
+ * left under it.
+ */
+export const CompareTimePlacement: Story = {
+  parameters: { noFrame: true, layout: "fullscreen" },
+  args: { entries: headerLog },
+  render: (args) => (
+    <Grid
+      gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
+      gap="4"
+      padding="4"
+    >
+      {(
+        [
+          ["inline", "header", "Inline, time in the header"],
+          ["stacked", "header", "Stacked, time in the header"],
+          ["inline", "below", "Inline, time under the card"],
+          ["stacked", "below", "Stacked, time under the card"],
+        ] as [GameLogHeader, GameLogTimePlacement, string][]
+      ).map(([header, timePlacement, title]) => (
+        <Stack key={title} gap="2">
+          <Text variant="label" as="h2" color="muted">
+            {title}
+          </Text>
+          <Frame height="760px">
+            <GameLog {...args} header={header} timePlacement={timePlacement} />
           </Frame>
         </Stack>
       ))}

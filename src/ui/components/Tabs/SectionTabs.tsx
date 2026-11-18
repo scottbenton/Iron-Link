@@ -110,6 +110,15 @@ const listStyles = cva({
         paddingBottom: "calc(token(spacing.1.5) + var(--border-widths-ledge))",
         background: "bg.canvas",
         borderBottom: "1px solid token(colors.border.default)",
+        // Centred: auto margins on the end tabs, which fall to zero once the
+        // tabs fill the row, so nothing is pushed out of reach on the left.
+        "& > [role=tab]:first-of-type": { marginInlineStart: "auto" },
+        "& > [role=tab]:last-of-type": { marginInlineEnd: "auto" },
+        // Inside a SectionTabWell the well draws the band.
+        "[data-section-tab-well] > &": {
+          background: "transparent",
+          borderBottom: "none",
+        },
       },
     },
     fullWidth: {
@@ -420,6 +429,53 @@ export const SectionTab = forwardRef<HTMLButtonElement, SectionTabProps>(
     );
   },
 );
+
+const tabWellStyles = css({
+  display: "grid",
+  // The end column never squeezes its controls; when it outgrows its half
+  // the tabs give way rather than overlap it.
+  gridTemplateColumns:
+    "minmax(0, 1fr) minmax(0, auto) minmax(max-content, 1fr)",
+  alignItems: "center",
+  background: "bg.canvas",
+  borderBottom: "1px solid token(colors.border.default)",
+  "& > [role=tablist]": { gridColumn: "2" },
+  "& > [data-section-tab-well-end]": {
+    gridColumn: "3",
+    justifySelf: "end",
+    display: "flex",
+    alignItems: "center",
+    paddingInlineEnd: "1.5",
+    paddingBottom: "var(--border-widths-ledge)",
+    "&:empty": { display: "none" },
+  },
+});
+
+export interface SectionTabWellProps {
+  /** A `SectionTabList` with `variant="well"`. */
+  children: ReactNode;
+  /**
+   * Controls at the end of the band, beside the tabs but outside the tab
+   * list, such as a column's menu and Collapse (`SidebarHeaderEnd`).
+   */
+  end?: ReactNode;
+  className?: string;
+}
+
+/**
+ * The well's band with room for controls: the tabs centred across the whole
+ * band and `end` at its inline end, outside the tab list so the list holds
+ * only tabs. Without `end`, a well `SectionTabList` alone is the same band.
+ */
+export function SectionTabWell(props: SectionTabWellProps) {
+  const { children, end, className } = props;
+  return (
+    <div className={cx(tabWellStyles, className)} data-section-tab-well="">
+      {children}
+      <div data-section-tab-well-end="">{end}</div>
+    </div>
+  );
+}
 
 const panelStyles = css({
   outline: "none",

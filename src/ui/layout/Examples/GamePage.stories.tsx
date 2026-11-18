@@ -140,6 +140,8 @@ function WideGamePage(props: {
   stacked?: boolean;
   banner?: boolean;
   logInNotes?: boolean;
+  /** Moves each column's title row into its tab well. */
+  headersInWells?: boolean;
 }) {
   const { character, notes, reference } = useGameColumns(props.logInNotes);
   // The app keeps these and remembers them per device.
@@ -178,11 +180,13 @@ function WideGamePage(props: {
         onStackedCollapsedChange={setStackedCollapsed}
         startSidebar={{
           panels: [character],
+          headerInContent: props.headersInWells,
           width: sheetWidth,
           onWidthChange: setSheetWidth,
         }}
         endSidebar={{
           panels: [reference],
+          headerInContent: props.headersInWells,
           width: referenceWidth,
           onWidthChange: setReferenceWidth,
         }}
@@ -208,6 +212,17 @@ export const Desktop: Story = {
 export const DesktopLogInNotes: Story = {
   name: "Desktop, game log in notes",
   render: () => <WideGamePage logInNotes />,
+};
+
+/**
+ * For comparison with Desktop: each column's title row is merged into its
+ * tab well, so the Character and Reference tabs line up with the notes tabs.
+ * The titles stay as screen reader headings, and each column's settings and
+ * Collapse sit at the end of its well.
+ */
+export const DesktopHeadersInWells: Story = {
+  name: "Desktop, headers in the wells",
+  render: () => <WideGamePage headersInWells />,
 };
 
 /** With the Worlds beta banner over the tabs, edge to edge. */

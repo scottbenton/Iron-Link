@@ -3,6 +3,7 @@ import { useState } from "react";
 import { describe, expect, it } from "vitest";
 
 import { Sidebar } from "./Sidebar";
+import { SidebarHeaderEnd } from "./SidebarHeaderEnd";
 
 const sections = [
   { id: "overview", title: "Overview", icon: <svg /> },
@@ -129,5 +130,42 @@ describe("stacked panels", () => {
     expect(document.activeElement).toBe(
       screen.getByRole("button", { name: "Collapse Sidebar" }),
     );
+  });
+});
+
+describe("stacked panels with their controls in the content", () => {
+  it("drop the visible header but keep the h2 and Collapse", () => {
+    render(
+      <Sidebar
+        stackPanels
+        resizable={false}
+        panels={[
+          {
+            id: "character",
+            title: "Character",
+            content: (
+              <div data-testid="character-row">
+                <SidebarHeaderEnd />
+              </div>
+            ),
+          },
+          {
+            id: "reference",
+            title: "Reference",
+            content: <p>No slot here</p>,
+          },
+        ]}
+      />,
+    );
+    const row = screen.getByTestId("character-row");
+    const collapse = screen.getByRole("button", { name: "Collapse Sidebar" });
+    expect(row).toContainElement(collapse);
+    // The h2 stays for heading navigation, now screen reader only.
+    const heading = screen.getByRole("heading", { name: "Character" });
+    expect(heading.parentElement).toHaveAttribute("data-stack-panel");
+    // A panel without the slot keeps its header.
+    expect(
+      screen.getByRole("heading", { name: "Reference" }).parentElement,
+    ).not.toHaveAttribute("data-stack-panel");
   });
 });
