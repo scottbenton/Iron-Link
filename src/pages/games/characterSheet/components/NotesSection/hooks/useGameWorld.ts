@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { useAdvancedFeatureToggle } from "hooks/advancedFeatures/advancedFeatures";
 
@@ -27,7 +27,18 @@ export function useListenToGameWorld(): void {
   const worldId = useGameWorldId();
   useListenToWorld(worldId);
   useListenToWorldConfiguration(worldId);
-  useListenToWorldOracles(worldId);
+  // World fields roll with this game's rules here, not every linked game's.
+  const rulesets = useGameStore((store) => store.game?.rulesets);
+  const expansions = useGameStore((store) => store.game?.expansions);
+  const playset = useGameStore((store) => store.game?.playset);
+  const gamePlayset = useMemo(
+    () =>
+      rulesets
+        ? { rulesets, expansions: expansions ?? {}, playset: playset ?? {} }
+        : undefined,
+    [rulesets, expansions, playset],
+  );
+  useListenToWorldOracles(worldId, gamePlayset);
   useListenToWorldEntries(worldId);
   const loadedWorldId = useWorldStore((store) => store.world?.id);
   const worldDeleted = useWorldStore((store) => store.worldDeleted);

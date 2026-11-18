@@ -124,10 +124,12 @@ that are easy to miss. When you learn a new one, add a line here.
 - A world entry mention stores only the entry id (`kind: "worldEntry"`,
   `label: null`); its name is read live from the entries store, so renames
   show at once and an unreadable entry shows "Unavailable entry".
-- Field bindings follow the world's playset (every linked game's rules
-  combined), customized worlds included: `resolveFieldDefinitions` rolls a
-  replaced oracle's replacement (Starsmith for Starforged). Only a binding
-  marked `exact` ignores replacements.
+- Field bindings follow the rules in play, customized worlds included
+  (`resolveFieldDefinitions`): inside a game the world's oracle catalog uses
+  that game's own playset (`useListenToGameWorld` passes it), and on the
+  world page every linked game's combined. Only a binding marked `exact`
+  ignores replacements. `WorldGameRulesNotice` tells a game when its rules
+  roll some field differently from the combined rules.
 
 ## Maps
 

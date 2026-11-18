@@ -141,4 +141,33 @@ describe("world oracle catalog", () => {
     expect(getWorldOracleChoices(all)).toHaveLength(0);
     expect(getWorldOracleChoices(all, true).length).toBeGreaterThan(100);
   });
+  it("follows a game's own rules inside it, and every linked game's otherwise", async () => {
+    const base = {
+      rulesets: { starforged: true },
+      expansions: {},
+      playset: {},
+    };
+    const withStarsmith = {
+      ...base,
+      expansions: { starforged: { starsmith: true } },
+    };
+    const inBaseGame = await loadWorldOracleCatalog({
+      settingKey: null,
+      linkedGames: [base, withStarsmith],
+      gamePlayset: base,
+    });
+    expect(inBaseGame.replacementMap).toEqual({});
+    expect(
+      Object.values(inBaseGame.worldReplacementMap).some((id) =>
+        id.includes(":starsmith/"),
+      ),
+    ).toBe(true);
+
+    const onWorldPage = await loadWorldOracleCatalog({
+      settingKey: null,
+      linkedGames: [base, withStarsmith],
+    });
+    expect(onWorldPage.replacementMap).toEqual(inBaseGame.worldReplacementMap);
+    expect(onWorldPage.worldReplacementMap).toBe(onWorldPage.replacementMap);
+  });
 });

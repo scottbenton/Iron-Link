@@ -31,6 +31,7 @@ export function catalogOf(
       oracle: item,
     })),
     replacementMap: {},
+    worldReplacementMap: {},
     collisions: {},
     missingPackageIds: [],
   };

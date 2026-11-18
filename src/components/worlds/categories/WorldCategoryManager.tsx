@@ -32,6 +32,7 @@ import { IWorldCategory } from "services/worldCategories.service";
 import { IWorld } from "services/worlds.service";
 
 import { WorldBreadcrumbs } from "../WorldBreadcrumbs";
+import { WorldGameRulesNotice } from "../WorldGameRulesNotice";
 import {
   WorldLayout,
   WorldViewActions,
@@ -455,6 +456,7 @@ export function WorldCategoryManager({
         />
       ) : (
         <Stack spacing={4} sx={{ flexGrow: 1 }}>
+          {view.type === "world" && <WorldGameRulesNotice worldId={world.id} />}
           <WorldCategoryBrowser
             categories={categories}
             missingCategory={showsEntries && !selected}
