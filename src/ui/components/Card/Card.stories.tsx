@@ -9,12 +9,11 @@ import {
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Grid } from "ui/primitives";
+import { Grid, Stack } from "ui/primitives";
 
-import { PortraitGroup } from "../../game/PortraitGroup";
-import { RulesText } from "../../game/RulesText/RulesText";
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import { classicAsset } from "../../stories/fixtures/datasworn";
+import { Avatar, AvatarGroup } from "../Avatar";
 import { Button } from "../Button";
 import { IconButton } from "../IconButton";
 import {
@@ -180,15 +179,15 @@ export const LinkOverlay: Story = {
               }
             />
             <CardBody>
-              <PortraitGroup
-                members={game.party.map((character) => ({
-                  id: character.id,
-                  name: character.name,
-                  colorSeed: character.colorSeed,
-                }))}
-                label="Characters"
-                showNames={false}
-              />
+              <AvatarGroup label="Characters" size="sm">
+                {game.party.map((character) => (
+                  <Avatar
+                    key={character.id}
+                    name={character.name}
+                    colorSeed={String(character.colorSeed)}
+                  />
+                ))}
+              </AvatarGroup>
               <Text variant="bodySm" color="muted">
                 {game.party.map((character) => character.name).join(", ")}
               </Text>
@@ -211,6 +210,10 @@ export const LinkOverlay: Story = {
     );
   },
 };
+
+/** Rules text without its Markdown links and emphasis. */
+const plainText = (markdown: string) =>
+  markdown.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/[*_]/g, "");
 
 const talents = ["ironclad", "shield_bearer", "swordmaster"].map((key) =>
   classicAsset("combat_talent", key),
@@ -254,19 +257,15 @@ export const ButtonOverlay: Story = {
                 }
               />
               <CardBody>
-                <RulesText
-                  markdown={
-                    open
-                      ? talent.abilities
-                          .map(
-                            (ability: { text: string }) => `- ${ability.text}`,
-                          )
-                          .join("\n")
-                      : (talent.abilities[0]?.text ?? "")
-                  }
-                  size="sm"
-                  color="muted"
-                />
+                <Stack gap="2">
+                  {(open ? talent.abilities : talent.abilities.slice(0, 1)).map(
+                    (ability: { text: string }) => (
+                      <Text key={ability.text} variant="bodySm" color="muted">
+                        {plainText(ability.text)}
+                      </Text>
+                    ),
+                  )}
+                </Stack>
               </CardBody>
               <CardFooter>
                 <Text variant="caption" color="muted">

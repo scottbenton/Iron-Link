@@ -13,8 +13,8 @@ import { Box, Stack } from "ui/primitives";
 
 import { css, cx } from "styled-system/css";
 
-import { CharacterPortrait } from "../../game/CharacterPortrait";
-import { samplePortraitSrc } from "../../layout/Examples/storyData";
+import { samplePortraitSrc } from "../../stories/fixtures/characters";
+import { Avatar } from "../Avatar";
 import { Button } from "../Button";
 import { Text } from "../Text";
 import { NoteTab, NoteTabPanel, NoteTabs } from "./NoteTabs";
@@ -265,10 +265,10 @@ export const PageTabsWithPortraits: Story = {
               current={page.id === current}
               avatar={
                 page.colorSeed !== undefined ? (
-                  <CharacterPortrait
+                  <Avatar
                     name={page.name}
-                    portraitUrl={page.portrait}
-                    colorSeed={page.colorSeed}
+                    src={page.portrait}
+                    colorSeed={String(page.colorSeed)}
                     size="xs"
                     decorative
                   />

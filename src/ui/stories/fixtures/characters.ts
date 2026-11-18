@@ -36,3 +36,8 @@ export const sampleCharacters: SampleCharacter[] = [
     meters: { health: 1, spirit: 2, supply: 5, momentum: -2 },
   },
 ];
+
+/** A painted-looking head and shoulders, standing in for an uploaded portrait. */
+export const samplePortraitSrc = `data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><defs><linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d4a66"/><stop offset="1" stop-color="#b8734a"/></linearGradient></defs><rect width="80" height="80" fill="url(#b)"/><path d="M24 34c0-12 7-20 16-20s16 8 16 20c0 4-1 8-3 11H27c-2-3-3-7-3-11z" fill="#2a1d1a"/><circle cx="40" cy="34" r="12" fill="#d9b796"/><path d="M12 80c3-17 14-25 28-25s25 8 28 25z" fill="#5b2f2a"/><path d="M30 58l10 10 10-10" fill="none" stroke="#c9a45c" stroke-width="3"/></svg>`,
+)}`;

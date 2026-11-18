@@ -15,9 +15,9 @@ import { CharacterPortrait } from "../../game/CharacterPortrait";
 import {
   SampleCharacter,
   sampleCharacters,
+  samplePortraitSrc,
 } from "../../stories/fixtures/characters";
 import { sampleMoves } from "../../stories/fixtures/datasworn";
-import { samplePortraitSrc } from "./storyData";
 
 const cardStyles = css({
   boxSizing: "border-box",

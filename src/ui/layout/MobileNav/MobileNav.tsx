@@ -1,8 +1,8 @@
 import { css, cx } from "styled-system/css";
 
 import { Badge } from "../../components/Badge";
-import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { GradientBox } from "../../components/GradientBox";
+import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
 import { NavItem } from "../shared/navItem";
 
