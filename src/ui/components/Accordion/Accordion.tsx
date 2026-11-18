@@ -1,0 +1,326 @@
+import { Accordion as BaseAccordion } from "@base-ui/react/accordion";
+import { CaretDown } from "@phosphor-icons/react";
+import {
+  ComponentProps,
+  ReactNode,
+  createContext,
+  forwardRef,
+  useContext,
+} from "react";
+
+import { css, cva, cx } from "styled-system/css";
+
+export type AccordionVariant = "contained" | "separated" | "flush";
+
+const VariantContext = createContext<AccordionVariant>("contained");
+
+const rootStyles = cva({
+  base: {
+    display: "flex",
+    flexDirection: "column",
+    boxSizing: "border-box",
+    fontFamily: "body",
+    color: "fg.default",
+  },
+  variants: {
+    variant: {
+      /** One bordered surface, the items divided by hairlines. */
+      contained: {
+        border: "1px solid token(colors.border.default)",
+        borderRadius: "lg",
+        background: "bg.surface",
+        overflow: "hidden",
+      },
+      /** Each item its own bordered card, with a gap between. */
+      separated: { gap: "2" },
+      /** Hairlines between items and nothing around them. */
+      flush: {},
+    },
+  },
+  defaultVariants: { variant: "contained" },
+});
+
+const itemStyles = cva({
+  base: { boxSizing: "border-box" },
+  variants: {
+    variant: {
+      contained: {
+        "& + &": { borderTop: "1px solid token(colors.border.subtle)" },
+      },
+      separated: {
+        border: "1px solid token(colors.border.default)",
+        borderRadius: "lg",
+        background: "bg.surface",
+        overflow: "hidden",
+      },
+      flush: {
+        borderBottom: "1px solid token(colors.border.subtle)",
+      },
+    },
+  },
+  defaultVariants: { variant: "contained" },
+});
+
+const headerStyles = css({
+  display: "flex",
+  alignItems: "center",
+  gap: "1",
+  margin: 0,
+  font: "inherit",
+  "&:has(> [data-accordion-actions])": { paddingInlineEnd: "2" },
+});
+
+const triggerStyles = cva({
+  base: {
+    flex: "1 1 auto",
+    minWidth: 0,
+    display: "flex",
+    alignItems: "center",
+    gap: "3",
+    boxSizing: "border-box",
+    minHeight: "48px",
+    margin: 0,
+    paddingBlock: "3",
+    paddingInline: "4",
+    border: 0,
+    background: "transparent",
+    color: "fg.default",
+    fontFamily: "body",
+    textAlign: "start",
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+    transition: "background-color token(durations.fast) linear",
+    outline: "none",
+    _hover: { background: "overlay.hover" },
+    _pressed: { background: "overlay.pressed" },
+    _focusVisible: {
+      outline: "2px solid token(colors.focusRing)",
+      outlineOffset: "-2px",
+    },
+    _disabled: { cursor: "not-allowed", color: "fg.disabled" },
+    "& [data-caret]": {
+      flex: "none",
+      width: "16px",
+      height: "16px",
+      marginInlineStart: "auto",
+      color: "fg.muted",
+      transition: "rotate token(durations.normal) token(easings.out)",
+      _reducedMotion: { transition: "none" },
+    },
+    "&[data-panel-open] [data-caret]": { rotate: "180deg" },
+    "& [data-icon]": {
+      flex: "none",
+      display: "inline-flex",
+      color: "fg.muted",
+      "& svg": { width: "20px", height: "20px" },
+    },
+  },
+  variants: {
+    variant: {
+      contained: {},
+      separated: {},
+      flush: { paddingInline: "1", borderRadius: "sm" },
+    },
+  },
+});
+
+const titleStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  gap: "0.5",
+  minWidth: 0,
+  "& [data-title]": {
+    fontFamily: "heading",
+    fontWeight: "semibold",
+    fontSize: "md",
+    lineHeight: "snug",
+    letterSpacing: "0.01em",
+  },
+  "& [data-description]": {
+    fontSize: "sm",
+    lineHeight: "snug",
+    color: "fg.muted",
+  },
+});
+
+const panelStyles = css({
+  overflow: "hidden",
+  boxSizing: "border-box",
+  height: "var(--accordion-panel-height)",
+  transitionProperty: "height",
+  transitionDuration: "normal",
+  transitionTimingFunction: "out",
+  _startingStyle: { height: 0 },
+  _endingStyle: {
+    height: 0,
+    transitionDuration: "fast",
+    transitionTimingFunction: "in",
+  },
+  "&[hidden]:not([hidden=until-found])": { display: "none" },
+  _reducedMotion: { transitionDuration: "0s" },
+});
+
+const panelContentStyles = cva({
+  base: {
+    paddingInline: "4",
+    paddingBottom: "4",
+    paddingTop: "1",
+    fontSize: "sm",
+    lineHeight: "normal",
+    color: "fg.default",
+  },
+  variants: {
+    variant: {
+      contained: {},
+      separated: {},
+      flush: { paddingInline: "1" },
+    },
+  },
+});
+
+type RootProps = ComponentProps<typeof BaseAccordion.Root>;
+
+export interface AccordionProps extends Omit<RootProps, "className"> {
+  /**
+   * Contained (one bordered surface), Separated (a card per item) or Flush
+   * (hairlines only, for inside a card or dialog).
+   */
+  variant?: AccordionVariant;
+  className?: string;
+}
+
+/**
+ * Sections that open and close under their headings. One opens at a time
+ * unless `multiple`. The value is the open items' values, controlled with
+ * `value`/`onValueChange` or uncontrolled with `defaultValue`.
+ */
+export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
+  function Accordion(props, ref) {
+    const { variant = "contained", className, ...rest } = props;
+    return (
+      <VariantContext.Provider value={variant}>
+        <BaseAccordion.Root
+          ref={ref}
+          className={cx(rootStyles({ variant }), className)}
+          {...rest}
+        />
+      </VariantContext.Provider>
+    );
+  },
+);
+
+type ItemProps = ComponentProps<typeof BaseAccordion.Item>;
+
+export interface AccordionItemProps extends Omit<ItemProps, "className"> {
+  className?: string;
+}
+
+/** One section: an `AccordionTrigger` and an `AccordionPanel`. */
+export const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
+  function AccordionItem(props, ref) {
+    const { className, ...rest } = props;
+    const variant = useContext(VariantContext);
+    return (
+      <BaseAccordion.Item
+        ref={ref}
+        className={cx(itemStyles({ variant }), className)}
+        {...rest}
+      />
+    );
+  },
+);
+
+export interface AccordionTriggerProps {
+  /** The section's title. */
+  children: ReactNode;
+  /** A line under the title, such as a count or a summary. */
+  description?: ReactNode;
+  /** An icon before the title. */
+  icon?: ReactNode;
+  /**
+   * Buttons beside the trigger, such as Edit or Delete. They sit in the
+   * heading next to the trigger, never inside it.
+   */
+  actions?: ReactNode;
+  /**
+   * The heading element. Headings nest by section, so pick the level that
+   * follows the heading above (CLAUDE.md).
+   */
+  headingLevel?: 2 | 3 | 4 | 5 | 6;
+  disabled?: boolean;
+  className?: string;
+}
+
+/** A section's heading and the button that opens it. */
+export const AccordionTrigger = forwardRef<
+  HTMLButtonElement,
+  AccordionTriggerProps
+>(function AccordionTrigger(props, ref) {
+  const {
+    children,
+    description,
+    icon,
+    actions,
+    headingLevel = 3,
+    disabled,
+    className,
+  } = props;
+  const variant = useContext(VariantContext);
+  const Heading = `h${headingLevel}` as const;
+  return (
+    <BaseAccordion.Header render={<Heading />} className={headerStyles}>
+      <BaseAccordion.Trigger
+        ref={ref}
+        disabled={disabled}
+        className={cx(triggerStyles({ variant }), className)}
+      >
+        {icon && (
+          <span data-icon="" aria-hidden>
+            {icon}
+          </span>
+        )}
+        <span className={titleStyles}>
+          <span data-title="">{children}</span>
+          {description && <span data-description="">{description}</span>}
+        </span>
+        <CaretDown data-caret="" weight="bold" aria-hidden />
+      </BaseAccordion.Trigger>
+      {actions && (
+        <span
+          data-accordion-actions=""
+          className={css({ display: "flex", gap: "1", flex: "none" })}
+        >
+          {actions}
+        </span>
+      )}
+    </BaseAccordion.Header>
+  );
+});
+
+type PanelProps = ComponentProps<typeof BaseAccordion.Panel>;
+
+export interface AccordionPanelProps extends Omit<PanelProps, "className"> {
+  className?: string;
+  /** Drop the panel's padding, for content that brings its own (a list). */
+  disablePadding?: boolean;
+}
+
+/** A section's content. Its height animates as it opens and closes. */
+export const AccordionPanel = forwardRef<HTMLDivElement, AccordionPanelProps>(
+  function AccordionPanel(props, ref) {
+    const { className, children, disablePadding, ...rest } = props;
+    const variant = useContext(VariantContext);
+    return (
+      <BaseAccordion.Panel ref={ref} className={panelStyles} {...rest}>
+        <div
+          className={cx(
+            !disablePadding && panelContentStyles({ variant }),
+            className,
+          )}
+        >
+          {children}
+        </div>
+      </BaseAccordion.Panel>
+    );
+  },
+);
