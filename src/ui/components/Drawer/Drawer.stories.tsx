@@ -8,6 +8,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
 import { Stack } from "ui/primitives";
+import { focusRing } from "ui/styles/focus";
 
 import { css } from "styled-system/css";
 
@@ -15,7 +16,6 @@ import { Button } from "../Button";
 import { IconButton } from "../IconButton";
 import { Text } from "../Text";
 import { Drawer, DrawerBody, DrawerFooter, DrawerHeader } from "./Drawer";
-import { focusRing } from "ui/styles/focus";
 
 const meta = {
   title: "Components/Drawer",
