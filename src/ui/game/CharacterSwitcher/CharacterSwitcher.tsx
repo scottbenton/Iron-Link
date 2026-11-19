@@ -86,7 +86,7 @@ const leadStyles = css({
     height: "24px",
     color: "fg.muted",
   },
-  "& > [data-part=lead] > svg": { width: "18px", height: "18px" },
+  "& > [data-part=lead] > svg": { width: "icon.md", height: "icon.md" },
   "& > [data-part=text]": {
     minWidth: 0,
     overflow: "hidden",

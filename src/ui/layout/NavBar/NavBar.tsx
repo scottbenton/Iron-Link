@@ -86,7 +86,7 @@ const homeLinkStyles = css({
   display: "inline-flex",
   alignItems: "center",
   flex: "none",
-  minHeight: "40px",
+  minHeight: "control.md",
   paddingInline: "1",
   borderRadius: "md",
   color: "inherit",
@@ -198,7 +198,7 @@ const drawerLinkStyles = css({
   WebkitTapHighlightColor: "transparent",
   transition:
     "background-color token(durations.fast) linear, color token(durations.fast) linear",
-  "& svg": { width: "20px", height: "20px", flex: "none" },
+  "& svg": { width: "icon.md", height: "icon.md", flex: "none" },
   _hover: { background: "overlay.hover", color: "fg.default" },
   _active: { background: "overlay.pressed" },
   _focusVisible: focusRing.inset,

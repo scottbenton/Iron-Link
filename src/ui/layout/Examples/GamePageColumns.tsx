@@ -338,7 +338,7 @@ const noteToolbarStyles = css({
 
 const noteBodyStyles = css({
   boxSizing: "border-box",
-  maxWidth: "72ch",
+  maxWidth: "prose",
   paddingInline: "4",
   paddingBlock: "5",
   marginInline: "auto",
