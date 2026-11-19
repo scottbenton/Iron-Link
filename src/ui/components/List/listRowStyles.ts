@@ -1,4 +1,5 @@
 import { focusRing } from "ui/styles/focus";
+import { pressableReset } from "ui/styles/pressable";
 
 import { css } from "styled-system/css";
 
@@ -40,32 +41,25 @@ export const listRowLineStyles = css({
  * sidebar.
  */
 export const listRowStyles = css({
+  ...pressableReset,
   minWidth: 0,
   display: "flex",
   alignItems: "center",
   gap: "2",
-  boxSizing: "border-box",
   width: "100%",
   minHeight: "control.row",
-  margin: 0,
   paddingBlock: "1.5",
   paddingInlineStart: "3",
   paddingInlineEnd: "2",
-  border: 0,
   borderRadius: "md",
-  background: "transparent",
   color: "fg.default",
   fontFamily: "body",
   fontSize: "sm",
   fontWeight: "medium",
   lineHeight: "snug",
   textAlign: "start",
-  textDecoration: "none",
-  cursor: "pointer",
   userSelect: "none",
-  WebkitTapHighlightColor: "transparent",
   transition: "background-color token(durations.fast) linear",
-  outline: "none",
   "[data-has-action] > &": {
     paddingInlineEnd:
       "calc(var(--row-action-width) + token(spacing.1) + token(spacing.2))",
