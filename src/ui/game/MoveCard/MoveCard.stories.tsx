@@ -74,11 +74,98 @@ export const AskTheOracle: Story = {
   },
 };
 
-/** A move with no roll, collapsed until opened. */
-export const Collapsible: Story = {
+/**
+ * Rolled with stats, a condition meter and an asset's own meter: every
+ * action roll shows its value signed.
+ */
+export const ActionRollWithAssets: Story = {
+  args: {
+    move: sampleMoves.strike,
+    category: "Combat",
+    onRoll: () => {},
+    rollOptions: [
+      { id: "iron", label: "Iron", value: 2, kind: "stat" },
+      { id: "edge", label: "Edge", value: 3, kind: "stat" },
+      {
+        id: "asset:starship",
+        label: "Starship Integrity",
+        value: 4,
+        kind: "asset",
+      },
+    ],
+  },
+};
+
+/**
+ * A progress roll: one button per track the character can roll, each with
+ * its progress score (filled boxes), not a signed value.
+ */
+export const ProgressRoll: Story = {
+  args: {
+    move: sampleMoves.fulfillYourVow,
+    category: "Quest",
+    onRoll: () => {},
+    rollOptions: [
+      { id: "vow-1", label: "Find my sister", value: 6, kind: "track" },
+      { id: "vow-2", label: "Repair the Wayfinder", value: 3, kind: "track" },
+      {
+        id: "vow-3",
+        label: "Bring down the Iron Fist",
+        value: 9,
+        kind: "track",
+      },
+    ],
+  },
+};
+
+/** A progress roll with nothing to roll yet. */
+export const ProgressRollNoTracks: Story = {
+  args: {
+    move: sampleMoves.forgeABond,
+    category: "Connection",
+    onRoll: () => {},
+    noTracksLabel: "No connections to roll",
+  },
+};
+
+/**
+ * Special tracks: Starforged's legacies, rolled as their score. The options
+ * come from the move; the app adds each legacy's score.
+ */
+export const LegacyTracks: Story = {
+  args: {
+    move: sampleMoves.continueALegacy,
+    category: "Legacy",
+    onRoll: () => {},
+    rollOptions: [
+      { id: "quests_legacy", label: "Quests", value: 4, kind: "special" },
+      { id: "bonds_legacy", label: "Bonds", value: 2, kind: "special" },
+      {
+        id: "discoveries_legacy",
+        label: "Discoveries",
+        value: 7,
+        kind: "special",
+      },
+    ],
+  },
+};
+
+/** Ironsworn's bonds track, rolled by Write Your Epilogue. */
+export const BondsTrack: Story = {
+  args: {
+    move: sampleMoves.writeYourEpilogue,
+    category: "Relationship",
+    onRoll: () => {},
+    rollOptions: [
+      { id: "bonds_track", label: "Bonds", value: 5, kind: "special" },
+    ],
+  },
+};
+
+/** A move with no roll: its text alone. */
+export const NoRoll: Story = {
   args: {
     move: sampleMoves.payThePrice,
     category: "Fate",
-    collapsible: true,
   },
 };

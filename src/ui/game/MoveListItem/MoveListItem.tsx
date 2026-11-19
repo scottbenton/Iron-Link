@@ -1,4 +1,3 @@
-import { Button as BaseButton } from "@base-ui/react/button";
 import { Collapsible } from "@base-ui/react/collapsible";
 import type { Datasworn } from "@datasworn-community/core";
 import { CaretDown } from "@phosphor-icons/react";
@@ -10,6 +9,7 @@ import {
   useState,
 } from "react";
 
+import { ListRow, ListRowButton, listRowStyles } from "ui/components/List";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
@@ -19,10 +19,6 @@ import {
   collapsiblePanelStyles,
   disclosureChevronStyles,
 } from "../MoveCard/cardStyles";
-import {
-  listRowLineStyles,
-  listRowStyles,
-} from "../OracleListItem/listRowStyles";
 
 const wrapperStyles = css({
   listStyle: "none",
@@ -72,8 +68,8 @@ export interface MoveListItemProps
   /** Marks the row as the open page (aria-current). */
   current?: boolean;
   /**
-   * A control at the row's end, such as Pin. It lies over the row, which
-   * keeps `--row-action-width` (32px) clear for it.
+   * A control at the row's end. It lies over the row, which keeps
+   * `--row-action-width` (32px) clear for it.
    */
   secondaryAction?: ReactNode;
   disabled?: boolean;
@@ -105,30 +101,14 @@ export function MoveListItem(props: MoveListItemProps) {
   const [expandedState, setExpandedState] = useState(defaultExpanded);
   const expanded = expandedProp ?? expandedState;
 
-  const lineProps = {
-    "data-row-line": "",
-    "data-has-action": secondaryAction ? "" : undefined,
-    className: listRowLineStyles,
-  };
-  const action = secondaryAction && (
-    <span data-row-action="">{secondaryAction}</span>
-  );
-
   if (render) {
     return (
       <Wrapper className={cx(wrapperStyles, className)} {...rest}>
-        <div {...lineProps}>
-          <BaseButton
-            className={listRowStyles}
-            render={render}
-            nativeButton={false}
-            disabled={disabled}
-            aria-current={current ? "page" : undefined}
-          >
+        <ListRow action={secondaryAction}>
+          <ListRowButton render={render} disabled={disabled} current={current}>
             <span data-row-name="">{move.name}</span>
-          </BaseButton>
-          {action}
-        </div>
+          </ListRowButton>
+        </ListRow>
       </Wrapper>
     );
   }
@@ -146,7 +126,7 @@ export function MoveListItem(props: MoveListItemProps) {
       data-expanded={expanded ? "" : undefined}
       {...rest}
     >
-      <div {...lineProps}>
+      <ListRow action={secondaryAction}>
         <Collapsible.Trigger className={cx(listRowStyles, rowStyles)}>
           <span data-row-name="">{move.name}</span>
           <CaretDown
@@ -155,8 +135,7 @@ export function MoveListItem(props: MoveListItemProps) {
             aria-hidden
           />
         </Collapsible.Trigger>
-        {action}
-      </div>
+      </ListRow>
       <Collapsible.Panel className={collapsiblePanelStyles}>
         <div className={bodyStyles}>
           <MoveCard
