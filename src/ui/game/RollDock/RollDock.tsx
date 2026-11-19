@@ -10,9 +10,9 @@ import {
 import { css, cx } from "styled-system/css";
 
 import { Button } from "../../components/Button";
-import { RollCard } from "../../game/RollCard";
-import type { RollData } from "../../game/RollCard";
 import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
+import { RollCard } from "../RollCard";
+import type { RollData } from "../RollCard";
 import { RecentRollsSheet } from "./RecentRollsSheet";
 
 /** How far each older card's edge shows above the one in front of it. */
