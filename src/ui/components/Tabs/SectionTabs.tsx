@@ -7,6 +7,7 @@ import {
   useContext,
 } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
@@ -111,10 +112,7 @@ const tabStyles = cva({
     outline: "none",
     _hover: { color: "fg.default" },
     "&[aria-selected=true]": { color: "fg.default" },
-    _focusVisible: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "1px",
-    },
+    _focusVisible: focusRing.outset,
     _disabled: { cursor: "not-allowed", color: "fg.disabled" },
     "& svg": { flex: "none", width: "16px", height: "16px" },
   },
@@ -329,10 +327,7 @@ export function SectionTabWell(props: SectionTabWellProps) {
 const panelStyles = css({
   outline: "none",
   borderRadius: "xs",
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "4px",
-  },
+  _focusVisible: focusRing.outset,
 });
 
 export interface TabPanelProps

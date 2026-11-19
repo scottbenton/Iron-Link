@@ -1,3 +1,5 @@
+import { focusRing } from "ui/styles/focus";
+
 import { css, cva } from "styled-system/css";
 
 /**
@@ -105,10 +107,7 @@ export const choiceBoxStyles = cva({
     transitionProperty: "border-color, scale",
     transitionDuration: "token(durations.fast), token(durations.instant)",
     transitionTimingFunction: "linear, token(easings.out)",
-    _focusVisible: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "2px",
-    },
+    _focusVisible: focusRing.outset,
     "label:hover > &": {
       "&:not([data-disabled], [data-checked], [data-indeterminate])": {
         borderColor: "fg.muted",
