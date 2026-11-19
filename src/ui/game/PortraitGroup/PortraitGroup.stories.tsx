@@ -38,6 +38,15 @@ type Story = StoryObj<typeof PortraitGroup>;
  */
 export const Party: Story = {};
 
+/**
+ * Two characters, as on a game in the games list. The front portrait's ring,
+ * in its character's colour scheme, is all that separates it from the one
+ * behind: there is no gap ring.
+ */
+export const TwoCharacters: Story = {
+  args: { members: party.slice(0, 2), max: undefined },
+};
+
 export const Apart: Story = {
   args: { spacing: "apart", members: party.slice(0, 3), size: "lg" },
 };

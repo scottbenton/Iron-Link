@@ -28,11 +28,8 @@ const groupStyles = cva({
     "& > li + li": {
       marginInlineStart: "calc(var(--portrait-size) * var(--group-overlap))",
     },
-    // A ring of the surface separates overlapping portraits.
-    "& > li > [data-group-member] > [data-portrait-face], & > li > [data-group-overflow]":
-      {
-        boxShadow: "0 0 0 2px token(colors.bg.surface)",
-      },
+    // No gap ring between overlapping portraits: each portrait's own ring,
+    // in its character's colour scheme, separates it from the one behind.
     "& [data-group-overflow]": {
       display: "inline-grid",
       placeItems: "center",
@@ -86,7 +83,10 @@ export interface PortraitGroupProps
 
 /**
  * A row of character portraits, overlapping by default, with a "+N" count
- * for any past `max`. Each name shows in a tooltip on hover.
+ * for any past `max`. Each name shows in a tooltip on hover. Give each
+ * member its character's `colorScheme`: its ring is drawn in that colour
+ * (gray without one), and the ring is what sets a portrait apart from the
+ * one it overlaps.
  */
 export function PortraitGroup(props: PortraitGroupProps) {
   const {
