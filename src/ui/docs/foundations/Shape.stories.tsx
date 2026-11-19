@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { css } from "styled-system/css";
+import { css, cx } from "styled-system/css";
 
 import { Text } from "../../components/Text";
 import { pageStyles, sectionStyles } from "./foundationStyles";
 
 const meta: Meta = {
-  title: "Foundations/Space, radius and elevation",
+  title: "Foundations/Space, sizes, radius and elevation",
   parameters: { layout: "fullscreen" },
 };
 export default meta;
@@ -81,6 +81,132 @@ export const Spacing: StoryObj = {
 function spacingPx(step: string) {
   return `${Number(step) * 4}px`;
 }
+
+// Each size's bar is its own literal class, so Panda can extract it.
+const controlSizes = [
+  {
+    name: "control.xs",
+    px: "28px",
+    use: "Compact chips, steppers, adds",
+    className: css({ height: "control.xs" }),
+  },
+  {
+    name: "control.sm",
+    px: "32px",
+    use: "Small buttons and fields, tabs",
+    className: css({ height: "control.sm" }),
+  },
+  {
+    name: "control.row",
+    px: "36px",
+    use: "Menu, list and select rows",
+    className: css({ height: "control.row" }),
+  },
+  {
+    name: "control.md",
+    px: "40px",
+    use: "Buttons and fields",
+    className: css({ height: "control.md" }),
+  },
+  {
+    name: "touch",
+    px: "44px",
+    use: "Every control on a touch screen",
+    className: css({ height: "touch" }),
+  },
+];
+const iconSizes = [
+  {
+    name: "icon.sm",
+    px: "14px",
+    use: "Inside small text",
+    className: css({ width: "icon.sm", height: "icon.sm" }),
+  },
+  {
+    name: "icon.md",
+    px: "18px",
+    use: "Inside every control",
+    className: css({ width: "icon.md", height: "icon.md" }),
+  },
+  {
+    name: "icon.lg",
+    px: "24px",
+    use: "Nav items, radio cards",
+    className: css({ width: "icon.lg", height: "icon.lg" }),
+  },
+];
+
+const sizeRowStyles = css({
+  display: "grid",
+  gridTemplateColumns: "96px 48px minmax(0, 1fr) auto",
+  alignItems: "center",
+  gap: "3",
+});
+const heightBarStyles = css({
+  width: "96px",
+  borderRadius: "md",
+  background: "accent.soft",
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: "accent.solid",
+});
+const iconBoxStyles = css({ borderRadius: "xs", background: "accent.solid" });
+
+export const Sizes: StoryObj = {
+  render: () => (
+    <div className={pageStyles}>
+      <div>
+        <Text variant="eyebrow">Foundations</Text>
+        <Text variant="h1">Sizes</Text>
+        <Text color="muted">
+          Control heights, icon sizes and one reading width. Fields and buttons
+          share control.md so they line up in a row; on a touch screen controls
+          grow to the 44px touch target.
+        </Text>
+      </div>
+      <section className={sectionStyles}>
+        <Text variant="h2">Control heights</Text>
+        {controlSizes.map((size) => (
+          <div key={size.name} className={sizeRowStyles}>
+            <Text variant="bodySm" weight="medium" as="code">
+              {size.name}
+            </Text>
+            <Text variant="caption" color="muted">
+              {size.px}
+            </Text>
+            <Text variant="bodySm" color="muted">
+              {size.use}
+            </Text>
+            <div className={cx(heightBarStyles, size.className)} />
+          </div>
+        ))}
+      </section>
+      <section className={sectionStyles}>
+        <Text variant="h2">Icons</Text>
+        {iconSizes.map((size) => (
+          <div key={size.name} className={sizeRowStyles}>
+            <Text variant="bodySm" weight="medium" as="code">
+              {size.name}
+            </Text>
+            <Text variant="caption" color="muted">
+              {size.px}
+            </Text>
+            <Text variant="bodySm" color="muted">
+              {size.use}
+            </Text>
+            <div className={cx(iconBoxStyles, size.className)} />
+          </div>
+        ))}
+      </section>
+      <section className={sectionStyles}>
+        <Text variant="h2">Reading width</Text>
+        <Text variant="bodySm" color="muted">
+          prose (72ch) caps notes, rules text and long descriptions.
+        </Text>
+      </section>
+    </div>
+  ),
+};
 
 const radiusBoxStyles = css({
   width: "88px",

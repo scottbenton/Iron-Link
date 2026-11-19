@@ -35,7 +35,7 @@ const triggerStyles = css({
   alignItems: "center",
   gap: "1.5",
   boxSizing: "border-box",
-  minHeight: "32px",
+  minHeight: "control.sm",
   margin: 0,
   paddingInline: "2",
   marginInline: "-2",

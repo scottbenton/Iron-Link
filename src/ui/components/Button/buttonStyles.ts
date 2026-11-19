@@ -40,7 +40,7 @@ export const buttonStyles = cva({
     justifyContent: "center",
     gap: "2",
     flexShrink: 0,
-    minHeight: "38px",
+    minHeight: "control.md",
     paddingInline: "4",
     borderRadius: "md",
     borderWidth: "1px",
@@ -275,9 +275,9 @@ export const buttonStyles = cva({
     size: {
       sm: {
         "--btn-pad": "token(spacing.3)",
-        minHeight: "32px",
+        minHeight: "control.sm",
         paddingInline: "3",
-        _touch: { minHeight: "40px" },
+        _touch: { minHeight: "control.md" },
       },
       md: {},
     },
@@ -285,7 +285,7 @@ export const buttonStyles = cva({
       true: {
         "--btn-pad": "0px",
         paddingInline: 0,
-        width: "38px",
+        width: "control.md",
         _touch: { width: "touch" },
       },
     },
@@ -302,7 +302,7 @@ export const buttonStyles = cva({
     {
       size: "sm",
       iconOnly: true,
-      css: { width: "32px", _touch: { width: "40px" } },
+      css: { width: "control.sm", _touch: { width: "control.md" } },
     },
   ],
   defaultVariants: { variant: "outline", size: "md" },
