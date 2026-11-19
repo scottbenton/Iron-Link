@@ -1,4 +1,3 @@
-import { Button as BaseButton } from "@base-ui/react/button";
 import { CaretRight } from "@phosphor-icons/react";
 import {
   ComponentPropsWithoutRef,
@@ -7,6 +6,7 @@ import {
   ReactNode,
 } from "react";
 
+import { Card, CardLinkOverlay } from "ui/components/Card";
 import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { formatSigned } from "ui/game/shared";
@@ -20,38 +20,8 @@ import {
   PortraitCrop,
   PortraitStatus,
 } from "../CharacterPortrait/CharacterPortrait";
-import { contentCardStyles } from "../MoveCard/cardStyles";
 
-const cardStyles = css({
-  display: "grid",
-  gap: "3",
-  padding: "3",
-  paddingInlineEnd: "4",
-  "&[data-pressable]": {
-    boxShadow: "0 var(--border-widths-ledge) 0 token(colors.border.edge)",
-    transform: "translateY(0)",
-    transitionProperty: "transform, box-shadow, border-color, background-color",
-    transitionDuration: "fast",
-    transitionTimingFunction: "out",
-  },
-  "&[data-pressable]:has([data-card-link]:hover)": {
-    borderColor: "border.control",
-    background: "bg.muted",
-    transform: "translateY(var(--spacing-lift))",
-    boxShadow:
-      "0 calc(var(--border-widths-ledge) - var(--spacing-lift)) 0 token(colors.border.edge)",
-  },
-  "&[data-pressable]:has([data-card-link]:is(:active, [data-pressed]))": {
-    transform: "translateY(var(--spacing-sink))",
-    boxShadow:
-      "0 max(0px, calc(var(--border-widths-ledge) - var(--spacing-sink))) 0 token(colors.border.edge)",
-    transitionDuration: "instant",
-  },
-  "&:has([data-card-link]:focus-visible)": {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "2px",
-  },
-});
+const cardStyles = css({ paddingInlineEnd: "4" });
 
 const headStyles = css({
   display: "flex",
@@ -62,25 +32,13 @@ const headStyles = css({
   "& > [data-chevron]": { flex: "none", color: "fg.muted" },
 });
 
-/** The name; as a link or button it stretches over the whole card. */
-const nameLinkStyles = css({
-  color: "inherit",
-  textDecoration: "none",
-  font: "inherit",
+/** The name as a button: the overlay's look, without a button's own. */
+const nameButtonStyles = css({
   padding: 0,
   margin: 0,
   border: 0,
   background: "transparent",
   textAlign: "left",
-  cursor: "pointer",
-  outline: "none",
-  WebkitTapHighlightColor: "transparent",
-  _after: {
-    content: '""',
-    position: "absolute",
-    inset: 0,
-    borderRadius: "lg",
-  },
 });
 
 const statsStyles = css({
@@ -124,8 +82,6 @@ const statsStyles = css({
 });
 
 const actionsStyles = css({
-  position: "relative",
-  zIndex: 1,
   display: "flex",
   flexWrap: "wrap",
   justifyContent: "flex-end",
@@ -205,10 +161,11 @@ export function CharacterCard(props: CharacterCardProps) {
   const secondLine = subtitle ?? playerName;
 
   return (
-    <article
-      className={cx(contentCardStyles, cardStyles, className)}
-      data-pressable={pressable || undefined}
-      {...rest}
+    <Card
+      render={<article />}
+      padding="sm"
+      className={cx(cardStyles, className)}
+      {...(rest as ComponentPropsWithoutRef<"div">)}
     >
       <div className={headStyles}>
         <CharacterPortrait
@@ -226,15 +183,19 @@ export function CharacterCard(props: CharacterCardProps) {
         <div data-titles="">
           <Text as={headingAs} variant="h3" truncate>
             {pressable ? (
-              <BaseButton
-                data-card-link=""
-                className={nameLinkStyles}
-                render={render}
-                nativeButton={!render}
-                onClick={onOpen}
+              <CardLinkOverlay
+                render={
+                  render ?? (
+                    <button
+                      type="button"
+                      className={nameButtonStyles}
+                      onClick={onOpen}
+                    />
+                  )
+                }
               >
                 {name}
-              </BaseButton>
+              </CardLinkOverlay>
             ) : (
               name
             )}
@@ -266,6 +227,6 @@ export function CharacterCard(props: CharacterCardProps) {
       )}
 
       {actions && <div className={actionsStyles}>{actions}</div>}
-    </article>
+    </Card>
   );
 }

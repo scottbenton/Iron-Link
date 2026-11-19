@@ -8,12 +8,12 @@ import { ConditionMeter } from "ui/game/ConditionMeter";
 
 import { css } from "styled-system/css";
 
+import { capitalize } from "../shared";
 import {
   AssetCardState,
   AssetControl,
   AssetControlValue,
   AssetOption,
-  capitalize,
   getControlValue,
   sortByLabel,
 } from "./assetData";

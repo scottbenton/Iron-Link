@@ -1,5 +1,7 @@
 import type { Datasworn } from "@datasworn-community/core";
 
+import { capitalize } from "../shared";
+
 /** One way to roll a move: a stat, a condition meter, a track or an asset. */
 export interface MoveRollOption {
   /** Stable key, such as the stat id ("edge") or a track id. */
@@ -11,9 +13,6 @@ export interface MoveRollOption {
   /** Shown but not pressable, such as a stat the character lacks. */
   disabled?: boolean;
 }
-
-const capitalize = (text: string) =>
-  text.charAt(0).toUpperCase() + text.slice(1);
 
 /**
  * The stats and condition meters a move's trigger offers, in the order the

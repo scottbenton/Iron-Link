@@ -1,23 +1,23 @@
-import { css } from "styled-system/css";
+import { surfaceStyles } from "ui/components/Surface";
+
+import { css, cx } from "styled-system/css";
 
 /**
- * The flat card the game content sits on: a surface, a hairline border and
- * the card radius. No ledge, since the card itself is not pressed; a card
- * that is one button (AssetPickerCard) adds its own.
+ * The flat card the game content sits on: the flat `Surface` (the surface
+ * colour, a hairline border, the card radius) laid out as a column. No
+ * ledge, since the card itself is not pressed; a card the reader presses is
+ * the library `Card` with an action area or overlay.
  */
-export const contentCardStyles = css({
-  position: "relative",
-  display: "flex",
-  flexDirection: "column",
-  minWidth: 0,
-  borderWidth: "1px",
-  borderStyle: "solid",
-  borderColor: "border.default",
-  borderRadius: "lg",
-  background: "bg.surface",
-  color: "fg.default",
-  fontFamily: "body",
-});
+export const contentCardStyles = cx(
+  surfaceStyles({ tone: "flat", radius: "lg" }),
+  css({
+    position: "relative",
+    display: "flex",
+    flexDirection: "column",
+    minWidth: 0,
+    fontFamily: "body",
+  }),
+);
 
 /** Height animation for a Base UI Collapsible panel. */
 export const collapsiblePanelStyles = css({

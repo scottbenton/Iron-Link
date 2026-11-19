@@ -245,7 +245,6 @@ export const semanticTokens = {
       solidPressed: { value: mix(v("accent-solid"), 85, "black") },
     },
     focusRing: lightDark(v("scheme-light-fg"), v("scheme-dark-fg")),
-    ringEdge: { value: mix(v("ring-end"), 50, "black") },
     success: {
       fg: lightDark(v("status-success-light"), v("status-success-dark")),
       soft: lightDark(
