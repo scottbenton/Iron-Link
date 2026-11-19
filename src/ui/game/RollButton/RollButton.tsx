@@ -1,23 +1,37 @@
-import { Button as BaseButton } from "@base-ui/react/button";
 import { DiceFive } from "@phosphor-icons/react";
-import { ComponentProps, ReactNode, forwardRef } from "react";
+import { ReactNode, forwardRef } from "react";
 
+import { Button, type ButtonProps } from "ui/components/Button";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { withLayoutProps } from "ui/styles/layoutProps";
+
+import { cx } from "styled-system/css";
 
 import { formatSigned } from "../shared/format";
 import { AddsAnchor } from "./AddsBadge";
-import { rollButtonInnerStyles, rollButtonStyles } from "./rollButtonStyles";
+import { rollButtonStyles } from "./rollButtonStyles";
 
 export interface RollButtonProps
-  extends LayoutProps,
-    Omit<ComponentProps<typeof BaseButton>, "className" | "children"> {
-  /** The label, such as "Roll +Iron" or "Ask the Oracle". */
+  extends Omit<
+    ButtonProps,
+    | "variant"
+    | "size"
+    | "startIcon"
+    | "endIcon"
+    | "iconOnly"
+    | "loading"
+    | "loadingLabel"
+    | "children"
+  > {
+  /**
+   * The label, such as "Roll +Iron" or "Ask the Oracle", shown as given.
+   * Capitalise names that come in lower case (`capitalize` from
+   * `ui/game/shared`).
+   */
   children: ReactNode;
   /** An icon before the label. A die by default; `null` for none. */
   icon?: ReactNode;
   size?: "sm" | "md" | "lg";
-  fullWidth?: boolean;
   /**
    * Adds on this roll, shown as a badge on the button's top-right corner
    * and read after the label. Zero hides it.
@@ -25,13 +39,13 @@ export interface RollButtonProps
   adds?: number;
   /** Read after the label when adds apply, "adds +1" by default. */
   addsLabel?: (adds: string) => string;
-  className?: string;
 }
 
 /**
- * The button that rolls: a dark chip inside an always-on gradient ring, on a
- * ledge. Use it for stat and progress rolls, Ask the Oracle and oracle table
- * rolls. Hover brightens the ring; a press sinks the button 1px. Adds for
+ * The button that rolls: the gradient button (a turning ring on its own
+ * gradient ledge) with a chip face and the heading type. Use it for stat
+ * and progress rolls, Ask the Oracle and oracle table rolls. Hover thickens
+ * the ring and lifts the button; a press sinks it onto the ledge. Adds for
  * the next roll show as the same corner badge a stat card uses.
  */
 export const RollButton = forwardRef<HTMLElement, RollButtonProps>(
@@ -50,19 +64,21 @@ export const RollButton = forwardRef<HTMLElement, RollButtonProps>(
       icon === undefined ? <DiceFive weight="bold" aria-hidden /> : icon;
     return (
       <AddsAnchor adds={adds} fullWidth={fullWidth} className={className}>
-        <BaseButton
+        <Button
           ref={ref}
-          className={rollButtonStyles({ size, fullWidth })}
+          variant="gradient"
+          size={size === "sm" ? "sm" : "md"}
+          fullWidth={fullWidth}
+          startIcon={iconNode}
+          className={cx(rollButtonStyles({ size, fullWidth }))}
+          data-roll=""
           {...rest}
         >
-          <span data-ring-inner="" className={rollButtonInnerStyles}>
-            {iconNode}
-            <span data-roll-label="">{children}</span>
-            {adds !== 0 && (
-              <VisuallyHidden>, {addsLabel(formatSigned(adds))}</VisuallyHidden>
-            )}
-          </span>
-        </BaseButton>
+          <span data-roll-label="">{children}</span>
+          {adds !== 0 && (
+            <VisuallyHidden>, {addsLabel(formatSigned(adds))}</VisuallyHidden>
+          )}
+        </Button>
       </AddsAnchor>
     );
   },

@@ -1,5 +1,7 @@
 import type { Datasworn } from "@datasworn-community/core";
 
+import { capitalize } from "../shared";
+
 /** What a character has done with an asset, as Iron Link stores it. */
 export interface AssetCardState {
   /** Abilities ticked beyond those enabled by default, by index. */
@@ -117,8 +119,4 @@ export function sortByLabel<T extends { label: string }>(
   return Object.entries(record).sort(([, a], [, b]) =>
     a.label.localeCompare(b.label),
   );
-}
-
-export function capitalize(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
 }
