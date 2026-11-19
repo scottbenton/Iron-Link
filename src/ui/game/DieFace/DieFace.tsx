@@ -6,7 +6,14 @@ import {
   DiceThree,
   DiceTwo,
 } from "@phosphor-icons/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
@@ -51,6 +58,14 @@ export function useDieFace(
  */
 export type DieFaceMotion = "swap" | "tilt" | "pop" | "cycle" | "fade";
 
+/**
+ * The motion every DieFace without its own `motion` uses, `tilt` unless a
+ * provider says otherwise. It exists so a story can show each option on
+ * the real roll buttons, stat cards, meters and oracle rows; it goes with
+ * the options once one is chosen.
+ */
+export const DieFaceMotionContext = createContext<DieFaceMotion>("tilt");
+
 export interface DieFaceProps extends LayoutProps {
   /** The face showing. Changing it shows the new face with `motion`. */
   face: DieFaceValue;
@@ -61,7 +76,7 @@ export interface DieFaceProps extends LayoutProps {
   size?: "sm" | "md" | "lg" | "inherit";
   /** The icon weight: `bold` (default), or `fill` as stat cards draw it. */
   weight?: "bold" | "fill";
-  /** How a new face arrives; `tilt` by default. */
+  /** How a new face arrives; `DieFaceMotionContext` (`tilt`) by default. */
   motion?: DieFaceMotion;
   className?: string;
 }
@@ -170,9 +185,11 @@ export function DieFace(props: DieFaceProps) {
     face: target,
     size = "md",
     weight = "bold",
-    motion = "tilt",
+    motion: motionProp,
     className,
   } = withLayoutProps(props);
+  const contextMotion = useContext(DieFaceMotionContext);
+  const motion = motionProp ?? contextMotion;
   const face = useCycledFace(target, motion === "cycle");
   // The face before the last change, and a count that restarts the
   // entrance. Updated during render, so the new face never shows a frame
