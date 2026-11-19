@@ -85,11 +85,11 @@ export function getProgressValueText(
     : strings.boxesAndTicks(boxes, PROGRESS_BOXES, rest, TICKS_PER_BOX);
 }
 
-/** "2 boxes per mark", "1 tick per mark": what one mark at a rank adds. */
+/** "2 boxes per progress", "1 tick per progress": what one mark at a rank adds. */
 export function describeMark(ticks: number): string {
   if (ticks % TICKS_PER_BOX === 0) {
     const boxes = ticks / TICKS_PER_BOX;
-    return `${boxes} ${boxes === 1 ? "box" : "boxes"} per mark`;
+    return `${boxes} ${boxes === 1 ? "box" : "boxes"} per progress`;
   }
-  return `${ticks} ${ticks === 1 ? "tick" : "ticks"} per mark`;
+  return `${ticks} ${ticks === 1 ? "tick" : "ticks"} per progress`;
 }

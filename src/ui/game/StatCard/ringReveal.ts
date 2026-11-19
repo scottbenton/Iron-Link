@@ -7,5 +7,6 @@ export const drawReveal = ":root[data-ring-reveal=draw] &";
 export const thickenReveal = ":root[data-ring-reveal=thicken] &";
 export const fadeReveal =
   ":root:not([data-ring-reveal=draw]):not([data-ring-reveal=thicken]) &";
-export const ringShown = "&:is(:active, [data-pressed], :focus-visible)";
+export const ringShown =
+  "&:is(:active, [data-pressed], :focus-visible):not(:disabled, [data-disabled])";
 export const ringHovered = "&:hover:not(:disabled, [data-disabled])";

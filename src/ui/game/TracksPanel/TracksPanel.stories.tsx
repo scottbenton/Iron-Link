@@ -51,15 +51,19 @@ type Story = StoryObj<typeof meta>;
 /**
  * Every control the live Tracks tab has, in the new style and all live:
  *
- * - **Show Completed** and **Add Track** (Vow, Journey, Combat, Scene
- *   Challenge, Clock), which opens TrackDialog.
- * - Each track: minus and plus by its rank, and its completion roll (Fulfill
- *   Your Vow, Finish an Expedition, Take Decisive Action, Finish the Scene)
- *   under the boxes. A scene challenge adds its tension clock.
- * - Each clock: minus and plus, its odds and **Roll Progress**, which asks
- *   the oracle (a real d100 here) and advances it on a Yes, two on a match.
- * - The ⋯ menu: Edit, Complete or Reopen, Open on Second Screen and Delete
- *   (which asks first). Complete a track to watch it leave the list.
+ * - **Show Completed** and **Add Track**, whose menu lists the kinds by name
+ *   alone (Vow, Journey, Combat, Scene Challenge, Clock) so rules data can
+ *   supply them later. Each opens TrackDialog.
+ * - Each track: minus and plus by its rank beside its title, and under the
+ *   boxes its completion roll (Fulfill Your Vow, Finish an Expedition, Take
+ *   Decisive Action, Finish the Scene) and **Complete**, in view rather than
+ *   in the menu. A scene challenge adds its tension clock. Complete a track
+ *   to watch it leave the list.
+ * - Each clock: its dial (press a segment, or the middle to advance), its
+ *   odds, **Roll Progress**, which asks the oracle (a real d100 here) and
+ *   advances it on a Yes, two on a match, and Complete.
+ * - The ⋯ menu: Edit, Reopen (once completed), Open on Second Screen and
+ *   Delete (which asks first).
  * - **Connections**: Show Bonded and Add, then each connection's track,
  *   Forge a Bond and Bonded, with sharing, removal and rank in its menu.
  *   The section starts closed with three or more.
@@ -110,8 +114,8 @@ export const ManyTracks: Story = {
 };
 
 /**
- * A new game: no tracks and no connections, each with its own empty
- * state. Add Track still works.
+ * A new game: no tracks and no connections. Every empty state in the panel
+ * has the same shape: a title and a line saying how to fill it.
  */
 export const Empty: Story = {
   render: () => (
@@ -123,7 +127,8 @@ export const Empty: Story = {
 
 /**
  * Every track completed, with Show Completed off; and every connection
- * bonded, with Show Bonded off.
+ * bonded, with Show Bonded off. Each empty state says how many are hidden
+ * and offers the button that shows them.
  */
 export const NothingActive: Story = {
   render: () => (

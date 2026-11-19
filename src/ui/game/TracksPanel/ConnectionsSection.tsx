@@ -1,5 +1,5 @@
 import { DotsThreeIcon, PlusIcon } from "@phosphor-icons/react";
-import { ElementType, useState } from "react";
+import { ElementType, useEffect, useRef, useState } from "react";
 
 import { css } from "styled-system/css";
 
@@ -82,6 +82,13 @@ export function ConnectionsSection(props: ConnectionsSectionProps) {
     setOwnShowBonded(show);
     onShowBondedChange?.(show);
   };
+  // Show Bonded in the empty state goes once pressed; its checkbox, which
+  // now reads checked, takes focus.
+  const showBondedRef = useRef<HTMLElement>(null);
+  const [refocus, setRefocus] = useState(0);
+  useEffect(() => {
+    if (refocus) showBondedRef.current?.focus();
+  }, [refocus]);
   const shown = connections.filter(
     (connection) => showBonded || !connection.bonded,
   );
@@ -94,6 +101,7 @@ export function ConnectionsSection(props: ConnectionsSectionProps) {
       controls={
         <>
           <Checkbox
+            ref={showBondedRef}
             label={strings.showBonded}
             size="sm"
             checked={showBonded}
@@ -116,8 +124,28 @@ export function ConnectionsSection(props: ConnectionsSectionProps) {
       {shown.length === 0 ? (
         <EmptyState
           size="sm"
-          message={
+          title={
             connections.length === 0 ? strings.noConnections : strings.allBonded
+          }
+          message={
+            connections.length === 0
+              ? readOnly || !onAdd
+                ? undefined
+                : strings.noConnectionsMessage
+              : strings.allBondedMessage(connections.length)
+          }
+          action={
+            connections.length > 0 && (
+              <Button
+                size="sm"
+                onClick={() => {
+                  setShowBonded(true);
+                  setRefocus((count) => count + 1);
+                }}
+              >
+                {strings.showBonded}
+              </Button>
+            )
           }
         />
       ) : (
