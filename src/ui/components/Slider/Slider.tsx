@@ -2,6 +2,7 @@ import { Slider as BaseSlider } from "@base-ui/react/slider";
 import { ReactNode, Ref } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { ledgeShadow } from "ui/styles/ledge";
 
 import { css } from "styled-system/css";
 
@@ -105,7 +106,7 @@ const thumbStyles = css({
   borderStyle: "solid",
   borderColor: "accent.solid",
   background: "bg.surface",
-  boxShadow: "0 var(--border-widths-ledge) 0 token(colors.accent.edge)",
+  boxShadow: ledgeShadow("token(colors.accent.edge)"),
   cursor: "grab",
   transitionProperty: "scale, box-shadow",
   transitionDuration: "fast",
