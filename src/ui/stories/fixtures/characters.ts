@@ -22,7 +22,7 @@ export const sampleCharacters: SampleCharacter[] = [
   {
     id: "orrin",
     name: "Orrin Thale",
-    playerName: "Parham",
+    playerName: "Phoebe",
     colorSeed: 210,
     stats: { edge: 1, heart: 3, iron: 2, shadow: 2, wits: 1 },
     meters: { health: 3, spirit: 5, supply: 2, momentum: 2 },
