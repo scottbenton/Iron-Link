@@ -92,7 +92,7 @@ const homeLinkStyles = css({
   color: "inherit",
   textDecoration: "none",
   outline: "none",
-  _focusVisible: { outline: "2px solid token(colors.focusRing)" },
+  _focusVisible: focusRing.outset,
 });
 
 const spacerStyles = css({ flex: "1 1 auto" });
