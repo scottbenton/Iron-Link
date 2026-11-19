@@ -1,5 +1,12 @@
 import { ArrowLineLeftIcon } from "@phosphor-icons/react";
-import { CSSProperties, ReactNode, useEffect, useId, useRef } from "react";
+import {
+  CSSProperties,
+  Fragment,
+  ReactNode,
+  useEffect,
+  useId,
+  useRef,
+} from "react";
 
 import { focusRing } from "ui/styles/focus";
 
@@ -55,8 +62,13 @@ const bodyStyles = css({
   display: "flex",
   flex: "1 1 auto",
   minHeight: 0,
+  // Rails take their width from the main column, not the open sidebars:
+  // the room left after the main column's minimum and the rails is shared
+  // among the open sidebars only.
+  "--game-rail-width": "57px",
+  _touch: { "--game-rail-width": "61px" },
   "--sidebar-cap":
-    "calc((100cqi - var(--game-main-min-width, 360px)) / var(--game-sidebar-count, 1))",
+    "calc((100cqi - var(--game-main-min-width, 360px) - var(--game-rail-count, 0) * var(--game-rail-width)) / var(--game-sidebar-count, 1))",
 });
 
 const mainStyles = css({
@@ -143,10 +155,12 @@ export interface GameLayoutProps {
    * and all of it sits at the start: with both open, the end sidebar stacks
    * under the start one in a single column (with the start sidebar's width
    * and resize handle, and the end one's Collapse in its first panel's
-   * header); with one collapsed, its rail sits beside the open column; with
-   * both collapsed, two rails. So the reader can keep the sheet open with
-   * the reference on a rail, the other way round, or both, and the main
-   * column never moves between sides.
+   * header); with one collapsed, its rail sits first, before the open
+   * column, and takes its width from the main column; with both collapsed,
+   * one rail holding both, each sidebar's Expand and sections in its own
+   * group. So the reader can keep the sheet open with the reference on a
+   * rail, the other way round, or both, and the main column never moves
+   * between sides.
    */
   stackSidebars?: boolean;
   /** The narrowest the main column gets before sidebars stop growing. */
@@ -190,31 +204,52 @@ export function GameLayout(props: GameLayoutProps) {
     false,
     endSidebar?.onCollapsedChange,
   );
+  // The end sidebar's width lives here, so it survives the end sidebar
+  // folding into the start one's rail and coming out again.
+  const [endWidth, setEndWidth] = useControllableState(
+    endSidebar?.width,
+    endSidebar?.defaultWidth ?? 360,
+    endSidebar?.onWidthChange,
+  );
 
   const canStack = stackSidebars && !!startSidebar && !!endSidebar;
   // Stacking puts every sidebar at the start, open or on a rail.
   const endSide = canStack ? "start" : "end";
   const stacked = canStack && !startCollapsed && !endCollapsed;
+  // Both on rails: one rail, in the start sidebar's place.
+  const sharedRail = canStack && startCollapsed && endCollapsed;
 
   // Stacking or unstacking swaps the end sidebar between its own column and
   // the stacked one, so the control the reader used goes. Focus moves to its
   // counterpart: the rail's Expand, or the stacked column's Collapse.
   const endCollapseRef = useRef<HTMLButtonElement>(null);
-  const pendingFocus = useRef<"endExpand" | "endCollapse" | null>(null);
+  const pendingFocus = useRef<"endExpand" | "endCollapse" | "endOpen" | null>(
+    null,
+  );
+  const endCollapseLabel = endSidebar?.labels?.collapse ?? "Collapse Sidebar";
   useEffect(() => {
     const pending = pendingFocus.current;
     pendingFocus.current = null;
+    const end = document.getElementById(endId);
     if (pending === "endCollapse") endCollapseRef.current?.focus();
+    // The end rail, or its group on the shared rail, starts with Expand.
     else if (pending === "endExpand")
-      document
-        .getElementById(endId)
-        ?.querySelector<HTMLElement>("button")
+      end?.querySelector<HTMLElement>("button")?.focus();
+    else if (pending === "endOpen")
+      end
+        ?.querySelector<HTMLElement>(
+          `button[aria-label="${CSS.escape(endCollapseLabel)}"]`,
+        )
         ?.focus();
-  }, [endCollapsed, endId]);
+  }, [endCollapsed, endId, endCollapseLabel]);
 
   const changeEndCollapsed = (collapsed: boolean) => {
-    if (canStack && !startCollapsed) {
-      pendingFocus.current = collapsed ? "endExpand" : "endCollapse";
+    if (canStack) {
+      pendingFocus.current = collapsed
+        ? "endExpand"
+        : startCollapsed
+          ? "endOpen"
+          : "endCollapse";
     }
     setEndCollapsed(collapsed);
   };
@@ -225,9 +260,15 @@ export function GameLayout(props: GameLayoutProps) {
     </div>
   );
 
-  const sidebarCount = stacked
+  // Open columns share the room the main column leaves; rails come out of
+  // the main column's share.
+  const startOpen = !!startSidebar && !startCollapsed;
+  const endOpen = !!endSidebar && !endCollapsed;
+  const sidebarCount = stacked ? 1 : (startOpen ? 1 : 0) + (endOpen ? 1 : 0);
+  const railCount = sharedRail
     ? 1
-    : (startSidebar ? 1 : 0) + (endSidebar ? 1 : 0);
+    : (startSidebar && startCollapsed ? 1 : 0) +
+      (endSidebar && endCollapsed ? 1 : 0);
 
   const mainColumn = (
     <div className={mainStyles}>
@@ -276,15 +317,99 @@ export function GameLayout(props: GameLayoutProps) {
         )
       : [];
 
-  const endSidebarColumn = endSidebar && !stacked && (
+  const endSidebarColumn = endSidebar && !stacked && !sharedRail && (
     <Sidebar
+      key="end"
       side={endSide}
       {...endSidebar}
       id={endId}
+      width={endWidth}
+      onWidthChange={setEndWidth}
       collapsed={endCollapsed}
       onCollapsedChange={changeEndCollapsed}
     />
   );
+
+  const titleOf = (sidebar: GameSidebar) => sidebar.panels[0]?.title ?? "";
+
+  // The start sidebar keeps its place (its key) in every arrangement, so it
+  // keeps its state (and moves focus itself) as stacking changes.
+  let startSidebarColumn: ReactNode = null;
+  if (startSidebar && stacked && endSidebar) {
+    // Reading order follows the eye: the column top to bottom, then the
+    // main column.
+    startSidebarColumn = (
+      <Sidebar
+        key="start"
+        side="start"
+        {...startSidebar}
+        panels={[...startSidebar.panels, ...stackedEndPanels]}
+        stackPanels
+        // Which panel a rail button shows is the column's own state.
+        activePanelId={undefined}
+        onActivePanelChange={undefined}
+        collapsed={false}
+        onCollapsedChange={setStartCollapsed}
+        labels={{
+          ...startSidebar.labels,
+          collapse: nameOf(startSidebar),
+        }}
+      />
+    );
+  } else if (startSidebar && sharedRail && endSidebar) {
+    // One rail for both, each sidebar's Expand and sections in a group.
+    startSidebarColumn = (
+      <Sidebar
+        key="start"
+        side="start"
+        {...startSidebar}
+        panels={[...startSidebar.panels, ...endSidebar.panels]}
+        stackPanels
+        activePanelId={undefined}
+        onActivePanelChange={undefined}
+        collapsed
+        onCollapsedChange={setStartCollapsed}
+        railGroups={[
+          {
+            label: titleOf(startSidebar),
+            panelIds: startSidebar.panels.map((panel) => panel.id),
+            expandLabel:
+              startSidebar.labels?.expand ?? `Expand ${titleOf(startSidebar)}`,
+            onExpand: () => setStartCollapsed(false),
+          },
+          {
+            id: endId,
+            label: titleOf(endSidebar),
+            panelIds: endSidebar.panels.map((panel) => panel.id),
+            expandLabel:
+              endSidebar.labels?.expand ?? `Expand ${titleOf(endSidebar)}`,
+            onExpand: () => changeEndCollapsed(false),
+          },
+        ]}
+      />
+    );
+  } else if (startSidebar) {
+    startSidebarColumn = (
+      <Sidebar
+        key="start"
+        side="start"
+        {...startSidebar}
+        collapsed={startCollapsed}
+        onCollapsedChange={setStartCollapsed}
+      />
+    );
+  }
+
+  // Columns in order. Stacking, a rail sits before the open column, so the
+  // open one stays beside the main column; otherwise the end sidebar
+  // follows the main column. Keys keep each column's state as they move.
+  const mainSlot = <Fragment key="main">{mainColumn}</Fragment>;
+  const columns: ReactNode[] =
+    endSide === "start"
+      ? endCollapsed && !startCollapsed
+        ? [endSidebarColumn, startSidebarColumn, mainSlot]
+        : [startSidebarColumn, endSidebarColumn, mainSlot]
+      : [startSidebarColumn, mainSlot, endSidebarColumn];
 
   return (
     <div className={cx(rootStyles, className)}>
@@ -296,41 +421,11 @@ export function GameLayout(props: GameLayoutProps) {
           {
             "--game-main-min-width": `${mainMinWidth}px`,
             "--game-sidebar-count": Math.max(1, sidebarCount),
+            "--game-rail-count": railCount,
           } as CSSProperties
         }
       >
-        {/* The start sidebar keeps its place in every arrangement, so it
-            keeps its state (and moves focus itself) as stacking changes. */}
-        {startSidebar &&
-          (stacked && endSidebar ? (
-            // Reading order follows the eye: the column top to bottom, then
-            // the main column.
-            <Sidebar
-              side="start"
-              {...startSidebar}
-              panels={[...startSidebar.panels, ...stackedEndPanels]}
-              stackPanels
-              // Which panel a rail button shows is the column's own state.
-              activePanelId={undefined}
-              onActivePanelChange={undefined}
-              collapsed={false}
-              onCollapsedChange={setStartCollapsed}
-              labels={{
-                ...startSidebar.labels,
-                collapse: nameOf(startSidebar),
-              }}
-            />
-          ) : (
-            <Sidebar
-              side="start"
-              {...startSidebar}
-              collapsed={startCollapsed}
-              onCollapsedChange={setStartCollapsed}
-            />
-          ))}
-        {endSide === "start" && endSidebarColumn}
-        {mainColumn}
-        {endSide === "end" && endSidebarColumn}
+        {columns}
       </div>
     </div>
   );

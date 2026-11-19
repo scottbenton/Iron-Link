@@ -174,6 +174,23 @@ const railButtonStyles = css({
   },
 });
 
+/**
+ * One sidebar's buttons on a rail several sidebars share: its Expand, then
+ * its sections. A rule across the rail separates it from the group before.
+ */
+const railGroupStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  alignSelf: "stretch",
+  gap: "1",
+  "& + &": {
+    marginBlockStart: "2",
+    paddingBlockStart: "3",
+    borderTop: "1px solid token(colors.border.default)",
+  },
+});
+
 const railDividerStyles = css({
   width: "24px",
   height: "1px",
@@ -195,6 +212,19 @@ export interface SidebarLabels {
   resize?: string;
   /** The tab list's name, where panels share the sidebar. */
   tabs?: string;
+}
+
+/** One sidebar's share of a rail that several share (`railGroups`). */
+export interface SidebarRailGroup {
+  /** Its sidebar's name, read as the group's name: "Character Sheet". */
+  label: string;
+  /** The panels it holds, by id, in the order the rail shows them. */
+  panelIds: string[];
+  /** Its Expand, which opens its own sidebar. */
+  expandLabel: string;
+  onExpand: () => void;
+  /** The group's DOM id, so the app can move focus into it. */
+  id?: string;
 }
 
 export interface SidebarProps
@@ -246,6 +276,14 @@ export interface SidebarProps
    */
   stackPanels?: boolean;
   labels?: SidebarLabels;
+  /**
+   * Collapsed, one rail for several sidebars (the game page's sheet and
+   * reference while both sit before the notes): the rail splits into these
+   * groups, each with its own Expand and its own sections. Keep Open, from
+   * a section shown over the page, opens that section's sidebar. Use with
+   * `stackPanels` and every sidebar's panels.
+   */
+  railGroups?: SidebarRailGroup[];
   id?: string;
   className?: string;
 }
@@ -281,6 +319,7 @@ export function Sidebar(props: SidebarProps) {
     collapsible = true,
     stackPanels = false,
     labels,
+    railGroups,
     id: idProp,
     className,
   } = withLayoutProps(props, ["width", "minWidth", "maxWidth"]);
@@ -400,7 +439,26 @@ export function Sidebar(props: SidebarProps) {
     setPeek({ panelId: panel.id, sectionId });
   };
 
+  // On a shared rail, the group a panel belongs to, and whether it is the
+  // first (this sidebar's own, which keeps its place when it opens).
+  const groupIndexOf = (panelId: string | undefined) =>
+    railGroups?.findIndex((group) => group.panelIds.includes(panelId ?? ""));
+
+  const expandGroup = (index: number) => {
+    const group = railGroups?.[index];
+    if (!group) return;
+    // Another group's sidebar opens elsewhere and moves focus itself.
+    pendingFocus.current = index === 0 ? { kind: "collapse" } : null;
+    setPeek(null);
+    group.onExpand();
+  };
+
   const dock = () => {
+    const groupIndex = groupIndexOf(peek?.panelId);
+    if (groupIndex !== undefined && groupIndex >= 0) {
+      expandGroup(groupIndex);
+      return;
+    }
     pendingFocus.current = { kind: "collapse" };
     setPeek(null);
     setCollapsed(false);
@@ -540,6 +598,50 @@ export function Sidebar(props: SidebarProps) {
       }
     : {};
 
+  // A rail's buttons for these panels: each panel's sections (or the
+  // panel itself) after a divider.
+  const renderRailPanels = (railPanels: LayoutPanel[]) =>
+    railPanels.map((panel) => {
+      const showing = peeking && peek?.panelId === panel.id;
+      const sections = panel.sections ?? [];
+      return (
+        <Fragment key={panel.id}>
+          <span className={railDividerStyles} aria-hidden="true" />
+          {sections.length > 0 ? (
+            sections.map((section) => (
+              <IconButton
+                key={section.id}
+                label={section.title}
+                tooltipSide={tooltipSide}
+                className={railButtonStyles}
+                aria-expanded={
+                  showing &&
+                  (panel.activeSectionId ?? peek?.sectionId) === section.id
+                }
+                aria-controls={showing ? overlayId : undefined}
+                onClick={(event) =>
+                  openPeek(event.currentTarget, panel, section.id)
+                }
+              >
+                {section.icon}
+              </IconButton>
+            ))
+          ) : (
+            <IconButton
+              label={panel.title}
+              tooltipSide={tooltipSide}
+              className={railButtonStyles}
+              aria-expanded={showing}
+              aria-controls={showing ? overlayId : undefined}
+              onClick={(event) => openPeek(event.currentTarget, panel)}
+            >
+              {panel.icon ?? <PanelInitial title={panel.title} />}
+            </IconButton>
+          )}
+        </Fragment>
+      );
+    });
+
   const renderPanelBody = (panel: LayoutPanel) => (
     <>
       {tabbed && (
@@ -568,59 +670,42 @@ export function Sidebar(props: SidebarProps) {
       data-side={side}
       data-collapsed={collapsed || undefined}
     >
-      {collapsed && (
-        <>
-          <IconButton
-            ref={expandButtonRef}
-            label={expandLabel}
-            tooltipSide={tooltipSide}
-            onClick={() => expand()}
-          >
-            {expandIcon}
-          </IconButton>
-          {panels.map((panel) => {
-            const showing = peeking && peek?.panelId === panel.id;
-            const sections = panel.sections ?? [];
-            return (
-              <Fragment key={panel.id}>
-                <span className={railDividerStyles} aria-hidden="true" />
-                {sections.length > 0 ? (
-                  sections.map((section) => (
-                    <IconButton
-                      key={section.id}
-                      label={section.title}
-                      tooltipSide={tooltipSide}
-                      className={railButtonStyles}
-                      aria-expanded={
-                        showing &&
-                        (panel.activeSectionId ?? peek?.sectionId) ===
-                          section.id
-                      }
-                      aria-controls={showing ? overlayId : undefined}
-                      onClick={(event) =>
-                        openPeek(event.currentTarget, panel, section.id)
-                      }
-                    >
-                      {section.icon}
-                    </IconButton>
-                  ))
-                ) : (
-                  <IconButton
-                    label={panel.title}
-                    tooltipSide={tooltipSide}
-                    className={railButtonStyles}
-                    aria-expanded={showing}
-                    aria-controls={showing ? overlayId : undefined}
-                    onClick={(event) => openPeek(event.currentTarget, panel)}
-                  >
-                    {panel.icon ?? <PanelInitial title={panel.title} />}
-                  </IconButton>
-                )}
-              </Fragment>
-            );
-          })}
-        </>
-      )}
+      {collapsed &&
+        (railGroups ? (
+          railGroups.map((group, index) => (
+            <div
+              key={group.id ?? index}
+              id={group.id}
+              role="group"
+              aria-label={group.label}
+              className={railGroupStyles}
+            >
+              <IconButton
+                ref={index === 0 ? expandButtonRef : undefined}
+                label={group.expandLabel}
+                tooltipSide={tooltipSide}
+                onClick={() => expandGroup(index)}
+              >
+                {expandIcon}
+              </IconButton>
+              {renderRailPanels(
+                panels.filter((panel) => group.panelIds.includes(panel.id)),
+              )}
+            </div>
+          ))
+        ) : (
+          <>
+            <IconButton
+              ref={expandButtonRef}
+              label={expandLabel}
+              tooltipSide={tooltipSide}
+              onClick={() => expand()}
+            >
+              {expandIcon}
+            </IconButton>
+            {renderRailPanels(panels)}
+          </>
+        ))}
 
       {tabbed ? (
         <Tabs.Root
