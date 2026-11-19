@@ -78,8 +78,9 @@ export const GroupedAssets: Story = {
 };
 
 /**
- * Chips wrap onto more rows inside the field, with the input after them. The
- * clear and open buttons stay at the field's end, on the first row.
+ * Chips are filled pills with no border. They wrap onto more rows inside the
+ * field, with the input after them. The clear and open buttons stay at the
+ * field's end, on the first row.
  */
 export const MultipleChips: Story = {
   render: () => (
