@@ -9,6 +9,7 @@ import {
   useContext,
 } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
@@ -193,10 +194,7 @@ const buttonStyles = cva({
       fontWeight: "semibold",
       "& [data-list-icon]": { color: "fg.default" },
     },
-    _focusVisible: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "-2px",
-    },
+    _focusVisible: focusRing.inset,
     "&:is(:disabled, [data-disabled], [aria-disabled=true])": {
       cursor: "not-allowed",
       color: "fg.disabled",
