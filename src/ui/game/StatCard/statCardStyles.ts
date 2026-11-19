@@ -134,8 +134,9 @@ export const statRollableStyles = css({
 
   _focusVisible: focusRing.outset,
 
+  // Disabled, the card takes no pointer at all: no hover, press or ring.
   "&:is(:disabled, [data-disabled])": {
-    cursor: "not-allowed",
+    pointerEvents: "none",
     transform: "none",
     boxShadow: ledgeShadow(statEdge),
     opacity: 0.6,

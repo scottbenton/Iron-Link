@@ -202,33 +202,33 @@ const sixStats: StatGridStat[] = [
 ];
 
 /**
- * Wrapping by count and the grid's own width (a container query, never the
- * window): one row while every card gets 60px, else even rows, so no card is
- * left alone. Four wrap as 2 + 2 under 258px, five as 3 + 2 under 324px, six
- * as 3 + 3 under 390px. The four and six stat sets are homebrew examples.
+ * Drag the frame's corner to resize it. The grid wraps by its own width (a
+ * container query, never the window) and by how many cards it holds: one
+ * row while every card gets 60px, else even rows, so no card is left alone.
+ * Four stats wrap as 2 + 2, five as 3 + 2, six as 3 + 3. The four and six
+ * stat sets are homebrew examples.
  */
 export const WrapByCount: Story = {
   render: () => (
-    <Stack gap="6">
-      {[200, 248, 300, 328, 400, 460].map((width) => (
-        <Stack key={width} gap="2">
-          <Caption>{`${width}px`}</Caption>
-          <HStack gap="4" alignItems="flex-start">
-            {[fourStats, statsOf(kira), sixStats].map((stats) => (
-              <Box
-                key={stats.length}
-                width={`${width}px`}
-                flex="none"
-                outline="1px dashed"
-                outlineColor="border.subtle"
-              >
-                <StatGrid stats={stats} onRoll={fn()} />
-              </Box>
-            ))}
-          </HStack>
-        </Stack>
-      ))}
-    </Stack>
+    <Box
+      width="300px"
+      minWidth="160px"
+      maxWidth="100%"
+      padding="3"
+      overflow="hidden"
+      resize="horizontal"
+      outline="1px dashed"
+      outlineColor="border.subtle"
+    >
+      <Stack gap="5">
+        {[fourStats, statsOf(kira), sixStats].map((stats) => (
+          <Stack key={stats.length} gap="1.5">
+            <Caption>{`${stats.length} stats`}</Caption>
+            <StatGrid stats={stats} onRoll={fn()} />
+          </Stack>
+        ))}
+      </Stack>
+    </Box>
   ),
 };
 
