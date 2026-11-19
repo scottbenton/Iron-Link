@@ -9,6 +9,7 @@ import {
 
 import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { ledgeLayers } from "ui/styles/ledge";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -187,9 +188,11 @@ const indicatorStyles = cva({
         top: "token(spacing.1.5)",
         bottom: "calc(token(spacing.1.5) + var(--border-widths-ledge))",
         borderRadius: "md",
-        background: "bg.surface",
-        border: "1px solid token(colors.border.default)",
-        boxShadow: "ledge",
+        border: "1px solid transparent",
+        ...ledgeLayers(),
+        "--ledge-face": "{colors.bg.surface}",
+        "--ledge-border": "{colors.border.default}",
+        "--ledge-edge": "{colors.border.edge}",
       },
     },
   },
