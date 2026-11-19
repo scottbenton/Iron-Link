@@ -1,13 +1,7 @@
 import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox";
 import type { Datasworn } from "@datasworn-community/core";
 import { CaretDown, UsersThree, Warning } from "@phosphor-icons/react";
-import {
-  CSSProperties,
-  ComponentPropsWithoutRef,
-  ElementType,
-  ReactNode,
-  useId,
-} from "react";
+import { ComponentPropsWithoutRef, ElementType, ReactNode, useId } from "react";
 
 import {
   checkboxFillStyles,
@@ -49,15 +43,6 @@ export const assetCardStyles = css({
     borderBottomWidth: "1px",
     borderBottomStyle: "solid",
     borderBottomColor: "border.subtle",
-  },
-  // The asset's own colour, as a small diamond before its category.
-  "& [data-asset-swatch]": {
-    flex: "none",
-    width: "8px",
-    height: "8px",
-    rotate: "45deg",
-    borderRadius: "1px",
-    background: "var(--asset-color, token(colors.fg.subtle))",
   },
   "& [data-asset-category]": { flex: "1", minWidth: 0 },
   "& [data-asset-head-actions]": {
@@ -125,8 +110,18 @@ const abilitiesStyles = css({
     // Room between the box and its text, so the text reads as the label.
     gap: "3",
   },
-  // Line the box up with the first line of text.
-  "& > li > [data-ability-box]": { marginTop: "1px" },
+  // Line the box up with the first line of text. Only the box ticks, not
+  // the text (a tap while reading would spend experience), so its hit area
+  // reaches past it: 32px, and 44px for fingers.
+  "& > li > [data-ability-box]": {
+    marginTop: "1px",
+    _before: {
+      content: '""',
+      position: "absolute",
+      inset: "-6px",
+      _touch: { inset: "-12px" },
+    },
+  },
   // Collapsed with nothing checked: kept for the toggle's aria-controls.
   "&:empty": { display: "none" },
 });
@@ -136,6 +131,9 @@ const fieldsStyles = css({
   gap: "3",
   "&:empty": { display: "none" },
 });
+
+/** The asset's own fields (a name, a stat), set apart from what follows. */
+const optionsStyles = css({ paddingBlockEnd: "2" });
 
 export interface AssetCardStrings {
   shared: string;
@@ -180,9 +178,9 @@ export interface AssetCardProps
    */
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
-  /** Icon buttons in the header, such as Customize. */
+  /** Icon buttons in the header, such as Customize and Remove. */
   headerActions?: ReactNode;
-  /** Buttons at the foot, such as Remove or Select Asset. */
+  /** Buttons at the foot, such as Select Asset in a picker. */
   actions?: ReactNode;
   /** The element for the asset's name, so headings nest. An h3 by default. */
   headingAs?: ElementType;
@@ -258,11 +256,10 @@ export function AssetCard(props: AssetCardProps) {
     <article
       className={cx(contentCardStyles, assetCardStyles, className)}
       data-out-of-use={marks.length > 0 || undefined}
-      style={{ "--asset-color": asset.color, ...style } as CSSProperties}
+      style={style}
       {...rest}
     >
       <div data-asset-head="">
-        <span data-asset-swatch="" aria-hidden />
         <Text variant="label" color="muted" data-asset-category="" truncate>
           {asset.category}
         </Text>
@@ -323,7 +320,7 @@ export function AssetCard(props: AssetCardProps) {
           />
         )}
 
-        <div className={fieldsStyles}>
+        <div className={cx(fieldsStyles, optionsStyles)}>
           {sortByLabel(options).map(([key, option]) => (
             <AssetOptionField
               key={key}
