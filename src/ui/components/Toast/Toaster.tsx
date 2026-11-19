@@ -1,5 +1,11 @@
 import { Broom } from "@phosphor-icons/react";
-import { CSSProperties, useLayoutEffect, useRef, useState } from "react";
+import {
+  CSSProperties,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { Toaster as SonnerToaster, useSonner } from "sonner";
 
 import { css } from "styled-system/css";
@@ -99,10 +105,9 @@ const footerStyles = css({
   _reducedMotion: { animation: "none" },
   "& > [data-toast-clear-all]": {
     borderRadius: "full",
+    "--ledge-radius": "token(radii.full)",
     paddingInline: "3",
     boxShadow: "popover",
-    _hover: { boxShadow: "popover", transform: "none" },
-    _pressed: { boxShadow: "popover" },
   },
 });
 
@@ -168,6 +173,33 @@ function useFocusWithin(
 }
 
 /**
+ * Sonner collapses the fanned-out stack when the pointer leaves it, which
+ * React reports from the element the pointer was last over. When that
+ * element was a toast just dismissed (its close button), it is gone from the
+ * page, the browser reports no leave, and the stack stayed fanned out until
+ * the pointer went back in and out again. So while the stack is fanned out,
+ * a pointer moving outside it reports the leave itself.
+ */
+function useCollapseAfterRemoval(ref: { current: HTMLElement | null }) {
+  useEffect(() => {
+    const onPointerMove = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+      const list = ref.current?.querySelector("[data-sonner-toaster]");
+      if (!list || !list.querySelector('[data-expanded="true"]')) return;
+      if (event.target instanceof Node && list.contains(event.target)) return;
+      list.dispatchEvent(
+        new MouseEvent("mouseout", {
+          bubbles: true,
+          relatedTarget: document.body,
+        }),
+      );
+    };
+    document.addEventListener("pointermove", onPointerMove, { passive: true });
+    return () => document.removeEventListener("pointermove", onPointerMove);
+  }, [ref]);
+}
+
+/**
  * Where toasts render. They stack front to back, the newest in front and up
  * to `visibleToasts - 1` older ones peeking out behind it; hovering the
  * stack, or moving keyboard focus into it, fans them out. UIProvider mounts
@@ -202,6 +234,7 @@ export function Toaster(props: ToasterProps) {
   // the front one. Sonner's `expand` is that switch; left on, as it was, the
   // toasts never stack.
   const focusWithin = useFocusWithin(regionRef, toasts);
+  useCollapseAfterRemoval(regionRef);
   const count = toasts.filter((item) => !item.delete).length;
   const hidden = Math.max(0, count - visibleToasts);
   const showFooter = count > 1;
