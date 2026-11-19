@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { ledgeShadow } from "ui/styles/ledge";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -90,8 +91,7 @@ const thumbStyles = css({
   translate: "var(--thumb-x) 0",
   borderRadius: "sm",
   background: "bg.surface",
-  boxShadow:
-    "0 0 0 1px token(colors.border.default), 0 var(--border-widths-ledge) 0 token(colors.border.edge)",
+  boxShadow: `0 0 0 1px token(colors.border.default), ${ledgeShadow("token(colors.border.edge)")}`,
   transitionProperty: "translate, width",
   transitionDuration: "normal",
   transitionTimingFunction: "out",
