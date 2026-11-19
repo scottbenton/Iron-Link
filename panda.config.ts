@@ -39,7 +39,12 @@ export default defineConfig({
       hoverable: "@media (hover: hover)",
       reducedMotion: "@media (prefers-reduced-motion: reduce)",
       touch: "@media (pointer: coarse)",
-      pressed: "&:is(:active, [data-pressed])",
+      // Disabled controls never answer a hover or a press, whatever order
+      // the atomic rules land in.
+      hover:
+        "&:is(:hover, [data-hover]):not(:disabled, [data-disabled], [aria-disabled=true])",
+      pressed:
+        "&:is(:active, [data-pressed]):not(:disabled, [data-disabled], [aria-disabled=true])",
       open: "&:is([data-open], [data-popup-open], [aria-expanded=true])",
       current:
         "&:is([aria-current]:not([aria-current=false]), [data-selected], [aria-selected=true])",
