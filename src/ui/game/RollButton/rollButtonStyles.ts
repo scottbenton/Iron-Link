@@ -16,7 +16,7 @@ export const rollButtonStyles = cva({
       lg: {
         "&[data-roll]": {
           "--btn-pad": "token(spacing.5)",
-          minHeight: "46px",
+          minHeight: "touch",
           fontSize: "lg",
         },
       },
