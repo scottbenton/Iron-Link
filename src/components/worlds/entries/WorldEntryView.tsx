@@ -8,7 +8,7 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
-import { ReactNode, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
@@ -35,6 +35,10 @@ import { WorldEntryNameField } from "./WorldEntryNameField";
 import { WorldEntryNotes } from "./WorldEntryNotes";
 import { WorldEntryPlaces } from "./WorldEntryPlaces";
 
+// Below this width an entry's fields sit above its Notes rather than beside.
+const ENTRY_SIDE_PANEL_MIN_WIDTH = 880;
+const ENTRY_SIDE_PANEL_WIDTH = 320;
+
 const READ_ONLY = {
   canEdit: false,
   canDelete: false,
@@ -44,21 +48,17 @@ const READ_ONLY = {
 // One entry's page: its portrait or icon, name and subtitle, then its
 // fields and Notes. In a category with nesting or maps, Details, Map and
 // Places are tabs under the header; Places lists the entries inside this one
-// and Map holds the entry's map. Its actions sit
-// in the strip above, which the manager renders, or beside the name when the
-// manager passes them in. The manager also listens to the world's entries, so
-// moving here
-// from the list needs no loading.
+// and Map holds the entry's map. Its actions sit in the strip above, which the
+// manager renders. The manager also listens to the world's entries, so moving
+// here from the list needs no loading.
 export function WorldEntryView({
   category,
   entryId,
   navigation,
-  headerActions,
 }: {
   category: IWorldCategory;
   entryId: string;
   navigation: WorldNavigation;
-  headerActions?: ReactNode;
 }) {
   const { t } = useTranslation();
   // An entry this window just created counts as loading until the listener
@@ -179,11 +179,6 @@ export function WorldEntryView({
             </Typography>
           )}
         </Box>
-        {headerActions && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {headerActions}
-          </Box>
-        )}
       </Box>
       {(hasPlaces || hasMap) && (
         <Tabs
@@ -245,27 +240,78 @@ export function WorldEntryView({
           navigation={navigation}
         />
       ) : (
-        <>
-          <WorldEntryFields
-            entry={entry}
-            category={category}
-            canEdit={permissions.canEdit}
-            guided={guided}
-            navigation={navigation}
-          />
-          {category.supportsBonds && <WorldEntryBonds entry={entry} />}
-          {notesError && (
-            <Alert severity="error" onClose={() => setNotesError(undefined)}>
-              {notesError}
-            </Alert>
-          )}
-          <WorldEntryNotes
-            key={entry.id}
-            entry={entry}
-            canEdit={permissions.canEdit}
-            onError={onNotesError}
-          />
-        </>
+        // Notes take the main column and the fields sit in a side panel
+        // beside them when the page has room; otherwise the fields come first.
+        <Box
+          sx={{
+            containerType: "inline-size",
+            flexGrow: 1,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2.5,
+              [`@container (min-width: ${ENTRY_SIDE_PANEL_MIN_WIDTH}px)`]: {
+                display: "grid",
+                gridTemplateColumns: `minmax(0, 1fr) ${ENTRY_SIDE_PANEL_WIDTH}px`,
+                gridTemplateRows: "minmax(0, 1fr)",
+                columnGap: 3,
+              },
+            }}
+          >
+            <Stack
+              spacing={2.5}
+              sx={{
+                minWidth: 0,
+                [`@container (min-width: ${ENTRY_SIDE_PANEL_MIN_WIDTH}px)`]: {
+                  gridColumn: 2,
+                  gridRow: 1,
+                  alignSelf: "start",
+                },
+              }}
+            >
+              <WorldEntryFields
+                entry={entry}
+                category={category}
+                canEdit={permissions.canEdit}
+                guided={guided}
+                navigation={navigation}
+              />
+              {category.supportsBonds && <WorldEntryBonds entry={entry} />}
+            </Stack>
+            <Stack
+              spacing={2.5}
+              sx={{
+                minWidth: 0,
+                flexGrow: 1,
+                [`@container (min-width: ${ENTRY_SIDE_PANEL_MIN_WIDTH}px)`]: {
+                  gridColumn: 1,
+                  gridRow: 1,
+                },
+              }}
+            >
+              {notesError && (
+                <Alert
+                  severity="error"
+                  onClose={() => setNotesError(undefined)}
+                >
+                  {notesError}
+                </Alert>
+              )}
+              <WorldEntryNotes
+                key={entry.id}
+                entry={entry}
+                canEdit={permissions.canEdit}
+                onError={onNotesError}
+              />
+            </Stack>
+          </Box>
+        </Box>
       )}
     </Stack>
   );

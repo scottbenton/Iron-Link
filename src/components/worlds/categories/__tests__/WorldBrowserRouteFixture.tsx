@@ -36,7 +36,6 @@ export function WorldBrowserRouteFixture({
       world={{ id: worldId, name: "Ironlands" } as IWorld}
       permission={permission}
       navigation={navigation}
-      layout="page"
       rootBreadcrumb={{
         key: "worlds",
         label: "Worlds",

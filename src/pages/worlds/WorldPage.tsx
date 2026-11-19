@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router";
 
 import { PageContent, PageHeader } from "components/Layout";
 import { WorldPanel } from "components/worlds/WorldPanel";
+import { WorldReferenceSidebar } from "components/worlds/reference/WorldReferenceSidebar";
 import {
   type ParsedWorldViewPath,
   type WorldNavigation,
@@ -22,6 +23,7 @@ import {
 
 import { useWorldStore } from "stores/world.store";
 
+import { WorldPageLayout } from "./WorldPageLayout";
 import { WorldsComingSoonState } from "./WorldsComingSoonState";
 
 // One catchall route renders every world destination; the path is read only
@@ -63,16 +65,35 @@ function WorldPageContent(props: { parsed: ParsedWorldViewPath }) {
     );
   }
 
+  const view = parsed.view;
+  const categoryId =
+    view.type === "category" ||
+    view.type === "entry" ||
+    view.type === "category-settings"
+      ? view.categoryId
+      : undefined;
+
   return (
     // Destination state belongs to the URL; the shared panel also renders
     // these destinations as independent Notes tabs inside a game.
-    <PageContent sx={{ pt: 4 }}>
-      <WorldPanel
-        worldId={worldId}
-        navigation={navigation}
-        onWorldDeleted={() => {
-          navigate(pathConfig.worldSelect);
-        }}
+    <PageContent disablePadding viewHeight="max-full">
+      <WorldPageLayout
+        world={
+          <WorldPanel
+            worldId={worldId}
+            navigation={navigation}
+            onWorldDeleted={() => {
+              navigate(pathConfig.worldSelect);
+            }}
+          />
+        }
+        reference={(options) => (
+          <WorldReferenceSidebar
+            worldId={worldId}
+            categoryId={categoryId}
+            {...options}
+          />
+        )}
       />
     </PageContent>
   );

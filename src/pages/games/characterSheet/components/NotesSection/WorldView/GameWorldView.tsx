@@ -110,7 +110,8 @@ export function GameWorldView(props: GameWorldViewProps) {
               "Unlink this world from the game? The world itself is not deleted, but everyone in this game will lose access to it.",
             )}
           </span>
-          {/* Release guard until #236 previews oracle changes. */}
+          {/* World fields follow the rules in play, so this can change which
+            oracles they roll. */}
           <WorldOracleChangeWarning />
         </Stack>
       ),
