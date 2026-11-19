@@ -82,13 +82,16 @@ Each component is a folder: `Name/Name.tsx`, `Name/Name.stories.tsx`,
   a screen edge use `shadows.float`.
 - A press sinks the element `var(--spacing-sink)` (1px) onto its ledge over
   `durations.instant`. Hover changes colour only (`--spacing-lift` is 0
-  unless the page opts in). Reduced motion zeroes both.
+  unless the page opts in). Reduced motion zeroes both. Build a ledge with
+  `ledge(colour, state)` or `ledgeShadow(colour, state)` from
+  `ui/styles/ledge` (states `rest`, `lifted`, `sunk`) rather than writing
+  the shadow and offset by hand.
 - Things without a ledge (tabs, menu items, toolbar buttons, list rows) never
   move; they answer press with `overlay.pressed`.
 - Fields are inset: `bg.field` with `shadows.field`, a 1px
   `border.control` border, accent border and focus ring on focus.
 - The gradient ring (`gradients.ring`) marks roll and oracle buttons and the
-  current page tab. Stat cards show it only on hover, press and keyboard
+  current page tab; its spinning layer is `ringLayer` from `ui/styles/ring`. Stat cards show it only on hover, press and keyboard
   focus (see `game/StatCard`).
 - Motion: CSS transitions for hover and press; Base UI's
   `data-starting-style`/`data-ending-style` for enter and exit. Enter with
