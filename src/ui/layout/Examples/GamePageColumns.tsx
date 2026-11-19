@@ -20,7 +20,6 @@
  */
 import {
   ArrowSquareOutIcon,
-  CopyIcon,
   DotsThreeIcon,
   PlusIcon,
   ShareNetworkIcon,
@@ -34,6 +33,7 @@ import { css } from "styled-system/css";
 import { BreadcrumbItem, Breadcrumbs } from "../../components/Breadcrumbs";
 import { Button } from "../../components/Button";
 import { Checkbox } from "../../components/Checkbox";
+import { CopyButton } from "../../components/CopyButton";
 import {
   NoteTabPanel,
   NoteTabs,
@@ -376,7 +376,6 @@ const overviewCharacters = [
 export function OverviewCharacters(props: { solo?: boolean }) {
   const { solo } = props;
   const [onScreen, setOnScreen] = useState<string | null>(kira.id);
-  const [copied, setCopied] = useState(false);
   return (
     <Stack gap="6">
       <Stack gap="3" as="section">
@@ -486,13 +485,12 @@ export function OverviewCharacters(props: { solo?: boolean }) {
             />
           </div>
           <HStack>
-            <Button
+            <CopyButton
               variant="outline"
-              startIcon={<CopyIcon />}
-              onClick={() => setCopied(true)}
-            >
-              {copied ? "Invite Link Copied" : "Copy Invite Link"}
-            </Button>
+              text="https://iron-link.app/join/drowned-archive"
+              label="Copy Invite Link"
+              copiedLabel="Invite Link Copied"
+            />
           </HStack>
         </Stack>
       )}
