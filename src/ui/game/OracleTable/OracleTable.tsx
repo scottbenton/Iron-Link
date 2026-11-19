@@ -1,5 +1,12 @@
 import type { Datasworn } from "@datasworn-community/core";
-import { ComponentPropsWithoutRef, ElementType, useId } from "react";
+import {
+  CSSProperties,
+  ComponentPropsWithoutRef,
+  ElementType,
+  useEffect,
+  useId,
+  useRef,
+} from "react";
 
 import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
@@ -36,7 +43,25 @@ const headerStyles = css({
   minWidth: 0,
 });
 
-const scrollStyles = css({ maxWidth: "100%", overflowX: "auto" });
+const scrollStyles = css({
+  maxWidth: "100%",
+  overflowX: "auto",
+  // A long table scrolls inside its own box, under a header that stays put,
+  // so the name, the Roll button and the column labels never leave view.
+  // The box takes the table's border and corners: a table that clips its
+  // own overflow would be what its header sticks to, and never stick.
+  "&[data-body-scroll]": {
+    maxHeight: "var(--oracle-table-max-height)",
+    overflowY: "auto",
+    overscrollBehavior: "contain",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "border.default",
+    borderRadius: "md",
+    "& > table": { borderWidth: 0, borderRadius: 0, overflow: "visible" },
+    "& thead th": { position: "sticky", top: 0, zIndex: 1 },
+  },
+});
 
 const tableStyles = css({
   "& td[data-column=roll], & th[data-column=roll]": {
@@ -61,6 +86,22 @@ const tableStyles = css({
     fontWeight: "bold",
     boxShadow: "inset 3px 0 0 token(colors.accent.solid)",
   },
+  // Each roll flashes its row, so rolling the same result again still
+  // shows that something happened.
+  "& tbody tr[data-rolled] td": {
+    position: "relative",
+    "&::after": {
+      content: '""',
+      position: "absolute",
+      inset: 0,
+      pointerEvents: "none",
+      background:
+        "color-mix(in oklab, token(colors.accent.solid) 28%, transparent)",
+      opacity: 0,
+      animation: "fadeOut 700ms token(easings.out)",
+      _reducedMotion: { animation: "none" },
+    },
+  },
 });
 
 const sizeStyles = {
@@ -77,6 +118,16 @@ export interface OracleTableProps
   rolledRowId?: string;
   /** Highlights the row whose range holds this number. */
   rolledValue?: number;
+  /**
+   * Changes on every roll, such as the roll's id or time. A new key flashes
+   * the rolled row again, even when the roll lands on the same row.
+   */
+  rollKey?: string | number;
+  /**
+   * Caps the table's height, such as "320px": its rows scroll under a
+   * header that stays put, and a new roll scrolls its row into view.
+   */
+  maxHeight?: string;
   /** Shows a Roll button beside the name. */
   onRoll?: () => void;
   /** The Roll button's visible label. The oracle's name follows it for screen readers. */
@@ -102,6 +153,8 @@ export function OracleTable(props: OracleTableProps) {
     oracle,
     rolledRowId,
     rolledValue,
+    rollKey,
+    maxHeight,
     onRoll,
     rollLabel = "Roll",
     hideHeader,
@@ -124,6 +177,35 @@ export function OracleTable(props: OracleTableProps) {
       : rolledValue !== undefined
         ? findRowForRoll(rows, rolledValue)
         : undefined;
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const rolledRowRef = useRef<HTMLTableRowElement>(null);
+  const rolledId = rolledRow?._id;
+
+  // Brings the rolled row into the table's own scroll box, below its header.
+  // Only the box scrolls, never the page, and only when the table has one.
+  useEffect(() => {
+    const box = scrollRef.current;
+    const row = rolledRowRef.current;
+    if (!maxHeight || !box || !row || rolledId === undefined) return;
+    const header = box.querySelector("thead");
+    const headerHeight = header?.getBoundingClientRect().height ?? 0;
+    const rowTop =
+      row.getBoundingClientRect().top - box.getBoundingClientRect().top;
+    const visibleHeight = box.clientHeight - headerHeight;
+    const target =
+      box.scrollTop +
+      rowTop -
+      headerHeight -
+      (visibleHeight - row.offsetHeight) / 2;
+    const reduced = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    box.scrollTo?.({
+      top: Math.max(0, target),
+      behavior: reduced ? "auto" : "smooth",
+    });
+  }, [maxHeight, rolledId, rollKey]);
 
   const summary = (oracle as { summary?: string }).summary;
   const matchText = oracle.match?.text;
@@ -150,7 +232,16 @@ export function OracleTable(props: OracleTableProps) {
           {summary && <RulesText markdown={summary} size="sm" color="muted" />}
         </>
       )}
-      <div className={scrollStyles}>
+      <div
+        ref={scrollRef}
+        className={scrollStyles}
+        data-body-scroll={maxHeight ? "" : undefined}
+        style={
+          maxHeight
+            ? ({ "--oracle-table-max-height": maxHeight } as CSSProperties)
+            : undefined
+        }
+      >
         <table
           className={cx(compactTableStyles, tableStyles, sizeStyles[size])}
           aria-labelledby={hideHeader ? undefined : titleId}
@@ -174,7 +265,12 @@ export function OracleTable(props: OracleTableProps) {
             {rows.map((row) => {
               const isRolled = row === rolledRow;
               return (
-                <tr key={row._id} data-rolled={isRolled || undefined}>
+                <tr
+                  // A new roll remounts the rolled row, replaying its flash.
+                  key={isRolled ? `${row._id}:${rollKey ?? ""}` : row._id}
+                  ref={isRolled ? rolledRowRef : undefined}
+                  data-rolled={isRolled || undefined}
+                >
                   <td data-column="roll">
                     {formatRollRange(row.roll)}
                     {isRolled && (
