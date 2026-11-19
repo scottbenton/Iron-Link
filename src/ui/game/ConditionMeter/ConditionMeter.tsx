@@ -100,7 +100,8 @@ const rollValueStyles = css({
   "& [data-stat-inner]": {
     flexDirection: "row",
     gap: "1",
-    paddingInline: "2",
+    // Tight sides, so the roller fits between the steppers in a narrow card.
+    paddingInline: "1",
     fontFamily: "heading",
     fontWeight: "bold",
     fontSize: "1.375rem",
