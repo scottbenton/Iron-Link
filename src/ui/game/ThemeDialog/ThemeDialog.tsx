@@ -36,8 +36,6 @@ export interface ThemeDialogCharacter {
   name: string;
   portraitUrl?: string;
   crop?: PortraitCrop;
-  /** A hue for the initials' gradient when there is no image. */
-  colorSeed?: number;
   /** The character's own theme, or null to use the game's. */
   theme: ThemeChoice;
   /** The owner's name, for a character someone else shared to edit. */
@@ -348,7 +346,6 @@ export function ThemeDialog(props: ThemeDialogProps) {
                         name={character.name}
                         portraitUrl={character.portraitUrl}
                         crop={character.crop}
-                        colorSeed={character.colorSeed}
                         colorScheme={resolved.scheme}
                         decorative
                       />

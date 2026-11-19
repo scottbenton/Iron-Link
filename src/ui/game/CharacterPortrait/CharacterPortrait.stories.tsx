@@ -17,7 +17,7 @@ const [kira, orrin, senna] = sampleCharacters;
 const meta: Meta<typeof CharacterPortrait> = {
   title: "Game/CharacterPortrait",
   component: CharacterPortrait,
-  args: { name: kira.name, colorSeed: kira.colorSeed, size: "lg" },
+  args: { name: kira.name, size: "lg" },
   argTypes: {
     size: { control: "inline-radio", options: sizes },
     shape: { control: "inline-radio", options: ["circle", "rounded"] },
@@ -34,7 +34,7 @@ type Story = StoryObj<typeof CharacterPortrait>;
 
 export const Playground: Story = {};
 
-/** Every size, initials over a seeded gradient. */
+/** Every size, initials in a gray ring. */
 export const Sizes: Story = {
   render: (args) => (
     <HStack gap="4" alignItems="center">
@@ -51,21 +51,18 @@ export const Status: Story = {
     <HStack gap="5" alignItems="center">
       <CharacterPortrait
         name={kira.name}
-        colorSeed={kira.colorSeed}
         size="lg"
         status="online"
         statusLabel="Online"
       />
       <CharacterPortrait
         name={orrin.name}
-        colorSeed={orrin.colorSeed}
         size="lg"
         status="away"
         statusLabel="Away"
       />
       <CharacterPortrait
         name={senna.name}
-        colorSeed={senna.colorSeed}
         size="lg"
         status="offline"
         statusLabel="Offline"

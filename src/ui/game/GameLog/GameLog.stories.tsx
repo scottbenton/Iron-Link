@@ -21,14 +21,7 @@ const author = (
   name: character.name,
   writtenBy: character.playerName,
   isYou,
-  portrait: (
-    <CharacterPortrait
-      name={character.name}
-      colorSeed={character.colorSeed}
-      size="sm"
-      decorative
-    />
-  ),
+  portrait: <CharacterPortrait name={character.name} size="sm" decorative />,
 });
 
 const guide: GameLogAuthor = { name: "Jamie", writtenBy: "Guide" };
