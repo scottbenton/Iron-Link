@@ -13,6 +13,13 @@ export const selectedSelector =
   "&:is([aria-current]:not([aria-current=false]), [aria-selected=true], [aria-pressed=true], [data-selected])";
 
 /**
+ * A popup row under the keyboard or pointer (Base UI's `data-highlighted`),
+ * when it is not disabled.
+ */
+export const highlightedSelector =
+  "&[data-highlighted]:not(:disabled, [data-disabled], [aria-disabled=true])";
+
+/**
  * Strips a native button or link down to a bare target: no margin, border
  * or background, no tap flash and no default outline (pair it with a
  * `focusRing`). The control brings its own font, colour and padding.
@@ -41,9 +48,7 @@ export const quietPressable = {
   transitionDuration: "fast",
   transitionTimingFunction: "linear",
   _hoverable: { _hover: { background: "overlay.hover" } },
-  "&[data-highlighted]:not(:disabled, [data-disabled], [aria-disabled=true])": {
-    background: "overlay.hover",
-  },
+  [highlightedSelector]: { background: "overlay.hover" },
   _pressed: { background: "overlay.pressed", transitionDuration: "instant" },
   [disabledSelector]: { cursor: "not-allowed", color: "fg.disabled" },
 } satisfies SystemStyleObject;
