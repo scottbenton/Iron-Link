@@ -1,5 +1,12 @@
-import { DiceFive } from "@phosphor-icons/react";
-import { forwardRef } from "react";
+import {
+  DiceFive,
+  DiceFour,
+  DiceOne,
+  DiceSix,
+  DiceThree,
+  DiceTwo,
+} from "@phosphor-icons/react";
+import { forwardRef, useState } from "react";
 
 import { css, cx } from "styled-system/css";
 
@@ -37,6 +44,25 @@ const oracleButtonStyles = css({
   "&:is(:hover, :focus-visible, :active, [data-pressed]):not(:disabled)::before":
     { opacity: 1 },
 });
+
+/**
+ * Each roll shows a new face and gives the die a short tumble. Only the
+ * field that rolled changes, so a form full of these stays calm.
+ */
+const dieStyles = css({
+  display: "inline-flex",
+  "&[data-tumble]": {
+    animation: "dieTumble 260ms token(easings.out)",
+    _reducedMotion: { animation: "none" },
+  },
+});
+
+const faces = [DiceOne, DiceTwo, DiceThree, DiceFour, DiceFive, DiceSix];
+
+/** A face other than the one showing, so every roll visibly changes it. */
+function nextFace(current: number) {
+  return (current + 1 + Math.floor(Math.random() * 5)) % faces.length;
+}
 
 export interface OracleTextFieldProps extends TextFieldProps {
   /**
@@ -104,7 +130,15 @@ export const OracleTextField = forwardRef<
     onValueChange,
   );
 
+  // Starts on five, the die the app shows everywhere else; `rolls` restarts
+  // the tumble on every roll, including two that land on the same row.
+  const [face, setFace] = useState(4);
+  const [rolls, setRolls] = useState(0);
+  const Face = faces[face];
+
   const handleRoll = () => {
+    setFace(nextFace);
+    setRolls((count) => count + 1);
     const result = onRoll();
     if (result === undefined) return;
     setValue(result);
@@ -136,7 +170,14 @@ export const OracleTextField = forwardRef<
                 aria-label={rollLabel}
                 onClick={handleRoll}
               >
-                <DiceFive weight="bold" />
+                <span
+                  key={rolls}
+                  className={dieStyles}
+                  data-tumble={rolls > 0 || undefined}
+                  aria-hidden
+                >
+                  <Face weight="bold" />
+                </span>
               </button>
             </Tooltip>
           </>
