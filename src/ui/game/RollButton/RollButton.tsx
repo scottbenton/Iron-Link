@@ -43,7 +43,8 @@ export interface RollButtonProps
 
 /**
  * The button that rolls: the gradient button (a turning ring on its own
- * gradient ledge) with a chip face and the heading type. Use it for stat
+ * gradient ledge) with a die before the label, exactly as Button's gradient
+ * variant looks, plus a large size. Use it for stat
  * and progress rolls, Ask the Oracle and oracle table rolls. Hover thickens
  * the ring and lifts the button; a press sinks it onto the ledge. Adds for
  * the next roll show as the same corner badge a stat card uses.
