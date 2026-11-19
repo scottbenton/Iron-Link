@@ -11,6 +11,7 @@ import {
 import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { RollButton } from "ui/game/RollButton";
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
@@ -54,6 +55,8 @@ const scrollStyles = css({
     maxHeight: "var(--oracle-table-max-height)",
     overflowY: "auto",
     overscrollBehavior: "contain",
+    outline: "none",
+    _focusVisible: focusRing.outset,
     borderWidth: "1px",
     borderStyle: "solid",
     borderColor: "border.default",
@@ -236,6 +239,11 @@ export function OracleTable(props: OracleTableProps) {
         ref={scrollRef}
         className={scrollStyles}
         data-body-scroll={maxHeight ? "" : undefined}
+        // A box that scrolls is a stop for keyboards, named by the table.
+        tabIndex={maxHeight ? 0 : undefined}
+        role={maxHeight ? "region" : undefined}
+        aria-labelledby={maxHeight && !hideHeader ? titleId : undefined}
+        aria-label={maxHeight && hideHeader ? oracle.name : undefined}
         style={
           maxHeight
             ? ({ "--oracle-table-max-height": maxHeight } as CSSProperties)
