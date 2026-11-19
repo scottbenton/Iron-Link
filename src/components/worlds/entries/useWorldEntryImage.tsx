@@ -3,15 +3,24 @@ import { useTranslation } from "react-i18next";
 
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
+import { ImageCrop } from "lib/imageCrop.lib";
+
 import {
   MAX_FILE_SIZE,
   MAX_FILE_SIZE_LABEL,
 } from "repositories/storage.repository";
 
-import { IWorldEntry } from "services/worldEntries.service";
+import {
+  IWorldEntry,
+  WorldEntriesService,
+} from "services/worldEntries.service";
 
-// Uploads or removes an entry's portrait. The old file is removed once the
-// entry points at the new one. Render `input` wherever the trigger lives.
+import { WorldEntryImageDialog } from "./WorldEntryImageDialog";
+
+// Uploads, crops or removes an entry's portrait. A chosen file opens the
+// crop dialog and uploads only when it is saved; the old file is removed once
+// the entry points at the new one. Render `input` and `dialog` wherever the
+// trigger lives.
 export function useWorldEntryImage(
   entry: IWorldEntry,
   onError: (cause: unknown) => void,
@@ -19,6 +28,8 @@ export function useWorldEntryImage(
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  // The file being cropped before upload, or the stored image being cropped.
+  const [cropping, setCropping] = useState<{ file?: File } | null>(null);
   const uploadEntryImage = useWorldEntriesStore(
     (store) => store.uploadEntryImage,
   );
@@ -27,9 +38,12 @@ export function useWorldEntryImage(
   );
   const updateEntry = useWorldEntriesStore((store) => store.updateEntry);
 
-  const replaceImage = async (filename: string | null) => {
+  const replaceImage = async (
+    filename: string | null,
+    imageCrop: ImageCrop | null,
+  ) => {
     const previous = entry.imageFilename;
-    await updateEntry(entry.id, { imageFilename: filename });
+    await updateEntry(entry.id, { imageFilename: filename, imageCrop });
     if (previous) {
       deleteEntryImage(entry.worldId, entry.id, previous).catch(
         () => undefined,
@@ -53,16 +67,25 @@ export function useWorldEntryImage(
       );
       return;
     }
+    setCropping({ file });
+  };
+
+  const save = async (file: File | undefined, imageCrop: ImageCrop) => {
     setBusy(true);
     try {
-      const { filename } = await uploadEntryImage(
-        entry.worldId,
-        entry.id,
-        file,
-      );
-      await replaceImage(filename);
+      if (file) {
+        const { filename } = await uploadEntryImage(
+          entry.worldId,
+          entry.id,
+          file,
+        );
+        await replaceImage(filename, imageCrop);
+      } else {
+        await updateEntry(entry.id, { imageCrop });
+      }
     } catch (cause) {
       onError(cause);
+      throw cause;
     } finally {
       setBusy(false);
     }
@@ -71,7 +94,7 @@ export function useWorldEntryImage(
   const remove = async () => {
     setBusy(true);
     try {
-      await replaceImage(null);
+      await replaceImage(null, null);
     } catch (cause) {
       onError(cause);
     } finally {
@@ -92,10 +115,31 @@ export function useWorldEntryImage(
     />
   );
 
+  const croppedImage = !cropping
+    ? undefined
+    : (cropping.file ??
+      (entry.imageFilename
+        ? WorldEntriesService.getWorldEntryImageUrl(
+            entry.worldId,
+            entry.id,
+            entry.imageFilename,
+          )
+        : undefined));
+  const dialog = cropping && croppedImage && (
+    <WorldEntryImageDialog
+      image={croppedImage}
+      initialCrop={cropping.file ? null : entry.imageCrop}
+      onClose={() => setCropping(null)}
+      onSave={(imageCrop) => save(cropping.file, imageCrop)}
+    />
+  );
+
   return {
     busy,
     hasImage: !!entry.imageFilename,
     choose: () => inputRef.current?.click(),
+    crop: () => setCropping({}),
+    dialog,
     remove,
     input,
   };

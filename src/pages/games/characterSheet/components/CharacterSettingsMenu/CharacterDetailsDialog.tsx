@@ -1,21 +1,18 @@
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import {
   Box,
   Button,
-  ButtonGroup,
   Dialog,
   DialogActions,
   DialogContent,
   TextField,
 } from "@mui/material";
 import { ChangeEventHandler, FormEvent, useEffect, useState } from "react";
-import AvatarEditor from "react-avatar-editor";
 import { useTranslation } from "react-i18next";
 
 import { useSnackbar } from "providers/SnackbarProvider";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
+import { ImageCropper } from "components/ImageCropper";
 
 import { useCharacterPortrait } from "stores/character.store";
 import {
@@ -205,35 +202,14 @@ export function CharacterDetailsDialog(props: CharacterDetailsDialogProps) {
               alignItems={"center"}
               mt={1}
             >
-              <AvatarEditor
-                width={200}
-                height={200}
+              <ImageCropper
                 image={file}
-                borderRadius={4}
-                scale={scale}
-                position={position}
-                onPositionChange={setPosition}
+                crop={{ position, scale }}
+                onChange={(crop) => {
+                  setPosition(crop.position);
+                  setScale(crop.scale);
+                }}
               />
-              <Box display={"flex"} justifyContent={"flex-end"} mt={0.5}>
-                <ButtonGroup variant={"outlined"}>
-                  <Button
-                    color={"inherit"}
-                    disabled={scale <= 1}
-                    onClick={() => setScale((prevScale) => prevScale - 0.1)}
-                    aria-label={"Zoom Out"}
-                  >
-                    <ZoomOutIcon />
-                  </Button>
-                  <Button
-                    color={"inherit"}
-                    disabled={scale >= 2}
-                    onClick={() => setScale((prevScale) => prevScale + 0.1)}
-                    aria-label={"Zoom In"}
-                  >
-                    <ZoomInIcon />
-                  </Button>
-                </ButtonGroup>
-              </Box>
             </Box>
           )}
         </Box>

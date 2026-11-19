@@ -42,6 +42,7 @@ function entry(id: string, name: string, categoryId: string): IWorldEntry {
     parentEntryId: null,
     name,
     imageFilename: null,
+    imageCrop: null,
     icon: null,
     readPermissions: ReadPermissions.AllPlayers,
     editPermissions: EditPermissions.OnlyAuthor,
