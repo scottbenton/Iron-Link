@@ -3,6 +3,7 @@ import { ComponentProps, ReactElement, ReactNode, forwardRef } from "react";
 
 import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { pressableReset } from "ui/styles/pressable";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -121,25 +122,20 @@ export function ToolbarSeparator(props: ToolbarSeparatorProps) {
 
 const buttonStyles = cva({
   base: {
+    ...pressableReset,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "1.5",
     flex: "none",
-    boxSizing: "border-box",
     height: "control.sm",
-    margin: 0,
-    border: 0,
     borderRadius: "sm",
-    background: "transparent",
     color: "fg.muted",
     fontFamily: "body",
     fontWeight: "semibold",
     fontSize: "sm",
     whiteSpace: "nowrap",
-    cursor: "pointer",
     userSelect: "none",
-    WebkitTapHighlightColor: "transparent",
     // Toolbar buttons have no ledge: they never move, they change colour,
     // fill and text together. A pressed toggle is a neutral overlay fill,
     // like a ghost, neutral ToggleGroup, so the bar stays quiet. The rules
@@ -148,7 +144,6 @@ const buttonStyles = cva({
     // same fill.
     transition:
       "background-color token(durations.fast) linear, color token(durations.fast) linear",
-    outline: "none",
     _hoverable: {
       "&:hover:not([aria-pressed=true], :disabled, [data-disabled])": {
         background: "overlay.hover",

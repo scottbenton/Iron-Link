@@ -11,6 +11,11 @@ import {
 
 import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import {
+  disabledSelector,
+  quietPressable,
+  selectedSelector,
+} from "ui/styles/pressable";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -170,36 +175,26 @@ export const ListItem = forwardRef<HTMLLIElement, ListItemProps>(
 
 const buttonStyles = cva({
   base: {
+    ...quietPressable,
     flex: "1 1 auto",
     minWidth: 0,
     display: "flex",
     alignItems: "center",
     gap: "3",
-    boxSizing: "border-box",
     width: "100%",
-    margin: 0,
-    border: 0,
-    background: "transparent",
     color: "fg.default",
     font: "inherit",
     fontFamily: "body",
     textAlign: "start",
-    textDecoration: "none",
-    cursor: "pointer",
     userSelect: "none",
-    WebkitTapHighlightColor: "transparent",
-    transition: "background-color token(durations.fast) linear",
-    outline: "none",
-    _hover: { background: "overlay.hover" },
     // Rows have no ledge, so they answer a press with colour, not travel.
-    _pressed: { background: "overlay.pressed" },
-    "&[data-selected]": {
+    [selectedSelector]: {
       background: "overlay.selected",
       fontWeight: "semibold",
       "& [data-list-icon]": { color: "fg.default" },
     },
     _focusVisible: focusRing.inset,
-    "&:is(:disabled, [data-disabled], [aria-disabled=true])": {
+    [disabledSelector]: {
       cursor: "not-allowed",
       color: "fg.disabled",
       background: "transparent",

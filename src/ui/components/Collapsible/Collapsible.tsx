@@ -4,6 +4,7 @@ import { ComponentProps, ReactNode, forwardRef } from "react";
 
 import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { quietPressable } from "ui/styles/pressable";
 
 import { css, cx } from "styled-system/css";
 
@@ -31,30 +32,20 @@ export const Collapsible = forwardRef<HTMLDivElement, CollapsibleProps>(
 );
 
 const triggerStyles = css({
+  ...quietPressable,
   display: "inline-flex",
   alignItems: "center",
   gap: "1.5",
-  boxSizing: "border-box",
   minHeight: "control.sm",
-  margin: 0,
   paddingInline: "2",
   marginInline: "-2",
-  border: 0,
   borderRadius: "sm",
-  background: "transparent",
   color: "fg.default",
   fontFamily: "body",
   fontWeight: "semibold",
   fontSize: "sm",
   textAlign: "start",
-  cursor: "pointer",
-  WebkitTapHighlightColor: "transparent",
-  transition: "background-color token(durations.fast) linear",
-  outline: "none",
-  _hover: { background: "overlay.hover" },
-  _pressed: { background: "overlay.pressed" },
   _focusVisible: focusRing.outset,
-  _disabled: { cursor: "not-allowed", color: "fg.disabled" },
   _touch: { minHeight: "touch" },
   "& [data-caret]": {
     flex: "none",
