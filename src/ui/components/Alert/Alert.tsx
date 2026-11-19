@@ -78,7 +78,7 @@ const iconStyles = css({
   // Centres a 20px icon on the first line of text.
   paddingBlockStart: "1px",
   color: "var(--alert-fg)",
-  "& svg": { width: "20px", height: "20px" },
+  "& svg": { width: "icon.md", height: "icon.md" },
 });
 
 const contentStyles = css({
