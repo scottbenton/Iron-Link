@@ -73,6 +73,7 @@ export const Playground: Story = {
             toasts.custom(
               ({ dismiss }) => (
                 <ToastCard
+                  elevated
                   icon={<DiceFiveIcon weight="fill" />}
                   message="Face Danger: Strong Hit"
                   description="Action 5 + Edge 2 = 7 vs 3 and 6"
@@ -98,27 +99,32 @@ export const Cards: Story = {
   render: () => (
     <Grid gap="3" width="400px">
       <ToastCard
+        elevated
         tone="success"
         message="Character saved"
         onDismiss={() => {}}
       />
       <ToastCard
+        elevated
         tone="error"
         message="Could not save your notes. Check your connection and try again."
         onDismiss={() => {}}
       />
       <ToastCard
+        elevated
         tone="info"
         message="Invite link copied"
         onDismiss={() => {}}
       />
       <ToastCard
+        elevated
         tone="success"
         message="Asset removed"
         action={{ label: "Undo", onClick: () => {} }}
         onDismiss={() => {}}
       />
       <ToastCard
+        elevated
         tone="loading"
         message="Uploading portrait"
         onDismiss={() => {}}
