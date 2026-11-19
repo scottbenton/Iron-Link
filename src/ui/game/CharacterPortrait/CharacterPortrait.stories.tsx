@@ -42,15 +42,14 @@ export const Sizes: Story = {
   ),
 };
 
-/** The active character is ringed; a dot shows who is here. */
-export const ActiveAndStatus: Story = {
+/** A dot shows who is here. */
+export const Status: Story = {
   render: () => (
     <HStack gap="5" alignItems="center">
       <CharacterPortrait
         name={kira.name}
         colorSeed={kira.colorSeed}
         size="lg"
-        active
         status="online"
         statusLabel="Online"
       />
