@@ -99,11 +99,13 @@ describe("Toaster", () => {
     expect(front).toHaveAttribute("data-expanded", "true");
 
     act(() => dismiss?.click());
-    await waitFor(() => expect(getToastItems()).toHaveLength(2));
-
-    for (const item of getToastItems()) {
-      expect(item).toHaveAttribute("data-expanded", "false");
-    }
+    await waitFor(() => {
+      const items = getToastItems();
+      expect(items).toHaveLength(2);
+      for (const item of items) {
+        expect(item).toHaveAttribute("data-expanded", "false");
+      }
+    });
   });
 
   // The stack's styles reach the card through this path; a Sonner update
