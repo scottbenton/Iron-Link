@@ -11,7 +11,7 @@ import {
 
 import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
-import { ledgeHeight } from "ui/styles/ledge";
+import { ledgeHeight, ledgeLayers } from "ui/styles/ledge";
 
 import { css, cva, cx } from "styled-system/css";
 import type { SystemStyleObject } from "styled-system/types";
@@ -45,19 +45,19 @@ const cardStyles = cva({
     gap: "3",
     minWidth: 0,
     fontFamily: "body",
-    // The shadow is two parts, so hover, press and selection each change
-    // only their own: the selection ring and the ledge's height.
-    "--card-ring": "0 0 #0000",
-    "--card-ledge": "0px",
-    // A card with an action area or an overlay is pressable: it gets the
-    // ledge, a border that darkens on hover and the 1px sink on press, all as
-    // one piece. Hovering or pressing a secondary action inside does neither.
+    // The face and ledge colours, drawn only once the card is pressable.
+    "--ledge-face": "{colors.bg.surface}",
+    "--ledge-border": "{colors.border.default}",
+    "--ledge-edge": "{colors.border.edge}",
+    // A card with an action area or an overlay is pressable: its face and
+    // ledge become layers under its content (see `ledgeLayers`), the border
+    // darkens on hover and it sinks on press, all as one piece. Hovering or
+    // pressing a secondary action inside does neither.
     [`&:has(${target("")})`]: {
-      "--card-ledge": ledgeHeight.rest,
-      boxShadow:
-        "var(--card-ring), 0 var(--card-ledge) 0 token(colors.border.edge)",
+      ...ledgeLayers("token(radii.lg)"),
+      boxShadow: "none",
       transform: "translateY(0)",
-      transitionProperty: "transform, box-shadow, border-color",
+      transitionProperty: "transform",
       transitionDuration: "fast",
       transitionTimingFunction: "out",
     },
@@ -65,34 +65,38 @@ const cardStyles = cva({
     // selectors weigh the same, so stylesheet order would pick.
     [`&:has(${target(`:is(:hover, [data-hover]):not(:active, [data-pressed])${enabled}`)})`]:
       {
-        "--card-ledge": ledgeHeight.lifted,
+        "--ledge-height": ledgeHeight.lifted,
         transform: "translateY(var(--spacing-lift))",
       },
     // Not on a selected card, whose accent border must show while the
     // pointer is still on it.
     [`&:not([data-selected]):has(${target(`:is(:hover, [data-hover])${enabled}`)})`]:
       {
-        borderColor: "border.control",
+        "--ledge-border": "{colors.border.control}",
       },
     [`&:has(${target(`:is(:active, [data-pressed])${enabled}`)})`]: {
-      "--card-ledge": ledgeHeight.sunk,
+      "--ledge-height": ledgeHeight.sunk,
       transform: "translateY(var(--spacing-sink))",
       transitionDuration: "instant",
     },
     [`&:has(${target(":focus-visible")})`]: focusRing.outset,
     // Chosen, as one of a set: an accent border doubled by an inset ring.
-    // Hover and press change the ledge only, so the ring stays put.
+    // Hover and press change the ledge only, so the ring stays put. The
+    // border and shadow serve a card that is not pressable; a pressable
+    // one draws them on its face.
     "&[data-selected]": {
       borderColor: "accent.solid",
-      "--card-ring": "inset 0 0 0 1px token(colors.accent.solid)",
-      boxShadow:
-        "var(--card-ring), 0 var(--card-ledge) 0 token(colors.border.edge)",
+      boxShadow: "inset 0 0 0 1px token(colors.accent.solid)",
+      "--ledge-border": "{colors.accent.solid}",
+      "--ledge-inset": "inset 0 0 0 1px {colors.accent.solid}",
     },
     [`&:has(${target(":is(:disabled, [aria-disabled=true], [data-disabled])")})`]:
       {
         transform: "none",
-        boxShadow: "none",
-        borderColor: "border.default",
+        "--ledge-height": ledgeHeight.rest,
+        "--ledge-border": "{colors.border.default}",
+        "--ledge-inset": "none",
+        "--ledge-edge": "transparent",
         opacity: 0.6,
       },
     ...raisedControls,
