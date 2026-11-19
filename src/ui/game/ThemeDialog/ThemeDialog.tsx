@@ -350,7 +350,6 @@ export function ThemeDialog(props: ThemeDialogProps) {
                         crop={character.crop}
                         colorSeed={character.colorSeed}
                         colorScheme={resolved.scheme}
-                        active={isCurrent}
                         decorative
                       />
                     }

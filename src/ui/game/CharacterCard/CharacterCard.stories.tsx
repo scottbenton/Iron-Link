@@ -62,7 +62,6 @@ export const Party: Story = {
           name={character.name}
           playerName={character.playerName}
           colorSeed={character.colorSeed}
-          active={index === 0}
           status={index === 2 ? "offline" : "online"}
           statusLabel={index === 2 ? "Offline" : "Online"}
           stats={metersOf(character)}
