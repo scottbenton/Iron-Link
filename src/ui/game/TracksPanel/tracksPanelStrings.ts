@@ -18,7 +18,10 @@ export interface TracksPanelStrings {
   /** The track menu's button: "Options for Recover the Hollow Crown". */
   optionsLabel: (label: string) => string;
   edit: (isClock: boolean) => string;
-  complete: (isClock: boolean) => string;
+  /** The card's own Complete button, beside its roll. */
+  completeShort: string;
+  /** Its accessible name: "Complete Recover the Hollow Crown". */
+  completeLabel: (label: string) => string;
   reopen: (isClock: boolean) => string;
   remove: (isClock: boolean) => string;
   openOnSecondScreen: string;
@@ -44,7 +47,10 @@ export interface TracksPanelStrings {
   /** The Add button's visible text, short beside Show Bonded. */
   addConnectionShort: string;
   noConnections: string;
+  noConnectionsMessage: string;
   allBonded: string;
+  /** How many bonded connections Show Bonded would bring back. */
+  allBondedMessage: (bonded: number) => string;
   connectionType: string;
   bonded: string;
   rank: string;
@@ -55,6 +61,7 @@ export interface TracksPanelStrings {
 
   bonds: string;
   noBonds: string;
+  noBondsMessage: string;
   clearBondLabel: (label: string) => string;
 
   /** TrackDialog's title and main button when adding: "Add Vow". */
@@ -98,12 +105,13 @@ export const defaultTracksPanelStrings: TracksPanelStrings = {
   noActiveTracks: "No active tracks",
   noActiveTracksMessage: (completed) =>
     completed === 1
-      ? "One completed track is hidden. Tick Show Completed to see it."
-      : `${completed} completed tracks are hidden. Tick Show Completed to see them.`,
+      ? "One completed track is hidden."
+      : `${completed} completed tracks are hidden.`,
 
   optionsLabel: (label) => `Options for ${label}`,
   edit: (isClock) => (isClock ? "Edit Clock" : "Edit Track"),
-  complete: (isClock) => (isClock ? "Complete Clock" : "Complete Track"),
+  completeShort: "Complete",
+  completeLabel: (label) => `Complete ${label}`,
   reopen: (isClock) => (isClock ? "Reopen Clock" : "Reopen Track"),
   remove: (isClock) => (isClock ? "Delete Clock" : "Delete Track"),
   openOnSecondScreen: "Open on Second Screen",
@@ -128,7 +136,12 @@ export const defaultTracksPanelStrings: TracksPanelStrings = {
   addConnection: "Add Connection",
   addConnectionShort: "Add",
   noConnections: "No connections yet",
+  noConnectionsMessage: "Add the people you make a connection with.",
   allBonded: "Every connection is bonded",
+  allBondedMessage: (bonded) =>
+    bonded === 1
+      ? "One bonded connection is hidden."
+      : `${bonded} bonded connections are hidden.`,
   connectionType: "Connection",
   bonded: "Bonded",
   rank: "Rank",
@@ -137,7 +150,8 @@ export const defaultTracksPanelStrings: TracksPanelStrings = {
   rollConnectionLabel: (label) => `Roll Progress for ${label}`,
 
   bonds: "Bonds",
-  noBonds: "Form bonds from a world entry's page in Notes.",
+  noBonds: "No bonds yet",
+  noBondsMessage: "Form bonds from a world entry's page in Notes.",
   clearBondLabel: (label) => `Clear Bond with ${label}`,
 
   dialogAddTitle: (kind) => `Add ${kind}`,
