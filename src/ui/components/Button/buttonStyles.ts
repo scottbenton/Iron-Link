@@ -76,6 +76,9 @@ export const buttonStyles = cva({
       boxShadow: ledgeShadow("var(--btn-edge)", "sunk"),
       transitionDuration: "instant",
     },
+    // A menu or popover trigger keeps the pressed colour while its popup is
+    // open, without sinking, so it shows what the popup belongs to.
+    "&[data-popup-open]": { background: "var(--btn-press)" },
     "&:is(:disabled, [data-disabled]):not([data-busy])": {
       cursor: "not-allowed",
       transform: "none",

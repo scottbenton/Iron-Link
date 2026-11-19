@@ -120,7 +120,9 @@ const outcomeStyles = css({
   fontSize: "xl",
   lineHeight: "none",
   textTransform: "uppercase",
-  letterSpacing: "label",
+  // Half the label spacing: at this size and weight the label's 0.06em
+  // pulls the letters apart.
+  letterSpacing: "0.03em",
   color: "var(--outcome)",
   whiteSpace: "nowrap",
   "[data-variant=compact] &": { fontSize: "lg" },

@@ -20,7 +20,7 @@ describe("AddsControl", () => {
   it("names the group with its value and describes it with the hint", () => {
     renderAdds(2);
     const group = screen.getByRole("group", { name: "Adds +2" });
-    expect(group).toHaveAccessibleDescription("On your next action roll");
+    expect(group).toHaveAccessibleDescription("Added to your next action roll");
   });
 
   it("steps by one and announces the new value", async () => {

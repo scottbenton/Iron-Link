@@ -10,31 +10,19 @@ import { IconButton } from "../../components/IconButton";
 import { clamp, formatSigned } from "../shared/format";
 
 /**
- * The chip and its hint on one line. No padding of its own, so a caller can
- * inset it (the game sheet lines its label up with the section bands'
- * text). The hint wraps under the chip only when the row is too narrow.
- */
-const rootStyles = css({
-  display: "flex",
-  alignItems: "center",
-  flexWrap: "wrap",
-  columnGap: "3",
-  rowGap: "1",
-  minWidth: 0,
-  color: "fg.default",
-});
-
-/**
- * One pill holding the label and the stepper: a modifier chip rather than a
- * card, so it never reads as a fourth meter. Flat (no ledge): the buttons
- * inside are the pressable parts. Once adds are set it takes the accent's
- * soft tint and an accent border, beside the value's solid pill.
+ * One pill holding the label, its hint under it and the stepper: a modifier
+ * chip rather than a card, so it never reads as a fourth meter. Flat (no
+ * ledge): the buttons inside are the pressable parts. Once adds are set it
+ * takes the accent's soft tint and an accent border, beside the value's
+ * solid pill. No margin of its own, so a caller can inset it.
  */
 const chipStyles = css({
   display: "inline-flex",
   alignItems: "center",
-  flex: "none",
+  maxWidth: "100%",
+  minWidth: 0,
   gap: "0.5",
+  color: "fg.default",
   paddingInlineStart: "3",
   paddingInlineEnd: "0.5",
   paddingBlock: "0.5",
@@ -55,8 +43,16 @@ const chipStyles = css({
   _reducedMotion: { transition: "none" },
 });
 
+/** The label over its hint, beside the stepper. */
+const textStyles = css({
+  display: "grid",
+  gap: "0.5",
+  flex: "0 1 auto",
+  minWidth: 0,
+  marginInlineEnd: "2",
+});
+
 const labelStyles = css({
-  marginInlineEnd: "1",
   fontFamily: "heading",
   fontWeight: "bold",
   fontSize: "sm",
@@ -64,7 +60,7 @@ const labelStyles = css({
   textTransform: "uppercase",
   letterSpacing: "label",
   color: "fg.muted",
-  "[data-active] > &": { color: "accent.fg" },
+  "[data-active] &": { color: "accent.fg" },
 });
 
 /**
@@ -126,12 +122,16 @@ const stepperStyles = css({
   },
 });
 
+/** At most two lines; a long translation clips rather than stretching. */
 const hintStyles = css({
-  flex: "1 1 8rem",
-  minWidth: 0,
   fontSize: "xs",
-  lineHeight: "snug",
+  lineHeight: "tight",
   color: "fg.muted",
+  lineClamp: 2,
+  "[data-active] &": {
+    color:
+      "color-mix(in oklab, token(colors.accent.fg) 75%, token(colors.fg.muted))",
+  },
 });
 
 export interface AddsControlProps extends LayoutProps {
@@ -146,8 +146,8 @@ export interface AddsControlProps extends LayoutProps {
   stepperSize?: "sm" | "touch";
   label?: string;
   /**
-   * Beside the chip and the group's description: what adds apply to.
-   * `null` hides it.
+   * Under the label inside the pill, and the group's description: what adds
+   * apply to. `null` hides it.
    */
   hint?: string | null;
   decrementLabel?: (label: string) => string;
@@ -175,7 +175,7 @@ export function AddsControl(props: AddsControlProps) {
     disabled,
     stepperSize = "sm",
     label = "Adds",
-    hint = "On your next action roll",
+    hint = "Added to your next action roll",
     decrementLabel = (l) => `Subtract 1 from ${l}`,
     incrementLabel = (l) => `Add 1 to ${l}`,
     changeAnnouncement = (l, v) => `${l} is now ${v}`,
@@ -201,51 +201,49 @@ export function AddsControl(props: AddsControlProps) {
       role="group"
       aria-labelledby={`${labelId} ${valueId}`}
       aria-describedby={hint ? hintId : undefined}
-      className={cx(rootStyles, className)}
+      className={cx(chipStyles, className)}
       data-adds-control=""
       data-stepper-size={stepperSize}
       data-disabled={disabled || undefined}
+      data-active={active}
+      data-read-only={!onChange || undefined}
     >
-      <span
-        className={chipStyles}
-        data-active={active}
-        data-read-only={!onChange || undefined}
-      >
+      <span className={textStyles}>
         <span id={labelId} className={labelStyles}>
           {label}
         </span>
-        {onChange && (
-          <IconButton
-            label={decrementLabel(label)}
-            size="sm"
-            className={stepperStyles}
-            focusableWhenDisabled
-            disabled={disabled || value <= min}
-            onClick={() => step(-1)}
-          >
-            <Minus weight="bold" />
-          </IconButton>
-        )}
-        <span id={valueId} className={valueStyles} data-active={active}>
-          {formatSigned(value)}
-        </span>
-        {onChange && (
-          <IconButton
-            label={incrementLabel(label)}
-            size="sm"
-            className={stepperStyles}
-            focusableWhenDisabled
-            disabled={disabled || value >= max}
-            onClick={() => step(1)}
-          >
-            <Plus weight="bold" />
-          </IconButton>
+        {hint && (
+          <span id={hintId} className={hintStyles}>
+            {hint}
+          </span>
         )}
       </span>
-      {hint && (
-        <span id={hintId} className={hintStyles}>
-          {hint}
-        </span>
+      {onChange && (
+        <IconButton
+          label={decrementLabel(label)}
+          size="sm"
+          className={stepperStyles}
+          focusableWhenDisabled
+          disabled={disabled || value <= min}
+          onClick={() => step(-1)}
+        >
+          <Minus weight="bold" />
+        </IconButton>
+      )}
+      <span id={valueId} className={valueStyles} data-active={active}>
+        {formatSigned(value)}
+      </span>
+      {onChange && (
+        <IconButton
+          label={incrementLabel(label)}
+          size="sm"
+          className={stepperStyles}
+          focusableWhenDisabled
+          disabled={disabled || value >= max}
+          onClick={() => step(1)}
+        >
+          <Plus weight="bold" />
+        </IconButton>
       )}
     </div>
   );
