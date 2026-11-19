@@ -183,6 +183,9 @@ export function CharacterColumn(
     wounded: true,
   });
   const [xp, setXp] = useState(4);
+  const [legacyTicks, setLegacyTicks] = useState<Record<string, number>>(() =>
+    Object.fromEntries(legacyTracks.map((t) => [t.key, t.ticks])),
+  );
 
   return (
     <Tabs
@@ -282,7 +285,13 @@ export function CharacterColumn(
               <ProgressTrack
                 key={track.key}
                 label={track.label}
-                ticks={track.ticks}
+                ticks={legacyTicks[track.key]}
+                onChange={(ticks) =>
+                  setLegacyTicks((current) => ({
+                    ...current,
+                    [track.key]: ticks,
+                  }))
+                }
                 legacy
               />
             ))}

@@ -283,6 +283,11 @@ function SheetScreen(props: {
     wounded: true,
   });
   const [xp, setXp] = useState(4);
+  const [legacyTicks, setLegacyTicks] = useState<Record<string, number>>({
+    Quests: 14,
+    Bonds: 6,
+    Discoveries: 9,
+  });
   const impactGroups = getImpactGroups(ruleset);
 
   const roll = (statName: string, statValue: number) => {
@@ -397,9 +402,20 @@ function SheetScreen(props: {
           {ruleset === "starforged" && (
             <Stack gap="2" as="section">
               <SectionHeading title="Legacy Tracks" as="h3" />
-              <ProgressTrack label="Quests" ticks={14} legacy />
-              <ProgressTrack label="Bonds" ticks={6} legacy />
-              <ProgressTrack label="Discoveries" ticks={9} legacy />
+              {Object.entries(legacyTicks).map(([label, ticks]) => (
+                <ProgressTrack
+                  key={label}
+                  label={label}
+                  ticks={ticks}
+                  onChange={(value) =>
+                    setLegacyTicks((current) => ({
+                      ...current,
+                      [label]: value,
+                    }))
+                  }
+                  legacy
+                />
+              ))}
             </Stack>
           )}
 
