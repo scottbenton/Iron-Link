@@ -5,6 +5,7 @@ import { CheckCircle } from "@phosphor-icons/react";
 import { CSSProperties, ReactNode, Ref, useId } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { ledge, ledgeShadow } from "ui/styles/ledge";
 
 import { css, cx } from "styled-system/css";
 
@@ -162,8 +163,7 @@ const cardStyles = css({
   borderRadius: "lg",
   background: "bg.surface",
   color: "fg.default",
-  boxShadow: "0 var(--border-widths-ledge) 0 token(colors.border.edge)",
-  transform: "translateY(0)",
+  ...ledge("token(colors.border.edge)", "rest"),
   transitionProperty: "transform, box-shadow, background-color, border-color",
   transitionDuration: "fast",
   transitionTimingFunction: "out",
@@ -175,9 +175,7 @@ const cardStyles = css({
   },
   // Pressing the card sinks it onto its ledge, like a button.
   "&:has(> [role=radio]:active):not([data-disabled])": {
-    transform: "translateY(var(--spacing-sink))",
-    boxShadow:
-      "0 max(0px, calc(var(--border-widths-ledge) - var(--spacing-sink))) 0 token(colors.border.edge)",
+    ...ledge("token(colors.border.edge)", "sunk"),
     transitionDuration: "instant",
   },
   "&:has(> [role=radio]:focus-visible)": {
@@ -189,12 +187,10 @@ const cardStyles = css({
   "&[data-checked]": {
     borderColor: "accent.solid",
     background: "accent.soft",
-    boxShadow:
-      "inset 0 0 0 1px token(colors.accent.solid), 0 var(--border-widths-ledge) 0 token(colors.accent.edge)",
+    boxShadow: `inset 0 0 0 1px token(colors.accent.solid), ${ledgeShadow("token(colors.accent.edge)")}`,
   },
   "&[data-checked]:has(> [role=radio]:active)": {
-    boxShadow:
-      "inset 0 0 0 1px token(colors.accent.solid), 0 max(0px, calc(var(--border-widths-ledge) - var(--spacing-sink))) 0 token(colors.accent.edge)",
+    boxShadow: `inset 0 0 0 1px token(colors.accent.solid), ${ledgeShadow("token(colors.accent.edge)", "sunk")}`,
   },
   "&[data-disabled]": {
     background: "bg.muted",

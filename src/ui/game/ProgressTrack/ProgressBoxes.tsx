@@ -4,16 +4,9 @@ import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 
+import { PROGRESS_BOX_MARKS } from "../shared";
 import { MAX_TICKS, TICKS_PER_BOX, clampTicks, getBoxTicks } from "./progress";
 import { getTickAnimationPlan } from "./tickAnimation";
-
-/** The four marks of a box, drawn in order: two diagonals, then a cross. */
-const MARKS = [
-  [3, 17, 17, 3],
-  [3, 3, 17, 17],
-  [10, 1.5, 10, 18.5],
-  [1.5, 10, 18.5, 10],
-] as const;
 
 const trackStyles = css({
   display: "grid",
@@ -113,7 +106,7 @@ export function ProgressBoxes(props: ProgressBoxesProps) {
           data-full={count === TICKS_PER_BOX || undefined}
         >
           <svg viewBox="0 0 20 20" focusable="false">
-            {MARKS.map(([x1, y1, x2, y2], mark) => {
+            {PROGRESS_BOX_MARKS.map(([x1, y1, x2, y2], mark) => {
               const tick = index * TICKS_PER_BOX + mark;
               const step = tick < MAX_TICKS ? plan.steps[tick] : undefined;
               return (

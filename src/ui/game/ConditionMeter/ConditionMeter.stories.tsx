@@ -5,6 +5,7 @@ import { fn } from "storybook/test";
 import { HStack, Stack } from "ui/primitives";
 
 import { sampleCharacters } from "../../stories/fixtures/characters";
+import { capitalize } from "../shared/format";
 import { ConditionMeter } from "./ConditionMeter";
 import { MomentumMeter } from "./MomentumMeter";
 
@@ -265,7 +266,6 @@ export const WithAdds: Story = {
 };
 
 const kira = sampleCharacters[0];
-const capitalize = (text: string) => text[0].toUpperCase() + text.slice(1);
 
 /**
  * `stepperSize="touch"`: 44px steppers at any pointer, for a phone sheet that

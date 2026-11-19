@@ -1,17 +1,21 @@
+import { ledge, ledgeShadow } from "ui/styles/ledge";
+import { ringLayer } from "ui/styles/ring";
+
 import { css } from "styled-system/css";
 
 import {
   drawReveal,
   fadeReveal,
   ringHovered,
-  ringLayer,
   ringShown,
   thickenReveal,
-} from "../RollButton/ringStyles";
+} from "./ringReveal";
+
+const statEdge = "token(colors.border.stat)";
 
 /**
  * The stat card. Rollable, it is the roll button itself: a dark filled block
- * on a ledge with a die beside the value. Its ring shows only while hovered
+ * on its own near-black ledge with a die beside the value. Its ring shows only while hovered
  * (with a real pointer), pressed or focused from the keyboard, and the page's
  * `data-ring-reveal` picks how it arrives: Fade (the default), Draw or
  * Thicken. The hidden ring is paused, so a row of cards costs nothing at rest.
@@ -38,21 +42,14 @@ export const statRollableStyles = css({
   userSelect: "none",
   WebkitTapHighlightColor: "transparent",
   outline: "none",
-  boxShadow: "0 var(--border-widths-ledge) 0 token(colors.border.stat)",
-  transform: "translateY(0)",
+  ...ledge(statEdge, "rest"),
   transitionProperty: "transform, box-shadow, padding",
   transitionDuration: "fast",
   transitionTimingFunction: "out",
   _before: { ...ringLayer, animationPlayState: "paused" },
-  _hover: {
-    transform: "translateY(var(--spacing-lift))",
-    boxShadow:
-      "0 calc(var(--border-widths-ledge) - var(--spacing-lift)) 0 token(colors.border.stat)",
-  },
+  _hover: ledge(statEdge, "lifted"),
   _pressed: {
-    transform: "translateY(var(--spacing-sink))",
-    boxShadow:
-      "0 max(0px, calc(var(--border-widths-ledge) - var(--spacing-sink))) 0 token(colors.border.stat)",
+    ...ledge(statEdge, "sunk"),
     transitionDuration: "instant",
     "& > [data-stat-inner]": { background: "bg.statPressed" },
   },
@@ -142,7 +139,7 @@ export const statRollableStyles = css({
   "&:is(:disabled, [data-disabled])": {
     cursor: "not-allowed",
     transform: "none",
-    boxShadow: "0 var(--border-widths-ledge) 0 token(colors.border.stat)",
+    boxShadow: ledgeShadow(statEdge),
     opacity: 0.6,
     _before: { opacity: "0!", animationPlayState: "paused" },
     "& > [data-stat-inner]": { background: "bg.stat" },
