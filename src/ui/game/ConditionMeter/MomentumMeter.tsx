@@ -16,6 +16,7 @@ import {
 import { formatSigned } from "../shared/format";
 import {
   ConditionMeter,
+  MeterNumber,
   MeterTone,
   meterValueTextStyles,
 } from "./ConditionMeter";
@@ -161,9 +162,12 @@ export function MomentumMeter(props: MomentumMeterProps) {
         disabled={disabled}
         aria-label={triggerName}
       >
-        <span className={meterValueTextStyles} data-tone={tone}>
-          {valueText}
-        </span>
+        <MeterNumber
+          className={meterValueTextStyles}
+          tone={tone}
+          text={valueText}
+          sizes={[formatSigned(min), formatSigned(Math.max(max, 10))]}
+        />
         <CaretDown weight="bold" aria-hidden />
       </MenuTrigger>
       <MenuContent align="center">
