@@ -65,10 +65,10 @@ export function OracleListItem(props: OracleListItemProps) {
     ...rest
   } = withLayoutProps(props);
 
-  const [face, rollDie] = useDieFace();
+  const [die, rollDie] = useDieFace();
   const isLink = render !== undefined;
   const glyph = isLink ? null : icon === undefined ? (
-    <DieFace face={face} size="inherit" />
+    <DieFace {...die} size="inherit" />
   ) : (
     icon
   );
