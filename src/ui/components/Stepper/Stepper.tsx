@@ -1,12 +1,12 @@
 import { Check } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 
 import { VisuallyHidden } from "../VisuallyHidden";
-import { focusRing } from "ui/styles/focus";
 
 export interface StepperStep {
   label: ReactNode;
