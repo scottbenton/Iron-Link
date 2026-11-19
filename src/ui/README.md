@@ -64,7 +64,8 @@ Each component is a folder: `Name/Name.tsx`, `Name/Name.stories.tsx`,
   (`cx(base, override)`): Panda's stylesheet order decides which wins, not
   the order in `cx`. Use a `cva` variant or compound variant instead.
 - Conditions: `_hover`, `_focusVisible`, `_pressed` (`:active` or
-  `[data-pressed]`), `_dark`, `_open`, `_current` (aria-current, selected),
+  `[data-pressed]`; it and `_hover` skip disabled elements, so a disabled
+  control never takes a hover or press tint), `_dark`, `_open`, `_current` (aria-current, selected),
   `_disabled`, `_startingStyle`/`_endingStyle` (Base UI transitions),
   `_hoverable` (`@media (hover: hover)`), `_touch` (`pointer: coarse`),
   `_reducedMotion`, breakpoints `sm` 600, `md` 900, `lg` 1200 and `smDown` etc.
