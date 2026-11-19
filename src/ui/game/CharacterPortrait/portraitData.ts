@@ -21,25 +21,3 @@ export function getInitials(name: string, letters: 1 | 2 = 2): string {
   const last = Array.from(words[words.length - 1])[0] ?? "";
   return `${first}${last}`.toUpperCase();
 }
-
-/** A stable hue from a name, for characters without a scheme or seed. */
-export function hashHue(text: string): number {
-  let hash = 0;
-  for (let index = 0; index < text.length; index += 1) {
-    hash = (hash * 31 + text.charCodeAt(index)) | 0;
-  }
-  return Math.abs(hash) % 360;
-}
-
-/**
- * The background behind initials without a colour scheme: a two-stop
- * gradient around a hue, from the seed or else the name.
- */
-export function getPortraitGradient(options: {
-  name: string;
-  colorSeed?: number;
-}): string {
-  const { name, colorSeed } = options;
-  const hue = colorSeed ?? hashHue(name);
-  return `linear-gradient(150deg, oklch(72% 0.13 ${hue}), oklch(46% 0.14 ${(hue + 35) % 360}))`;
-}

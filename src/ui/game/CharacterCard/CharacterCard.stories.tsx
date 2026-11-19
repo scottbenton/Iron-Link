@@ -15,7 +15,6 @@ const meta: Meta<typeof CharacterCard> = {
   args: {
     name: kira.name,
     playerName: kira.playerName,
-    colorSeed: kira.colorSeed,
     onOpen: () => {},
   },
   render: (args) => (
@@ -42,7 +41,6 @@ export const Party: Story = {
           key={character.id}
           name={character.name}
           playerName={character.playerName}
-          colorSeed={character.colorSeed}
           onOpen={() => {}}
           actions={
             <Button size="sm" variant="ghost" startIcon={<ArrowSquareOut />}>
