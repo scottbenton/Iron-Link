@@ -23,7 +23,6 @@ const [kira, orrin, senna] = sampleCharacters;
 const ashkar: ThemeDialogCharacter = {
   id: "ashkar",
   name: "Ashkar Wren",
-  colorSeed: 32,
   theme: "cinder",
 };
 
@@ -263,19 +262,16 @@ const longNames: HarnessProps = {
     {
       id: "long-1",
       name: "Aldric Thornwood-Vasquez of the Hollow Reach",
-      colorSeed: 80,
       theme: null,
     },
     {
       id: "long-2",
       name: "Maelis Oathbound, Last Warden of the Tempest Hills",
-      colorSeed: 300,
       theme: "orchid",
     },
     {
       id: "long-3",
       name: "Sister Ysolde Brightwater-Kaine",
-      colorSeed: 190,
       theme: null,
       sharedBy: "Morgan Ashcombe-Delacroix",
     },

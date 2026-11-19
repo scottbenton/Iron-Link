@@ -6,12 +6,7 @@ import { SchemeName, schemes } from "ui/theme";
 
 import { cva, cx } from "styled-system/css";
 
-import {
-  PortraitSize,
-  getInitials,
-  getPortraitGradient,
-  portraitSizes,
-} from "./portraitData";
+import { PortraitSize, getInitials, portraitSizes } from "./portraitData";
 
 export const portraitStyles = cva({
   base: {
@@ -31,26 +26,19 @@ export const portraitStyles = cva({
       height: "100%",
       overflow: "hidden",
       borderRadius: "inherit",
-      background: "var(--portrait-gradient)",
-      color: "white",
+      background: "bg.emphasized",
+      color: "fg.muted",
       fontFamily: "heading",
       fontWeight: "bold",
       fontSize: "var(--portrait-font)",
       lineHeight: "none",
       letterSpacing: "0.02em",
-      textShadow: "0 1px 2px rgb(0 0 0 / 0.3)",
-      boxShadow: "inset 0 0 0 1px rgb(0 0 0 / 0.08)",
       userSelect: "none",
     },
-    // A colour scheme rings the portrait, as the app does today; the face
-    // inside stays neutral. Drawn over the image, inside the clip.
-    "&[data-scheme] > [data-portrait-face]": {
-      background: "bg.emphasized",
-      color: "fg.muted",
-      textShadow: "none",
-      boxShadow: "none",
-    },
-    "&[data-scheme] > [data-portrait-face]::after": {
+    // A ring around a neutral face: the character's colour scheme, as the
+    // app does today, or gray without one. Drawn over the image, inside the
+    // clip.
+    "& > [data-portrait-face]::after": {
       content: '""',
       position: "absolute",
       inset: 0,
@@ -58,6 +46,7 @@ export const portraitStyles = cva({
       boxShadow: "inset 0 0 0 var(--portrait-ring-width) var(--portrait-ring)",
       pointerEvents: "none",
     },
+    "--portrait-ring": "{colors.border.control}",
     "&[data-scheme]": {
       "--portrait-ring": "var(--portrait-ring-light)",
       _dark: { "--portrait-ring": "var(--portrait-ring-dark)" },
@@ -150,7 +139,7 @@ export interface CharacterPortraitProps
     Omit<ComponentPropsWithoutRef<"span">, "children"> {
   /** The character's name: the initials and the accessible name. */
   name: string;
-  /** The portrait image. Without one, initials on a gradient. */
+  /** The portrait image. Without one, initials on a neutral face. */
   portraitUrl?: string;
   /** Where the image is centred and how far it is zoomed, as Iron Link stores it. */
   crop?: PortraitCrop;
@@ -158,11 +147,9 @@ export interface CharacterPortraitProps
   shape?: "circle" | "rounded";
   /**
    * The character's colour scheme: a ring in its colour around a neutral
-   * face. Without one, the initials sit on a gradient from `colorSeed`.
+   * face. Without one the ring is gray.
    */
   colorScheme?: SchemeName;
-  /** A hue (0 to 360) for the gradient when there is no scheme. */
-  colorSeed?: number;
   /** A dot at the bottom corner. */
   status?: PortraitStatus;
   /** What the dot means, for screen readers, such as "Online". */
@@ -180,9 +167,9 @@ export interface CharacterPortraitProps
 }
 
 /**
- * A character's portrait: their image, or their initials. A colour scheme
- * rings it in the scheme's colour; without one the initials sit on a
- * gradient. A dot at the corner shows a status.
+ * A character's portrait: their image, or their initials, ringed in their
+ * colour scheme's colour (gray without one). A dot at the corner shows a
+ * status.
  */
 export function CharacterPortrait(props: CharacterPortraitProps) {
   const {
@@ -192,7 +179,6 @@ export function CharacterPortrait(props: CharacterPortraitProps) {
     size = "md",
     shape,
     colorScheme,
-    colorSeed,
     status,
     statusLabel,
     loading,
@@ -223,7 +209,6 @@ export function CharacterPortrait(props: CharacterPortraitProps) {
 
   const variables = {
     "--portrait-size": `${pixels}px`,
-    "--portrait-gradient": getPortraitGradient({ name, colorSeed }),
     ...(scheme && {
       "--portrait-ring-light": scheme.light.solid,
       "--portrait-ring-dark": scheme.dark.solid,
