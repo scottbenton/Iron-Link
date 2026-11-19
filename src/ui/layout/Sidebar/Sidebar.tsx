@@ -16,6 +16,8 @@ import {
   useState,
 } from "react";
 
+import { focusRing } from "ui/styles/focus";
+
 import { css, cva, cx } from "styled-system/css";
 
 import { IconButton } from "../../components/IconButton";
@@ -152,10 +154,7 @@ const panelStyles = css({
   overflowY: "auto",
   outline: "none",
   "&[hidden]": { display: "none" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-2px",
-  },
+  _focusVisible: focusRing.inset,
 });
 
 /** One of several panels shown at once, sharing the column's height. */

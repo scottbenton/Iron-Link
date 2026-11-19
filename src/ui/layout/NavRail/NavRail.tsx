@@ -1,5 +1,7 @@
 import { ReactNode } from "react";
 
+import { focusRing } from "ui/styles/focus";
+
 import { css, cx } from "styled-system/css";
 
 import { GradientBox } from "../../components/GradientBox";
@@ -40,10 +42,7 @@ const homeStyles = css({
   borderRadius: "lg",
   color: "inherit",
   outline: "none",
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "2px",
-  },
+  _focusVisible: focusRing.outset,
 });
 
 const listStyles = css({
@@ -112,10 +111,7 @@ const itemStyles = css({
     },
   },
   _focusVisible: {
-    "& [data-part=pill]": {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "2px",
-    },
+    "& [data-part=pill]": focusRing.outset,
   },
   _current: {
     color: "fg.default",
