@@ -108,8 +108,6 @@ export interface CharacterCardProps
   portraitCrop?: PortraitCrop;
   colorScheme?: SchemeName;
   colorSeed?: number;
-  /** Rings the portrait, for the character whose sheet is open. */
-  active?: boolean;
   status?: PortraitStatus;
   statusLabel?: string;
   /** Key stats or meters in a compact row: Edge, Heart, Health, Momentum. */
@@ -144,7 +142,6 @@ export function CharacterCard(props: CharacterCardProps) {
     portraitCrop,
     colorScheme,
     colorSeed,
-    active,
     status,
     statusLabel,
     stats,
@@ -174,7 +171,6 @@ export function CharacterCard(props: CharacterCardProps) {
           crop={portraitCrop}
           colorScheme={colorScheme}
           colorSeed={colorSeed}
-          active={active}
           status={status}
           statusLabel={statusLabel}
           size="lg"

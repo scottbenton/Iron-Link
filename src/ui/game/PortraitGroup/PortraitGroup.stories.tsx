@@ -36,18 +36,11 @@ export const Apart: Story = {
   args: { spacing: "apart", members: party.slice(0, 3), size: "lg" },
 };
 
-/** Small, with the active character ringed, as in a game list. */
+/** Small, as in a game list. */
 export const Small: Story = {
   render: (args) => (
     <Stack>
-      <PortraitGroup
-        {...args}
-        size="sm"
-        members={party.map((member, index) => ({
-          ...member,
-          active: index === 0,
-        }))}
-      />
+      <PortraitGroup {...args} size="sm" members={party} />
     </Stack>
   ),
 };

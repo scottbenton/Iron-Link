@@ -86,8 +86,7 @@ export interface PortraitGroupProps
 
 /**
  * A row of character portraits, overlapping by default, with a "+N" count
- * for any past `max`. The active character keeps its gradient ring; each
- * name shows in a tooltip on hover.
+ * for any past `max`. Each name shows in a tooltip on hover.
  */
 export function PortraitGroup(props: PortraitGroupProps) {
   const {
