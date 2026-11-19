@@ -105,8 +105,9 @@ export const Gradient: Story = {
 
 /**
  * Every colour scheme at once, on the page and on a dark panel (each row
- * sets its scheme on itself; Default follows the toolbar). The ring follows
- * the scheme; the face stays dark, so the white label reads in every one.
+ * sets its scheme on itself; Sunrise, the default, follows the toolbar).
+ * The ring follows the scheme; the face stays dark, so the white label
+ * reads in every one.
  * Switch the Mode toolbar to see the page side in dark mode too.
  */
 export const GradientSchemes: Story = {
