@@ -1,4 +1,4 @@
-import { DiceFive, Table } from "@phosphor-icons/react";
+import { Table } from "@phosphor-icons/react";
 import {
   ComponentPropsWithoutRef,
   ElementType,
@@ -10,6 +10,8 @@ import { IconButton } from "ui/components/IconButton";
 import { ListRow, ListRowButton } from "ui/components/List";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+
+import { DieFace, useDieFace } from "../DieFace";
 
 export interface OracleListItemProps
   extends LayoutProps,
@@ -63,9 +65,10 @@ export function OracleListItem(props: OracleListItemProps) {
     ...rest
   } = withLayoutProps(props);
 
+  const [face, rollDie] = useDieFace();
   const isLink = render !== undefined;
   const glyph = isLink ? null : icon === undefined ? (
-    <DiceFive weight="bold" />
+    <DieFace face={face} size="inherit" />
   ) : (
     icon
   );
@@ -85,7 +88,13 @@ export function OracleListItem(props: OracleListItemProps) {
   return (
     <ListRow as={Wrapper} action={action} className={className} {...rest}>
       <ListRowButton
-        onClick={onRoll}
+        onClick={
+          onRoll &&
+          (() => {
+            if (!isLink && icon === undefined) rollDie();
+            onRoll();
+          })
+        }
         disabled={disabled}
         render={render}
         current={current}
