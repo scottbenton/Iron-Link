@@ -2,8 +2,8 @@ import { css } from "styled-system/css";
 
 /**
  * The card shared by ProgressTrack and Clock's `card` presentation: a static
- * surface with a border, a header of eyebrow, title and description, and
- * controls (minus, plus, menu) at the top right, then the boxes or dial.
+ * surface with a border, a header of eyebrow, title and description with the
+ * menu at the top right, then the boxes or dial with their minus and plus.
  */
 export const trackCardStyles = css({
   display: "grid",
@@ -33,7 +33,6 @@ export const trackCardEyebrowStyles = css({
   columnGap: "1.5",
   rowGap: "0.5",
   margin: 0,
-  marginBottom: "0.5",
   fontFamily: "heading",
   fontWeight: "bold",
   fontSize: "xs",
@@ -57,30 +56,57 @@ export const trackCardTitleStyles = css({
 
 export const trackCardDescriptionStyles = css({
   margin: 0,
-  marginTop: "1",
   fontSize: "sm",
   lineHeight: "normal",
   color: "fg.muted",
   whiteSpace: "pre-wrap",
 });
 
-export const trackCardControlsStyles = css({
+/**
+ * A card's minus and plus, beside the dial or under the boxes. Small icon
+ * buttons are 40px on touch; these are tapped often, so 44px.
+ */
+export const trackCardStepperStyles = css({
   display: "flex",
   alignItems: "center",
-  gap: "0.5",
-  // Line the buttons up with the title when there is no eyebrow above it.
-  marginTop: "-1",
-  marginInlineEnd: "-1",
-  // Small icon buttons are 40px on touch; these are tapped often, so 44px.
+  gap: "1",
+  flex: "none",
   _touch: { "& button": { minWidth: "touch", minHeight: "touch" } },
 });
 
-/** The header: eyebrow, title and description, then the controls. */
+/**
+ * The header: the eyebrow with the action at its end, then the title and
+ * description at full width. Without an eyebrow, the action sits beside the
+ * title.
+ */
 export const trackCardHeadStyles = css({
   display: "grid",
   gridTemplateColumns: "minmax(0, 1fr) auto",
-  alignItems: "start",
-  gap: "2",
+  gridTemplateAreas: '"title action" "description description"',
+  alignItems: "center",
+  columnGap: "2",
+  "&[data-eyebrow]": {
+    gridTemplateAreas:
+      '"eyebrow action" "title title" "description description"',
+  },
+  "& > [data-area=eyebrow]": { gridArea: "eyebrow" },
+  "& > [data-area=action]": { gridArea: "action" },
+  "& > [data-area=title]": { gridArea: "title", minWidth: 0 },
+  "& > [data-area=description]": { gridArea: "description", marginTop: "1" },
+  "&[data-eyebrow] > [data-area=title]": { marginTop: "0.5" },
+  // The title starts at the action's top when they share a row.
+  "&:not([data-eyebrow]) > [data-area=action]": { alignSelf: "start" },
+});
+
+/** The header's action, pulled into the card's corner padding. */
+export const trackCardHeadActionStyles = css({
+  display: "flex",
+  alignItems: "center",
+  // The eyebrow's line is shorter than a button: overlap the space around
+  // it rather than push the title down.
+  marginBlock: "-1.5",
+  marginInlineEnd: "-1.5",
+  _touch: { "& button": { minWidth: "touch", minHeight: "touch" } },
 });
 
 /** The Completed badge at the end of the eyebrow. */
@@ -102,10 +128,22 @@ export const trackCardBadgeStyles = css({
   "& svg": { width: "1.1em", height: "1.1em" },
 });
 
-/** Extra actions under the card's track or beside its dial. */
+/**
+ * The row under the boxes or dial: extra actions such as Roll Progress,
+ * then a track's minus and plus at the end.
+ */
 export const trackCardActionsStyles = css({
   display: "flex",
   alignItems: "center",
   gap: "2",
   flexWrap: "wrap",
+  "& > [data-actions]": {
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: "2",
+    flex: "1 1 auto",
+    minWidth: 0,
+  },
+  "& > [data-stepper]": { marginInlineStart: "auto" },
 });
