@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
@@ -170,10 +171,7 @@ const treeStyles = css({
 const itemStyles = css({
   outline: "none",
   // The row shows focus, not the item, which holds its whole subtree.
-  "&:focus-visible > [data-tree-row]": {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-2px",
-  },
+  "&:focus-visible > [data-tree-row]": focusRing.inset,
 });
 
 const rowStyles = cva({

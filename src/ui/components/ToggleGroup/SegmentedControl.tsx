@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { ledgeShadow } from "ui/styles/ledge";
 
@@ -126,10 +127,7 @@ const segmentStyles = css({
   "& > span": { overflow: "hidden", textOverflow: "ellipsis" },
   "&:hover:not([data-checked], [data-disabled])": { color: "fg.default" },
   "&[data-checked]": { color: "fg.default" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "1px",
-  },
+  _focusVisible: focusRing.outset,
   "&[data-disabled]": { cursor: "not-allowed", color: "fg.disabled" },
   _touch: { minHeight: "40px" },
 });
