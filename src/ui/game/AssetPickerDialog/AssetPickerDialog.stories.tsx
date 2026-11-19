@@ -1,7 +1,7 @@
 import type { Datasworn } from "@datasworn-community/core";
 import { CaretLeft } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { Button } from "ui/components/Button";
 import {
@@ -33,7 +33,8 @@ import { AssetCard } from "../AssetCard";
  * Option D from the picker prototypes: one list of collapsible groups, one
  * per asset type, like the reference's categories, with the chosen asset's
  * card beside it. Below 640px of dialog the card opens in place of the list
- * instead, with a Back button and Add pinned to the bottom.
+ * instead, with a Back button and Add pinned to the bottom. Every group starts
+ * closed and nothing is chosen until you pick an asset.
  *
  * This is a story built from library parts, not a component yet: once the
  * design settles, the app's picker is rebuilt from the same parts.
@@ -87,6 +88,62 @@ function matches(asset: Datasworn.Asset, query: string) {
   );
 }
 
+/** How much of an ability to keep before a match, so it shows in the row. */
+const EXCERPT_LEAD = 24;
+
+/**
+ * The line under an asset's name while searching. A name match keeps the
+ * usual line; an ability match shows that ability from just before the
+ * match, so the match is in view rather than cut off at the end of the row.
+ */
+function searchLine(asset: Datasworn.Asset, query: string) {
+  if (asset.name.toLowerCase().includes(query)) return summarize(asset);
+  for (const ability of asset.abilities) {
+    const text = plain(ability.text);
+    const index = text.toLowerCase().indexOf(query);
+    if (index === -1) continue;
+    if (index <= EXCERPT_LEAD) return text;
+    // Start at a word boundary a little before the match.
+    const space = text.indexOf(" ", index - EXCERPT_LEAD);
+    const start = space === -1 || space >= index ? index : space + 1;
+    return `…${text.slice(start)}`;
+  }
+  return summarize(asset);
+}
+
+const markStyles = css({
+  background: "accent.soft",
+  color: "fg.default",
+  fontWeight: "semibold",
+  borderRadius: "xs",
+});
+
+/** The text with each place it contains the query marked. */
+function highlight(text: string, query: string): ReactNode {
+  if (!query) return text;
+  const lower = text.toLowerCase();
+  const parts: ReactNode[] = [];
+  let from = 0;
+  let index = lower.indexOf(query);
+  while (index !== -1) {
+    if (index > from) parts.push(text.slice(from, index));
+    parts.push(
+      <mark key={index} className={markStyles}>
+        {text.slice(index, index + query.length)}
+      </mark>,
+    );
+    from = index + query.length;
+    index = lower.indexOf(query, from);
+  }
+  if (from === 0) return text;
+  if (from < text.length) parts.push(text.slice(from));
+  return parts;
+}
+
+function countAssets(count: number) {
+  return count === 1 ? "1 asset" : `${count} assets`;
+}
+
 /** The width of an element, kept current. */
 function useWidth() {
   const ref = useRef<HTMLDivElement>(null);
@@ -117,6 +174,10 @@ const searchStyles = css({
   borderBottom: "1px solid token(colors.border.subtle)",
 });
 
+// The dialog's width (DIALOG_WIDTH) leaves the card column about 520px, so
+// the card reads as a card rather than a full-width panel.
+const DIALOG_WIDTH = 900;
+
 const bodyStyles = css({
   display: "grid",
   gridTemplateColumns: "minmax(0, 1fr)",
@@ -137,14 +198,18 @@ const paneStyles = css({
 
 const detailStyles = css({
   display: "grid",
+  gridTemplateColumns: "minmax(0, 520px)",
   alignContent: "start",
   gap: "3",
   padding: "4",
   borderInlineStart: "1px solid token(colors.border.subtle)",
 });
 
+// A grid's implicit column is sized to its widest row's unwrapped text, so
+// the column is pinned to the pane and the rows' text truncates instead.
 const groupsStyles = css({
   display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr)",
   gap: "1",
   margin: 0,
   padding: "2",
@@ -192,6 +257,7 @@ const rowStyles = css({
 
 const resultsStyles = css({
   display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr)",
   gap: "0.5",
   paddingInline: "3",
   paddingBlockStart: "3",
@@ -223,7 +289,7 @@ interface AssetPickerProps {
 function AssetPicker(props: AssetPickerProps) {
   const { groups, open, onClose, onAdd } = props;
   const [query, setQuery] = useState("");
-  const [openGroups, setOpenGroups] = useState<string[]>([groups[0]?.id]);
+  const [openGroups, setOpenGroups] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string>();
   const [showDetail, setShowDetail] = useState(false);
   const [bodyRef, width] = useWidth();
@@ -244,9 +310,7 @@ function AssetPicker(props: AssetPickerProps) {
   const isOpen = (group: PickerGroup) =>
     search ? true : openGroups.includes(group.id);
   const visible = shownGroups.filter(isOpen).flatMap((group) => group.assets);
-  const selected =
-    visible.find((asset) => asset._id === selectedId) ??
-    (wide ? visible[0] : undefined);
+  const selected = visible.find((asset) => asset._id === selectedId);
 
   const pick = (asset: Datasworn.Asset) => {
     setSelectedId(asset._id);
@@ -296,7 +360,7 @@ function AssetPicker(props: AssetPickerProps) {
                       {group.assets.length}
                     </span>
                     <VisuallyHidden>
-                      , {group.assets.length} assets
+                      , {countAssets(group.assets.length)}
                     </VisuallyHidden>
                   </CollapsibleTrigger>
                 </h3>
@@ -316,8 +380,12 @@ function AssetPicker(props: AssetPickerProps) {
                             onClick={() => pick(asset)}
                           >
                             <ListItemText
-                              primary={asset.name}
-                              secondary={summarize(asset)}
+                              primary={highlight(asset.name, search)}
+                              secondary={
+                                search
+                                  ? highlight(searchLine(asset, search), search)
+                                  : summarize(asset)
+                              }
                               truncate
                             />
                           </ListItemButton>
@@ -390,7 +458,7 @@ function AssetPicker(props: AssetPickerProps) {
               </>
             ) : (
               <Text variant="bodySm" color="muted">
-                Open a type and pick an asset to read its card.
+                Pick an asset to read its card.
               </Text>
             )}
           </div>
@@ -403,7 +471,7 @@ function AssetPicker(props: AssetPickerProps) {
     <Dialog
       open={open}
       onClose={onClose}
-      size="xl"
+      maxWidth={DIALOG_WIDTH}
       fullScreenOnMobile
       className={popupStyles}
     >
@@ -411,7 +479,7 @@ function AssetPicker(props: AssetPickerProps) {
       <div className={searchStyles}>
         <SearchField
           label="Search assets"
-          placeholder="Search names and abilities"
+          placeholder="Search by name or ability"
           value={query}
           onValueChange={(next) => {
             setQuery(next);
@@ -449,12 +517,15 @@ function Demo(props: { rules: typeof starforgedRules }) {
 }
 
 /**
- * Starforged's assets. The dialog is as wide as it gets (1140px, less a
- * margin on smaller screens), so a tablet has the groups and the card side
- * by side. Long requirements end in an ellipsis rather than widening the
- * list. Search opens every group and counts the results. Narrow the window
- * below about 700px to see the phone layout: one pane, and picking an asset
- * opens its card with Back and an Add button pinned to the bottom.
+ * Starforged's assets. The dialog grows to 900px (less a margin on smaller
+ * screens): wide enough for the groups and the card side by side, narrow
+ * enough that the card stays card sized. Every group starts closed. Long
+ * lines end in an ellipsis rather than widening the list. Search opens
+ * every group, counts the results and marks the match in each row; when
+ * only an ability matches, the row's second line shows that ability from
+ * the match. Narrow the window below about 700px to see the phone layout:
+ * one pane, and picking an asset opens its card with Back and an Add button
+ * pinned to the bottom.
  */
 export const Starforged: Story = {
   render: () => <Demo rules={starforgedRules} />,
