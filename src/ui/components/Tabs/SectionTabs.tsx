@@ -114,13 +114,13 @@ const tabStyles = cva({
     "&[aria-selected=true]": { color: "fg.default" },
     _focusVisible: focusRing.outset,
     _disabled: { cursor: "not-allowed", color: "fg.disabled" },
-    "& svg": { flex: "none", width: "16px", height: "16px" },
+    "& svg": { flex: "none", width: "icon.md", height: "icon.md" },
   },
   variants: {
     variant: {
       underline: {
         flex: "none",
-        minHeight: "38px",
+        minHeight: "control.md",
         paddingInline: "0.5",
         borderRadius: "xs",
         _focusVisible: { outlineOffset: "-2px" },
@@ -147,9 +147,9 @@ const tabStyles = cva({
     {
       size: "lg",
       css: {
-        minHeight: "48px",
+        minHeight: "touch",
         paddingInline: "4",
-        _touch: { minHeight: "48px" },
+        _touch: { minHeight: "touch" },
       },
     },
     {

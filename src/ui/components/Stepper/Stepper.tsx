@@ -81,7 +81,7 @@ const indicatorStyles = css({
     background: "accent.solid",
     color: "accent.onSolid",
   },
-  "& svg": { width: "14px", height: "14px" },
+  "& svg": { width: "icon.sm", height: "icon.sm" },
 });
 
 const labelStyles = css({

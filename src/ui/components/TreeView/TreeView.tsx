@@ -212,12 +212,12 @@ const rowStyles = cva({
   variants: {
     dense: {
       true: {
-        minHeight: "32px",
+        minHeight: "control.sm",
         fontSize: "sm",
         _touch: { minHeight: "touch" },
       },
       false: {
-        minHeight: "40px",
+        minHeight: "control.md",
         fontSize: "sm",
         _touch: { minHeight: "touch" },
       },
@@ -246,7 +246,7 @@ const iconStyles = css({
   display: "inline-flex",
   flex: "none",
   color: "fg.muted",
-  "& svg": { width: "18px", height: "18px" },
+  "& svg": { width: "icon.md", height: "icon.md" },
 });
 
 const labelStyles = css({
