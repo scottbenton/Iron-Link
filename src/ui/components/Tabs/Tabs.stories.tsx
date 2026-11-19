@@ -22,6 +22,7 @@ import { PageTab, PageTabs } from "./PageTabs";
 import {
   SectionTab,
   SectionTabList,
+  SectionTabsAlign,
   SectionTabsSize,
   SectionTabsVariant,
   TabPanel,
@@ -33,6 +34,7 @@ const sectionTabsVariants: SectionTabsVariant[] = ["well", "underline"];
 interface PlaygroundArgs {
   variant: SectionTabsVariant;
   size: SectionTabsSize;
+  align?: SectionTabsAlign;
   activateOnFocus: boolean;
 }
 
@@ -41,11 +43,13 @@ const meta: Meta<PlaygroundArgs> = {
   args: {
     variant: "well",
     size: "md",
+    align: "center",
     activateOnFocus: true,
   },
   argTypes: {
     variant: { control: "inline-radio", options: sectionTabsVariants },
     size: { control: "inline-radio", options: ["md", "lg"] },
+    align: { control: "inline-radio", options: ["center", "start"] },
   },
 };
 
@@ -62,7 +66,7 @@ const frame = css({
 const panelText = css({ color: "fg.muted", fontSize: "sm", margin: 0 });
 
 function SectionTabsDemo(props: PlaygroundArgs) {
-  const { variant, size, activateOnFocus } = props;
+  const { variant, size, align = "center", activateOnFocus } = props;
   return (
     <Tabs defaultValue="tracks">
       <Stack gap="3">
@@ -70,6 +74,7 @@ function SectionTabsDemo(props: PlaygroundArgs) {
           aria-label="Character sections"
           variant={variant}
           size={size}
+          align={align}
           activateOnFocus={activateOnFocus}
         >
           <SectionTab value="overview">Overview</SectionTab>
@@ -104,6 +109,7 @@ export const Playground: Story = {
       <SectionTabsDemo
         variant={args.variant}
         size={args.size}
+        align={args.align}
         activateOnFocus={args.activateOnFocus}
       />
     </Box>
