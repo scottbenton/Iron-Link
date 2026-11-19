@@ -198,7 +198,6 @@ export function CharacterColumn(
           <HStack gap="3" alignItems="center">
             <CharacterPortrait
               name={character.name}
-              colorSeed={character.colorSeed}
               size="lg"
               shape="rounded"
               decorative
