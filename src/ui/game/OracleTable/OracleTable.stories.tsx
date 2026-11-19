@@ -27,18 +27,50 @@ type Story = StoryObj<typeof OracleTable>;
 /** Character Goal: rows covering ranges of the roll. */
 export const Playground: Story = {};
 
-/** Action, a 1 to 100 table, with a rolled row picked out. */
+/**
+ * Action, a 1 to 100 table, with a rolled row picked out. `maxHeight` keeps
+ * the name, Roll and the column labels in view while the rows scroll, and
+ * each roll scrolls its row into the middle of the box and flashes it, even
+ * when it lands on the same row twice.
+ */
 export const Rolled: Story = {
   render: function Render() {
-    const [value, setValue] = useState(41);
-    const row = findRowForRoll(action.rows, value);
+    const [roll, setRoll] = useState({ value: 41, count: 0 });
+    const row = findRowForRoll(action.rows, roll.value);
     return (
-      <Stack maxWidth="520px" maxHeight="520px" overflow="auto">
+      <Stack maxWidth="520px">
         <OracleTable
           oracle={action}
           rolledRowId={row?._id}
-          rolledValue={value}
-          onRoll={() => setValue(Math.floor(Math.random() * 100) + 1)}
+          rollKey={roll.count}
+          maxHeight="360px"
+          onRoll={() =>
+            setRoll((current) => ({
+              value: Math.floor(Math.random() * 100) + 1,
+              count: current.count + 1,
+            }))
+          }
+        />
+      </Stack>
+    );
+  },
+};
+
+/**
+ * Roll Again lands on the same row every time: the row flashes on each roll,
+ * so a repeat still reads as a new result.
+ */
+export const SameRowTwice: Story = {
+  render: function Render() {
+    const [count, setCount] = useState(0);
+    return (
+      <Stack maxWidth="520px">
+        <OracleTable
+          oracle={goal}
+          rolledValue={count ? 50 : undefined}
+          rollKey={count}
+          onRoll={() => setCount((current) => current + 1)}
+          rollLabel="Roll 50"
         />
       </Stack>
     );

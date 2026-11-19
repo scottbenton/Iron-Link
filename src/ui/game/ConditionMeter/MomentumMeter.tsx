@@ -1,12 +1,11 @@
 import { ArrowCounterClockwise, CaretDown, Flame } from "@phosphor-icons/react";
 
-import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
-import { ledge, ledgeShadow } from "ui/styles/ledge";
 
 import { css } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
+import { Button } from "../../components/Button";
 import {
   Menu,
   MenuContent,
@@ -15,68 +14,37 @@ import {
   MenuTrigger,
 } from "../../components/Menu";
 import { formatSigned } from "../shared/format";
-import { ConditionMeter, MeterTone } from "./ConditionMeter";
+import {
+  ConditionMeter,
+  MeterTone,
+  meterValueTextStyles,
+} from "./ConditionMeter";
 
 /**
- * The value as a pressable that opens Burn and Reset. Same height as a
- * condition meter's value (40px, 44px on touch like the roll buttons), so a
- * row of meters stays one height.
+ * The value opens Burn and Reset, so it is an outline Button (its border,
+ * ledge, hover, press, open and disabled states) holding the meter's own
+ * number (`meterValueTextStyles`). Only its size is the meter's: as tall as
+ * a condition meter's value (40px, 44px on touch) and narrow padding, so a
+ * row of meters stays one height. Keyed on `data-momentum-value` too, so it
+ * outranks the Button recipe whatever the stylesheet order.
  */
 const triggerStyles = css({
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "0.5",
-  minWidth: 0,
-  minHeight: "40px",
-  paddingInline: "1.5",
-  borderWidth: "1px",
-  borderStyle: "solid",
-  borderColor: "border.control",
-  borderRadius: "md",
-  background: "bg.surface",
-  color: "fg.default",
-  fontFamily: "heading",
-  fontWeight: "bold",
-  fontSize: "1.5rem",
-  lineHeight: "none",
-  fontVariantNumeric: "tabular-nums",
-  cursor: "pointer",
-  userSelect: "none",
-  WebkitTapHighlightColor: "transparent",
-  outline: "none",
-  ...ledge("token(colors.border.control)", "rest"),
-  transitionProperty: "transform, box-shadow, background-color, color",
-  transitionDuration: "fast",
-  transitionTimingFunction: "out",
-  _touch: { minHeight: "touch" },
-  "[data-stepper-size=touch] &": { minHeight: "touch" },
-  _focusVisible: focusRing.outset,
-  _hover: { background: "bg.muted" },
-  "&:active, &[data-pressed], &[data-popup-open]": {
-    background: "bg.emphasized",
+  "&[data-momentum-value]": {
+    gap: "0.5",
+    minWidth: 0,
+    minHeight: "40px",
+    paddingInline: "1.5",
+    _touch: { minHeight: "touch" },
+    "[data-stepper-size=touch] &": { minHeight: "touch" },
+    "& svg": {
+      width: "12px",
+      height: "12px",
+      color: "fg.muted",
+      transitionProperty: "transform",
+      transitionDuration: "fast",
+    },
+    "&[data-popup-open] svg": { transform: "rotate(180deg)" },
   },
-  "&:active, &[data-pressed]": {
-    ...ledge("token(colors.border.control)", "sunk"),
-    transitionDuration: "instant",
-  },
-  "&:is(:disabled, [data-disabled])": {
-    cursor: "not-allowed",
-    color: "fg.subtle",
-    background: "bg.emphasized",
-    boxShadow: ledgeShadow("token(colors.border.default)"),
-  },
-  "&[data-tone=danger]": { color: "danger.fg" },
-  "&[data-tone=success]": { color: "success.fg" },
-  "& svg": {
-    flex: "none",
-    width: "12px",
-    height: "12px",
-    color: "fg.muted",
-    transitionProperty: "transform",
-    transitionDuration: "fast",
-  },
-  "&[data-popup-open] svg": { transform: "rotate(180deg)" },
 });
 
 const groupLabelLineStyles = css({ display: "block" });
@@ -185,13 +153,15 @@ export function MomentumMeter(props: MomentumMeterProps) {
   const valueControl = hasMenu ? (
     <Menu>
       <MenuTrigger
-        render={<button type="button" />}
+        render={<Button variant="outline" />}
         className={triggerStyles}
-        data-tone={tone}
+        data-momentum-value=""
         disabled={disabled}
         aria-label={triggerName}
       >
-        {valueText}
+        <span className={meterValueTextStyles} data-tone={tone}>
+          {valueText}
+        </span>
         <CaretDown weight="bold" aria-hidden />
       </MenuTrigger>
       <MenuContent align="center">
