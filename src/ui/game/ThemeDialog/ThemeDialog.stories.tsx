@@ -167,8 +167,8 @@ export const FromGameSettings: Story = {
 };
 
 /**
- * Parham in a co-op Starforged game. Everyone in a co-op game can change its
- * theme (Eidolon), and Scott shared Kira with the table. Parham's app theme
+ * Phoebe in a co-op Starforged game. Everyone in a co-op game can change its
+ * theme (Eidolon), and Scott shared Kira with the table. Phoebe's app theme
  * is Mystic, which this game's theme covers.
  */
 export const CoopPlayer: Story = {
