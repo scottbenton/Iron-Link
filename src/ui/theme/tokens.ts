@@ -93,7 +93,25 @@ export const tokens = {
     16: { value: "64px" },
   },
   sizes: {
+    // Control heights: compact chips and steppers, small controls, menu and
+    // list rows, medium controls (buttons line up with fields), and the
+    // touch target.
+    control: {
+      xs: { value: "28px" },
+      sm: { value: "32px" },
+      row: { value: "36px" },
+      md: { value: "40px" },
+    },
     touch: { value: "44px" },
+    // Icons: inside small text, inside every control, and in nav items and
+    // radio cards. Chip remove icons and illustrations keep their own sizes.
+    icon: {
+      sm: { value: "14px" },
+      md: { value: "18px" },
+      lg: { value: "24px" },
+    },
+    // The measure for reading text, notes and rules.
+    prose: { value: "72ch" },
     full: { value: "100%" },
     min: { value: "min-content" },
     max: { value: "max-content" },
