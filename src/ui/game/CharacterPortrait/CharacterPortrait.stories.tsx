@@ -3,7 +3,10 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { HStack, Stack } from "ui/primitives";
 import { schemeNames } from "ui/theme";
 
-import { sampleCharacters } from "../../stories/fixtures/characters";
+import {
+  sampleCharacters,
+  samplePortraitSrc,
+} from "../../stories/fixtures/characters";
 import { CharacterPortrait } from "./CharacterPortrait";
 import { PortraitPlaceholder } from "./PortraitPlaceholder";
 import { PortraitSize } from "./portraitData";
@@ -71,20 +74,29 @@ export const Status: Story = {
   ),
 };
 
-/** Tinted by a colour scheme instead of a seed, square-cornered. */
-export const SchemeTinted: Story = {
+/**
+ * A colour scheme rings the portrait in its colour, as the app does today.
+ * The face inside stays neutral, with or without an image.
+ */
+export const SchemeRing: Story = {
   render: () => (
-    <HStack gap="4">
-      {(["default", "cinder", "eidolon", "orchid"] as const).map((scheme) => (
-        <CharacterPortrait
-          key={scheme}
-          name={kira.name}
-          colorScheme={scheme}
-          shape="rounded"
-          size="lg"
-        />
+    <Stack gap="4" alignItems="start">
+      {[undefined, samplePortraitSrc].map((portraitUrl) => (
+        <HStack key={portraitUrl ?? "initials"} gap="4">
+          {(["default", "cinder", "eidolon", "orchid"] as const).map(
+            (scheme) => (
+              <CharacterPortrait
+                key={scheme}
+                name={kira.name}
+                portraitUrl={portraitUrl}
+                colorScheme={scheme}
+                size="lg"
+              />
+            ),
+          )}
+        </HStack>
       ))}
-    </HStack>
+    </Stack>
   ),
 };
 
