@@ -49,7 +49,7 @@ const iconStyles = cva({
   base: {
     display: "inline-flex",
     flex: "none",
-    "& svg": { width: "20px", height: "20px" },
+    "& svg": { width: "icon.md", height: "icon.md" },
   },
   variants: {
     tone: {
