@@ -223,6 +223,11 @@ export interface SidebarRailGroup {
   /** Its Expand, which opens its own sidebar. */
   expandLabel: string;
   onExpand: () => void;
+  /**
+   * Its sidebar can be kept open (the default). False drops its Expand and
+   * its Keep Open, as the sidebar's own `pinnable` does.
+   */
+  pinnable?: boolean;
   /** The group's DOM id, so the app can move focus into it. */
   id?: string;
 }
@@ -264,6 +269,16 @@ export interface SidebarProps
   resizable?: boolean;
   /** Offer collapsing to a rail. */
   collapsible?: boolean;
+  /**
+   * Let the reader keep the sidebar open in place (the default). False
+   * holds it on its rail: no Expand on the rail and no Keep Open in a
+   * section shown over the page, so it only opens over the page and closes
+   * again. For widths where an open sidebar would squeeze the main column
+   * too far, such as the sheet first layout below 1200px. The `collapsed`
+   * state is kept, so the reader's choice comes back when it is pinnable
+   * again.
+   */
+  pinnable?: boolean;
   /**
    * Show every panel at once, one over another, each under its own h2
    * header and sharing the height, instead of behind tabs: the game page's
@@ -317,6 +332,7 @@ export function Sidebar(props: SidebarProps) {
     side = "start",
     resizable = true,
     collapsible = true,
+    pinnable = true,
     stackPanels = false,
     labels,
     railGroups,
@@ -341,11 +357,13 @@ export function Sidebar(props: SidebarProps) {
     panels[0]?.id ?? "",
     onActivePanelChange,
   );
-  const [collapsed, setCollapsed] = useControllableState(
+  const [collapsedState, setCollapsed] = useControllableState(
     collapsedProp,
     false,
     onCollapsedChange,
   );
+  // Not pinnable: always on the rail, whatever the reader last chose.
+  const collapsed = collapsedState || !pinnable;
   const [width, setWidth] = useControllableState(
     widthProp,
     defaultWidth,
@@ -453,6 +471,13 @@ export function Sidebar(props: SidebarProps) {
     group.onExpand();
   };
 
+  // Keep Open shows only where the shown section's sidebar can stay open.
+  const peekGroupIndex = groupIndexOf(peek?.panelId);
+  const canDockPeek =
+    peekGroupIndex !== undefined && peekGroupIndex >= 0
+      ? railGroups?.[peekGroupIndex]?.pinnable !== false
+      : pinnable;
+
   const dock = () => {
     const groupIndex = groupIndexOf(peek?.panelId);
     if (groupIndex !== undefined && groupIndex >= 0) {
@@ -548,14 +573,16 @@ export function Sidebar(props: SidebarProps) {
       {panel?.actions}
       {!controls ? null : peeking ? (
         <>
-          <IconButton
-            label={dockLabel}
-            size="sm"
-            tooltipSide="bottom"
-            onClick={dock}
-          >
-            <PushPinIcon />
-          </IconButton>
+          {canDockPeek && (
+            <IconButton
+              label={dockLabel}
+              size="sm"
+              tooltipSide="bottom"
+              onClick={dock}
+            >
+              <PushPinIcon />
+            </IconButton>
+          )}
           <IconButton
             label={closeOverlayLabel}
             size="sm"
@@ -680,14 +707,16 @@ export function Sidebar(props: SidebarProps) {
               aria-label={group.label}
               className={railGroupStyles}
             >
-              <IconButton
-                ref={index === 0 ? expandButtonRef : undefined}
-                label={group.expandLabel}
-                tooltipSide={tooltipSide}
-                onClick={() => expandGroup(index)}
-              >
-                {expandIcon}
-              </IconButton>
+              {group.pinnable !== false && (
+                <IconButton
+                  ref={index === 0 ? expandButtonRef : undefined}
+                  label={group.expandLabel}
+                  tooltipSide={tooltipSide}
+                  onClick={() => expandGroup(index)}
+                >
+                  {expandIcon}
+                </IconButton>
+              )}
               {renderRailPanels(
                 panels.filter((panel) => group.panelIds.includes(panel.id)),
               )}
@@ -695,14 +724,16 @@ export function Sidebar(props: SidebarProps) {
           ))
         ) : (
           <>
-            <IconButton
-              ref={expandButtonRef}
-              label={expandLabel}
-              tooltipSide={tooltipSide}
-              onClick={() => expand()}
-            >
-              {expandIcon}
-            </IconButton>
+            {pinnable && (
+              <IconButton
+                ref={expandButtonRef}
+                label={expandLabel}
+                tooltipSide={tooltipSide}
+                onClick={() => expand()}
+              >
+                {expandIcon}
+              </IconButton>
+            )}
             {renderRailPanels(panels)}
           </>
         ))}
