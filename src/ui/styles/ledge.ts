@@ -51,7 +51,8 @@ export function ledge(color: string, state: LedgeState): SystemStyleObject {
  * The element keeps its border width for layout, with a transparent
  * colour; the face layer draws the border. Set these variables, per state:
  * `--ledge-face` (fill), `--ledge-border` (border colour), `--ledge-edge`
- * (ledge colour) and `--ledge-height` (one of `ledgeHeight`). The element
+ * (ledge colour), `--ledge-height` (one of `ledgeHeight`) and, for a
+ * selection ring inside the face, `--ledge-inset` (a box-shadow). The element
  * needs a position (relative or absolute) and must not clip its overflow.
  * Pass the radius the element uses, for the clip.
  */
@@ -78,7 +79,9 @@ export function ledgeLayers(radius = "token(radii.md)"): SystemStyleObject {
       borderWidth: border,
       borderStyle: "solid",
       borderColor: "var(--ledge-border)",
-      transitionProperty: "background-color, border-color",
+      // An inset ring on the face, for a selected card or radio card.
+      boxShadow: "var(--ledge-inset, none)",
+      transitionProperty: "background-color, border-color, box-shadow",
     },
     _after: {
       ...layer,
