@@ -214,6 +214,7 @@ const areaStyles = css({
   WebkitTapHighlightColor: "transparent",
   "&[data-disabled]": { cursor: "not-allowed" },
   "&[data-readonly]": { cursor: "default" },
+  "[data-size=sm] > &": { padding: "3" },
 });
 
 const headStyles = css({
@@ -242,6 +243,13 @@ const iconStyles = css({
   "& > svg": { width: "22px", height: "22px" },
   "[data-checked] &": { background: "accent.solid", color: "accent.onSolid" },
   "[data-disabled] &": { background: "bg.emphasized", color: "fg.disabled" },
+  // Unframed: the icon is a picture in its own right (a logo, a swatch).
+  "&[data-frame=none]": {
+    background: "transparent",
+    "& > svg": { width: "100%", height: "100%" },
+    "[data-checked] &": { background: "transparent" },
+    "[data-disabled] &": { background: "transparent", opacity: 0.6 },
+  },
 });
 
 const titleStyles = css({
@@ -253,6 +261,7 @@ const titleStyles = css({
   textTransform: "uppercase",
   letterSpacing: "0.02em",
   overflowWrap: "anywhere",
+  "[data-size=sm] &": { fontSize: "md" },
 });
 
 /** The check's slot is always kept, so choosing a card never moves its text. */
@@ -300,6 +309,13 @@ export interface RadioCardProps<V = string> extends LayoutProps {
   description?: ReactNode;
   /** An icon shown in a tile before the title. */
   icon?: ReactNode;
+  /**
+   * `none` drops the tile behind the icon, for a picture that is its own
+   * shape, such as a scheme's logo.
+   */
+  iconFrame?: "tile" | "none";
+  /** `sm` for a grid of short choices: less padding, a smaller title. */
+  size?: "md" | "sm";
   disabled?: boolean;
   /** Ids of more text that describes the card, such as why it is disabled. */
   describedBy?: string[];
@@ -321,6 +337,8 @@ export function RadioCard<V = string>(props: RadioCardProps<V>) {
     title,
     description,
     icon,
+    iconFrame = "tile",
+    size = "md",
     disabled,
     describedBy = [],
     children,
@@ -350,12 +368,17 @@ export function RadioCard<V = string>(props: RadioCardProps<V>) {
           className={cx(cardStyles, className)}
           data-checked={state.checked ? "" : undefined}
           data-disabled={state.disabled ? "" : undefined}
+          data-size={size}
         >
           <div {...radioProps}>
             <div className={headStyles}>
               <div className={titleRowStyles}>
                 {icon && (
-                  <span className={iconStyles} aria-hidden>
+                  <span
+                    className={iconStyles}
+                    data-frame={iconFrame}
+                    aria-hidden
+                  >
                     {icon}
                   </span>
                 )}
