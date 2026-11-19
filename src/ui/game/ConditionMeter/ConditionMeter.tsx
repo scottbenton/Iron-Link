@@ -8,7 +8,7 @@ import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
 import { IconButton } from "../../components/IconButton";
-import { DieFace, useDieFace } from "../DieFace";
+import { DieFace, DieRollResult, useDieFace } from "../DieFace";
 import { AddsAnchor } from "../RollButton/AddsBadge";
 import {
   statCardBaseStyles,
@@ -144,9 +144,10 @@ export interface ConditionMeterProps extends LayoutProps {
   onChange?: (value: number) => void;
   /**
    * Rolls the meter (roll +health). The value becomes the roll button, like
-   * a stat card.
+   * a stat card. Return the action die (1 to 6), or a promise of it, and
+   * its die lands on it.
    */
-  onRoll?: () => void;
+  onRoll?: () => DieRollResult;
   /**
    * Adds on the next roll, shown as a badge on the roll button's top-right
    * corner, as on stat cards and roll buttons. Only shown with `onRoll`.
@@ -224,7 +225,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
   } = withLayoutProps<ConditionMeterProps>(props);
 
   const labelId = useId();
-  const [face, rollDie] = useDieFace();
+  const [die, rollDie] = useDieFace();
   const announce = useAnnounce();
 
   const valueText = formatValue(value);
@@ -255,12 +256,11 @@ export function ConditionMeter(props: ConditionMeterProps) {
             : `${rollLabel} ${label}, ${valueText}`
         }
         onClick={() => {
-          rollDie();
-          onRoll();
+          rollDie(onRoll());
         }}
       >
         <span data-stat-inner="" className={statInnerStyles}>
-          <DieFace face={face} size="inherit" weight="fill" />
+          <DieFace {...die} size="inherit" weight="fill" />
           {valueText}
         </span>
       </BaseButton>
