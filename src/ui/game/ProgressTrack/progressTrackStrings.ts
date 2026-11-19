@@ -11,7 +11,7 @@ export interface ProgressTrackStrings extends ProgressTextStrings {
   eraseLabel: (label: string) => string;
   completedLabel: string;
   legacyLabel: string;
-  /** What a mark adds, such as "2 boxes per progress". */
+  /** What a mark adds, such as "2 boxes per mark". */
   markDescription: (ticks: number) => string;
   /** "Updated Recover the Hollow Crown to 3 of 10 boxes filled" */
   updated: (label: string, valueText: string) => string;
