@@ -232,7 +232,7 @@ const createIconStyles = css({
   display: "inline-flex",
   flex: "none",
   color: "accent.fg",
-  "& > svg": { width: "16px", height: "16px" },
+  "& > svg": { width: "icon.md", height: "icon.md" },
 });
 
 /**

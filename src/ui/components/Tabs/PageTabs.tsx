@@ -57,7 +57,7 @@ const pageTabStyles = css({
   _hover: { color: "fg.default" },
   _focusVisible: focusRing.inset,
   _touch: { minHeight: "touch" },
-  "& > svg": { flex: "none", width: "16px", height: "16px" },
+  "& > svg": { flex: "none", width: "icon.md", height: "icon.md" },
   // A portrait sits in the tab's line without making the tab taller.
   "& > [data-page-tab-avatar]": {
     display: "inline-flex",

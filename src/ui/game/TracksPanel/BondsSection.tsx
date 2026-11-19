@@ -21,7 +21,7 @@ const rowStyles = css({
   alignItems: "center",
   justifyContent: "space-between",
   gap: "2",
-  minHeight: "40px",
+  minHeight: "control.md",
   paddingInlineStart: "1",
   borderBottom: "1px solid token(colors.border.subtle)",
   fontSize: "md",

@@ -163,7 +163,7 @@ const closeStyles = css({
   transition:
     "opacity token(durations.fast) linear, background-color token(durations.fast) linear",
   outline: "none",
-  "& svg": { width: "14px", height: "14px" },
+  "& svg": { width: "icon.sm", height: "icon.sm" },
   _hover: { background: "overlay.hover", color: "fg.default", opacity: 1 },
   _pressed: { background: "overlay.pressed" },
   _focusVisible: {
@@ -186,7 +186,7 @@ const labelWithIconStyles = css({
   display: "inline-flex",
   alignItems: "center",
   gap: "1.5",
-  "& svg": { flex: "none", width: "16px", height: "16px" },
+  "& svg": { flex: "none", width: "icon.md", height: "icon.md" },
 });
 
 const panelStyles = css({

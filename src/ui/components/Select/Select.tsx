@@ -122,7 +122,12 @@ const valueStyles = css({
   whiteSpace: "nowrap",
   textOverflow: "ellipsis",
   "& > span": { overflow: "hidden", textOverflow: "ellipsis" },
-  "& > svg": { flex: "none", width: "18px", height: "18px", color: "fg.muted" },
+  "& > svg": {
+    flex: "none",
+    width: "icon.md",
+    height: "icon.md",
+    color: "fg.muted",
+  },
 });
 
 const placeholderStyles = css({ color: "fg.subtle" });
@@ -132,7 +137,7 @@ const caretStyles = css({
   flex: "none",
   color: "fg.muted",
   transition: "rotate token(durations.fast) token(easings.out)",
-  "& > svg": { width: "16px", height: "16px" },
+  "& > svg": { width: "icon.md", height: "icon.md" },
   "[data-popup-open] &": { rotate: "180deg" },
   "[data-disabled] &": { color: "fg.disabled" },
 });

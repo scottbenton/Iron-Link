@@ -41,7 +41,7 @@ const meterStyles = css({
   // as a stat card, so a viewer's row of meters is no wider than the stats.
   "&[data-read-only]": { minWidth: "72px" },
   "&[data-read-only] [data-meter-value]": {
-    minHeight: "32px",
+    minHeight: "control.sm",
   },
 });
 
@@ -89,13 +89,13 @@ const valueBoxStyles = css({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  minHeight: "40px",
+  minHeight: "control.md",
 });
 
 const rollValueStyles = css({
-  "--stat-min-height": "40px",
+  "--stat-min-height": "{sizes.control.md}",
   "--stat-min-width": "48px",
-  "[data-stepper-size=touch] &": { "--stat-min-height": "44px" },
+  "[data-stepper-size=touch] &": { "--stat-min-height": "{sizes.touch}" },
   "& [data-stat-inner]": {
     flexDirection: "row",
     gap: "1",
@@ -106,7 +106,7 @@ const rollValueStyles = css({
     lineHeight: "none",
     fontVariantNumeric: "tabular-nums",
   },
-  "& svg": { width: "14px", height: "14px", opacity: 0.75, flex: "none" },
+  "& svg": { width: "icon.sm", height: "icon.sm", opacity: 0.75, flex: "none" },
   "&[data-tone=danger] [data-stat-inner]": {
     color: "color-mix(in oklab, token(colors.danger.fg) 70%, white)",
   },
