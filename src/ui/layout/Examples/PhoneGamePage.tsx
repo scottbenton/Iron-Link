@@ -19,8 +19,9 @@
  * - Game overview: chosen from the character switcher (or `page`), the
  *   first nav item becomes Overview, with Characters, Assets and Tracks
  *   tabs: the game's characters and players, its shared assets and tracks.
- * - Rolls: the newest card over the edges of two older ones, an "N rolls"
- *   handle opening Recent rolls, and snackbars stacked above the rolls.
+ * - Rolls and notifications share one stack, as the Toaster stacks them on
+ *   wider screens: the newest card over the edges of two older ones, and an
+ *   "N notifications" handle opening them all in a sheet.
  */
 import type { Datasworn } from "@datasworn-community/core";
 import {
@@ -66,7 +67,6 @@ import {
   Tabs,
 } from "../../components/Tabs";
 import { Text } from "../../components/Text";
-import { ToastCard } from "../../components/Toast";
 import { SegmentedControl } from "../../components/ToggleGroup";
 import {
   Toolbar,
@@ -97,7 +97,7 @@ import type { OpenNote } from "../../game/OpenNotes";
 import { OracleListItem } from "../../game/OracleListItem";
 import { ProgressTrack } from "../../game/ProgressTrack";
 import type { RollData } from "../../game/RollCard";
-import { DockedRoll, RollDock } from "../../game/RollDock";
+import { DockedItem, RollDock } from "../../game/RollDock";
 import { StatGrid } from "../../game/StatCard";
 import { TracksPanelDemo } from "../../game/TracksPanel/TracksPanelDemo";
 import {
@@ -977,7 +977,7 @@ export interface PhoneGamePageProps {
   ruleset?: PhoneRuleset;
   /** Rolls already in the dock, oldest first. */
   rolls?: RollData[];
-  /** Shows a snackbar stacked above the rolls. */
+  /** Adds a notification (Progress marked) to the stack, after the rolls. */
   notice?: boolean;
   /** Log entries that arrived while the log was off screen. */
   unreadLog?: number;
@@ -1019,10 +1019,21 @@ export function PhoneGamePage(props: PhoneGamePageProps) {
     return () => window.removeEventListener("hashchange", follow);
   }, []);
   const overview = page === "overview";
-  const [rolls, setRolls] = useState<DockedRoll[]>(() =>
-    initialRolls.map((roll, index) => ({ id: `roll-${index}`, roll })),
-  );
-  const [notice, setNotice] = useState(initialNotice);
+  const [rolls, setRolls] = useState<DockedItem[]>(() => [
+    ...initialRolls.map((roll, index) => ({ id: `roll-${index}`, roll })),
+    ...(initialNotice
+      ? [
+          {
+            id: "notice",
+            toast: {
+              tone: "success" as const,
+              message: "Progress marked",
+              description: "Recover the Hollow Crown, 4 of 10 boxes",
+            },
+          },
+        ]
+      : []),
+  ]);
   const [unread, setUnread] = useState(
     initialSection === "log" ? 0 : unreadLog,
   );
@@ -1092,21 +1103,11 @@ export function PhoneGamePage(props: PhoneGamePageProps) {
           <div className={footStyles}>
             <RollDock
               className={dockStyles}
-              rolls={rolls}
+              items={rolls}
               onDismiss={(id) =>
                 setRolls((current) => current.filter((item) => item.id !== id))
               }
               onClearAll={() => setRolls([])}
-              notice={
-                notice && (
-                  <ToastCard
-                    tone="success"
-                    message="Progress marked"
-                    description="Recover the Hollow Crown, 4 of 10 boxes"
-                    onDismiss={() => setNotice(false)}
-                  />
-                )
-              }
             />
             {!keyboardUp && <MobileNav label="Game Sections" items={items} />}
           </div>

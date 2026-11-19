@@ -1,5 +1,6 @@
 import { BookOpenIcon, UserIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useState } from "react";
 
 import { css } from "styled-system/css";
 
@@ -11,7 +12,7 @@ import {
   NotesColumn,
   ReferenceColumn,
 } from "../Examples/GamePageColumns";
-import { GamePageTabs, PhoneFrame } from "../Examples/StoryPlaceholders";
+import { GamePageTabs } from "../Examples/StoryPlaceholders";
 import { LayoutPanel } from "../shared/layoutPanel";
 import { GameLayout } from "./GameLayout";
 
@@ -44,7 +45,6 @@ const meta: Meta<typeof GameLayout> = {
     startSidebar: { panels: [character], defaultWidth: 350 },
     endSidebar: { panels: [reference], defaultWidth: 350 },
     stackSidebars: false,
-    compact: false,
   },
 };
 
@@ -102,8 +102,10 @@ const mediumFrame = css({
 
 /**
  * Between 900 and 1200px the sheet sits over the reference in one column
- * beside the notes, as the live app lays it out. The column keeps the
- * sheet's resize handle.
+ * beside the notes, as the live app lays it out, while both are open. The
+ * column keeps the sheet's resize handle. Each has its own Collapse:
+ * collapse the reference and the sheet stays open as its own column, with
+ * the reference on a rail at the far side (and the other way round).
  */
 export const Stacked: Story = {
   args: { stackSidebars: true },
@@ -115,17 +117,31 @@ export const Stacked: Story = {
   ),
 };
 
+function ReferenceOnRail(props: { args: Story["args"] }) {
+  const [collapsed, setCollapsed] = useState(true);
+  return (
+    <div className={mediumFrame}>
+      <GameLayout
+        {...props.args}
+        main={meta.args!.main!}
+        endSidebar={{
+          panels: [reference],
+          defaultWidth: 350,
+          collapsed,
+          onCollapsedChange: setCollapsed,
+        }}
+      />
+    </div>
+  );
+}
+
 /**
- * On a phone every column is a full screen section behind tabs, Character,
- * Notes and Reference in the live order, opening on Character. The live
- * app hides the game's page tabs here.
+ * The medium width with the sheet kept open and the reference collapsed to
+ * a rail: a rail button shows a reference section over the notes for a
+ * moment, and Expand stacks the two again.
  */
-export const Compact: Story = {
+export const StackedReferenceCollapsed: Story = {
+  args: { stackSidebars: true },
   parameters: { layout: "padded" },
-  args: { compact: true, tabs: undefined },
-  render: (args) => (
-    <PhoneFrame>
-      <GameLayout {...args} />
-    </PhoneFrame>
-  ),
+  render: (args) => <ReferenceOnRail args={args} />,
 };
