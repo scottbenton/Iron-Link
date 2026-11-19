@@ -89,6 +89,21 @@ export const Rulesets: Story = {
   ),
 };
 
+/** `size="sm"` for a grid of short choices, such as the colour schemes. */
+export const Small: Story = {
+  render: () => (
+    <RadioCardGroup
+      label="Starting momentum"
+      defaultValue="2"
+      minCardWidth="120px"
+    >
+      {["0", "1", "2", "3"].map((value) => (
+        <RadioCard key={value} value={value} title={`+${value}`} size="sm" />
+      ))}
+    </RadioCardGroup>
+  ),
+};
+
 export const DisabledCard: Story = {
   render: () => (
     <RadioCardGroup<GameType> label="Game type" defaultValue="solo" columns={3}>
