@@ -41,9 +41,9 @@ export const Playground: Story = {};
 
 /**
  * A guided game's players: the dot is their presence (online, away or
- * offline), the role chip and their characters sit under the name, and the
- * actions end the row. Character portraits are ringed in each character's
- * own theme, gray when it has none.
+ * offline), the role chip sits under the name, and the actions end the row.
+ * Their characters are named along the foot of the card, under a hairline,
+ * each portrait ringed in its character's own theme (gray without one).
  */
 export const Players: Story = {
   render: () => (
