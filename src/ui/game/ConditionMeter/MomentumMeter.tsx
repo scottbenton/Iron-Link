@@ -1,6 +1,7 @@
 import { ArrowCounterClockwise, CaretDown, Flame } from "@phosphor-icons/react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { ledge, ledgeShadow } from "ui/styles/ledge";
 
 import { css } from "styled-system/css";
 
@@ -43,8 +44,7 @@ const triggerStyles = css({
   userSelect: "none",
   WebkitTapHighlightColor: "transparent",
   outline: "none",
-  boxShadow: "0 var(--border-widths-ledge) 0 token(colors.border.control)",
-  transform: "translateY(0)",
+  ...ledge("token(colors.border.control)", "rest"),
   transitionProperty: "transform, box-shadow, background-color, color",
   transitionDuration: "fast",
   transitionTimingFunction: "out",
@@ -59,16 +59,14 @@ const triggerStyles = css({
     background: "bg.emphasized",
   },
   "&:active, &[data-pressed]": {
-    transform: "translateY(var(--spacing-sink))",
-    boxShadow:
-      "0 max(0px, calc(var(--border-widths-ledge) - var(--spacing-sink))) 0 token(colors.border.control)",
+    ...ledge("token(colors.border.control)", "sunk"),
     transitionDuration: "instant",
   },
   "&:is(:disabled, [data-disabled])": {
     cursor: "not-allowed",
     color: "fg.subtle",
     background: "bg.emphasized",
-    boxShadow: "0 var(--border-widths-ledge) 0 token(colors.border.default)",
+    boxShadow: ledgeShadow("token(colors.border.default)"),
   },
   "&[data-tone=danger]": { color: "danger.fg" },
   "&[data-tone=success]": { color: "success.fg" },
