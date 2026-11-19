@@ -16,6 +16,7 @@ import {
   isChallengeRoll,
 } from "../RollCard/rollTypes";
 import { formatSigned } from "../shared/format";
+import { PROGRESS_BOX_MARKS } from "../shared/progressBoxMarks";
 import {
   DiceDisplayStrings,
   defaultDiceDisplayStrings,
@@ -165,11 +166,9 @@ const dieStyles = css({
   },
   "& > span": { position: "relative" },
   "&[data-shape=d100]": { minWidth: "calc(var(--die-size) * 1.35)" },
-  "&[data-kind=action]": {
-    "--die-fill": "{colors.bg.chip}",
-    "--die-stroke": "{colors.bg.chip}",
-    "--die-fg": "{colors.fg.onChip}",
-  },
+  // The action die matches the progress score's chip: the emphasized fill,
+  // no outline.
+  "&[data-kind=action]": { "--die-stroke": "{colors.bg.emphasized}" },
   "&[data-state=beaten]": {
     "--die-fill": "{colors.success.soft}",
     "--die-stroke": "color-mix(in oklab, {colors.success.fg} 55%, transparent)",
@@ -383,9 +382,9 @@ function getChallengeState(
 }
 
 /**
- * The dice of a roll. Action rolls show the action die (dark, like the roll
- * buttons) plus stat and adds, then the score against the challenge dice:
- * green where the score beats a die, red where it doesn't. A match rings
+ * The dice of a roll. Action rolls show the action die (filled like the
+ * progress score's chip) plus stat and adds, then the score against the
+ * challenge dice: green where the score beats a die, red where it doesn't. A match rings
  * both challenge dice, green on a strong hit and red on a miss. Burned
  * momentum strikes the action score out and takes its place; negative
  * momentum that cancels the action die strikes the die out in red, and a 1
@@ -621,7 +620,7 @@ function ProgressChip(props: { value: number }) {
   );
 }
 
-/** A filled progress box, for the progress score. */
+/** A full progress box (all four marks), for the progress score. */
 function ProgressGlyph() {
   return (
     <svg
@@ -636,8 +635,9 @@ function ProgressGlyph() {
       })}
     >
       <rect x="1" y="1" width="18" height="18" rx="3" strokeWidth="1.5" />
-      <line x1="5" y1="15" x2="15" y2="5" />
-      <line x1="5" y1="5" x2="15" y2="15" />
+      {PROGRESS_BOX_MARKS.map(([x1, y1, x2, y2], index) => (
+        <line key={index} x1={x1} y1={y1} x2={x2} y2={y2} />
+      ))}
     </svg>
   );
 }

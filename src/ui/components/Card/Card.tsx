@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { ledgeHeight } from "ui/styles/ledge";
 
 import { css, cva, cx } from "styled-system/css";
 import type { SystemStyleObject } from "styled-system/types";
@@ -51,7 +52,7 @@ const cardStyles = cva({
     // ledge, a border that darkens on hover and the 1px sink on press, all as
     // one piece. Hovering or pressing a secondary action inside does neither.
     [`&:has(${target("")})`]: {
-      "--card-ledge": "var(--border-widths-ledge)",
+      "--card-ledge": ledgeHeight.rest,
       boxShadow:
         "var(--card-ring), 0 var(--card-ledge) 0 token(colors.border.edge)",
       transform: "translateY(0)",
@@ -63,8 +64,7 @@ const cardStyles = cva({
     // selectors weigh the same, so stylesheet order would pick.
     [`&:has(${target(`:is(:hover, [data-hover]):not(:active, [data-pressed])${enabled}`)})`]:
       {
-        "--card-ledge":
-          "calc(var(--border-widths-ledge) - var(--spacing-lift))",
+        "--card-ledge": ledgeHeight.lifted,
         transform: "translateY(var(--spacing-lift))",
       },
     // Not on a selected card, whose accent border must show while the
@@ -74,8 +74,7 @@ const cardStyles = cva({
         borderColor: "border.control",
       },
     [`&:has(${target(`:is(:active, [data-pressed])${enabled}`)})`]: {
-      "--card-ledge":
-        "max(0px, calc(var(--border-widths-ledge) - var(--spacing-sink)))",
+      "--card-ledge": ledgeHeight.sunk,
       transform: "translateY(var(--spacing-sink))",
       transitionDuration: "instant",
     },
