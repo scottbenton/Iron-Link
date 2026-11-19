@@ -11,12 +11,9 @@ const skeletonStyles = cva({
     flex: "none",
     maxWidth: "100%",
     backgroundColor: "bg.emphasized",
-    backgroundImage:
-      "linear-gradient(90deg, transparent 25%, color-mix(in oklab, token(colors.bg.surface) 55%, transparent) 50%, transparent 75%)",
-    backgroundSize: "200% 100%",
-    backgroundRepeat: "no-repeat",
-    animation: "shimmer 1.6s linear infinite",
-    _reducedMotion: { animation: "none", backgroundImage: "none" },
+    // A slow pulse; skeletons that appear together fade together.
+    animation: "pulse 1.8s ease-in-out infinite",
+    _reducedMotion: { animation: "none" },
   },
   variants: {
     variant: {

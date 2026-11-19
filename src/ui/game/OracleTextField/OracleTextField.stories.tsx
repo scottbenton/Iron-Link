@@ -40,7 +40,7 @@ const rollCharacterName = () =>
   [rollTable(givenName), rollTable(familyName)].filter(Boolean).join(" ");
 
 const meta = {
-  title: "Components/OracleTextField",
+  title: "Game/OracleTextField",
   component: OracleTextField,
   args: {
     label: "Settlement Name",
