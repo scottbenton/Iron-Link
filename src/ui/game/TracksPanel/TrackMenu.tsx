@@ -1,6 +1,5 @@
 import {
   ArrowCounterClockwiseIcon,
-  CheckCircleIcon,
   DotsThreeIcon,
   MonitorPlayIcon,
   PencilSimpleIcon,
@@ -20,9 +19,12 @@ import type { TracksPanelStrings } from "./tracksPanelStrings";
 export interface TrackMenuProps {
   label: string;
   isClock: boolean;
-  completed: boolean;
   onEdit?: () => void;
-  onCompletedChange?: (completed: boolean) => void;
+  /**
+   * Reopens a completed track. Completing is the card's own button, beside
+   * its roll, so it is not in the menu.
+   */
+  onReopen?: () => void;
   onDelete?: () => void;
   /** Whether it shows on the second screen; the item is offered when set. */
   onSecondScreen?: boolean;
@@ -31,17 +33,16 @@ export interface TrackMenuProps {
 }
 
 /**
- * A track's or clock's ⋯ menu: what the live card spread over a row of
- * buttons (Edit, Complete or Reopen, Second Screen, Delete). Marking
- * progress and the roll stay on the card. Renders nothing with no items.
+ * A track's or clock's ⋯ menu: Edit, Reopen (once completed), Second
+ * Screen and Delete. Marking progress, the roll and Complete stay on the
+ * card. Renders nothing with no items.
  */
 export function TrackMenu(props: TrackMenuProps) {
   const {
     label,
     isClock,
-    completed,
     onEdit,
-    onCompletedChange,
+    onReopen,
     onDelete,
     onSecondScreen,
     onSecondScreenChange,
@@ -49,7 +50,7 @@ export function TrackMenu(props: TrackMenuProps) {
   } = props;
 
   const showSecondScreen = !!onSecondScreenChange;
-  if (!onEdit && !onCompletedChange && !onDelete && !showSecondScreen) {
+  if (!onEdit && !onReopen && !onDelete && !showSecondScreen) {
     return null;
   }
 
@@ -68,22 +69,11 @@ export function TrackMenu(props: TrackMenuProps) {
             {strings.edit(isClock)}
           </MenuItem>
         )}
-        {onCompletedChange &&
-          (completed ? (
-            <MenuItem
-              icon={<ArrowCounterClockwiseIcon />}
-              onClick={() => onCompletedChange(false)}
-            >
-              {strings.reopen(isClock)}
-            </MenuItem>
-          ) : (
-            <MenuItem
-              icon={<CheckCircleIcon />}
-              onClick={() => onCompletedChange(true)}
-            >
-              {strings.complete(isClock)}
-            </MenuItem>
-          ))}
+        {onReopen && (
+          <MenuItem icon={<ArrowCounterClockwiseIcon />} onClick={onReopen}>
+            {strings.reopen(isClock)}
+          </MenuItem>
+        )}
         {showSecondScreen && (
           <MenuItem
             icon={<MonitorPlayIcon />}
@@ -96,9 +86,7 @@ export function TrackMenu(props: TrackMenuProps) {
         )}
         {onDelete && (
           <>
-            {(onEdit || onCompletedChange || showSecondScreen) && (
-              <MenuSeparator />
-            )}
+            {(onEdit || onReopen || showSecondScreen) && <MenuSeparator />}
             <MenuItem icon={<TrashIcon />} tone="danger" onClick={onDelete}>
               {strings.remove(isClock)}
             </MenuItem>

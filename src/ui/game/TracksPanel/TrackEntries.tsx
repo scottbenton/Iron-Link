@@ -1,7 +1,9 @@
+import { CheckCircleIcon } from "@phosphor-icons/react";
 import { ElementType, ReactNode } from "react";
 
 import { css } from "styled-system/css";
 
+import { Button } from "../../components/Button";
 import { Select } from "../../components/Select";
 import { Clock } from "../Clock";
 import { ProgressRank, ProgressTrack } from "../ProgressTrack";
@@ -41,6 +43,29 @@ const clockActionsStyles = css({
 
 const clockOddsStyles = css({ flex: "1 1 8rem", minWidth: 0 });
 
+/** Complete sits at the end of the actions row, after the rolls. */
+const completeStyles = css({ marginInlineStart: "auto" });
+
+function CompleteButton(props: {
+  label: string;
+  onClick: () => void;
+  strings: TracksPanelStrings;
+}) {
+  const { label, onClick, strings } = props;
+  return (
+    <Button
+      size="sm"
+      variant="ghost"
+      className={completeStyles}
+      startIcon={<CheckCircleIcon />}
+      aria-label={strings.completeLabel(label)}
+      onClick={onClick}
+    >
+      {strings.completeShort}
+    </Button>
+  );
+}
+
 export interface ProgressTrackEntryProps {
   track: ProgressTrackItem;
   /** Marks, rolls and changes the tension. */
@@ -50,6 +75,8 @@ export interface ProgressTrackEntryProps {
   onTicksChange?: (ticks: number) => void;
   onTensionChange?: (value: number) => void;
   onRollMove?: (moveId: string) => void;
+  /** Shows Complete at the end of the actions while the track is open. */
+  onComplete?: () => void;
   titleAs?: ElementType;
   rankLabels?: Partial<Record<ProgressRank, string>>;
   strings: TracksPanelStrings;
@@ -57,8 +84,8 @@ export interface ProgressTrackEntryProps {
 
 /**
  * A vow, journey, fight or scene challenge: its card with minus and plus,
- * the completion roll under the boxes (Fulfill Your Vow and the like) and,
- * for a scene challenge, its tension clock.
+ * then under the boxes its tension clock (a scene challenge), the
+ * completion roll (Fulfill Your Vow and the like) and Complete.
  */
 export function ProgressTrackEntry(props: ProgressTrackEntryProps) {
   const {
@@ -69,12 +96,20 @@ export function ProgressTrackEntry(props: ProgressTrackEntryProps) {
     onTicksChange,
     onTensionChange,
     onRollMove,
+    onComplete,
     titleAs,
     rankLabels,
     strings,
   } = props;
   const active = editable && !track.completed;
   const rolls = active && onRollMove ? moves : [];
+  const complete = active && onComplete && (
+    <CompleteButton
+      label={track.label}
+      onClick={onComplete}
+      strings={strings}
+    />
+  );
   const tension = track.kind === "sceneChallenge" && (
     <span className={tensionStyles}>
       <Clock
@@ -102,7 +137,7 @@ export function ProgressTrackEntry(props: ProgressTrackEntryProps) {
       titleAs={titleAs}
       rankLabels={rankLabels}
       actions={
-        (tension || rolls.length > 0) && (
+        (tension || rolls.length > 0 || complete) && (
           <>
             {tension}
             {rolls.map((move) => (
@@ -115,6 +150,7 @@ export function ProgressTrackEntry(props: ProgressTrackEntryProps) {
                 {move.name}
               </RollButton>
             ))}
+            {complete}
           </>
         )
       }
@@ -129,13 +165,16 @@ export interface ClockEntryProps {
   onValueChange?: (value: number) => void;
   onRoll?: () => void;
   onOddsChange?: (odds: OracleOdds) => void;
+  /** Shows Complete after Roll Progress while the clock is open. */
+  onComplete?: () => void;
   titleAs?: ElementType;
   strings: TracksPanelStrings;
 }
 
 /**
- * A clock: the clock card with minus and plus, and beside the dial its odds
- * and Roll Progress, which asks the oracle whether the clock advances.
+ * A clock: the clock card, its dial the control, and beside the dial its
+ * odds, Roll Progress (which asks the oracle whether the clock advances)
+ * and Complete.
  */
 export function ClockEntry(props: ClockEntryProps) {
   const {
@@ -145,6 +184,7 @@ export function ClockEntry(props: ClockEntryProps) {
     onValueChange,
     onRoll,
     onOddsChange,
+    onComplete,
     titleAs,
     strings,
   } = props;
@@ -166,7 +206,7 @@ export function ClockEntry(props: ClockEntryProps) {
       titleAs={titleAs}
       actions={
         active &&
-        (onRoll || onOddsChange) && (
+        (onRoll || onOddsChange || onComplete) && (
           <div className={clockActionsStyles}>
             {onOddsChange && (
               <Select<OracleOdds>
@@ -193,6 +233,13 @@ export function ClockEntry(props: ClockEntryProps) {
               >
                 {strings.rollProgress}
               </RollButton>
+            )}
+            {onComplete && (
+              <CompleteButton
+                label={clock.label}
+                onClick={onComplete}
+                strings={strings}
+              />
             )}
           </div>
         )
