@@ -1,5 +1,3 @@
-import { SchemeName, iconGradient, schemes } from "ui/theme";
-
 export type PortraitSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 /** Diameters in pixels. md is a 44px touch target. */
@@ -34,18 +32,14 @@ export function hashHue(text: string): number {
 }
 
 /**
- * The background behind initials: the scheme's icon gradient when the
- * character has a colour scheme, else a two-stop gradient around a hue.
+ * The background behind initials without a colour scheme: a two-stop
+ * gradient around a hue, from the seed or else the name.
  */
 export function getPortraitGradient(options: {
   name: string;
-  colorScheme?: SchemeName;
   colorSeed?: number;
 }): string {
-  const { name, colorScheme, colorSeed } = options;
-  if (colorScheme && colorScheme in schemes) {
-    return iconGradient(schemes[colorScheme]);
-  }
+  const { name, colorSeed } = options;
   const hue = colorSeed ?? hashHue(name);
   return `linear-gradient(150deg, oklch(72% 0.13 ${hue}), oklch(46% 0.14 ${(hue + 35) % 360}))`;
 }
