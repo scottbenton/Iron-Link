@@ -1,5 +1,5 @@
 import { Button as BaseButton } from "@base-ui/react/button";
-import { DiceFive, Minus, Plus } from "@phosphor-icons/react";
+import { Minus, Plus } from "@phosphor-icons/react";
 import { CSSProperties, ReactNode, useId } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
@@ -8,6 +8,7 @@ import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
 import { IconButton } from "../../components/IconButton";
+import { DieFace, useDieFace } from "../DieFace";
 import { AddsAnchor } from "../RollButton/AddsBadge";
 import {
   statCardBaseStyles,
@@ -223,6 +224,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
   } = withLayoutProps<ConditionMeterProps>(props);
 
   const labelId = useId();
+  const [face, rollDie] = useDieFace();
   const announce = useAnnounce();
 
   const valueText = formatValue(value);
@@ -252,10 +254,13 @@ export function ConditionMeter(props: ConditionMeterProps) {
             ? `${rollLabel} ${label}, ${valueText}, ${addsLabel(formatSigned(adds))}`
             : `${rollLabel} ${label}, ${valueText}`
         }
-        onClick={() => onRoll()}
+        onClick={() => {
+          rollDie();
+          onRoll();
+        }}
       >
         <span data-stat-inner="" className={statInnerStyles}>
-          <DiceFive weight="fill" aria-hidden />
+          <DieFace face={face} size="inherit" weight="fill" />
           {valueText}
         </span>
       </BaseButton>

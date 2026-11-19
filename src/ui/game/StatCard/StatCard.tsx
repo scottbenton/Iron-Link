@@ -1,11 +1,11 @@
 import { Button as BaseButton } from "@base-ui/react/button";
-import { DiceFive } from "@phosphor-icons/react";
 import { ComponentProps, Ref, forwardRef } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { cx } from "styled-system/css";
 
+import { DieFace, useDieFace } from "../DieFace";
 import { AddsAnchor } from "../RollButton/AddsBadge";
 import { formatSigned } from "../shared/format";
 import {
@@ -60,6 +60,7 @@ export const StatCard = forwardRef<HTMLElement, StatCardProps>(
       ...rest
     } = withLayoutProps<StatCardProps>(props);
 
+    const [face, rollDie] = useDieFace();
     const valueText = formatSigned(value);
     const addsText = adds ? formatSigned(adds) : undefined;
 
@@ -68,7 +69,7 @@ export const StatCard = forwardRef<HTMLElement, StatCardProps>(
         <span className={statNameStyles}>{name}</span>
         <span className={statValueRowStyles}>
           <span className={statValueStyles}>
-            {onRoll && <DiceFive weight="fill" aria-hidden />}
+            {onRoll && <DieFace face={face} size="inherit" weight="fill" />}
             {valueText}
           </span>
         </span>
@@ -105,7 +106,10 @@ export const StatCard = forwardRef<HTMLElement, StatCardProps>(
               : `${rollLabel} ${name}, ${valueText}`
           }
           disabled={disabled}
-          onClick={() => onRoll()}
+          onClick={() => {
+            rollDie();
+            onRoll();
+          }}
           {...rest}
         >
           {content}
