@@ -17,12 +17,16 @@ const trackStyles = css({
 
 /**
  * A line is a 20 unit dash pushed off its own length, so moving the dash
- * offset to 0 draws it from its start. New lines draw in tick order, like
- * a pen, over `--tick-duration`, each waiting its `--tick-step` times
- * `--tick-stagger` (set by getTickAnimationPlan, which keeps the whole
- * change under 250ms). A pen speeds up and slows down, so one line after
- * another reads as strokes rather than a sweep. Erased lines all draw back
- * out at once, quickly.
+ * offset to 0 draws it from its start. Lines new in the latest change
+ * (`data-drawing`) draw in tick order, like a pen, over `--tick-duration`,
+ * each waiting its `--tick-step` times `--tick-stagger` (set by
+ * getTickAnimationPlan, which keeps the whole change within 240ms). They
+ * ease out: most of the stroke lands at once, so even a quick tap shows a
+ * mark. Every other drawn line has no transition, so when the next change
+ * comes before a line finishes, dropping `data-drawing` cancels its
+ * transition and it shows fully drawn: under rapid taps the drawn lines
+ * always match the value and only the newest one moves. Erased lines all
+ * draw back out at once, quickly.
  */
 const boxStyles = css({
   aspectRatio: "1",
@@ -55,8 +59,11 @@ const boxStyles = css({
   },
   "& line[data-on]": {
     strokeDashoffset: "0",
+    transition: "none",
+  },
+  "& line[data-on][data-drawing]": {
     transition:
-      "stroke-dashoffset var(--tick-duration) token(easings.inOut) calc(var(--tick-step, 0) * var(--tick-stagger))",
+      "stroke-dashoffset var(--tick-duration) token(easings.out) calc(var(--tick-step, 0) * var(--tick-stagger))",
     _reducedMotion: { transition: "none" },
   },
 });
@@ -116,6 +123,7 @@ export function ProgressBoxes(props: ProgressBoxesProps) {
                   x2={x2}
                   y2={y2}
                   data-on={mark < count || undefined}
+                  data-drawing={step === undefined ? undefined : ""}
                   style={
                     step === undefined
                       ? undefined
