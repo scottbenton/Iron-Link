@@ -14,6 +14,8 @@ import {
   Link,
   Stack,
   SvgIcon,
+  Tab,
+  Tabs,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -21,12 +23,16 @@ import {
   Typography,
 } from "@mui/material";
 import type { TFunction } from "i18next";
-import { useDeferredValue, useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 
 import { IconColors, IconDefinition } from "types/Icon.type";
+
+import { useIsTouchDevice } from "hooks/useIsTouchDevice";
+
+import { MAX_FILE_SIZE_LABEL } from "repositories/storage.repository";
 
 import { WorldCategoryIcon } from "./categories/WorldCategoryIcon";
 import {
@@ -69,7 +75,9 @@ function getColorLabel(t: TFunction, color: IconColors): string {
 // Chooses an icon and its color for a world category or entry. It opens on
 // the icon shown today (an entry's own, else the one it inherits) so either
 // the icon or the color can be changed alone. An entry's picker passes
-// onUploadImage to offer its image upload too; categories have no images.
+// onUploadImage, which adds Icon and Image tabs so an upload is as easy to
+// find as an icon; categories have no images and get no tabs. Both tabs
+// share one grid cell, so switching never resizes the dialog.
 export function WorldIconPickerDialog({
   value,
   inherited = null,
@@ -85,8 +93,9 @@ export function WorldIconPickerDialog({
   title: string;
   onSave: (value: IconDefinition | null) => void;
   onClose: () => void;
-  // Closes the picker and starts the upload, which has its own crop step.
-  onUploadImage?: () => void;
+  // Closes the picker and starts the upload, which has its own crop step:
+  // with the dropped file, or with none to open the file chooser.
+  onUploadImage?: (file?: File) => void;
   uploadDisabled?: boolean;
 }) {
   const { t } = useTranslation();
@@ -130,201 +139,92 @@ export function WorldIconPickerDialog({
     ),
   ].filter((key) => categoryIconName(key).toLowerCase().includes(query));
   const color = draft.color ?? IconColors.Grey;
+  const [tab, setTab] = useState<"icon" | "image">("icon");
+  const tabsId = useId();
+  const [dragging, setDragging] = useState(false);
+  const touch = useIsTouchDevice();
   return (
     <Dialog open fullWidth maxWidth="sm" onClose={onClose}>
       <DialogTitleWithCloseButton onClose={onClose}>
         {title}
       </DialogTitleWithCloseButton>
-      <DialogContent>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: { xs: "column-reverse", sm: "row" },
-            gap: 2,
-          }}
+      {onUploadImage && (
+        <Tabs
+          value={tab}
+          onChange={(_, next: "icon" | "image") => setTab(next)}
+          sx={{ px: 3, borderBottom: 1, borderColor: "divider" }}
         >
-          <Stack spacing={1.5} sx={{ flexGrow: 1, minWidth: 0 }}>
-            <ToggleButtonGroup
-              exclusive
-              size="small"
-              value={color}
-              aria-label={t("worlds.categories.icon-color", "Icon color")}
-              onChange={(_, next: IconColors | null) =>
-                next && setDraft({ ...draft, color: next })
-              }
-              sx={{ display: "flex" }}
-            >
-              {Object.values(IconColors).map((option) => (
-                <ToggleButton
-                  key={option}
-                  value={option}
-                  aria-label={getColorLabel(t, option)}
-                  sx={{ flexGrow: 1, px: 0.5, py: 1 }}
-                >
-                  <Box
-                    sx={(theme) => ({
-                      width: 18,
-                      height: 18,
-                      borderRadius: "50%",
-                      bgcolor: getCategoryIconColor(option, theme.palette.mode),
-                      border: 1,
-                      borderColor: "divider",
-                    })}
-                  />
-                </ToggleButton>
-              ))}
-            </ToggleButtonGroup>
-            <TextField
-              autoFocus
-              size="small"
-              label={t("worlds.categories.search-icons", "Search icons")}
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setLimit(BATCH_SIZE);
+          <Tab
+            value="icon"
+            label={t("worlds.entries.icon-tab", "Icon")}
+            id={`${tabsId}-icon`}
+            aria-controls={`${tabsId}-icon-panel`}
+          />
+          <Tab
+            value="image"
+            label={t("worlds.entries.image-tab", "Image")}
+            id={`${tabsId}-image`}
+            aria-controls={`${tabsId}-image-panel`}
+          />
+        </Tabs>
+      )}
+      <DialogContent
+        {...(onUploadImage && {
+          role: "tabpanel",
+          id: `${tabsId}-${tab}-panel`,
+          "aria-labelledby": `${tabsId}-${tab}`,
+        })}
+        sx={onUploadImage ? { pt: 2 } : undefined}
+      >
+        <Box sx={{ display: "grid", "& > *": { gridArea: "1 / 1" } }}>
+          {onUploadImage && (
+            <Stack
+              spacing={2}
+              alignItems="center"
+              justifyContent="center"
+              onDragOver={(event) => {
+                if (uploadDisabled) return;
+                event.preventDefault();
+                setDragging(true);
               }}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-            <Box
-              onScroll={(event) => {
-                setTooltipKey(null);
-                const target = event.currentTarget;
-                if (
-                  target.scrollTop + target.clientHeight >
-                  target.scrollHeight - 160
-                )
-                  setLimit((current) =>
-                    Math.min(current + BATCH_SIZE, matches.length),
-                  );
+              onDragLeave={() => setDragging(false)}
+              onDrop={(event) => {
+                event.preventDefault();
+                setDragging(false);
+                const file = event.dataTransfer.files[0];
+                if (!file || uploadDisabled) return;
+                onClose();
+                onUploadImage(file);
               }}
               sx={{
-                height: 280,
-                overflowY: "auto",
-                border: 1,
-                borderColor: "divider",
+                // Phones show one tab at a time; wider screens keep both in
+                // the cell so the dialog keeps the Icon tab's size.
+                display: { xs: tab === "image" ? "flex" : "none", sm: "flex" },
+                minHeight: { xs: 280, sm: 0 },
+                visibility: tab === "image" ? undefined : "hidden",
+                border: 2,
+                borderStyle: "dashed",
+                borderColor: dragging ? "primary.main" : "divider",
+                bgcolor: dragging ? "action.hover" : undefined,
                 borderRadius: 1,
-                p: 0.5,
+                p: 3,
+                textAlign: "center",
               }}
             >
-              {error ? (
-                <Alert severity="error">
-                  {t(
-                    "worlds.categories.icons-error",
-                    "Could not load icons. Please reload and try again.",
-                  )}
-                </Alert>
-              ) : !icons ? (
-                <LinearProgress />
-              ) : matches.length === 0 ? (
-                <Typography color="text.secondary" sx={{ p: 1 }}>
-                  {t("worlds.categories.no-icons", "No matching icons.")}
-                </Typography>
-              ) : (
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(44px, 1fr))",
-                  }}
-                >
-                  {matches.slice(0, limit).map((key) => (
-                    <Tooltip
-                      key={key}
-                      title={categoryIconName(key)}
-                      open={tooltipKey === key}
-                      onOpen={() => setTooltipKey(key)}
-                      onClose={() =>
-                        setTooltipKey((open) => (open === key ? null : open))
-                      }
-                    >
-                      <IconButton
-                        aria-label={categoryIconName(key)}
-                        aria-pressed={draft.key === key}
-                        onClick={() => setDraft({ ...draft, key })}
-                        sx={(theme) => ({
-                          borderRadius: 1,
-                          color: getCategoryIconColor(
-                            draft.color,
-                            theme.palette.mode,
-                          ),
-                          bgcolor:
-                            draft.key === key ? "action.selected" : undefined,
-                        })}
-                      >
-                        {key === GROUPS_CATEGORY_ICON_KEY ? (
-                          <Groups2Icon />
-                        ) : (
-                          <SvgIcon component={icons[key]} inheritViewBox />
-                        )}
-                      </IconButton>
-                    </Tooltip>
-                  ))}
-                </Box>
-              )}
-            </Box>
-            <Typography variant="caption" color="text.secondary">
-              {t("worlds.categories.icon-credit-prefix", "Icons by")}{" "}
-              <Link
-                href="https://game-icons.net/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Game Icons
-              </Link>
-              {" ("}
-              <Link
-                href="https://creativecommons.org/licenses/by/3.0/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                CC BY 3.0
-              </Link>
-              {") · "}
-              <Link
-                href="https://fonts.google.com/icons"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Material Icons
-              </Link>
-            </Typography>
-          </Stack>
-          <Stack spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
-            <Typography variant="overline" color="text.secondary">
-              {t("worlds.categories.icon-preview", "Preview")}
-            </Typography>
-            {draft.key ? (
-              <WorldCategoryIcon icon={draft} size="xlarge" />
-            ) : (
-              <Box
-                sx={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: 1,
-                  border: 1,
-                  borderStyle: "dashed",
-                  borderColor: "divider",
-                }}
-              />
-            )}
-            <Button
-              color="inherit"
-              disabled={!draft.key}
-              onClick={() => setDraft({ ...draft, key: null })}
-            >
-              {t("worlds.categories.remove-icon", "Remove icon")}
-            </Button>
-            {onUploadImage && (
+              <AddPhotoIcon sx={{ fontSize: 48, color: "text.secondary" }} />
+              <Typography>
+                {touch
+                  ? t(
+                      "worlds.entries.upload-image-description-touch",
+                      "Upload a picture to use as this entry's icon. You choose which part shows next.",
+                    )
+                  : t(
+                      "worlds.entries.upload-image-description",
+                      "Drop a picture here or upload one to use as this entry's icon. You choose which part shows next.",
+                    )}
+              </Typography>
               <Button
-                color="inherit"
-                startIcon={<AddPhotoIcon />}
+                variant="contained"
                 disabled={uploadDisabled}
                 onClick={() => {
                   onClose();
@@ -333,27 +233,228 @@ export function WorldIconPickerDialog({
               >
                 {t("worlds.entries.upload-image", "Upload image")}
               </Button>
-            )}
-          </Stack>
+              <Typography variant="caption" color="text.secondary">
+                {t(
+                  "worlds.entries.upload-image-limits",
+                  "PNG, JPEG, GIF or WebP, up to {{size}}",
+                  { size: MAX_FILE_SIZE_LABEL },
+                )}
+              </Typography>
+            </Stack>
+          )}
+          <Box
+            sx={{
+              flexDirection: { xs: "column-reverse", sm: "row" },
+              gap: 2,
+              display: { xs: tab === "icon" ? "flex" : "none", sm: "flex" },
+              visibility: tab === "icon" ? undefined : "hidden",
+            }}
+          >
+            <Stack spacing={1.5} sx={{ flexGrow: 1, minWidth: 0 }}>
+              <ToggleButtonGroup
+                exclusive
+                size="small"
+                value={color}
+                aria-label={t("worlds.categories.icon-color", "Icon color")}
+                onChange={(_, next: IconColors | null) =>
+                  next && setDraft({ ...draft, color: next })
+                }
+                sx={{ display: "flex" }}
+              >
+                {Object.values(IconColors).map((option) => (
+                  <ToggleButton
+                    key={option}
+                    value={option}
+                    aria-label={getColorLabel(t, option)}
+                    sx={{ flexGrow: 1, px: 0.5, py: 1 }}
+                  >
+                    <Box
+                      sx={(theme) => ({
+                        width: 18,
+                        height: 18,
+                        borderRadius: "50%",
+                        bgcolor: getCategoryIconColor(
+                          option,
+                          theme.palette.mode,
+                        ),
+                        border: 1,
+                        borderColor: "divider",
+                      })}
+                    />
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+              <TextField
+                autoFocus
+                size="small"
+                label={t("worlds.categories.search-icons", "Search icons")}
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setLimit(BATCH_SIZE);
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+              <Box
+                onScroll={(event) => {
+                  setTooltipKey(null);
+                  const target = event.currentTarget;
+                  if (
+                    target.scrollTop + target.clientHeight >
+                    target.scrollHeight - 160
+                  )
+                    setLimit((current) =>
+                      Math.min(current + BATCH_SIZE, matches.length),
+                    );
+                }}
+                sx={{
+                  height: 280,
+                  overflowY: "auto",
+                  border: 1,
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  p: 0.5,
+                }}
+              >
+                {error ? (
+                  <Alert severity="error">
+                    {t(
+                      "worlds.categories.icons-error",
+                      "Could not load icons. Please reload and try again.",
+                    )}
+                  </Alert>
+                ) : !icons ? (
+                  <LinearProgress />
+                ) : matches.length === 0 ? (
+                  <Typography color="text.secondary" sx={{ p: 1 }}>
+                    {t("worlds.categories.no-icons", "No matching icons.")}
+                  </Typography>
+                ) : (
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(44px, 1fr))",
+                    }}
+                  >
+                    {matches.slice(0, limit).map((key) => (
+                      <Tooltip
+                        key={key}
+                        title={categoryIconName(key)}
+                        open={tooltipKey === key}
+                        onOpen={() => setTooltipKey(key)}
+                        onClose={() =>
+                          setTooltipKey((open) => (open === key ? null : open))
+                        }
+                      >
+                        <IconButton
+                          aria-label={categoryIconName(key)}
+                          aria-pressed={draft.key === key}
+                          onClick={() => setDraft({ ...draft, key })}
+                          sx={(theme) => ({
+                            borderRadius: 1,
+                            color: getCategoryIconColor(
+                              draft.color,
+                              theme.palette.mode,
+                            ),
+                            bgcolor:
+                              draft.key === key ? "action.selected" : undefined,
+                          })}
+                        >
+                          {key === GROUPS_CATEGORY_ICON_KEY ? (
+                            <Groups2Icon />
+                          ) : (
+                            <SvgIcon component={icons[key]} inheritViewBox />
+                          )}
+                        </IconButton>
+                      </Tooltip>
+                    ))}
+                  </Box>
+                )}
+              </Box>
+              <Typography variant="caption" color="text.secondary">
+                {t("worlds.categories.icon-credit-prefix", "Icons by")}{" "}
+                <Link
+                  href="https://game-icons.net/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Game Icons
+                </Link>
+                {" ("}
+                <Link
+                  href="https://creativecommons.org/licenses/by/3.0/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  CC BY 3.0
+                </Link>
+                {") · "}
+                <Link
+                  href="https://fonts.google.com/icons"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Material Icons
+                </Link>
+              </Typography>
+            </Stack>
+            <Stack spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
+              <Typography variant="overline" color="text.secondary">
+                {t("worlds.categories.icon-preview", "Preview")}
+              </Typography>
+              {draft.key ? (
+                <WorldCategoryIcon icon={draft} size="xlarge" />
+              ) : (
+                <Box
+                  sx={{
+                    width: 72,
+                    height: 72,
+                    borderRadius: 1,
+                    border: 1,
+                    borderStyle: "dashed",
+                    borderColor: "divider",
+                  }}
+                />
+              )}
+              <Button
+                color="inherit"
+                disabled={!draft.key}
+                onClick={() => setDraft({ ...draft, key: null })}
+              >
+                {t("worlds.categories.remove-icon", "Remove icon")}
+              </Button>
+            </Stack>
+          </Box>
         </Box>
       </DialogContent>
       <DialogActions>
         <Button color="inherit" onClick={onClose}>
           {t("common.cancel", "Cancel")}
         </Button>
-        <Button
-          variant="contained"
-          onClick={() => {
-            const keepsInherited =
-              !value?.key &&
-              draft.key === inherited?.key &&
-              draft.color === (inherited?.color ?? IconColors.Grey);
-            onSave(draft.key && !keepsInherited ? draft : null);
-            onClose();
-          }}
-        >
-          {t("common.save", "Save")}
-        </Button>
+        {tab === "icon" && (
+          <Button
+            variant="contained"
+            onClick={() => {
+              const keepsInherited =
+                !value?.key &&
+                draft.key === inherited?.key &&
+                draft.color === (inherited?.color ?? IconColors.Grey);
+              onSave(draft.key && !keepsInherited ? draft : null);
+              onClose();
+            }}
+          >
+            {t("common.save", "Save")}
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );

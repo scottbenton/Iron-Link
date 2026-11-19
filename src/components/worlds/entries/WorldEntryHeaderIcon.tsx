@@ -88,7 +88,9 @@ export function WorldEntryHeaderIcon({
             updateEntry(entry.id, { icon }).catch(onError);
           }}
           onClose={() => setOpen(false)}
-          onUploadImage={image.choose}
+          onUploadImage={(file) =>
+            file ? image.takeFile(file) : image.choose()
+          }
           uploadDisabled={image.busy}
         />
       )}

@@ -515,6 +515,7 @@ describe("entry header icon", () => {
     const picker = await screen.findByRole("dialog", {
       name: "Choose entry icon",
     });
+    await user.click(within(picker).getByRole("tab", { name: "Image" }));
     await user.click(
       within(picker).getByRole("button", { name: "Upload image" }),
     );

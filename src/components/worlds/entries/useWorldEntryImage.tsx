@@ -17,6 +17,13 @@ import {
 
 import { WorldEntryImageDialog } from "./WorldEntryImageDialog";
 
+const ACCEPTED_IMAGE_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+];
+
 // Uploads, crops or removes an entry's portrait. A chosen file opens the
 // crop dialog and uploads only when it is saved; the old file is removed once
 // the entry points at the new one. Render `input` and `dialog` wherever the
@@ -51,10 +58,19 @@ export function useWorldEntryImage(
     }
   };
 
-  const handleFile = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.currentTarget.files?.[0];
-    event.currentTarget.value = "";
-    if (!file) return;
+  // A dropped file skips the input's accept list, so its type is checked too.
+  const takeFile = (file: File) => {
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      onError(
+        new Error(
+          t(
+            "worlds.entries.image-wrong-type",
+            "That file is not an image you can use. Upload a PNG, JPEG, GIF or WebP image.",
+          ),
+        ),
+      );
+      return;
+    }
     if (file.size > MAX_FILE_SIZE) {
       onError(
         new Error(
@@ -68,6 +84,12 @@ export function useWorldEntryImage(
       return;
     }
     setCropping({ file });
+  };
+
+  const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (file) takeFile(file);
   };
 
   const save = async (file: File | undefined, imageCrop: ImageCrop) => {
@@ -108,10 +130,8 @@ export function useWorldEntryImage(
       data-testid="world-entry-image-input"
       hidden
       type="file"
-      accept="image/png,image/jpeg,image/gif,image/webp"
-      onChange={(event) => {
-        handleFile(event).catch(onError);
-      }}
+      accept={ACCEPTED_IMAGE_TYPES.join(",")}
+      onChange={handleFile}
     />
   );
 
@@ -138,6 +158,8 @@ export function useWorldEntryImage(
     busy,
     hasImage: !!entry.imageFilename,
     choose: () => inputRef.current?.click(),
+    // Starts the same check and crop with a file from elsewhere (a drop).
+    takeFile,
     crop: () => setCropping({}),
     dialog,
     remove,

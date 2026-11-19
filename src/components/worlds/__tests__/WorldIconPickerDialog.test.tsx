@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -75,7 +75,7 @@ describe("WorldIconPickerDialog", () => {
     });
   });
 
-  it("offers an image upload only when asked, closing before it starts", async () => {
+  it("offers an Image tab only when asked, closing before it starts", async () => {
     const user = userEvent.setup();
     const { unmount } = render(
       <WorldIconPickerDialog
@@ -85,9 +85,7 @@ describe("WorldIconPickerDialog", () => {
         onClose={() => {}}
       />,
     );
-    expect(
-      screen.queryByRole("button", { name: "Upload image" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
     unmount();
 
     const calls: string[] = [];
@@ -95,7 +93,25 @@ describe("WorldIconPickerDialog", () => {
       onClose: () => calls.push("close"),
       onUploadImage: () => calls.push("upload"),
     });
+    await user.click(screen.getByRole("tab", { name: "Image" }));
+    expect(
+      screen.queryByRole("button", { name: "Save" }),
+    ).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Upload image" }));
     expect(calls).toEqual(["close", "upload"]);
+  });
+
+  it("uploads an image dropped on the Image tab", async () => {
+    const user = userEvent.setup();
+    const upload = vi.fn();
+    const close = vi.fn();
+    renderDialog({ onClose: close, onUploadImage: upload });
+    await user.click(screen.getByRole("tab", { name: "Image" }));
+    const file = new File(["png"], "map.png", { type: "image/png" });
+    fireEvent.drop(screen.getByText(/Drop a picture here/), {
+      dataTransfer: { files: [file] },
+    });
+    expect(close).toHaveBeenCalled();
+    expect(upload).toHaveBeenCalledWith(file);
   });
 });
