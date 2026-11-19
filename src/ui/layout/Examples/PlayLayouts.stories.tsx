@@ -79,8 +79,9 @@ export const SheetFirstDesktop: Story = {
 };
 
 /**
- * Sheet first on a tablet. The reference starts as a rail of Moves, Oracles
- * and Game Log; each opens the column over the sheet. Rotate for landscape.
+ * Sheet first on a tablet. The reference is a rail of Moves, Oracles and
+ * Game Log; each opens the column over the sheet, and it can't be kept
+ * open, so the sheet always has the width. Rotate for landscape.
  */
 export const SheetFirstTablet: Story = {
   name: "Sheet first, tablet",
@@ -88,24 +89,25 @@ export const SheetFirstTablet: Story = {
   parameters: {
     docs: {
       description: {
-        story: `${sheetFirstDescription} On a tablet the reference starts folded to its rail so the sheet gets the width, and a rail button opens it over the sheet.`,
+        story: `${sheetFirstDescription} On a tablet the reference stays on its rail so the sheet gets the width: a rail button opens it over the sheet, with no Expand or Keep Open.`,
       },
     },
   },
-  render: () => <SheetFirstPage touch sidebarCollapsed />,
+  render: () => <SheetFirstPage touch sidebarPinnable={false} />,
 };
 
 function ResponsiveSheetFirst() {
   const tier = useGamePageTier();
   if (tier === "phone") return <PhoneGamePage />;
-  // Keyed, so crossing 1200px resets the reference to the tier's default.
-  return <SheetFirstPage key={tier} sidebarCollapsed={tier === "medium"} />;
+  // Below 1200px the reference stays on its rail; above it, it is as the
+  // reader left it.
+  return <SheetFirstPage sidebarPinnable={tier !== "medium"} />;
 }
 
 /**
  * Sheet first at every width: the reference open beside the sheet from
- * 1200px, folded to its rail from 900px (a rail button opens it over the
- * sheet), and below 900px the phone page, which already opens on the sheet
+ * 1200px, held on its rail from 900px (a rail button opens it over the
+ * sheet, and it can't be kept open there), and below 900px the phone page, which already opens on the sheet
  * with the notes a tab away. Step through the toolbar's viewports, from
  * 1600 down to 390, or resize the window with the canvas open on its own.
  */

@@ -101,10 +101,12 @@ export interface PlayLayoutProps {
    */
   touch?: boolean;
   /**
-   * Start with the side column folded to its rail, as a portrait tablet
-   * would. The reader can open it again; the app remembers the choice.
+   * Let the reader keep the reference open beside the sheet (the default).
+   * The app passes false below 1200px, where the sheet needs the width: the
+   * reference stays on its rail and only opens over the sheet, with no
+   * Expand or Keep Open. The reader's choice comes back above 1200px.
    */
-  sidebarCollapsed?: boolean;
+  sidebarPinnable?: boolean;
   /** The character's name, to try long ones. */
   characterName?: string;
 }
@@ -313,7 +315,7 @@ const headerStyles = {
   }),
   name: css({ overflowWrap: "anywhere" }),
   adds: css({ gridArea: "adds", justifySelf: "start" }),
-  gear: css({ gridArea: "gear", justifySelf: "end", alignSelf: "start" }),
+  gear: css({ gridArea: "gear", justifySelf: "end" }),
 };
 
 /**
@@ -710,12 +712,12 @@ const sheetTabs = [
 export function SheetFirstPage(props: PlayLayoutProps) {
   const {
     touch,
-    sidebarCollapsed = false,
+    sidebarPinnable = true,
     characterName = character.name,
   } = props;
   const sheet = usePlaySheet();
   const [referenceSection, setReferenceSection] = useState("moves");
-  const [collapsed, setCollapsed] = useState(sidebarCollapsed);
+  const [collapsed, setCollapsed] = useState(false);
   const [width, setWidth] = useState(320);
   const [tab, setTab] = useState("assets");
 
@@ -802,6 +804,7 @@ export function SheetFirstPage(props: PlayLayoutProps) {
           panels: [reference],
           collapsed,
           onCollapsedChange: setCollapsed,
+          pinnable: sidebarPinnable,
           width,
           onWidthChange: setWidth,
           minWidth: 280,
