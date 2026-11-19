@@ -1,7 +1,7 @@
 /**
  * The adds badge's change animation: a small bump of the pill and the new
- * number fading in from the side it moved towards (up for more, down for
- * less). Run with the Web Animations API, so it needs no global keyframes
+ * number sliding in from the side it moved towards (up for more, down for
+ * less). The number never fades, so stepping quickly doesn't flicker. Run with the Web Animations API, so it needs no global keyframes
  * and composes with the badge's CSS `scale` and `translate` (it animates
  * `transform`, a separate property). Timing reads the motion tokens:
  * `durations.normal` (200ms) for the bump, `durations.fast` (140ms) for the
@@ -36,7 +36,7 @@ function readMs(element: Element, name: string, fallback: number): number {
 /** How far the new number travels in, in px. */
 const NUMBER_TRAVEL = 3;
 /** The bump's peak scale. */
-const BUMP_SCALE = 1.12;
+const BUMP_SCALE = 1.06;
 
 /**
  * Plays the change and returns a cleanup that cancels it, for an effect.
@@ -62,8 +62,8 @@ export function playAddsChange(
   const from = direction === "up" ? NUMBER_TRAVEL : -NUMBER_TRAVEL;
   const fade = number.animate(
     [
-      { opacity: 0, transform: `translateY(${from}px)` },
-      { opacity: 1, transform: "translateY(0)" },
+      { transform: `translateY(${from}px)` },
+      { transform: "translateY(0)" },
     ],
     { duration: readMs(badge, "--durations-fast", 140), easing },
   );
