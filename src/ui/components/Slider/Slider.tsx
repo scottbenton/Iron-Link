@@ -1,6 +1,7 @@
 import { Slider as BaseSlider } from "@base-ui/react/slider";
 import { ReactNode, Ref } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { ledgeShadow } from "ui/styles/ledge";
 
@@ -112,10 +113,7 @@ const thumbStyles = css({
   transitionDuration: "fast",
   transitionTimingFunction: "out",
   outline: "none",
-  "&:has(:focus-visible)": {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "2px",
-  },
+  "&:has(:focus-visible)": focusRing.outset,
   "&[data-dragging]": {
     cursor: "grabbing",
     scale: "0.92",
