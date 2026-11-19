@@ -31,7 +31,7 @@ const onDark = "#030712";
 
 export const schemes = {
   default: {
-    label: "Default",
+    label: "Sunrise",
     light: { fg: "#be123c", solid: "#be123c", onSolid: onLight },
     dark: { fg: "#fb7185", solid: "#f43f5e", onSolid: onDark },
     ring: ["#e11d48", "#f59e0b"],
