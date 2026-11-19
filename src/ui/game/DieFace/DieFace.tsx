@@ -43,10 +43,18 @@ export function useDieFace(
 export interface DieFaceProps extends LayoutProps {
   /** The face showing. Changing it crossfades from the old face. */
   face: DieFaceValue;
-  /** The icon size: 14px, 18px (default) or 24px. */
-  size?: "sm" | "md" | "lg";
+  /**
+   * The icon size: 14px, 18px (default) or 24px, or `inherit` to leave it to
+   * the parent's own icon rule (a Button's `svg`, a row's glyph).
+   */
+  size?: "sm" | "md" | "lg" | "inherit";
+  /** The icon weight: `bold` (default), or `fill` as stat cards draw it. */
+  weight?: "bold" | "fill";
   className?: string;
 }
+
+/** A fixed size: the face fills the root. */
+const fill = { width: "100%", height: "100%" };
 
 const rootStyles = cva({
   base: {
@@ -55,13 +63,14 @@ const rootStyles = cva({
     // Both faces share one cell, so the new one fades in over the old. The
     // layers set no display, which the outgoing one turns off.
     "& > *": { gridArea: "1 / 1" },
-    "& svg": { display: "block", width: "100%", height: "100%" },
+    "& svg": { display: "block" },
   },
   variants: {
     size: {
-      sm: { width: "icon.sm", height: "icon.sm" },
-      md: { width: "icon.md", height: "icon.md" },
-      lg: { width: "icon.lg", height: "icon.lg" },
+      sm: { width: "icon.sm", height: "icon.sm", "& svg": fill },
+      md: { width: "icon.md", height: "icon.md", "& svg": fill },
+      lg: { width: "icon.lg", height: "icon.lg", "& svg": fill },
+      inherit: {},
     },
   },
   defaultVariants: { size: "md" },
@@ -84,7 +93,8 @@ const exitStyles = css({
  * A die icon (bold, decorative) showing one face. When `face` changes, the
  * new face crossfades in over the old one, quickly; with reduced motion it
  * simply replaces it. Pair it with `useDieFace` on anything that rolls, such
- * as OracleTextField's button, so each roll shows a new face.
+ * as OracleTextField's button, roll buttons, stat cards, meters and oracle
+ * rows, so each roll shows a new face.
  *
  * ```tsx
  * const [face, rollDie] = useDieFace();
@@ -92,7 +102,12 @@ const exitStyles = css({
  * ```
  */
 export function DieFace(props: DieFaceProps) {
-  const { face, size = "md", className } = withLayoutProps(props);
+  const {
+    face,
+    size = "md",
+    weight = "bold",
+    className,
+  } = withLayoutProps(props);
   // The face before the last change, kept while it fades out. Updated
   // during render, so the new face never shows a frame without the fade.
   const [shown, setShown] = useState({
@@ -121,14 +136,14 @@ export function DieFace(props: DieFaceProps) {
             )
           }
         >
-          <Previous weight="bold" />
+          <Previous weight={weight} />
         </span>
       )}
       <span
         key={`in-${change}`}
         className={change > 0 ? enterStyles : undefined}
       >
-        <Face weight="bold" />
+        <Face weight={weight} />
       </span>
     </span>
   );
