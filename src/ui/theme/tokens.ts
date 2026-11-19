@@ -287,11 +287,11 @@ export const semanticTokens = {
     },
   },
   shadows: {
-    // A hard, dark ledge under the top border, thick enough to show below a
-    // dark control border (a 1.5px line hid behind it), so the well reads as
-    // sunk into the surface.
+    // A hard ledge under the top border, so the well reads as sunk into the
+    // surface: 2px and light in light mode, and deeper in dark mode, where a
+    // light one would vanish against the dark well.
     field: lightDark(
-      `inset 0 3px 0 ${mix(v("gray-950"), 20, "transparent")}`,
+      `inset 0 2px 0 ${mix(v("gray-950"), 10, "transparent")}`,
       `inset 0 3px 0 ${mix("black", 80, "transparent")}`,
     ),
     ledge: {

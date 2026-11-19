@@ -1,4 +1,4 @@
-import { FormEvent, useId, useState } from "react";
+import { FormEvent, useState } from "react";
 
 import { css } from "styled-system/css";
 
@@ -11,10 +11,11 @@ import {
   DialogClose,
   DialogHeader,
 } from "../../components/Dialog";
+import { RadioCard, RadioCardGroup } from "../../components/RadioCard";
 import { Select } from "../../components/Select";
 import { TextArea } from "../../components/TextArea";
 import { TextField } from "../../components/TextField";
-import { SegmentedControl } from "../../components/ToggleGroup";
+import { Clock } from "../Clock";
 import {
   ProgressRank,
   defaultRankLabels,
@@ -35,12 +36,11 @@ const ranks: ProgressRank[] = [
 ];
 const segmentChoices = ["4", "6", "8", "10"] as const;
 
-const groupLabelStyles = css({
-  display: "block",
-  marginBlockEnd: "1.5",
-  fontSize: "sm",
-  fontWeight: "semibold",
-  color: "fg.default",
+// The clock under each count, like the app's own segment picker.
+const clockPictureStyles = css({
+  display: "flex",
+  justifyContent: "center",
+  paddingBlockStart: "1",
 });
 
 export interface TrackDialogValues {
@@ -88,7 +88,6 @@ export function TrackDialog(props: TrackDialogProps) {
   } = props;
   const strings = { ...defaultTracksPanelStrings, ...stringsProp };
   const rankLabels = { ...defaultRankLabels, ...rankLabelsProp };
-  const segmentsLabelId = useId();
   const isClock = kind === "clock";
   const initialRank = track && track.kind !== "clock" ? track.rank : undefined;
 
@@ -151,18 +150,26 @@ export function TrackDialog(props: TrackDialogProps) {
           minRows={2}
         />
         {isClock ? (
-          <div>
-            <span id={segmentsLabelId} className={groupLabelStyles}>
-              {strings.dialogSegmentsField}
-            </span>
-            <SegmentedControl
-              aria-labelledby={segmentsLabelId}
-              options={segmentChoices.map((value) => ({ value, label: value }))}
-              value={segments}
-              onValueChange={setSegments}
-              fullWidth
-            />
-          </div>
+          <RadioCardGroup<string>
+            label={strings.dialogSegmentsField}
+            value={segments}
+            onValueChange={setSegments}
+            minCardWidth="72px"
+          >
+            {segmentChoices.map((choice) => (
+              <RadioCard key={choice} value={choice} title={choice} size="sm">
+                <span className={clockPictureStyles} aria-hidden>
+                  <Clock
+                    label={choice}
+                    segments={Number(choice)}
+                    value={0}
+                    size="sm"
+                    hideLabel
+                  />
+                </span>
+              </RadioCard>
+            ))}
+          </RadioCardGroup>
         ) : (
           <>
             <Select<ProgressRank>

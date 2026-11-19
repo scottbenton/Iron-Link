@@ -61,11 +61,11 @@ const rowStyles = css({
   "&[data-read-only]": { gridTemplateColumns: "minmax(48px, 1fr)" },
 });
 
-const valueStyles = css({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  minHeight: "40px",
+/**
+ * A meter's number: the type and tone colours, shared by the plain value
+ * here and Momentum's menu button.
+ */
+export const meterValueTextStyles = css({
   fontFamily: "heading",
   fontWeight: "bold",
   fontSize: "1.5rem",
@@ -76,6 +76,14 @@ const valueStyles = css({
   "&[data-tone=danger]": { color: "danger.fg" },
   "&[data-tone=warning]": { color: "warning.fg" },
   "&[data-tone=success]": { color: "success.fg" },
+});
+
+/** The box a plain value sits in: as tall as the steppers' row. */
+const valueBoxStyles = css({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  minHeight: "40px",
 });
 
 const rollValueStyles = css({
@@ -247,7 +255,11 @@ export function ConditionMeter(props: ConditionMeterProps) {
       </BaseButton>
     </AddsAnchor>
   ) : (
-    <span className={valueStyles} data-tone={tone} data-meter-value="">
+    <span
+      className={cx(valueBoxStyles, meterValueTextStyles)}
+      data-tone={tone}
+      data-meter-value=""
+    >
       {valueText}
     </span>
   );
