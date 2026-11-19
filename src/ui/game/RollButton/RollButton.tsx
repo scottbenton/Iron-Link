@@ -1,4 +1,3 @@
-import { DiceFive } from "@phosphor-icons/react";
 import { ReactNode, forwardRef } from "react";
 
 import { Button, type ButtonProps } from "ui/components/Button";
@@ -7,6 +6,7 @@ import { withLayoutProps } from "ui/styles/layoutProps";
 
 import { cx } from "styled-system/css";
 
+import { DieFace, useDieFace } from "../DieFace";
 import { formatSigned } from "../shared/format";
 import { AddsAnchor } from "./AddsBadge";
 import { rollButtonStyles } from "./rollButtonStyles";
@@ -29,7 +29,10 @@ export interface RollButtonProps
    * `ui/game/shared`).
    */
   children: ReactNode;
-  /** An icon before the label. A die by default; `null` for none. */
+  /**
+   * An icon before the label. A die by default, which turns to a new face
+   * on each press; `null` for none.
+   */
   icon?: ReactNode;
   size?: "sm" | "md" | "lg";
   /**
@@ -59,10 +62,12 @@ export const RollButton = forwardRef<HTMLElement, RollButtonProps>(
       adds = 0,
       addsLabel = (a) => `adds ${a}`,
       className,
+      onClick,
       ...rest
     } = withLayoutProps<RollButtonProps>(props);
+    const [face, rollDie] = useDieFace();
     const iconNode =
-      icon === undefined ? <DiceFive weight="bold" aria-hidden /> : icon;
+      icon === undefined ? <DieFace face={face} size="inherit" /> : icon;
     return (
       <AddsAnchor adds={adds} fullWidth={fullWidth} className={className}>
         <Button
@@ -73,6 +78,10 @@ export const RollButton = forwardRef<HTMLElement, RollButtonProps>(
           startIcon={iconNode}
           className={cx(rollButtonStyles({ size, fullWidth }))}
           data-roll=""
+          onClick={(event) => {
+            if (icon === undefined) rollDie();
+            onClick?.(event);
+          }}
           {...rest}
         >
           <span data-roll-label="">{children}</span>
