@@ -133,7 +133,6 @@ export function NotesPlaceholder() {
 export interface PageTabCharacter {
   id: string;
   name: string;
-  colorSeed?: number;
   portraitUrl?: string;
 }
 
@@ -181,7 +180,6 @@ export function GamePageTabs(props: {
               <CharacterPortrait
                 name={page.character.name}
                 portraitUrl={page.character.portraitUrl}
-                colorSeed={page.character.colorSeed}
                 size="xs"
                 decorative
               />
