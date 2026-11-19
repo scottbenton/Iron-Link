@@ -11,6 +11,7 @@ import {
 
 import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { ledgeLayers } from "ui/styles/ledge";
 
 import { css, cx } from "styled-system/css";
 
@@ -98,9 +99,10 @@ const chipStyles = css({
   transition: "background-color token(durations.fast) linear",
   _hover: { background: "overlay.hover" },
   "&[data-selected]": {
-    background: "bg.surface",
-    borderColor: "border.default",
-    boxShadow: "ledge",
+    ...ledgeLayers(),
+    "--ledge-face": "{colors.bg.surface}",
+    "--ledge-border": "{colors.border.default}",
+    "--ledge-edge": "{colors.border.edge}",
   },
   "&[data-entering]": {
     animation: "fadeIn token(durations.normal) token(easings.out)",
