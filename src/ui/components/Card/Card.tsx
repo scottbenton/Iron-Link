@@ -1,4 +1,3 @@
-import { Button as BaseButton } from "@base-ui/react/button";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import {
@@ -16,7 +15,6 @@ import { ledgeHeight, ledgeLayers } from "ui/styles/ledge";
 import { css, cva, cx } from "styled-system/css";
 import type { SystemStyleObject } from "styled-system/types";
 
-import { type ButtonProps, buttonStyles } from "../Button";
 import { surfaceStyles } from "../Surface";
 
 /** A press target inside the card: an action area, or an overlay. */
@@ -68,28 +66,15 @@ const cardStyles = cva({
         "--ledge-height": ledgeHeight.lifted,
         transform: "translateY(var(--spacing-lift))",
       },
-    // Not on a selected card, whose accent border must show while the
-    // pointer is still on it.
-    [`&:not([data-selected]):has(${target(`:is(:hover, [data-hover])${enabled}`)})`]:
-      {
-        "--ledge-border": "{colors.border.control}",
-      },
+    [`&:has(${target(`:is(:hover, [data-hover])${enabled}`)})`]: {
+      "--ledge-border": "{colors.border.control}",
+    },
     [`&:has(${target(`:is(:active, [data-pressed])${enabled}`)})`]: {
       "--ledge-height": ledgeHeight.sunk,
       transform: "translateY(var(--spacing-sink))",
       transitionDuration: "instant",
     },
     [`&:has(${target(":focus-visible")})`]: focusRing.outset,
-    // Chosen, as one of a set: an accent border doubled by an inset ring.
-    // Hover and press change the ledge only, so the ring stays put. The
-    // border and shadow serve a card that is not pressable; a pressable
-    // one draws them on its face.
-    "&[data-selected]": {
-      borderColor: "accent.solid",
-      boxShadow: "inset 0 0 0 1px token(colors.accent.solid)",
-      "--ledge-border": "{colors.accent.solid}",
-      "--ledge-inset": "inset 0 0 0 1px {colors.accent.solid}",
-    },
     [`&:has(${target(":is(:disabled, [aria-disabled=true], [data-disabled])")})`]:
       {
         transform: "none",
@@ -116,11 +101,6 @@ export interface CardProps extends ComponentProps<"div">, LayoutProps {
   padding?: "none" | "sm" | "md";
   /** Raise the card on a ledge without making it pressable. */
   raised?: boolean;
-  /**
-   * Shows the card as chosen: an accent border and ring. Pair it with a
-   * `CardButtonOverlay` whose `pressed` says the same to assistive tech.
-   */
-  selected?: boolean;
   /** Render another element, such as `<article />` or `<li />`. */
   render?: ReactElement;
 }
@@ -129,24 +109,20 @@ export interface CardProps extends ComponentProps<"div">, LayoutProps {
  * A surface card: border, radius lg, the surface colour. Compose it from
  * `CardHeader`, `CardBody` and `CardFooter`.
  *
- * To make the whole card open or do something, use one of three parts:
+ * To make the whole card open or do something, use one of two parts:
  * - `CardLinkOverlay` when the card opens a page and holds other controls
  *   (a menu, an Invite button) anywhere in it. The link is just the title,
  *   so its name is short, and the other controls keep working.
- * - `CardButtonOverlay` when the card does something (Select) and should
- *   say so with a visible button: the button's hit area covers the card,
- *   and the other controls keep working. With `selected` on the card and
- *   `pressed` on the button it picks one of several.
  * - `CardActionArea` when the card is one control whose name is everything
  *   it wraps, such as a button that runs an action. Other controls go in a
  *   `CardFooter` or the header's `action`, outside it.
  *
- * Each gives the card the ledge and the 1px sink on press. To choose
- * exactly one of a set, use `RadioCard` instead.
+ * Each gives the card the ledge and the 1px sink on press. To choose one
+ * of a set, use `RadioCard` (or a `Checkbox` in each card for several).
  */
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   function Card(props, ref) {
-    const { padding, raised, selected, className, render, ...rest } =
+    const { padding, raised, className, render, ...rest } =
       withLayoutProps(props);
     return useRender({
       defaultTagName: "div",
@@ -159,7 +135,6 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
             cardStyles({ padding }),
             className,
           ),
-          "data-selected": selected || undefined,
         } as ComponentProps<"div">,
         rest,
       ),
@@ -290,109 +265,6 @@ export const CardLinkOverlay = forwardRef<
       rest,
     ),
   });
-});
-
-/**
- * The button's look stays, drawn flat: the card is the pressable thing, with
- * the ledge, the lift on hover and the sink on press, and the button moves
- * with it. Its own position and movement go, because a positioned or
- * transformed button would hold its stretched hit area to its own box, and
- * so do its face and ledge layers, because unpositioned they would stretch
- * over the card too. The button paints its face and border itself, and its
- * `::before` becomes the hit area. The card draws the focus ring. The
- * `:is()` raises these above the button recipe's hover, press and focus.
- */
-const buttonOverlayStyles = css({
-  "&[data-card-overlay]:is(*, :hover, :active, [data-pressed], :focus-visible)":
-    {
-      position: "static",
-      transform: "none",
-      outline: "none",
-      isolation: "auto",
-      background: "var(--ledge-face)",
-      borderColor: "var(--ledge-border)",
-      boxShadow: "var(--ledge-inset, none)",
-      // Stretched over the whole card, border included.
-      _before: {
-        content: '""',
-        position: "absolute",
-        zIndex: 1,
-        inset: "-1px",
-        borderRadius: "lg",
-        background: "transparent",
-        border: 0,
-        boxShadow: "none",
-        pointerEvents: "auto",
-      },
-      _after: { display: "none" },
-    },
-});
-
-export interface CardButtonOverlayProps
-  extends Omit<ComponentProps<typeof BaseButton>, "className" | "render"> {
-  variant?: ButtonProps["variant"];
-  size?: ButtonProps["size"];
-  /** An icon before the label. */
-  startIcon?: ReactNode;
-  /** An icon after the label. */
-  endIcon?: ReactNode;
-  /**
-   * For a card picked from several: on, off, or `undefined` for a plain
-   * button that runs its action once (pick one and close the dialog).
-   * Exposed as `aria-pressed`, so the name stays the same either way.
-   */
-  pressed?: boolean;
-  /** Render as a router link, with `nativeButton={false}`. */
-  render?: ReactElement;
-  className?: string;
-}
-
-/**
- * A visible button, such as Select, whose hit area covers the whole card,
- * so a click anywhere on the card presses it. Name it for the card, not just
- * the verb: give `aria-label="Select Ironclad"` (the visible label must stay
- * part of the name). Place it anywhere in the card except inside another
- * positioned element; a `CardFooter` is fine.
- *
- * Other controls in the card (a rules toggle, links in rules text) sit
- * above it and keep their own clicks, as with `CardLinkOverlay`. Text under
- * it presses the button rather than starting a selection.
- */
-export const CardButtonOverlay = forwardRef<
-  HTMLButtonElement,
-  CardButtonOverlayProps
->(function CardButtonOverlay(props, ref) {
-  const {
-    variant,
-    size = "sm",
-    startIcon,
-    endIcon,
-    pressed,
-    render,
-    nativeButton,
-    className,
-    children,
-    ...rest
-  } = props;
-  return (
-    <BaseButton
-      ref={ref}
-      render={render}
-      nativeButton={nativeButton ?? !render}
-      className={cx(
-        buttonStyles({ variant, size }),
-        buttonOverlayStyles,
-        className,
-      )}
-      aria-pressed={pressed}
-      data-card-overlay=""
-      {...rest}
-    >
-      {startIcon}
-      {children}
-      {endIcon}
-    </BaseButton>
-  );
 });
 
 const headerStyles = css({
