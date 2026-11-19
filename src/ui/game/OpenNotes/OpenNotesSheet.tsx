@@ -8,6 +8,7 @@ import {
 import { ReactNode, useEffect, useRef, useState } from "react";
 
 import { focusRing } from "ui/styles/focus";
+import { quietPressable } from "ui/styles/pressable";
 
 import { css } from "styled-system/css";
 
@@ -47,28 +48,19 @@ const rowStyles = css({
 });
 
 const rowButtonStyles = css({
-  boxSizing: "border-box",
+  ...quietPressable,
   flex: "1 1 auto",
   minWidth: 0,
   minHeight: "56px",
   display: "flex",
   alignItems: "center",
   gap: "3",
-  margin: 0,
   paddingInline: "2",
-  border: 0,
   borderRadius: "md",
-  background: "transparent",
   color: "fg.default",
   font: "inherit",
   fontWeight: "medium",
   textAlign: "start",
-  cursor: "pointer",
-  outline: "none",
-  WebkitTapHighlightColor: "transparent",
-  transition: "background-color token(durations.fast) linear",
-  _hoverable: { _hover: { background: "overlay.hover" } },
-  _active: { background: "overlay.pressed" },
   _focusVisible: focusRing.inset,
   "&[aria-current]": { fontWeight: "semibold" },
   "& [data-part=well]": {

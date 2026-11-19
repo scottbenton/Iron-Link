@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import { focusRing } from "ui/styles/focus";
+import { quietPressable, quietSelected } from "ui/styles/pressable";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -63,6 +64,7 @@ const rowStyles = css({
  */
 const toolbarButtonStyles = cva({
   base: {
+    ...quietPressable,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -71,25 +73,16 @@ const toolbarButtonStyles = cva({
     minHeight: "control.sm",
     minWidth: "control.sm",
     paddingInline: "3",
-    border: 0,
     borderRadius: "sm",
-    background: "transparent",
     color: "fg.default",
     fontFamily: "body",
     fontSize: "sm",
     fontWeight: "semibold",
     lineHeight: "1.2",
     whiteSpace: "nowrap",
-    textDecoration: "none",
-    cursor: "pointer",
-    outline: "none",
-    WebkitTapHighlightColor: "transparent",
-    transition: "background-color token(durations.fast) linear",
     "& svg": { width: "icon.md", height: "icon.md", flex: "none" },
-    _hover: { background: "overlay.hover" },
-    _pressed: { background: "overlay.pressed" },
     _focusVisible: focusRing.inset,
-    "&[aria-pressed=true]": { background: "overlay.selected" },
+    ...quietSelected,
     "&:is(:disabled, [data-disabled])": {
       cursor: "not-allowed",
       color: "fg.disabled",
