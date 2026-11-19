@@ -4,7 +4,7 @@ import { css } from "styled-system/css";
 
 import { Button } from "../../components/Button";
 import { Drawer, DrawerBody, DrawerHeader } from "../../components/Drawer";
-import { RollCard } from "../../game/RollCard";
+import { RollCard } from "../RollCard";
 import type { DockedRoll } from "./RollDock";
 
 const listStyles = css({

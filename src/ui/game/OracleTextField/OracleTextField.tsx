@@ -3,10 +3,13 @@ import { forwardRef } from "react";
 
 import { css, cx } from "styled-system/css";
 
-import { useAnnounce } from "../Announcer";
-import { fieldIconButtonStyles, useControllableState } from "../Field";
-import { Tooltip } from "../Tooltip";
-import { TextField, TextFieldProps } from "./TextField";
+import { useAnnounce } from "../../components/Announcer";
+import {
+  fieldIconButtonStyles,
+  useControllableState,
+} from "../../components/Field";
+import { TextField, TextFieldProps } from "../../components/TextField";
+import { Tooltip } from "../../components/Tooltip";
 
 /**
  * The roll button inside the well: the field's small ghost button, with the
