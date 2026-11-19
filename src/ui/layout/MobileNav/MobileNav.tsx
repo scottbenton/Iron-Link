@@ -107,6 +107,14 @@ const itemStyles = css({
 });
 
 /**
+ * The count sits lower than Badge's usual corner, so it stays inside the
+ * bar instead of crossing its top edge.
+ */
+const badgeStyles = css({
+  "& > [aria-hidden]:last-child": { translate: "35% -10%" },
+});
+
+/**
  * A bar item: a link to a page (`href`), or a button that switches a section
  * of the page in place (`onSelect`), as the game page's Sheet, Notes, Moves,
  * Oracles and Log do.
@@ -180,7 +188,13 @@ export function MobileNav(props: MobileNavProps) {
           const content = (
             <>
               <span aria-hidden="true" className={css({ display: "flex" })}>
-                {badge > 0 ? <Badge count={badge}>{pill}</Badge> : pill}
+                {badge > 0 ? (
+                  <Badge count={badge} className={badgeStyles}>
+                    {pill}
+                  </Badge>
+                ) : (
+                  pill
+                )}
               </span>
               <span data-part="label">{item.label}</span>
               {badge > 0 && (

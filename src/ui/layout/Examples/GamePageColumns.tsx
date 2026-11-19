@@ -17,6 +17,7 @@ import {
   DotsThreeIcon,
   PlusIcon,
   ShareNetworkIcon,
+  UserIcon,
 } from "@phosphor-icons/react";
 import { useState } from "react";
 
@@ -37,6 +38,7 @@ import {
   Tabs,
 } from "../../components/Tabs";
 import { Text } from "../../components/Text";
+import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { characterAuthor, gameLogEntries } from "../../examples/sampleLog";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
@@ -202,19 +204,24 @@ export function CharacterColumn(
               shape="rounded"
               decorative
             />
-            <Stack gap="1" minWidth="0">
-              <Text variant="h3" as="h3">
-                {character.name}
-              </Text>
-              <Flex gap="2" flexWrap="wrap" alignItems="center">
-                <InitiativeChip
-                  status={initiative}
-                  onStatusChange={setInitiative}
-                />
-                <Text variant="caption" color="muted">
-                  Played by {character.playerName}
+            <Stack gap="1" minWidth="0" alignItems="start">
+              <Stack gap="0">
+                <Text variant="h3" as="h3">
+                  {character.name}
                 </Text>
-              </Flex>
+                {/* The player, under the name; "Played by" is read, not shown. */}
+                <HStack gap="1" color="fg.muted">
+                  <UserIcon aria-hidden />
+                  <Text variant="caption" color="muted">
+                    <VisuallyHidden>Played by </VisuallyHidden>
+                    {character.playerName}
+                  </Text>
+                </HStack>
+              </Stack>
+              <InitiativeChip
+                status={initiative}
+                onStatusChange={setInitiative}
+              />
             </Stack>
           </HStack>
 
@@ -290,7 +297,10 @@ export function CharacterColumn(
 
           <Stack gap="2" as="section">
             <SectionHeading title="Experience" as="h3" />
-            <XPMeter label="Unspent Experience" value={xp} onChange={setXp} />
+            {/* At its own width, like the meters, not across the column. */}
+            <Flex>
+              <XPMeter label="Unspent Experience" value={xp} onChange={setXp} />
+            </Flex>
           </Stack>
         </Stack>
       </TabPanel>
