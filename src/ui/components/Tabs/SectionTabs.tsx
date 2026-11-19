@@ -34,6 +34,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
 );
 
 export type SectionTabsVariant = "well" | "underline";
+export type SectionTabsAlign = "center" | "start";
 
 export type SectionTabsSize = "md" | "lg";
 
@@ -74,8 +75,13 @@ const listStyles = cva({
         borderBottom: "1px solid token(colors.border.default)",
         // Centred: auto margins on the end tabs, which fall to zero once the
         // tabs fill the row, so nothing is pushed out of reach on the left.
-        "& > [role=tab]:first-of-type": { marginInlineStart: "auto" },
-        "& > [role=tab]:last-of-type": { marginInlineEnd: "auto" },
+        // `align="start"` keeps them at the start instead.
+        "&:not([data-align=start]) > [role=tab]:first-of-type": {
+          marginInlineStart: "auto",
+        },
+        "&:not([data-align=start]) > [role=tab]:last-of-type": {
+          marginInlineEnd: "auto",
+        },
         // Inside a SectionTabWell the well draws the band.
         "[data-section-tab-well] > &": {
           background: "transparent",
@@ -216,6 +222,12 @@ export interface SectionTabListProps
    */
   size?: SectionTabsSize;
   /**
+   * Where a well's tabs sit: centred (the default, as the game page's
+   * columns have them) or at the start, for a well across a wide panel.
+   * Underline tabs always sit at the start.
+   */
+  align?: SectionTabsAlign;
+  /**
    * Select a tab as arrow keys reach it. On by default, since section
    * panels are cheap to show; turn it off for panels that load.
    */
@@ -234,6 +246,7 @@ export const SectionTabList = forwardRef<HTMLDivElement, SectionTabListProps>(
     const {
       variant = "well",
       size = "md",
+      align = "center",
       activateOnFocus = true,
       className,
       children,
@@ -245,6 +258,7 @@ export const SectionTabList = forwardRef<HTMLDivElement, SectionTabListProps>(
           ref={ref}
           activateOnFocus={activateOnFocus}
           className={cx(listStyles({ variant }), className)}
+          data-align={align}
           {...rest}
         >
           <BaseTabs.Indicator className={indicatorStyles({ variant })} />
@@ -290,6 +304,10 @@ const tabWellStyles = css({
   background: "bg.canvas",
   borderBottom: "1px solid token(colors.border.default)",
   "& > [role=tablist]": { gridColumn: "2" },
+  // At the start: no space before the tabs, the end column takes the rest.
+  "&[data-align=start]": {
+    gridTemplateColumns: "0 minmax(0, auto) minmax(max-content, 1fr)",
+  },
   "& > [data-section-tab-well-end]": {
     gridColumn: "3",
     justifySelf: "end",
@@ -309,6 +327,11 @@ export interface SectionTabWellProps {
    * list, such as a column's menu and Collapse (`SidebarHeaderEnd`).
    */
   end?: ReactNode;
+  /**
+   * Centred across the band (the default) or at its start; give the
+   * `SectionTabList` inside the same `align`.
+   */
+  align?: SectionTabsAlign;
   className?: string;
 }
 
@@ -318,9 +341,13 @@ export interface SectionTabWellProps {
  * only tabs. Without `end`, a well `SectionTabList` alone is the same band.
  */
 export function SectionTabWell(props: SectionTabWellProps) {
-  const { children, end, className } = props;
+  const { children, end, align = "center", className } = props;
   return (
-    <div className={cx(tabWellStyles, className)} data-section-tab-well="">
+    <div
+      className={cx(tabWellStyles, className)}
+      data-section-tab-well=""
+      data-align={align}
+    >
       {children}
       <div data-section-tab-well-end="">{end}</div>
     </div>
