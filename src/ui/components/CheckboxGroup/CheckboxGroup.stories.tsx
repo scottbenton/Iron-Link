@@ -27,6 +27,11 @@ export const Playground: Story = {
   ),
 };
 
+/**
+ * `allLabel` puts a "select all" checkbox above the choices, which nest
+ * under it. One press ticks them all; when all are ticked, one press clears
+ * them. It shows a dash while only some are ticked.
+ */
 export const SelectAll: Story = {
   render: function Render() {
     const all = ["health", "spirit", "supply"];
@@ -36,9 +41,9 @@ export const SelectAll: Story = {
         label="Reset meters"
         value={value}
         onValueChange={setValue}
+        allLabel="All meters"
         allValues={all}
       >
-        <Checkbox parent label="All meters" />
         <Checkbox value="health" label="Health" />
         <Checkbox value="spirit" label="Spirit" />
         <Checkbox value="supply" label="Supply" />

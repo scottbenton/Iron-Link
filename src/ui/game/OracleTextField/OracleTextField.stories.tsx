@@ -68,7 +68,8 @@ type Story = StoryObj<typeof meta>;
  * Press the die to roll Starforged's Settlement Name oracle into the field.
  * The button is named "Roll Settlement Name", and a screen reader hears
  * "Updated Settlement Name to ..." after each roll. Focus stays on the die,
- * so Enter rolls again.
+ * so Enter rolls again. Each roll turns the die to a new face with a quick
+ * crossfade (a straight swap with reduced motion).
  */
 export const Playground: Story = {};
 

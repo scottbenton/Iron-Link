@@ -128,7 +128,17 @@ const segmentStyles = css({
   transitionProperty: "color",
   transitionDuration: "fast",
   "& > svg": { flex: "none", width: "icon.md", height: "icon.md" },
-  "& > span": { overflow: "hidden", textOverflow: "ellipsis" },
+  // The label clips sideways to end in an ellipsis, and a clip is
+  // two-way: at the segment's `lineHeight: none` its box is 1em tall, so
+  // descenders (the g in Starforged) were cut off. Block padding grows the
+  // clip box past the glyphs at any font size, and the matching negative
+  // margin keeps the label's laid-out height, so nothing moves.
+  "& > span": {
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    paddingBlock: "0.25em",
+    marginBlock: "-0.25em",
+  },
   "&:hover:not([data-checked], [data-disabled])": { color: "fg.default" },
   "&[data-checked]": { color: "fg.default" },
   _focusVisible: focusRing.outset,

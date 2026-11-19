@@ -6,7 +6,7 @@ import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 
-import { choiceListStyles } from "../Checkbox";
+import { Checkbox, choiceListStyles } from "../Checkbox";
 import {
   FieldError,
   FieldOwnProps,
@@ -15,6 +15,7 @@ import {
   fieldDescriptionStyles,
   fieldsetDescriptionStyles,
   resolveFieldError,
+  useControllableState,
 } from "../Field";
 
 export interface CheckboxGroupProps extends FieldOwnProps, LayoutProps {
@@ -25,9 +26,11 @@ export interface CheckboxGroupProps extends FieldOwnProps, LayoutProps {
   defaultValue?: string[];
   onValueChange?: (value: string[]) => void;
   /**
-   * Every child's `value`. Needed only for a "select all" Checkbox with
-   * `parent`.
+   * The title of a "select all" checkbox above the choices, which are then
+   * nested under it. Needs `allValues`.
    */
+  allLabel?: ReactNode;
+  /** The `value` of every choice that `allLabel`'s checkbox ticks. */
   allValues?: string[];
   /** Stack the choices (default) or run them in a wrapping row. */
   orientation?: "vertical" | "horizontal";
@@ -37,6 +40,12 @@ export interface CheckboxGroupProps extends FieldOwnProps, LayoutProps {
   "aria-label"?: string;
   className?: string;
 }
+
+/**
+ * The choices under a "select all" checkbox, indented so they line up with
+ * its title: the box (20px) and its gap (10px).
+ */
+const nestedStyles = css({ paddingInlineStart: "30px" });
 
 const groupStyles = css({
   boxSizing: "border-box",
@@ -52,6 +61,11 @@ const groupStyles = css({
  * Several checkboxes under one legend, sharing a description and an error.
  * The legend (`label`) names the group for screen readers.
  *
+ * With `allLabel` and `allValues`, a "select all" checkbox heads the choices
+ * and they sit nested under it, in a group it names. Pressing it ticks every
+ * choice, or unticks them all when every one is already ticked; it shows a
+ * dash while only some are.
+ *
  * ```tsx
  * <CheckboxGroup label="Expansions" value={expansions} onValueChange={set}>
  *   <Checkbox value="delve" label="Ironsworn: Delve" />
@@ -65,6 +79,7 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
     value,
     defaultValue,
     onValueChange,
+    allLabel,
     allValues,
     orientation = "vertical",
     name,
@@ -81,6 +96,35 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
   } = withLayoutProps(props);
   const { invalid, message } = resolveFieldError(error, invalidProp);
   const descriptionId = useId();
+  const allTitleId = useId();
+  // The group keeps the value itself, rather than leaving it to Base UI,
+  // so the "select all" box can work it out.
+  const [current, setCurrent] = useControllableState<string[]>(
+    value,
+    defaultValue ?? [],
+    onValueChange,
+  );
+  const hasAll = allLabel !== undefined && allLabel !== null && !!allValues;
+  const allChecked =
+    hasAll &&
+    allValues.length > 0 &&
+    allValues.every((v) => current.includes(v));
+  const someChecked = hasAll && allValues.some((v) => current.includes(v));
+  // Not Base UI's parent checkbox: that one cycles through the choices that
+  // were ticked before it was first pressed, all, and none, so from none a
+  // press brought back only the earlier choices. This one has two steps:
+  // all, then none. Choices outside `allValues` are left as they are.
+  function toggleAll() {
+    if (!allValues) return;
+    setCurrent(
+      allChecked
+        ? current.filter((v) => !allValues.includes(v))
+        : [...current, ...allValues.filter((v) => !current.includes(v))],
+    );
+  }
+  const list = (
+    <div className={cx(choiceListStyles({ orientation }))}>{children}</div>
+  );
   const hasDescription =
     description !== undefined && description !== null && description !== "";
 
@@ -97,10 +141,8 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
         aria-describedby={hasDescription ? descriptionId : undefined}
         render={
           <BaseCheckboxGroup
-            value={value}
-            defaultValue={defaultValue}
-            onValueChange={(next) => onValueChange?.(next)}
-            allValues={allValues}
+            value={current}
+            onValueChange={(next) => setCurrent(next)}
             disabled={disabled}
           />
         }
@@ -125,7 +167,26 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
             {description}
           </p>
         )}
-        <div className={cx(choiceListStyles({ orientation }))}>{children}</div>
+        {hasAll ? (
+          <div className={cx(choiceListStyles())}>
+            <Checkbox
+              parent
+              label={<span id={allTitleId}>{allLabel}</span>}
+              checked={allChecked}
+              indeterminate={someChecked && !allChecked}
+              onCheckedChange={toggleAll}
+            />
+            <div
+              role="group"
+              aria-labelledby={allTitleId}
+              className={nestedStyles}
+            >
+              {list}
+            </div>
+          </div>
+        ) : (
+          list
+        )}
       </BaseFieldset.Root>
       <FieldError>{message}</FieldError>
     </FieldRoot>

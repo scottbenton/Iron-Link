@@ -41,7 +41,11 @@ export interface CheckboxProps extends LayoutProps {
   required?: boolean;
   /** Shows the state but cannot be changed. */
   readOnly?: boolean;
-  /** In a CheckboxGroup, ticks or unticks every other checkbox. */
+  /**
+   * Marks a CheckboxGroup's "select all" box, which is left out of the
+   * group's value and the form's data. CheckboxGroup sets it for its
+   * `allLabel`; there is no need to set it yourself.
+   */
   parent?: boolean;
   id?: string;
   ref?: Ref<HTMLElement>;
