@@ -93,10 +93,9 @@ export default defineConfig({
         ringSpin: { to: { transform: "rotate(1turn)" } },
         fadeIn: { from: { opacity: 0 }, to: { opacity: 1 } },
         fadeOut: { from: { opacity: 1 }, to: { opacity: 0 } },
-        shimmer: {
-          from: { backgroundPosition: "200% 0" },
-          to: { backgroundPosition: "-200% 0" },
-        },
+        // Skeletons fade in and out together rather than sweep, so a group
+        // of them reads as one block loading.
+        pulse: { "50%": { opacity: 0.45 } },
         indeterminate: {
           from: { transform: "translateX(-100%)" },
           to: { transform: "translateX(250%)" },
