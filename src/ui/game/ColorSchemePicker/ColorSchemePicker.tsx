@@ -27,7 +27,7 @@ const schemeCardStyles = css({
     height: "18px",
     borderRadius: "full",
     background: "bg.surface",
-    "& > svg": { width: "18px", height: "18px" },
+    "& > svg": { width: "icon.md", height: "icon.md" },
   },
 });
 
