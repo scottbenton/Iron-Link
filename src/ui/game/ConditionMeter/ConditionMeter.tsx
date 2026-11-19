@@ -75,7 +75,8 @@ const rowStyles = css({
 export const meterValueTextStyles = css({
   fontFamily: "heading",
   fontWeight: "bold",
-  fontSize: "1.5rem",
+  // The roll buttons' size (rollValueStyles), so every meter's number matches.
+  fontSize: "1.375rem",
   lineHeight: "none",
   fontVariantNumeric: "tabular-nums",
   transitionProperty: "color",
