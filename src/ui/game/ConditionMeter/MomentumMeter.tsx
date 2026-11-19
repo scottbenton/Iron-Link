@@ -23,22 +23,24 @@ import {
 /**
  * The value opens Burn and Reset, so it is an outline Button (its border,
  * ledge, hover, press, open and disabled states) holding the meter's own
- * number (`meterValueTextStyles`). Only its size is the meter's: as tall as
- * a condition meter's value (40px, 44px on touch) and narrow padding, so a
- * row of meters stays one height. Keyed on `data-momentum-value` too, so it
+ * number (`meterValueTextStyles`). Sized like the other meters' roll
+ * buttons: as tall (40px, 44px on touch), at least 48px wide, 4px sides and
+ * a 4px gap before a 14px icon, so a row of meters stays one height and
+ * reads as one set. Keyed on `data-momentum-value` too, so it
  * outranks the Button recipe whatever the stylesheet order.
  */
 const triggerStyles = css({
   "&[data-momentum-value]": {
-    gap: "0.5",
-    minWidth: 0,
+    gap: "1",
+    minWidth: "48px",
     minHeight: "control.md",
-    paddingInline: "1.5",
+    paddingInline: "1",
     _touch: { minHeight: "touch" },
     "[data-stepper-size=touch] &": { minHeight: "touch" },
     "& svg": {
-      width: "12px",
-      height: "12px",
+      width: "icon.sm",
+      height: "icon.sm",
+      flex: "none",
       color: "fg.muted",
       transitionProperty: "transform",
       transitionDuration: "fast",
