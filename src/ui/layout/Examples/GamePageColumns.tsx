@@ -25,7 +25,7 @@ import {
   ShareNetworkIcon,
   UserIcon,
 } from "@phosphor-icons/react";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 
 import { Box, Flex, HStack, Stack } from "ui/primitives";
 
@@ -185,11 +185,26 @@ export function CharacterColumnActions() {
   return <DemoCharacterSettingsMenu />;
 }
 
+/** What a custom Overview header gets: the character and its initiative chip. */
+export interface CharacterHeaderParts {
+  character: SampleCharacter;
+  initiative: ReactNode;
+}
+
 /** The character sheet: Overview, Assets and Tracks, as in the live app. */
 export function CharacterColumn(
-  props: { character?: SampleCharacter } & ColumnTabsProps,
+  props: {
+    character?: SampleCharacter;
+    /** Replaces the Overview's header (portrait, name, player, initiative). */
+    renderHeader?: (parts: CharacterHeaderParts) => ReactNode;
+  } & ColumnTabsProps,
 ) {
-  const { character = sampleCharacters[0], section, onSectionChange } = props;
+  const {
+    character = sampleCharacters[0],
+    renderHeader,
+    section,
+    onSectionChange,
+  } = props;
   const [meters, setMeters] = useState(character.meters);
   // Adds apply to the next roll, then reset to 0, as the live app does.
   const [adds, setAdds] = useState(0);
@@ -214,33 +229,45 @@ export function CharacterColumn(
 
       <TabPanel value="overview" className={sheetPanelStyles}>
         <Stack gap="6">
-          <HStack gap="3" alignItems="center">
-            <CharacterPortrait
-              name={character.name}
-              size="lg"
-              shape="rounded"
-              decorative
-            />
-            <Stack gap="1" minWidth="0" alignItems="start">
-              <Stack gap="0">
-                <Text variant="h3" as="h3">
-                  {character.name}
-                </Text>
-                {/* The player, under the name; "Played by" is read, not shown. */}
-                <HStack gap="1" color="fg.muted">
-                  <UserIcon aria-hidden />
-                  <Text variant="caption" color="muted">
-                    <VisuallyHidden>Played by </VisuallyHidden>
-                    {character.playerName}
-                  </Text>
-                </HStack>
-              </Stack>
-              <InitiativeChip
-                status={initiative}
-                onStatusChange={setInitiative}
+          {renderHeader ? (
+            renderHeader({
+              character,
+              initiative: (
+                <InitiativeChip
+                  status={initiative}
+                  onStatusChange={setInitiative}
+                />
+              ),
+            })
+          ) : (
+            <HStack gap="3" alignItems="center">
+              <CharacterPortrait
+                name={character.name}
+                size="lg"
+                shape="rounded"
+                decorative
               />
-            </Stack>
-          </HStack>
+              <Stack gap="1" minWidth="0" alignItems="start">
+                <Stack gap="0">
+                  <Text variant="h3" as="h3">
+                    {character.name}
+                  </Text>
+                  {/* The player, under the name; "Played by" is read, not shown. */}
+                  <HStack gap="1" color="fg.muted">
+                    <UserIcon aria-hidden />
+                    <Text variant="caption" color="muted">
+                      <VisuallyHidden>Played by </VisuallyHidden>
+                      {character.playerName}
+                    </Text>
+                  </HStack>
+                </Stack>
+                <InitiativeChip
+                  status={initiative}
+                  onStatusChange={setInitiative}
+                />
+              </Stack>
+            </HStack>
+          )}
 
           {/* Adds sit above the stats: they change whichever stat or meter
               the next roll uses. */}

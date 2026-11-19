@@ -13,8 +13,12 @@ import {
   ReferenceColumn,
 } from "../Examples/GamePageColumns";
 import { GamePageTabs } from "../Examples/StoryPlaceholders";
+import {
+  characterSections,
+  referenceSections,
+} from "../Examples/columnSections";
 import { LayoutPanel } from "../shared/layoutPanel";
-import { GameLayout } from "./GameLayout";
+import { GameLayout, GameLayoutProps } from "./GameLayout";
 
 const character: LayoutPanel = {
   id: "character",
@@ -29,6 +33,65 @@ const reference: LayoutPanel = {
   icon: <BookOpenIcon />,
   content: <ReferenceColumn />,
 };
+
+/**
+ * GameLayout with the columns' own tabs wired up, so a collapsed sidebar's
+ * rail shows a button per tab (Overview, Assets, Tracks; Moves, Oracles,
+ * Game Log) and the rail and the column share the open tab, as the app does.
+ */
+function SectionedGameLayout(props: GameLayoutProps) {
+  const [sheetSection, setSheetSection] = useState("overview");
+  const [referenceSection, setReferenceSection] = useState("moves");
+  const withSections = (panel: LayoutPanel): LayoutPanel => {
+    if (panel.id === character.id) {
+      return {
+        ...panel,
+        sections: characterSections,
+        activeSectionId: sheetSection,
+        onActiveSectionChange: setSheetSection,
+        content: (
+          <CharacterColumn
+            section={sheetSection}
+            onSectionChange={setSheetSection}
+          />
+        ),
+      };
+    }
+    if (panel.id === reference.id) {
+      return {
+        ...panel,
+        sections: referenceSections,
+        activeSectionId: referenceSection,
+        onActiveSectionChange: setReferenceSection,
+        content: (
+          <ReferenceColumn
+            section={referenceSection}
+            onSectionChange={setReferenceSection}
+          />
+        ),
+      };
+    }
+    return panel;
+  };
+  const { startSidebar, endSidebar } = props;
+  return (
+    <GameLayout
+      {...props}
+      startSidebar={
+        startSidebar && {
+          ...startSidebar,
+          panels: startSidebar.panels.map(withSections),
+        }
+      }
+      endSidebar={
+        endSidebar && {
+          ...endSidebar,
+          panels: endSidebar.panels.map(withSections),
+        }
+      }
+    />
+  );
+}
 
 const meta: Meta<typeof GameLayout> = {
   title: "Layout/GameLayout",
@@ -62,7 +125,7 @@ const frame = css({ height: "720px" });
 export const Playground: Story = {
   render: (args) => (
     <div className={frame}>
-      <GameLayout {...args} />
+      <SectionedGameLayout {...args} />
     </div>
   ),
 };
@@ -113,7 +176,7 @@ export const Stacked: Story = {
   parameters: { layout: "padded" },
   render: (args) => (
     <div className={mediumFrame}>
-      <GameLayout {...args} />
+      <SectionedGameLayout {...args} />
     </div>
   ),
 };
@@ -122,7 +185,7 @@ function ReferenceOnRail(props: { args: Story["args"] }) {
   const [collapsed, setCollapsed] = useState(true);
   return (
     <div className={mediumFrame}>
-      <GameLayout
+      <SectionedGameLayout
         {...props.args}
         main={meta.args!.main!}
         endSidebar={{
@@ -153,7 +216,7 @@ function BothOnRails(props: { args: Story["args"] }) {
   const [referenceCollapsed, setReferenceCollapsed] = useState(true);
   return (
     <div className={mediumFrame}>
-      <GameLayout
+      <SectionedGameLayout
         {...props.args}
         main={meta.args!.main!}
         startSidebar={{
