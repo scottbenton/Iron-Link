@@ -33,7 +33,7 @@ const headerStyles = css({
   alignItems: "center",
   gap: "1",
   // As tall as a small icon button, the tallest action it carries.
-  minHeight: "32px",
+  minHeight: "control.sm",
   margin: 0,
   paddingInlineStart: "3",
   paddingInlineEnd: "1",

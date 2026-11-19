@@ -69,7 +69,7 @@ const metaStyles = css({
   fontSize: "sm",
   lineHeight: "snug",
   color: "fg.muted",
-  "& > svg": { flex: "none", width: "14px", height: "14px" },
+  "& > svg": { flex: "none", width: "icon.sm", height: "icon.sm" },
 });
 
 const resolvedStyles = css({

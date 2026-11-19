@@ -282,7 +282,7 @@ const moreStyles = css({
   justifyContent: "center",
   alignItems: "center",
   gap: "2",
-  minHeight: "38px",
+  minHeight: "control.md",
   marginBottom: "3",
   fontSize: "sm",
   color: "fg.muted",
