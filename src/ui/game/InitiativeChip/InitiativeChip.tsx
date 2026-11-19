@@ -15,6 +15,9 @@ import {
 
 const chipStyles = css({
   display: "inline-flex",
+  // A chip is as wide as its label, even as a flex or grid child that would
+  // otherwise stretch it across a column.
+  width: "fit-content",
   alignItems: "center",
   gap: "1.5",
   minHeight: "28px",

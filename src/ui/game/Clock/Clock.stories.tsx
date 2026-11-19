@@ -162,11 +162,11 @@ function CardClock(
 
 /**
  * The card presentation, with ProgressTrack's header: eyebrow, name and
- * description on the left; minus, plus and the menu at the top right. The
- * dial sits under the header where a track has its boxes, with room beside
- * it for actions (here the clock's Roll Progress). Minus and plus step one
- * segment, are disabled at the ends and grow to 44px on touch; the centre
- * still advances by one for a mouse or a large finger.
+ * description, the menu at the top right. The dial sits at the start under
+ * the header, where a track has its boxes, with its actions beside it (here
+ * Roll Progress), as the scene challenge's clock sits. The dial is the
+ * control: a segment sets the clock, the middle adds one, and on the
+ * keyboard it is a slider.
  */
 export const Card: Story = {
   render: () => (
@@ -233,9 +233,28 @@ export const CardBesideTracks: Story = {
 };
 
 /**
- * Empty (minus disabled), full (plus disabled, the centre rests), completed
- * (a badge, no minus or plus, the dial an image) and read-only (no
- * controls at all, as a viewer sees it).
+ * With `stepButtons`, minus and plus join the menu in the header's corner,
+ * exactly where a track has them, for a clock advanced often. Off by
+ * default.
+ */
+export const CardWithStepButtons: Story = {
+  render: () => (
+    <Box width="336px" maxWidth="100%">
+      <CardClock
+        label="The archive floods"
+        typeLabel="Tension Clock"
+        segments={6}
+        start={2}
+        stepButtons
+        actions={<RollButton size="sm">Roll Progress</RollButton>}
+      />
+    </Box>
+  ),
+};
+
+/**
+ * Empty, full (the centre rests), completed (a badge, the dial an image)
+ * and read-only (no controls at all, as a viewer sees it).
  */
 export const CardStates: Story = {
   render: () => (
@@ -281,8 +300,8 @@ export const CardStates: Story = {
 /**
  * Card clocks among progress tracks' widths: the game sidebar at its
  * narrowest (280px), default (360px) and a mid width, on its muted
- * background. Long names wrap beside the controls, as a track's do; at
- * 280px the Roll Progress action wraps under the dial. Full clocks rest.
+ * background. Long names wrap beside the menu, as a track's do; Roll
+ * Progress sits beside the dial. Full clocks rest.
  */
 export const CardsInSidebar: Story = {
   render: () => (

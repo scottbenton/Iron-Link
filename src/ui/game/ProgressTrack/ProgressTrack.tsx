@@ -1,4 +1,4 @@
-import { CheckCircle, Minus, Plus } from "@phosphor-icons/react";
+import { CheckCircle } from "@phosphor-icons/react";
 import { ElementType, ReactElement, ReactNode, useId } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
@@ -6,10 +6,10 @@ import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
-import { IconButton } from "../../components/IconButton";
 import { Link } from "../../components/Link";
 import { ProgressBoxes } from "./ProgressBoxes";
 import { TrackCardHeader } from "./TrackCardHeader";
+import { TrackCardStepper } from "./TrackCardStepper";
 import {
   MAX_TICKS,
   ProgressRank,
@@ -27,7 +27,6 @@ import {
   trackCardBadgeStyles as badgeStyles,
   trackCardStyles as cardStyles,
   trackCardDotStyles as dotStyles,
-  trackCardStepperStyles as stepperStyles,
   trackCardTitleStyles as titleStyles,
 } from "./trackCardStyles";
 
@@ -45,7 +44,7 @@ export interface ProgressTrackProps extends LayoutProps {
   description?: string;
   /** Ticks per mark. Defaults to the rank's (Dangerous marks 8), else 1. */
   step?: number;
-  /** A completed track: a badge, success marks and no mark buttons. */
+  /** A completed track: a Completed badge and no mark buttons. */
   completed?: boolean;
   /**
    * A legacy track (Quests, Bonds, Discoveries): no rank. Experience is kept
@@ -54,7 +53,10 @@ export interface ProgressTrackProps extends LayoutProps {
   legacy?: boolean;
   /** Extra actions under the boxes, such as a Fulfill Your Vow roll button. */
   actions?: ReactNode;
-  /** A control at the top right, such as the track's menu. */
+  /**
+   * A control at the top right, such as the track's menu. The minus and
+   * plus sit before it.
+   */
   headerAction?: ReactNode;
   /**
    * Makes the title a link, such as a connection's to its NPC's entry in
@@ -76,9 +78,10 @@ export interface ProgressTrackProps extends LayoutProps {
 }
 
 /**
- * A progress track: ten boxes of four ticks under its name and rank, with
- * minus and plus buttons that erase and mark progress by the rank's step.
- * Compact enough for a 280px sidebar.
+ * A progress track: ten boxes of four ticks under its name and rank. Minus
+ * and plus in the header's corner erase and mark progress by the rank's
+ * step; the title wraps beside them. Static, so the card is flat (no
+ * ledge). Compact enough for a 280px sidebar.
  */
 export function ProgressTrack(props: ProgressTrackProps) {
   const {
@@ -172,7 +175,23 @@ export function ProgressTrack(props: ProgressTrackProps) {
           </Title>
         }
         description={description}
-        action={headerAction}
+        action={
+          (editable || headerAction) && (
+            <>
+              {editable && (
+                <TrackCardStepper
+                  minusLabel={strings.eraseLabel(label)}
+                  plusLabel={strings.markLabel(label)}
+                  minusDisabled={ticks === 0}
+                  plusDisabled={ticks >= MAX_TICKS}
+                  onMinus={() => change(-step)}
+                  onPlus={() => change(step)}
+                />
+              )}
+              {headerAction}
+            </>
+          )
+        }
       />
 
       <div
@@ -186,31 +205,9 @@ export function ProgressTrack(props: ProgressTrackProps) {
         <ProgressBoxes ticks={ticks} complete={completed} />
       </div>
 
-      {(actions || editable) && (
+      {actions && (
         <div className={actionsStyles}>
-          {actions && <div data-actions="">{actions}</div>}
-          {editable && (
-            <div className={stepperStyles} data-stepper="">
-              <IconButton
-                label={strings.eraseLabel(label)}
-                size="sm"
-                focusableWhenDisabled
-                disabled={ticks === 0}
-                onClick={() => change(-step)}
-              >
-                <Minus weight="bold" />
-              </IconButton>
-              <IconButton
-                label={strings.markLabel(label)}
-                size="sm"
-                focusableWhenDisabled
-                disabled={ticks >= MAX_TICKS}
-                onClick={() => change(step)}
-              >
-                <Plus weight="bold" />
-              </IconButton>
-            </div>
-          )}
+          <div data-actions="">{actions}</div>
         </div>
       )}
     </div>
