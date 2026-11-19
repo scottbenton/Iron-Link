@@ -23,7 +23,7 @@ export interface ThemeLevels {
   app?: ThemeChoice;
 }
 
-/** The Automatic app theme: Pride through June, Default the rest of the year. */
+/** The Default app theme: Pride through June, Sunrise the rest of the year. */
 export function getAutomaticScheme(date: Date = new Date()): SchemeName {
   return date.getMonth() === 5 ? "pride_traditional" : "default";
 }
@@ -46,7 +46,7 @@ export function charactersHaveThemes(
 
 /**
  * The theme in effect: the character's, else the game's, else the person's
- * app theme, else Automatic.
+ * app theme, else Default (the seasonal theme).
  */
 export function resolveTheme(
   levels: ThemeLevels,

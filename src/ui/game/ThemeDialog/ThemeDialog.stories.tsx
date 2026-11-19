@@ -243,10 +243,11 @@ export const SoloGameTwoCharacters: Story = {
 };
 
 /**
- * In June, Automatic resolves to Pride, so every row that falls all the way
- * back shows it.
+ * With no app theme the person has Default, which changes with the season:
+ * Sunrise most of the year and Pride in June. Here it is June, so every row
+ * that falls all the way back shows Pride.
  */
-export const AutomaticInJune: Story = {
+export const DefaultInJune: Story = {
   args: {
     characters: [{ ...kira, theme: null }],
     currentCharacterId: kira.id,
@@ -308,7 +309,9 @@ export const PhoneWidthLongNames: Story = {
 
 /**
  * Change a theme and Save: the save fails, the error stays in the dialog,
- * and the draft is kept so Save can be tried again.
+ * and the draft is kept so Save can be tried again. The error sits in the
+ * footer above Save, so it is in view however far down the person has
+ * scrolled, and is read out as an alert.
  */
 export const SaveFails: Story = {
   args: { ...GuidedGameAsGuide.args, failSave: true },

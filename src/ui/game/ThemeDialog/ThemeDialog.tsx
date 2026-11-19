@@ -83,7 +83,7 @@ export interface ThemeDialogProps {
   currentCharacterId?: string;
   /** The game, solo games included. Leave it out outside a game. */
   game?: ThemeDialogGame;
-  /** The person's app theme, or null for Automatic. */
+  /** The person's app theme, or null for Default (the seasonal one). */
   appTheme: ThemeChoice;
   /**
    * Called with only the themes that changed. The dialog shows Saving while
@@ -93,7 +93,7 @@ export interface ThemeDialogProps {
   onSave: (changes: ThemeChange[]) => void | Promise<void>;
   /** The row whose choices start open, such as the character or the game the person came from. */
   initialOpen?: ThemeTarget;
-  /** Today, for Automatic's June switch. Defaults to now. */
+  /** Today, for Default's June switch. Defaults to now. */
   date?: Date;
   strings?: Partial<ThemeDialogStrings>;
 }
@@ -132,7 +132,16 @@ function getSavedDraft(props: ThemeDialogProps): ThemeDraft {
 }
 
 const sectionStyles = css({ display: "grid", gap: "1" });
-const listStyles = css({ listStyle: "none", margin: 0, padding: 0 });
+/** A container, so a row lays out by the dialog's width, not the window's. */
+const listStyles = css({
+  listStyle: "none",
+  margin: 0,
+  padding: 0,
+  containerType: "inline-size",
+  containerName: "theme-rows",
+});
+/** The save error takes its own line above Cancel and Save. */
+const errorStyles = css({ flexBasis: "100%" });
 
 const markStyles = css({
   display: "inline-flex",
@@ -315,11 +324,6 @@ export function ThemeDialog(props: ThemeDialogProps) {
       <DialogHeader title={strings.title} />
       <DialogBody>
         <DialogDescription>{description}</DialogDescription>
-        {error && (
-          <Alert tone="danger" role="alert">
-            {error}
-          </Alert>
-        )}
 
         {orderedCharacters.length > 0 && (
           <section
@@ -461,6 +465,13 @@ export function ThemeDialog(props: ThemeDialogProps) {
         </section>
       </DialogBody>
       <DialogActions>
+        {/* In the footer, beside Save, so it is in view however far the
+            body is scrolled. */}
+        {error && (
+          <Alert tone="danger" role="alert" className={errorStyles}>
+            {error}
+          </Alert>
+        )}
         <DialogClose
           render={
             <Button type="button" disabled={saving}>

@@ -9,6 +9,27 @@ import { IronLinkMark } from "../../components/IronLinkMark";
 import { RadioCard, RadioCardGroup } from "../../components/RadioCard";
 
 const markStyles = css({ width: "40px", height: "40px" });
+const schemeMarkStyles = css({ width: "32px", height: "32px" });
+
+/**
+ * A scheme's card is narrow (two to a row at phone width), so its mark is
+ * 32px and the check sits on the mark's corner as a badge instead of
+ * keeping a slot after the name. Long names such as Hinterlands keep one
+ * line. The card's padding (12px) and border (1px) place the badge.
+ */
+const schemeCardStyles = css({
+  "& [data-frame]": { width: "32px", height: "32px" },
+  "& span[aria-hidden]:not([data-frame])": {
+    position: "absolute",
+    top: "calc(token(spacing.3) + 1px + 32px - 13px)",
+    insetInlineStart: "calc(token(spacing.3) + 1px + 32px - 13px)",
+    width: "18px",
+    height: "18px",
+    borderRadius: "full",
+    background: "bg.surface",
+    "& > svg": { width: "18px", height: "18px" },
+  },
+});
 
 /** The radio value that stands for the fallback option. */
 const FALLBACK_VALUE = "__fallback";
@@ -115,9 +136,13 @@ export function ColorSchemePicker(props: ColorSchemePickerProps) {
           value={name}
           title={labels?.[name] ?? schemes[name].label}
           size="sm"
+          className={schemeCardStyles}
           iconFrame="none"
           icon={
-            <IronLinkMark colors={schemes[name].icon} className={markStyles} />
+            <IronLinkMark
+              colors={schemes[name].icon}
+              className={schemeMarkStyles}
+            />
           }
         />
       ))}
