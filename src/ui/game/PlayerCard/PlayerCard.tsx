@@ -63,9 +63,11 @@ const cardStyles = css({
   "@container player-card (max-width: 339.98px)": {
     "& > [data-player-layout]": {
       gridTemplateColumns: "auto minmax(0, 1fr)",
-      gridTemplateAreas: '"portrait titles" "portrait actions"',
+      // The actions take the card's whole width under the portrait, so two
+      // of them (Make Guide, Kick Player) still fit on one line.
+      gridTemplateAreas: '"portrait titles" "actions actions"',
     },
-    "& [data-actions]": { justifyContent: "flex-start" },
+    "& [data-actions]": { justifyContent: "flex-end" },
   },
 });
 

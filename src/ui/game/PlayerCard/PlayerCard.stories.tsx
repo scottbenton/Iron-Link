@@ -90,8 +90,9 @@ export const Players: Story = {
 };
 
 /**
- * In a narrow column the actions go under the name, so the name keeps the
- * row's width.
+ * In a narrow column (under 340px) the actions go on their own line across
+ * the card, at its end, so the name keeps the row's width and two actions
+ * still fit side by side.
  */
 export const Narrow: Story = {
   args: {
@@ -102,9 +103,14 @@ export const Narrow: Story = {
     statusLabel: "Online",
     characters: [member(orrin, "myriad"), member(kira, "cinder")],
     actions: (
-      <Button size="sm" variant="ghost">
-        Make Guide
-      </Button>
+      <>
+        <Button size="sm" variant="ghost">
+          Make Guide
+        </Button>
+        <Button size="sm" variant="ghost">
+          Kick Player
+        </Button>
+      </>
     ),
   },
   render: (args) => (
