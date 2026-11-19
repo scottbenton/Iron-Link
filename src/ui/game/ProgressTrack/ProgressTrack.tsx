@@ -9,6 +9,7 @@ import { useAnnounce } from "../../components/Announcer";
 import { IconButton } from "../../components/IconButton";
 import { Link } from "../../components/Link";
 import { ProgressBoxes } from "./ProgressBoxes";
+import { TrackCardHeader } from "./TrackCardHeader";
 import {
   MAX_TICKS,
   ProgressRank,
@@ -25,11 +26,8 @@ import {
   trackCardActionsStyles as actionsStyles,
   trackCardBadgeStyles as badgeStyles,
   trackCardStyles as cardStyles,
-  trackCardControlsStyles as controlsStyles,
-  trackCardDescriptionStyles as descriptionStyles,
   trackCardDotStyles as dotStyles,
-  trackCardEyebrowStyles as eyebrowStyles,
-  trackCardHeadStyles as headStyles,
+  trackCardStepperStyles as stepperStyles,
   trackCardTitleStyles as titleStyles,
 } from "./trackCardStyles";
 
@@ -134,10 +132,10 @@ export function ProgressTrack(props: ProgressTrackProps) {
       data-plain={plain || undefined}
       data-complete={completed || undefined}
     >
-      <div className={headStyles}>
-        <div className={css({ flex: "1", minWidth: 0 })}>
-          {(eyebrow.length > 0 || completed) && (
-            <p className={eyebrowStyles}>
+      <TrackCardHeader
+        eyebrow={
+          (eyebrow.length > 0 || completed) && (
+            <>
               {eyebrow.map((part, index) => (
                 <span key={index} className={css({ display: "contents" })}>
                   {index > 0 && (
@@ -154,8 +152,10 @@ export function ProgressTrack(props: ProgressTrackProps) {
                   {strings.completedLabel}
                 </span>
               )}
-            </p>
-          )}
+            </>
+          )
+        }
+        title={
           <Title id={titleId} className={titleStyles}>
             {titleHref || titleLinkRender ? (
               <Link
@@ -170,36 +170,10 @@ export function ProgressTrack(props: ProgressTrackProps) {
               label
             )}
           </Title>
-          {description && <p className={descriptionStyles}>{description}</p>}
-        </div>
-        {(editable || headerAction) && (
-          <div className={controlsStyles}>
-            {editable && (
-              <>
-                <IconButton
-                  label={strings.eraseLabel(label)}
-                  size="sm"
-                  focusableWhenDisabled
-                  disabled={ticks === 0}
-                  onClick={() => change(-step)}
-                >
-                  <Minus weight="bold" />
-                </IconButton>
-                <IconButton
-                  label={strings.markLabel(label)}
-                  size="sm"
-                  focusableWhenDisabled
-                  disabled={ticks >= MAX_TICKS}
-                  onClick={() => change(step)}
-                >
-                  <Plus weight="bold" />
-                </IconButton>
-              </>
-            )}
-            {headerAction}
-          </div>
-        )}
-      </div>
+        }
+        description={description}
+        action={headerAction}
+      />
 
       <div
         role="progressbar"
@@ -212,7 +186,33 @@ export function ProgressTrack(props: ProgressTrackProps) {
         <ProgressBoxes ticks={ticks} complete={completed} />
       </div>
 
-      {actions && <div className={actionsStyles}>{actions}</div>}
+      {(actions || editable) && (
+        <div className={actionsStyles}>
+          {actions && <div data-actions="">{actions}</div>}
+          {editable && (
+            <div className={stepperStyles} data-stepper="">
+              <IconButton
+                label={strings.eraseLabel(label)}
+                size="sm"
+                focusableWhenDisabled
+                disabled={ticks === 0}
+                onClick={() => change(-step)}
+              >
+                <Minus weight="bold" />
+              </IconButton>
+              <IconButton
+                label={strings.markLabel(label)}
+                size="sm"
+                focusableWhenDisabled
+                disabled={ticks >= MAX_TICKS}
+                onClick={() => change(step)}
+              >
+                <Plus weight="bold" />
+              </IconButton>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

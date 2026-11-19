@@ -28,10 +28,13 @@ const tensionStyles = css({
   color: "fg.muted",
 });
 
+/** The odds and Roll Progress share a row, each wrapping under the other. */
 const clockActionsStyles = css({
-  display: "grid",
+  display: "flex",
+  flexWrap: "wrap",
   gap: "2",
-  justifyItems: "stretch",
+  width: "100%",
+  "& > *": { flex: "1 1 8rem", minWidth: 0 },
 });
 
 export interface ProgressTrackEntryProps {
