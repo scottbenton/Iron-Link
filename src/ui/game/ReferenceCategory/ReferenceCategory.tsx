@@ -71,8 +71,9 @@ const triggerStyles = cva({
         "linear-gradient(token(colors.overlay.pressed), token(colors.overlay.pressed))",
     },
     _focusVisible: focusRing.inset,
+    // Disabled, the header takes no pointer at all: no hover, no press.
     "&:is(:disabled, [data-disabled])": {
-      cursor: "not-allowed",
+      pointerEvents: "none",
       color: "fg.disabled",
       "& [data-caret], & [data-count]": { color: "fg.disabled" },
     },

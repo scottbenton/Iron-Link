@@ -1,8 +1,11 @@
 import {
+  CaretRight,
+  DiceFive,
   DotsThreeVertical,
   GameController,
   Planet,
   Sword,
+  Table,
   User,
   Users,
 } from "@phosphor-icons/react";
@@ -24,6 +27,7 @@ import {
   ListItemText,
   ListSubheader,
 } from "./List";
+import { ListRow, ListRowButton } from "./ListRow";
 
 const frame = css({
   width: "100%",
@@ -153,4 +157,47 @@ export const PlainRows: Story = {
       </Grid>
     );
   },
+};
+
+/**
+ * `ListRow`: the dense row under move and oracle lists. The whole row does
+ * one thing; an optional control lies over its end. Disabled rows take no
+ * pointer at all.
+ */
+export const Rows: Story = {
+  render: () => (
+    <List className={frame}>
+      <ListRow as="li">
+        <ListRowButton>
+          <span data-row-name="">Face Danger</span>
+          <CaretRight data-row-glyph="" aria-hidden />
+        </ListRowButton>
+      </ListRow>
+      <ListRow
+        as="li"
+        action={
+          <IconButton label="View table for Action" size="sm">
+            <Table />
+          </IconButton>
+        }
+      >
+        <ListRowButton>
+          <span data-row-name="">Action</span>
+          <span data-row-glyph="" aria-hidden>
+            <DiceFive weight="bold" />
+          </span>
+        </ListRowButton>
+      </ListRow>
+      <ListRow as="li">
+        <ListRowButton current>
+          <span data-row-name="">Theme</span>
+        </ListRowButton>
+      </ListRow>
+      <ListRow as="li">
+        <ListRowButton disabled>
+          <span data-row-name="">Make a Connection</span>
+        </ListRowButton>
+      </ListRow>
+    </List>
+  ),
 };

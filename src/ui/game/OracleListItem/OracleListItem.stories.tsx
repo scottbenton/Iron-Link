@@ -1,8 +1,6 @@
-import { PushPin } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ReactNode, useState } from "react";
 
-import { IconButton } from "ui/components/IconButton";
 import { Text } from "ui/components/Text";
 import { Box, Stack } from "ui/primitives";
 
@@ -91,9 +89,8 @@ export const List: Story = {
 };
 
 /**
- * Moves and oracles in one panel. Both use the same row: 36px, names 12px
- * in, a muted glyph at the end (chevron opens, die rolls), end controls in
- * the same column.
+ * Moves and oracles in one panel. Both are a `ListRow`: 36px, names 12px
+ * in, a muted glyph at the end (chevron opens, die rolls).
  */
 export const BesideMoves: Story = {
   render: () => (
@@ -110,11 +107,6 @@ export const BesideMoves: Story = {
               key={move._id}
               move={move}
               moveCardProps={{ onRoll: () => {} }}
-              secondaryAction={
-                <IconButton label={`Pin ${move.name}`} size="sm">
-                  <PushPin />
-                </IconButton>
-              }
             />
           ))}
         </RowList>
