@@ -101,6 +101,7 @@ function show(tone: ToastTone, message: string, options: ToastOptions = {}) {
         message={message}
         description={description}
         dismissLabel={dismissLabel}
+        elevated
         onDismiss={close}
         action={
           action && {
