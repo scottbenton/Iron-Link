@@ -34,6 +34,9 @@ export const sampleMoves = {
     "undertake_an_expedition",
   ),
   fulfillYourVow: starforgedMove("quest", "fulfill_your_vow"),
+  continueALegacy: starforgedMove("legacy", "continue_a_legacy"),
+  forgeABond: starforgedMove("connection", "forge_a_bond"),
+  writeYourEpilogue: classicMove("relationship", "write_your_epilogue"),
 };
 
 export const sampleAssets = {
