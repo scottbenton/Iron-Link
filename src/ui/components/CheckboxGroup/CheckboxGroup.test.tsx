@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { Checkbox } from "../Checkbox";
@@ -36,5 +37,65 @@ describe("group help", () => {
     expect(
       screen.getByRole("radio", { name: "Solo" }),
     ).toHaveAccessibleDescription("One character.");
+  });
+});
+
+describe("select all", () => {
+  function renderMeters(defaultValue: string[]) {
+    render(
+      <CheckboxGroup
+        label="Reset meters"
+        allLabel="All meters"
+        allValues={["health", "spirit", "supply"]}
+        defaultValue={defaultValue}
+      >
+        <Checkbox value="health" label="Health" />
+        <Checkbox value="spirit" label="Spirit" />
+        <Checkbox value="supply" label="Supply" />
+      </CheckboxGroup>,
+    );
+  }
+  const states = () =>
+    ["All meters", "Health", "Spirit", "Supply"].map((name) =>
+      screen.getByRole("checkbox", { name }).getAttribute("aria-checked"),
+    );
+
+  it("nests the choices in a group named by the select all box", () => {
+    renderMeters([]);
+    const nested = screen.getByRole("group", { name: "All meters" });
+    expect(within(nested).getAllByRole("checkbox")).toHaveLength(3);
+    expect(
+      within(nested).queryByRole("checkbox", { name: "All meters" }),
+    ).toBeNull();
+  });
+
+  it("ticks all in one press from some, then clears all", async () => {
+    const user = userEvent.setup();
+    renderMeters(["health"]);
+    expect(states()).toEqual(["mixed", "true", "false", "false"]);
+    await user.click(screen.getByText("All meters"));
+    expect(states()).toEqual(["true", "true", "true", "true"]);
+    await user.click(screen.getByText("All meters"));
+    expect(states()).toEqual(["false", "false", "false", "false"]);
+  });
+
+  // Base UI's parent checkbox brought back the earlier choices (Health
+  // alone) on the press after clearing, and needed a second press for all.
+  it("ticks all in one press after clearing them", async () => {
+    const user = userEvent.setup();
+    renderMeters(["health"]);
+    await user.click(screen.getByText("All meters"));
+    await user.click(screen.getByText("All meters"));
+    await user.click(screen.getByText("All meters"));
+    expect(states()).toEqual(["true", "true", "true", "true"]);
+  });
+
+  it("ticks all in one press after the choices were cleared one by one", async () => {
+    const user = userEvent.setup();
+    renderMeters(["health", "spirit"]);
+    await user.click(screen.getByText("Health"));
+    await user.click(screen.getByText("Spirit"));
+    await user.click(screen.getByText("All meters"));
+    expect(states()).toEqual(["true", "true", "true", "true"]);
   });
 });
