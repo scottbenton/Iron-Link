@@ -1,6 +1,7 @@
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { X } from "@phosphor-icons/react";
 import {
+  CSSProperties,
   ComponentProps,
   FormEvent,
   ReactNode,
@@ -112,6 +113,11 @@ export interface DialogProps {
   onClose: () => void;
   children: ReactNode;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
+  /**
+   * The widest the dialog grows, in place of `size`'s width, such as
+   * `"960px"` or `960` (pixels). It still keeps a margin on small screens.
+   */
+  maxWidth?: string | number;
   fullScreenOnMobile?: boolean;
   /**
    * Makes the dialog a form, so Enter in a field submits it. Give the main
@@ -139,6 +145,7 @@ export function Dialog(props: DialogProps) {
     onClose,
     children,
     size,
+    maxWidth,
     fullScreenOnMobile,
     onSubmit,
     extras,
@@ -175,6 +182,14 @@ export function Dialog(props: DialogProps) {
             className,
           )}
           initialFocus={initialFocus}
+          style={
+            maxWidth === undefined
+              ? undefined
+              : ({
+                  "--dialog-width":
+                    typeof maxWidth === "number" ? `${maxWidth}px` : maxWidth,
+                } as CSSProperties)
+          }
           render={
             onSubmit ? (
               <form
