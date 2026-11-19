@@ -169,3 +169,70 @@ describe("stacked panels with their controls in the content", () => {
     ).not.toHaveAttribute("data-stack-panel");
   });
 });
+
+describe("a rail shared by two sidebars", () => {
+  function SharedRail(props: { expanded: string[] }) {
+    const { expanded } = props;
+    const panel = (id: string, title: string, sectionIds: string[]) => ({
+      id,
+      title,
+      sections: sectionIds.map((sectionId) => ({
+        id: sectionId,
+        title: sectionId,
+        icon: <svg />,
+      })),
+      content: <p>{title} content</p>,
+    });
+    return (
+      <Sidebar
+        collapsed
+        stackPanels
+        resizable={false}
+        panels={[
+          panel("sheet", "Character", ["Stats"]),
+          panel("reference", "Reference", ["Moves", "Oracles"]),
+        ]}
+        railGroups={[
+          {
+            label: "Character",
+            panelIds: ["sheet"],
+            expandLabel: "Expand Character",
+            onExpand: () => expanded.push("sheet"),
+          },
+          {
+            label: "Reference",
+            panelIds: ["reference"],
+            expandLabel: "Expand Reference",
+            onExpand: () => expanded.push("reference"),
+          },
+        ]}
+      />
+    );
+  }
+
+  it("groups each sidebar's Expand with its own sections", () => {
+    const expanded: string[] = [];
+    render(<SharedRail expanded={expanded} />);
+    const reference = screen.getByRole("group", { name: "Reference" });
+    expect(reference).toContainElement(
+      screen.getByRole("button", { name: "Expand Reference" }),
+    );
+    expect(reference).toContainElement(
+      screen.getByRole("button", { name: "Moves" }),
+    );
+    expect(
+      screen.getByRole("group", { name: "Character" }),
+    ).not.toContainElement(screen.getByRole("button", { name: "Moves" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Expand Reference" }));
+    expect(expanded).toEqual(["reference"]);
+  });
+
+  it("opens the peeked panel's own sidebar when kept open", () => {
+    const expanded: string[] = [];
+    render(<SharedRail expanded={expanded} />);
+    fireEvent.click(screen.getByRole("button", { name: "Oracles" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Keep .* Open$/ }));
+    expect(expanded).toEqual(["reference"]);
+  });
+});
