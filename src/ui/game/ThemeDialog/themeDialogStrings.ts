@@ -34,8 +34,12 @@ export interface ThemeDialogStrings {
   useAppTheme: string;
   /** Under "Use my app theme" on the game row. */
   useAppThemeForGame: string;
+  /**
+   * The option that sets no app theme. It reads "Default" because what it
+   * picks changes with the season.
+   */
   automatic: string;
-  /** Under Automatic: what it picks, given whether it is June now. */
+  /** Under Default: what it picks, given whether it is June now. */
   automaticDescription: (isJune: boolean) => string;
   /** Where a row's theme comes from; `own` when the row sets it itself. */
   source: (source: ThemeSource | "own") => string;
@@ -75,11 +79,11 @@ export const defaultThemeDialogStrings: ThemeDialogStrings = {
   useGameTheme: "Use the game's theme",
   useAppTheme: "Use my app theme",
   useAppThemeForGame: "Everyone sees their own app theme",
-  automatic: "Automatic",
+  automatic: "Default",
   automaticDescription: (isJune) =>
     isJune
-      ? "Pride through June, then Default"
-      : "Default, and Pride through June",
+      ? "Changes with the season: Pride through June, then Sunrise"
+      : "Changes with the season: Sunrise, and Pride through June",
   source: (source) => {
     switch (source) {
       case "own":
@@ -91,7 +95,7 @@ export const defaultThemeDialogStrings: ThemeDialogStrings = {
       case "app":
         return "from your app theme";
       case "automatic":
-        return "automatic";
+        return "by default";
     }
   },
   resolved: (schemeName, source) => `${schemeName}, ${source}`,

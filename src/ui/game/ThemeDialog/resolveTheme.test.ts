@@ -50,7 +50,7 @@ describe("resolveTheme", () => {
     });
   });
 
-  it("ends at Automatic: Default most of the year, Pride in June", () => {
+  it("ends at Default: Sunrise most of the year, Pride in June", () => {
     expect(
       resolveTheme({ character: null, game: null, app: null }, november),
     ).toEqual({ scheme: "default", source: "automatic" });
@@ -60,7 +60,7 @@ describe("resolveTheme", () => {
     });
   });
 
-  it("does not let Automatic hide a chosen theme in June", () => {
+  it("does not let Default hide a chosen theme in June", () => {
     expect(resolveTheme({ game: "hinterlands" }, june)).toEqual({
       scheme: "hinterlands",
       source: "game",
