@@ -1,4 +1,4 @@
-import { ConditionMeter, ConditionMeterProps } from "../ConditionMeter";
+import { ConditionMeter, ConditionMeterProps } from "./ConditionMeter";
 
 export interface XPMeterProps
   extends Omit<
@@ -16,8 +16,10 @@ export interface XPMeterProps
 const plain = (value: number) => String(value);
 
 /**
- * Experience as a meter, the same card as Health and Spirit: steppers either
- * side of the unspent total. Ironsworn and Starforged earn and spend
+ * Experience as a meter. Like `MomentumMeter`, it is a `ConditionMeter`
+ * with its own defaults rather than a component of its own: the same card,
+ * label, steppers, value box, announcements and touch sizes as Health and
+ * Spirit, minus the pips. Ironsworn and Starforged earn and spend
  * experience differently, so the meter only counts what is left to spend.
  */
 export function XPMeter(props: XPMeterProps) {
@@ -38,7 +40,3 @@ export function XPMeter(props: XPMeterProps) {
     />
   );
 }
-
-/** The old name: experience is a meter now, not a row of pips. */
-export const XPTrack = XPMeter;
-export type XPTrackProps = XPMeterProps;
