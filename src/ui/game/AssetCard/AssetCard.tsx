@@ -35,7 +35,7 @@ export const assetCardStyles = css({
     display: "flex",
     alignItems: "center",
     gap: "2",
-    minHeight: "40px",
+    minHeight: "control.md",
     paddingInlineStart: "4",
     paddingInlineEnd: "2",
     paddingBlock: "1",

@@ -137,7 +137,6 @@ export function AssetControlField(props: AssetControlFieldProps) {
                 : undefined
             }
             rollLabel={rollLabel}
-            formatValue={plainValue}
             warnAtMin
           />
           {impacts.length > 0 && (

@@ -27,7 +27,7 @@ const headStyles = css({
   alignItems: "center",
   justifyContent: "space-between",
   gap: "2",
-  minHeight: "40px",
+  minHeight: "control.md",
   paddingInlineStart: "4",
   paddingInlineEnd: "1",
   paddingBlockStart: "1",

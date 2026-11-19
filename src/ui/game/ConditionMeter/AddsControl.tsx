@@ -102,10 +102,10 @@ const valueStyles = css({
  */
 const stepperStyles = css({
   "[data-adds-control] &": {
-    width: "28px",
-    minWidth: "28px",
-    height: "28px",
-    minHeight: "28px",
+    width: "control.xs",
+    minWidth: "control.xs",
+    height: "control.xs",
+    minHeight: "control.xs",
     borderRadius: "full",
     _touch: {
       width: "touch",

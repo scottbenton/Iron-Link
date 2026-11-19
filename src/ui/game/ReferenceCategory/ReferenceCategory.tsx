@@ -107,7 +107,7 @@ const triggerStyles = cva({
   variants: {
     step: {
       band: {
-        minHeight: "40px",
+        minHeight: "control.md",
         paddingBlock: "1",
         background: "bg.emphasized",
         fontSize: "md",
@@ -116,12 +116,12 @@ const triggerStyles = cva({
         color: "fg.muted",
       },
       sub: {
-        minHeight: "36px",
+        minHeight: "control.row",
         paddingBlock: "1.5",
         fontSize: "md",
       },
       deep: {
-        minHeight: "32px",
+        minHeight: "control.sm",
         paddingBlock: "1",
         fontSize: "sm",
         textTransform: "uppercase",

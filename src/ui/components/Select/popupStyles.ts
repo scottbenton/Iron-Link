@@ -71,7 +71,7 @@ export const listItemStyles = css({
   alignItems: "center",
   gap: "2",
   width: "100%",
-  minHeight: "36px",
+  minHeight: "control.row",
   paddingBlock: "1.5",
   paddingInline: "10px",
   borderRadius: "sm",
@@ -99,7 +99,7 @@ export const listItemIconStyles = css({
   display: "inline-flex",
   flex: "none",
   color: "fg.muted",
-  "& > svg": { width: "18px", height: "18px" },
+  "& > svg": { width: "icon.md", height: "icon.md" },
   "[data-disabled] &": { color: "fg.disabled" },
 });
 
@@ -129,7 +129,7 @@ export const listItemCheckStyles = css({
   marginInlineStart: "auto",
   color: "accent.fg",
   visibility: "hidden",
-  "& > svg": { width: "16px", height: "16px" },
+  "& > svg": { width: "icon.md", height: "icon.md" },
   "[data-selected] > &, [aria-selected=true] > &": { visibility: "visible" },
 });
 
@@ -163,7 +163,7 @@ export const listStatusStyles = css({
   display: "flex",
   alignItems: "center",
   gap: "2",
-  minHeight: "36px",
+  minHeight: "control.row",
   paddingInline: "10px",
   fontSize: "sm",
   color: "fg.muted",

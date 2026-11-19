@@ -32,7 +32,7 @@ const triggerStyles = css({
   "&[data-momentum-value]": {
     gap: "0.5",
     minWidth: 0,
-    minHeight: "40px",
+    minHeight: "control.md",
     paddingInline: "1.5",
     _touch: { minHeight: "touch" },
     "[data-stepper-size=touch] &": { minHeight: "touch" },
