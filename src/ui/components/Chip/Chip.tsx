@@ -113,15 +113,15 @@ const chipStyles = cva({
         minHeight: "24px",
         paddingInline: "2",
         fontSize: "xs",
-        _touch: { minHeight: "32px" },
+        _touch: { minHeight: "control.sm" },
       },
       md: {
         "--chip-remove-size": "20px",
         "--chip-remove-icon": "12px",
-        minHeight: "32px",
+        minHeight: "control.sm",
         paddingInline: "3",
         fontSize: "sm",
-        _touch: { minHeight: "40px" },
+        _touch: { minHeight: "control.md" },
       },
     },
     removable: {
