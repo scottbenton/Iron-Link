@@ -1,7 +1,6 @@
 import type { Datasworn } from "@datasworn-community/core";
 import { Check, CheckCircle } from "@phosphor-icons/react";
 import {
-  CSSProperties,
   ComponentPropsWithoutRef,
   ElementType,
   ReactElement,
@@ -23,14 +22,6 @@ const pickerStyles = css({
     gap: "2",
     minWidth: 0,
     minHeight: "24px",
-  },
-  "& [data-picker-head] > [data-swatch]": {
-    flex: "none",
-    width: "8px",
-    height: "8px",
-    rotate: "45deg",
-    borderRadius: "1px",
-    background: "var(--asset-color, token(colors.fg.subtle))",
   },
   "& [data-picker-head] > [data-category]": { flex: "1", minWidth: 0 },
   "& [data-picker-head] > [data-check]": { flex: "none", color: "accent.fg" },
@@ -141,11 +132,10 @@ export function AssetPickerCard(props: AssetPickerCardProps) {
       render={<article />}
       selected={selected}
       className={cx(pickerStyles, className)}
-      style={{ "--asset-color": asset.color, ...style } as CSSProperties}
+      style={style}
       {...rest}
     >
       <div data-picker-head="">
-        <span data-swatch="" aria-hidden />
         <Text variant="label" color="muted" data-category="" truncate>
           {asset.category}
         </Text>
