@@ -2,6 +2,7 @@ import { CaretDownIcon } from "@phosphor-icons/react";
 import { ReactNode, useId, useState } from "react";
 
 import { focusRing } from "ui/styles/focus";
+import { overlayTint } from "ui/styles/pressable";
 
 import { css } from "styled-system/css";
 
@@ -37,14 +38,15 @@ const toggleStyles = css({
   cursor: "pointer",
   WebkitTapHighlightColor: "transparent",
   outline: "none",
-  transitionProperty: "box-shadow, color",
+  transitionProperty: "color",
   transitionDuration: "fast",
   transitionTimingFunction: "linear",
   _hover: {
     color: "fg.default",
-    boxShadow: "inset 0 0 0 999px token(colors.overlay.hover)",
+    // A tint over the band's fill, so it keeps its colour under it.
+    ...overlayTint("token(colors.overlay.hover)"),
   },
-  _pressed: { boxShadow: "inset 0 0 0 999px token(colors.overlay.pressed)" },
+  _pressed: overlayTint("token(colors.overlay.pressed)"),
   _focusVisible: focusRing.outset,
   _touch: { minHeight: "touch" },
   "& [data-count]": {

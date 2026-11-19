@@ -3,6 +3,7 @@ import { CaretDown, Check } from "@phosphor-icons/react";
 
 import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { overlayTint, quietPressable } from "ui/styles/pressable";
 
 import { css, cx } from "styled-system/css";
 
@@ -51,8 +52,7 @@ const triggerStyles = css({
   transitionDuration: "fast",
   transitionTimingFunction: "out",
   _hover: {
-    backgroundImage:
-      "linear-gradient(token(colors.overlay.hover), token(colors.overlay.hover))",
+    ...overlayTint("token(colors.overlay.hover)"),
   },
   _pressed: { transform: "translateY(min(var(--spacing-sink), 1px))" },
   _focusVisible: focusRing.outset,
@@ -78,6 +78,7 @@ const popupStyles = css({
 });
 
 const itemStyles = css({
+  ...quietPressable,
   display: "flex",
   alignItems: "center",
   gap: "2",
@@ -85,12 +86,8 @@ const itemStyles = css({
   paddingInline: "2",
   borderRadius: "sm",
   fontSize: "sm",
-  cursor: "pointer",
   userSelect: "none",
-  outline: "none",
   "& svg": { width: "icon.md", height: "icon.md", flex: "none" },
-  "&[data-highlighted]": { background: "overlay.hover" },
-  _pressed: { background: "overlay.pressed" },
   _touch: { minHeight: "touch" },
 });
 
