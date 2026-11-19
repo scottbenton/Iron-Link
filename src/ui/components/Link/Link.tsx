@@ -3,6 +3,7 @@ import { useRender } from "@base-ui/react/use-render";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import { ComponentProps, ReactElement, forwardRef } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { cva, cx } from "styled-system/css";
@@ -30,8 +31,7 @@ const linkStyles = cva({
       textDecorationThickness: "2px",
     },
     _focusVisible: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "2px",
+      ...focusRing.outset,
       textDecorationColor: "var(--link-color)",
     },
     "& svg": {
