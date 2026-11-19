@@ -46,7 +46,7 @@ const toasterStyles = css({
  */
 const toastItemStyles = css({
   width: "100%",
-  borderRadius: "md",
+  borderRadius: "lg",
   _focusVisible: { boxShadow: "0 0 0 2px token(colors.focusRing)!" },
   "& > [data-content], & > [data-content] > [data-title]": {
     display: "contents",
@@ -140,9 +140,11 @@ export interface ToasterProps {
 }
 
 /**
- * Whether focus is inside `ref`'s element. `recheckKey` re-reads it when it
- * changes, since a focused toast that is dismissed leaves focus on nothing
- * without every browser sending focusout.
+ * Whether focus is inside `ref`'s element. Removing the focused element
+ * sends no focusout, so it is also re-read whenever the element's content
+ * changes: a toast closed with its own Dismiss button leaves the page only
+ * after its exit, well after `recheckKey` (the toast list) has moved on, and
+ * until then the stack stayed fanned out.
  */
 function useFocusWithin(
   ref: { current: HTMLElement | null },
@@ -158,11 +160,16 @@ function useFocusWithin(
       if (next instanceof Node && element.contains(next)) return;
       setFocusWithin(false);
     };
+    const observer = new MutationObserver(() => {
+      if (!element.contains(document.activeElement)) setFocusWithin(false);
+    });
     element.addEventListener("focusin", onFocusIn);
     element.addEventListener("focusout", onFocusOut);
+    observer.observe(element, { childList: true, subtree: true });
     return () => {
       element.removeEventListener("focusin", onFocusIn);
       element.removeEventListener("focusout", onFocusOut);
+      observer.disconnect();
     };
   }, [ref]);
   useLayoutEffect(() => {
