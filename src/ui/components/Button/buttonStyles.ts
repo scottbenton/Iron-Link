@@ -1,3 +1,5 @@
+import { ledgeHeight, ledgeShadow } from "ui/styles/ledge";
+
 import { cva } from "styled-system/css";
 
 /** The selector for a disabled button that is not busy. */
@@ -55,7 +57,7 @@ export const buttonStyles = cva({
     cursor: "pointer",
     userSelect: "none",
     WebkitTapHighlightColor: "transparent",
-    boxShadow: "0 var(--border-widths-ledge) 0 var(--btn-edge)",
+    boxShadow: ledgeShadow("var(--btn-edge)"),
     transform: "translateY(0)",
     transitionProperty: "transform, box-shadow, background-color, border-color",
     transitionDuration: "fast",
@@ -68,14 +70,12 @@ export const buttonStyles = cva({
     _hover: {
       background: "var(--btn-hover)",
       transform: "translateY(var(--spacing-lift))",
-      boxShadow:
-        "0 calc(var(--border-widths-ledge) - var(--spacing-lift)) 0 var(--btn-edge)",
+      boxShadow: ledgeShadow("var(--btn-edge)", "lifted"),
     },
     _pressed: {
       background: "var(--btn-press)",
       transform: "translateY(var(--spacing-sink))",
-      boxShadow:
-        "0 max(0px, calc(var(--border-widths-ledge) - var(--spacing-sink))) 0 var(--btn-edge)",
+      boxShadow: ledgeShadow("var(--btn-edge)", "sunk"),
       transitionDuration: "instant",
     },
     "&:is(:disabled, [data-disabled]):not([data-busy])": {
@@ -84,13 +84,13 @@ export const buttonStyles = cva({
       background: "bg.emphasized",
       color: "fg.subtle",
       borderColor: "border.default",
-      boxShadow: "0 var(--border-widths-ledge) 0 token(colors.border.default)",
+      boxShadow: ledgeShadow("token(colors.border.default)"),
     },
     "&[data-busy]": {
       cursor: "progress",
       transform: "none",
       background: "var(--btn-bg)",
-      boxShadow: "0 var(--border-widths-ledge) 0 var(--btn-edge)",
+      boxShadow: ledgeShadow("var(--btn-edge)"),
     },
     "& svg": { flex: "none", width: "1.15em", height: "1.15em" },
     _touch: { minHeight: "touch" },
@@ -136,33 +136,35 @@ export const buttonStyles = cva({
         "--btn-hover": "transparent",
         "--btn-press": "transparent",
         "--btn-edge": "transparent",
-        "--btn-ledge": "var(--border-widths-ledge)",
+        "--btn-ledge": ledgeHeight.rest,
         // How much darker the ledge is than the ring. Light mode stays
         // lighter, since a dark ledge under a bright ring reads as mud; the
         // saturation keeps it from going grey.
         "--btn-ledge-filter": "brightness(0.8) saturate(1.15)",
         _dark: { "--btn-ledge-filter": "brightness(0.62) saturate(1.15)" },
         // The ring's width and the face's colour, read by the parts inside.
+        // `--btn-face-base` is the face at rest; hover and press mix from it,
+        // so a button with another face (the roll button's chip) sets only
+        // that one.
         "--btn-ring": "2px",
-        "--btn-face": "{colors.gray.900}",
+        "--btn-face-base": "{colors.gray.900}",
+        "--btn-face": "var(--btn-face-base)",
         alignItems: "stretch",
         borderWidth: 0,
         boxShadow: "none",
         _hover: {
           "--btn-ring": "3px",
-          "--btn-ledge":
-            "calc(var(--border-widths-ledge) - var(--spacing-lift))",
+          "--btn-ledge": ledgeHeight.lifted,
           "--btn-face":
-            "color-mix(in oklab, {colors.gray.900} 82%, {colors.gray.700})",
+            "color-mix(in oklab, var(--btn-face-base) 82%, {colors.gray.700})",
           boxShadow: "none",
         },
         _focusVisible: { "--btn-ring": "3px" },
         _pressed: {
           "--btn-ring": "3px",
-          "--btn-ledge":
-            "max(0px, calc(var(--border-widths-ledge) - var(--spacing-sink)))",
+          "--btn-ledge": ledgeHeight.sunk,
           "--btn-face":
-            "color-mix(in oklab, {colors.gray.900} 60%, {colors.black})",
+            "color-mix(in oklab, var(--btn-face-base) 60%, {colors.black})",
           boxShadow: "none",
         },
         [disabled]: {
@@ -185,18 +187,21 @@ export const buttonStyles = cva({
           _reducedMotion: { transitionDuration: "0s" },
         },
         // The ledge: the ring's shape, set lower by the ledge's height and
-        // behind it, as the box-shadow ledge on other buttons is. Only its
-        // bottom shows, so it is clipped to that, which keeps it out from
-        // behind the ring's anti-aliased sides.
+        // behind it, so it shows exactly where a box-shadow ledge would,
+        // round the bottom corners included. It is clipped above the point
+        // where the ring's bottom corners start to curve, which keeps it out
+        // from behind the ring's straight, anti-aliased sides (a box-shadow
+        // never paints under its own box; this copy would).
         [`& .${gradientLedgeStyles}[data-gradient-ledge]`]: {
           position: "absolute",
           insetInline: 0,
           top: "var(--btn-ledge)",
           bottom: "calc(-1 * var(--btn-ledge))",
-          clipPath: "inset(calc(100% - token(radii.md)) 0 0 0)",
+          clipPath:
+            "inset(calc(100% - token(radii.md) - var(--btn-ledge)) 0 0 0)",
           filter: "var(--btn-ledge-filter)",
           pointerEvents: "none",
-          transitionProperty: "top, bottom",
+          transitionProperty: "top, bottom, clip-path",
           transitionDuration: "fast",
           transitionTimingFunction: "out",
           _reducedMotion: { transitionDuration: "0s" },
