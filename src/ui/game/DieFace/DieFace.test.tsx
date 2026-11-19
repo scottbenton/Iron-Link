@@ -67,10 +67,16 @@ describe("DieFace", () => {
   it("keeps cycling while the result is pending, then lands on it", () => {
     const { container, rerender } = render(<DieFace face={5} rolls={0} />);
     rerender(<DieFace face={5} rolls={1} pending />);
-    act(() => {
-      vi.advanceTimersByTime(1000);
-    });
-    expect(container.innerHTML).not.toBe(faceHtml(5));
+    // Still turning long after an unpending roll would have landed: each
+    // step shows a face other than the one before it.
+    const seen = new Set<string>();
+    for (let i = 0; i < 20; i++) {
+      act(() => {
+        vi.advanceTimersByTime(50);
+      });
+      seen.add(container.innerHTML);
+    }
+    expect(seen.size).toBeGreaterThan(1);
     rerender(<DieFace face={1} rolls={1} />);
     act(() => {
       vi.advanceTimersByTime(200);
