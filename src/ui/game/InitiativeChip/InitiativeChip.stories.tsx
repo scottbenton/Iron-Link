@@ -62,7 +62,11 @@ export const Wording: Story = {
   ),
 };
 
-/** The menu version: the chip opens a menu of the statuses. */
+/**
+ * The menu version: the chip opens a menu of the statuses. Being a button,
+ * it stands on a ledge and sinks onto it when pressed, like a Button; the
+ * plain chips above are flat.
+ */
 export const Changeable: Story = {
   render: function Render() {
     const [starforged, setStarforged] =

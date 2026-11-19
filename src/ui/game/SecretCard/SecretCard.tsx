@@ -146,7 +146,8 @@ export interface SecretCardProps extends LayoutProps {
 
 /**
  * Guide-only content: a secret block in notes, a Guide only group of world
- * entry fields, a Guide only message in the game log. A dashed card with a
+ * entry fields, a Guide only message or roll in the game log (a roll fills
+ * it, with `padding="none"`). A dashed card with a
  * lock and a label, an optional note, then the content. It can open and
  * close from its header.
  */

@@ -284,8 +284,10 @@ export const InSidebar: Story = {
 /**
  * Tracks marking progress at each rank. New ticks draw in tick order, like
  * a pen; however many a mark adds (1 at Epic, 4 at Formidable, 12 at
- * Troublesome), the change finishes within 240ms. Erasing draws lines back
- * out together.
+ * Troublesome), the change finishes within 240ms, easing out. Tap quickly:
+ * a tap finishes the line before it at once, so only the newest line is
+ * moving and the drawn lines always match the value. Erasing draws lines
+ * back out together.
  */
 export const TickAnimationOnTracks: Story = {
   render: function Render() {

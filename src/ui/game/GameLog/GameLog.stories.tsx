@@ -394,6 +394,61 @@ const headerLog: GameLogEntry[] = [
   },
 ];
 
+const guideOnlyLog: GameLogEntry[] = [
+  {
+    id: "g1",
+    kind: "roll",
+    author: author(orrin),
+    timestamp: at(0, 19, 50),
+    roll: sampleRolls.faceDangerStrongHit,
+  },
+  {
+    id: "g2",
+    kind: "roll",
+    author: guide,
+    timestamp: at(0, 19, 58),
+    roll: sampleRolls.actionAndTheme,
+    guideOnly: true,
+  },
+  {
+    id: "g3",
+    kind: "roll",
+    author: guide,
+    timestamp: at(0, 19, 59),
+    roll: extraRolls.clockAdvances,
+    actions: rollActions,
+    guideOnly: true,
+  },
+  {
+    id: "g4",
+    kind: "message",
+    author: guide,
+    timestamp: at(0, 20, 0),
+    message: "The patrol is closer than they think.",
+    guideOnly: true,
+  },
+  {
+    id: "g5",
+    kind: "roll",
+    author: { ...guide, isYou: true },
+    timestamp: at(0, 20, 6),
+    roll: extraRolls.withstandDamageMissMatch,
+    actions: rollActions,
+    guideOnly: true,
+  },
+];
+
+/**
+ * Guide only rolls are one card: the dashed secret frame with its "Guide
+ * only" label is the roll's own frame, and the roll fills it with its usual
+ * padding, as wide as an ordinary roll (the first entry). Guide only
+ * messages sit in the same frame. Screen readers hear "Guide only" in each
+ * entry's heading.
+ */
+export const GuideOnly: Story = {
+  args: { entries: guideOnlyLog, onSend: fn() },
+};
+
 /**
  * Names under each header: long character and player names, the Guide (no
  * character, "Guide" in the player's place), a player writing without a
