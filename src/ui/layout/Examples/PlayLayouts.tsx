@@ -7,10 +7,11 @@
  *
  * - The reference (Moves, Oracles, Game Log) is the start sidebar, as Iron
  *   Fellowship puts it.
- * - A band at the top: the character (portrait, name, player, initiative),
- *   then Adds over the stats and meters, all at their own widths.
- * - Assets, Tracks, Impacts and Legacy, and Notes as tabs in one card that
- *   fills the rest of the height and scrolls inside, so marking a track
+ * - A band at the top: the character (a large portrait, with the name,
+ *   player and initiative under it), then the stats, Adds as a meter and
+ *   the meters in one row, all at their own widths.
+ * - Assets, Tracks, Impacts and Legacy, and Notes as tabs in one card about
+ *   three quarters of the screen tall that scrolls inside, so marking a track
  *   never loses the reader's place in a note.
  *
  * Layout follows width through CSS grid and flex wrapping and container
@@ -43,7 +44,6 @@ import { Text } from "../../components/Text";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
 import {
-  AddsControl,
   ConditionMeter,
   MomentumMeter,
   XPMeter,
@@ -230,8 +230,9 @@ type PlaySheet = ReturnType<typeof usePlaySheet>;
 /* ------------------------------------------------------------------------ */
 
 /**
- * Portrait, then the name, the player and initiative stacked beside it, from
- * the top. The name is the page's h1 already.
+ * A large portrait with the name, the player and initiative stacked under
+ * it, as tall as the stats and meters beside it once they wrap. The name is
+ * the page's h1 already.
  */
 function Identity(props: { sheet: PlaySheet }) {
   const { sheet } = props;
@@ -239,7 +240,7 @@ function Identity(props: { sheet: PlaySheet }) {
     <div className={identityStyles}>
       <CharacterPortrait
         name={character.name}
-        size="lg"
+        size="xl"
         shape="rounded"
         colorScheme="cinder"
         decorative
@@ -266,11 +267,20 @@ function Identity(props: { sheet: PlaySheet }) {
   );
 }
 
+// Beside the portrait while the band is one column, so a narrow sheet does
+// not spend a screen on it; stacked under it once the band has two.
 const identityStyles = css({
-  display: "flex",
-  alignItems: "flex-start",
+  display: "grid",
+  gridTemplateColumns: "auto minmax(0, 1fr)",
+  alignItems: "center",
+  alignContent: "start",
+  justifyItems: "start",
   gap: "3",
   minWidth: 0,
+  "@container sheet (min-width: 760px)": {
+    gridTemplateColumns: "minmax(0, 1fr)",
+    alignItems: "start",
+  },
 });
 
 const identityTextStyles = css({
@@ -289,8 +299,9 @@ const identityPlayerStyles = css({
 });
 
 /**
- * Adds over everything the character rolls: the five stats, then Health,
- * Spirit, Supply and Momentum beside them, each at its own width. They wrap
+ * Everything the character rolls, in one row: the five stats, then Adds as
+ * a meter of its own (it changes whichever of them the next roll uses),
+ * then Health, Spirit, Supply and Momentum, each at its own width. They wrap
  * to a second row when the column is narrow; nothing stretches to fill.
  */
 function Rolls(props: { sheet: PlaySheet; touch?: boolean }) {
@@ -298,12 +309,6 @@ function Rolls(props: { sheet: PlaySheet; touch?: boolean }) {
   const stepperSize = touch ? "touch" : undefined;
   return (
     <div className={rollsStyles}>
-      <AddsControl
-        value={sheet.adds}
-        onChange={sheet.setAdds}
-        stepperSize={stepperSize}
-        className={addsStyles}
-      />
       <div className={rollRowStyles}>
         <section className={statsStyles} aria-labelledby="sheet-stats">
           <h3 id="sheet-stats" className={visuallyHidden()}>
@@ -319,6 +324,15 @@ function Rolls(props: { sheet: PlaySheet; touch?: boolean }) {
             onRoll={(stat) => sheet.roll(stat.name, stat.value)}
           />
         </section>
+        <ConditionMeter
+          label="Adds"
+          value={sheet.adds}
+          min={-9}
+          max={9}
+          stepperSize={stepperSize}
+          onChange={sheet.setAdds}
+          className={addsMeterStyles}
+        />
         <section className={meterRowStyles} aria-labelledby="sheet-meters">
           <h3 id="sheet-meters" className={visuallyHidden()}>
             Meters
@@ -350,7 +364,7 @@ function Rolls(props: { sheet: PlaySheet; touch?: boolean }) {
 
 const rollsStyles = css({ display: "grid", gap: "3", minWidth: 0 });
 
-const addsStyles = css({ justifySelf: "start" });
+const addsMeterStyles = css({ flex: "none" });
 
 const rollRowStyles = css({
   display: "flex",
@@ -806,10 +820,13 @@ const sheetFirstStyles = {
       columnGap: "6",
     },
   }),
-  // The tabs and their panel in one card. A fixed share of the height: the
-  // panel scrolls under the tabs, so marking a track never moves a note.
+  // The tabs and their panel in one card, most of the screen's height (and
+  // any room left below the band): the panel scrolls under the tabs, so
+  // marking a track never moves a note. The page scrolls the band away to
+  // show all of it.
   card: css({
-    flex: "1 1 0",
+    flex: "1 0 auto",
+    height: "75lvh",
     minHeight: "28rem",
     display: "flex",
     flexDirection: "column",
