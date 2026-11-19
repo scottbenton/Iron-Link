@@ -19,7 +19,7 @@ const toggleStyles = css({
   alignItems: "center",
   gap: "2",
   width: "100%",
-  minHeight: "40px",
+  minHeight: "control.md",
   margin: 0,
   paddingInline: "3",
   paddingBlock: "1",

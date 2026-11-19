@@ -191,7 +191,7 @@ export const statValueStyles = css({
   fontSize: "1.5rem",
   lineHeight: "none",
   fontVariantNumeric: "tabular-nums",
-  "& svg": { width: "14px", height: "14px", opacity: 0.75, flex: "none" },
+  "& svg": { width: "icon.sm", height: "icon.sm", opacity: 0.75, flex: "none" },
 });
 
 /**
