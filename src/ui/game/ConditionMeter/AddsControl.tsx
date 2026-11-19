@@ -1,4 +1,4 @@
-import { Minus, Plus } from "@phosphor-icons/react";
+import { Minus, Plus, Question } from "@phosphor-icons/react";
 import { useId } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
@@ -7,10 +7,16 @@ import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
 import { IconButton } from "../../components/IconButton";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../../components/Popover";
+import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { clamp, formatSigned } from "../shared/format";
 
 /**
- * One pill holding the label, its hint under it and the stepper: a modifier
+ * One pill holding the label, a help button and the stepper: a modifier
  * chip rather than a card, so it never reads as a fourth meter. Flat (no
  * ledge): the buttons inside are the pressable parts. Once adds are set it
  * takes the accent's soft tint and an accent border, beside the value's
@@ -43,16 +49,12 @@ const chipStyles = css({
   _reducedMotion: { transition: "none" },
 });
 
-/** The label over its hint, beside the stepper. */
-const textStyles = css({
-  display: "grid",
-  gap: "0.5",
+const labelStyles = css({
   flex: "0 1 auto",
   minWidth: 0,
-  marginInlineEnd: "2",
-});
-
-const labelStyles = css({
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
   fontFamily: "heading",
   fontWeight: "bold",
   fontSize: "sm",
@@ -122,16 +124,13 @@ const stepperStyles = css({
   },
 });
 
-/** At most two lines; a long translation clips rather than stretching. */
-const hintStyles = css({
-  fontSize: "xs",
-  lineHeight: "tight",
-  color: "fg.muted",
-  lineClamp: 2,
-  "[data-active] &": {
-    color:
-      "color-mix(in oklab, token(colors.accent.fg) 75%, token(colors.fg.muted))",
+/** The help button keeps a little room before the stepper. */
+const helpStyles = css({
+  "[data-adds-control] &": {
+    marginInlineEnd: "1.5",
+    color: "fg.muted",
   },
+  "[data-adds-control][data-read-only] &": { marginInlineEnd: "0.5" },
 });
 
 export interface AddsControlProps extends LayoutProps {
@@ -146,10 +145,13 @@ export interface AddsControlProps extends LayoutProps {
   stepperSize?: "sm" | "touch";
   label?: string;
   /**
-   * Under the label inside the pill, and the group's description: what adds
-   * apply to. `null` hides it.
+   * What adds apply to: shown in a popover from the help button beside the
+   * label, and the group's description for a screen reader. `null` hides
+   * both.
    */
   hint?: string | null;
+  /** The help button's name, "About Adds". */
+  helpLabel?: (label: string) => string;
   decrementLabel?: (label: string) => string;
   incrementLabel?: (label: string) => string;
   /** What a screen reader hears after a change, "Adds is now +1". */
@@ -164,7 +166,9 @@ export interface AddsControlProps extends LayoutProps {
  * as a badge in the corner; this is where it is set. A compact chip, the
  * label and a stepper in one pill, meant to sit above the stats as a
  * modifier on everything below it. The group's name includes the value
- * ("Adds +2"), so a screen reader hears it on reaching either stepper.
+ * ("Adds +2"), so a screen reader hears it on reaching either stepper. What
+ * adds do sits behind a help button (a popover, so it works on touch,
+ * which a tooltip does not), and is also the group's description.
  */
 export function AddsControl(props: AddsControlProps) {
   const {
@@ -176,6 +180,7 @@ export function AddsControl(props: AddsControlProps) {
     stepperSize = "sm",
     label = "Adds",
     hint = "Added to your next action roll",
+    helpLabel = (l) => `About ${l}`,
     decrementLabel = (l) => `Subtract 1 from ${l}`,
     incrementLabel = (l) => `Add 1 to ${l}`,
     changeAnnouncement = (l, v) => `${l} is now ${v}`,
@@ -208,16 +213,28 @@ export function AddsControl(props: AddsControlProps) {
       data-active={active}
       data-read-only={!onChange || undefined}
     >
-      <span className={textStyles}>
-        <span id={labelId} className={labelStyles}>
-          {label}
-        </span>
-        {hint && (
-          <span id={hintId} className={hintStyles}>
-            {hint}
-          </span>
-        )}
+      <span id={labelId} className={labelStyles}>
+        {label}
       </span>
+      {hint && (
+        <>
+          <VisuallyHidden id={hintId}>{hint}</VisuallyHidden>
+          <Popover>
+            <PopoverTrigger
+              render={
+                <IconButton
+                  label={helpLabel(label)}
+                  size="sm"
+                  className={cx(stepperStyles, helpStyles)}
+                >
+                  <Question weight="bold" />
+                </IconButton>
+              }
+            />
+            <PopoverContent title={label} description={hint} />
+          </Popover>
+        </>
+      )}
       {onChange && (
         <IconButton
           label={decrementLabel(label)}

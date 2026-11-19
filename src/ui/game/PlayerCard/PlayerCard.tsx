@@ -11,15 +11,13 @@ import {
   PortraitStatus,
 } from "../CharacterPortrait/CharacterPortrait";
 import { contentCardStyles } from "../MoveCard/cardStyles";
-import {
-  PortraitGroup,
-  PortraitGroupMember,
-} from "../PortraitGroup/PortraitGroup";
+import { PortraitGroupMember } from "../PortraitGroup/PortraitGroup";
 
 export type PlayerRole = "guide" | "player" | "viewer";
 
-// One row: portrait, then the name over the role chip and characters, then
-// the actions. A narrow card puts the actions under the text instead.
+// One row: portrait, then the name over the role chip, then the actions. A
+// narrow card puts the actions under the text instead. The player's
+// characters, named, run along the foot of the card under a hairline.
 const cardStyles = css({
   containerType: "inline-size",
   containerName: "player-card",
@@ -47,11 +45,29 @@ const cardStyles = css({
     minWidth: 0,
     maxWidth: "100%",
   },
-  "& [data-detail-line]": {
+  // The hairline runs the card's full width, like a card footer.
+  "& [data-characters]": {
     display: "flex",
     flexWrap: "wrap",
+    columnGap: "4",
+    rowGap: "2",
+    marginBlock: 0,
+    marginBlockStart: "3",
+    marginInline: "-3",
+    paddingInline: "3",
+    paddingBlockStart: "3",
+    paddingBlockEnd: 0,
+    listStyle: "none",
+    borderTopWidth: "1px",
+    borderTopStyle: "solid",
+    borderTopColor: "border.subtle",
+  },
+  "& [data-characters] > li": {
+    display: "inline-flex",
     alignItems: "center",
-    gap: "2",
+    gap: "1.5",
+    minWidth: 0,
+    maxWidth: "100%",
   },
   "& [data-actions]": {
     gridArea: "actions",
@@ -136,8 +152,12 @@ export interface PlayerCardProps
   avatarUrl?: string;
   status?: PortraitStatus;
   statusLabel?: string;
-  /** Their characters, as a small portrait row. */
+  /**
+   * Their characters, each a small portrait (in its colour scheme) and its
+   * name, along the foot of the card.
+   */
   characters?: PortraitGroupMember[];
+  /** The character list's name for screen readers. */
   charactersLabel?: string;
   /** Buttons such as Make Guide, Leave Game or Remove Player. */
   actions?: ReactNode;
@@ -147,8 +167,9 @@ export interface PlayerCardProps
 }
 
 /**
- * A person in a game: their name, a role chip (Guide, Player, Viewer),
- * their characters and actions for managing them.
+ * A person in a game: their name, a role chip (Guide, Player, Viewer) and
+ * actions for managing them, with their characters named along the foot of
+ * the card.
  */
 export function PlayerCard(props: PlayerCardProps) {
   const {
@@ -193,26 +214,24 @@ export function PlayerCard(props: PlayerCardProps) {
               <VisuallyHidden>{statusLabel}</VisuallyHidden>
             )}
           </div>
-          {(role || hasCharacters) && (
-            <div data-detail-line="">
-              {role && (
-                <span className={roleChipStyles({ role })}>
-                  {roleLabels[role]}
-                </span>
-              )}
-              {hasCharacters && (
-                <PortraitGroup
-                  members={characters}
-                  size="sm"
-                  max={4}
-                  label={charactersLabel}
-                />
-              )}
-            </div>
+          {role && (
+            <span className={roleChipStyles({ role })}>{roleLabels[role]}</span>
           )}
         </div>
         {actions && <div data-actions="">{actions}</div>}
       </div>
+      {hasCharacters && (
+        <ul data-characters="" aria-label={charactersLabel}>
+          {characters.map(({ id, ...character }) => (
+            <li key={id}>
+              <CharacterPortrait {...character} size="xs" decorative />
+              <Text as="span" variant="bodySm" truncate>
+                {character.name}
+              </Text>
+            </li>
+          ))}
+        </ul>
+      )}
     </article>
   );
 }

@@ -293,9 +293,13 @@ export const CardLinkOverlay = forwardRef<
 });
 
 /**
- * The button's look stays; its own position and movement go, because a
- * positioned or transformed button would hold its stretched hit area to its
- * own box. The card sinks on press and draws the focus ring instead. The
+ * The button's look stays, drawn flat: the card is the pressable thing, with
+ * the ledge, the lift on hover and the sink on press, and the button moves
+ * with it. Its own position and movement go, because a positioned or
+ * transformed button would hold its stretched hit area to its own box, and
+ * so do its face and ledge layers, because unpositioned they would stretch
+ * over the card too. The button paints its face and border itself, and its
+ * `::before` becomes the hit area. The card draws the focus ring. The
  * `:is()` raises these above the button recipe's hover, press and focus.
  */
 const buttonOverlayStyles = css({
@@ -304,15 +308,24 @@ const buttonOverlayStyles = css({
       position: "static",
       transform: "none",
       outline: "none",
+      isolation: "auto",
+      background: "var(--ledge-face)",
+      borderColor: "var(--ledge-border)",
+      boxShadow: "var(--ledge-inset, none)",
+      // Stretched over the whole card, border included.
+      _before: {
+        content: '""',
+        position: "absolute",
+        zIndex: 1,
+        inset: "-1px",
+        borderRadius: "lg",
+        background: "transparent",
+        border: 0,
+        boxShadow: "none",
+        pointerEvents: "auto",
+      },
+      _after: { display: "none" },
     },
-  // Stretched over the whole card, border included.
-  _before: {
-    content: '""',
-    position: "absolute",
-    zIndex: 1,
-    inset: "-1px",
-    borderRadius: "lg",
-  },
 });
 
 export interface CardButtonOverlayProps

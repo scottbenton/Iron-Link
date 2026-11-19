@@ -3,7 +3,8 @@ import { CaretDown, Check } from "@phosphor-icons/react";
 
 import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
-import { overlayTint, quietPressable } from "ui/styles/pressable";
+import { ledgeHeight, ledgeLayers } from "ui/styles/ledge";
+import { quietPressable } from "ui/styles/pressable";
 
 import { css, cx } from "styled-system/css";
 
@@ -14,6 +15,7 @@ import {
   getInitiativeOptions,
 } from "./initiativeLabels";
 
+/** The chip's shape and type, shared by the plain chip and the menu trigger. */
 const chipStyles = css({
   display: "inline-flex",
   // A chip is as wide as its label, even as a flex or grid child that would
@@ -26,9 +28,7 @@ const chipStyles = css({
   paddingInlineEnd: "3",
   borderWidth: "1px",
   borderStyle: "solid",
-  borderColor: "color-mix(in oklab, token(colors.accent.fg) 35%, transparent)",
   borderRadius: "full",
-  background: "accent.soft",
   color: "accent.fg",
   fontFamily: "body",
   fontSize: "sm",
@@ -37,25 +37,67 @@ const chipStyles = css({
   whiteSpace: "nowrap",
   "& svg": { width: "icon.sm", height: "icon.sm", flex: "none" },
   // Out of a fight: quiet, so a status in a fight is the one that stands out.
+  "&[data-resting]": { color: "fg.muted" },
+});
+
+/** A chip that only shows the status is flat: nothing to press. */
+const staticStyles = css({
+  borderColor: "color-mix(in oklab, token(colors.accent.fg) 35%, transparent)",
+  background: "accent.soft",
   "&[data-resting]": {
     borderColor: "border.default",
     background: "bg.muted",
-    color: "fg.muted",
   },
 });
 
+/**
+ * A chip that opens the menu stands on a ledge like a Button: the face and
+ * the ledge are layers (`ledgeLayers`, clipped for a pill), hover tints the
+ * face, and a press sinks it onto the ledge. The face's colour is
+ * `--initiative-face` under an overlay tint, `--initiative-tint`, so hover and press
+ * work the same on the accent and the resting colours. The border and
+ * ledge are opaque mixes, since the ledge shows below the face.
+ */
 const triggerStyles = css({
+  "--initiative-face": "{colors.accent.soft}",
+  "--initiative-tint": "transparent",
+  position: "relative",
+  ...ledgeLayers("token(radii.full)"),
+  "--ledge-face":
+    "linear-gradient(var(--initiative-tint), var(--initiative-tint)), var(--initiative-face)",
+  "--ledge-border":
+    "color-mix(in oklab, {colors.accent.fg} 35%, {colors.bg.surface})",
+  "--ledge-edge":
+    "color-mix(in oklab, {colors.accent.fg} 50%, {colors.bg.surface})",
+  "&[data-resting]": {
+    "--initiative-face": "{colors.bg.muted}",
+    "--ledge-border": "{colors.border.default}",
+    "--ledge-edge": "{colors.border.control}",
+  },
   cursor: "pointer",
+  userSelect: "none",
   outline: "none",
   WebkitTapHighlightColor: "transparent",
-  transitionProperty: "background-color, transform",
+  transform: "translateY(0)",
+  transitionProperty: "transform",
   transitionDuration: "fast",
   transitionTimingFunction: "out",
   _hover: {
-    ...overlayTint("token(colors.overlay.hover)"),
+    "--initiative-tint": "{colors.overlay.hover}",
+    "--ledge-height": ledgeHeight.lifted,
+    transform: "translateY(var(--spacing-lift))",
   },
-  _pressed: { transform: "translateY(min(var(--spacing-sink), 1px))" },
+  _pressed: {
+    "--initiative-tint": "{colors.overlay.pressed}",
+    "--ledge-height": ledgeHeight.sunk,
+    transform: "translateY(var(--spacing-sink))",
+    transitionDuration: "instant",
+  },
+  // While its menu is open the chip keeps the pressed tint, without
+  // sinking, so it shows what the menu belongs to.
+  "&[data-popup-open]": { "--initiative-tint": "{colors.overlay.pressed}" },
   _focusVisible: focusRing.outset,
+  _reducedMotion: { transitionDuration: "0s" },
   _touch: { minHeight: "control.md" },
 });
 
@@ -120,7 +162,8 @@ export interface InitiativeChipProps<T extends string = InitiativeStatus>
 /**
  * A character's position in a fight, such as In Control or In a Bad Spot.
  * Statuses in a fight share one look and differ by their words; the resting
- * one (Out of Combat) is muted.
+ * one (Out of Combat) is muted. With `onStatusChange` the chip is a menu
+ * button and stands on a ledge like a Button; without it, it is flat.
  */
 export function InitiativeChip<T extends string = InitiativeStatus>(
   props: InitiativeChipProps<T>,
@@ -146,7 +189,7 @@ export function InitiativeChip<T extends string = InitiativeStatus>(
   if (!onStatusChange) {
     return (
       <span
-        className={cx(chipStyles, className)}
+        className={cx(chipStyles, staticStyles, className)}
         data-status={status}
         data-resting={resting}
       >

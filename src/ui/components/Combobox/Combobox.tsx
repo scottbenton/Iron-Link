@@ -151,6 +151,13 @@ const chipsStyles = css({
 /** A row's height, for parts that line up with the first row of chips. */
 const firstRowStyles = css({ height: "var(--chip-row, auto)" });
 
+/**
+ * A chosen value: a filled pill with no border, so a row of them reads as
+ * values in the well rather than more outlines. The fill is a step darker
+ * than the well in light schemes and a step lighter in dark ones. Focus or
+ * highlight tints it with the accent and adds a 1px inset accent line, so
+ * keyboard focus is shown by more than a colour change.
+ */
 const chipStyles = css({
   boxSizing: "border-box",
   display: "inline-flex",
@@ -160,18 +167,16 @@ const chipStyles = css({
   minHeight: "calc(var(--chip-row, 28px) - 2px)",
   paddingInlineStart: "10px",
   paddingInlineEnd: "2px",
-  borderWidth: "1px",
-  borderStyle: "solid",
-  borderColor: "border.control",
+  border: 0,
   borderRadius: "full",
-  background: "bg.surface",
+  background: "bg.emphasized",
   color: "fg.default",
   fontSize: "sm",
   fontWeight: "medium",
   lineHeight: "none",
   cursor: "default",
   outline: "none",
-  transitionProperty: "background-color, border-color, color",
+  transitionProperty: "background-color, box-shadow, color",
   transitionDuration: "fast",
   transitionTimingFunction: "linear",
   "& > span": {
@@ -182,12 +187,13 @@ const chipStyles = css({
   },
   "&:is([data-highlighted], :focus-visible, :focus-within)": {
     background: "accent.soft",
-    borderColor: "accent.fg",
+    boxShadow: "inset 0 0 0 1px token(colors.accent.fg)",
     color: "accent.fg",
   },
+  // The disabled well is bg.muted, so the chip keeps its own fill.
   "[data-disabled] &": {
     background: "bg.emphasized",
-    borderColor: "border.default",
+    boxShadow: "none",
     color: "fg.disabled",
   },
 });

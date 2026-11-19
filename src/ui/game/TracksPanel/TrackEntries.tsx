@@ -31,8 +31,8 @@ const tensionStyles = css({
 });
 
 /**
- * The odds fill the row and Roll Progress keeps its own width beside them,
- * so the button stays lighter than the clock above it.
+ * The odds and Roll Progress sit side by side at their own widths, so the
+ * button stays lighter than the clock above it.
  */
 const clockActionsStyles = css({
   display: "flex",
@@ -41,7 +41,16 @@ const clockActionsStyles = css({
   width: "100%",
 });
 
-const clockOddsStyles = css({ flex: "1 1 8rem", minWidth: 0 });
+/**
+ * The odds select is as wide as its value, up to about the width of its
+ * longest ("Odds: Almost Certain"), and never stretches across a wide
+ * panel. On a narrow one it shrinks and its value ends in an ellipsis.
+ */
+const clockOddsStyles = css({
+  flex: "0 1 auto",
+  minWidth: 0,
+  maxWidth: "13rem",
+});
 
 /** Complete sits at the end of the actions row, after the rolls. */
 const completeStyles = css({ marginInlineStart: "auto" });
