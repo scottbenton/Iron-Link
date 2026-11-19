@@ -22,25 +22,7 @@ export const portraitStyles = cva({
     width: "var(--portrait-size)",
     height: "var(--portrait-size)",
     borderRadius: "var(--portrait-radius)",
-    isolation: "isolate",
     verticalAlign: "middle",
-    // The active ring: the scheme's ring gradient just outside the portrait,
-    // with a gap of the surface between.
-    _before: {
-      content: '""',
-      position: "absolute",
-      zIndex: -1,
-      inset: "calc(var(--portrait-ring) * -2)",
-      borderRadius: "calc(var(--portrait-radius) + var(--portrait-ring) * 2)",
-      background: "var(--gradients-ring)",
-      opacity: 0,
-      scale: "0.92",
-      transitionProperty: "opacity, scale",
-      transitionDuration: "normal",
-      transitionTimingFunction: "out",
-      _reducedMotion: { scale: "1" },
-    },
-    "&[data-active]::before": { opacity: 1, scale: "1" },
     "& > [data-portrait-face]": {
       position: "relative",
       display: "grid",
@@ -59,10 +41,6 @@ export const portraitStyles = cva({
       textShadow: "0 1px 2px rgb(0 0 0 / 0.3)",
       boxShadow: "inset 0 0 0 1px rgb(0 0 0 / 0.08)",
       userSelect: "none",
-    },
-    "&[data-active] > [data-portrait-face]": {
-      boxShadow:
-        "0 0 0 var(--portrait-ring) token(colors.bg.surface), inset 0 0 0 1px rgb(0 0 0 / 0.08)",
     },
     "& [data-portrait-image]": {
       position: "absolute",
@@ -112,11 +90,11 @@ export const portraitStyles = cva({
   },
   variants: {
     size: {
-      xs: { "--portrait-font": "0.625rem", "--portrait-ring": "1.5px" },
-      sm: { "--portrait-font": "0.8125rem", "--portrait-ring": "2px" },
-      md: { "--portrait-font": "1.0625rem", "--portrait-ring": "2px" },
-      lg: { "--portrait-font": "1.375rem", "--portrait-ring": "2px" },
-      xl: { "--portrait-font": "2rem", "--portrait-ring": "3px" },
+      xs: { "--portrait-font": "0.625rem" },
+      sm: { "--portrait-font": "0.8125rem" },
+      md: { "--portrait-font": "1.0625rem" },
+      lg: { "--portrait-font": "1.375rem" },
+      xl: { "--portrait-font": "2rem" },
     },
     shape: {
       circle: { "--portrait-radius": "{radii.full}" },
@@ -162,8 +140,6 @@ export interface CharacterPortraitProps
   colorScheme?: SchemeName;
   /** A hue (0 to 360) for the gradient when there is no scheme. */
   colorSeed?: number;
-  /** Rings the portrait with the gradient, for the active character. */
-  active?: boolean;
   /** A dot at the bottom corner. */
   status?: PortraitStatus;
   /** What the dot means, for screen readers, such as "Online". */
@@ -182,8 +158,7 @@ export interface CharacterPortraitProps
 
 /**
  * A character's portrait: their image, or initials over a gradient tinted by
- * their colour scheme. A gradient ring marks the active character and a dot
- * shows a status.
+ * their colour scheme. A dot at the corner shows a status.
  */
 export function CharacterPortrait(props: CharacterPortraitProps) {
   const {
@@ -194,7 +169,6 @@ export function CharacterPortrait(props: CharacterPortraitProps) {
     shape,
     colorScheme,
     colorSeed,
-    active,
     status,
     statusLabel,
     loading,
@@ -236,7 +210,6 @@ export function CharacterPortrait(props: CharacterPortraitProps) {
   return (
     <span
       className={cx(portraitStyles({ size, shape }), className)}
-      data-active={active || undefined}
       data-loading={loading || undefined}
       style={{ ...variables, ...style }}
       {...a11y}
