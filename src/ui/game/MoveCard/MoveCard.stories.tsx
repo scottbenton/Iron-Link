@@ -1,11 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
+import { Card } from "ui/components/Card";
 import { Text } from "ui/components/Text";
+import { StatGrid } from "ui/game/StatCard";
 import { Stack } from "ui/primitives";
 
 import { sampleMoves } from "../../stories/fixtures/datasworn";
 import { MoveCard } from "./MoveCard";
+import { getMoveRollOptions } from "./moveData";
 
 const meta: Meta<typeof MoveCard> = {
   title: "Game/MoveCard",
@@ -167,5 +170,49 @@ export const NoRoll: Story = {
   args: {
     move: sampleMoves.payThePrice,
     category: "Fate",
+  },
+};
+
+const kiraStats = { edge: 3, heart: 2, iron: 1, shadow: 1, wits: 2 };
+
+/**
+ * An idea: the move's stats as stat cards in place of roll buttons, so a
+ * move rolls from the same cards as the sheet. The card holds the move with
+ * no roll options and a `StatGrid` of the stats its trigger names. Strike
+ * offers two, Face Danger all five.
+ */
+export const WithStatCards: Story = {
+  render: function Render() {
+    const [rolled, setRolled] = useState<string>();
+    return (
+      <Stack gap="4" maxWidth="560px">
+        {[sampleMoves.strike, sampleMoves.faceDanger].map((move) => (
+          <Card key={move._id} padding="md">
+            <Stack gap="4">
+              <MoveCard move={move} category="Combat" variant="plain" />
+              <Stack gap="1.5">
+                <Text variant="label" as="span" color="muted">
+                  Roll with
+                </Text>
+                <StatGrid
+                  label={`Roll ${move.name} with`}
+                  stats={getMoveRollOptions(move)
+                    .filter((option) => option.id in kiraStats)
+                    .map((option) => ({
+                      key: option.id,
+                      name: option.label,
+                      value: kiraStats[option.id as keyof typeof kiraStats],
+                    }))}
+                  onRoll={(stat) => setRolled(`${move.name} with ${stat.name}`)}
+                />
+              </Stack>
+            </Stack>
+          </Card>
+        ))}
+        <Text variant="caption" color="muted">
+          {rolled ? `Rolled ${rolled}` : "Nothing rolled yet"}
+        </Text>
+      </Stack>
+    );
   },
 };

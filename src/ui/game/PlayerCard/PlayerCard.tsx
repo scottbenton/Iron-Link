@@ -18,20 +18,23 @@ import {
 
 export type PlayerRole = "guide" | "player" | "viewer";
 
+// One row: portrait, then the name over the role chip and characters, then
+// the actions. A narrow card puts the actions under the text instead.
 const cardStyles = css({
-  display: "grid",
-  gap: "3",
+  containerType: "inline-size",
+  containerName: "player-card",
   padding: "3",
-  paddingInlineEnd: "4",
-});
-
-const headStyles = css({
-  display: "flex",
-  alignItems: "center",
-  gap: "3",
-  minWidth: 0,
-  "& > [data-titles]": {
-    flex: "1",
+  "& > [data-player-layout]": {
+    display: "grid",
+    gridTemplateColumns: "auto minmax(0, 1fr) auto",
+    gridTemplateAreas: '"portrait titles actions"',
+    alignItems: "center",
+    columnGap: "3",
+    rowGap: "2",
+  },
+  "& [data-player-portrait]": { gridArea: "portrait", alignSelf: "start" },
+  "& [data-titles]": {
+    gridArea: "titles",
     minWidth: 0,
     display: "grid",
     gap: "1",
@@ -43,6 +46,26 @@ const headStyles = css({
     gap: "2",
     minWidth: 0,
     maxWidth: "100%",
+  },
+  "& [data-detail-line]": {
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: "2",
+  },
+  "& [data-actions]": {
+    gridArea: "actions",
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "2",
+    justifyContent: "flex-end",
+  },
+  "@container player-card (max-width: 339.98px)": {
+    "& > [data-player-layout]": {
+      gridTemplateColumns: "auto minmax(0, 1fr)",
+      gridTemplateAreas: '"portrait titles" "portrait actions"',
+    },
+    "& [data-actions]": { justifyContent: "flex-start" },
   },
 });
 
@@ -95,19 +118,6 @@ const youStyles = css({
   fontWeight: "medium",
 });
 
-const footStyles = css({
-  display: "flex",
-  alignItems: "center",
-  flexWrap: "wrap",
-  gap: "2",
-  "& > [data-actions]": {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "2",
-    marginInlineStart: "auto",
-  },
-});
-
 export interface PlayerCardProps
   extends LayoutProps,
     Omit<ComponentPropsWithoutRef<"article">, "children"> {
@@ -156,19 +166,21 @@ export function PlayerCard(props: PlayerCardProps) {
     ...rest
   } = withLayoutProps(props);
 
-  const hasFoot = (characters && characters.length > 0) || actions;
+  const hasCharacters = characters && characters.length > 0;
 
   return (
     <article className={cx(contentCardStyles, cardStyles, className)} {...rest}>
-      <div className={headStyles}>
-        <CharacterPortrait
-          name={name}
-          portraitUrl={avatarUrl}
-          status={status}
-          statusLabel={statusLabel}
-          size="md"
-          decorative
-        />
+      <div data-player-layout="">
+        <span data-player-portrait="">
+          <CharacterPortrait
+            name={name}
+            portraitUrl={avatarUrl}
+            status={status}
+            statusLabel={statusLabel}
+            size="md"
+            decorative
+          />
+        </span>
         <div data-titles="">
           <div data-name-line="">
             <Text as={headingAs} variant="h4" truncate>
@@ -179,24 +191,26 @@ export function PlayerCard(props: PlayerCardProps) {
               <VisuallyHidden>{statusLabel}</VisuallyHidden>
             )}
           </div>
-          {role && (
-            <span className={roleChipStyles({ role })}>{roleLabels[role]}</span>
+          {(role || hasCharacters) && (
+            <div data-detail-line="">
+              {role && (
+                <span className={roleChipStyles({ role })}>
+                  {roleLabels[role]}
+                </span>
+              )}
+              {hasCharacters && (
+                <PortraitGroup
+                  members={characters}
+                  size="sm"
+                  max={4}
+                  label={charactersLabel}
+                />
+              )}
+            </div>
           )}
         </div>
+        {actions && <div data-actions="">{actions}</div>}
       </div>
-      {hasFoot && (
-        <div className={footStyles}>
-          {characters && characters.length > 0 && (
-            <PortraitGroup
-              members={characters}
-              size="sm"
-              max={4}
-              label={charactersLabel}
-            />
-          )}
-          {actions && <div data-actions="">{actions}</div>}
-        </div>
-      )}
     </article>
   );
 }

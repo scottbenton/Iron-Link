@@ -5,10 +5,13 @@ import { Stack } from "ui/primitives";
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import { PortraitGroup, PortraitGroupMember } from "./PortraitGroup";
 
+const partySchemes = ["cinder", "myriad", undefined] as const;
+
 const party: PortraitGroupMember[] = [
-  ...sampleCharacters.map((character) => ({
+  ...sampleCharacters.map((character, index) => ({
     id: character.id,
     name: character.name,
+    colorScheme: partySchemes[index],
   })),
   { id: "jun", name: "Jun Okafor" },
   { id: "bryn", name: "Bryn Tallow" },
@@ -28,7 +31,11 @@ const meta: Meta<typeof PortraitGroup> = {
 export default meta;
 type Story = StoryObj<typeof PortraitGroup>;
 
-/** A party of six, four shown and "+2" for the rest. Hover for names. */
+/**
+ * A party of six with a max of four: three portraits and "+3", which names
+ * the rest for screen readers. Each portrait is ringed in its character's
+ * theme, gray without one. Hover for names.
+ */
 export const Party: Story = {};
 
 export const Apart: Story = {

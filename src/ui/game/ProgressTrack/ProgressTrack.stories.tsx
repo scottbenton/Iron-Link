@@ -71,6 +71,47 @@ export const Vow: Story = {
   },
 };
 
+/**
+ * A track with several actions under its boxes, at the sidebar's narrowest
+ * (280px) and default widths. Minus and plus live in the header's corner,
+ * so the actions have the row to themselves and wrap onto a second line
+ * rather than crowding the stepper.
+ */
+export const ManyActions: Story = {
+  decorators: [(Story) => <Story />],
+  render: function Render() {
+    const [ticks, setTicks] = useState(22);
+    return (
+      <HStack gap="6" alignItems="flex-start" flexWrap="wrap">
+        {[280, 336].map((width) => (
+          <Box key={width} width={`${width}px`}>
+            <ProgressTrack
+              label="Defeat the Iron Wraith"
+              typeLabel="Combat"
+              rank="extreme"
+              ticks={ticks}
+              onChange={setTicks}
+              headerAction={
+                <IconButton label="Combat options" size="sm">
+                  <DotsThree weight="bold" />
+                </IconButton>
+              }
+              actions={
+                <>
+                  <RollButton size="sm">Take Decisive Action</RollButton>
+                  <RollButton size="sm">Strike</RollButton>
+                  <RollButton size="sm">Clash</RollButton>
+                  <RollButton size="sm">React Under Fire</RollButton>
+                </>
+              }
+            />
+          </Box>
+        ))}
+      </HStack>
+    );
+  },
+};
+
 export const EveryRank: Story = {
   render: () => (
     <Stack gap="3">

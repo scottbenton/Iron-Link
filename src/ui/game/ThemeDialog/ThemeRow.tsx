@@ -32,6 +32,14 @@ const rowStyles = css({
   },
   "& [data-row-action]": { gridArea: "action" },
   "& [data-row-panel]": { gridArea: "panel" },
+  // At phone width the text keeps the row's width and Change goes under it,
+  // in line with the name, rather than squeezing the hint into a column.
+  "@container theme-rows (max-width: 419.98px)": {
+    gridTemplateColumns: "auto minmax(0, 1fr)",
+    gridTemplateAreas: '"icon text" "icon action" "panel panel"',
+    rowGap: "2",
+    "& [data-row-action]": { justifySelf: "start" },
+  },
 });
 
 const titleLineStyles = css({
