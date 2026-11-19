@@ -73,6 +73,7 @@ import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { characterAuthor, gameLogEntries } from "../../examples/sampleLog";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
+import { CharacterSwitcher } from "../../game/CharacterSwitcher";
 import {
   AddsControl,
   ConditionMeter,
@@ -85,9 +86,12 @@ import { ImpactsSummary } from "../../game/ImpactsSummary";
 import { getInitiativeOptions } from "../../game/InitiativeChip";
 import type { InitiativeStatus } from "../../game/InitiativeChip";
 import { MoveListItem } from "../../game/MoveListItem";
+import { OpenNotesBar, OpenNotesSheet } from "../../game/OpenNotes";
+import type { OpenNote } from "../../game/OpenNotes";
 import { OracleListItem } from "../../game/OracleListItem";
 import { ProgressTrack } from "../../game/ProgressTrack";
 import type { RollData } from "../../game/RollCard";
+import { DockedRoll, RollDock } from "../../game/RollDock";
 import { StatGrid } from "../../game/StatCard";
 import { TracksPanelDemo } from "../../game/TracksPanel/TracksPanelDemo";
 import {
@@ -104,13 +108,9 @@ import {
 } from "../../stories/fixtures/datasworn";
 import { ActionToolbar, ActionToolbarIconButton } from "../ActionToolbar";
 import { AppShell } from "../AppShell";
-import { CharacterSwitcher } from "../CharacterSwitcher";
 import { MobileNav } from "../MobileNav";
 import type { MobileNavItem } from "../MobileNav";
 import { NavBar } from "../NavBar";
-import { OpenNotesBar, OpenNotesSheet } from "../OpenNotes";
-import type { OpenNote } from "../OpenNotes";
-import { DockedRoll, RollDock } from "../RollDock";
 import { SectionHeading } from "../SectionHeading";
 import { DemoSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
 import { guideScenario } from "../SettingsMenu/settingsMenuScenarios";

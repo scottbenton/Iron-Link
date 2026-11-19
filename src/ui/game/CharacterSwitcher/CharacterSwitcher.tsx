@@ -16,8 +16,11 @@ import {
   MenuLinkItem,
   MenuSeparator,
 } from "../../components/Menu";
+import {
+  LayoutLinkComponent,
+  useLinkComponent,
+} from "../../layout/shared/linkContext";
 import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
-import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
 
 const triggerStyles = css({
   boxSizing: "border-box",
