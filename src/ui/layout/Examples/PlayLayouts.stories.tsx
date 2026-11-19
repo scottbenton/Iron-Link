@@ -13,6 +13,11 @@
  */
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import {
+  CharacterHeaderOption,
+  characterHeaderLabels,
+  sampleHeaderNames,
+} from "./CharacterHeaders";
 import { PhoneGamePage } from "./PhoneGamePage";
 import { SheetFirstPage } from "./PlayLayouts";
 import { responsiveViewports, useGamePageTier } from "./responsiveViewports";
@@ -113,4 +118,73 @@ export const SheetFirstResponsive: Story = {
   name: "Sheet first, responsive",
   globals: { viewport: { value: "r1440", isRotated: false } },
   render: () => <ResponsiveSheetFirst />,
+};
+
+interface HeaderArgs {
+  header: CharacterHeaderOption;
+  characterName: string;
+  touch: boolean;
+}
+type HeaderStory = StoryObj<HeaderArgs>;
+
+/**
+ * The sheet with one of the character header options (Examples/Character
+ * Header Options) in place of the identity card: no player, the
+ * character's settings gear beside the name. Each story starts with a long
+ * name; Controls switch the option and the name, and the toolbar's
+ * viewports (or dragging the reference's edge) show the reflow.
+ */
+const headerStory: HeaderStory = {
+  globals: desktop,
+  argTypes: {
+    header: {
+      name: "Header option",
+      control: "select",
+      options: Object.keys(characterHeaderLabels),
+      labels: characterHeaderLabels,
+    },
+    characterName: {
+      name: "Character name",
+      control: "select",
+      options: sampleHeaderNames,
+    },
+    touch: { name: "Touch sizes", control: "boolean" },
+  },
+  render: (args) => (
+    <SheetFirstPage
+      header={args.header}
+      characterName={args.characterName}
+      touch={args.touch}
+    />
+  ),
+};
+
+const longName = sampleHeaderNames[1];
+
+/** A: the row, the name cut after two lines. */
+export const SheetFirstHeaderA: HeaderStory = {
+  ...headerStory,
+  name: "Sheet first, header A",
+  args: { header: "rowClamp", characterName: longName, touch: false },
+};
+
+/** A2: stacked down the start edge, the name never cut. */
+export const SheetFirstHeaderA2: HeaderStory = {
+  ...headerStory,
+  name: "Sheet first, header A2",
+  args: { header: "stackedStart", characterName: longName, touch: false },
+};
+
+/** A3: stacked and centred, the gear in the corner. */
+export const SheetFirstHeaderA3: HeaderStory = {
+  ...headerStory,
+  name: "Sheet first, header A3",
+  args: { header: "stackedCentred", characterName: longName, touch: false },
+};
+
+/** A4: the row, stacking when the card is under 300px. */
+export const SheetFirstHeaderA4: HeaderStory = {
+  ...headerStory,
+  name: "Sheet first, header A4",
+  args: { header: "rowThenStacked", characterName: longName, touch: false },
 };

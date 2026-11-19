@@ -1,7 +1,7 @@
 /**
- * Ways to head the character column's Overview, for the header options
- * stories. Story-only. None shows the player; each puts the character's
- * settings gear beside the name rather than in the column's tab row.
+ * Ways to show the character at the top of the sheet, for the header
+ * options stories and the sheet first layout. Story-only. None shows the
+ * player; each puts the character's settings gear beside the name.
  */
 import { ReactNode } from "react";
 
@@ -16,7 +16,19 @@ export interface CharacterHeaderProps {
   initiative: ReactNode;
   /** The character's settings menu (its gear). */
   gear: ReactNode;
+  /**
+   * The name's element: h3 under a column heading, p where the name is
+   * already the page's h1.
+   */
+  nameAs?: "h3" | "p";
 }
+
+/** A short, a long and a very long name, to see how each option copes. */
+export const sampleHeaderNames = [
+  "Kira Vale",
+  "Seraphina Ashgrove-Blackwater",
+  "Captain Isolde Varn-Thessaly of the Ninth Drowned Reach",
+];
 
 export type CharacterHeaderOption =
   | "rowClamp"
@@ -57,12 +69,12 @@ const rowTextStyles = css({
 });
 
 function RowClampHeader(props: CharacterHeaderProps) {
-  const { name, initiative, gear } = props;
+  const { name, initiative, gear, nameAs = "h3" } = props;
   return (
     <div className={rowStyles}>
       <CharacterPortrait name={name} size="lg" shape="rounded" decorative />
       <div className={rowTextStyles}>
-        <Text variant="h3" as="h3" className={clampStyles}>
+        <Text variant="h3" as={nameAs} className={clampStyles}>
           {name}
         </Text>
         {initiative}
@@ -91,14 +103,14 @@ const topLineStyles = css({
 });
 
 function StackedStartHeader(props: CharacterHeaderProps) {
-  const { name, initiative, gear } = props;
+  const { name, initiative, gear, nameAs = "h3" } = props;
   return (
     <div className={stackedStyles}>
       <div className={topLineStyles}>
         <CharacterPortrait name={name} size="xl" shape="rounded" decorative />
         {gear}
       </div>
-      <Text variant="h2" as="h3" className={wrapStyles}>
+      <Text variant="h2" as={nameAs} className={wrapStyles}>
         {name}
       </Text>
       {initiative}
@@ -124,11 +136,11 @@ const centredCornerStyles = css({
 });
 
 function StackedCentredHeader(props: CharacterHeaderProps) {
-  const { name, initiative, gear } = props;
+  const { name, initiative, gear, nameAs = "h3" } = props;
   return (
     <div className={centredStyles}>
       <CharacterPortrait name={name} size="xl" shape="rounded" decorative />
-      <Text variant="h2" as="h3" className={wrapStyles}>
+      <Text variant="h2" as={nameAs} className={wrapStyles}>
         {name}
       </Text>
       {initiative}
@@ -172,14 +184,14 @@ const adaptiveAreas = {
 };
 
 function RowThenStackedHeader(props: CharacterHeaderProps) {
-  const { name, initiative, gear } = props;
+  const { name, initiative, gear, nameAs = "h3" } = props;
   return (
     <div className={adaptiveScopeStyles}>
       <div className={adaptiveStyles}>
         <div className={adaptiveAreas.portrait}>
           <CharacterPortrait name={name} size="lg" shape="rounded" decorative />
         </div>
-        <Text variant="h3" as="h3" className={adaptiveNameStyles}>
+        <Text variant="h3" as={nameAs} className={adaptiveNameStyles}>
           {name}
         </Text>
         <div className={adaptiveAreas.chip}>{initiative}</div>
@@ -204,11 +216,11 @@ const metaLineStyles = css({
 });
 
 function NameFirstHeader(props: CharacterHeaderProps) {
-  const { name, initiative, gear } = props;
+  const { name, initiative, gear, nameAs = "h3" } = props;
   return (
     <div className={stackedStyles}>
       <div className={nameLineStyles}>
-        <Text variant="h3" as="h3" className={wrapStyles}>
+        <Text variant="h3" as={nameAs} className={wrapStyles}>
           {name}
         </Text>
         {gear}
@@ -251,14 +263,14 @@ const lineAreas = {
 };
 
 function OneLineHeader(props: CharacterHeaderProps) {
-  const { name, initiative, gear } = props;
+  const { name, initiative, gear, nameAs = "h3" } = props;
   return (
     <div className={adaptiveScopeStyles}>
       <div className={lineGridStyles}>
         <div className={lineAreas.portrait}>
           <CharacterPortrait name={name} size="md" shape="rounded" decorative />
         </div>
-        <Text variant="h4" as="h3" className={truncateStyles}>
+        <Text variant="h4" as={nameAs} className={truncateStyles}>
           {name}
         </Text>
         <div className={lineAreas.chip}>{initiative}</div>
@@ -297,12 +309,12 @@ const cardCornerStyles = css({
 });
 
 function CardHeader(props: CharacterHeaderProps) {
-  const { name, initiative, gear } = props;
+  const { name, initiative, gear, nameAs = "h3" } = props;
   return (
     <div className={cardStyles}>
       <CharacterPortrait name={name} size="lg" shape="rounded" decorative />
       <div className={cardTextStyles}>
-        <Text variant="h3" as="h3" className={wrapStyles}>
+        <Text variant="h3" as={nameAs} className={wrapStyles}>
           {name}
         </Text>
         {initiative}

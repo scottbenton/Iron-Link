@@ -1,13 +1,11 @@
 /**
- * Ways to head the character column's Overview. None shows the player; each
- * brings the character's settings gear in beside the name, out of the tab
- * row, where it crowded the tabs at narrow widths.
+ * Ways to show the character at the top of the sheet first layout's sheet.
+ * None shows the player; each brings the character's settings gear in
+ * beside the name.
  *
  * The boards show each option with a short, a long and a very long name at
- * three sidebar widths (280px, the narrowest a sidebar goes, then 360 and
- * 440px). The "in the page" stories put an option in the real game page,
- * with the long name; drag the sheet's edge to try it at other widths, or
- * pick another option and name in the controls.
+ * three widths (280, 360 and 440px). To see one in the page, open Examples/
+ * Play layouts, "Sheet first, header" stories.
  */
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
@@ -17,36 +15,16 @@ import { css, cx } from "styled-system/css";
 import { Text } from "../../components/Text";
 import { InitiativeChip } from "../../game/InitiativeChip";
 import type { InitiativeStatus } from "../../game/InitiativeChip";
-import { sampleCharacters } from "../../stories/fixtures/characters";
-import { AppShell } from "../AppShell";
-import { GameLayout } from "../GameLayout";
-import { NavBar } from "../NavBar";
-import { NavRail } from "../NavRail";
-import {
-  DemoCharacterSettingsMenu,
-  DemoSettingsMenu,
-} from "../SettingsMenu/SettingsMenuDemo";
+import { DemoCharacterSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
 import { guideScenario } from "../SettingsMenu/settingsMenuScenarios";
-import { LayoutPanel } from "../shared/layoutPanel";
 import {
   CharacterHeader,
   CharacterHeaderOption,
   characterHeaderLabels,
+  sampleHeaderNames,
 } from "./CharacterHeaders";
-import {
-  CharacterColumn,
-  NotesColumn,
-  ReferenceColumn,
-} from "./GamePageColumns";
-import { GamePageTabs } from "./StoryPlaceholders";
-import { characterSections, referenceSections } from "./columnSections";
-import { getNavItems } from "./storyData";
 
-const names = [
-  "Kira Vale",
-  "Seraphina Ashgrove-Blackwater",
-  "Captain Isolde Varn-Thessaly of the Ninth Drowned Reach",
-];
+const names = sampleHeaderNames;
 const widths = [280, 360, 440];
 
 function CharacterGear(props: { name: string }) {
@@ -129,107 +107,12 @@ function Board(props: { option: CharacterHeaderOption; description: string }) {
   );
 }
 
-/* The game page, with the chosen header in the character column. */
-
-interface InPageArgs {
-  option: CharacterHeaderOption;
-  name: string;
-}
-
-function GamePageWithHeader(props: InPageArgs) {
-  const { option, name } = props;
-  const character = { ...sampleCharacters[0], name };
-  const [sheetSection, setSheetSection] = useState("overview");
-  const [referenceSection, setReferenceSection] = useState("moves");
-  const [sheetWidth, setSheetWidth] = useState(350);
-  const [referenceWidth, setReferenceWidth] = useState(350);
-
-  // No gear in the column's tab row: it is in the header now.
-  const sheet: LayoutPanel = {
-    id: "character",
-    title: "Character",
-    sections: characterSections,
-    activeSectionId: sheetSection,
-    onActiveSectionChange: setSheetSection,
-    content: (
-      <CharacterColumn
-        character={character}
-        section={sheetSection}
-        onSectionChange={setSheetSection}
-        renderHeader={({ initiative }) => (
-          <CharacterHeader
-            option={option}
-            name={name}
-            initiative={initiative}
-            gear={<CharacterGear name={name} />}
-          />
-        )}
-      />
-    ),
-  };
-  const reference: LayoutPanel = {
-    id: "reference",
-    title: "Reference",
-    sections: referenceSections,
-    activeSectionId: referenceSection,
-    onActiveSectionChange: setReferenceSection,
-    content: (
-      <ReferenceColumn
-        section={referenceSection}
-        onSectionChange={setReferenceSection}
-      />
-    ),
-  };
-  return (
-    <AppShell
-      fill
-      rail={
-        <NavRail
-          items={getNavItems("games")}
-          homeHref="#games"
-          actions={
-            <DemoSettingsMenu
-              rail
-              scenario={guideScenario}
-              side="inline-end"
-              align="end"
-              tooltipSide="right"
-            />
-          }
-        />
-      }
-      topBar={<NavBar title={name} backHref="#overview" />}
-    >
-      <GameLayout
-        tabs={<GamePageTabs current="kira" />}
-        main={{
-          id: "notes",
-          title: "Notes",
-          hideTitle: true,
-          content: <NotesColumn />,
-        }}
-        startSidebar={{
-          panels: [sheet],
-          width: sheetWidth,
-          onWidthChange: setSheetWidth,
-        }}
-        endSidebar={{
-          panels: [reference],
-          width: referenceWidth,
-          onWidthChange: setReferenceWidth,
-        }}
-      />
-    </AppShell>
-  );
-}
-
 const meta: Meta = {
   title: "Examples/Character Header Options",
   parameters: { layout: "padded" },
 };
 export default meta;
 type Story = StoryObj;
-type InPageStory = StoryObj<InPageArgs>;
 
 /**
  * A: the current row, tightened. Portrait beside the name, the name wraps
@@ -328,45 +211,4 @@ export const Card: Story = {
       description="A bordered card: portrait beside the name, which wraps freely, with the gear in the top corner."
     />
   ),
-};
-
-const inPage: InPageStory = {
-  parameters: { layout: "fullscreen" },
-  argTypes: {
-    option: {
-      control: "select",
-      options: Object.keys(characterHeaderLabels),
-      labels: characterHeaderLabels,
-    },
-    name: { control: "select", options: names },
-  },
-  render: (args) => <GamePageWithHeader {...args} />,
-};
-
-/** A in the game page, with a long name. */
-export const InPageRowWithClamp: InPageStory = {
-  ...inPage,
-  name: "In the page: A",
-  args: { option: "rowClamp", name: names[1] },
-};
-
-/** A2 in the game page, with a long name. */
-export const InPageStackedStart: InPageStory = {
-  ...inPage,
-  name: "In the page: A2",
-  args: { option: "stackedStart", name: names[1] },
-};
-
-/** A3 in the game page, with a long name. */
-export const InPageStackedCentred: InPageStory = {
-  ...inPage,
-  name: "In the page: A3",
-  args: { option: "stackedCentred", name: names[1] },
-};
-
-/** A4 in the game page, with a long name. Narrow the sheet to see it stack. */
-export const InPageRowThenStacked: InPageStory = {
-  ...inPage,
-  name: "In the page: A4",
-  args: { option: "rowThenStacked", name: names[1] },
 };

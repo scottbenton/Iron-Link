@@ -28,7 +28,7 @@ import {
 } from "@phosphor-icons/react";
 import { ReactNode, useState } from "react";
 
-import { css } from "styled-system/css";
+import { css, cx } from "styled-system/css";
 import { visuallyHidden } from "styled-system/patterns";
 
 import { Button } from "../../components/Button";
@@ -78,10 +78,14 @@ import { GameLayout } from "../GameLayout";
 import { NavBar } from "../NavBar";
 import { NavRail } from "../NavRail";
 import { SectionHeading } from "../SectionHeading";
-import { DemoSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
+import {
+  DemoCharacterSettingsMenu,
+  DemoSettingsMenu,
+} from "../SettingsMenu/SettingsMenuDemo";
 import { guideScenario } from "../SettingsMenu/settingsMenuScenarios";
 import { SidebarHeaderEnd } from "../Sidebar";
 import type { LayoutPanel, LayoutSection } from "../shared/layoutPanel";
+import { CharacterHeader, CharacterHeaderOption } from "./CharacterHeaders";
 import { NotesColumn } from "./GamePageColumns";
 import { GamePageTabs } from "./StoryPlaceholders";
 import { rollAction } from "./rollDice";
@@ -100,6 +104,13 @@ export interface PlayLayoutProps {
    * would. The reader can open it again; the app remembers the choice.
    */
   sidebarCollapsed?: boolean;
+  /**
+   * One of the character header options (Examples/Character Header
+   * Options) in place of today's identity card, which shows the player.
+   */
+  header?: CharacterHeaderOption;
+  /** The character's name, to try long ones. */
+  characterName?: string;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -238,12 +249,46 @@ type PlaySheet = ReturnType<typeof usePlaySheet>;
  * initiative. Beside the rolls on a wide sheet it is as tall as they are,
  * its contents centred. The name is the page's h1 already.
  */
-function Identity(props: { sheet: PlaySheet }) {
-  const { sheet } = props;
+function Identity(props: {
+  sheet: PlaySheet;
+  name: string;
+  header?: CharacterHeaderOption;
+}) {
+  const { sheet, name, header } = props;
+  if (header) {
+    const parts = {
+      name,
+      nameAs: "p" as const,
+      initiative: (
+        <InitiativeChip
+          status={sheet.initiative}
+          onStatusChange={sheet.setInitiative}
+        />
+      ),
+      gear: (
+        <DemoCharacterSettingsMenu
+          scenario={{ ...guideScenario, character: { name, isOwner: true } }}
+        />
+      ),
+    };
+    // The card option draws its own card.
+    if (header === "card") {
+      return (
+        <div className={identityHeaderStyles}>
+          <CharacterHeader option={header} {...parts} />
+        </div>
+      );
+    }
+    return (
+      <div className={cx(identityHeaderStyles, identityHeaderCardStyles)}>
+        <CharacterHeader option={header} {...parts} />
+      </div>
+    );
+  }
   return (
     <div className={identityStyles}>
       <CharacterPortrait
-        name={character.name}
+        name={name}
         size="lg"
         shape="rounded"
         colorScheme="cinder"
@@ -251,7 +296,7 @@ function Identity(props: { sheet: PlaySheet }) {
       />
       <div className={identityTextStyles}>
         <Text variant="h3" as="p">
-          {character.name}
+          {name}
         </Text>
         <span className={identityPlayerStyles}>
           <UserIcon aria-hidden />
@@ -286,6 +331,29 @@ const identityStyles = css({
   borderRadius: "lg",
   background: "bg.surface",
   "@container sheet (min-width: 760px)": { alignSelf: "stretch" },
+});
+
+// A header option fills the card, and the card stops at 20rem beside the
+// rolls so a long name wraps instead of squeezing them.
+const identityHeaderStyles = css({
+  display: "grid",
+  alignContent: "center",
+  minWidth: 0,
+  "& > *": { minWidth: 0 },
+  "@container sheet (min-width: 760px)": {
+    alignSelf: "stretch",
+    width: "max-content",
+    maxWidth: "20rem",
+  },
+});
+
+const identityHeaderCardStyles = css({
+  padding: "3",
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: "border.default",
+  borderRadius: "lg",
+  background: "bg.surface",
 });
 
 const identityTextStyles = css({
@@ -585,7 +653,7 @@ const logStyles = css({
 /* ------------------------------------------------------------------------ */
 
 /** The app's chrome around a proposal: rail, bar (its h1), page tabs. */
-function PlayShell(props: { children: ReactNode }) {
+function PlayShell(props: { children: ReactNode; title?: string }) {
   return (
     <AppShell
       fill
@@ -606,7 +674,7 @@ function PlayShell(props: { children: ReactNode }) {
       }
       topBar={
         <NavBar
-          title={character.name}
+          title={props.title ?? character.name}
           backHref="#overview"
           actions={<DemoSettingsMenu scenario={guideScenario} />}
         />
@@ -705,7 +773,12 @@ const sheetTabs = [
  * the notes as the last tab. The reference is the start sidebar.
  */
 export function SheetFirstPage(props: PlayLayoutProps) {
-  const { touch, sidebarCollapsed = false } = props;
+  const {
+    touch,
+    sidebarCollapsed = false,
+    header,
+    characterName = character.name,
+  } = props;
   const sheet = usePlaySheet();
   const [referenceSection, setReferenceSection] = useState("moves");
   const [collapsed, setCollapsed] = useState(sidebarCollapsed);
@@ -745,7 +818,7 @@ export function SheetFirstPage(props: PlayLayoutProps) {
     content: (
       <div className={sheetFirstStyles.page}>
         <div className={sheetFirstStyles.band}>
-          <Identity sheet={sheet} />
+          <Identity sheet={sheet} name={characterName} header={header} />
           <Rolls sheet={sheet} touch={touch} />
         </div>
         <Tabs
@@ -787,7 +860,7 @@ export function SheetFirstPage(props: PlayLayoutProps) {
   };
 
   return (
-    <PlayShell>
+    <PlayShell title={characterName}>
       <GameLayout
         tabs={<GamePageTabs current="kira" />}
         main={main}
