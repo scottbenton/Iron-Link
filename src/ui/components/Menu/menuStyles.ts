@@ -1,3 +1,9 @@
+import {
+  disabledSelector,
+  highlightedSelector,
+  quietPressable,
+} from "ui/styles/pressable";
+
 import { css, cva } from "styled-system/css";
 
 /** The menu's card. Long menus scroll inside the space left on screen. */
@@ -17,46 +23,32 @@ export const menuPopupStyles = css({
  */
 export const menuItemStyles = cva({
   base: {
+    ...quietPressable,
     "--menu-item-icon": "{colors.fg.muted}",
     position: "relative",
     display: "flex",
     alignItems: "center",
     gap: "2",
     width: "100%",
-    boxSizing: "border-box",
     minHeight: "control.row",
     paddingBlock: "1.5",
     paddingInline: "10px",
-    margin: 0,
-    border: 0,
     borderRadius: "sm",
-    background: "transparent",
     color: "fg.default",
     fontFamily: "body",
     fontSize: "sm",
     fontWeight: "normal",
     lineHeight: "snug",
     textAlign: "start",
-    textDecoration: "none",
-    cursor: "pointer",
     userSelect: "none",
-    outline: "none",
-    WebkitTapHighlightColor: "transparent",
-    transitionProperty: "background-color",
-    transitionDuration: "fast",
-    transitionTimingFunction: "linear",
-    "&:not([data-disabled])": {
-      "&[data-highlighted]": { background: "overlay.hover" },
-      "&[data-popup-open]": { background: "overlay.selected" },
-      _pressed: {
-        background: "overlay.pressed",
-        transitionDuration: "instant",
-      },
+    // The open submenu's row keeps a tint, so it shows what it belongs to.
+    "&[data-popup-open]:not([data-disabled])": {
+      background: "overlay.selected",
     },
     _focusVisible: {
       boxShadow: "inset 0 0 0 2px token(colors.focusRing)",
     },
-    "&[data-disabled]": {
+    [disabledSelector]: {
       "--menu-item-icon": "{colors.fg.disabled}",
       color: "fg.disabled",
       cursor: "default",
@@ -71,9 +63,8 @@ export const menuItemStyles = cva({
       danger: {
         "--menu-item-icon": "currentColor",
         color: "danger.fg",
-        "&:not([data-disabled])": {
-          "&[data-highlighted]": { background: "danger.soft" },
-        },
+        _hoverable: { _hover: { background: "danger.soft" } },
+        [highlightedSelector]: { background: "danger.soft" },
       },
     },
   },
