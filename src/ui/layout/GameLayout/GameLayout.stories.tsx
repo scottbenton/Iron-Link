@@ -101,11 +101,11 @@ const mediumFrame = css({
 });
 
 /**
- * Between 900 and 1200px the sheet sits over the reference in one column
- * beside the notes, as the live app lays it out, while both are open. The
- * column keeps the sheet's resize handle. Each has its own Collapse:
- * collapse the reference and the sheet stays open as its own column, with
- * the reference on a rail at the far side (and the other way round).
+ * Between 900 and 1200px both sidebars sit before the notes. While both are
+ * open the sheet sits over the reference in one column, with the sheet's
+ * resize handle. Each has its own Collapse: collapse the reference and the
+ * sheet stays open as its own column with the reference on a rail beside
+ * it, still before the notes (and the other way round, or both on rails).
  */
 export const Stacked: Story = {
   args: { stackSidebars: true },
@@ -137,11 +137,45 @@ function ReferenceOnRail(props: { args: Story["args"] }) {
 
 /**
  * The medium width with the sheet kept open and the reference collapsed to
- * a rail: a rail button shows a reference section over the notes for a
- * moment, and Expand stacks the two again.
+ * a rail beside it: a rail button shows a reference section over the notes
+ * for a moment, and Expand stacks the two again.
  */
 export const StackedReferenceCollapsed: Story = {
   args: { stackSidebars: true },
   parameters: { layout: "padded" },
   render: (args) => <ReferenceOnRail args={args} />,
+};
+
+function BothOnRails(props: { args: Story["args"] }) {
+  const [sheetCollapsed, setSheetCollapsed] = useState(true);
+  const [referenceCollapsed, setReferenceCollapsed] = useState(true);
+  return (
+    <div className={mediumFrame}>
+      <GameLayout
+        {...props.args}
+        main={meta.args!.main!}
+        startSidebar={{
+          ...meta.args!.startSidebar!,
+          collapsed: sheetCollapsed,
+          onCollapsedChange: setSheetCollapsed,
+        }}
+        endSidebar={{
+          panels: [reference],
+          defaultWidth: 350,
+          collapsed: referenceCollapsed,
+          onCollapsedChange: setReferenceCollapsed,
+        }}
+      />
+    </div>
+  );
+}
+
+/**
+ * The medium width with both sidebars on rails, side by side before the
+ * notes, which take the rest. Expand either to pin it open.
+ */
+export const StackedBothCollapsed: Story = {
+  args: { stackSidebars: true },
+  parameters: { layout: "padded" },
+  render: (args) => <BothOnRails args={args} />,
 };

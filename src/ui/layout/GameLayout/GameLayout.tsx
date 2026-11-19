@@ -1,4 +1,4 @@
-import { ArrowLineRightIcon } from "@phosphor-icons/react";
+import { ArrowLineLeftIcon } from "@phosphor-icons/react";
 import { CSSProperties, ReactNode, useEffect, useId, useRef } from "react";
 
 import { focusRing } from "ui/styles/focus";
@@ -137,14 +137,16 @@ export interface GameLayoutProps {
   /** The column after the main one: the reference (moves, oracles, game log). */
   endSidebar?: GameSidebar;
   /**
-   * Stack the end sidebar under the start one, in a single column beside
-   * the main column, as the live app does between 900 and 1200px. Pass
-   * `!useIsBreakpoint("greater-than", "lg")`. The column keeps the start
-   * sidebar's width and resize handle. It stacks only while both sidebars
-   * are open: each keeps its own Collapse (the end one's sits in its first
-   * panel's header), and collapsing either one leaves the other open as its
-   * own column, beside a rail for the collapsed one. So the reader can keep
-   * the sheet open with the reference on a rail, or the other way round.
+   * Put both sidebars on the start side of the main column, as the live app
+   * does between 900 and 1200px. Pass `!useIsBreakpoint("greater-than",
+   * "lg")`. Each sidebar is pinned open or collapsed to a rail on its own,
+   * and all of it sits at the start: with both open, the end sidebar stacks
+   * under the start one in a single column (with the start sidebar's width
+   * and resize handle, and the end one's Collapse in its first panel's
+   * header); with one collapsed, its rail sits beside the open column; with
+   * both collapsed, two rails. So the reader can keep the sheet open with
+   * the reference on a rail, the other way round, or both, and the main
+   * column never moves between sides.
    */
   stackSidebars?: boolean;
   /** The narrowest the main column gets before sidebars stop growing. */
@@ -157,8 +159,8 @@ export interface GameLayoutProps {
  * three columns, the character sheet, the notes and the reference. Each
  * column has its own h2 and scrolls on its own, so the page fills the
  * screen (give AppShell `fill`). The reader can resize and collapse the
- * sidebars; between 900 and 1200px the sheet and the reference stack in one
- * column while both are open (`stackSidebars`). Phones use a layout of
+ * sidebars; between 900 and 1200px both sit at the start, the sheet and the
+ * reference in one column while both are open (`stackSidebars`). Phones use a layout of
  * their own (the phone game page), not this one.
  */
 export function GameLayout(props: GameLayoutProps) {
@@ -190,6 +192,8 @@ export function GameLayout(props: GameLayoutProps) {
   );
 
   const canStack = stackSidebars && !!startSidebar && !!endSidebar;
+  // Stacking puts every sidebar at the start, open or on a rail.
+  const endSide = canStack ? "start" : "end";
   const stacked = canStack && !startCollapsed && !endCollapsed;
 
   // Stacking or unstacking swaps the end sidebar between its own column and
@@ -263,7 +267,7 @@ export function GameLayout(props: GameLayoutProps) {
                       tooltipSide="bottom"
                       onClick={() => changeEndCollapsed(true)}
                     >
-                      <ArrowLineRightIcon />
+                      <ArrowLineLeftIcon />
                     </IconButton>
                   </>
                 ),
@@ -271,6 +275,16 @@ export function GameLayout(props: GameLayoutProps) {
             : panel,
         )
       : [];
+
+  const endSidebarColumn = endSidebar && !stacked && (
+    <Sidebar
+      side={endSide}
+      {...endSidebar}
+      id={endId}
+      collapsed={endCollapsed}
+      onCollapsedChange={changeEndCollapsed}
+    />
+  );
 
   return (
     <div className={cx(rootStyles, className)}>
@@ -314,16 +328,9 @@ export function GameLayout(props: GameLayoutProps) {
               onCollapsedChange={setStartCollapsed}
             />
           ))}
+        {endSide === "start" && endSidebarColumn}
         {mainColumn}
-        {endSidebar && !stacked && (
-          <Sidebar
-            side="end"
-            {...endSidebar}
-            id={endId}
-            collapsed={endCollapsed}
-            onCollapsedChange={changeEndCollapsed}
-          />
-        )}
+        {endSide === "end" && endSidebarColumn}
       </div>
     </div>
   );
