@@ -54,7 +54,9 @@ export function ledge(color: string, state: LedgeState): SystemStyleObject {
  * (ledge colour), `--ledge-height` (one of `ledgeHeight`) and, for a
  * selection ring inside the face, `--ledge-inset` (a box-shadow). The element
  * needs a position (relative or absolute) and must not clip its overflow.
- * Pass the radius the element uses, for the clip.
+ * Pass the radius the element uses, for the clip. Something that rounds
+ * itself differently, such as a pill, sets `--ledge-radius` to match (any
+ * radius past half the height reads as a pill).
  */
 export function ledgeLayers(radius = "token(radii.md)"): SystemStyleObject {
   const border = "var(--ledge-border-width, 1px)";
@@ -68,6 +70,7 @@ export function ledgeLayers(radius = "token(radii.md)"): SystemStyleObject {
   } as const;
   return {
     "--ledge-height": ledgeHeight.rest,
+    "--ledge-radius": radius,
     isolation: "isolate",
     background: "transparent",
     borderColor: "transparent",
@@ -90,7 +93,9 @@ export function ledgeLayers(radius = "token(radii.md)"): SystemStyleObject {
       bottom: `calc(-1 * (var(--ledge-height) + ${border}))`,
       zIndex: -2,
       background: "var(--ledge-edge)",
-      clipPath: `inset(calc(100% - ${radius} - var(--ledge-height)) 0 0 0)`,
+      // A pill's curve starts halfway down, whatever radius it was given.
+      clipPath:
+        "inset(calc(100% - min(var(--ledge-radius), 50%) - var(--ledge-height)) 0 0 0)",
       transitionProperty: "top, bottom, clip-path, background-color",
     },
   };
