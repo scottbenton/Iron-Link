@@ -230,9 +230,9 @@ type PlaySheet = ReturnType<typeof usePlaySheet>;
 /* ------------------------------------------------------------------------ */
 
 /**
- * A large portrait with the name, the player and initiative stacked under
- * it, as tall as the stats and meters beside it once they wrap. The name is
- * the page's h1 already.
+ * The character as one card: the portrait beside the name, the player and
+ * initiative. Beside the rolls on a wide sheet it is as tall as they are,
+ * its contents centred. The name is the page's h1 already.
  */
 function Identity(props: { sheet: PlaySheet }) {
   const { sheet } = props;
@@ -240,7 +240,7 @@ function Identity(props: { sheet: PlaySheet }) {
     <div className={identityStyles}>
       <CharacterPortrait
         name={character.name}
-        size="xl"
+        size="lg"
         shape="rounded"
         colorScheme="cinder"
         decorative
@@ -267,20 +267,21 @@ function Identity(props: { sheet: PlaySheet }) {
   );
 }
 
-// Beside the portrait while the band is one column, so a narrow sheet does
-// not spend a screen on it; stacked under it once the band has two.
 const identityStyles = css({
   display: "grid",
   gridTemplateColumns: "auto minmax(0, 1fr)",
   alignItems: "center",
-  alignContent: "start",
+  alignContent: "center",
   justifyItems: "start",
   gap: "3",
   minWidth: 0,
-  "@container sheet (min-width: 760px)": {
-    gridTemplateColumns: "minmax(0, 1fr)",
-    alignItems: "start",
-  },
+  padding: "3",
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: "border.default",
+  borderRadius: "lg",
+  background: "bg.surface",
+  "@container sheet (min-width: 760px)": { alignSelf: "stretch" },
 });
 
 const identityTextStyles = css({
@@ -302,7 +303,8 @@ const identityPlayerStyles = css({
  * Everything the character rolls, in one row: the five stats, then Adds as
  * a meter of its own (it changes whichever of them the next roll uses),
  * then Health, Spirit, Supply and Momentum, each at its own width. They wrap
- * to a second row when the column is narrow; nothing stretches to fill.
+ * to a second row when the column is narrow; nothing stretches across, and
+ * everything in a line shares its height.
  */
 function Rolls(props: { sheet: PlaySheet; touch?: boolean }) {
   const { sheet, touch } = props;
@@ -366,18 +368,26 @@ const rollsStyles = css({ display: "grid", gap: "3", minWidth: 0 });
 
 const addsMeterStyles = css({ flex: "none" });
 
+// Every item in a line shares its height, so the stat cards, Adds and the
+// meters line up top and bottom wherever the row wraps.
 const rollRowStyles = css({
   display: "flex",
   flexWrap: "wrap",
-  alignItems: "flex-start",
+  alignItems: "stretch",
   gap: "3",
   minWidth: 0,
 });
 
-/** The stats at the width five cards need, never stretched. */
+/**
+ * The stats at the width five cards need, never stretched across, but as
+ * tall as the line: the cards fill it, their ledge inside it.
+ */
 const statsStyles = css({
   flex: "0 1 400px",
   minWidth: "min(100%, 300px)",
+  display: "grid",
+  paddingBottom: "var(--border-widths-ledge)",
+  "& > div, & > div > ul": { height: "100%" },
 });
 
 const meterRowStyles = css({
@@ -816,8 +826,8 @@ const sheetFirstStyles = {
     gap: "4",
     alignItems: "start",
     "@container sheet (min-width: 760px)": {
-      gridTemplateColumns: "minmax(200px, max-content) minmax(0, 1fr)",
-      columnGap: "6",
+      gridTemplateColumns: "auto minmax(0, 1fr)",
+      columnGap: "4",
     },
   }),
   // The tabs and their panel in one card, most of the screen's height (and

@@ -951,6 +951,15 @@ const sectionStyles = css({
   // Room under the content for the roll dock, so the last row can scroll
   // clear of it.
   "&[data-has-rolls]": { "--phone-page-foot": "240px" },
+  // A phone layout on a wider screen (a tablet, or a window up to 900px)
+  // keeps its screens to a phone-and-a-bit width, centred, rather than
+  // stretching stats and meters across it. The bars stay full width.
+  "& > *": {
+    boxSizing: "border-box",
+    width: "100%",
+    maxWidth: "40rem",
+    marginInline: "auto",
+  },
 });
 
 /** The bottom bar's slot: the roll dock floats above the nav. */
@@ -961,6 +970,9 @@ const dockStyles = css({
   insetInline: "4",
   bottom: "calc(100% + token(spacing.3))",
   width: "auto",
+  // Over the screens' own centred width.
+  maxWidth: "calc(40rem - 2 * token(spacing.4))",
+  marginInline: "auto",
 });
 
 /** A character's page, or the game's overview. */

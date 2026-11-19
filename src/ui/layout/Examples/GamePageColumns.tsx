@@ -564,10 +564,17 @@ const openNotes = [
   { id: "salvagers", label: "The Salvagers" },
 ];
 
-/** The note's toolbar, inset like the other columns' contents. */
+/**
+ * The note's toolbar, inset like the other columns' contents and kept to
+ * the note's own width, so on a wide column the breadcrumbs and actions sit
+ * over the text rather than at the column's far edges.
+ */
 const noteToolbarStyles = css({
+  boxSizing: "border-box",
+  maxWidth: "prose",
   paddingInline: "4",
   paddingBlockStart: "3",
+  marginInline: "auto",
 });
 
 const noteBodyStyles = css({
