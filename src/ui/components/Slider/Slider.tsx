@@ -3,7 +3,7 @@ import { ReactNode, Ref } from "react";
 
 import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
-import { ledgeShadow } from "ui/styles/ledge";
+import { ledgeLayers } from "ui/styles/ledge";
 
 import { css } from "styled-system/css";
 
@@ -105,11 +105,13 @@ const thumbStyles = css({
   borderRadius: "full",
   borderWidth: "1px",
   borderStyle: "solid",
-  borderColor: "accent.solid",
-  background: "bg.surface",
-  boxShadow: ledgeShadow("token(colors.accent.edge)"),
+  // A round thumb's corners are its whole lower half.
+  ...ledgeLayers("50%"),
+  "--ledge-face": "{colors.bg.surface}",
+  "--ledge-border": "{colors.accent.solid}",
+  "--ledge-edge": "{colors.accent.edge}",
   cursor: "grab",
-  transitionProperty: "scale, box-shadow",
+  transitionProperty: "scale",
   transitionDuration: "fast",
   transitionTimingFunction: "out",
   outline: "none",
@@ -117,13 +119,13 @@ const thumbStyles = css({
   "&[data-dragging]": {
     cursor: "grabbing",
     scale: "0.92",
-    boxShadow: "0 0 0 token(colors.accent.edge)",
+    "--ledge-height": "0px",
   },
   "&[data-disabled]": {
     cursor: "not-allowed",
-    borderColor: "border.default",
-    background: "bg.muted",
-    boxShadow: "none",
+    "--ledge-face": "{colors.bg.muted}",
+    "--ledge-border": "{colors.border.default}",
+    "--ledge-edge": "transparent",
   },
   _touch: { width: "24px", height: "24px" },
   _reducedMotion: { "&[data-dragging]": { scale: "1" } },
