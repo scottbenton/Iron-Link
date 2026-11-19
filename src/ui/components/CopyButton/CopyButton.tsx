@@ -23,7 +23,6 @@ const swapStyles = css({
     filter: "blur(3px)",
     scale: "0.6",
   },
-  "& > [data-copied]": { color: "success.fg" },
 });
 
 export interface CopyButtonProps
@@ -49,7 +48,8 @@ export interface CopyButtonProps
 
 /**
  * Copies text to the clipboard. The copy icon turns into a check for a moment
- * and "Copied" is announced.
+ * and "Copied" is announced. The check keeps the button's own text colour in
+ * every variant, so it reads the same on any background.
  */
 export function CopyButton(props: CopyButtonProps) {
   const {
@@ -87,7 +87,7 @@ export function CopyButton(props: CopyButtonProps) {
   const icon = (
     <span className={swapStyles} aria-hidden>
       <Copy data-on={!copied} />
-      <Check data-on={copied} data-copied="" weight="bold" />
+      <Check data-on={copied} weight="bold" />
     </span>
   );
 
