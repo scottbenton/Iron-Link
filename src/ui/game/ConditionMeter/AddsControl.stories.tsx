@@ -80,8 +80,8 @@ export const Values: Story = {
 };
 
 /**
- * Narrow rooms: the hint drops under the chip rather than squeezing it, and
- * a long translated hint wraps.
+ * Narrow rooms: the hint wraps to two lines inside the pill, and
+ * a long translated hint clips after two.
  */
 export const Narrow: Story = {
   render: () => (
