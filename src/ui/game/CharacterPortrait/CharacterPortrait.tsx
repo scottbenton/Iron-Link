@@ -66,13 +66,14 @@ export const portraitStyles = cva({
       height: "var(--portrait-scale)",
       width: "auto",
     },
+    // Loading looks exactly like a Skeleton: the same colour and slow
+    // pulse, and no ring, which drew a steady grey edge over the pulse.
     "&[data-loading] > [data-portrait-face]": {
-      background:
-        "linear-gradient(90deg, token(colors.bg.emphasized) 25%, token(colors.bg.muted) 50%, token(colors.bg.emphasized) 75%)",
-      backgroundSize: "200% 100%",
-      animation: "shimmer 1.4s linear infinite",
+      background: "bg.emphasized",
+      animation: "pulse 1.8s ease-in-out infinite",
       _reducedMotion: { animation: "none" },
     },
+    "&[data-loading] > [data-portrait-face]::after": { display: "none" },
     "& [data-portrait-status]": {
       position: "absolute",
       insetInlineEnd: "calc(var(--portrait-size) * 0.02)",
