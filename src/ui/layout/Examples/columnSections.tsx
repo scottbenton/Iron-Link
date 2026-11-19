@@ -9,6 +9,7 @@ import {
   FlagBannerIcon,
   HandFistIcon,
   IdentificationCardIcon,
+  UsersThreeIcon,
 } from "@phosphor-icons/react";
 
 import type { LayoutSection } from "../shared/layoutPanel";
@@ -25,4 +26,11 @@ export const referenceSections: LayoutSection[] = [
   { id: "moves", title: "Moves", icon: <HandFistIcon /> },
   { id: "oracles", title: "Oracles", icon: <DiceFiveIcon /> },
   { id: "log", title: "Game Log", icon: <ChatsCircleIcon /> },
+];
+
+/** The game overview column's tabs (live `GameOverviewSheet`). */
+export const overviewSections: LayoutSection[] = [
+  { id: "characters", title: "Characters", icon: <UsersThreeIcon /> },
+  { id: "assets", title: "Assets", icon: <CardsIcon /> },
+  { id: "tracks", title: "Tracks", icon: <FlagBannerIcon /> },
 ];

@@ -8,12 +8,19 @@
  *   the details, Stats, Meters, Impacts, Legacy Tracks and Experience, in
  *   that order; Assets the asset cards; Tracks the TracksPanel (vows,
  *   journeys, fights, scene challenges, clocks and connections).
+ * - Game Overview (live `GameOverviewSheet`, in the character column's place
+ *   on the Overview page): Characters, Assets and Tracks tabs. Characters
+ *   holds the game's characters (`CharacterCard`) and Add Character, then
+ *   its players (`PlayerCard`) and Copy Invite Link; Assets and Tracks are
+ *   the game's own, shared by everyone.
  * - Notes (live `NotesSection`): the open notes as tabs, its h2 for screen
  *   readers only.
  * - Reference (live `ReferenceSidebarContents`): Moves, Oracles and Game
  *   Log tabs, each scrolling under the pinned tab row.
  */
 import {
+  ArrowSquareOutIcon,
+  CopyIcon,
   DotsThreeIcon,
   PlusIcon,
   ShareNetworkIcon,
@@ -39,6 +46,7 @@ import {
 import { Text } from "../../components/Text";
 import { characterAuthor, gameLogEntries } from "../../examples/sampleLog";
 import { AssetCard } from "../../game/AssetCard";
+import { CharacterCard } from "../../game/CharacterCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
 import {
   AddsControl,
@@ -52,12 +60,14 @@ import type { ImpactGroup } from "../../game/ImpactsChecklist";
 import { ImpactsSummary } from "../../game/ImpactsSummary";
 import { InitiativeChip } from "../../game/InitiativeChip";
 import type { InitiativeStatus } from "../../game/InitiativeChip";
+import { PlayerCard } from "../../game/PlayerCard";
 import { ProgressTrack } from "../../game/ProgressTrack";
 import { StatGrid } from "../../game/StatCard";
 import { TracksPanelDemo } from "../../game/TracksPanel/TracksPanelDemo";
 import {
   SampleCharacter,
   sampleCharacters,
+  samplePortraitSrc,
 } from "../../stories/fixtures/characters";
 import {
   sampleAssets,
@@ -74,7 +84,11 @@ import { SectionHeading } from "../SectionHeading";
 import { DemoCharacterSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
 import { SidebarHeaderEnd } from "../Sidebar";
 import type { LayoutSection } from "../shared/layoutPanel";
-import { characterSections, referenceSections } from "./columnSections";
+import {
+  characterSections,
+  overviewSections,
+  referenceSections,
+} from "./columnSections";
 
 const capitalize = (text: string) =>
   text.charAt(0).toUpperCase() + text.slice(1);
@@ -324,6 +338,209 @@ export function CharacterColumn(
 
       <TabPanel value="tracks" className={sheetPanelStyles}>
         <TracksPanelDemo />
+      </TabPanel>
+    </Tabs>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+/* Game overview                                                            */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * Cards in a column fill its width; where the column is wide enough (the
+ * notes' width on a phone's tab, say) they sit two or more to a row.
+ */
+const cardGridStyles = css({
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))",
+  gap: "3",
+  alignItems: "start",
+});
+
+const [kira, orrin, senna] = sampleCharacters;
+
+/** The game's characters, each ringed in its own theme where it has one. */
+const overviewCharacters = [
+  { ...kira, portraitUrl: samplePortraitSrc, colorScheme: "cinder" as const },
+  { ...orrin, colorScheme: "myriad" as const },
+  { ...senna, colorScheme: undefined },
+];
+
+/**
+ * Characters, then (not in solo games) Players, as the live
+ * `CharactersAndUsersTab`. Scott is the Guide here, so he sees Make Guide
+ * and Kick Player on the others and Leave Guide Role and Leave Game on his
+ * own card.
+ */
+export function OverviewCharacters(props: { solo?: boolean }) {
+  const { solo } = props;
+  const [onScreen, setOnScreen] = useState<string | null>(kira.id);
+  const [copied, setCopied] = useState(false);
+  return (
+    <Stack gap="6">
+      <Stack gap="3" as="section">
+        <SectionHeading title="Characters" as="h3" />
+        <div className={cardGridStyles}>
+          {(solo ? overviewCharacters.slice(0, 1) : overviewCharacters).map(
+            (character) => (
+              <CharacterCard
+                key={character.id}
+                name={character.name}
+                playerName={solo ? undefined : character.playerName}
+                portraitUrl={character.portraitUrl}
+                colorScheme={character.colorScheme}
+                headingAs="h4"
+                render={<a href={`#${character.id}`} />}
+                actions={
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    startIcon={<ArrowSquareOutIcon />}
+                    onClick={() =>
+                      setOnScreen((current) =>
+                        current === character.id ? null : character.id,
+                      )
+                    }
+                  >
+                    {onScreen === character.id ? "On Screen" : "Open on Screen"}
+                  </Button>
+                }
+              />
+            ),
+          )}
+        </div>
+        <HStack>
+          <Button
+            variant="outline"
+            startIcon={<PlusIcon />}
+            render={<a href="#create-character" />}
+            nativeButton={false}
+          >
+            Add Character
+          </Button>
+        </HStack>
+      </Stack>
+      {!solo && (
+        <Stack gap="3" as="section">
+          <SectionHeading title="Players" as="h3" />
+          <div className={cardGridStyles}>
+            <PlayerCard
+              name={kira.playerName}
+              role="guide"
+              isYou
+              headingAs="h4"
+              status="online"
+              statusLabel="Online"
+              characters={[
+                { id: kira.id, name: kira.name, colorScheme: "cinder" },
+              ]}
+              actions={
+                <>
+                  <Button size="sm" variant="ghost">
+                    Leave Guide Role
+                  </Button>
+                  <Button size="sm" variant="ghost">
+                    Leave Game
+                  </Button>
+                </>
+              }
+            />
+            <PlayerCard
+              name={orrin.playerName}
+              role="player"
+              headingAs="h4"
+              status="online"
+              statusLabel="Online"
+              characters={[
+                { id: orrin.id, name: orrin.name, colorScheme: "myriad" },
+              ]}
+              actions={
+                <>
+                  <Button size="sm" variant="ghost">
+                    Make Guide
+                  </Button>
+                  <Button size="sm" variant="ghost">
+                    Kick Player
+                  </Button>
+                </>
+              }
+            />
+            <PlayerCard
+              name={senna.playerName}
+              role="player"
+              headingAs="h4"
+              status="away"
+              statusLabel="Away"
+              characters={[{ id: senna.id, name: senna.name }]}
+              actions={
+                <>
+                  <Button size="sm" variant="ghost">
+                    Make Guide
+                  </Button>
+                  <Button size="sm" variant="ghost">
+                    Kick Player
+                  </Button>
+                </>
+              }
+            />
+          </div>
+          <HStack>
+            <Button
+              variant="outline"
+              startIcon={<CopyIcon />}
+              onClick={() => setCopied(true)}
+            >
+              {copied ? "Invite Link Copied" : "Copy Invite Link"}
+            </Button>
+          </HStack>
+        </Stack>
+      )}
+    </Stack>
+  );
+}
+
+/**
+ * The game overview: Characters, Assets and Tracks, as the live
+ * `GameOverviewSheet`. It takes the character column's place on the game's
+ * Overview page; its settings are the game's, in the rail's menu.
+ */
+export function OverviewColumn(props: { solo?: boolean } & ColumnTabsProps) {
+  const { solo, section, onSectionChange } = props;
+  return (
+    <Tabs
+      defaultValue="characters"
+      value={section}
+      onValueChange={(value) => onSectionChange?.(String(value))}
+      className={columnTabsStyles}
+    >
+      <ColumnTabList
+        label="Game Overview Sections"
+        sections={overviewSections}
+      />
+
+      <TabPanel value="characters" className={sheetPanelStyles}>
+        <OverviewCharacters solo={solo} />
+      </TabPanel>
+
+      <TabPanel value="assets" className={sheetPanelStyles}>
+        <Stack gap="3">
+          <Flex justifyContent="space-between" alignItems="center" gap="2">
+            <Checkbox label="Show all abilities" size="sm" />
+            <Button size="sm" startIcon={<PlusIcon />}>
+              Add Assets
+            </Button>
+          </Flex>
+          <AssetCard
+            asset={sampleAssets.starship}
+            state={{ controlValues: { integrity: 5 } }}
+            headingAs="h3"
+          />
+        </Stack>
+      </TabPanel>
+
+      <TabPanel value="tracks" className={sheetPanelStyles}>
+        <TracksPanelDemo initialConnections={null} />
       </TabPanel>
     </Tabs>
   );

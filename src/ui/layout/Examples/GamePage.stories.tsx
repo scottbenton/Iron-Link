@@ -32,6 +32,12 @@
  *     `TracksPanel` (its own story: Game/TracksPanel, "Tracks tab,
  *     everything"); `EditOrCreateTrackDialog` and `EditOrCreateClockDialog`
  *     → `TrackDialog`.
+ * - `GameOverviewSheet` (the Overview page's start column: h2 "Game
+ *   Overview", then Characters / Assets / Tracks) → the start sidebar's
+ *   panel with `SectionTabList`; `CharactersAndUsersTab` → `CharacterCard`s
+ *   (Open on Screen), Add Character, then `UserCard`s → `PlayerCard`s and
+ *   `GameInviteButton` → Copy Invite Link. Its `GameSettingsMenu` is the
+ *   rail's combined menu.
  * - `NotesSection` (h2 for screen readers, `NoteTabs`, note toolbar) → the
  *   main column with `hideTitle`, `NoteTabs` / `NoteTabPanel`,
  *   `ActionToolbar` with `Breadcrumbs`.
@@ -52,16 +58,24 @@ import { GameLayout } from "../GameLayout";
 import { NavBar } from "../NavBar";
 import { NavRail } from "../NavRail";
 import { DemoSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
-import { guideScenario } from "../SettingsMenu/settingsMenuScenarios";
+import {
+  SettingsScenario,
+  guideScenario,
+} from "../SettingsMenu/settingsMenuScenarios";
 import { LayoutPanel } from "../shared/layoutPanel";
 import {
   CharacterColumn,
   CharacterColumnActions,
   NotesColumn,
+  OverviewColumn,
   ReferenceColumn,
 } from "./GamePageColumns";
 import { GamePageTabs, PhoneFrame } from "./StoryPlaceholders";
-import { characterSections, referenceSections } from "./columnSections";
+import {
+  characterSections,
+  overviewSections,
+  referenceSections,
+} from "./columnSections";
 import { getNavItems } from "./storyData";
 
 const meta: Meta = {
@@ -72,28 +86,66 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
-/** On a character's page the title is the character's name, as live. */
-const pageTitle = "Kira Vale";
+/** Which of the game's pages is open: a character's, or the Overview. */
+type GamePageKind = "character" | "overview";
 
-function useGameColumns() {
+/**
+ * On a character's page the title is the character's name; on the
+ * Overview, the game's, as live.
+ */
+const pageTitles: Record<GamePageKind, string> = {
+  character: "Kira Vale",
+  overview: "The Drowned Archive",
+};
+
+/** The Overview has no character open, so the menu is the game's and app's. */
+const overviewScenario: SettingsScenario = {
+  ...guideScenario,
+  character: undefined,
+  currentCharacterId: undefined,
+};
+
+const scenarios: Record<GamePageKind, SettingsScenario> = {
+  character: guideScenario,
+  overview: overviewScenario,
+};
+
+function useGameColumns(page: GamePageKind = "character") {
   // The columns' tabs are kept here so a collapsed sidebar's rail can open
   // the column on one of them.
-  const [sheetSection, setSheetSection] = useState("overview");
+  const [sheetSection, setSheetSection] = useState(
+    page === "overview" ? "characters" : "overview",
+  );
   const [referenceSection, setReferenceSection] = useState("moves");
-  const character: LayoutPanel = {
-    id: "character",
-    title: "Character",
-    actions: <CharacterColumnActions />,
-    sections: characterSections,
-    activeSectionId: sheetSection,
-    onActiveSectionChange: setSheetSection,
-    content: (
-      <CharacterColumn
-        section={sheetSection}
-        onSectionChange={setSheetSection}
-      />
-    ),
-  };
+  const character: LayoutPanel =
+    page === "overview"
+      ? {
+          id: "overview",
+          title: "Game Overview",
+          sections: overviewSections,
+          activeSectionId: sheetSection,
+          onActiveSectionChange: setSheetSection,
+          content: (
+            <OverviewColumn
+              section={sheetSection}
+              onSectionChange={setSheetSection}
+            />
+          ),
+        }
+      : {
+          id: "character",
+          title: "Character",
+          actions: <CharacterColumnActions />,
+          sections: characterSections,
+          activeSectionId: sheetSection,
+          onActiveSectionChange: setSheetSection,
+          content: (
+            <CharacterColumn
+              section={sheetSection}
+              onSectionChange={setSheetSection}
+            />
+          ),
+        };
   const notes: LayoutPanel & { hideTitle: boolean } = {
     id: "notes",
     title: "Notes",
@@ -135,8 +187,13 @@ function WorldsBetaBanner() {
   );
 }
 
-function WideGamePage(props: { stacked?: boolean; banner?: boolean }) {
-  const { character, notes, reference } = useGameColumns();
+function WideGamePage(props: {
+  stacked?: boolean;
+  banner?: boolean;
+  page?: GamePageKind;
+}) {
+  const { page = "character" } = props;
+  const { character, notes, reference } = useGameColumns(page);
   // The app keeps these and remembers them per device.
   const [sheetWidth, setSheetWidth] = useState(350);
   const [referenceWidth, setReferenceWidth] = useState(350);
@@ -150,11 +207,11 @@ function WideGamePage(props: { stacked?: boolean; banner?: boolean }) {
           items={getNavItems("games")}
           homeHref="#games"
           actions={
-            // The mode toggle, then one menu for Kira, the game and the app
-            // (Scott is its Guide).
+            // The mode toggle, then one menu for Kira (on her page), the game
+            // and the app (Scott is its Guide).
             <DemoSettingsMenu
               rail
-              scenario={guideScenario}
+              scenario={scenarios[page]}
               side="inline-end"
               align="end"
               tooltipSide="right"
@@ -162,11 +219,18 @@ function WideGamePage(props: { stacked?: boolean; banner?: boolean }) {
           }
         />
       }
-      topBar={<NavBar title={pageTitle} backHref="#overview" />}
+      topBar={
+        <NavBar
+          title={pageTitles[page]}
+          backHref={page === "overview" ? "#games" : "#overview"}
+        />
+      }
     >
       <GameLayout
         banner={props.banner ? <WorldsBetaBanner /> : undefined}
-        tabs={<GamePageTabs current="kira" />}
+        tabs={
+          <GamePageTabs current={page === "overview" ? "overview" : "kira"} />
+        }
         main={notes}
         stackSidebars={props.stacked}
         stackedCollapsed={stackedCollapsed}
@@ -194,6 +258,16 @@ function WideGamePage(props: { stacked?: boolean; banner?: boolean }) {
  */
 export const Desktop: Story = {
   render: () => <WideGamePage />,
+};
+
+/**
+ * The game's Overview page: the Game Overview column (the game's characters
+ * and players, its shared assets and tracks) in the character sheet's
+ * place. Scott is the Guide, so he can make others Guide or kick them.
+ */
+export const DesktopOverview: Story = {
+  name: "Desktop, overview",
+  render: () => <WideGamePage page="overview" />,
 };
 
 /** With the Worlds beta banner over the tabs, edge to edge. */
@@ -228,17 +302,18 @@ export const Medium: Story = {
   ),
 };
 
-function PhoneGamePage() {
-  const { character, notes, reference } = useGameColumns();
+function PhoneGamePage(props: { page?: GamePageKind }) {
+  const { page = "character" } = props;
+  const { character, notes, reference } = useGameColumns(page);
   return (
     <PhoneFrame>
       <AppShell
         fill
         topBar={
           <NavBar
-            title={pageTitle}
-            backHref="#overview"
-            actions={<DemoSettingsMenu scenario={guideScenario} />}
+            title={pageTitles[page]}
+            backHref={page === "overview" ? "#games" : "#overview"}
+            actions={<DemoSettingsMenu scenario={scenarios[page]} />}
           />
         }
       >
@@ -263,4 +338,11 @@ function PhoneGamePage() {
 export const Phone: Story = {
   parameters: { layout: "padded" },
   render: () => <PhoneGamePage />,
+};
+
+/** The Overview page on a phone: Game Overview, Notes and Reference tabs. */
+export const PhoneOverview: Story = {
+  name: "Phone, overview",
+  parameters: { layout: "padded" },
+  render: () => <PhoneGamePage page="overview" />,
 };

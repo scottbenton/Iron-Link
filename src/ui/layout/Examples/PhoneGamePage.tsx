@@ -16,6 +16,9 @@
  * - Notes: the open note's name and a square count that lists the open
  *   notes in a sheet; the formatting toolbar shows only while the text has
  *   focus, ending with Done editing.
+ * - Game overview: chosen from the character switcher (or `page`), the
+ *   first nav item becomes Overview, with Characters, Assets and Tracks
+ *   tabs: the game's characters and players, its shared assets and tracks.
  * - Rolls: the newest card over the edges of two older ones, an "N rolls"
  *   handle opening Recent rolls, and snackbars stacked above the rolls.
  */
@@ -37,6 +40,7 @@ import {
   TextBIcon,
   TextItalicIcon,
   UserIcon,
+  UsersThreeIcon,
 } from "@phosphor-icons/react";
 import { FocusEvent, useEffect, useRef, useState } from "react";
 
@@ -115,6 +119,7 @@ import { NavBar } from "../NavBar";
 import { SectionHeading } from "../SectionHeading";
 import { DemoSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
 import { guideScenario } from "../SettingsMenu/settingsMenuScenarios";
+import { OverviewCharacters } from "./GamePageColumns";
 
 export type PhoneSection = "sheet" | "notes" | "moves" | "oracles" | "log";
 export type PhoneRuleset = "starforged" | "ironsworn";
@@ -222,12 +227,17 @@ function SecondScreenDialog(props: { open: boolean; onClose: () => void }) {
  * Second Screen, Change Theme, the app's), as on the wide page's rail.
  * Phones have no Reference tab, so Second Screen opens its dialog here.
  */
-function GameSettingsMenu() {
+function GameSettingsMenu(props: { overview?: boolean }) {
   const [secondScreenOpen, setSecondScreenOpen] = useState(false);
   return (
     <>
       <DemoSettingsMenu
-        scenario={guideScenario}
+        scenario={
+          // On the overview no character is open: the game's and app's.
+          props.overview
+            ? { ...guideScenario, character: undefined }
+            : guideScenario
+        }
         onSelect={(action) => {
           if (action === "secondScreen") setSecondScreenOpen(true);
         }}
@@ -455,6 +465,49 @@ function SheetScreen(props: {
         ) : (
           <TracksPanelDemo />
         )}
+      </TabPanel>
+    </Tabs>
+  );
+}
+
+/**
+ * The game overview: Characters (the game's characters, then its players),
+ * Assets and Tracks, the game's own and shared by everyone.
+ */
+function OverviewScreen() {
+  return (
+    <Tabs defaultValue="characters">
+      <div className={screenTabsStyles}>
+        <SectionTabList
+          aria-label="Game Overview Sections"
+          variant="underline"
+          size="lg"
+        >
+          <SectionTab value="characters">Characters</SectionTab>
+          <SectionTab value="assets">Assets</SectionTab>
+          <SectionTab value="tracks">Tracks</SectionTab>
+        </SectionTabList>
+      </div>
+      <TabPanel value="characters" className={screenPanelStyles}>
+        <OverviewCharacters />
+      </TabPanel>
+      <TabPanel value="assets" className={screenPanelStyles}>
+        <Stack gap="3">
+          <Flex justifyContent="space-between" alignItems="center" gap="2">
+            <Checkbox label="Show all abilities" size="sm" />
+            <Button size="sm" startIcon={<PlusIcon />}>
+              Add Assets
+            </Button>
+          </Flex>
+          <AssetCard
+            asset={sampleAssets.starship}
+            state={{ controlValues: { integrity: 5 } }}
+            headingAs="h3"
+          />
+        </Stack>
+      </TabPanel>
+      <TabPanel value="tracks" className={screenPanelStyles}>
+        <TracksPanelDemo initialConnections={null} />
       </TabPanel>
     </Tabs>
   );
@@ -910,7 +963,15 @@ const dockStyles = css({
   width: "auto",
 });
 
+/** A character's page, or the game's overview. */
+export type PhonePage = "character" | "overview";
+
 export interface PhoneGamePageProps {
+  /**
+   * The page showing first. The character switcher's links change it in
+   * the story too.
+   */
+  page?: PhonePage;
   /** The section showing first. */
   section?: PhoneSection;
   ruleset?: PhoneRuleset;
@@ -928,13 +989,36 @@ export interface PhoneGamePageProps {
  */
 export function PhoneGamePage(props: PhoneGamePageProps) {
   const {
+    page: initialPage = "character",
     section: initialSection = "sheet",
     ruleset = "starforged",
     rolls: initialRolls = [],
     notice: initialNotice = false,
     unreadLog = 2,
   } = props;
+  const [page, setPage] = useState<PhonePage>(initialPage);
   const [section, setSection] = useState<PhoneSection>(initialSection);
+
+  // The switcher's links: Game overview, or a character (always Kira's
+  // sheet here). Either opens on its first section.
+  useEffect(() => {
+    const follow = () => {
+      const hash = window.location.hash.slice(1);
+      const next: PhonePage | null =
+        hash === "overview"
+          ? "overview"
+          : characters.some((character) => character.id === hash)
+            ? "character"
+            : null;
+      if (next) {
+        setPage(next);
+        setSection("sheet");
+      }
+    };
+    window.addEventListener("hashchange", follow);
+    return () => window.removeEventListener("hashchange", follow);
+  }, []);
+  const overview = page === "overview";
   const [rolls, setRolls] = useState<DockedRoll[]>(() =>
     initialRolls.map((roll, index) => ({ id: `roll-${index}`, roll })),
   );
@@ -962,7 +1046,9 @@ export function PhoneGamePage(props: PhoneGamePageProps) {
     Icon: typeof UserIcon;
     badge?: number;
   }[] = [
-    { id: "sheet", label: "Sheet", Icon: UserIcon },
+    overview
+      ? { id: "sheet", label: "Overview", Icon: UsersThreeIcon }
+      : { id: "sheet", label: "Sheet", Icon: UserIcon },
     { id: "notes", label: "Notes", Icon: FileTextIcon },
     { id: "moves", label: "Moves", Icon: BookOpenIcon },
     { id: "oracles", label: "Oracles", Icon: DiceFiveIcon },
@@ -991,7 +1077,7 @@ export function PhoneGamePage(props: PhoneGamePageProps) {
             title={
               <CharacterSwitcher
                 characters={characters}
-                current="kira"
+                current={overview ? "overview" : "kira"}
                 gameName="The Drowned Archive"
                 overviewHref="#overview"
                 addCharacterHref="#create-character"
@@ -999,7 +1085,7 @@ export function PhoneGamePage(props: PhoneGamePageProps) {
             }
             backHref="#games"
             backLabel="Back to your games"
-            actions={<GameSettingsMenu />}
+            actions={<GameSettingsMenu overview={overview} />}
           />
         }
         bottomNav={
@@ -1032,11 +1118,18 @@ export function PhoneGamePage(props: PhoneGamePageProps) {
           data-has-rolls={rolls.length > 0 ? "" : undefined}
         >
           <VisuallyHidden>
-            <h2 id="phone-section-title">{sectionTitles[section]}</h2>
+            <h2 id="phone-section-title">
+              {overview && section === "sheet"
+                ? "Game Overview"
+                : sectionTitles[section]}
+            </h2>
           </VisuallyHidden>
-          {section === "sheet" && (
-            <SheetScreen ruleset={ruleset} onRoll={addRoll} />
-          )}
+          {section === "sheet" &&
+            (overview ? (
+              <OverviewScreen />
+            ) : (
+              <SheetScreen ruleset={ruleset} onRoll={addRoll} />
+            ))}
           {section === "notes" && (
             <NotesScreen editing={editing} onEditingChange={setEditing} />
           )}

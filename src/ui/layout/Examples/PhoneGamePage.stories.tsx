@@ -50,6 +50,16 @@ const threeRolls = [
  */
 export const Sheet: Story = { args: { section: "sheet" } };
 
+/**
+ * The game's overview, from Game overview in the character switcher: the
+ * first nav item becomes Overview, with the game's characters and players,
+ * its shared assets and its tracks. Pick Kira in the switcher to go back.
+ */
+export const Overview: Story = {
+  name: "Game overview",
+  args: { page: "overview", section: "sheet" },
+};
+
 /** An Ironsworn game: Debilities and the classic initiative words. */
 export const SheetIronsworn: Story = {
   name: "Sheet, Ironsworn",
