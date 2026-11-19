@@ -34,6 +34,11 @@ export function DockedCard(props: {
       className={className}
     />
   ) : (
-    <ToastCard {...item.toast} onDismiss={onDismiss} className={className} />
+    <ToastCard
+      {...item.toast}
+      elevated={docked}
+      onDismiss={onDismiss}
+      className={className}
+    />
   );
 }
