@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { AnnouncerProvider } from "../Announcer";
@@ -72,6 +72,40 @@ describe("Toaster", () => {
     for (const item of getToastItems()) {
       expect(item).toHaveAttribute("data-expanded", "false");
     }
+  });
+
+  // useSonner drops a dismissed toast at once, while the toast itself stays
+  // on the page for its exit, so the focused Dismiss button was still inside
+  // when focus was last checked and the stack stayed fanned out.
+  it("collapses again once a toast closed with its own Dismiss is gone", async () => {
+    render(
+      <AnnouncerProvider>
+        <Toaster />
+      </AnnouncerProvider>,
+    );
+    act(() => {
+      toast.info("Invite link copied");
+      toast.success("Character saved");
+      toast.warning("Starsmith is off");
+    });
+    await flush();
+
+    const front = getToastItems().find((item) => item.dataset.front === "true");
+    const dismiss = front?.querySelector<HTMLButtonElement>(
+      "button[aria-label=Dismiss]",
+    );
+    act(() => dismiss?.focus());
+    await flush();
+    expect(front).toHaveAttribute("data-expanded", "true");
+
+    act(() => dismiss?.click());
+    await waitFor(() => {
+      const items = getToastItems();
+      expect(items).toHaveLength(2);
+      for (const item of items) {
+        expect(item).toHaveAttribute("data-expanded", "false");
+      }
+    });
   });
 
   // The stack's styles reach the card through this path; a Sonner update
