@@ -7,10 +7,12 @@
  *
  * - The reference (Moves, Oracles, Game Log) is the start sidebar, as Iron
  *   Fellowship puts it.
- * - A band at the top: the character (a large portrait, with the name,
- *   player and initiative under it), then the stats, Adds as a meter and
- *   the meters in one row, all at their own widths.
- * - Assets, Tracks, Impacts and Legacy, and Notes as tabs in one card about
+ * - Across the top, no card: the portrait, the name with initiative under
+ *   it, then the Adds chip and the character's settings gear at the end.
+ *   Under that the stats and the meters in one row, at their own widths,
+ *   6px apart like the cards within each.
+ * - Assets, Tracks, Impacts and Legacy, and Notes as tabs (at the start of
+ *   their well, not centred, across a panel this wide) in one card about
  *   three quarters of the screen tall that scrolls inside, so marking a track
  *   never loses the reader's place in a note.
  *
@@ -24,11 +26,10 @@ import {
   ChatsCircleIcon,
   DiceFiveIcon,
   HandFistIcon,
-  UserIcon,
 } from "@phosphor-icons/react";
 import { ReactNode, useState } from "react";
 
-import { css, cx } from "styled-system/css";
+import { css } from "styled-system/css";
 import { visuallyHidden } from "styled-system/patterns";
 
 import { Button } from "../../components/Button";
@@ -44,6 +45,7 @@ import { Text } from "../../components/Text";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
 import {
+  AddsControl,
   ConditionMeter,
   MomentumMeter,
   XPMeter,
@@ -85,7 +87,6 @@ import {
 import { guideScenario } from "../SettingsMenu/settingsMenuScenarios";
 import { SidebarHeaderEnd } from "../Sidebar";
 import type { LayoutPanel, LayoutSection } from "../shared/layoutPanel";
-import { CharacterHeader, CharacterHeaderOption } from "./CharacterHeaders";
 import { NotesColumn } from "./GamePageColumns";
 import { GamePageTabs } from "./StoryPlaceholders";
 import { rollAction } from "./rollDice";
@@ -104,11 +105,6 @@ export interface PlayLayoutProps {
    * would. The reader can open it again; the app remembers the choice.
    */
   sidebarCollapsed?: boolean;
-  /**
-   * One of the character header options (Examples/Character Header
-   * Options) in place of today's identity card, which shows the player.
-   */
-  header?: CharacterHeaderOption;
   /** The character's name, to try long ones. */
   characterName?: string;
 }
@@ -245,138 +241,87 @@ type PlaySheet = ReturnType<typeof usePlaySheet>;
 /* ------------------------------------------------------------------------ */
 
 /**
- * The character as one card: the portrait beside the name, the player and
- * initiative. Beside the rolls on a wide sheet it is as tall as they are,
- * its contents centred. The name is the page's h1 already.
+ * The character across the top of the sheet, with no card: the portrait,
+ * the name with initiative under it, then the Adds chip and the
+ * character's settings gear at the end. Set adds show as a badge on every
+ * stat and meter below, so the chip can sit up here. When the column is
+ * narrow the chip drops to its own line and the gear stays at the top. The
+ * name is the page's h1 already.
  */
-function Identity(props: {
+function SheetHeader(props: {
   sheet: PlaySheet;
   name: string;
-  header?: CharacterHeaderOption;
+  touch?: boolean;
 }) {
-  const { sheet, name, header } = props;
-  if (header) {
-    const parts = {
-      name,
-      nameAs: "p" as const,
-      initiative: (
+  const { sheet, name, touch } = props;
+  return (
+    <div className={headerStyles.root}>
+      <div className={headerStyles.portrait}>
+        <CharacterPortrait
+          name={name}
+          size="lg"
+          shape="rounded"
+          colorScheme="cinder"
+          decorative
+        />
+      </div>
+      <div className={headerStyles.identity}>
+        <Text variant="h3" as="p" className={headerStyles.name}>
+          {name}
+        </Text>
         <InitiativeChip
           status={sheet.initiative}
           onStatusChange={sheet.setInitiative}
         />
-      ),
-      gear: (
+      </div>
+      <AddsControl
+        value={sheet.adds}
+        onChange={sheet.setAdds}
+        stepperSize={touch ? "touch" : "sm"}
+        className={headerStyles.adds}
+      />
+      <div className={headerStyles.gear}>
         <DemoCharacterSettingsMenu
           scenario={{ ...guideScenario, character: { name, isOwner: true } }}
         />
-      ),
-    };
-    // The card option draws its own card.
-    if (header === "card") {
-      return (
-        <div className={identityHeaderStyles}>
-          <CharacterHeader option={header} {...parts} />
-        </div>
-      );
-    }
-    return (
-      <div className={cx(identityHeaderStyles, identityHeaderCardStyles)}>
-        <CharacterHeader option={header} {...parts} />
-      </div>
-    );
-  }
-  return (
-    <div className={identityStyles}>
-      <CharacterPortrait
-        name={name}
-        size="lg"
-        shape="rounded"
-        colorScheme="cinder"
-        decorative
-      />
-      <div className={identityTextStyles}>
-        <Text variant="h3" as="p">
-          {name}
-        </Text>
-        <span className={identityPlayerStyles}>
-          <UserIcon aria-hidden />
-          <Text variant="caption" color="muted">
-            <span className={visuallyHidden()}>Played by </span>
-            {character.playerName}
-          </Text>
-        </span>
-        <div>
-          <InitiativeChip
-            status={sheet.initiative}
-            onStatusChange={sheet.setInitiative}
-          />
-        </div>
       </div>
     </div>
   );
 }
 
-const identityStyles = css({
-  display: "grid",
-  gridTemplateColumns: "auto minmax(0, 1fr)",
-  alignItems: "center",
-  alignContent: "center",
-  justifyItems: "start",
-  gap: "3",
-  minWidth: 0,
-  padding: "3",
-  borderWidth: "1px",
-  borderStyle: "solid",
-  borderColor: "border.default",
-  borderRadius: "lg",
-  background: "bg.surface",
-  "@container sheet (min-width: 760px)": { alignSelf: "stretch" },
-});
-
-// A header option fills the card, and the card stops at 20rem beside the
-// rolls so a long name wraps instead of squeezing them.
-const identityHeaderStyles = css({
-  display: "grid",
-  alignContent: "center",
-  minWidth: 0,
-  "& > *": { minWidth: 0 },
-  "@container sheet (min-width: 760px)": {
-    alignSelf: "stretch",
-    width: "max-content",
-    maxWidth: "20rem",
-  },
-});
-
-const identityHeaderCardStyles = css({
-  padding: "3",
-  borderWidth: "1px",
-  borderStyle: "solid",
-  borderColor: "border.default",
-  borderRadius: "lg",
-  background: "bg.surface",
-});
-
-const identityTextStyles = css({
-  display: "grid",
-  justifyItems: "start",
-  gap: "1",
-  minWidth: 0,
-});
-
-const identityPlayerStyles = css({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "1",
-  color: "fg.muted",
-  "& > svg": { flex: "none", width: "14px", height: "14px" },
-});
+const headerStyles = {
+  root: css({
+    display: "grid",
+    gridTemplateColumns: "auto minmax(0, 1fr) auto",
+    gridTemplateAreas: '"portrait identity gear" "portrait adds adds"',
+    alignItems: "center",
+    columnGap: "3",
+    rowGap: "2",
+    minWidth: 0,
+    "@container sheet (min-width: 560px)": {
+      gridTemplateColumns: "auto minmax(0, 1fr) auto auto",
+      gridTemplateAreas: '"portrait identity adds gear"',
+    },
+  }),
+  portrait: css({ gridArea: "portrait", alignSelf: "start" }),
+  identity: css({
+    gridArea: "identity",
+    display: "grid",
+    justifyItems: "start",
+    gap: "1",
+    minWidth: 0,
+  }),
+  name: css({ overflowWrap: "anywhere" }),
+  adds: css({ gridArea: "adds", justifySelf: "start" }),
+  gear: css({ gridArea: "gear", justifySelf: "end", alignSelf: "start" }),
+};
 
 /**
- * Everything the character rolls, in one row: the five stats, then Adds as
- * a meter of its own (it changes whichever of them the next roll uses),
- * then Health, Spirit, Supply and Momentum, each at its own width. They wrap
- * to a second row when the column is narrow; nothing stretches across, and
- * everything in a line shares its height.
+ * Everything the character rolls, in one row: the five stats, then
+ * Health, Spirit, Supply and Momentum, each at its own width, 6px apart
+ * like the stat cards. They wrap to a second row when the column is
+ * narrow; nothing stretches across, and everything in a line shares its
+ * height.
  */
 function Rolls(props: { sheet: PlaySheet; touch?: boolean }) {
   const { sheet, touch } = props;
@@ -398,15 +343,6 @@ function Rolls(props: { sheet: PlaySheet; touch?: boolean }) {
             onRoll={(stat) => sheet.roll(stat.name, stat.value)}
           />
         </section>
-        <ConditionMeter
-          label="Adds"
-          value={sheet.adds}
-          min={-9}
-          max={9}
-          stepperSize={stepperSize}
-          onChange={sheet.setAdds}
-          className={addsMeterStyles}
-        />
         <section className={meterRowStyles} aria-labelledby="sheet-meters">
           <h3 id="sheet-meters" className={visuallyHidden()}>
             Meters
@@ -438,15 +374,14 @@ function Rolls(props: { sheet: PlaySheet; touch?: boolean }) {
 
 const rollsStyles = css({ display: "grid", gap: "3", minWidth: 0 });
 
-const addsMeterStyles = css({ flex: "none" });
-
-// Every item in a line shares its height, so the stat cards, Adds and the
-// meters line up top and bottom wherever the row wraps.
+// Every item in a line shares its height, so the stat cards and the meters
+// line up top and bottom wherever the row wraps. 6px between the groups,
+// as between the stat cards (StatGrid's --stat-gap) and the meters.
 const rollRowStyles = css({
   display: "flex",
   flexWrap: "wrap",
   alignItems: "stretch",
-  gap: "3",
+  gap: "1.5",
   minWidth: 0,
 });
 
@@ -465,7 +400,7 @@ const statsStyles = css({
 const meterRowStyles = css({
   display: "flex",
   flexWrap: "wrap",
-  gap: "2",
+  gap: "1.5",
   minWidth: 0,
   "& > [role=group]": { flex: "none" },
 });
@@ -776,7 +711,6 @@ export function SheetFirstPage(props: PlayLayoutProps) {
   const {
     touch,
     sidebarCollapsed = false,
-    header,
     characterName = character.name,
   } = props;
   const sheet = usePlaySheet();
@@ -818,7 +752,7 @@ export function SheetFirstPage(props: PlayLayoutProps) {
     content: (
       <div className={sheetFirstStyles.page}>
         <div className={sheetFirstStyles.band}>
-          <Identity sheet={sheet} name={characterName} header={header} />
+          <SheetHeader sheet={sheet} name={characterName} touch={touch} />
           <Rolls sheet={sheet} touch={touch} />
         </div>
         <Tabs
@@ -826,8 +760,8 @@ export function SheetFirstPage(props: PlayLayoutProps) {
           onValueChange={(next) => setTab(String(next))}
           className={sheetFirstStyles.card}
         >
-          <SectionTabWell className={sheetFirstStyles.cardTabs}>
-            <SectionTabList aria-label="Sheet Sections">
+          <SectionTabWell align="start" className={sheetFirstStyles.cardTabs}>
+            <SectionTabList aria-label="Sheet Sections" align="start">
               {sheetTabs.map((section) => (
                 <SectionTab key={section.id} value={section.id}>
                   {section.title}
@@ -894,18 +828,12 @@ const sheetFirstStyles = {
     marginInline: "auto",
     padding: "5",
   }),
-  // The character over the rolls on a narrow column; beside them, both
-  // from the top, once there is room.
+  // The character across the top, the rolls under it.
   band: css({
     flex: "none",
     display: "grid",
     gridTemplateColumns: "minmax(0, 1fr)",
     gap: "4",
-    alignItems: "start",
-    "@container sheet (min-width: 760px)": {
-      gridTemplateColumns: "auto minmax(0, 1fr)",
-      columnGap: "4",
-    },
   }),
   // The tabs and their panel in one card, most of the screen's height (and
   // any room left below the band): the panel scrolls under the tabs, so
