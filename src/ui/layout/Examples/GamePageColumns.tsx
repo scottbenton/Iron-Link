@@ -46,7 +46,6 @@ import {
 } from "../../components/Tabs";
 import { Text } from "../../components/Text";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
-import { characterAuthor, gameLogEntries } from "../../examples/sampleLog";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterCard } from "../../game/CharacterCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
@@ -91,6 +90,7 @@ import {
   overviewSections,
   referenceSections,
 } from "./columnSections";
+import { characterAuthor, gameLogEntries } from "./sampleLog";
 
 const capitalize = (text: string) =>
   text.charAt(0).toUpperCase() + text.slice(1);

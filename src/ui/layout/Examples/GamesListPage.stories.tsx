@@ -16,6 +16,7 @@ import { Button } from "../../components/Button";
 import { Card, CardHeader, CardLinkOverlay } from "../../components/Card";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
+import type { SchemeName } from "../../theme/schemes";
 import { AppShell } from "../AppShell";
 import { EmptyState } from "../EmptyState";
 import { MobileNav } from "../MobileNav";
@@ -27,7 +28,7 @@ import { PhoneFrame } from "./StoryPlaceholders";
 import { getNavItems } from "./storyData";
 
 const meta: Meta = {
-  title: "Layout/Examples/Games list page",
+  title: "Examples/Games list page",
   parameters: { layout: "fullscreen" },
 };
 
@@ -37,6 +38,8 @@ type Story = StoryObj;
 interface GameCharacter {
   id: string;
   name: string;
+  /** The character's own colour scheme, which rings its portrait. */
+  colorScheme?: SchemeName;
 }
 
 interface Game {
@@ -54,24 +57,26 @@ const games: Game[] = [
     name: "The Iron Expanse",
     rules: "Starforged, Sundered Isles",
     characters: [
-      { id: "kira", name: "Kira Vale" },
-      { id: "orrin", name: "Orrin Thale" },
+      { id: "kira", name: "Kira Vale", colorScheme: "cinder" },
+      { id: "orrin", name: "Orrin Thale", colorScheme: "mystic" },
     ],
   },
   {
     id: "ashes",
     name: "Ashes of the Forge",
     rules: "Ironsworn, Delve",
-    characters: [{ id: "senna", name: "Senna Ash-Eye" }],
+    characters: [
+      { id: "senna", name: "Senna Ash-Eye", colorScheme: "hinterlands" },
+    ],
   },
   {
     id: "wardens",
     name: "Wardens of the Shroud",
     rules: "Starforged",
     characters: [
-      { id: "bryn", name: "Bryn Corwen" },
-      { id: "kira-2", name: "Kira Vale" },
-      { id: "tobias", name: "Tobias Rook" },
+      { id: "bryn", name: "Bryn Corwen", colorScheme: "orchid" },
+      { id: "kira-2", name: "Kira Vale", colorScheme: "cinder" },
+      { id: "tobias", name: "Tobias Rook", colorScheme: "eidolon" },
     ],
   },
   {
@@ -79,12 +84,12 @@ const games: Game[] = [
     name: "The Long Night Convoy and the Drowned Stars Beyond the Reach",
     rules: "Starforged",
     characters: [
-      { id: "ilse", name: "Ilse Marrow" },
-      { id: "dax", name: "Dax Ferro" },
-      { id: "orrin-2", name: "Orrin Thale" },
-      { id: "senna-2", name: "Senna Ash-Eye" },
-      { id: "bryn-2", name: "Bryn Corwen" },
-      { id: "tobias-2", name: "Tobias Rook" },
+      { id: "ilse", name: "Ilse Marrow", colorScheme: "myriad" },
+      { id: "dax", name: "Dax Ferro", colorScheme: "default" },
+      { id: "orrin-2", name: "Orrin Thale", colorScheme: "mystic" },
+      { id: "senna-2", name: "Senna Ash-Eye", colorScheme: "hinterlands" },
+      { id: "bryn-2", name: "Bryn Corwen", colorScheme: "orchid" },
+      { id: "tobias-2", name: "Tobias Rook", colorScheme: "eidolon" },
     ],
   },
   {
@@ -101,15 +106,12 @@ const clusterStyles = css({
   flex: "none",
   width: "88px",
   height: "88px",
-  // The front portrait of a pair is ringed in the card's colour so the two
-  // read as separate pictures where they overlap.
+  // The front portrait of a pair sits at the bottom right. Each portrait's
+  // ring, in its character's colour, keeps the two apart where they overlap.
   "&[data-count='2'] > :last-child": {
     position: "absolute",
     insetInlineEnd: 0,
     bottom: 0,
-  },
-  "&[data-count='2'] > :last-child > [data-portrait-face]": {
-    boxShadow: "0 0 0 2px token(colors.bg.surface)",
   },
   "&[data-count='many']": {
     display: "flex",
@@ -146,6 +148,7 @@ function GamePortraits(props: { characters: GameCharacter[] }) {
     <CharacterPortrait
       key={character.id}
       name={character.name}
+      colorScheme={character.colorScheme}
       size={size}
       shape="rounded"
       decorative

@@ -1,36 +1,28 @@
 /**
- * Layout proposals for players who play from the character sheet and take
- * few notes. Story-only: PlayLayouts.stories.tsx renders them. Each page is
- * the real chrome (AppShell, NavRail, NavBar, the game's page tabs,
- * GameLayout's resizable, collapsible sidebars) around a different main
- * column, and every one of them still reaches the notes.
+ * The game page for players who play from the character sheet and take few
+ * notes, from Iron Fellowship's character sheet. Story-only:
+ * PlayLayouts.stories.tsx renders it. The real chrome (AppShell, NavRail,
+ * NavBar, the game's page tabs, GameLayout's resizable, collapsible sidebar)
+ * around the sheet as the main column:
  *
- * - Sheet first (Iron Fellowship's character sheet): the sheet is the main
- *   column, the reference (Moves, Oracles, Game Log) the start sidebar, as
- *   Iron Fellowship puts it. A band of the character and their stats, the
- *   meters under it, then Assets, Tracks, Legacy and Notes as tabs.
- * - Dashboard: the whole sheet at once, as tiles that flow into as many
- *   columns as fit, with the game log docked at the end. Moves, Oracles and
- *   Notes open in drawers from the page's toolbar.
- * - Moves first: a compact strip of the character over a wide reference,
- *   the move list beside the open move and the rolls it made. The rest of
- *   the sheet, the log and the notes sit in the end sidebar.
+ * - The reference (Moves, Oracles, Game Log) is the start sidebar, as Iron
+ *   Fellowship puts it.
+ * - A band at the top: the character (portrait, name, player, initiative),
+ *   then Adds over the stats and meters, all at their own widths.
+ * - Assets, Tracks, Impacts and Legacy, and Notes as tabs in one card that
+ *   fills the rest of the height and scrolls inside, so marking a track
+ *   never loses the reader's place in a note.
  *
- * Layout follows width through CSS grid (auto-fit and minmax) and container
+ * Layout follows width through CSS grid and flex wrapping and container
  * queries on the column the content sits in, never the window. `touch`
  * stands in for the app's `useIsTouchDevice()`: it makes steppers 44px,
  * which a coarse pointer would also do for buttons and stat cards.
  */
 import type { Datasworn } from "@datasworn-community/core";
 import {
-  BookOpenIcon,
-  CardsIcon,
   ChatsCircleIcon,
   DiceFiveIcon,
-  FlagBannerIcon,
   HandFistIcon,
-  MedalIcon,
-  NotePencilIcon,
   UserIcon,
 } from "@phosphor-icons/react";
 import { ReactNode, useState } from "react";
@@ -39,10 +31,7 @@ import { css } from "styled-system/css";
 import { visuallyHidden } from "styled-system/patterns";
 
 import { Button } from "../../components/Button";
-import { Card } from "../../components/Card";
 import { Checkbox } from "../../components/Checkbox";
-import { Drawer, DrawerBody, DrawerHeader } from "../../components/Drawer";
-import { ListRow, ListRowButton } from "../../components/List";
 import {
   SectionTab,
   SectionTabList,
@@ -51,8 +40,6 @@ import {
   Tabs,
 } from "../../components/Tabs";
 import { Text } from "../../components/Text";
-import { rollAction } from "../../examples/rollDice";
-import { characterAuthor, gameLogEntries } from "../../examples/sampleLog";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
 import {
@@ -67,19 +54,17 @@ import type { ImpactGroup } from "../../game/ImpactsChecklist";
 import { ImpactsSummary } from "../../game/ImpactsSummary";
 import { InitiativeChip } from "../../game/InitiativeChip";
 import type { InitiativeStatus } from "../../game/InitiativeChip";
-import { MoveCard, getMoveRollOptions } from "../../game/MoveCard";
+import { getMoveRollOptions } from "../../game/MoveCard";
 import type { MoveRollOption } from "../../game/MoveCard";
 import { MoveListItem } from "../../game/MoveListItem";
 import { ProgressTrack } from "../../game/ProgressTrack";
 import { ReferenceCategory } from "../../game/ReferenceCategory";
-import { RollCard } from "../../game/RollCard";
 import type { RollData } from "../../game/RollCard";
 import { StatGrid } from "../../game/StatCard";
 import { TracksPanelDemo } from "../../game/TracksPanel/TracksPanelDemo";
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import {
   sampleAssets,
-  sampleMoves,
   starforgedRules,
 } from "../../stories/fixtures/datasworn";
 import {
@@ -99,6 +84,8 @@ import { SidebarHeaderEnd } from "../Sidebar";
 import type { LayoutPanel, LayoutSection } from "../shared/layoutPanel";
 import { NotesColumn } from "./GamePageColumns";
 import { GamePageTabs } from "./StoryPlaceholders";
+import { rollAction } from "./rollDice";
+import { characterAuthor, gameLogEntries } from "./sampleLog";
 import { getNavItems } from "./storyData";
 
 /** Props every proposal takes. */
@@ -242,31 +229,37 @@ type PlaySheet = ReturnType<typeof usePlaySheet>;
 /* Sheet pieces                                                             */
 /* ------------------------------------------------------------------------ */
 
-/** Portrait, name and initiative. The name is the page's h1 already. */
-function Identity(props: { sheet: PlaySheet; compact?: boolean }) {
-  const { sheet, compact } = props;
+/**
+ * Portrait, then the name, the player and initiative stacked beside it, from
+ * the top. The name is the page's h1 already.
+ */
+function Identity(props: { sheet: PlaySheet }) {
+  const { sheet } = props;
   return (
     <div className={identityStyles}>
       <CharacterPortrait
         name={character.name}
-        size={compact ? "md" : "lg"}
+        size="lg"
         shape="rounded"
+        colorScheme="cinder"
         decorative
       />
       <div className={identityTextStyles}>
-        <Text variant={compact ? "h4" : "h3"} as="p">
+        <Text variant="h3" as="p">
           {character.name}
         </Text>
-        <div className={identityMetaStyles}>
+        <span className={identityPlayerStyles}>
+          <UserIcon aria-hidden />
+          <Text variant="caption" color="muted">
+            <span className={visuallyHidden()}>Played by </span>
+            {character.playerName}
+          </Text>
+        </span>
+        <div>
           <InitiativeChip
             status={sheet.initiative}
             onStatusChange={sheet.setInitiative}
           />
-          {!compact && (
-            <Text variant="caption" color="muted">
-              Played by {character.playerName}
-            </Text>
-          )}
         </div>
       </div>
     </div>
@@ -275,84 +268,110 @@ function Identity(props: { sheet: PlaySheet; compact?: boolean }) {
 
 const identityStyles = css({
   display: "flex",
-  alignItems: "center",
+  alignItems: "flex-start",
   gap: "3",
   minWidth: 0,
 });
 
 const identityTextStyles = css({
   display: "grid",
+  justifyItems: "start",
   gap: "1",
   minWidth: 0,
 });
 
-const identityMetaStyles = css({
-  display: "flex",
-  flexWrap: "wrap",
+const identityPlayerStyles = css({
+  display: "inline-flex",
   alignItems: "center",
-  gap: "2",
+  gap: "1",
+  color: "fg.muted",
+  "& > svg": { flex: "none", width: "14px", height: "14px" },
 });
 
-/** Adds over the five stats, each a roll button. */
-function Stats(props: { sheet: PlaySheet; touch?: boolean }) {
-  const { sheet, touch } = props;
-  return (
-    <div className={stackStyles}>
-      <AddsControl
-        value={sheet.adds}
-        onChange={sheet.setAdds}
-        stepperSize={touch ? "touch" : undefined}
-      />
-      <StatGrid
-        stats={statKeys.map((key) => ({
-          key,
-          name: capitalize(key),
-          value: character.stats[key],
-        }))}
-        adds={sheet.adds}
-        onRoll={(stat) => sheet.roll(stat.name, stat.value)}
-      />
-    </div>
-  );
-}
-
 /**
- * Health, Spirit, Supply and Momentum, as many to a row as fit at a meter's
- * own minimum width.
+ * Adds over everything the character rolls: the five stats, then Health,
+ * Spirit, Supply and Momentum beside them, each at its own width. They wrap
+ * to a second row when the column is narrow; nothing stretches to fill.
  */
-function Meters(props: { sheet: PlaySheet; touch?: boolean }) {
+function Rolls(props: { sheet: PlaySheet; touch?: boolean }) {
   const { sheet, touch } = props;
   const stepperSize = touch ? "touch" : undefined;
   return (
-    <div className={meterGridStyles}>
-      {meterKeys.map((meter) => (
-        <ConditionMeter
-          key={meter}
-          label={capitalize(meter)}
-          value={sheet.meters[meter]}
-          max={5}
-          warnAtMin
-          adds={sheet.adds}
-          stepperSize={stepperSize}
-          onChange={(value) => sheet.setMeter(meter, value)}
-          onRoll={() => sheet.roll(capitalize(meter), sheet.meters[meter])}
-        />
-      ))}
-      <MomentumMeter
-        value={sheet.meters.momentum}
+    <div className={rollsStyles}>
+      <AddsControl
+        value={sheet.adds}
+        onChange={sheet.setAdds}
         stepperSize={stepperSize}
-        onChange={(value) => sheet.setMeter("momentum", value)}
-        onBurn={() => sheet.setMeter("momentum", 2)}
+        className={addsStyles}
       />
+      <div className={rollRowStyles}>
+        <section className={statsStyles} aria-labelledby="sheet-stats">
+          <h3 id="sheet-stats" className={visuallyHidden()}>
+            Stats
+          </h3>
+          <StatGrid
+            stats={statKeys.map((key) => ({
+              key,
+              name: capitalize(key),
+              value: character.stats[key],
+            }))}
+            adds={sheet.adds}
+            onRoll={(stat) => sheet.roll(stat.name, stat.value)}
+          />
+        </section>
+        <section className={meterRowStyles} aria-labelledby="sheet-meters">
+          <h3 id="sheet-meters" className={visuallyHidden()}>
+            Meters
+          </h3>
+          {meterKeys.map((meter) => (
+            <ConditionMeter
+              key={meter}
+              label={capitalize(meter)}
+              value={sheet.meters[meter]}
+              max={5}
+              warnAtMin
+              adds={sheet.adds}
+              stepperSize={stepperSize}
+              onChange={(value) => sheet.setMeter(meter, value)}
+              onRoll={() => sheet.roll(capitalize(meter), sheet.meters[meter])}
+            />
+          ))}
+          <MomentumMeter
+            value={sheet.meters.momentum}
+            stepperSize={stepperSize}
+            onChange={(value) => sheet.setMeter("momentum", value)}
+            onBurn={() => sheet.setMeter("momentum", 2)}
+          />
+        </section>
+      </div>
     </div>
   );
 }
 
-const meterGridStyles = css({
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 120px), 1fr))",
+const rollsStyles = css({ display: "grid", gap: "3", minWidth: 0 });
+
+const addsStyles = css({ justifySelf: "start" });
+
+const rollRowStyles = css({
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "flex-start",
+  gap: "3",
+  minWidth: 0,
+});
+
+/** The stats at the width five cards need, never stretched. */
+const statsStyles = css({
+  flex: "0 1 400px",
+  minWidth: "min(100%, 300px)",
+});
+
+const meterRowStyles = css({
+  display: "flex",
+  flexWrap: "wrap",
   gap: "2",
-  alignItems: "start",
+  minWidth: 0,
+  "& > [role=group]": { flex: "none" },
 });
 
 function Impacts(props: { sheet: PlaySheet }) {
@@ -699,20 +718,14 @@ export function SheetFirstPage(props: PlayLayoutProps) {
       <div className={sheetFirstStyles.page}>
         <div className={sheetFirstStyles.band}>
           <Identity sheet={sheet} />
-          <section className={sheetSectionStyles}>
-            <h3 className={visuallyHidden()}>Stats</h3>
-            <Stats sheet={sheet} touch={touch} />
-          </section>
+          <Rolls sheet={sheet} touch={touch} />
         </div>
-        <SheetSection title="Meters">
-          <Meters sheet={sheet} touch={touch} />
-        </SheetSection>
         <Tabs
           value={tab}
           onValueChange={(next) => setTab(String(next))}
-          className={sheetFirstStyles.tabs}
+          className={sheetFirstStyles.card}
         >
-          <SectionTabWell>
+          <SectionTabWell className={sheetFirstStyles.cardTabs}>
             <SectionTabList aria-label="Sheet Sections">
               {sheetTabs.map((section) => (
                 <SectionTab key={section.id} value={section.id}>
@@ -765,522 +778,74 @@ export function SheetFirstPage(props: PlayLayoutProps) {
 }
 
 const sheetFirstStyles = {
+  // At least the column's height, so the card below the band fills the
+  // rest of it and scrolls inside rather than the page.
   page: css({
     containerType: "inline-size",
     containerName: "sheet",
     boxSizing: "border-box",
-    display: "grid",
-    gap: "5",
-    alignContent: "start",
+    display: "flex",
+    flexDirection: "column",
+    gap: "4",
+    minHeight: "100%",
     width: "100%",
     maxWidth: "1200px",
     marginInline: "auto",
     padding: "5",
   }),
-  // One column on a narrow main column; the character beside the stats
-  // once both fit at their own widths.
+  // The character over the rolls on a narrow column; beside them, both
+  // from the top, once there is room.
   band: css({
+    flex: "none",
     display: "grid",
     gridTemplateColumns: "minmax(0, 1fr)",
     gap: "4",
-    alignItems: "center",
-    paddingBlockEnd: "4",
-    borderBottom: "1px solid token(colors.border.subtle)",
-    "@container sheet (min-width: 680px)": {
-      gridTemplateColumns: "minmax(220px, 1fr) minmax(330px, 460px)",
+    alignItems: "start",
+    "@container sheet (min-width: 760px)": {
+      gridTemplateColumns: "minmax(200px, max-content) minmax(0, 1fr)",
+      columnGap: "6",
     },
   }),
-  tabs: css({ display: "grid", gap: "4", minWidth: 0 }),
-  panel: css({ minWidth: 0, "&[hidden]": { display: "none" } }),
-  notesPanel: css({
-    height: "560px",
-    minWidth: 0,
-    border: "1px solid token(colors.border.default)",
+  // The tabs and their panel in one card. A fixed share of the height: the
+  // panel scrolls under the tabs, so marking a track never moves a note.
+  card: css({
+    flex: "1 1 0",
+    minHeight: "28rem",
+    display: "flex",
+    flexDirection: "column",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "border.default",
     borderRadius: "lg",
+    background: "bg.surface",
     overflow: "hidden",
+  }),
+  cardTabs: css({
+    flex: "none",
+    borderRadius: 0,
+    borderBottom: "1px solid token(colors.border.subtle)",
+  }),
+  panel: css({
+    flex: "1 1 auto",
+    minHeight: 0,
+    minWidth: 0,
+    overflowY: "auto",
+    padding: "4",
+    "&[hidden]": { display: "none" },
+  }),
+  // The notes bring their own tabs and toolbar and scroll themselves.
+  notesPanel: css({
+    display: "flex",
+    flexDirection: "column",
+    flex: "1 1 auto",
+    minHeight: 0,
+    minWidth: 0,
     "&[hidden]": { display: "none" },
   }),
   twoUp: css({
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
     gap: "5",
-    alignItems: "start",
-  }),
-};
-
-/* ------------------------------------------------------------------------ */
-/* 2. Dashboard                                                             */
-/* ------------------------------------------------------------------------ */
-
-type DashboardDrawer = "moves" | "oracles" | "notes" | null;
-
-/** A dashboard tile: a flat card with its own heading. */
-function Tile(props: {
-  title: string;
-  wide?: boolean;
-  full?: boolean;
-  children: ReactNode;
-}) {
-  const { title, wide, full, children } = props;
-  return (
-    <Card
-      render={<section />}
-      className={
-        full
-          ? dashboardStyles.tileFull
-          : wide
-            ? dashboardStyles.tileWide
-            : dashboardStyles.tile
-      }
-    >
-      <Text variant="label" as="h3">
-        {title}
-      </Text>
-      {children}
-    </Card>
-  );
-}
-
-/**
- * The whole sheet at once: tiles flow into as many 300px columns as fit,
- * the tracks two columns wide and the assets the full width once there is
- * room. The log is the end sidebar; moves, oracles and notes are drawers.
- */
-export function DashboardPage(props: PlayLayoutProps) {
-  const { touch, sidebarCollapsed = false } = props;
-  const sheet = usePlaySheet();
-  const [drawer, setDrawer] = useState<DashboardDrawer>(null);
-  const [collapsed, setCollapsed] = useState(sidebarCollapsed);
-  const [width, setWidth] = useState(touch ? 300 : 360);
-  const close = () => setDrawer(null);
-
-  const log: LayoutPanel = {
-    id: "log",
-    title: "Game Log",
-    icon: <ChatsCircleIcon />,
-    content: <Log sheet={sheet} />,
-  };
-
-  const main = {
-    id: "sheet",
-    title: "Character Sheet",
-    hideTitle: true,
-    content: (
-      <div className={dashboardStyles.page}>
-        <div className={dashboardStyles.toolbar}>
-          <Identity sheet={sheet} compact />
-          <div className={dashboardStyles.tools}>
-            <Button
-              variant="outline"
-              startIcon={<HandFistIcon />}
-              onClick={() => setDrawer("moves")}
-            >
-              Moves
-            </Button>
-            <Button
-              variant="outline"
-              startIcon={<DiceFiveIcon />}
-              onClick={() => setDrawer("oracles")}
-            >
-              Oracles
-            </Button>
-            <Button
-              variant="ghost"
-              startIcon={<NotePencilIcon />}
-              onClick={() => setDrawer("notes")}
-            >
-              Notes
-            </Button>
-          </div>
-        </div>
-        <div className={dashboardStyles.tiles}>
-          <Tile title="Stats">
-            <Stats sheet={sheet} touch={touch} />
-          </Tile>
-          <Tile title="Meters">
-            <Meters sheet={sheet} touch={touch} />
-          </Tile>
-          <Tile title="Impacts">
-            <Impacts sheet={sheet} />
-          </Tile>
-          <Tile title="Tracks" wide>
-            <TracksPanelDemo headingAs="h4" />
-          </Tile>
-          <Tile title="Legacy and Experience">
-            <Legacy sheet={sheet} />
-          </Tile>
-          <Tile title="Assets" full>
-            <Assets headingAs="h4" />
-          </Tile>
-        </div>
-      </div>
-    ),
-  };
-
-  return (
-    <PlayShell>
-      <GameLayout
-        tabs={<GamePageTabs current="kira" />}
-        main={main}
-        mainMinWidth={320}
-        endSidebar={{
-          panels: [log],
-          collapsed,
-          onCollapsedChange: setCollapsed,
-          width,
-          onWidthChange: setWidth,
-          minWidth: 280,
-          maxWidth: 480,
-        }}
-      />
-      <Drawer open={drawer === "moves"} onClose={close} side="left" size="lg">
-        <DrawerHeader title="Moves" />
-        <DrawerBody>
-          <MoveTree sheet={sheet} />
-        </DrawerBody>
-      </Drawer>
-      <Drawer open={drawer === "oracles"} onClose={close} side="left" size="lg">
-        <DrawerHeader title="Oracles" />
-        <DrawerBody>
-          <OracleTree />
-        </DrawerBody>
-      </Drawer>
-      <Drawer open={drawer === "notes"} onClose={close} size="lg">
-        <DrawerHeader title="Notes" />
-        <DrawerBody className={dashboardStyles.notesBody}>
-          <NotesColumn />
-        </DrawerBody>
-      </Drawer>
-    </PlayShell>
-  );
-}
-
-const dashboardStyles = {
-  page: css({
-    boxSizing: "border-box",
-    display: "grid",
-    gap: "4",
-    alignContent: "start",
-    padding: "5",
-  }),
-  toolbar: css({
-    display: "flex",
-    flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "3",
-  }),
-  tools: css({ display: "flex", flexWrap: "wrap", gap: "2" }),
-  // The container the tiles' spans read: a span only applies once the
-  // grid has that many columns (300px each, 16px gaps).
-  tiles: css({
-    containerType: "inline-size",
-    containerName: "tiles",
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))",
-    gridAutoFlow: "row dense",
-    gap: "4",
-    alignItems: "start",
-  }),
-  tile: css({ minWidth: 0 }),
-  tileWide: css({
-    minWidth: 0,
-    "@container tiles (min-width: 616px)": { gridColumn: "span 2" },
-  }),
-  tileFull: css({ minWidth: 0, gridColumn: "1 / -1" }),
-  notesBody: css({ padding: 0, display: "flex", flexDirection: "column" }),
-};
-
-/* ------------------------------------------------------------------------ */
-/* 3. Moves first                                                           */
-/* ------------------------------------------------------------------------ */
-
-const sheetPanelSections: LayoutSection[] = [
-  { id: "assets", title: "Assets", icon: <CardsIcon /> },
-  { id: "tracks", title: "Tracks", icon: <FlagBannerIcon /> },
-  { id: "legacy", title: "Impacts and Legacy", icon: <MedalIcon /> },
-  { id: "log", title: "Game Log", icon: <ChatsCircleIcon /> },
-  { id: "notes", title: "Notes", icon: <NotePencilIcon /> },
-];
-
-/**
- * A compact strip of the character (stats and meters, the things a move
- * rolls) over the reference at full width: the move list beside the open
- * move and its latest rolls. The rest of the sheet, the log and the notes
- * are the end sidebar's tabs.
- */
-export function MovesFirstPage(props: PlayLayoutProps) {
-  const { touch, sidebarCollapsed = false } = props;
-  const sheet = usePlaySheet();
-  const [move, setMove] = useState<Datasworn.AnyMove>(sampleMoves.faceDanger);
-  const [referenceTab, setReferenceTab] = useState("moves");
-  const [sheetSection, setSheetSection] = useState("assets");
-  const [collapsed, setCollapsed] = useState(sidebarCollapsed);
-  // Wide enough for the five section tabs beside Collapse.
-  const [width, setWidth] = useState(420);
-
-  const sheetPanel: LayoutPanel = {
-    id: "character",
-    title: "Character",
-    icon: <UserIcon />,
-    sections: sheetPanelSections,
-    activeSectionId: sheetSection,
-    onActiveSectionChange: setSheetSection,
-    content: (
-      <ColumnTabs
-        label="Character Sections"
-        sections={sheetPanelSections.map((section) =>
-          section.id === "legacy" ? { ...section, title: "Legacy" } : section,
-        )}
-        value={sheetSection}
-        onValueChange={setSheetSection}
-      >
-        <TabPanel value="assets" className={columnPanelStyles}>
-          <Assets compact />
-        </TabPanel>
-        <TabPanel value="tracks" className={columnPanelStyles}>
-          <TracksPanelDemo />
-        </TabPanel>
-        <TabPanel value="legacy" className={columnPanelStyles}>
-          <div className={stackStyles}>
-            <SheetSection title="Impacts">
-              <Impacts sheet={sheet} />
-            </SheetSection>
-            <SheetSection title="Legacy Tracks">
-              <Legacy sheet={sheet} />
-            </SheetSection>
-          </div>
-        </TabPanel>
-        <TabPanel value="log" className={columnLogPanelStyles}>
-          <Log sheet={sheet} />
-        </TabPanel>
-        <TabPanel value="notes" className={columnLogPanelStyles}>
-          <NotesColumn />
-        </TabPanel>
-      </ColumnTabs>
-    ),
-  };
-
-  const main = {
-    id: "reference",
-    title: "Moves and Oracles",
-    hideTitle: true,
-    content: (
-      <div className={movesFirstStyles.page}>
-        <section
-          className={movesFirstStyles.stripFrame}
-          aria-labelledby="moves-first-strip"
-        >
-          <h3 id="moves-first-strip" className={visuallyHidden()}>
-            Stats and Meters
-          </h3>
-          <div className={movesFirstStyles.strip}>
-            <Identity sheet={sheet} compact />
-            <Stats sheet={sheet} touch={touch} />
-            <div className={movesFirstStyles.stripMeters}>
-              <Meters sheet={sheet} touch={touch} />
-            </div>
-          </div>
-        </section>
-        <div className={movesFirstStyles.browserFrame}>
-          <div className={movesFirstStyles.browser}>
-            <Tabs
-              value={referenceTab}
-              onValueChange={(next) => setReferenceTab(String(next))}
-              className={movesFirstStyles.listPane}
-            >
-              <SectionTabWell>
-                <SectionTabList aria-label="Reference">
-                  <SectionTab value="moves" icon={<HandFistIcon />}>
-                    Moves
-                  </SectionTab>
-                  <SectionTab value="oracles" icon={<BookOpenIcon />}>
-                    Oracles
-                  </SectionTab>
-                </SectionTabList>
-              </SectionTabWell>
-              <TabPanel value="moves" className={movesFirstStyles.listPanel}>
-                <MovePicker current={move} onSelect={setMove} />
-              </TabPanel>
-              <TabPanel value="oracles" className={movesFirstStyles.listPanel}>
-                <OracleTree />
-              </TabPanel>
-            </Tabs>
-            <div className={movesFirstStyles.detailPane}>
-              <MoveCard
-                move={move}
-                headingAs="h3"
-                rollOptions={sheet.moveRollOptions(move)}
-                onRoll={(option) =>
-                  sheet.roll(option.label, option.value ?? 0, move.name)
-                }
-              />
-              <section className={sheetSectionStyles}>
-                <SectionHeading title="Latest Rolls" as="h3" />
-                {sheet.recentRolls.length === 0 ? (
-                  <Text variant="bodySm" color="muted">
-                    Roll a move or a stat and the result shows here and in the
-                    game log.
-                  </Text>
-                ) : (
-                  <div className={movesFirstStyles.rolls}>
-                    {sheet.recentRolls.map((item) => (
-                      <RollCard
-                        key={item.id}
-                        roll={item.roll}
-                        onDismiss={() => sheet.dismissRoll(item.id)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </section>
-            </div>
-          </div>
-        </div>
-      </div>
-    ),
-  };
-
-  return (
-    <PlayShell>
-      <GameLayout
-        tabs={<GamePageTabs current="kira" />}
-        main={main}
-        endSidebar={{
-          panels: [sheetPanel],
-          collapsed,
-          onCollapsedChange: setCollapsed,
-          width,
-          onWidthChange: setWidth,
-          minWidth: 400,
-          maxWidth: 520,
-        }}
-      />
-    </PlayShell>
-  );
-}
-
-/** The move list as rows that open a move beside it. */
-function MovePicker(props: {
-  current: Datasworn.AnyMove;
-  onSelect: (move: Datasworn.AnyMove) => void;
-}) {
-  const { current, onSelect } = props;
-  return (
-    <div className={treeStyles}>
-      {starforgedMoveCategories.map((category) => (
-        <ReferenceCategory
-          key={category._id ?? category.name}
-          title={category.name}
-          count={Object.keys(category.contents).length}
-          countLabel={moveCountLabel}
-          defaultOpen={!!category._id && openCategoryIds.has(category._id)}
-        >
-          {Object.values(category.contents).map((move) => (
-            <ListRow key={move._id}>
-              <ListRowButton
-                current={move._id === current._id}
-                onClick={() => onSelect(move)}
-              >
-                <span data-row-name="">{move.name}</span>
-              </ListRowButton>
-            </ListRow>
-          ))}
-        </ReferenceCategory>
-      ))}
-    </div>
-  );
-}
-
-const movesFirstStyles = {
-  page: css({
-    display: "flex",
-    flexDirection: "column",
-    height: "100%",
-    minHeight: 0,
-  }),
-  stripFrame: css({
-    containerType: "inline-size",
-    containerName: "strip",
-    flex: "none",
-    paddingBlock: "3",
-    paddingInline: "4",
-    borderBottom: "1px solid token(colors.border.default)",
-    background: "bg.canvas",
-  }),
-  // One column, then the character beside the stats with the meters under
-  // both, then all three in one row once the meters fit four across.
-  strip: css({
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr)",
-    gap: "3",
-    alignItems: "center",
-    "@container strip (min-width: 640px)": {
-      gridTemplateColumns: "minmax(180px, auto) minmax(330px, 1fr)",
-    },
-    "@container strip (min-width: 1120px)": {
-      gridTemplateColumns:
-        "minmax(180px, auto) minmax(330px, 440px) minmax(480px, 1fr)",
-    },
-  }),
-  stripMeters: css({
-    minWidth: 0,
-    "@container strip (min-width: 640px)": { gridColumn: "1 / -1" },
-    "@container strip (min-width: 1120px)": { gridColumn: "auto" },
-  }),
-  browserFrame: css({
-    containerType: "inline-size",
-    containerName: "browser",
-    display: "flex",
-    flexDirection: "column",
-    flex: "1 1 auto",
-    minHeight: 0,
-  }),
-  // Narrow: the list over the open move, scrolling together. Wide: the
-  // list and the move side by side, each scrolling on its own.
-  browser: css({
-    flex: "1 1 auto",
-    minHeight: 0,
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr)",
-    alignContent: "start",
-    overflowY: "auto",
-    "@container browser (min-width: 720px)": {
-      gridTemplateColumns: "minmax(250px, 320px) minmax(0, 1fr)",
-      gridTemplateRows: "minmax(0, 1fr)",
-      overflowY: "hidden",
-    },
-  }),
-  listPane: css({
-    display: "flex",
-    flexDirection: "column",
-    minHeight: 0,
-    "@container browser (min-width: 720px)": {
-      borderInlineEnd: "1px solid token(colors.border.subtle)",
-    },
-  }),
-  listPanel: css({
-    flex: "1 1 auto",
-    minHeight: 0,
-    padding: "4",
-    "@container browser (min-width: 720px)": { overflowY: "auto" },
-    "&[hidden]": { display: "none" },
-  }),
-  detailPane: css({
-    boxSizing: "border-box",
-    display: "grid",
-    gap: "5",
-    alignContent: "start",
-    minHeight: 0,
-    width: "100%",
-    maxWidth: "760px",
-    padding: "5",
-    "@container browser (min-width: 720px)": { overflowY: "auto" },
-  }),
-  rolls: css({
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
-    gap: "3",
     alignItems: "start",
   }),
 };

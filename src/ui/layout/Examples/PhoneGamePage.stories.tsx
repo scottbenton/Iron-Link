@@ -16,7 +16,7 @@ import { sampleRolls } from "../../stories/fixtures/rolls";
 import { PhoneGamePage } from "./PhoneGamePage";
 
 const meta: Meta<typeof PhoneGamePage> = {
-  title: "Layout/Examples/Phone game page",
+  title: "Examples/Phone game page",
   component: PhoneGamePage,
   parameters: {
     layout: "fullscreen",

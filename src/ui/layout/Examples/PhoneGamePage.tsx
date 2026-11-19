@@ -75,7 +75,6 @@ import {
   ToolbarSeparator,
 } from "../../components/Toolbar";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
-import { characterAuthor, gameLogEntries } from "../../examples/sampleLog";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
 import { CharacterSwitcher } from "../../game/CharacterSwitcher";
@@ -120,6 +119,7 @@ import { SectionHeading } from "../SectionHeading";
 import { DemoSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
 import { guideScenario } from "../SettingsMenu/settingsMenuScenarios";
 import { OverviewCharacters } from "./GamePageColumns";
+import { characterAuthor, gameLogEntries } from "./sampleLog";
 
 export type PhoneSection = "sheet" | "notes" | "moves" | "oracles" | "log";
 export type PhoneRuleset = "starforged" | "ironsworn";

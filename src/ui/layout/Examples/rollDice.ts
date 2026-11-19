@@ -6,7 +6,7 @@ import type {
   ActionRollData,
   OracleRollData,
   RollOutcome,
-} from "../game/RollCard";
+} from "../../game/RollCard";
 
 const d = (sides: number) => Math.floor(Math.random() * sides) + 1;
 

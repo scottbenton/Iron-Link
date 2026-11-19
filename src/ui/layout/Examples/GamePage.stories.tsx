@@ -13,8 +13,8 @@
  *   → `PageTabs` / `PageTab` in GameLayout's `tabs`.
  * - `SidebarLayout` → `GameLayout`: 1200px and up, three columns (sheet
  *   350px, notes, reference 350px); 900 to 1200px, the sheet over the
- *   reference in one column beside the notes (`stackSidebars`); phones,
- *   Character, Notes and Reference tabs (`compact`).
+ *   reference in one column beside the notes (`stackSidebars`). Phones
+ *   get their own page (Examples/Phone game page).
  * - `CharacterSidebarContents` → the start sidebar's panel: h2 "Character"
  *   with `CharacterSettingsMenu` (the library's `CharacterSettingsMenu`: only
  *   that character's actions), then `StyledTabs`
@@ -70,7 +70,7 @@ import {
   OverviewColumn,
   ReferenceColumn,
 } from "./GamePageColumns";
-import { GamePageTabs, PhoneFrame } from "./StoryPlaceholders";
+import { GamePageTabs } from "./StoryPlaceholders";
 import {
   characterSections,
   overviewSections,
@@ -79,7 +79,7 @@ import {
 import { getNavItems } from "./storyData";
 
 const meta: Meta = {
-  title: "Layout/Examples/Game page",
+  title: "Examples/Game page",
   parameters: { layout: "fullscreen" },
 };
 
@@ -197,8 +197,6 @@ function WideGamePage(props: {
   // The app keeps these and remembers them per device.
   const [sheetWidth, setSheetWidth] = useState(350);
   const [referenceWidth, setReferenceWidth] = useState(350);
-  // Medium's one column collapses on its own, apart from the wide columns.
-  const [stackedCollapsed, setStackedCollapsed] = useState(false);
   return (
     <AppShell
       fill
@@ -233,8 +231,6 @@ function WideGamePage(props: {
         }
         main={notes}
         stackSidebars={props.stacked}
-        stackedCollapsed={stackedCollapsed}
-        onStackedCollapsedChange={setStackedCollapsed}
         startSidebar={{
           panels: [character],
           width: sheetWidth,
@@ -288,9 +284,10 @@ const mediumFrame = css({
 
 /**
  * 900 to 1200px (shown at 1100px): the sheet over the reference in one
- * column, the notes beside them, as the live app does at this width.
- * Collapse Sidebar, in the Character header, folds the column to a rail of
- * both columns' tabs (see "Game page, collapsed sidebars" for it collapsed).
+ * column, the notes beside them, as the live app does at this width. Each
+ * sidebar collapses on its own: collapse Reference and the sheet stays
+ * pinned with Reference on a rail at the far edge (see "Game page,
+ * collapsed sidebars").
  */
 export const Medium: Story = {
   name: "Medium (1100px)",
@@ -300,49 +297,4 @@ export const Medium: Story = {
       <WideGamePage stacked />
     </div>
   ),
-};
-
-function PhoneGamePage(props: { page?: GamePageKind }) {
-  const { page = "character" } = props;
-  const { character, notes, reference } = useGameColumns(page);
-  return (
-    <PhoneFrame>
-      <AppShell
-        fill
-        topBar={
-          <NavBar
-            title={pageTitles[page]}
-            backHref={page === "overview" ? "#games" : "#overview"}
-            actions={<DemoSettingsMenu scenario={scenarios[page]} />}
-          />
-        }
-      >
-        {/* The live app hides the game's page tabs on phones. */}
-        <GameLayout
-          compact
-          main={notes}
-          startSidebar={{ panels: [character] }}
-          endSidebar={{ panels: [reference] }}
-        />
-      </AppShell>
-    </PhoneFrame>
-  );
-}
-
-/**
- * A phone: Character, Notes and Reference tabs under the bar (back to the
- * game, the character's name, its menu), opening on Character as live.
- * The mobile redesign (bottom nav, character switcher, roll dock) is in
- * "Layout/Examples/Phone game page".
- */
-export const Phone: Story = {
-  parameters: { layout: "padded" },
-  render: () => <PhoneGamePage />,
-};
-
-/** The Overview page on a phone: Game Overview, Notes and Reference tabs. */
-export const PhoneOverview: Story = {
-  name: "Phone, overview",
-  parameters: { layout: "padded" },
-  render: () => <PhoneGamePage page="overview" />,
 };
