@@ -419,6 +419,12 @@ export function WorldEntryActions({
             updateEntry(entry.id, { icon }).catch(onError);
           }}
           onClose={() => setChoosingIcon(false)}
+          onUploadImage={(file) => {
+            const close = () => setChoosingIcon(false);
+            if (!file) image.choose(close);
+            else if (image.takeFile(file)) close();
+          }}
+          uploadDisabled={image.busy}
         />
       )}
       {moving && (

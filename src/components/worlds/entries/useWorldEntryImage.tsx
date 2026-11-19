@@ -17,6 +17,13 @@ import {
 
 import { WorldEntryImageDialog } from "./WorldEntryImageDialog";
 
+const ACCEPTED_IMAGE_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+];
+
 // Uploads, crops or removes an entry's portrait. A chosen file opens the
 // crop dialog and uploads only when it is saved; the old file is removed once
 // the entry points at the new one. Render `input` and `dialog` wherever the
@@ -27,6 +34,8 @@ export function useWorldEntryImage(
 ) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
+  // Runs once the file chosen through the input passes the checks.
+  const onAcceptedRef = useRef<(() => void) | null>(null);
   const [busy, setBusy] = useState(false);
   // The file being cropped before upload, or the stored image being cropped.
   const [cropping, setCropping] = useState<{ file?: File } | null>(null);
@@ -51,10 +60,21 @@ export function useWorldEntryImage(
     }
   };
 
-  const handleFile = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.currentTarget.files?.[0];
-    event.currentTarget.value = "";
-    if (!file) return;
+  // A dropped file skips the input's accept list, so its type is checked too.
+  // Opens the crop step for a file that passes the checks, and says whether
+  // it did.
+  const takeFile = (file: File): boolean => {
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      onError(
+        new Error(
+          t(
+            "worlds.entries.image-wrong-type",
+            "That file is not an image you can use. Upload a PNG, JPEG, GIF or WebP image.",
+          ),
+        ),
+      );
+      return false;
+    }
     if (file.size > MAX_FILE_SIZE) {
       onError(
         new Error(
@@ -65,9 +85,18 @@ export function useWorldEntryImage(
           ),
         ),
       );
-      return;
+      return false;
     }
     setCropping({ file });
+    return true;
+  };
+
+  const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    const onAccepted = onAcceptedRef.current;
+    onAcceptedRef.current = null;
+    if (file && takeFile(file)) onAccepted?.();
   };
 
   const save = async (file: File | undefined, imageCrop: ImageCrop) => {
@@ -108,10 +137,8 @@ export function useWorldEntryImage(
       data-testid="world-entry-image-input"
       hidden
       type="file"
-      accept="image/png,image/jpeg,image/gif,image/webp"
-      onChange={(event) => {
-        handleFile(event).catch(onError);
-      }}
+      accept={ACCEPTED_IMAGE_TYPES.join(",")}
+      onChange={handleFile}
     />
   );
 
@@ -137,7 +164,13 @@ export function useWorldEntryImage(
   return {
     busy,
     hasImage: !!entry.imageFilename,
-    choose: () => inputRef.current?.click(),
+    // Opens the file chooser; onAccepted runs if the file reaches cropping.
+    choose: (onAccepted?: () => void) => {
+      onAcceptedRef.current = onAccepted ?? null;
+      inputRef.current?.click();
+    },
+    // Starts the same check and crop with a file from elsewhere (a drop).
+    takeFile,
     crop: () => setCropping({}),
     dialog,
     remove,

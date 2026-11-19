@@ -497,6 +497,65 @@ describe("entry header icon", () => {
     ).toBeInTheDocument();
   });
 
+  it("uploads an image from the icon picker through the crop step", async () => {
+    const user = userEvent.setup();
+    loadEntries([worldEntry()]);
+    const upload = vi
+      .spyOn(WorldEntriesService, "uploadWorldEntryImage")
+      .mockResolvedValue({ filename: "new.png", url: "https://x/new.png" });
+    const update = vi
+      .spyOn(WorldEntriesService, "updateWorldEntry")
+      .mockResolvedValue();
+    renderView();
+    const input = screen.getByTestId("world-entry-image-input");
+    const openFiles = vi.spyOn(input, "click");
+    await user.click(
+      await screen.findByRole("button", { name: "Choose icon" }),
+    );
+    const picker = await screen.findByRole("dialog", {
+      name: "Choose entry icon",
+    });
+    await user.click(within(picker).getByRole("tab", { name: "Image" }));
+    await user.click(
+      within(picker).getByRole("button", { name: "Upload image" }),
+    );
+    expect(openFiles).toHaveBeenCalled();
+    // A refused file leaves the picker open.
+    await user.upload(
+      input,
+      new File([new Uint8Array(3 * 1024 * 1024)], "big.png", {
+        type: "image/png",
+      }),
+    );
+    expect(
+      screen.getByRole("dialog", { name: "Choose entry icon" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("dialog", { name: "Crop image" }),
+    ).not.toBeInTheDocument();
+    // An accepted one hands over to cropping.
+    await user.click(
+      within(picker).getByRole("button", { name: "Upload image" }),
+    );
+    const file = new File(["png"], "map.png", { type: "image/png" });
+    await user.upload(input, file);
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "Choose entry icon" }),
+      ).not.toBeInTheDocument(),
+    );
+    const crop = await screen.findByRole("dialog", { name: "Crop image" });
+    expect(upload).not.toHaveBeenCalled();
+    await user.click(within(crop).getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(update).toHaveBeenCalledWith("entry-1", {
+        imageFilename: "new.png",
+        imageCrop: { position: { x: 0.5, y: 0.5 }, scale: 1 },
+      }),
+    );
+    expect(upload).toHaveBeenCalledWith(category.worldId, "entry-1", file);
+  });
+
   it("opens a portrait full size, for readers too", async () => {
     const user = userEvent.setup();
     vi.spyOn(WorldEntriesService, "getWorldEntryImageUrl").mockReturnValue(
