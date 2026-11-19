@@ -110,7 +110,7 @@ const footerStyles = css({
 const moreStyles = css({
   display: "inline-flex",
   alignItems: "center",
-  minHeight: "32px",
+  minHeight: "control.sm",
   paddingInline: "3",
   borderRadius: "full",
   borderWidth: "1px",

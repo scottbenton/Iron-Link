@@ -24,7 +24,7 @@ export const menuItemStyles = cva({
     gap: "2",
     width: "100%",
     boxSizing: "border-box",
-    minHeight: "36px",
+    minHeight: "control.row",
     paddingBlock: "1.5",
     paddingInline: "10px",
     margin: 0,
@@ -61,7 +61,7 @@ export const menuItemStyles = cva({
       color: "fg.disabled",
       cursor: "default",
     },
-    "& svg": { flex: "none", width: "18px", height: "18px" },
+    "& svg": { flex: "none", width: "icon.md", height: "icon.md" },
     _touch: { minHeight: "touch" },
   },
   variants: {
@@ -86,7 +86,7 @@ export const menuItemIconStyles = css({
   alignItems: "center",
   justifyContent: "center",
   flex: "none",
-  width: "18px",
+  width: "icon.md",
   color: "var(--menu-item-icon)",
 });
 
@@ -96,11 +96,11 @@ export const menuItemIndicatorSlotStyles = css({
   alignItems: "center",
   justifyContent: "center",
   flex: "none",
-  width: "18px",
-  height: "18px",
+  width: "icon.md",
+  height: "icon.md",
   color: "accent.fg",
   "[data-disabled] &": { color: "fg.disabled" },
-  "& svg": { width: "16px", height: "16px" },
+  "& svg": { width: "icon.md", height: "icon.md" },
 });
 
 export const menuItemLabelStyles = css({
