@@ -366,7 +366,7 @@ const headerLog: GameLogEntry[] = [
   {
     id: "h5",
     kind: "message",
-    author: { name: "Parham", isYou: false },
+    author: { name: "Phoebe", isYou: false },
     timestamp: at(0, 20, 8),
     message: "Back in five, grabbing snacks.",
   },
