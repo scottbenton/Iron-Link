@@ -103,9 +103,10 @@ const mediumFrame = css({
 /**
  * Between 900 and 1200px both sidebars sit before the notes. While both are
  * open the sheet sits over the reference in one column, with the sheet's
- * resize handle. Each has its own Collapse: collapse the reference and the
- * sheet stays open as its own column with the reference on a rail beside
- * it, still before the notes (and the other way round, or both on rails).
+ * resize handle. Each has its own Collapse: collapse the reference and its
+ * rail sits first, then the sheet open beside the notes, the rail taking its
+ * width from the notes rather than the sheet (and the other way round). With
+ * both collapsed they share one rail.
  */
 export const Stacked: Story = {
   args: { stackSidebars: true },
@@ -137,8 +138,9 @@ function ReferenceOnRail(props: { args: Story["args"] }) {
 
 /**
  * The medium width with the sheet kept open and the reference collapsed to
- * a rail beside it: a rail button shows a reference section over the notes
- * for a moment, and Expand stacks the two again.
+ * a rail before it, so the sheet stays beside the notes and the rail comes
+ * out of the notes' width: a rail button shows a reference section over the
+ * page for a moment, and Expand stacks the two again.
  */
 export const StackedReferenceCollapsed: Story = {
   args: { stackSidebars: true },
@@ -171,8 +173,9 @@ function BothOnRails(props: { args: Story["args"] }) {
 }
 
 /**
- * The medium width with both sidebars on rails, side by side before the
- * notes, which take the rest. Expand either to pin it open.
+ * The medium width with both sidebars collapsed into one rail before the
+ * notes, which take the rest: the sheet's Expand and sections, then the
+ * reference's, each in its own group. Expand either to pin it open.
  */
 export const StackedBothCollapsed: Story = {
   args: { stackSidebars: true },
