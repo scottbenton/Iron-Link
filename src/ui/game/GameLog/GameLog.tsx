@@ -4,10 +4,8 @@ import {
   Fragment,
   ReactNode,
   UIEvent,
-  useEffect,
   useLayoutEffect,
   useRef,
-  useState,
 } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
@@ -15,8 +13,8 @@ import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { css, cx } from "styled-system/css";
 
 import { Button } from "../../components/Button";
+import { RelativeTime } from "../../components/RelativeTime";
 import { Spinner } from "../../components/Spinner";
-import { Tooltip } from "../../components/Tooltip";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { RollCard, RollCardAction } from "../RollCard/RollCard";
 import { RollTextOverrides } from "../RollCard/getRollSummary";
@@ -295,19 +293,6 @@ function initials(name: string): string {
   return letters.map((word) => word[0]?.toUpperCase() ?? "").join("");
 }
 
-/** How often relative times are brought up to date. */
-const RELATIVE_TIME_TICK_MS = 30_000;
-
-/** The current time, updated every `intervalMs`. */
-function useNow(intervalMs: number) {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), intervalMs);
-    return () => window.clearInterval(id);
-  }, [intervalMs]);
-  return now;
-}
-
 export interface GameLogProps extends LayoutProps {
   /** Entries oldest first; the newest sits at the bottom by the composer. */
   entries: GameLogEntry[];
@@ -323,7 +308,8 @@ export interface GameLogProps extends LayoutProps {
   /**
    * The clock time of each entry, "8:42 PM". Entries show a relative time
    * ("5 minutes ago") with this on hover; entries from before today show it
-   * outright.
+   * outright. Relative times keep themselves up to date from a shared clock
+   * (`RelativeTime`), so a tick re-renders the time labels, not the log.
    */
   formatTime?: (date: Date) => string;
   strings?: Partial<GameLogStrings>;
@@ -370,7 +356,6 @@ export function GameLog(props: GameLogProps) {
     className,
   } = withLayoutProps<GameLogProps>(props);
   const strings = { ...defaultGameLogStrings, ...stringsProp };
-  const now = useNow(RELATIVE_TIME_TICK_MS);
 
   const formatDay =
     formatDayProp ??
@@ -468,11 +453,6 @@ export function GameLog(props: GameLogProps) {
                   <GameLogItem
                     entry={entry}
                     time={formatTime(entry.timestamp)}
-                    relativeTime={formatGameLogRelativeTime(
-                      entry.timestamp,
-                      now,
-                      strings.justNow,
-                    )}
                     strings={strings}
                     rollText={rollText}
                     groupPosition={groupPositions[index]}
@@ -497,20 +477,18 @@ export function GameLog(props: GameLogProps) {
 
 interface GameLogItemProps {
   entry: GameLogEntry;
-  /** The clock time, read by screen readers and shown on hover. */
-  time: string;
   /**
-   * Shown in place of the clock time, which shows on hover. Unset before
-   * today, where the clock time shows outright.
+   * The clock time, read by screen readers. A relative time shows in its
+   * place, with it on hover, until the entry is from before today.
    */
-  relativeTime?: string;
+  time: string;
   strings: GameLogStrings;
   rollText?: RollTextOverrides;
   groupPosition: GameLogGroupPosition;
 }
 
 function GameLogItem(props: GameLogItemProps) {
-  const { entry, time, relativeTime, strings, rollText, groupPosition } = props;
+  const { entry, time, strings, rollText, groupPosition } = props;
   const { author } = entry;
   // A group shows its header over its first entry and its time under its
   // last.
@@ -587,15 +565,13 @@ function GameLogItem(props: GameLogItemProps) {
         // A relative time shows the clock time on hover. Screen readers
         // read the clock time in the entry's heading, so this stays hidden.
         <div className={timeBelowStyles} aria-hidden>
-          {relativeTime ? (
-            <Tooltip title={time}>
-              <time dateTime={entry.timestamp.toISOString()}>
-                {relativeTime}
-              </time>
-            </Tooltip>
-          ) : (
-            <time dateTime={entry.timestamp.toISOString()}>{time}</time>
-          )}
+          <RelativeTime
+            date={entry.timestamp}
+            absolute={time}
+            format={(date, now) =>
+              formatGameLogRelativeTime(date, now, strings.justNow)
+            }
+          />
         </div>
       )}
     </li>
