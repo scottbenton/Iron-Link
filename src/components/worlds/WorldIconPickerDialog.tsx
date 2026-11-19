@@ -27,12 +27,11 @@ import { useDeferredValue, useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
+import { EmptyState } from "components/Layout/EmptyState";
 
 import { IconColors, IconDefinition } from "types/Icon.type";
 
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
-
-import { MAX_FILE_SIZE_LABEL } from "repositories/storage.repository";
 
 import { WorldCategoryIcon } from "./categories/WorldCategoryIcon";
 import {
@@ -179,7 +178,6 @@ export function WorldIconPickerDialog({
         <Box sx={{ display: "grid", "& > *": { gridArea: "1 / 1" } }}>
           {onUploadImage && (
             <Stack
-              spacing={2}
               alignItems="center"
               justifyContent="center"
               onDragOver={(event) => {
@@ -208,38 +206,35 @@ export function WorldIconPickerDialog({
                 bgcolor: dragging ? "action.hover" : undefined,
                 borderRadius: 1,
                 p: 3,
-                textAlign: "center",
               }}
             >
-              <AddPhotoIcon sx={{ fontSize: 48, color: "text.secondary" }} />
-              <Typography>
-                {touch
-                  ? t(
-                      "worlds.entries.upload-image-description-touch",
-                      "Upload a picture to use as this entry's icon. You choose which part shows next.",
-                    )
-                  : t(
-                      "worlds.entries.upload-image-description",
-                      "Drop a picture here or upload one to use as this entry's icon. You choose which part shows next.",
-                    )}
-              </Typography>
-              <Button
-                variant="contained"
-                disabled={uploadDisabled}
-                onClick={() => {
-                  onClose();
-                  onUploadImage();
-                }}
-              >
-                {t("worlds.entries.upload-image", "Upload image")}
-              </Button>
-              <Typography variant="caption" color="text.secondary">
-                {t(
-                  "worlds.entries.upload-image-limits",
-                  "PNG, JPEG, GIF or WebP, up to {{size}}",
-                  { size: MAX_FILE_SIZE_LABEL },
-                )}
-              </Typography>
+              <EmptyState
+                title={t("worlds.entries.upload-image-title", "Use an image")}
+                message={
+                  touch
+                    ? t(
+                        "worlds.entries.upload-image-description-touch",
+                        "Upload a picture to use as this entry's icon. You choose which part shows next.",
+                      )
+                    : t(
+                        "worlds.entries.upload-image-description",
+                        "Drop a picture here or upload one to use as this entry's icon. You choose which part shows next.",
+                      )
+                }
+                action={
+                  <Button
+                    variant="contained"
+                    startIcon={<AddPhotoIcon />}
+                    disabled={uploadDisabled}
+                    onClick={() => {
+                      onClose();
+                      onUploadImage();
+                    }}
+                  >
+                    {t("worlds.entries.upload-image", "Upload image")}
+                  </Button>
+                }
+              />
             </Stack>
           )}
           <Box
