@@ -16,9 +16,11 @@ import { Spinner } from "../Spinner";
 export type ToastTone = "info" | "success" | "warning" | "error" | "loading";
 
 /**
- * Sonner's own toast look in the library's tokens: a light card (dark in
- * dark mode) with a hairline border and the floating shadow, the tone shown
- * by its icon alone. Older toasts peek out above it as bare card edges.
+ * The same card a roll result is (RollCard), so notifications and rolls
+ * read as one kind of thing wherever they stack: the large radius, a
+ * hairline border, and the floating shadow (with the control border) only
+ * when `elevated`, as in the toast stack. The tone shows by its icon alone.
+ * Older toasts peek out above it as bare card edges.
  */
 const toastCardStyles = cva({
   base: {
@@ -31,17 +33,17 @@ const toastCardStyles = cva({
     paddingBlock: "2",
     paddingInlineStart: "4",
     paddingInlineEnd: "2",
-    borderRadius: "md",
+    borderRadius: "lg",
     borderWidth: "1px",
     borderStyle: "solid",
-    borderColor: "border.control",
+    borderColor: "border.default",
     background: "bg.surface",
     color: "fg.default",
-    boxShadow: "popover",
     fontFamily: "body",
     fontSize: "sm",
     lineHeight: "snug",
     textAlign: "start",
+    "&[data-elevated]": { boxShadow: "popover", borderColor: "border.control" },
   },
 });
 
@@ -101,6 +103,8 @@ export interface ToastCardProps {
   /** The named close button. Every toast has one. */
   onDismiss: () => void;
   dismissLabel?: string;
+  /** Floating, with the shadow: in the toast stack or the roll dock. */
+  elevated?: boolean;
   className?: string;
   /** Anything else, laid out after the text and before the buttons. */
   children?: ReactNode;
@@ -120,6 +124,7 @@ export function ToastCard(props: ToastCardProps) {
     action,
     onDismiss,
     dismissLabel = "Dismiss",
+    elevated,
     className,
     children,
   } = props;
@@ -127,7 +132,10 @@ export function ToastCard(props: ToastCardProps) {
   const shownIcon = icon ?? (tone ? toneIcons[tone] : null);
 
   return (
-    <div className={cx(toastCardStyles(), className)}>
+    <div
+      className={cx(toastCardStyles(), className)}
+      data-elevated={elevated || undefined}
+    >
       {shownIcon && (
         <span className={iconStyles({ tone: tone ?? "loading" })} aria-hidden>
           {shownIcon}
@@ -150,7 +158,7 @@ export function ToastCard(props: ToastCardProps) {
           </Button>
         )}
         <IconButton label={dismissLabel} size="sm" onClick={onDismiss}>
-          <XIcon />
+          <XIcon weight="bold" />
         </IconButton>
       </div>
     </div>

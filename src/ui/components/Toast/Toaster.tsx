@@ -46,7 +46,7 @@ const toasterStyles = css({
  */
 const toastItemStyles = css({
   width: "100%",
-  borderRadius: "md",
+  borderRadius: "lg",
   _focusVisible: { boxShadow: "0 0 0 2px token(colors.focusRing)!" },
   "& > [data-content], & > [data-content] > [data-title]": {
     display: "contents",
