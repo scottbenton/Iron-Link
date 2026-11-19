@@ -29,7 +29,7 @@ export const choiceLabelStyles = cva({
     gap: "10px",
     width: "fit-content",
     maxWidth: "100%",
-    minHeight: "32px",
+    minHeight: "control.sm",
     paddingBlock: "6px",
     margin: 0,
     fontFamily: "body",
@@ -46,7 +46,7 @@ export const choiceLabelStyles = cva({
   },
   variants: {
     size: {
-      sm: { minHeight: "28px", paddingBlock: "4px", gap: "2" },
+      sm: { minHeight: "control.xs", paddingBlock: "4px", gap: "2" },
       md: {},
     },
   },

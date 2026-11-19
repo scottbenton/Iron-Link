@@ -274,7 +274,7 @@ const checkStyles = css({
   transitionProperty: "opacity, scale",
   transitionDuration: "fast",
   transitionTimingFunction: "in",
-  "& > svg": { width: "24px", height: "24px" },
+  "& > svg": { width: "icon.lg", height: "icon.lg" },
   "[data-checked] &": {
     opacity: 1,
     scale: "1",

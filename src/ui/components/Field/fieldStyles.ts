@@ -54,7 +54,7 @@ export const fieldShellStyles = cva({
     gap: "2",
     width: "100%",
     minWidth: 0,
-    minHeight: "40px",
+    minHeight: "control.md",
     margin: 0,
     paddingInline: "3",
     borderRadius: "md",
@@ -136,12 +136,12 @@ export const fieldShellStyles = cva({
     },
     size: {
       sm: {
-        minHeight: "32px",
+        minHeight: "control.sm",
         paddingInline: "10px",
         fontSize: "sm",
         gap: "1.5",
         // 16px text keeps iOS from zooming into a focused field.
-        _touch: { minHeight: "40px", fontSize: "md" },
+        _touch: { minHeight: "control.md", fontSize: "md" },
       },
       md: {},
     },
@@ -167,7 +167,7 @@ export const fieldShellStyles = cva({
      */
     chips: {
       true: {
-        "--field-height": "40px",
+        "--field-height": "{sizes.control.md}",
         "--chip-row": "28px",
         alignItems: "flex-start",
         paddingInlineStart: "1.5",
@@ -185,7 +185,7 @@ export const fieldShellStyles = cva({
       chips: true,
       size: "sm",
       css: {
-        "--field-height": "32px",
+        "--field-height": "{sizes.control.sm}",
         "--chip-row": "24px",
         _touch: { "--field-height": "40px", "--chip-row": "36px" },
       },
@@ -325,7 +325,7 @@ export const fieldAdornmentStyles = css({
   fontSize: "sm",
   lineHeight: "none",
   whiteSpace: "nowrap",
-  "& > svg": { width: "18px", height: "18px", flex: "none" },
+  "& > svg": { width: "icon.md", height: "icon.md", flex: "none" },
   "[data-disabled] &, :disabled ~ &": { color: "fg.disabled" },
 });
 
@@ -354,7 +354,7 @@ export const fieldIconButtonStyles = css({
   transitionProperty: "background-color, color",
   transitionDuration: "fast",
   transitionTimingFunction: "linear",
-  "& > svg": { width: "16px", height: "16px" },
+  "& > svg": { width: "icon.md", height: "icon.md" },
   _hover: { background: "overlay.hover", color: "fg.default" },
   _pressed: { background: "overlay.pressed", transitionDuration: "instant" },
   _focusVisible: focusRing.outset,
@@ -363,7 +363,7 @@ export const fieldIconButtonStyles = css({
     color: "fg.disabled",
     background: "transparent",
   },
-  _touch: { width: "36px", height: "36px" },
+  _touch: { width: "control.row", height: "control.row" },
 });
 
 /**
@@ -428,7 +428,12 @@ export const fieldErrorStyles = css({
   transitionProperty: "opacity, translate",
   transitionDuration: "normal",
   transitionTimingFunction: "out",
-  "& > svg": { flex: "none", width: "14px", height: "14px", marginTop: "1px" },
+  "& > svg": {
+    flex: "none",
+    width: "icon.sm",
+    height: "icon.sm",
+    marginTop: "1px",
+  },
   "& ul": { margin: 0, paddingInlineStart: "4" },
   _startingStyle: { opacity: 0, translate: "0 -4px" },
   _endingStyle: {
