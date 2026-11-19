@@ -1,4 +1,4 @@
-import { CheckCircle, Minus, Plus } from "@phosphor-icons/react";
+import { CheckCircle } from "@phosphor-icons/react";
 import {
   ElementType,
   KeyboardEvent,
@@ -15,13 +15,12 @@ import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
-import { IconButton } from "../../components/IconButton";
 import { Tooltip } from "../../components/Tooltip";
 import { TrackCardHeader } from "../ProgressTrack/TrackCardHeader";
+import { TrackCardStepper } from "../ProgressTrack/TrackCardStepper";
 import {
   trackCardActionsStyles,
   trackCardBadgeStyles,
-  trackCardStepperStyles,
   trackCardStyles,
   trackCardTitleStyles,
 } from "../ProgressTrack/trackCardStyles";
@@ -141,14 +140,16 @@ const hubStyles = css({
 });
 
 /**
- * The card's dial, centred with its minus and plus either side, so the
- * buttons sit by what they change.
+ * The card's dial at the start under the title, with any actions beside it
+ * (as a scene challenge's clock sits beside its track), wrapping under it
+ * when the card is narrow.
  */
 const cardDialRowStyles = css({
   display: "flex",
+  flexWrap: "wrap",
   alignItems: "center",
-  justifyContent: "center",
   gap: "3",
+  "& > :last-child:not(:first-child)": { flex: "1 1 auto", minWidth: 0 },
 });
 
 const labelStyles = css({
@@ -183,8 +184,9 @@ export interface ClockProps extends LayoutProps {
   /**
    * `bare` (default): the dial with its name under it, for asset cards and
    * grids. `card`: a card like ProgressTrack's: the same header (eyebrow and
-   * menu, then name and description), with the dial under it between its
-   * minus and plus, and any actions in a row below.
+   * menu, then name and description), the dial under it at the start, and
+   * any actions in a row below. The dial is the control: a segment sets the
+   * clock and its middle adds one.
    */
   presentation?: "bare" | "card";
   /**
@@ -192,7 +194,7 @@ export interface ClockProps extends LayoutProps {
    * and the dial reads as an image.
    */
   completed?: boolean;
-  /** Card only: actions in a row under the dial, such as Roll Progress. */
+  /** Card only: actions beside the dial, such as Roll Progress. */
   actions?: ReactNode;
   /** Card only: the clock's kind, shown above the name ("Tension Clock"). */
   typeLabel?: string;
@@ -200,6 +202,12 @@ export interface ClockProps extends LayoutProps {
   description?: string;
   /** Card only: a control at the top right, such as the clock's menu. */
   headerAction?: ReactNode;
+  /**
+   * Card only: minus and plus in the header's corner, as on a track, for a
+   * clock that is advanced often. Off by default: the dial is its own
+   * control.
+   */
+  stepButtons?: boolean;
   /**
    * Card only: the name's element. A span by default: a clock's name only
    * looks like a heading (CLAUDE.md).
@@ -231,6 +239,7 @@ export function Clock(props: ClockProps) {
     typeLabel,
     description,
     headerAction,
+    stepButtons: stepButtonsProp = false,
     titleAs: Title = "span",
     strings: stringsProp,
     className,
@@ -354,9 +363,9 @@ export function Clock(props: ClockProps) {
   );
 
   const named = card || !hideLabel;
-  // The card's minus and plus, like the track's, so the hub is only a
-  // shortcut for the pointer there.
-  const stepButtons = card && interactive;
+  // The card's optional minus and plus, like the track's; with them the hub
+  // is only a shortcut for the pointer.
+  const stepButtons = card && interactive && stepButtonsProp;
 
   const dialProps = {
     className: dialStyles,
@@ -450,42 +459,32 @@ export function Clock(props: ClockProps) {
             </Title>
           }
           description={description}
-          action={headerAction}
+          action={
+            (stepButtons || headerAction) && (
+              <>
+                {stepButtons && (
+                  <TrackCardStepper
+                    minusLabel={strings.removeLabel(label)}
+                    plusLabel={strings.advanceLabel(label)}
+                    minusDisabled={value === 0}
+                    plusDisabled={complete}
+                    onMinus={() => set(value - 1, true)}
+                    onPlus={() => set(value + 1, true)}
+                  />
+                )}
+                {headerAction}
+              </>
+            )
+          }
         />
         <div className={cardDialRowStyles}>
-          {stepButtons && (
-            <span className={trackCardStepperStyles}>
-              <IconButton
-                label={strings.removeLabel(label)}
-                size="sm"
-                focusableWhenDisabled
-                disabled={value === 0}
-                onClick={() => set(value - 1, true)}
-              >
-                <Minus weight="bold" />
-              </IconButton>
-            </span>
-          )}
           {dialWithHub}
-          {stepButtons && (
-            <span className={trackCardStepperStyles}>
-              <IconButton
-                label={strings.advanceLabel(label)}
-                size="sm"
-                focusableWhenDisabled
-                disabled={complete}
-                onClick={() => set(value + 1, true)}
-              >
-                <Plus weight="bold" />
-              </IconButton>
-            </span>
+          {actions && (
+            <div className={trackCardActionsStyles}>
+              <div data-actions="">{actions}</div>
+            </div>
           )}
         </div>
-        {actions && (
-          <div className={trackCardActionsStyles}>
-            <div data-actions="">{actions}</div>
-          </div>
-        )}
       </div>
     );
   }

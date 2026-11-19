@@ -2,8 +2,9 @@ import { css } from "styled-system/css";
 
 /**
  * The card shared by ProgressTrack and Clock's `card` presentation: a static
- * surface with a border, a header of eyebrow, title and description with the
- * menu at the top right, then the boxes or dial with their minus and plus.
+ * surface with a border and no ledge (nothing presses the card itself), a
+ * header of eyebrow, title and description with the minus, plus and menu at
+ * the top right, then the boxes or dial.
  */
 export const trackCardStyles = css({
   display: "grid",
@@ -16,7 +17,6 @@ export const trackCardStyles = css({
   borderRadius: "lg",
   background: "bg.surface",
   color: "fg.default",
-  boxShadow: "ledge",
   "&[data-plain]": {
     padding: 0,
     borderWidth: 0,
@@ -63,8 +63,8 @@ export const trackCardDescriptionStyles = css({
 });
 
 /**
- * A card's minus and plus, beside the dial or under the boxes. Small icon
- * buttons are 40px on touch; these are tapped often, so 44px.
+ * A card's minus and plus, in the header's corner. Small icon buttons are
+ * 40px on touch; these are tapped often, so 44px.
  */
 export const trackCardStepperStyles = css({
   display: "flex",
@@ -102,6 +102,7 @@ export const trackCardHeadStyles = css({
 export const trackCardHeadActionStyles = css({
   display: "flex",
   alignItems: "center",
+  gap: "1",
   // The eyebrow's line is shorter than a button: overlap the space around
   // it rather than push the title down.
   marginBlock: "-1.5",
@@ -128,10 +129,7 @@ export const trackCardBadgeStyles = css({
   "& svg": { width: "1.1em", height: "1.1em" },
 });
 
-/**
- * The row under the boxes or dial: extra actions such as Roll Progress,
- * then a track's minus and plus at the end.
- */
+/** The row under the boxes or dial: extra actions such as Roll Progress. */
 export const trackCardActionsStyles = css({
   display: "flex",
   alignItems: "center",
@@ -145,5 +143,4 @@ export const trackCardActionsStyles = css({
     flex: "1 1 auto",
     minWidth: 0,
   },
-  "& > [data-stepper]": { marginInlineStart: "auto" },
 });

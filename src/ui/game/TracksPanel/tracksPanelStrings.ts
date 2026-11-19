@@ -66,7 +66,7 @@ export interface TracksPanelStrings {
   dialogTitleRequired: string;
   dialogDescriptionField: string;
   dialogRankField: string;
-  /** Under each rank: "2 boxes per mark". */
+  /** Under each rank: "2 boxes per progress". */
   dialogRankDescription: (ticks: number) => string;
   dialogResetProgress: string;
   dialogResetProgressHint: string;
