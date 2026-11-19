@@ -32,7 +32,8 @@ const headerStyles = css({
   display: "flex",
   alignItems: "center",
   gap: "1",
-  minHeight: "34px",
+  // As tall as a small icon button, the tallest action it carries.
+  minHeight: "32px",
   margin: 0,
   paddingInlineStart: "3",
   paddingInlineEnd: "1",
@@ -104,8 +105,10 @@ const noteStyles = css({
 const bodyStyles = css({
   minWidth: 0,
   paddingInline: "3",
-  paddingBlockStart: "1",
-  paddingBlockEnd: "2.5",
+  // The header's own height already spaces the content from it; the
+  // bottom matches the sides so the content sits evenly in the card.
+  paddingBlockStart: 0,
+  paddingBlockEnd: "3",
   "&[data-padding=none]": { padding: 0 },
 });
 
