@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -72,6 +72,13 @@ describe("WorldPageLayout", () => {
     await user.click(show);
     expect(show).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("region", { name: "Reference" })).toBeVisible();
+    // Opening moves focus to Hide Reference on the next frame, and Escape
+    // closes only from inside the panel.
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Hide Reference" }),
+      ).toHaveFocus(),
+    );
 
     await user.keyboard("{Escape}");
     expect(screen.queryByText("Oracles")).not.toBeVisible();
