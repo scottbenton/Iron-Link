@@ -7,10 +7,10 @@
  * Expand, at the top of the rail, or Keep Sidebar Open in the column's
  * header puts the sidebar back in place.
  *
- * At medium widths (900 to 1200px) the sheet sits over the reference in one
- * column only while both are open. Each still collapses on its own, so the
- * sheet can stay pinned with the reference on a rail at the far edge, or
- * the other way round.
+ * At medium widths (900 to 1200px) both sit before the notes: the sheet
+ * over the reference in one column while both are open, and each still
+ * collapses on its own, so the sheet can stay pinned with the reference on
+ * a rail beside it, the other way round, or both on rails.
  */
 import { GearSixIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
@@ -187,8 +187,8 @@ const mediumFrame = css({
 });
 
 /**
- * Medium (1100px), both collapsed: a rail at each edge, as on wide screens,
- * and the notes take the width. Expand both and the sheet goes back over
+ * Medium (1100px), both collapsed: two rails side by side before the
+ * notes, which take the width. Expand both and the sheet goes back over
  * the reference in one column.
  */
 export const MediumCollapsed: Story = {
@@ -202,8 +202,8 @@ export const MediumCollapsed: Story = {
 };
 
 /**
- * Medium, Reference collapsed: the sheet stays pinned at full height beside
- * the notes, with Reference on a rail at the far edge.
+ * Medium, Reference collapsed: the sheet stays pinned at full height, with
+ * Reference on a rail between it and the notes.
  */
 export const MediumReferenceCollapsed: Story = {
   name: "Medium, sheet pinned, reference collapsed",

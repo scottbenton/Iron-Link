@@ -13,7 +13,9 @@
  */
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { PhoneGamePage } from "./PhoneGamePage";
 import { SheetFirstPage } from "./PlayLayouts";
+import { responsiveViewports, useGamePageTier } from "./responsiveViewports";
 
 const viewports = {
   desktopSmall: {
@@ -36,6 +38,7 @@ const viewports = {
     styles: { width: "820px", height: "1180px" },
     type: "tablet",
   },
+  ...responsiveViewports,
 };
 
 const meta: Meta = {
@@ -90,4 +93,24 @@ export const SheetFirstTablet: Story = {
     },
   },
   render: () => <SheetFirstPage touch sidebarCollapsed />,
+};
+
+function ResponsiveSheetFirst() {
+  const tier = useGamePageTier();
+  if (tier === "phone") return <PhoneGamePage />;
+  // Keyed, so crossing 1200px resets the reference to the tier's default.
+  return <SheetFirstPage key={tier} sidebarCollapsed={tier === "medium"} />;
+}
+
+/**
+ * Sheet first at every width: the reference open beside the sheet from
+ * 1200px, folded to its rail from 900px (a rail button opens it over the
+ * sheet), and below 900px the phone page, which already opens on the sheet
+ * with the notes a tab away. Step through the toolbar's viewports, from
+ * 1600 down to 390, or resize the window with the canvas open on its own.
+ */
+export const SheetFirstResponsive: Story = {
+  name: "Sheet first, responsive",
+  globals: { viewport: { value: "r1440", isRotated: false } },
+  render: () => <ResponsiveSheetFirst />,
 };

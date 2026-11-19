@@ -70,17 +70,22 @@ import {
   OverviewColumn,
   ReferenceColumn,
 } from "./GamePageColumns";
+import { PhoneGamePage } from "./PhoneGamePage";
 import { GamePageTabs } from "./StoryPlaceholders";
 import {
   characterSections,
   overviewSections,
   referenceSections,
 } from "./columnSections";
+import { responsiveViewports, useGamePageTier } from "./responsiveViewports";
 import { getNavItems } from "./storyData";
 
 const meta: Meta = {
   title: "Examples/Game page",
-  parameters: { layout: "fullscreen" },
+  parameters: {
+    layout: "fullscreen",
+    viewport: { options: responsiveViewports },
+  },
 };
 
 export default meta;
@@ -286,8 +291,8 @@ const mediumFrame = css({
  * 900 to 1200px (shown at 1100px): the sheet over the reference in one
  * column, the notes beside them, as the live app does at this width. Each
  * sidebar collapses on its own: collapse Reference and the sheet stays
- * pinned with Reference on a rail at the far edge (see "Game page,
- * collapsed sidebars").
+ * pinned with Reference on a rail beside it, both still before the notes
+ * (see "Game page, collapsed sidebars").
  */
 export const Medium: Story = {
   name: "Medium (1100px)",
@@ -297,4 +302,23 @@ export const Medium: Story = {
       <WideGamePage stacked />
     </div>
   ),
+};
+
+function ResponsiveGamePage() {
+  const tier = useGamePageTier();
+  if (tier === "phone") return <PhoneGamePage />;
+  return <WideGamePage stacked={tier === "medium"} />;
+}
+
+/**
+ * The current layout at every width, as the app picks it: three columns
+ * from 1200px, the sheet and the reference stacked at the start from 900px
+ * (each on a rail when collapsed), and the phone page below 900px, as
+ * `useIsMobile()` decides. Step through the toolbar's viewports, from 1600
+ * down to 390, or resize the window with the canvas open on its own.
+ */
+export const Responsive: Story = {
+  name: "Responsive, desktop to phone",
+  globals: { viewport: { value: "r1440", isRotated: false } },
+  render: () => <ResponsiveGamePage />,
 };
