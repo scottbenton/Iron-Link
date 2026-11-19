@@ -132,7 +132,7 @@ export const GuideOnCharacter: Story = {
 };
 
 /**
- * Parham, a player in that game, on their own Orrin: all of Orrin's
+ * Phoebe, a player in that game, on their own Orrin: all of Orrin's
  * settings, but from the game only what applies to them (Sound on New Log
  * Messages and Second Screen). The game's theme shows read only in the
  * Theme dialog.
