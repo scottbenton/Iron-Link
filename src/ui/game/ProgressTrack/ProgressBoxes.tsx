@@ -26,7 +26,8 @@ const trackStyles = css({
  * comes before a line finishes, dropping `data-drawing` cancels its
  * transition and it shows fully drawn: under rapid taps the drawn lines
  * always match the value and only the newest one moves. Erased lines all
- * draw back out at once, quickly.
+ * draw back out at once, over 80ms with the same ease-out, so a removal
+ * reads as soon as it is tapped (an ease-in held the line until the end).
  */
 const boxStyles = css({
   aspectRatio: "1",
@@ -54,7 +55,7 @@ const boxStyles = css({
   "& line": {
     strokeDasharray: "20",
     strokeDashoffset: "20",
-    transition: "stroke-dashoffset var(--durations-fast) var(--easings-in)",
+    transition: "stroke-dashoffset token(durations.instant) token(easings.out)",
     _reducedMotion: { transition: "none" },
   },
   "& line[data-on]": {
