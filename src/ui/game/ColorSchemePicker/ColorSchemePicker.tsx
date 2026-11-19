@@ -4,6 +4,7 @@ import { CheckCircle } from "@phosphor-icons/react";
 import { CSSProperties, ReactNode } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { ledgeShadow } from "ui/styles/ledge";
 import { SchemeName, ringGradient, schemeNames, schemes } from "ui/theme";
 
 import { css, cx } from "styled-system/css";
@@ -61,7 +62,7 @@ const optionStyles = css({
     padding: "3px",
     borderRadius: "md",
     background: "var(--swatch-ring)",
-    boxShadow: "0 var(--border-widths-ledge) 0 rgb(0 0 0 / 0.18)",
+    boxShadow: ledgeShadow("rgb(0 0 0 / 0.18)"),
   },
   // A tiny roll button: the dark chip inside the ring.
   "& [data-swatch] > span": {
