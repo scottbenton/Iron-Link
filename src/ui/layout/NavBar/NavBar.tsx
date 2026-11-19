@@ -2,6 +2,8 @@ import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { CaretLeftIcon, ListIcon, XIcon } from "@phosphor-icons/react";
 import { ReactNode, useRef, useState } from "react";
 
+import { ledgeShadow } from "ui/styles/ledge";
+
 import { css, cx } from "styled-system/css";
 
 import { IconButton } from "../../components/IconButton";
@@ -19,7 +21,7 @@ const barStyles = css({
   flex: "none",
   background: "bg.surface",
   borderBottom: "1px solid token(colors.border.default)",
-  boxShadow: "0 var(--border-widths-ledge) 0 token(colors.border.subtle)",
+  boxShadow: ledgeShadow("token(colors.border.subtle)"),
   color: "fg.default",
   fontFamily: "body",
   paddingTop: "env(safe-area-inset-top, 0px)",
