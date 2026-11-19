@@ -155,7 +155,7 @@ export interface CharacterPortraitProps
   status?: PortraitStatus;
   /** What the dot means, for screen readers, such as "Online". */
   statusLabel?: string;
-  /** Shows a shimmer while the character or image is loading. */
+  /** Pulses like a Skeleton while the character or image is loading. */
   loading?: boolean;
   /**
    * Hide from screen readers, where the name is written beside it, so it is
