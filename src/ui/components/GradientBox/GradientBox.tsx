@@ -1,6 +1,7 @@
 import { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { ringLayer } from "ui/styles/ring";
 
 import { cva, cx } from "styled-system/css";
 
@@ -42,7 +43,7 @@ const gradientBoxStyles = cva({
     },
     spin: {
       /**
-       * The border turns like the roll buttons' ring: the gradient is a
+       * The border turns: the shared ring layer (`ui/styles/ring`), a
        * spinning square larger than the box, clipped by it and covered by the
        * surface everywhere but the border. It covers boxes up to about as
        * tall as they are wide; taller boxes should not spin.
@@ -52,20 +53,8 @@ const gradientBoxStyles = cva({
         isolation: "isolate",
         background: "transparent",
         borderColor: "transparent",
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          zIndex: -2,
-          left: "50%",
-          top: "50%",
-          width: "150%",
-          minHeight: "150%",
-          aspectRatio: "1",
-          translate: "-50% -50%",
-          background: "var(--gradient-box-fill)",
-          animation: "ringSpin var(--durations-ring-spin) linear infinite",
-          pointerEvents: "none",
-        },
+        "--ring-fill": "var(--gradient-box-fill)",
+        "&::before": { ...ringLayer, zIndex: -2 },
       },
     },
   },
