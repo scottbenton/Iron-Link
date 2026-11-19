@@ -45,6 +45,7 @@ import {
   ConditionMeter,
   MomentumMeter,
 } from "../../game/ConditionMeter";
+import { XPMeter } from "../../game/ConditionMeter";
 import { GameLog } from "../../game/GameLog";
 import type { GameLogEntry } from "../../game/GameLog";
 import type { ImpactGroup } from "../../game/ImpactsChecklist";
@@ -54,7 +55,6 @@ import type { InitiativeStatus } from "../../game/InitiativeChip";
 import { ProgressTrack } from "../../game/ProgressTrack";
 import { StatGrid } from "../../game/StatCard";
 import { TracksPanelDemo } from "../../game/TracksPanel/TracksPanelDemo";
-import { XPMeter } from "../../game/XPTrack";
 import {
   SampleCharacter,
   sampleCharacters,
