@@ -1,8 +1,6 @@
-import { PushPin } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ReactNode } from "react";
 
-import { IconButton } from "ui/components/IconButton";
 import { Text } from "ui/components/Text";
 import { Box, Stack } from "ui/primitives";
 
@@ -41,12 +39,6 @@ function Panel(props: { width: string; label: string; children: ReactNode }) {
   );
 }
 
-const pin = (name: string) => (
-  <IconButton label={`Pin ${name}`} size="sm">
-    <PushPin />
-  </IconButton>
-);
-
 /** A list of moves as in the moves drawer; each opens in place. */
 export const List: Story = {
   render: () => (
@@ -81,13 +73,11 @@ export const Expanded: Story = {
         move={sampleMoves.faceDanger}
         defaultExpanded
         moveCardProps={{ onRoll: () => {} }}
-        secondaryAction={pin(sampleMoves.faceDanger.name)}
       />
       <MoveListItem
         as="li"
         move={sampleMoves.gatherInformation}
         moveCardProps={{ onRoll: () => {} }}
-        secondaryAction={pin(sampleMoves.gatherInformation.name)}
       />
     </Panel>
   ),
@@ -102,8 +92,8 @@ const longMoves = [
 ];
 
 /**
- * Long names in the narrowest sidebar (280px), with Pin buttons. Names wrap
- * instead of cutting off; the chevron and Pin stay centred on the row.
+ * Long names in the narrowest sidebar (280px). Names wrap instead of cutting
+ * off; the chevron stays centred on the row.
  */
 export const LongNamesNarrow: Story = {
   render: () => (
@@ -114,7 +104,6 @@ export const LongNamesNarrow: Story = {
           key={move._id}
           move={move}
           moveCardProps={{ onRoll: () => {} }}
-          secondaryAction={pin(move.name)}
         />
       ))}
     </Panel>

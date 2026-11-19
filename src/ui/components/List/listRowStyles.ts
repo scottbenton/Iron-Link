@@ -3,7 +3,7 @@ import { focusRing } from "ui/styles/focus";
 import { css } from "styled-system/css";
 
 /**
- * The line that holds a row and its optional end control (View table, Pin).
+ * The line that holds a row and its optional end control (View table).
  * Both sit in one grid cell: the row fills the line and the control lies
  * over its end, so the row's hover and selected colour run under the
  * control to the edge, as one row. The row keeps the control's width clear
@@ -33,7 +33,7 @@ export const listRowLineStyles = css({
 });
 
 /**
- * A move or oracle row, in the library's dense inset list metrics (36px,
+ * A move or oracle row (`ListRow`), in the library's dense inset list metrics (36px,
  * 12px in from the start, rounded): name first, then a muted glyph for what
  * a press does (a chevron opens, a die rolls), then room for the end control.
  * Names wrap rather than truncate, so long names stay readable in a narrow
@@ -86,8 +86,9 @@ export const listRowStyles = css({
     "& [data-row-icon], & [data-row-glyph]": { color: "fg.default" },
   },
   _focusVisible: focusRing.inset,
-  "&:is(:disabled, [data-disabled])": {
-    cursor: "not-allowed",
+  // A disabled row takes no pointer at all: no hover, no press, no cursor.
+  "&:is(:disabled, [data-disabled], [aria-disabled=true])": {
+    pointerEvents: "none",
     color: "fg.disabled",
     background: "transparent",
     "& [data-row-icon], & [data-row-glyph]": { color: "fg.disabled" },

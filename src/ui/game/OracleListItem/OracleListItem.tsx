@@ -1,4 +1,3 @@
-import { Button as BaseButton } from "@base-ui/react/button";
 import { DiceFive, Table } from "@phosphor-icons/react";
 import {
   ComponentPropsWithoutRef,
@@ -8,12 +7,9 @@ import {
 } from "react";
 
 import { IconButton } from "ui/components/IconButton";
+import { ListRow, ListRowButton } from "ui/components/List";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
-
-import { cx } from "styled-system/css";
-
-import { listRowLineStyles, listRowStyles } from "./listRowStyles";
 
 export interface OracleListItemProps
   extends LayoutProps,
@@ -87,19 +83,12 @@ export function OracleListItem(props: OracleListItemProps) {
     ));
 
   return (
-    <Wrapper
-      data-row-line=""
-      data-has-action={action ? "" : undefined}
-      className={cx(listRowLineStyles, className)}
-      {...rest}
-    >
-      <BaseButton
-        className={listRowStyles}
+    <ListRow as={Wrapper} action={action} className={className} {...rest}>
+      <ListRowButton
         onClick={onRoll}
         disabled={disabled}
         render={render}
-        nativeButton={!isLink}
-        aria-current={current ? (isLink ? "page" : "true") : undefined}
+        current={current}
       >
         <span data-row-name="">
           {!isLink && <VisuallyHidden>{actionLabel} </VisuallyHidden>}
@@ -110,8 +99,7 @@ export function OracleListItem(props: OracleListItemProps) {
             {glyph}
           </span>
         )}
-      </BaseButton>
-      {action && <span data-row-action="">{action}</span>}
-    </Wrapper>
+      </ListRowButton>
+    </ListRow>
   );
 }
