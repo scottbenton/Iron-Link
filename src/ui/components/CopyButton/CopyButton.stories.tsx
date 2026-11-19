@@ -5,7 +5,7 @@ import { HStack } from "ui/primitives";
 import { CopyButton } from "./CopyButton";
 
 const meta: Meta<typeof CopyButton> = {
-  title: "Game/CopyButton",
+  title: "Components/CopyButton",
   component: CopyButton,
   args: {
     text: "https://app.ironlink.app/join/4f2a9c",
