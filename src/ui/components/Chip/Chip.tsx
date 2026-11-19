@@ -121,8 +121,7 @@ const chipStyles = cva({
         "--chip-remove-size": "20px",
         "--chip-remove-icon": "12px",
         minHeight: "32px",
-        paddingInlineStart: "9px",
-        paddingInlineEnd: "3",
+        paddingInline: "3",
         fontSize: "sm",
         _touch: { minHeight: "40px" },
       },
@@ -132,6 +131,16 @@ const chipStyles = cva({
     },
   },
   compoundVariants: [
+    // A leading icon is a square, so it sits a little closer to the edge
+    // than a letter would; text-only chips keep even padding.
+    {
+      size: "sm",
+      css: { "&:has([data-chip-icon])": { paddingInlineStart: "6px" } },
+    },
+    {
+      size: "md",
+      css: { "&:has([data-chip-icon])": { paddingInlineStart: "9px" } },
+    },
     {
       variant: "outline",
       tone: "neutral",
