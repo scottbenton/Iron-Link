@@ -28,9 +28,9 @@ describe("progress helpers", () => {
   });
 
   it("describes what a mark adds", () => {
-    expect(describeMark(8)).toBe("2 boxes per progress");
-    expect(describeMark(4)).toBe("1 box per progress");
-    expect(describeMark(1)).toBe("1 tick per progress");
-    expect(describeMark(2)).toBe("2 ticks per progress");
+    expect(describeMark(8)).toBe("2 boxes per mark");
+    expect(describeMark(4)).toBe("1 box per mark");
+    expect(describeMark(1)).toBe("1 tick per mark");
+    expect(describeMark(2)).toBe("2 ticks per mark");
   });
 });
