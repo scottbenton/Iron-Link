@@ -9,8 +9,9 @@
  *
  * At medium widths (900 to 1200px) both sit before the notes: the sheet
  * over the reference in one column while both are open, and each still
- * collapses on its own, so the sheet can stay pinned with the reference on
- * a rail beside it, the other way round, or both on rails.
+ * collapses on its own, so the sheet can stay pinned with the reference's
+ * rail before it (the rail takes its width from the notes), the other way
+ * round, or both collapsed into one rail, grouped by sidebar.
  */
 import { GearSixIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
