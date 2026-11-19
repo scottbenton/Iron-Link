@@ -1,3 +1,5 @@
+import { focusRing } from "ui/styles/focus";
+
 import { css } from "styled-system/css";
 
 /**
@@ -45,10 +47,7 @@ export const sectionTabStyles = css({
   transitionTimingFunction: "linear",
   "& svg": { width: "16px", height: "16px", flex: "none" },
   _hover: { color: "fg.default" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "1px",
-  },
+  _focusVisible: focusRing.outset,
   _current: {
     background: "bg.surface",
     borderColor: "border.default",

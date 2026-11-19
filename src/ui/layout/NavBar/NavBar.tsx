@@ -2,6 +2,7 @@ import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { CaretLeftIcon, ListIcon, XIcon } from "@phosphor-icons/react";
 import { ReactNode, useRef, useState } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { ledgeShadow } from "ui/styles/ledge";
 
 import { css, cx } from "styled-system/css";
@@ -200,10 +201,7 @@ const drawerLinkStyles = css({
   "& svg": { width: "20px", height: "20px", flex: "none" },
   _hover: { background: "overlay.hover", color: "fg.default" },
   _active: { background: "overlay.pressed" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-2px",
-  },
+  _focusVisible: focusRing.inset,
   _current: {
     background: "bg.surface",
     borderColor: "border.default",

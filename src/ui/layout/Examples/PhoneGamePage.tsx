@@ -41,6 +41,7 @@ import {
 import { FocusEvent, useEffect, useRef, useState } from "react";
 
 import { Flex, Stack } from "ui/primitives";
+import { focusRing } from "ui/styles/focus";
 
 import { css } from "styled-system/css";
 
@@ -491,10 +492,7 @@ const editorStyles = css({
   fontSize: "md",
   lineHeight: "relaxed",
   "& p": { margin: 0 },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "4px",
-  },
+  _focusVisible: focusRing.outset,
 });
 
 /**

@@ -1,6 +1,8 @@
 import { Tabs } from "@base-ui/react/tabs";
 import { CSSProperties, ReactNode, useId } from "react";
 
+import { focusRing } from "ui/styles/focus";
+
 import { css, cx } from "styled-system/css";
 
 import { Sidebar, SidebarLabels, SidebarProps } from "../Sidebar";
@@ -108,10 +110,7 @@ const scrollStyles = css({
   overflowY: "auto",
   outline: "none",
   "&[hidden]": { display: "none" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-2px",
-  },
+  _focusVisible: focusRing.inset,
 });
 
 const compactRootStyles = css({

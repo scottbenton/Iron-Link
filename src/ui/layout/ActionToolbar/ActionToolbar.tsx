@@ -7,6 +7,8 @@ import {
   useRef,
 } from "react";
 
+import { focusRing } from "ui/styles/focus";
+
 import { css, cva, cx } from "styled-system/css";
 
 import { Tooltip } from "../../components/Tooltip";
@@ -86,10 +88,7 @@ const toolbarButtonStyles = cva({
     "& svg": { width: "18px", height: "18px", flex: "none" },
     _hover: { background: "overlay.hover" },
     _pressed: { background: "overlay.pressed" },
-    _focusVisible: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "-2px",
-    },
+    _focusVisible: focusRing.inset,
     "&[aria-pressed=true]": { background: "overlay.selected" },
     "&:is(:disabled, [data-disabled])": {
       cursor: "not-allowed",
