@@ -34,8 +34,6 @@ export const CharacterCard: Story = {
           <Skeleton width="40%" />
         </Stack>
       </HStack>
-      <Skeleton variant="rect" height={64} />
-      <Skeleton lines={2} />
     </Stack>
   ),
 };
