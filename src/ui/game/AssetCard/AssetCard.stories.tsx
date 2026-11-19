@@ -2,7 +2,6 @@ import { PencilSimple, Trash } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Button } from "ui/components/Button";
 import { IconButton } from "ui/components/IconButton";
 import { Grid, Stack } from "ui/primitives";
 
@@ -52,11 +51,19 @@ function Interactive(props: AssetCardProps) {
   );
 }
 
-const actions = (
-  <Button size="sm" variant="ghost" startIcon={<Trash />}>
-    Remove
-  </Button>
-);
+/** Customize and Remove, as icon buttons in the header. */
+function sheetActions(name: string) {
+  return (
+    <>
+      <IconButton label={`Customize ${name}`} size="sm">
+        <PencilSimple />
+      </IconButton>
+      <IconButton label={`Remove ${name}`} size="sm">
+        <Trash />
+      </IconButton>
+    </>
+  );
+}
 
 /** The Starforged starship: its name field, abilities and Integrity. */
 export const Playground: Story = {
@@ -65,12 +72,7 @@ export const Playground: Story = {
       <Interactive
         {...args}
         state={{ optionValues: { name: "Wayfinder" } }}
-        headerActions={
-          <IconButton label="Customize" size="sm">
-            <PencilSimple />
-          </IconButton>
-        }
-        actions={actions}
+        headerActions={sheetActions(args.asset.name)}
       />
     </Stack>
   ),
@@ -80,20 +82,32 @@ export const Playground: Story = {
 export const Gallery: Story = {
   render: () => (
     <Grid columns={{ base: 1, md: 2, xl: 3 }} gap="4" alignItems="start">
-      <Interactive asset={sampleAssets.ace} actions={actions} />
+      <Interactive
+        asset={sampleAssets.ace}
+        headerActions={sheetActions(sampleAssets.ace.name)}
+      />
       <Interactive
         asset={sampleAssets.protocolBot}
         state={{ optionValues: { name: "Tock" } }}
-        actions={actions}
+        headerActions={sheetActions(sampleAssets.protocolBot.name)}
       />
-      <Interactive asset={sampleAssets.marked} actions={actions} />
+      <Interactive
+        asset={sampleAssets.marked}
+        headerActions={sheetActions(sampleAssets.marked.name)}
+      />
       <Interactive
         asset={sampleAssets.ironswornHawk}
         state={{ optionValues: { name: "Swiftwing" } }}
-        actions={actions}
+        headerActions={sheetActions(sampleAssets.ironswornHawk.name)}
       />
-      <Interactive asset={sampleAssets.ironswornDuelist} actions={actions} />
-      <Interactive asset={sampleAssets.navigator} actions={actions} />
+      <Interactive
+        asset={sampleAssets.ironswornDuelist}
+        headerActions={sheetActions(sampleAssets.ironswornDuelist.name)}
+      />
+      <Interactive
+        asset={sampleAssets.navigator}
+        headerActions={sheetActions(sampleAssets.navigator.name)}
+      />
     </Grid>
   ),
 };
@@ -148,6 +162,7 @@ export const Collapsed: Story = {
           }}
           collapsed={collapsed}
           onCollapsedChange={setCollapsed}
+          headerActions={sheetActions(sampleAssets.starship.name)}
         />
       </Stack>
     );

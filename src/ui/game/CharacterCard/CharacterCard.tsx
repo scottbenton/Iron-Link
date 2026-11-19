@@ -8,8 +8,6 @@ import {
 
 import { Card, CardLinkOverlay } from "ui/components/Card";
 import { Text } from "ui/components/Text";
-import { VisuallyHidden } from "ui/components/VisuallyHidden";
-import { formatSigned } from "ui/game/shared";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import type { SchemeName } from "ui/theme";
 
@@ -18,7 +16,6 @@ import { css, cx } from "styled-system/css";
 import {
   CharacterPortrait,
   PortraitCrop,
-  PortraitStatus,
 } from "../CharacterPortrait/CharacterPortrait";
 
 const cardStyles = css({ paddingInlineEnd: "4" });
@@ -41,46 +38,6 @@ const nameButtonStyles = css({
   textAlign: "left",
 });
 
-const statsStyles = css({
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fill, minmax(52px, 1fr))",
-  gap: "1.5",
-  margin: 0,
-  "& > div": {
-    display: "grid",
-    justifyItems: "center",
-    gap: "0.5",
-    paddingBlock: "1.5",
-    paddingInline: "1",
-    borderRadius: "md",
-    background: "bg.muted",
-    minWidth: 0,
-  },
-  "& dt": {
-    order: 2,
-    fontFamily: "heading",
-    fontWeight: "bold",
-    fontSize: "2xs",
-    textTransform: "uppercase",
-    letterSpacing: "label",
-    color: "fg.muted",
-    maxWidth: "100%",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  },
-  "& dd": {
-    order: 1,
-    margin: 0,
-    fontFamily: "heading",
-    fontWeight: "bold",
-    fontSize: "lg",
-    lineHeight: "none",
-    fontVariantNumeric: "tabular-nums",
-  },
-  "& dd [data-max]": { color: "fg.subtle", fontSize: "xs" },
-});
-
 const actionsStyles = css({
   display: "flex",
   flexWrap: "wrap",
@@ -89,31 +46,16 @@ const actionsStyles = css({
   paddingBlockStart: "1",
 });
 
-export interface CharacterCardStat {
-  label: string;
-  value: number;
-  /** For meters: shown small after the value, as "5/5". */
-  max?: number;
-}
-
 export interface CharacterCardProps
   extends LayoutProps,
     Omit<ComponentPropsWithoutRef<"article">, "children"> {
   name: string;
   /** The player, shown under the name. Leave out in solo games. */
   playerName?: string;
-  /** A line in place of the player, such as "Ironsworn · Solo". */
-  subtitle?: ReactNode;
   portraitUrl?: string;
   portraitCrop?: PortraitCrop;
   colorScheme?: SchemeName;
   colorSeed?: number;
-  status?: PortraitStatus;
-  statusLabel?: string;
-  /** Key stats or meters in a compact row: Edge, Heart, Health, Momentum. */
-  stats?: CharacterCardStat[];
-  /** What the stats row is called for screen readers. */
-  statsLabel?: string;
   /**
    * Makes the card open the character: `render={<Link to={href} />}`. The
    * name becomes the link and stretches over the card.
@@ -129,23 +71,18 @@ export interface CharacterCardProps
 }
 
 /**
- * A character at a glance, as on a game's overview: portrait, name, player,
- * a few stats or meters and actions. With `render` or `onOpen` the whole
+ * A character on a game's Characters tab: portrait, name, player (left out
+ * in solo games) and actions such as Open on Screen. With `render` or `onOpen` the whole
  * card opens the character, its actions still pressable.
  */
 export function CharacterCard(props: CharacterCardProps) {
   const {
     name,
     playerName,
-    subtitle,
     portraitUrl,
     portraitCrop,
     colorScheme,
     colorSeed,
-    status,
-    statusLabel,
-    stats,
-    statsLabel = "Stats",
     render,
     onOpen,
     actions,
@@ -155,7 +92,6 @@ export function CharacterCard(props: CharacterCardProps) {
   } = withLayoutProps(props);
 
   const pressable = !!render || !!onOpen;
-  const secondLine = subtitle ?? playerName;
 
   return (
     <Card
@@ -171,8 +107,6 @@ export function CharacterCard(props: CharacterCardProps) {
           crop={portraitCrop}
           colorScheme={colorScheme}
           colorSeed={colorSeed}
-          status={status}
-          statusLabel={statusLabel}
           size="lg"
           decorative
         />
@@ -196,31 +130,14 @@ export function CharacterCard(props: CharacterCardProps) {
               name
             )}
           </Text>
-          {status && statusLabel && (
-            <VisuallyHidden>{statusLabel}</VisuallyHidden>
-          )}
-          {secondLine && (
+          {playerName && (
             <Text variant="bodySm" color="muted" truncate>
-              {secondLine}
+              {playerName}
             </Text>
           )}
         </div>
         {pressable && <CaretRight data-chevron="" aria-hidden size={18} />}
       </div>
-
-      {stats && stats.length > 0 && (
-        <dl className={statsStyles} aria-label={statsLabel}>
-          {stats.map((stat) => (
-            <div key={stat.label}>
-              <dt>{stat.label}</dt>
-              <dd>
-                {stat.value < 0 ? formatSigned(stat.value) : stat.value}
-                {stat.max !== undefined && <span data-max="">/{stat.max}</span>}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )}
 
       {actions && <div className={actionsStyles}>{actions}</div>}
     </Card>
