@@ -6,6 +6,7 @@ import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { css, cx } from "styled-system/css";
 
 import { VisuallyHidden } from "../VisuallyHidden";
+import { focusRing } from "ui/styles/focus";
 
 export interface StepperStep {
   label: ReactNode;
@@ -119,7 +120,7 @@ const stepButtonStyles = css({
   transition: "background-color token(durations.fast) linear",
   _hover: { background: "overlay.hover" },
   _pressed: { background: "overlay.pressed" },
-  _focusVisible: { outline: "2px solid token(colors.focusRing)" },
+  _focusVisible: focusRing.inset,
 });
 
 export interface StepperProps
