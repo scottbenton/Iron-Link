@@ -61,10 +61,7 @@ export function playAddsChange(
   );
   const from = direction === "up" ? NUMBER_TRAVEL : -NUMBER_TRAVEL;
   const fade = number.animate(
-    [
-      { transform: `translateY(${from}px)` },
-      { transform: "translateY(0)" },
-    ],
+    [{ transform: `translateY(${from}px)` }, { transform: "translateY(0)" }],
     { duration: readMs(badge, "--durations-fast", 140), easing },
   );
   return () => {
