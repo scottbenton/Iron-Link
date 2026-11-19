@@ -55,7 +55,6 @@ export interface CharacterCardProps
   portraitUrl?: string;
   portraitCrop?: PortraitCrop;
   colorScheme?: SchemeName;
-  colorSeed?: number;
   /**
    * Makes the card open the character: `render={<Link to={href} />}`. The
    * name becomes the link and stretches over the card.
@@ -82,7 +81,6 @@ export function CharacterCard(props: CharacterCardProps) {
     portraitUrl,
     portraitCrop,
     colorScheme,
-    colorSeed,
     render,
     onOpen,
     actions,
@@ -106,7 +104,6 @@ export function CharacterCard(props: CharacterCardProps) {
           portraitUrl={portraitUrl}
           crop={portraitCrop}
           colorScheme={colorScheme}
-          colorSeed={colorSeed}
           size="lg"
           decorative
         />

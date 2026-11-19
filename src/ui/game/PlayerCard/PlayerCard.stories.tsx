@@ -10,7 +10,6 @@ const [kira, orrin, senna] = sampleCharacters;
 const member = (character: (typeof sampleCharacters)[number]) => ({
   id: character.id,
   name: character.name,
-  colorSeed: character.colorSeed,
 });
 
 const meta: Meta<typeof PlayerCard> = {

@@ -179,14 +179,7 @@ const characters = sampleCharacters.map((character) => ({
   id: character.id,
   name: character.name,
   href: `#${character.id}`,
-  portrait: (
-    <CharacterPortrait
-      name={character.name}
-      colorSeed={character.colorSeed}
-      size="xs"
-      decorative
-    />
-  ),
+  portrait: <CharacterPortrait name={character.name} size="xs" decorative />,
 }));
 
 function SecondScreenDialog(props: { open: boolean; onClose: () => void }) {

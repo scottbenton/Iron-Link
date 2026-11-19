@@ -9,11 +9,10 @@ const party: PortraitGroupMember[] = [
   ...sampleCharacters.map((character) => ({
     id: character.id,
     name: character.name,
-    colorSeed: character.colorSeed,
   })),
-  { id: "jun", name: "Jun Okafor", colorSeed: 300 },
-  { id: "bryn", name: "Bryn Tallow", colorSeed: 60 },
-  { id: "dace", name: "Dace Imre", colorSeed: 180 },
+  { id: "jun", name: "Jun Okafor" },
+  { id: "bryn", name: "Bryn Tallow" },
+  { id: "dace", name: "Dace Imre" },
 ];
 
 const meta: Meta<typeof PortraitGroup> = {

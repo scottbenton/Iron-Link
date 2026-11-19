@@ -37,7 +37,6 @@ type Story = StoryObj;
 interface GameCharacter {
   id: string;
   name: string;
-  colorSeed: number;
 }
 
 interface Game {
@@ -55,24 +54,24 @@ const games: Game[] = [
     name: "The Iron Expanse",
     rules: "Starforged, Sundered Isles",
     characters: [
-      { id: "kira", name: "Kira Vale", colorSeed: 12 },
-      { id: "orrin", name: "Orrin Thale", colorSeed: 210 },
+      { id: "kira", name: "Kira Vale" },
+      { id: "orrin", name: "Orrin Thale" },
     ],
   },
   {
     id: "ashes",
     name: "Ashes of the Forge",
     rules: "Ironsworn, Delve",
-    characters: [{ id: "senna", name: "Senna Ash-Eye", colorSeed: 140 }],
+    characters: [{ id: "senna", name: "Senna Ash-Eye" }],
   },
   {
     id: "wardens",
     name: "Wardens of the Shroud",
     rules: "Starforged",
     characters: [
-      { id: "bryn", name: "Bryn Corwen", colorSeed: 300 },
-      { id: "kira-2", name: "Kira Vale", colorSeed: 12 },
-      { id: "tobias", name: "Tobias Rook", colorSeed: 60 },
+      { id: "bryn", name: "Bryn Corwen" },
+      { id: "kira-2", name: "Kira Vale" },
+      { id: "tobias", name: "Tobias Rook" },
     ],
   },
   {
@@ -80,12 +79,12 @@ const games: Game[] = [
     name: "The Long Night Convoy and the Drowned Stars Beyond the Reach",
     rules: "Starforged",
     characters: [
-      { id: "ilse", name: "Ilse Marrow", colorSeed: 170 },
-      { id: "dax", name: "Dax Ferro", colorSeed: 25 },
-      { id: "orrin-2", name: "Orrin Thale", colorSeed: 210 },
-      { id: "senna-2", name: "Senna Ash-Eye", colorSeed: 140 },
-      { id: "bryn-2", name: "Bryn Corwen", colorSeed: 300 },
-      { id: "tobias-2", name: "Tobias Rook", colorSeed: 60 },
+      { id: "ilse", name: "Ilse Marrow" },
+      { id: "dax", name: "Dax Ferro" },
+      { id: "orrin-2", name: "Orrin Thale" },
+      { id: "senna-2", name: "Senna Ash-Eye" },
+      { id: "bryn-2", name: "Bryn Corwen" },
+      { id: "tobias-2", name: "Tobias Rook" },
     ],
   },
   {
@@ -147,7 +146,6 @@ function GamePortraits(props: { characters: GameCharacter[] }) {
     <CharacterPortrait
       key={character.id}
       name={character.name}
-      colorSeed={character.colorSeed}
       size={size}
       shape="rounded"
       decorative
