@@ -42,7 +42,7 @@ const iconStyles = cva({
       sm: {
         width: "48px",
         height: "48px",
-        "& svg": { width: "24px", height: "24px" },
+        "& svg": { width: "icon.lg", height: "icon.lg" },
       },
       md: {
         width: "64px",
