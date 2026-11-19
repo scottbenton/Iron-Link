@@ -10,12 +10,14 @@ const sections = [
   { id: "assets", title: "Assets", icon: <svg /> },
 ];
 
-function Harness() {
+function Harness(props: { initialCollapsed?: boolean; pinnable?: boolean }) {
+  const { initialCollapsed = true, pinnable } = props;
   const [section, setSection] = useState("overview");
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(initialCollapsed);
   return (
     <div>
       <Sidebar
+        pinnable={pinnable}
         collapsed={collapsed}
         onCollapsedChange={setCollapsed}
         resizable={false}
@@ -78,6 +80,20 @@ describe("a collapsed sidebar's rail", () => {
       screen.getByRole("button", { name: "Collapse Sidebar" }),
     );
     expect(screen.getByText("Showing assets")).toBeVisible();
+  });
+
+  it("stays on the rail when it can't be pinned, even if left open", () => {
+    render(<Harness initialCollapsed={false} pinnable={false} />);
+    expect(screen.queryByRole("button", { name: "Expand Sidebar" })).toBeNull();
+    expect(screen.queryByText("Showing overview")).not.toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Assets" }));
+    const overlay = screen.getByRole("dialog", { name: "Character" });
+    expect(overlay).toHaveTextContent("Showing assets");
+    expect(
+      screen.queryByRole("button", { name: "Keep Sidebar Open" }),
+    ).toBeNull();
+    expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
   });
 });
 

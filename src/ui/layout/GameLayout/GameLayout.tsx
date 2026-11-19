@@ -194,16 +194,20 @@ export function GameLayout(props: GameLayoutProps) {
   const endId = endSidebar?.id ?? `${idPrefix}-end`;
 
   // Each sidebar's collapsed state, here so that stacking can follow it.
-  const [startCollapsed, setStartCollapsed] = useControllableState(
+  const [startCollapsedState, setStartCollapsed] = useControllableState(
     startSidebar?.collapsed,
     false,
     startSidebar?.onCollapsedChange,
   );
-  const [endCollapsed, setEndCollapsed] = useControllableState(
+  const [endCollapsedState, setEndCollapsed] = useControllableState(
     endSidebar?.collapsed,
     false,
     endSidebar?.onCollapsedChange,
   );
+  // A sidebar that can't be pinned is always on its rail.
+  const startCollapsed =
+    startCollapsedState || startSidebar?.pinnable === false;
+  const endCollapsed = endCollapsedState || endSidebar?.pinnable === false;
   // The end sidebar's width lives here, so it survives the end sidebar
   // folding into the start one's rail and coming out again.
   const [endWidth, setEndWidth] = useControllableState(
@@ -376,6 +380,7 @@ export function GameLayout(props: GameLayoutProps) {
             expandLabel:
               startSidebar.labels?.expand ?? `Expand ${titleOf(startSidebar)}`,
             onExpand: () => setStartCollapsed(false),
+            pinnable: startSidebar.pinnable,
           },
           {
             id: endId,
@@ -384,6 +389,7 @@ export function GameLayout(props: GameLayoutProps) {
             expandLabel:
               endSidebar.labels?.expand ?? `Expand ${titleOf(endSidebar)}`,
             onExpand: () => changeEndCollapsed(false),
+            pinnable: endSidebar.pinnable,
           },
         ]}
       />
