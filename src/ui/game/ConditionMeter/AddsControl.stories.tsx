@@ -42,7 +42,9 @@ const Caption = (props: { children: string }) => (
 /**
  * The chip at 0, +2 and −1: grey at 0; once set, the chip takes the accent's
  * soft tint and the value the same solid pill as the badge on every stat
- * and meter. Then the limits, blocked, read-only and without its hint.
+ * and meter. Then the limits, blocked, read-only and without its hint (no
+ * help button). The help button opens a popover saying what adds do; it
+ * works on a tap, where a tooltip would not.
  */
 export const Values: Story = {
   render: () => (
@@ -73,15 +75,15 @@ export const Values: Story = {
       </Stack>
       <Stack gap="1">
         <AddsControl value={0} onChange={fn()} hint={null} />
-        <Caption>No hint</Caption>
+        <Caption>No hint, so no help button</Caption>
       </Stack>
     </Stack>
   ),
 };
 
 /**
- * Narrow rooms: the hint wraps to two lines inside the pill, and
- * a long translated hint clips after two.
+ * Narrow rooms: the chip stays one line, since the hint lives in the help
+ * popover, and a long translated hint wraps there instead.
  */
 export const Narrow: Story = {
   render: () => (
