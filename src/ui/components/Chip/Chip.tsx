@@ -1,6 +1,7 @@
 import { XIcon } from "@phosphor-icons/react";
 import { ReactNode } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
@@ -44,10 +45,7 @@ const chipStyles = cva({
         "color-mix(in oklab, var(--chip-hover) 88%, var(--chip-color))",
       transitionDuration: "instant",
     },
-    "&:has(> [data-chip-main]:focus-visible)": {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "2px",
-    },
+    "&:has(> [data-chip-main]:focus-visible)": focusRing.outset,
     "&:has(> [data-chip-main][aria-pressed=true])": {
       "--chip-bg": "{colors.accent.soft}",
       "--chip-hover": "{colors.accent.soft}",

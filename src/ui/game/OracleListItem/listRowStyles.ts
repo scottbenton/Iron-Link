@@ -1,3 +1,5 @@
+import { focusRing } from "ui/styles/focus";
+
 import { css } from "styled-system/css";
 
 /**
@@ -83,10 +85,7 @@ export const listRowStyles = css({
     fontWeight: "semibold",
     "& [data-row-icon], & [data-row-glyph]": { color: "fg.default" },
   },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-2px",
-  },
+  _focusVisible: focusRing.inset,
   "&:is(:disabled, [data-disabled])": {
     cursor: "not-allowed",
     color: "fg.disabled",

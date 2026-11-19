@@ -7,6 +7,8 @@ import {
 } from "@phosphor-icons/react";
 import { ReactNode } from "react";
 
+import { focusRing } from "ui/styles/focus";
+
 import { css, cx } from "styled-system/css";
 
 import {
@@ -46,10 +48,7 @@ const triggerStyles = css({
   _active: { background: "overlay.pressed" },
   "&[data-popup-open]": { background: "overlay.pressed" },
   // Inside the bar's h1, which clips: the ring stays inside the button.
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-2px",
-  },
+  _focusVisible: focusRing.inset,
   "& [data-part=portrait]": { display: "flex", flex: "none" },
   "& [data-part=name]": {
     minWidth: 0,

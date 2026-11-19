@@ -1,6 +1,7 @@
 import { Toolbar as BaseToolbar } from "@base-ui/react/toolbar";
 import { ComponentProps, ReactElement, ReactNode, forwardRef } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
@@ -166,10 +167,7 @@ const buttonStyles = cva({
       background: "overlay.selected",
       color: "fg.default",
     },
-    _focusVisible: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "0",
-    },
+    _focusVisible: focusRing.inset,
     "&:is(:disabled, [data-disabled])": {
       cursor: "not-allowed",
       color: "fg.disabled",

@@ -1,5 +1,6 @@
 import { ArrowCounterClockwise, CaretDown, Flame } from "@phosphor-icons/react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { ledge, ledgeShadow } from "ui/styles/ledge";
 
@@ -50,10 +51,7 @@ const triggerStyles = css({
   transitionTimingFunction: "out",
   _touch: { minHeight: "touch" },
   "[data-stepper-size=touch] &": { minHeight: "touch" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "2px",
-  },
+  _focusVisible: focusRing.outset,
   _hover: { background: "bg.muted" },
   "&:active, &[data-pressed], &[data-popup-open]": {
     background: "bg.emphasized",

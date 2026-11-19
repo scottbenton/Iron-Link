@@ -2,6 +2,7 @@ import { Collapsible as BaseCollapsible } from "@base-ui/react/collapsible";
 import { CaretRight, LockSimple } from "@phosphor-icons/react";
 import { ElementType, ReactNode, useId } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
@@ -80,10 +81,7 @@ const triggerStyles = css({
   outline: "none",
   transition: "background-color token(durations.fast) linear",
   _hover: { background: "overlay.hover" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-2px",
-  },
+  _focusVisible: focusRing.inset,
   _touch: { minHeight: "touch" },
   "& [data-caret]": {
     flex: "none",

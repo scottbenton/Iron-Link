@@ -1,3 +1,5 @@
+import { focusRing } from "ui/styles/focus";
+
 import { css, cva } from "styled-system/css";
 
 /**
@@ -355,10 +357,7 @@ export const fieldIconButtonStyles = css({
   "& > svg": { width: "16px", height: "16px" },
   _hover: { background: "overlay.hover", color: "fg.default" },
   _pressed: { background: "overlay.pressed", transitionDuration: "instant" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "1px",
-  },
+  _focusVisible: focusRing.outset,
   "&:is(:disabled, [data-disabled])": {
     cursor: "not-allowed",
     color: "fg.disabled",

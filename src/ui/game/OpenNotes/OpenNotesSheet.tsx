@@ -7,6 +7,8 @@ import {
 } from "@phosphor-icons/react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 
+import { focusRing } from "ui/styles/focus";
+
 import { css } from "styled-system/css";
 
 import { Button } from "../../components/Button";
@@ -67,10 +69,7 @@ const rowButtonStyles = css({
   transition: "background-color token(durations.fast) linear",
   _hoverable: { _hover: { background: "overlay.hover" } },
   _active: { background: "overlay.pressed" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-2px",
-  },
+  _focusVisible: focusRing.inset,
   "&[aria-current]": { fontWeight: "semibold" },
   "& [data-part=well]": {
     display: "flex",

@@ -6,6 +6,7 @@ import {
   useContext,
 } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
@@ -29,10 +30,7 @@ const containerStyles = css({
   borderRadius: "lg",
   background: "bg.surface",
   outline: "none",
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "2px",
-  },
+  _focusVisible: focusRing.outset,
 });
 
 const tableStyles = css({
