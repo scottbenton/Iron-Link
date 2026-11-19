@@ -1,6 +1,7 @@
 import { Menu } from "@base-ui/react/menu";
 import { CaretDown, Check } from "@phosphor-icons/react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
@@ -51,10 +52,7 @@ const triggerStyles = css({
       "linear-gradient(token(colors.overlay.hover), token(colors.overlay.hover))",
   },
   _pressed: { transform: "translateY(min(var(--spacing-sink), 1px))" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "2px",
-  },
+  _focusVisible: focusRing.outset,
   _touch: { minHeight: "40px" },
 });
 

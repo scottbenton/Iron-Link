@@ -1,3 +1,4 @@
+import { focusRing } from "ui/styles/focus";
 import { ledge, ledgeShadow } from "ui/styles/ledge";
 import { ringLayer } from "ui/styles/ring";
 
@@ -131,10 +132,7 @@ export const statRollableStyles = css({
     },
   },
 
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "2px",
-  },
+  _focusVisible: focusRing.outset,
 
   "&:is(:disabled, [data-disabled])": {
     cursor: "not-allowed",

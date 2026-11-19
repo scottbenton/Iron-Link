@@ -1,3 +1,5 @@
+import { focusRing } from "ui/styles/focus";
+
 import { css, cva } from "styled-system/css";
 
 /**
@@ -162,8 +164,5 @@ export const rulesLinkStyles = css({
   transitionTimingFunction: "out",
   _hover: { textDecorationColor: "accent.fg" },
   _pressed: { background: "overlay.pressed" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "1px",
-  },
+  _focusVisible: focusRing.outset,
 });

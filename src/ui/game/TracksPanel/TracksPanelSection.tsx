@@ -1,6 +1,8 @@
 import { CaretDownIcon } from "@phosphor-icons/react";
 import { ReactNode, useId, useState } from "react";
 
+import { focusRing } from "ui/styles/focus";
+
 import { css } from "styled-system/css";
 
 import { Collapse } from "../../components/Collapsible";
@@ -43,10 +45,7 @@ const toggleStyles = css({
     boxShadow: "inset 0 0 0 999px token(colors.overlay.hover)",
   },
   _pressed: { boxShadow: "inset 0 0 0 999px token(colors.overlay.pressed)" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "2px",
-  },
+  _focusVisible: focusRing.outset,
   _touch: { minHeight: "touch" },
   "& [data-count]": {
     fontVariantNumeric: "tabular-nums",
