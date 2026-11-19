@@ -1,4 +1,4 @@
-import { ChatCircle, LockSimple } from "@phosphor-icons/react";
+import { ChatCircle } from "@phosphor-icons/react";
 import {
   CSSProperties,
   Fragment,
@@ -21,6 +21,7 @@ import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { RollCard, RollCardAction } from "../RollCard/RollCard";
 import { RollTextOverrides } from "../RollCard/getRollSummary";
 import { RollData } from "../RollCard/rollTypes";
+import { SecretCard } from "../SecretCard";
 import { GameLogComposer, GameLogComposerProps } from "./GameLogComposer";
 import {
   GAME_LOG_GROUP_WINDOW_MS,
@@ -196,16 +197,11 @@ const timeBelowStyles = css({
   paddingInline: "1",
 });
 
-const guideStyles = css({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "1",
-  paddingInline: "1.5",
-  borderRadius: "full",
-  background: "info.soft",
-  color: "info.fg",
-  fontWeight: "semibold",
-  "& svg": { width: "1.1em", height: "1.1em" },
+const messageTextStyles = css({
+  fontSize: "sm",
+  lineHeight: "normal",
+  whiteSpace: "pre-wrap",
+  overflowWrap: "anywhere",
 });
 
 // Messages are filled and borderless, so they read as talk beside the
@@ -215,30 +211,16 @@ const bubbleStyles = css({
   paddingBlock: "2",
   paddingInline: "3",
   borderRadius: "lg",
-  borderTopLeftRadius: "xs",
   background: "bg.emphasized",
-  fontSize: "sm",
-  lineHeight: "normal",
-  whiteSpace: "pre-wrap",
-  overflowWrap: "anywhere",
-  "[data-you] &": {
-    borderTopLeftRadius: "lg",
-    borderTopRightRadius: "xs",
-    background: "accent.soft",
-  },
-  "[data-guide-only] &": {
-    outline: "1px dashed token(colors.info.fg)",
-    outlineOffset: "2px",
-  },
+  "[data-you] &": { background: "accent.soft" },
 });
 
 const rollStyles = css({
   "--roll-card-max-width": "var(--game-log-entry-max)",
-  "[data-guide-only] &": {
-    outline: "1px dashed token(colors.info.fg)",
-    outlineOffset: "2px",
-  },
 });
+
+// Guide only entries wear the secret style used across Iron Link.
+const guideCardStyles = css({ maxWidth: "var(--game-log-entry-max)" });
 
 // Portraits come in at 32px (`CharacterPortrait` size `sm`).
 const portraitStyles = css({
@@ -546,12 +528,29 @@ function GameLogItem(props: GameLogItemProps) {
     .join(", ");
 
   const portrait = author.portrait ?? initials(author.name);
-  const guideBadge = entry.guideOnly && (
-    <span className={guideStyles}>
-      <LockSimple weight="bold" />
-      {strings.guideOnly}
-    </span>
-  );
+  const content =
+    entry.kind === "roll" ? (
+      <RollCard
+        roll={entry.roll}
+        variant="compact"
+        width="content"
+        actions={entry.actions}
+        summaryPrefix={heading}
+        text={rollText}
+        className={rollStyles}
+      />
+    ) : (
+      <>
+        <VisuallyHidden>{`${heading}.`}</VisuallyHidden>
+        {entry.guideOnly ? (
+          <span className={messageTextStyles}>{entry.message}</span>
+        ) : (
+          <div className={cx(bubbleStyles, messageTextStyles)}>
+            {entry.message}
+          </div>
+        )}
+      </>
+    );
 
   return (
     <li
@@ -565,30 +564,24 @@ function GameLogItem(props: GameLogItemProps) {
           <span className={portraitStyles}>{portrait}</span>
           <span className={stackedTextStyles}>
             <span className={stackedNameStyles}>{author.name}</span>
-            {(author.writtenBy || guideBadge) && (
+            {author.writtenBy && (
               <span className={stackedSubStyles}>
-                {author.writtenBy && <span>{author.writtenBy}</span>}
-                {guideBadge}
+                <span>{author.writtenBy}</span>
               </span>
             )}
           </span>
         </div>
       )}
-      {entry.kind === "roll" ? (
-        <RollCard
-          roll={entry.roll}
-          variant="compact"
-          width="content"
-          actions={entry.actions}
-          summaryPrefix={heading}
-          text={rollText}
-          className={rollStyles}
-        />
+      {entry.guideOnly ? (
+        <SecretCard
+          landmark={false}
+          label={strings.guideOnly}
+          className={guideCardStyles}
+        >
+          {content}
+        </SecretCard>
       ) : (
-        <>
-          <VisuallyHidden>{`${heading}.`}</VisuallyHidden>
-          <div className={bubbleStyles}>{entry.message}</div>
-        </>
+        content
       )}
       {showTime && (
         // A relative time shows the clock time on hover. Screen readers
