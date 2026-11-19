@@ -8,7 +8,7 @@ import { Text } from "../../components/Text";
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import { sampleMoves } from "../../stories/fixtures/datasworn";
 import { StatGrid } from "../StatCard";
-import { formatSigned } from "../shared/format";
+import { capitalize, formatSigned } from "../shared/format";
 import { AddsControl } from "./AddsControl";
 import { ConditionMeter } from "./ConditionMeter";
 import { MomentumMeter } from "./MomentumMeter";
@@ -116,7 +116,6 @@ export const TouchSteppers: Story = {
 const kira = sampleCharacters[0];
 const statKeys = ["edge", "heart", "iron", "shadow", "wits"] as const;
 const meterKeys = ["health", "spirit", "supply"] as const;
-const capitalize = (text: string) => text[0].toUpperCase() + text.slice(1);
 
 /**
  * Where it sits: above the stats, since adds change whichever stat or meter
