@@ -12,8 +12,6 @@ import { Button } from "ui/components/Button";
 import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { RollButton } from "ui/game/RollButton";
-import { formatSigned } from "ui/game/shared";
-import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
@@ -31,6 +29,7 @@ import {
 } from "./cardStyles";
 import {
   MoveRollOption,
+  formatRollValue,
   getMoveCategoryFromId,
   getMoveOracles,
 } from "./moveData";
@@ -60,28 +59,6 @@ const headerStyles = css({
     marginBlock: "-1",
     marginInlineEnd: "-1",
   },
-});
-
-const titleButtonStyles = css({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "1.5",
-  maxWidth: "100%",
-  padding: 0,
-  margin: 0,
-  border: 0,
-  borderRadius: "sm",
-  background: "transparent",
-  color: "inherit",
-  font: "inherit",
-  letterSpacing: "inherit",
-  textAlign: "left",
-  cursor: "pointer",
-  outline: "none",
-  WebkitTapHighlightColor: "transparent",
-  "& svg": { color: "fg.muted" },
-  _hover: { "& svg": { color: "fg.default" } },
-  _focusVisible: focusRing.outset,
 });
 
 const sectionStyles = css({
@@ -118,20 +95,22 @@ export interface MoveCardProps
   /** Ways to roll this move; each is a roll button. */
   rollOptions?: MoveRollOption[];
   onRoll?: (option: MoveRollOption) => void;
-  /** The label above the roll buttons. */
+  /**
+   * The label above the roll buttons. By default it follows the move's roll
+   * type: "Roll with" for an action roll, "Roll progress" for a progress
+   * roll, "Roll your legacy" for a special track.
+   */
   rollWithLabel?: string;
+  /**
+   * Shown in place of the buttons when a progress roll has no tracks to
+   * roll, such as Fulfill Your Vow with no vows. "No tracks to roll" by
+   * default.
+   */
+  noTracksLabel?: string;
   /** Rolls one of the move's own oracles (Pay the Price, Ask the Oracle's odds). */
   onRollOracle?: (oracle: Datasworn.EmbeddedOracleRollable) => void;
   /** Highlights a rolled row in an embedded oracle's table, by oracle id. */
   rolledOracleRows?: Record<string, string>;
-  /**
-   * Shows only the trigger until the name is pressed, then the full text and
-   * oracles. Roll buttons stay visible either way.
-   */
-  collapsible?: boolean;
-  expanded?: boolean;
-  defaultExpanded?: boolean;
-  onExpandedChange?: (expanded: boolean) => void;
   /** Whether the embedded oracle tables start shown. */
   defaultOraclesShown?: boolean;
   showOraclesLabel?: string;
@@ -147,9 +126,19 @@ export interface MoveCardProps
   className?: string;
 }
 
+const defaultRollWithLabels: Record<string, string> = {
+  action_roll: "Roll with",
+  progress_roll: "Roll progress",
+  special_track: "Roll your legacy",
+};
+
 /**
  * A move: category, name, rules text with its trigger and outcomes, a roll
- * button per stat or track, and its embedded oracles behind "Show oracles".
+ * button per stat, meter, asset or track, and its embedded oracles behind
+ * "Show oracles". Action rolls show signed values ("Edge +3"); progress and
+ * special tracks show their progress score ("Find my sister 6"). A move
+ * with no roll shows its text alone. Lists that open and close moves (the
+ * move list, the reference) wrap it themselves.
  */
 export function MoveCard(props: MoveCardProps) {
   const {
@@ -157,13 +146,10 @@ export function MoveCard(props: MoveCardProps) {
     category,
     rollOptions = [],
     onRoll,
-    rollWithLabel = "Roll with",
+    rollWithLabel: rollWithLabelProp,
+    noTracksLabel = "No tracks to roll",
     onRollOracle,
     rolledOracleRows,
-    collapsible = false,
-    expanded: expandedProp,
-    defaultExpanded = false,
-    onExpandedChange,
     defaultOraclesShown = false,
     showOraclesLabel = "Show oracles",
     hideOraclesLabel = "Hide oracles",
@@ -179,12 +165,10 @@ export function MoveCard(props: MoveCardProps) {
     ...rest
   } = withLayoutProps(props);
 
-  const [expandedState, setExpandedState] = useState(defaultExpanded);
-  const expanded = !collapsible || (expandedProp ?? expandedState);
-  const setExpanded = (next: boolean) => {
-    setExpandedState(next);
-    onExpandedChange?.(next);
-  };
+  const rollWithLabel =
+    rollWithLabelProp ?? defaultRollWithLabels[move.roll_type] ?? "Roll with";
+  const showNoTracks =
+    move.roll_type === "progress_roll" && rollOptions.length === 0;
 
   const [oraclesShown, setOraclesShown] = useState(defaultOraclesShown);
 
@@ -207,17 +191,6 @@ export function MoveCard(props: MoveCardProps) {
     resolveOracle,
     renderMacro: renderMoveMacro,
   };
-
-  const triggerText = move.trigger.text;
-
-  const nameNode = collapsible ? (
-    <Collapsible.Trigger className={titleButtonStyles}>
-      {move.name}
-      <CaretDown className={disclosureChevronStyles} aria-hidden />
-    </Collapsible.Trigger>
-  ) : (
-    move.name
-  );
 
   const body = (
     <>
@@ -266,10 +239,7 @@ export function MoveCard(props: MoveCardProps) {
   );
 
   return (
-    <Collapsible.Root
-      open={expanded}
-      onOpenChange={setExpanded}
-      render={<article />}
+    <article
       className={cx(variantStyles[variant], cardStyles, className)}
       {...rest}
     >
@@ -283,21 +253,12 @@ export function MoveCard(props: MoveCardProps) {
             )}
             {!hideName && (
               <Text variant="h3" as={headingAs}>
-                {nameNode}
+                {move.name}
               </Text>
             )}
           </div>
           {actions && <div data-actions="">{actions}</div>}
         </header>
-      )}
-
-      {collapsible && !expanded && triggerText && (
-        <RulesText
-          markdown={triggerText}
-          size="sm"
-          color="muted"
-          {...rulesOptions}
-        />
       )}
 
       {rollOptions.length > 0 && (
@@ -322,7 +283,7 @@ export function MoveCard(props: MoveCardProps) {
                 {option.value !== undefined && (
                   <span className={rollValueStyles}>
                     {" "}
-                    {formatSigned(option.value)}
+                    {formatRollValue(option)}
                   </span>
                 )}
               </RollButton>
@@ -331,13 +292,18 @@ export function MoveCard(props: MoveCardProps) {
         </div>
       )}
 
-      {collapsible ? (
-        <Collapsible.Panel className={collapsiblePanelStyles}>
-          <div className={css({ display: "grid", gap: "3" })}>{body}</div>
-        </Collapsible.Panel>
-      ) : (
-        body
+      {showNoTracks && (
+        <div className={sectionStyles}>
+          <Text variant="label" color="muted">
+            {rollWithLabel}
+          </Text>
+          <Text variant="bodySm" color="muted">
+            {noTracksLabel}
+          </Text>
+        </div>
       )}
-    </Collapsible.Root>
+
+      {body}
+    </article>
   );
 }
