@@ -9,6 +9,7 @@ import {
   useRef,
 } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
@@ -132,10 +133,7 @@ const tabStyles = css({
   outline: "none",
   _hover: { color: "fg.default" },
   "&[aria-selected=true]": { color: "fg.default" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-2px",
-  },
+  _focusVisible: focusRing.inset,
   _touch: { paddingBlock: "12px", paddingInline: "14px 44px" },
   // A pinned tab has no close button to make room for.
   "[data-pinned] > &": {
@@ -170,8 +168,7 @@ const closeStyles = css({
   _pressed: { background: "overlay.pressed" },
   _focusVisible: {
     opacity: 1,
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "0",
+    ...focusRing.inset,
   },
   "[data-note-chip]:hover > &, [data-note-chip][data-selected] > &": {
     opacity: 1,
@@ -197,10 +194,7 @@ const panelStyles = css({
   minHeight: 0,
   overflow: "auto",
   outline: "none",
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-2px",
-  },
+  _focusVisible: focusRing.inset,
 });
 
 export interface NoteTab {

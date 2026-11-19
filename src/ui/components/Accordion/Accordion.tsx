@@ -2,6 +2,7 @@ import { Accordion as BaseAccordion } from "@base-ui/react/accordion";
 import { CaretDown } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode, forwardRef } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
@@ -55,10 +56,7 @@ const triggerStyles = css({
   outline: "none",
   _hover: { background: "overlay.hover" },
   _pressed: { background: "overlay.pressed" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-2px",
-  },
+  _focusVisible: focusRing.inset,
   _disabled: { cursor: "not-allowed", color: "fg.disabled" },
   "& [data-caret]": {
     flex: "none",

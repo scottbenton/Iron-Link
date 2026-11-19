@@ -1,3 +1,4 @@
+import { focusRing } from "ui/styles/focus";
 import { ledgeHeight, ledgeShadow } from "ui/styles/ledge";
 
 import { cva } from "styled-system/css";
@@ -63,10 +64,7 @@ export const buttonStyles = cva({
     transitionDuration: "fast",
     transitionTimingFunction: "out",
     outline: "none",
-    _focusVisible: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "2px",
-    },
+    _focusVisible: focusRing.outset,
     _hover: {
       background: "var(--btn-hover)",
       transform: "translateY(var(--spacing-lift))",

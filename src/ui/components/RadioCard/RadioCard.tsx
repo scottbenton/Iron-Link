@@ -4,6 +4,7 @@ import { RadioGroup as BaseRadioGroup } from "@base-ui/react/radio-group";
 import { CheckCircle } from "@phosphor-icons/react";
 import { CSSProperties, ReactNode, Ref, useId } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { ledge, ledgeShadow } from "ui/styles/ledge";
 
@@ -178,10 +179,7 @@ const cardStyles = css({
     ...ledge("token(colors.border.edge)", "sunk"),
     transitionDuration: "instant",
   },
-  "&:has(> [role=radio]:focus-visible)": {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "2px",
-  },
+  "&:has(> [role=radio]:focus-visible)": focusRing.outset,
   // Chosen: accent border thickened to 2px by an inset ring, so the border
   // width (and the layout) never changes.
   "&[data-checked]": {

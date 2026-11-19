@@ -10,6 +10,7 @@ import {
   isValidElement,
 } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
@@ -63,10 +64,7 @@ const crumbStyles = css({
       textDecoration: "underline",
       textUnderlineOffset: "0.2em",
     },
-    _focusVisible: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "2px",
-    },
+    _focusVisible: focusRing.outset,
   },
   "&[aria-current=page]": { color: "fg.default", fontWeight: "semibold" },
 });

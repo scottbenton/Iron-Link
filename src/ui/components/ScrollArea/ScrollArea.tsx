@@ -1,6 +1,7 @@
 import { ScrollArea as BaseScrollArea } from "@base-ui/react/scroll-area";
 import { ReactNode, forwardRef } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
@@ -21,10 +22,7 @@ const viewportStyles = cva({
     overscrollBehavior: "contain",
     outline: "none",
     borderRadius: "inherit",
-    _focusVisible: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "-2px",
-    },
+    _focusVisible: focusRing.inset,
   },
   variants: {
     fade: {

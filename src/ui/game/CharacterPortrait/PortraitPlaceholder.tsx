@@ -2,6 +2,7 @@ import { Button as BaseButton } from "@base-ui/react/button";
 import { Camera } from "@phosphor-icons/react";
 import { CSSProperties, ComponentProps, forwardRef } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { cva, cx } from "styled-system/css";
@@ -48,10 +49,7 @@ const placeholderStyles = cva({
       background: "accent.soft",
     },
     _pressed: { background: "overlay.pressed" },
-    _focusVisible: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "2px",
-    },
+    _focusVisible: focusRing.outset,
     "&:is(:disabled, [data-disabled])": {
       cursor: "not-allowed",
       color: "fg.disabled",

@@ -2,6 +2,7 @@ import { Collapsible } from "@base-ui/react/collapsible";
 import { CaretRightIcon } from "@phosphor-icons/react";
 import { ElementType, ReactNode, createContext, useContext } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
@@ -69,10 +70,7 @@ const triggerStyles = cva({
       backgroundImage:
         "linear-gradient(token(colors.overlay.pressed), token(colors.overlay.pressed))",
     },
-    _focusVisible: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "-2px",
-    },
+    _focusVisible: focusRing.inset,
     "&:is(:disabled, [data-disabled])": {
       cursor: "not-allowed",
       color: "fg.disabled",

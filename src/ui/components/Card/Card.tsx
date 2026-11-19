@@ -9,6 +9,7 @@ import {
   forwardRef,
 } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { ledgeHeight } from "ui/styles/ledge";
 
@@ -78,10 +79,7 @@ const cardStyles = cva({
       transform: "translateY(var(--spacing-sink))",
       transitionDuration: "instant",
     },
-    [`&:has(${target(":focus-visible")})`]: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "2px",
-    },
+    [`&:has(${target(":focus-visible")})`]: focusRing.outset,
     // Chosen, as one of a set: an accent border doubled by an inset ring.
     // Hover and press change the ledge only, so the ring stays put.
     "&[data-selected]": {

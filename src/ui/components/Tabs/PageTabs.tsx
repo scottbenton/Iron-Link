@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
@@ -54,10 +55,7 @@ const pageTabStyles = css({
   transition: "color token(durations.fast) linear",
   outline: "none",
   _hover: { color: "fg.default" },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "-3px",
-  },
+  _focusVisible: focusRing.inset,
   _touch: { minHeight: "touch" },
   "& > svg": { flex: "none", width: "16px", height: "16px" },
   // A portrait sits in the tab's line without making the tab taller.
