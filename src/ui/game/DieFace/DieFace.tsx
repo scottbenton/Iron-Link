@@ -6,7 +6,7 @@ import {
   DiceThree,
   DiceTwo,
 } from "@phosphor-icons/react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
@@ -40,8 +40,19 @@ export function useDieFace(
   return [face, roll];
 }
 
+/**
+ * How a new face arrives. The options are here to compare (see the
+ * DieFace story "Motion options"); once one is chosen the rest go.
+ * - `swap`: the new face replaces the old at once.
+ * - `tilt`: the new face turns in from a small angle.
+ * - `pop`: the new face grows in from a little smaller.
+ * - `cycle`: two quick random faces flash before it lands.
+ * - `fade`: the new face crossfades over the old.
+ */
+export type DieFaceMotion = "swap" | "tilt" | "pop" | "cycle" | "fade";
+
 export interface DieFaceProps extends LayoutProps {
-  /** The face showing. Changing it crossfades from the old face. */
+  /** The face showing. Changing it shows the new face with `motion`. */
   face: DieFaceValue;
   /**
    * The icon size: 14px, 18px (default) or 24px, or `inherit` to leave it to
@@ -50,6 +61,8 @@ export interface DieFaceProps extends LayoutProps {
   size?: "sm" | "md" | "lg" | "inherit";
   /** The icon weight: `bold` (default), or `fill` as stat cards draw it. */
   weight?: "bold" | "fill";
+  /** How a new face arrives; `tilt` by default. */
+  motion?: DieFaceMotion;
   className?: string;
 }
 
@@ -60,9 +73,8 @@ const rootStyles = cva({
   base: {
     display: "inline-grid",
     flex: "none",
-    // Both faces share one cell, so the new one fades in over the old. The
-    // layers set no display, which the outgoing one turns off.
-    "& > *": { gridArea: "1 / 1" },
+    // Both faces share one cell, so a fading face sits over the old one.
+    "& > *": { gridArea: "1 / 1", display: "block" },
     "& svg": { display: "block" },
   },
   variants: {
@@ -76,25 +88,77 @@ const rootStyles = cva({
   defaultVariants: { size: "md" },
 });
 
-// The two faces fade over the same short time, the new one easing out and
-// the old easing in, so the die never looks half empty between them.
-const enterStyles = css({
-  animation: "fadeIn token(durations.fast) token(easings.out)",
-  _reducedMotion: { animation: "none" },
-});
+/** Each motion's entrance; none under reduced motion. */
+const enterStyles = {
+  tilt: css({
+    animation: "dieTilt token(durations.fast) token(easings.out)",
+    _reducedMotion: { animation: "none" },
+  }),
+  pop: css({
+    animation: "diePop token(durations.fast) token(easings.out)",
+    _reducedMotion: { animation: "none" },
+  }),
+  fade: css({
+    animation: "fadeIn token(durations.fast) token(easings.out)",
+    _reducedMotion: { animation: "none" },
+  }),
+};
 
 const exitStyles = css({
   animation: "fadeOut token(durations.fast) token(easings.in) forwards",
-  // A straight swap: the old face goes at once.
   _reducedMotion: { display: "none" },
 });
 
+/** The time each in-between face shows for `cycle`. */
+const CYCLE_STEP_MS = 50;
+const CYCLE_STEPS = 2;
+
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+
 /**
- * A die icon (bold, decorative) showing one face. When `face` changes, the
- * new face crossfades in over the old one, quickly; with reduced motion it
- * simply replaces it. Pair it with `useDieFace` on anything that rolls, such
- * as OracleTextField's button, roll buttons, stat cards, meters and oracle
- * rows, so each roll shows a new face.
+ * For `cycle`, the face to draw: a couple of random faces in turn, then
+ * `face`. Any other motion draws `face` at once.
+ */
+function useCycledFace(face: DieFaceValue, active: boolean): DieFaceValue {
+  const [shown, setShown] = useState(face);
+  // The face the last cycle ended on, so mounting (or a rerender with the
+  // same face) shows it without cycling.
+  const landed = useRef(face);
+  useEffect(() => {
+    if (face === landed.current) return;
+    landed.current = face;
+    if (!active || prefersReducedMotion()) {
+      setShown(face);
+      return;
+    }
+    let step = 0;
+    let current = face;
+    const timer = window.setInterval(() => {
+      step += 1;
+      if (step > CYCLE_STEPS) {
+        window.clearInterval(timer);
+        setShown(face);
+        return;
+      }
+      current = nextDieFace(current);
+      setShown(current === face ? nextDieFace(face) : current);
+    }, CYCLE_STEP_MS);
+    // The first in-between face shows straight away.
+    current = nextDieFace(face);
+    setShown(current);
+    return () => window.clearInterval(timer);
+  }, [face, active]);
+  return active ? shown : face;
+}
+
+/**
+ * A die icon (decorative) showing one face. When `face` changes the new
+ * face arrives with `motion`, quickly; with reduced motion it simply
+ * replaces the old one. Pair it with `useDieFace` on anything that rolls
+ * (OracleTextField's button, roll buttons, stat cards, meters, oracle
+ * rows), so each roll shows a new face.
  *
  * ```tsx
  * const [face, rollDie] = useDieFace();
@@ -103,13 +167,16 @@ const exitStyles = css({
  */
 export function DieFace(props: DieFaceProps) {
   const {
-    face,
+    face: target,
     size = "md",
     weight = "bold",
+    motion = "tilt",
     className,
   } = withLayoutProps(props);
-  // The face before the last change, kept while it fades out. Updated
-  // during render, so the new face never shows a frame without the fade.
+  const face = useCycledFace(target, motion === "cycle");
+  // The face before the last change, and a count that restarts the
+  // entrance. Updated during render, so the new face never shows a frame
+  // without its motion.
   const [shown, setShown] = useState({
     face,
     previous: null as DieFaceValue | null,
@@ -119,8 +186,15 @@ export function DieFace(props: DieFaceProps) {
     setShown({ face, previous: shown.face, change: shown.change + 1 });
   }
   const Face = faceIcons[shown.face];
-  const Previous = shown.previous === null ? null : faceIcons[shown.previous];
+  const Previous =
+    motion === "fade" && shown.previous !== null
+      ? faceIcons[shown.previous]
+      : null;
   const change = shown.change;
+  const enter =
+    change > 0 && (motion === "tilt" || motion === "pop" || motion === "fade")
+      ? enterStyles[motion]
+      : undefined;
 
   return (
     <span className={cx(rootStyles({ size }), className)} aria-hidden>
@@ -139,10 +213,7 @@ export function DieFace(props: DieFaceProps) {
           <Previous weight={weight} />
         </span>
       )}
-      <span
-        key={`in-${change}`}
-        className={change > 0 ? enterStyles : undefined}
-      >
+      <span key={`in-${change}`} className={enter}>
         <Face weight={weight} />
       </span>
     </span>
