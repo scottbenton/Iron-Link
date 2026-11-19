@@ -28,14 +28,18 @@ const tensionStyles = css({
   color: "fg.muted",
 });
 
-/** The odds and Roll Progress share a row, each wrapping under the other. */
+/**
+ * The odds fill the row and Roll Progress keeps its own width beside them,
+ * so the button stays lighter than the clock above it.
+ */
 const clockActionsStyles = css({
   display: "flex",
   flexWrap: "wrap",
   gap: "2",
   width: "100%",
-  "& > *": { flex: "1 1 8rem", minWidth: 0 },
 });
+
+const clockOddsStyles = css({ flex: "1 1 8rem", minWidth: 0 });
 
 export interface ProgressTrackEntryProps {
   track: ProgressTrackItem;
@@ -166,6 +170,7 @@ export function ClockEntry(props: ClockEntryProps) {
           <div className={clockActionsStyles}>
             {onOddsChange && (
               <Select<OracleOdds>
+                className={clockOddsStyles}
                 size="sm"
                 aria-label={strings.oddsLabel(clock.label)}
                 value={odds}
@@ -182,7 +187,6 @@ export function ClockEntry(props: ClockEntryProps) {
             {onRoll && (
               <RollButton
                 size="sm"
-                fullWidth
                 aria-label={strings.rollProgressLabel(clock.label)}
                 disabled={full}
                 onClick={onRoll}
