@@ -4,6 +4,7 @@ import { ElementType, ReactNode, createContext, useContext } from "react";
 
 import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { overlayTint } from "ui/styles/pressable";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -62,13 +63,11 @@ const triggerStyles = cva({
     // An overlay layered over the fill, so the band keeps its colour under it.
     _hoverable: {
       "&:hover:not(:disabled, [data-disabled], :active, [data-pressed])": {
-        backgroundImage:
-          "linear-gradient(token(colors.overlay.hover), token(colors.overlay.hover))",
+        ...overlayTint("token(colors.overlay.hover)"),
       },
     },
     _pressed: {
-      backgroundImage:
-        "linear-gradient(token(colors.overlay.pressed), token(colors.overlay.pressed))",
+      ...overlayTint("token(colors.overlay.pressed)"),
     },
     _focusVisible: focusRing.inset,
     // Disabled, the header takes no pointer at all: no hover, no press.

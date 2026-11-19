@@ -6,7 +6,7 @@ import { CSSProperties, ReactNode, Ref, useId } from "react";
 
 import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
-import { ledge, ledgeShadow } from "ui/styles/ledge";
+import { ledgeHeight, ledgeLayers } from "ui/styles/ledge";
 
 import { css, cx } from "styled-system/css";
 
@@ -160,40 +160,41 @@ const cardStyles = css({
   minWidth: 0,
   borderWidth: "1px",
   borderStyle: "solid",
-  borderColor: "border.default",
   borderRadius: "lg",
-  background: "bg.surface",
+  ...ledgeLayers("token(radii.lg)"),
+  "--ledge-face": "{colors.bg.surface}",
+  "--ledge-border": "{colors.border.default}",
+  "--ledge-edge": "{colors.border.edge}",
   color: "fg.default",
-  ...ledge("token(colors.border.edge)", "rest"),
-  transitionProperty: "transform, box-shadow, background-color, border-color",
+  transform: "translateY(0)",
+  transitionProperty: "transform",
   transitionDuration: "fast",
   transitionTimingFunction: "out",
   _hoverable: {
     "&:hover:not([data-checked], [data-disabled])": {
-      background: "bg.muted",
-      borderColor: "border.control",
+      "--ledge-face": "{colors.bg.muted}",
+      "--ledge-border": "{colors.border.control}",
     },
   },
   // Pressing the card sinks it onto its ledge, like a button.
   "&:has(> [role=radio]:active):not([data-disabled])": {
-    ...ledge("token(colors.border.edge)", "sunk"),
+    "--ledge-height": ledgeHeight.sunk,
+    transform: "translateY(var(--spacing-sink))",
     transitionDuration: "instant",
   },
   "&:has(> [role=radio]:focus-visible)": focusRing.outset,
   // Chosen: accent border thickened to 2px by an inset ring, so the border
   // width (and the layout) never changes.
   "&[data-checked]": {
-    borderColor: "accent.solid",
-    background: "accent.soft",
-    boxShadow: `inset 0 0 0 1px token(colors.accent.solid), ${ledgeShadow("token(colors.accent.edge)")}`,
-  },
-  "&[data-checked]:has(> [role=radio]:active)": {
-    boxShadow: `inset 0 0 0 1px token(colors.accent.solid), ${ledgeShadow("token(colors.accent.edge)", "sunk")}`,
+    "--ledge-face": "{colors.accent.soft}",
+    "--ledge-border": "{colors.accent.solid}",
+    "--ledge-edge": "{colors.accent.edge}",
+    "--ledge-inset": "inset 0 0 0 1px {colors.accent.solid}",
   },
   "&[data-disabled]": {
-    background: "bg.muted",
-    borderColor: "border.subtle",
-    boxShadow: "none",
+    "--ledge-face": "{colors.bg.muted}",
+    "--ledge-border": "{colors.border.subtle}",
+    "--ledge-edge": "transparent",
     color: "fg.subtle",
   },
 });

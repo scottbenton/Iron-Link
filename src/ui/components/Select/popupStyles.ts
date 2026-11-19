@@ -1,3 +1,5 @@
+import { quietPressable } from "ui/styles/pressable";
+
 import { css } from "styled-system/css";
 
 /**
@@ -65,7 +67,7 @@ export const listStyles = css({
  * `overlay.hover`, and the chosen one is semibold with a check at its end.
  */
 export const listItemStyles = css({
-  boxSizing: "border-box",
+  ...quietPressable,
   position: "relative",
   display: "flex",
   alignItems: "center",
@@ -78,19 +80,11 @@ export const listItemStyles = css({
   fontSize: "sm",
   lineHeight: "snug",
   color: "fg.default",
+  // An option is chosen, not clicked through, so it keeps the arrow.
   cursor: "default",
   userSelect: "none",
-  outline: "none",
   scrollMarginBlock: "1",
-  WebkitTapHighlightColor: "transparent",
-  "&[data-highlighted]": { background: "overlay.hover" },
-  _pressed: { background: "overlay.pressed" },
   "&:is([data-selected], [aria-selected=true])": { fontWeight: "semibold" },
-  "&[data-disabled]": {
-    color: "fg.disabled",
-    cursor: "not-allowed",
-    background: "transparent",
-  },
   _touch: { minHeight: "touch" },
 });
 
