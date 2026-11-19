@@ -15,7 +15,6 @@ import {
   getRollCritical,
   isChallengeRoll,
 } from "../RollCard/rollTypes";
-import { formatSigned } from "../shared/format";
 import { PROGRESS_BOX_MARKS } from "../shared/progressBoxMarks";
 import {
   DiceDisplayStrings,
@@ -25,35 +24,51 @@ import {
 const rootStyles = css({
   "--die-size": "32px",
   "--die-font": "1.0625rem",
+  // One gap between every die, sign and number, so "3 + 1 = 4" reads
+  // evenly; it also clears the rings drawn outside matched dice.
+  "--dice-gap": "token(spacing.2)",
   display: "flex",
   flexWrap: "wrap",
   alignItems: "flex-start",
-  columnGap: "1.5",
+  columnGap: "var(--dice-gap)",
   rowGap: "2",
   minWidth: 0,
   fontVariantNumeric: "tabular-nums",
   "&[data-size=sm]": { "--die-size": "26px", "--die-font": "0.9375rem" },
 });
 
+/**
+ * A thin line through a number, reaching past it on both sides; a text
+ * line-through is as heavy as the bold digits and stops at their edges.
+ */
+const strikeStyles = {
+  position: "relative",
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    insetInline: "-0.3em",
+    top: "50%",
+    height: "1.5px",
+    marginTop: "-0.75px",
+    borderRadius: "full",
+    background: "currentColor",
+  },
+} as const;
+
 const groupStyles = css({
   display: "flex",
   alignItems: "flex-start",
-  gap: "1",
+  gap: "var(--dice-gap)",
   "&[data-struck]": {
     opacity: 0.5,
-    "& [data-term-value]": {
-      textDecoration: "line-through",
-      textDecorationThickness: "2px",
-    },
+    "& [data-term-value]": strikeStyles,
   },
 });
 
 const challengeGroupStyles = css({
   display: "flex",
   alignItems: "flex-start",
-  gap: "1",
-  // Room between the crit rings drawn outside each die.
-  "&[data-crit]": { gap: "2" },
+  gap: "var(--dice-gap)",
 });
 
 const termStyles = css({
@@ -61,7 +76,7 @@ const termStyles = css({
   justifyItems: "center",
   alignContent: "start",
   gap: "0.5",
-  minWidth: "var(--die-size)",
+  minWidth: 0,
 });
 
 /**
@@ -92,13 +107,11 @@ const operatorStyles = css({
   display: "grid",
   placeItems: "center",
   height: "var(--die-size)",
-  minWidth: "10px",
   color: "fg.subtle",
   fontFamily: "heading",
   fontWeight: "bold",
   fontSize: "var(--die-font)",
   "&[data-word]": {
-    paddingInline: "1",
     fontSize: "xs",
     textTransform: "uppercase",
     letterSpacing: "label",
@@ -109,7 +122,6 @@ const numberStyles = css({
   display: "grid",
   placeItems: "center",
   height: "var(--die-size)",
-  minWidth: "var(--die-size)",
   fontFamily: "heading",
   fontWeight: "bold",
   fontSize: "var(--die-font)",
@@ -208,10 +220,7 @@ const dieStyles = css({
     "--die-fill": "{colors.danger.soft}",
     "--die-stroke": "{colors.danger.fg}",
     "--die-fg": "{colors.danger.fg}",
-    "& > span": {
-      textDecoration: "line-through",
-      textDecorationThickness: "2px",
-    },
+    "& > span": strikeStyles,
   },
   "&[data-ring=high]": { "--die-ring": "{colors.success.fg}" },
   "&[data-ring=low]": { "--die-ring": "{colors.danger.fg}" },
@@ -333,6 +342,19 @@ function Operator(props: { children: ReactNode; word?: boolean }) {
   );
 }
 
+/**
+ * A stat or adds as its sign and its number, so the sign reads as an
+ * operator like "=" ("3 + 1 = 4"), with the caption under the number.
+ */
+function signedTerm(key: string, value: number, caption?: string) {
+  return [
+    <Operator key={`${key}-sign`}>{value < 0 ? "\u2212" : "+"}</Operator>,
+    <Term key={key} caption={caption}>
+      <span className={numberStyles}>{Math.abs(value)}</span>
+    </Term>,
+  ];
+}
+
 function CursedDieValue(props: { value: number }) {
   return props.value === 10 ? (
     <Skull weight="fill" aria-hidden className={css({ display: "block" })} />
@@ -436,11 +458,7 @@ export function DiceDisplay(props: DiceDisplayProps) {
         element
       );
     });
-    const group = (
-      <span className={challengeGroupStyles} data-crit={ring ? "" : undefined}>
-        {dice}
-      </span>
-    );
+    const group = <span className={challengeGroupStyles}>{dice}</span>;
     challenge = challengeDieNames ? (
       group
     ) : (
@@ -473,18 +491,10 @@ export function DiceDisplay(props: DiceDisplayProps) {
       </Term>,
     ];
     if (roll.statValue) {
-      terms.push(
-        <Term key="stat" caption={roll.statName}>
-          <span className={numberStyles}>{formatSigned(roll.statValue)}</span>
-        </Term>,
-      );
+      terms.push(...signedTerm("stat", roll.statValue, roll.statName));
     }
     if (roll.adds) {
-      terms.push(
-        <Term key="adds" caption={s.addsCaption}>
-          <span className={numberStyles}>{formatSigned(roll.adds)}</span>
-        </Term>,
-      );
+      terms.push(...signedTerm("adds", roll.adds, s.addsCaption));
     }
     const equation = (
       <span
