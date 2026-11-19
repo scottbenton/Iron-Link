@@ -11,6 +11,7 @@ import { css } from "styled-system/css";
 
 import { PageTab, PageTabs } from "../../components/Tabs";
 import { Text } from "../../components/Text";
+import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
 import {
   SampleCharacter,
@@ -45,7 +46,8 @@ export function CharacterSheetPlaceholder(props: {
           {character.name}
         </Text>
         <Text variant="bodySm" color="muted">
-          Played by {character.playerName}
+          <VisuallyHidden>Played by </VisuallyHidden>
+          {character.playerName}
         </Text>
       </Stack>
       <Grid gridTemplateColumns="repeat(5, minmax(0, 1fr))" gap="2">

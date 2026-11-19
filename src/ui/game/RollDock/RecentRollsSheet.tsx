@@ -4,8 +4,8 @@ import { css } from "styled-system/css";
 
 import { Button } from "../../components/Button";
 import { Drawer, DrawerBody, DrawerHeader } from "../../components/Drawer";
-import { RollCard } from "../RollCard";
-import type { DockedRoll } from "./RollDock";
+import { DockedCard } from "./DockedCard";
+import type { DockedItem } from "./DockedCard";
 
 const listStyles = css({
   display: "grid",
@@ -27,9 +27,9 @@ export interface RecentRollsSheetProps {
   open: boolean;
   onClose: () => void;
   /** Oldest first, as the dock holds them; the sheet lists newest first. */
-  rolls: DockedRoll[];
+  items: DockedItem[];
   onDismiss: (id: string) => void;
-  /** Dismisses every roll and closes the sheet. */
+  /** Dismisses every item and closes the sheet. */
   onClearAll: () => void;
   title?: string;
   clearAllLabel?: string;
@@ -38,40 +38,40 @@ export interface RecentRollsSheetProps {
 }
 
 /**
- * Every recent roll, newest first, in a sheet from the bottom: each card
- * with its own Dismiss, and Clear all, which closes the sheet too. The roll
- * dock's "N rolls" handle opens it.
+ * Every recent roll and notification, newest first, in a sheet from the
+ * bottom: each card with its own Dismiss, and Clear all, which closes the
+ * sheet too. The roll dock's "N notifications" handle opens it.
  */
 export function RecentRollsSheet(props: RecentRollsSheetProps) {
   const {
     open,
     onClose,
-    rolls,
+    items,
     onDismiss,
     onClearAll,
-    title = "Recent rolls",
+    title = "Notifications",
     clearAllLabel = "Clear all",
-    emptyLabel = "No recent rolls",
+    emptyLabel = "No notifications",
     closeLabel = "Close",
   } = props;
-  const newestFirst = [...rolls].reverse();
+  const newestFirst = [...items].reverse();
   // When the last card is dismissed, focus moves to the message saying so
   // rather than being lost with the button.
   const emptyRef = useRef<HTMLParagraphElement>(null);
-  const hadRolls = useRef(rolls.length > 0);
+  const hadItems = useRef(items.length > 0);
   useEffect(() => {
-    if (open && hadRolls.current && rolls.length === 0) {
+    if (open && hadItems.current && items.length === 0) {
       emptyRef.current?.focus();
     }
-    hadRolls.current = rolls.length > 0;
-  }, [open, rolls.length]);
+    hadItems.current = items.length > 0;
+  }, [open, items.length]);
   return (
     <Drawer open={open} onClose={onClose} side="bottom" size="lg">
       <DrawerHeader
         title={title}
         closeLabel={closeLabel}
         actions={
-          rolls.length > 0 && (
+          items.length > 0 && (
             <Button size="sm" variant="ghost" onClick={onClearAll}>
               {clearAllLabel}
             </Button>
@@ -87,10 +87,7 @@ export function RecentRollsSheet(props: RecentRollsSheetProps) {
           <ul className={listStyles}>
             {newestFirst.map((item) => (
               <li key={item.id}>
-                <RollCard
-                  roll={item.roll}
-                  onDismiss={() => onDismiss(item.id)}
-                />
+                <DockedCard item={item} onDismiss={() => onDismiss(item.id)} />
               </li>
             ))}
           </ul>

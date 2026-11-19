@@ -1,29 +1,18 @@
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
-import {
-  CSSProperties,
-  ReactNode,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { CSSProperties, useLayoutEffect, useRef, useState } from "react";
 
 import { css, cx } from "styled-system/css";
 
 import { Button } from "../../components/Button";
 import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
-import { RollCard } from "../RollCard";
-import type { RollData } from "../RollCard";
+import { DockedCard } from "./DockedCard";
+import type { DockedItem } from "./DockedCard";
 import { RecentRollsSheet } from "./RecentRollsSheet";
 
 /** How far each older card's edge shows above the one in front of it. */
 const PEEK_OFFSET = 6;
 /** How many older cards peek out behind the newest. */
 const MAX_PEEKING = 2;
-
-export interface DockedRoll {
-  id: string;
-  roll: RollData;
-}
 
 const dockStyles = css({
   boxSizing: "border-box",
@@ -80,21 +69,18 @@ const showAllRowStyles = css({
 });
 
 export interface RollDockProps extends LayoutProps {
-  /** Recent rolls, oldest first; the newest shows in full. */
-  rolls: DockedRoll[];
-  onDismiss: (id: string) => void;
-  /** Dismisses every roll. The Recent rolls sheet closes with it. */
-  onClearAll: () => void;
   /**
-   * A snackbar to show above the rolls, so the two stack rather than
-   * overlap (`ToastCard`). The app's Toaster docks the same way.
+   * Recent rolls and notifications, oldest first; the newest shows in full.
    */
-  notice?: ReactNode;
+  items: DockedItem[];
+  onDismiss: (id: string) => void;
+  /** Dismisses every item. The sheet closes with it. */
+  onClearAll: () => void;
   /** The tallest the newest card shows before Show all, 240px. */
   clampHeight?: number;
-  /** Names the region, "Recent rolls". */
+  /** Names the region and the sheet, "Notifications". */
   label?: string;
-  /** The handle, "3 rolls". */
+  /** The handle, "3 notifications". */
   countLabel?: (count: number) => string;
   showAllLabel?: string;
   showLessLabel?: string;
@@ -104,32 +90,33 @@ export interface RollDockProps extends LayoutProps {
 }
 
 /**
- * Recent rolls on phones, docked above the bottom nav: the newest roll card
- * in full, the edges of up to two older ones behind it, and an "N rolls"
- * handle that opens every recent roll in a sheet (per-card Dismiss and
- * Clear all). A snackbar stacks above it. Cards dismiss only through their
- * named button. Place it over the page's foot, above the MobileNav, at the
- * page's full width less 16px each side.
+ * Recent rolls and notifications on phones, docked above the bottom nav,
+ * the phone's version of the Toaster's one stack: the newest card in full
+ * (a roll card or a toast), the edges of up to two older ones behind it,
+ * and an "N notifications" handle that opens them all in a sheet (per-card
+ * Dismiss and Clear all). Cards dismiss only through their named button.
+ * Place it over the page's foot, above the MobileNav, at the page's full
+ * width less 16px each side.
  */
 export function RollDock(props: RollDockProps) {
   const {
-    rolls,
+    items,
     onDismiss,
     onClearAll,
-    notice,
     clampHeight = 240,
-    label = "Recent rolls",
-    countLabel = (count: number) => `${count} rolls`,
+    label = "Notifications",
+    countLabel = (count: number) =>
+      count === 1 ? "1 notification" : `${count} notifications`,
     showAllLabel = "Show all",
     showLessLabel = "Show less",
     clearAllLabel = "Clear all",
-    emptyLabel = "No recent rolls",
+    emptyLabel = "No notifications",
     className,
   } = withLayoutProps(props);
 
   const [sheetOpen, setSheetOpen] = useState(false);
-  const newest = rolls[rolls.length - 1];
-  const peeking = Math.min(rolls.length - 1, MAX_PEEKING);
+  const newest = items[items.length - 1];
+  const peeking = Math.min(items.length - 1, MAX_PEEKING);
 
   // Whether the newest card is taller than the clamp, and whether it's open.
   const contentRef = useRef<HTMLDivElement>(null);
@@ -147,13 +134,12 @@ export function RollDock(props: RollDockProps) {
     return () => observer.disconnect();
   }, [newest, clampHeight]);
 
-  const hasRolls = rolls.length > 0;
-  if (!hasRolls && !notice) return null;
+  if (items.length === 0) return null;
 
   return (
     <>
       <section
-        aria-label={hasRolls ? label : undefined}
+        aria-label={label}
         className={cx(dockStyles, className)}
         style={
           {
@@ -162,8 +148,7 @@ export function RollDock(props: RollDockProps) {
           } as CSSProperties
         }
       >
-        {notice}
-        {rolls.length > 1 && (
+        {items.length > 1 && (
           <Button
             size="sm"
             variant="outline"
@@ -172,7 +157,7 @@ export function RollDock(props: RollDockProps) {
             onClick={() => setSheetOpen(true)}
             className={handleStyles}
           >
-            {countLabel(rolls.length)}
+            {countLabel(items.length)}
           </Button>
         )}
         {newest && (
@@ -191,11 +176,10 @@ export function RollDock(props: RollDockProps) {
               className={clampStyles}
               data-clamped={overflows && !expanded ? "" : undefined}
             >
-              <RollCard
+              <DockedCard
                 key={newest.id}
-                roll={newest.roll}
-                elevated
-                animateIn
+                item={newest}
+                docked
                 onDismiss={() => onDismiss(newest.id)}
                 className={cardStyles}
               />
@@ -218,7 +202,7 @@ export function RollDock(props: RollDockProps) {
       <RecentRollsSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
-        rolls={rolls}
+        items={items}
         onDismiss={onDismiss}
         onClearAll={() => {
           onClearAll();
