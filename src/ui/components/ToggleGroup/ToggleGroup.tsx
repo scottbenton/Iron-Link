@@ -8,6 +8,7 @@ import {
   useContext,
 } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
@@ -161,10 +162,7 @@ const itemStyles = cva({
       color: "var(--toggle-on-fg)",
       boxShadow: "inset 0 0 0 var(--toggle-ring-width) var(--toggle-on-ring)",
     },
-    _focusVisible: {
-      outline: "2px solid token(colors.focusRing)",
-      outlineOffset: "1px",
-    },
+    _focusVisible: focusRing.outset,
     "&:is(:disabled, [data-disabled])": {
       cursor: "not-allowed",
       background: "transparent",
