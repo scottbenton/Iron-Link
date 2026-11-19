@@ -77,9 +77,26 @@ describe("Clock", () => {
     ).toHaveAttribute("aria-valuetext", "2 of 6 segments filled");
   });
 
+  it("advances from the card's hub without step buttons", async () => {
+    const user = userEvent.setup();
+    const { onChange } = renderClock({ presentation: "card" });
+    expect(
+      screen.queryByRole("button", {
+        name: "Remove a segment from The archive floods",
+      }),
+    ).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Advance The archive floods" }),
+    );
+    expect(onChange).toHaveBeenLastCalledWith(3);
+  });
+
   it("steps one segment from the card's minus and plus", async () => {
     const user = userEvent.setup();
-    const { onChange, announce } = renderClock({ presentation: "card" });
+    const { onChange, announce } = renderClock({
+      presentation: "card",
+      stepButtons: true,
+    });
     // The hub shares the plus's name, so it is hidden from the tree there.
     await user.click(
       screen.getByRole("button", { name: "Advance The archive floods" }),
@@ -97,14 +114,18 @@ describe("Clock", () => {
   });
 
   it("disables the card's minus when empty and plus when full", () => {
-    const { unmount } = renderClock({ presentation: "card", value: 0 });
+    const { unmount } = renderClock({
+      presentation: "card",
+      stepButtons: true,
+      value: 0,
+    });
     expect(
       screen.getByRole("button", {
         name: "Remove a segment from The archive floods",
       }),
     ).toHaveAttribute("data-disabled");
     unmount();
-    renderClock({ presentation: "card", value: 6 });
+    renderClock({ presentation: "card", stepButtons: true, value: 6 });
     expect(
       screen.getByRole("button", { name: "Advance The archive floods" }),
     ).toHaveAttribute("data-disabled");

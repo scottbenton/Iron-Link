@@ -69,14 +69,15 @@ describe("TracksPanel", () => {
     expect(screen.getByText("Find the missing courier")).toBeInTheDocument();
   });
 
-  it("says how many are hidden when none are active", () => {
+  it("says how many are hidden when none are active, and shows them", async () => {
+    const user = userEvent.setup();
     renderPanel({ tracks: [tracks[2]] });
     expect(screen.getByText("No active tracks")).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "One completed track is hidden. Tick Show Completed to see it.",
-      ),
+      screen.getByText("One completed track is hidden."),
     ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Show Completed" }));
+    expect(screen.getByText("Find the missing courier")).toBeInTheDocument();
   });
 
   it("adds a kind of track from Add Track", async () => {
@@ -88,20 +89,33 @@ describe("TracksPanel", () => {
     expect(onAdd).toHaveBeenCalledExactlyOnceWith("clock");
   });
 
-  it("completes a track from its menu and announces it", async () => {
+  it("completes a track from its card and announces it", async () => {
     const user = userEvent.setup();
     const onCompletedChange = vi.fn();
     const { announce } = renderPanel({ onCompletedChange });
     await user.click(
-      screen.getByRole("button", {
-        name: "Options for Recover the Hollow Crown",
-      }),
-    );
-    await user.click(
-      await screen.findByRole("menuitem", { name: "Complete Track" }),
+      screen.getByRole("button", { name: "Complete Recover the Hollow Crown" }),
     );
     expect(onCompletedChange).toHaveBeenCalledExactlyOnceWith("crown", true);
     expect(announce).toHaveBeenCalledWith("Completed Recover the Hollow Crown");
+  });
+
+  it("reopens a completed track from its menu", async () => {
+    const user = userEvent.setup();
+    const onCompletedChange = vi.fn();
+    renderPanel({ onCompletedChange, defaultShowCompleted: true });
+    await user.click(
+      screen.getByRole("button", {
+        name: "Options for Find the missing courier",
+      }),
+    );
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Reopen Track" }),
+    );
+    expect(onCompletedChange).toHaveBeenCalledExactlyOnceWith(
+      tracks[2].id,
+      false,
+    );
   });
 
   it("asks before deleting", async () => {

@@ -1,13 +1,5 @@
-import {
-  ClockIcon,
-  CompassIcon,
-  FlagBannerIcon,
-  ListChecksIcon,
-  PlusIcon,
-  ScrollIcon,
-  SwordIcon,
-} from "@phosphor-icons/react";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { PlusIcon } from "@phosphor-icons/react";
+import { useEffect, useRef, useState } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
@@ -70,14 +62,6 @@ const sectionsStyles = css({
   gap: "3",
   paddingBlockStart: "3",
 });
-
-const kindIcons: Record<TrackKind, ReactNode> = {
-  vow: <ScrollIcon />,
-  journey: <CompassIcon />,
-  combat: <SwordIcon />,
-  sceneChallenge: <FlagBannerIcon />,
-  clock: <ClockIcon />,
-};
 
 const allKinds: TrackKind[] = [
   "vow",
@@ -229,7 +213,8 @@ export function TracksPanel(props: TracksPanelProps) {
         ? strings.completedAnnouncement(track.label)
         : strings.reopenedAnnouncement(track.label),
     );
-    if (completed && !showCompleted) setRefocus((count) => count + 1);
+    // Complete is the card's own button, which goes once the track is done.
+    if (completed) setRefocus((count) => count + 1);
   };
 
   const menuFor = (track: TrackItem) =>
@@ -237,11 +222,10 @@ export function TracksPanel(props: TracksPanelProps) {
       <TrackMenu
         label={track.label}
         isClock={track.kind === "clock"}
-        completed={!!track.completed}
         onEdit={!readOnly && onEdit ? () => onEdit(track.id) : undefined}
-        onCompletedChange={
-          !readOnly && onCompletedChange
-            ? (completed) => completedChange(track, completed)
+        onReopen={
+          !readOnly && onCompletedChange && track.completed
+            ? () => completedChange(track, false)
             : undefined
         }
         onDelete={
@@ -279,11 +263,7 @@ export function TracksPanel(props: TracksPanelProps) {
             <MenuContent align="end">
               <MenuGroup label={strings.addTrackMenu}>
                 {addKinds.map((kind) => (
-                  <MenuItem
-                    key={kind}
-                    icon={kindIcons[kind]}
-                    onClick={() => onAdd(kind)}
-                  >
+                  <MenuItem key={kind} onClick={() => onAdd(kind)}>
                     {strings.kindLabels[kind]}
                   </MenuItem>
                 ))}
@@ -297,7 +277,6 @@ export function TracksPanel(props: TracksPanelProps) {
         {shown.length === 0 ? (
           <EmptyState
             size="sm"
-            icon={<ListChecksIcon />}
             title={
               tracks.length === 0 ? strings.noTracks : strings.noActiveTracks
             }
@@ -307,6 +286,19 @@ export function TracksPanel(props: TracksPanelProps) {
                   ? undefined
                   : strings.noTracksMessage
                 : strings.noActiveTracksMessage(hiddenCount)
+            }
+            action={
+              tracks.length > 0 && (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setShowCompleted(true);
+                    setRefocus((count) => count + 1);
+                  }}
+                >
+                  {strings.showCompleted}
+                </Button>
+              )
             }
           />
         ) : (
@@ -326,6 +318,11 @@ export function TracksPanel(props: TracksPanelProps) {
                 onOddsChange={
                   onOddsChange
                     ? (odds) => onOddsChange(track.id, odds)
+                    : undefined
+                }
+                onComplete={
+                  !readOnly && onCompletedChange
+                    ? () => completedChange(track, true)
                     : undefined
                 }
                 strings={strings}
@@ -353,6 +350,11 @@ export function TracksPanel(props: TracksPanelProps) {
                     : undefined
                 }
                 rankLabels={rankLabels}
+                onComplete={
+                  !readOnly && onCompletedChange
+                    ? () => completedChange(track, true)
+                    : undefined
+                }
                 strings={strings}
               />
             ),

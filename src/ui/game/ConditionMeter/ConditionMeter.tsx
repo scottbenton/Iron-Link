@@ -37,6 +37,12 @@ const meterStyles = css({
   borderRadius: "md",
   background: "bg.surface",
   color: "fg.default",
+  // Without steppers the meter is only its number (or its roll): as narrow
+  // as a stat card, so a viewer's row of meters is no wider than the stats.
+  "&[data-read-only]": { minWidth: "72px" },
+  "&[data-read-only] [data-meter-value]": {
+    minHeight: "32px",
+  },
 });
 
 const labelStyles = css({
@@ -271,6 +277,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
       className={cx(meterStyles, className)}
       data-tone={tone}
       data-stepper-size={stepperSize}
+      data-read-only={!onChange || undefined}
     >
       <span id={labelId} className={labelStyles}>
         {label}

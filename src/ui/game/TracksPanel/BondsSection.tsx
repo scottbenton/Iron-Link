@@ -50,7 +50,11 @@ export function BondsSection(props: BondsSectionProps) {
       count={bonds.length}
     >
       {bonds.length === 0 ? (
-        <EmptyState size="sm" message={strings.noBonds} />
+        <EmptyState
+          size="sm"
+          title={strings.noBonds}
+          message={readOnly ? undefined : strings.noBondsMessage}
+        />
       ) : (
         <ul className={listStyles}>
           {bonds.map((bond) => (

@@ -38,7 +38,6 @@ const boxStyles = css({
   transitionProperty: "background-color, border-color, color",
   transitionDuration: "fast",
   "&[data-full]": { borderColor: "fg.muted" },
-  "[data-complete] &": { color: "success.fg" },
   "& svg": {
     width: "70%",
     height: "70%",
@@ -65,7 +64,7 @@ const boxStyles = css({
 export interface ProgressBoxesProps extends LayoutProps {
   /** 0 to 40. */
   ticks: number;
-  /** Draws the marks in the success colour. */
+  /** The track is completed; the marks keep their usual colour. */
   complete?: boolean;
   className?: string;
 }

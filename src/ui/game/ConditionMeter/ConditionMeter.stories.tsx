@@ -79,6 +79,10 @@ export const CharacterSheet: Story = {
   ),
 };
 
+/**
+ * A viewer's view: no steppers, menus or rolls, so each meter is only its
+ * number, as narrow as a stat card (72px).
+ */
 export const ReadOnly: Story = {
   render: () => <CharacterMeters index={1} readOnly />,
 };
