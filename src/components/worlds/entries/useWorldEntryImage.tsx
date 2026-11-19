@@ -34,6 +34,8 @@ export function useWorldEntryImage(
 ) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
+  // Runs once the file chosen through the input passes the checks.
+  const onAcceptedRef = useRef<(() => void) | null>(null);
   const [busy, setBusy] = useState(false);
   // The file being cropped before upload, or the stored image being cropped.
   const [cropping, setCropping] = useState<{ file?: File } | null>(null);
@@ -59,7 +61,9 @@ export function useWorldEntryImage(
   };
 
   // A dropped file skips the input's accept list, so its type is checked too.
-  const takeFile = (file: File) => {
+  // Opens the crop step for a file that passes the checks, and says whether
+  // it did.
+  const takeFile = (file: File): boolean => {
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       onError(
         new Error(
@@ -69,7 +73,7 @@ export function useWorldEntryImage(
           ),
         ),
       );
-      return;
+      return false;
     }
     if (file.size > MAX_FILE_SIZE) {
       onError(
@@ -81,15 +85,18 @@ export function useWorldEntryImage(
           ),
         ),
       );
-      return;
+      return false;
     }
     setCropping({ file });
+    return true;
   };
 
   const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = "";
-    if (file) takeFile(file);
+    const onAccepted = onAcceptedRef.current;
+    onAcceptedRef.current = null;
+    if (file && takeFile(file)) onAccepted?.();
   };
 
   const save = async (file: File | undefined, imageCrop: ImageCrop) => {
@@ -157,7 +164,11 @@ export function useWorldEntryImage(
   return {
     busy,
     hasImage: !!entry.imageFilename,
-    choose: () => inputRef.current?.click(),
+    // Opens the file chooser; onAccepted runs if the file reaches cropping.
+    choose: (onAccepted?: () => void) => {
+      onAcceptedRef.current = onAccepted ?? null;
+      inputRef.current?.click();
+    },
     // Starts the same check and crop with a file from elsewhere (a drop).
     takeFile,
     crop: () => setCropping({}),

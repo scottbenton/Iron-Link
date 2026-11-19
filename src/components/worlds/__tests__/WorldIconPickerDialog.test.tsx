@@ -75,7 +75,7 @@ describe("WorldIconPickerDialog", () => {
     });
   });
 
-  it("offers an Image tab only when asked, closing before it starts", async () => {
+  it("offers an Image tab only when asked, leaving it open", async () => {
     const user = userEvent.setup();
     const { unmount } = render(
       <WorldIconPickerDialog
@@ -98,7 +98,8 @@ describe("WorldIconPickerDialog", () => {
       screen.queryByRole("button", { name: "Save" }),
     ).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Upload image" }));
-    expect(calls).toEqual(["close", "upload"]);
+    // The caller closes the picker once a file reaches cropping.
+    expect(calls).toEqual(["upload"]);
   });
 
   it("uploads an image dropped on the Image tab", async () => {
@@ -111,7 +112,7 @@ describe("WorldIconPickerDialog", () => {
     fireEvent.drop(screen.getByText(/Drop a picture here/), {
       dataTransfer: { files: [file] },
     });
-    expect(close).toHaveBeenCalled();
+    expect(close).not.toHaveBeenCalled();
     expect(upload).toHaveBeenCalledWith(file);
   });
 });

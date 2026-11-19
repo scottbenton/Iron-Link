@@ -92,8 +92,9 @@ export function WorldIconPickerDialog({
   title: string;
   onSave: (value: IconDefinition | null) => void;
   onClose: () => void;
-  // Closes the picker and starts the upload, which has its own crop step:
-  // with the dropped file, or with none to open the file chooser.
+  // Starts the upload with the dropped file, or with none to open the file
+  // chooser. The caller closes the picker once a file reaches cropping, so a
+  // cancelled or refused file leaves it open.
   onUploadImage?: (file?: File) => void;
   uploadDisabled?: boolean;
 }) {
@@ -191,7 +192,6 @@ export function WorldIconPickerDialog({
                 setDragging(false);
                 const file = event.dataTransfer.files[0];
                 if (!file || uploadDisabled) return;
-                onClose();
                 onUploadImage(file);
               }}
               sx={{
@@ -227,7 +227,6 @@ export function WorldIconPickerDialog({
                     startIcon={<AddPhotoIcon />}
                     disabled={uploadDisabled}
                     onClick={() => {
-                      onClose();
                       onUploadImage();
                     }}
                   >
