@@ -80,6 +80,7 @@ import {
   ConditionMeter,
   MomentumMeter,
 } from "../../game/ConditionMeter";
+import { XPMeter } from "../../game/ConditionMeter";
 import { GameLog } from "../../game/GameLog";
 import type { GameLogEntry } from "../../game/GameLog";
 import type { ImpactGroup } from "../../game/ImpactsChecklist";
@@ -100,7 +101,6 @@ import {
   classicTracks,
   sampleBonds,
 } from "../../game/TracksPanel/tracksPanelSamples";
-import { XPMeter } from "../../game/XPTrack";
 import { sampleCharacters } from "../../stories/fixtures/characters";
 import {
   classicRules,
