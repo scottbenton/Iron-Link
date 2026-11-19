@@ -1,3 +1,4 @@
+import AddPhotoIcon from "@mui/icons-material/AddPhotoAlternate";
 import Groups2Icon from "@mui/icons-material/Groups2";
 import SearchIcon from "@mui/icons-material/Search";
 import {
@@ -67,13 +68,16 @@ function getColorLabel(t: TFunction, color: IconColors): string {
 // icon grid, and a live preview. Nothing is saved until Save.
 // Chooses an icon and its color for a world category or entry. It opens on
 // the icon shown today (an entry's own, else the one it inherits) so either
-// the icon or the color can be changed alone.
+// the icon or the color can be changed alone. An entry's picker passes
+// onUploadImage to offer its image upload too; categories have no images.
 export function WorldIconPickerDialog({
   value,
   inherited = null,
   title,
   onSave,
   onClose,
+  onUploadImage,
+  uploadDisabled = false,
 }: {
   value: IconDefinition | null;
   // Shown when value has no icon. Saving it unchanged keeps inheriting.
@@ -81,6 +85,9 @@ export function WorldIconPickerDialog({
   title: string;
   onSave: (value: IconDefinition | null) => void;
   onClose: () => void;
+  // Closes the picker and starts the upload, which has its own crop step.
+  onUploadImage?: () => void;
+  uploadDisabled?: boolean;
 }) {
   const { t } = useTranslation();
   const initial = value?.key ? value : inherited?.key ? inherited : null;
@@ -314,6 +321,19 @@ export function WorldIconPickerDialog({
             >
               {t("worlds.categories.remove-icon", "Remove icon")}
             </Button>
+            {onUploadImage && (
+              <Button
+                color="inherit"
+                startIcon={<AddPhotoIcon />}
+                disabled={uploadDisabled}
+                onClick={() => {
+                  onClose();
+                  onUploadImage();
+                }}
+              >
+                {t("worlds.entries.upload-image", "Upload image")}
+              </Button>
+            )}
           </Stack>
         </Box>
       </DialogContent>

@@ -419,6 +419,8 @@ export function WorldEntryActions({
             updateEntry(entry.id, { icon }).catch(onError);
           }}
           onClose={() => setChoosingIcon(false)}
+          onUploadImage={image.choose}
+          uploadDisabled={image.busy}
         />
       )}
       {moving && (

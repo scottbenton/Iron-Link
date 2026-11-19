@@ -14,9 +14,11 @@ import {
 
 import { WorldIconPickerDialog } from "../WorldIconPickerDialog";
 import { WorldEntryIcon } from "./WorldEntryIcon";
+import { useWorldEntryImage } from "./useWorldEntryImage";
 
 // The icon or portrait beside an entry's name. A portrait opens full size
-// for everyone; an icon opens the icon picker for people who can edit.
+// for everyone; an icon opens the icon picker for people who can edit, which
+// can also upload an image (the same upload and crop as More, Add image).
 export function WorldEntryHeaderIcon({
   entry,
   canEdit,
@@ -32,6 +34,7 @@ export function WorldEntryHeaderIcon({
   const categoryIcon = useWorldCategoriesStore(
     (store) => store.categories[entry.categoryId]?.icon ?? null,
   );
+  const image = useWorldEntryImage(entry, onError);
 
   const hasImage = !!entry.imageFilename;
   if (!hasImage && !canEdit)
@@ -85,8 +88,12 @@ export function WorldEntryHeaderIcon({
             updateEntry(entry.id, { icon }).catch(onError);
           }}
           onClose={() => setOpen(false)}
+          onUploadImage={image.choose}
+          uploadDisabled={image.busy}
         />
       )}
+      {canEdit && image.input}
+      {canEdit && image.dialog}
     </>
   );
 }

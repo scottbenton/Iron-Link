@@ -74,4 +74,28 @@ describe("WorldIconPickerDialog", () => {
       color: IconColors.Purple,
     });
   });
+
+  it("offers an image upload only when asked, closing before it starts", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(
+      <WorldIconPickerDialog
+        value={null}
+        title="Choose category icon"
+        onSave={() => {}}
+        onClose={() => {}}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Upload image" }),
+    ).not.toBeInTheDocument();
+    unmount();
+
+    const calls: string[] = [];
+    renderDialog({
+      onClose: () => calls.push("close"),
+      onUploadImage: () => calls.push("upload"),
+    });
+    await user.click(screen.getByRole("button", { name: "Upload image" }));
+    expect(calls).toEqual(["close", "upload"]);
+  });
 });
