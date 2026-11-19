@@ -1016,7 +1016,8 @@ export function MovesFirstPage(props: PlayLayoutProps) {
   const [referenceTab, setReferenceTab] = useState("moves");
   const [sheetSection, setSheetSection] = useState("assets");
   const [collapsed, setCollapsed] = useState(sidebarCollapsed);
-  const [width, setWidth] = useState(360);
+  // Wide enough for the five section tabs beside Collapse.
+  const [width, setWidth] = useState(420);
 
   const sheetPanel: LayoutPanel = {
     id: "character",
@@ -1151,7 +1152,7 @@ export function MovesFirstPage(props: PlayLayoutProps) {
           onCollapsedChange: setCollapsed,
           width,
           onWidthChange: setWidth,
-          minWidth: 300,
+          minWidth: 400,
           maxWidth: 520,
         }}
       />
