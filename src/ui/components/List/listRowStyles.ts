@@ -11,7 +11,7 @@ import { css } from "styled-system/css";
  * the line for a wider control).
  */
 export const listRowLineStyles = css({
-  "--row-action-width": "32px",
+  "--row-action-width": "{sizes.control.sm}",
   position: "relative",
   display: "grid",
   gridTemplateColumns: "minmax(0, 1fr)",
@@ -20,7 +20,7 @@ export const listRowLineStyles = css({
   margin: 0,
   padding: 0,
   listStyle: "none",
-  _touch: { "--row-action-width": "40px" },
+  _touch: { "--row-action-width": "{sizes.control.md}" },
   "& > *": { gridArea: "1 / 1" },
   "& > [data-row-action]": {
     zIndex: 1,
@@ -46,7 +46,7 @@ export const listRowStyles = css({
   gap: "2",
   boxSizing: "border-box",
   width: "100%",
-  minHeight: "36px",
+  minHeight: "control.row",
   margin: 0,
   paddingBlock: "1.5",
   paddingInlineStart: "3",
@@ -101,9 +101,9 @@ export const listRowStyles = css({
     color: "fg.muted",
   },
   "& [data-row-icon]": {
-    width: "18px",
-    height: "18px",
-    "& svg": { width: "18px", height: "18px" },
+    width: "icon.md",
+    height: "icon.md",
+    "& svg": { width: "icon.md", height: "icon.md" },
   },
   "& [data-row-glyph]": {
     width: "16px",

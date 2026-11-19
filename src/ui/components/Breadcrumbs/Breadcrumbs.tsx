@@ -55,7 +55,7 @@ const crumbStyles = css({
   color: "fg.muted",
   textDecoration: "none",
   outline: "none",
-  "& svg": { flex: "none", width: "14px", height: "14px" },
+  "& svg": { flex: "none", width: "icon.sm", height: "icon.sm" },
   "a&, button&": {
     cursor: "pointer",
     transition: "color token(durations.fast) linear",
