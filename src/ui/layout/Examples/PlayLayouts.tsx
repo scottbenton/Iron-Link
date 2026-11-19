@@ -168,11 +168,15 @@ function usePlaySheet() {
     ]);
   };
 
-  /** Rolls a stat or meter with the adds, which then reset to 0. */
+  /**
+   * Rolls a stat or meter with the adds, which then reset to 0. Returns the
+   * action die, so the die on the card that rolled lands on it.
+   */
   const roll = (name: string, value: number, moveName?: string) => {
     const result = rollAction(name, value + adds, moveName, meters.momentum);
     addRoll({ ...result, statValue: value, adds: adds || undefined });
     setAdds(0);
+    return result.actionDie;
   };
 
   const statValue = (key: string): number | undefined =>

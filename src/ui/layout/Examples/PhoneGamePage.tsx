@@ -119,6 +119,7 @@ import { SectionHeading } from "../SectionHeading";
 import { DemoSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
 import { guideScenario } from "../SettingsMenu/settingsMenuScenarios";
 import { OverviewCharacters } from "./GamePageColumns";
+import { rollAction } from "./rollDice";
 import { characterAuthor, gameLogEntries } from "./sampleLog";
 
 export type PhoneSection = "sheet" | "notes" | "moves" | "oracles" | "log";
@@ -300,21 +301,12 @@ function SheetScreen(props: {
   });
   const impactGroups = getImpactGroups(ruleset);
 
+  /** Rolls with the adds; the card's die lands on the action die. */
   const roll = (statName: string, statValue: number) => {
-    const actionDie = 4;
-    const actionScore = Math.min(10, actionDie + statValue + adds);
-    onRoll({
-      kind: "action",
-      moveName: "Face Danger",
-      statName,
-      statValue,
-      adds: adds || undefined,
-      actionDie,
-      actionScore,
-      challengeDice: [3, 8],
-      outcome: actionScore > 8 ? "strongHit" : "weakHit",
-    });
+    const result = rollAction(statName, statValue + adds, "Face Danger");
+    onRoll({ ...result, statValue, adds: adds || undefined });
     setAdds(0);
+    return result.actionDie;
   };
 
   return (
