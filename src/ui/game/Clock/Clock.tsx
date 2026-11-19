@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
@@ -51,10 +52,7 @@ const dialStyles = css({
   borderRadius: "full",
   outline: "none",
   WebkitTapHighlightColor: "transparent",
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "3px",
-  },
+  _focusVisible: focusRing.outset,
   "&[data-interactive]": { cursor: "pointer", touchAction: "manipulation" },
   "&[aria-disabled=true]": { cursor: "not-allowed", opacity: 0.6 },
   width: "80px",
@@ -125,10 +123,7 @@ const hubStyles = css({
   transitionProperty: "background-color, opacity",
   transitionDuration: "fast",
   transitionTimingFunction: "out",
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "1px",
-  },
+  _focusVisible: focusRing.outset,
   "&:not([aria-disabled=true])": {
     _hoverable: {
       _hover: {
