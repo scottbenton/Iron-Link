@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { AnnouncerProvider } from "../Announcer";
+import { AnnouncerProvider } from "../../components/Announcer";
 import { OracleTextField } from "./OracleTextField";
 
 describe("OracleTextField", () => {
