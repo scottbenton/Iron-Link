@@ -26,7 +26,7 @@ export const sectionTabStyles = css({
   gap: "1.5",
   flex: "1 1 0",
   minWidth: 0,
-  minHeight: "32px",
+  minHeight: "control.sm",
   paddingInline: "2",
   border: "1px solid transparent",
   borderRadius: "sm",
@@ -45,7 +45,7 @@ export const sectionTabStyles = css({
   transitionProperty: "background-color, color, border-color, box-shadow",
   transitionDuration: "fast",
   transitionTimingFunction: "linear",
-  "& svg": { width: "16px", height: "16px", flex: "none" },
+  "& svg": { width: "icon.md", height: "icon.md", flex: "none" },
   _hover: { color: "fg.default" },
   _focusVisible: focusRing.outset,
   _current: {
@@ -54,7 +54,7 @@ export const sectionTabStyles = css({
     boxShadow: "0 1px 0 token(colors.border.default)",
     color: "fg.default",
   },
-  _touch: { minHeight: "40px" },
+  _touch: { minHeight: "control.md" },
 });
 
 export const srOnlyStyles = css({

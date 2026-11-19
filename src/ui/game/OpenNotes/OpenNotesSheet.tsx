@@ -81,7 +81,7 @@ const rowButtonStyles = css({
     borderRadius: "md",
     background: "bg.muted",
     color: "fg.muted",
-    "& svg": { width: "18px", height: "18px" },
+    "& svg": { width: "icon.md", height: "icon.md" },
   },
   "& [data-part=label]": {
     minWidth: 0,

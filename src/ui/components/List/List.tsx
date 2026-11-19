@@ -112,8 +112,12 @@ const itemStyles = cva({
   },
   variants: {
     dense: {
-      true: { minHeight: "36px", paddingBlock: "1.5", paddingInline: "3" },
-      false: { minHeight: "48px", paddingBlock: "2", paddingInline: "4" },
+      true: {
+        minHeight: "control.row",
+        paddingBlock: "1.5",
+        paddingInline: "3",
+      },
+      false: { minHeight: "touch", paddingBlock: "2", paddingInline: "4" },
     },
     inset: {
       true: { borderRadius: "md" },
@@ -204,8 +208,12 @@ const buttonStyles = cva({
   },
   variants: {
     dense: {
-      true: { minHeight: "36px", paddingBlock: "1.5", paddingInline: "3" },
-      false: { minHeight: "48px", paddingBlock: "2", paddingInline: "4" },
+      true: {
+        minHeight: "control.row",
+        paddingBlock: "1.5",
+        paddingInline: "3",
+      },
+      false: { minHeight: "touch", paddingBlock: "2", paddingInline: "4" },
     },
     inset: {
       true: { borderRadius: "md" },
@@ -278,7 +286,7 @@ export function ListItemIcon(props: ListItemIconProps) {
           justifyContent: "center",
           flex: "none",
           color: "fg.muted",
-          "& svg": { width: "20px", height: "20px" },
+          "& svg": { width: "icon.md", height: "icon.md" },
         }),
         className,
       )}

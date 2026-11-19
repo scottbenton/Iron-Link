@@ -33,7 +33,7 @@ const formStyles = css({
 const textareaStyles = css({
   flex: "1",
   minWidth: 0,
-  minHeight: "38px",
+  minHeight: "control.md",
   maxHeight: "128px",
   paddingBlock: "2",
   margin: 0,

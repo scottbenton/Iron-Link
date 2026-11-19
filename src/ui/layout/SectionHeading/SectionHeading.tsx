@@ -13,7 +13,7 @@ const rootStyles = css({
   justifyContent: "space-between",
   columnGap: "4",
   rowGap: "2",
-  minHeight: "40px",
+  minHeight: "control.md",
   paddingBlock: "1",
   paddingInline: "3",
   borderRadius: "md",

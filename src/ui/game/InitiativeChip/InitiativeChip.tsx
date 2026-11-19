@@ -20,7 +20,7 @@ const chipStyles = css({
   width: "fit-content",
   alignItems: "center",
   gap: "1.5",
-  minHeight: "28px",
+  minHeight: "control.xs",
   paddingInlineStart: "2",
   paddingInlineEnd: "3",
   borderWidth: "1px",
@@ -34,7 +34,7 @@ const chipStyles = css({
   fontWeight: "semibold",
   lineHeight: "1.2",
   whiteSpace: "nowrap",
-  "& svg": { width: "14px", height: "14px", flex: "none" },
+  "& svg": { width: "icon.sm", height: "icon.sm", flex: "none" },
   // Out of a fight: quiet, so a status in a fight is the one that stands out.
   "&[data-resting]": {
     borderColor: "border.default",
@@ -56,7 +56,7 @@ const triggerStyles = css({
   },
   _pressed: { transform: "translateY(min(var(--spacing-sink), 1px))" },
   _focusVisible: focusRing.outset,
-  _touch: { minHeight: "40px" },
+  _touch: { minHeight: "control.md" },
 });
 
 const popupStyles = css({
@@ -81,14 +81,14 @@ const itemStyles = css({
   display: "flex",
   alignItems: "center",
   gap: "2",
-  minHeight: "36px",
+  minHeight: "control.row",
   paddingInline: "2",
   borderRadius: "sm",
   fontSize: "sm",
   cursor: "pointer",
   userSelect: "none",
   outline: "none",
-  "& svg": { width: "16px", height: "16px", flex: "none" },
+  "& svg": { width: "icon.md", height: "icon.md", flex: "none" },
   "&[data-highlighted]": { background: "overlay.hover" },
   _pressed: { background: "overlay.pressed" },
   _touch: { minHeight: "touch" },

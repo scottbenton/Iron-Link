@@ -117,7 +117,7 @@ const stepButton = css({
   "[data-number-field][data-size=sm] > &": {
     width: "24px",
     height: "24px",
-    _touch: { width: "32px", height: "32px" },
+    _touch: { width: "control.sm", height: "control.sm" },
   },
 });
 

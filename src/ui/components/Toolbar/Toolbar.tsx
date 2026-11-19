@@ -127,7 +127,7 @@ const buttonStyles = cva({
     gap: "1.5",
     flex: "none",
     boxSizing: "border-box",
-    height: "32px",
+    height: "control.sm",
     margin: 0,
     border: 0,
     borderRadius: "sm",
@@ -173,12 +173,12 @@ const buttonStyles = cva({
       color: "fg.disabled",
       background: "transparent",
     },
-    "& svg": { flex: "none", width: "18px", height: "18px" },
+    "& svg": { flex: "none", width: "icon.md", height: "icon.md" },
     _touch: { height: "touch" },
   },
   variants: {
     iconOnly: {
-      true: { width: "32px", padding: 0, _touch: { width: "touch" } },
+      true: { width: "control.sm", padding: 0, _touch: { width: "touch" } },
       false: { paddingInline: "2" },
     },
   },

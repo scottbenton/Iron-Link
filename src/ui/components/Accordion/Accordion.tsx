@@ -41,7 +41,7 @@ const triggerStyles = css({
   alignItems: "center",
   gap: "3",
   boxSizing: "border-box",
-  minHeight: "48px",
+  minHeight: "touch",
   margin: 0,
   paddingBlock: "3",
   paddingInline: "4",
@@ -72,7 +72,7 @@ const triggerStyles = css({
     flex: "none",
     display: "inline-flex",
     color: "fg.muted",
-    "& svg": { width: "20px", height: "20px" },
+    "& svg": { width: "icon.md", height: "icon.md" },
   },
 });
 
