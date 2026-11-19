@@ -5,7 +5,7 @@ import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { cx } from "styled-system/css";
 
-import { DieFace, useDieFace } from "../DieFace";
+import { DieFace, DieRollResult, useDieFace } from "../DieFace";
 import { AddsAnchor } from "../RollButton/AddsBadge";
 import { formatSigned } from "../shared/format";
 import {
@@ -27,8 +27,12 @@ export interface StatCardProps
   /** The stat's name: Edge, Heart, Iron, Shadow, Wits. */
   name: string;
   value: number;
-  /** Rolls the stat. Without it the card is a static readout, no ledge. */
-  onRoll?: () => void;
+  /**
+   * Rolls the stat. Return the action die (1 to 6), or a promise of it, and
+   * the card's die lands on it. Without it the card is a static readout, no
+   * ledge.
+   */
+  onRoll?: () => DieRollResult;
   /**
    * Adds that apply to the next roll, shown as a pill after the value (under
    * it when the card is too narrow) and read after the value. Zero hides it.
@@ -60,7 +64,7 @@ export const StatCard = forwardRef<HTMLElement, StatCardProps>(
       ...rest
     } = withLayoutProps<StatCardProps>(props);
 
-    const [face, rollDie] = useDieFace();
+    const [die, rollDie] = useDieFace();
     const valueText = formatSigned(value);
     const addsText = adds ? formatSigned(adds) : undefined;
 
@@ -69,7 +73,7 @@ export const StatCard = forwardRef<HTMLElement, StatCardProps>(
         <span className={statNameStyles}>{name}</span>
         <span className={statValueRowStyles}>
           <span className={statValueStyles}>
-            {onRoll && <DieFace face={face} size="inherit" weight="fill" />}
+            {onRoll && <DieFace {...die} size="inherit" weight="fill" />}
             {valueText}
           </span>
         </span>
@@ -107,8 +111,7 @@ export const StatCard = forwardRef<HTMLElement, StatCardProps>(
           }
           disabled={disabled}
           onClick={() => {
-            rollDie();
-            onRoll();
+            rollDie(onRoll());
           }}
           {...rest}
         >

@@ -18,7 +18,13 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Playground: Story = {};
+/**
+ * Each press rolls a d6 and the die lands on it, as an action roll's button
+ * does once its `onRoll` returns the action die.
+ */
+export const Playground: Story = {
+  args: { onRoll: () => Math.floor(Math.random() * 6) + 1 },
+};
 
 export const MoveRolls: Story = {
   render: () => (

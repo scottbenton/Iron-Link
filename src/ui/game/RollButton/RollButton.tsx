@@ -1,4 +1,4 @@
-import { ReactNode, forwardRef } from "react";
+import { MouseEvent, ReactNode, forwardRef } from "react";
 
 import { Button, type ButtonProps } from "ui/components/Button";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
@@ -6,7 +6,7 @@ import { withLayoutProps } from "ui/styles/layoutProps";
 
 import { cx } from "styled-system/css";
 
-import { DieFace, useDieFace } from "../DieFace";
+import { DieFace, DieRollResult, useDieFace } from "../DieFace";
 import { formatSigned } from "../shared/format";
 import { AddsAnchor } from "./AddsBadge";
 import { rollButtonStyles } from "./rollButtonStyles";
@@ -30,10 +30,17 @@ export interface RollButtonProps
    */
   children: ReactNode;
   /**
-   * An icon before the label. A die by default, which turns to a new face
-   * on each press; `null` for none.
+   * An icon before the label. A die by default, which cycles onto a new
+   * face on each press (the action die, when `onRoll` returns it); `null`
+   * for none.
    */
   icon?: ReactNode;
+  /**
+   * Rolls, on press. Return the action die (1 to 6), or a promise of it,
+   * and the default die lands on it; return nothing for a roll without one
+   * (an oracle) and it lands on a new face.
+   */
+  onRoll?: (event: MouseEvent<HTMLElement>) => DieRollResult;
   size?: "sm" | "md" | "lg";
   /**
    * Adds on this roll, shown as a badge on the button's top-right corner
@@ -63,11 +70,12 @@ export const RollButton = forwardRef<HTMLElement, RollButtonProps>(
       addsLabel = (a) => `adds ${a}`,
       className,
       onClick,
+      onRoll,
       ...rest
     } = withLayoutProps<RollButtonProps>(props);
-    const [face, rollDie] = useDieFace();
+    const [die, rollDie] = useDieFace();
     const iconNode =
-      icon === undefined ? <DieFace face={face} size="inherit" /> : icon;
+      icon === undefined ? <DieFace {...die} size="inherit" /> : icon;
     return (
       <AddsAnchor adds={adds} fullWidth={fullWidth} className={className}>
         <Button
@@ -79,7 +87,8 @@ export const RollButton = forwardRef<HTMLElement, RollButtonProps>(
           className={cx(rollButtonStyles({ size, fullWidth }))}
           data-roll=""
           onClick={(event) => {
-            if (icon === undefined) rollDie();
+            const result = onRoll?.(event);
+            if (icon === undefined) rollDie(result);
             onClick?.(event);
           }}
           {...rest}
