@@ -224,8 +224,9 @@ that are easy to miss. When you learn a new one, add a line here.
   `RichTextContentStore` and saves through `saveMergedRichText`, guarded by the
   row's `updated_at`. A new rich text column needs a versioned row and a store.
 
-- Note images resize only through `ImageResizeHandle`, a `<button>` slider on
-  the moving edge (sizing rules in `lib/noteImageResize.lib.ts`). Controls in
+- Note images resize only through `ImageResizeHandles`, square `<button>`s on
+  the corners, the bottom one on the moving edge also the keyboard's slider
+  (sizing rules in `lib/noteImageResize.lib.ts`). Controls in
   a node view are buttons because Tiptap stops a button's events from reaching
   ProseMirror; a div's pointer and key events would select or drag the node.
   The `<img>` is never draggable, or the browser drops a copy of it.

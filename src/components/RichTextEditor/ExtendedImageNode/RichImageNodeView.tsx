@@ -34,7 +34,7 @@ import { useSecondScreenStore } from "stores/secondScreen.store";
 import { getDialogFormSlotProps } from "lib/dialogForm.lib";
 
 import { isGuideImageSrc, useImageDisplaySrc } from "../secrets/guideImages";
-import { ImageResizeHandle } from "./ImageResizeHandle";
+import { ImageResizeHandles } from "./ImageResizeHandles";
 import { Alignment, TextWrapping } from "./RichImageNodeAttributes";
 
 export function RichImageNodeView(props: NodeViewProps) {
@@ -185,7 +185,7 @@ export function RichImageNodeView(props: NodeViewProps) {
           borderStyle: "solid",
           borderColor: selected ? "primary.main" : "transparent",
           borderRadius: 1,
-          overflow: "hidden",
+          // Not clipped, so the corner handles draw over the border.
         }}
       >
         <Box
@@ -194,12 +194,13 @@ export function RichImageNodeView(props: NodeViewProps) {
           sx={{
             width: "100%",
             objectFit: "contain",
+            borderRadius: "2px",
           }}
           src={displaySrc}
           alt={imageAlt}
           draggable={false}
         />
-        <ImageResizeHandle
+        <ImageResizeHandles
           alignment={alignment}
           visible={selected}
           imageRef={frameRef}

@@ -20,34 +20,53 @@ describe("getNoteImageResizeEdge", () => {
 describe("getDraggedNoteImageWidth", () => {
   const base = { startWidth: 300, columnWidth: 600 };
 
-  it("grows a left aligned image as the right edge moves right", () => {
+  it("grows the image as a right corner moves right", () => {
     expect(
-      getDraggedNoteImageWidth({ ...base, deltaX: 50, alignment: "left" }),
+      getDraggedNoteImageWidth({
+        ...base,
+        deltaX: 50,
+        edge: "right",
+        alignment: "left",
+      }),
     ).toBe(350);
   });
 
-  it("grows a right aligned image as its left edge moves left", () => {
+  it("grows the image as a left corner moves left", () => {
     expect(
-      getDraggedNoteImageWidth({ ...base, deltaX: -50, alignment: "right" }),
+      getDraggedNoteImageWidth({
+        ...base,
+        deltaX: -50,
+        edge: "left",
+        alignment: "right",
+      }),
     ).toBe(350);
     expect(
-      getDraggedNoteImageWidth({ ...base, deltaX: 50, alignment: "right" }),
+      getDraggedNoteImageWidth({
+        ...base,
+        deltaX: 50,
+        edge: "left",
+        alignment: "left",
+      }),
     ).toBe(250);
   });
 
   it("grows a centred image on both sides", () => {
     expect(
-      getDraggedNoteImageWidth({ ...base, deltaX: 50, alignment: "center" }),
+      getDraggedNoteImageWidth({
+        ...base,
+        deltaX: 50,
+        edge: "right",
+        alignment: "center",
+      }),
     ).toBe(400);
   });
 
   it("keeps the width between the minimum and the column", () => {
-    expect(
-      getDraggedNoteImageWidth({ ...base, deltaX: 900, alignment: "left" }),
-    ).toBe(600);
-    expect(
-      getDraggedNoteImageWidth({ ...base, deltaX: -900, alignment: "left" }),
-    ).toBe(MIN_NOTE_IMAGE_WIDTH);
+    const drag = { ...base, edge: "right", alignment: "left" } as const;
+    expect(getDraggedNoteImageWidth({ ...drag, deltaX: 900 })).toBe(600);
+    expect(getDraggedNoteImageWidth({ ...drag, deltaX: -900 })).toBe(
+      MIN_NOTE_IMAGE_WIDTH,
+    );
   });
 });
 

@@ -8,8 +8,9 @@ export const NOTE_IMAGE_WIDTH_STEP = 0.05;
 export type NoteImageResizeEdge = "left" | "right";
 export type NoteImageAlignment = "left" | "center" | "right";
 
-// The handle sits on the edge that moves: the right one, except for an image
-// held against the right side of the column.
+// The edge that moves as the image grows: the right one, except for an image
+// held against the right side of the column. The keyboard's handle sits on
+// it.
 export function getNoteImageResizeEdge(
   alignment: NoteImageAlignment,
 ): NoteImageResizeEdge {
@@ -21,16 +22,18 @@ export function clampNoteImageWidth(width: number, columnWidth: number) {
   return Math.round(Math.min(Math.max(width, MIN_NOTE_IMAGE_WIDTH), max));
 }
 
-// The width while dragging the handle `deltaX` pixels from where the drag
-// started. A centred image grows on both sides, so it grows twice as fast.
+// The width while dragging a corner handle on the `edge` side `deltaX`
+// pixels from where the drag started: dragging a corner outward grows the
+// image. A centred image grows on both sides, so it grows twice as fast.
 export function getDraggedNoteImageWidth(options: {
   startWidth: number;
   deltaX: number;
+  edge: NoteImageResizeEdge;
   alignment: NoteImageAlignment;
   columnWidth: number;
 }) {
-  const { startWidth, deltaX, alignment, columnWidth } = options;
-  let growth = getNoteImageResizeEdge(alignment) === "left" ? -deltaX : deltaX;
+  const { startWidth, deltaX, edge, alignment, columnWidth } = options;
+  let growth = edge === "left" ? -deltaX : deltaX;
   if (alignment === "center") {
     growth *= 2;
   }
