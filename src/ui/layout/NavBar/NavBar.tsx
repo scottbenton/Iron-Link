@@ -3,6 +3,7 @@ import { CaretLeftIcon, ListIcon, XIcon } from "@phosphor-icons/react";
 import { ReactNode, useRef, useState } from "react";
 
 import { focusRing } from "ui/styles/focus";
+import { ledgeLayers } from "ui/styles/ledge";
 import { ledgeShadow } from "ui/styles/ledge";
 
 import { css, cx } from "styled-system/css";
@@ -183,6 +184,7 @@ const drawerListStyles = css({
 });
 
 const drawerLinkStyles = css({
+  position: "relative",
   display: "flex",
   alignItems: "center",
   gap: "3",
@@ -203,9 +205,10 @@ const drawerLinkStyles = css({
   _active: { background: "overlay.pressed" },
   _focusVisible: focusRing.inset,
   _current: {
-    background: "bg.surface",
-    borderColor: "border.default",
-    boxShadow: "ledge",
+    ...ledgeLayers(),
+    "--ledge-face": "{colors.bg.surface}",
+    "--ledge-border": "{colors.border.default}",
+    "--ledge-edge": "{colors.border.edge}",
     color: "fg.default",
     "& svg": { color: "accent.fg" },
   },
