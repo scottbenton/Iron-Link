@@ -72,7 +72,7 @@ const trackStyles = cva({
   variants: {
     size: {
       sm: { "--segment-height": "26px" },
-      md: { "--segment-height": "32px" },
+      md: { "--segment-height": "{sizes.control.sm}" },
     },
   },
 });
@@ -123,13 +123,13 @@ const segmentStyles = css({
   WebkitTapHighlightColor: "transparent",
   transitionProperty: "color",
   transitionDuration: "fast",
-  "& > svg": { flex: "none", width: "16px", height: "16px" },
+  "& > svg": { flex: "none", width: "icon.md", height: "icon.md" },
   "& > span": { overflow: "hidden", textOverflow: "ellipsis" },
   "&:hover:not([data-checked], [data-disabled])": { color: "fg.default" },
   "&[data-checked]": { color: "fg.default" },
   _focusVisible: focusRing.outset,
   "&[data-disabled]": { cursor: "not-allowed", color: "fg.disabled" },
-  _touch: { minHeight: "40px" },
+  _touch: { minHeight: "control.md" },
 });
 
 /**

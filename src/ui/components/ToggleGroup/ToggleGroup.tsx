@@ -201,18 +201,18 @@ const itemStyles = cva({
     },
     size: {
       sm: {
-        minHeight: "28px",
-        minWidth: "28px",
+        minHeight: "control.xs",
+        minWidth: "control.xs",
         paddingInline: "2",
         fontSize: "sm",
-        "& > svg": { width: "16px", height: "16px" },
+        "& > svg": { width: "icon.md", height: "icon.md" },
       },
       md: {
         minHeight: "34px",
         minWidth: "34px",
         paddingInline: "3",
         fontSize: "sm",
-        "& > svg": { width: "18px", height: "18px" },
+        "& > svg": { width: "icon.md", height: "icon.md" },
       },
     },
     iconOnly: { true: { paddingInline: 0 } },
@@ -222,7 +222,11 @@ const itemStyles = cva({
     {
       variant: "ghost",
       size: "md",
-      css: { minHeight: "32px", minWidth: "32px", paddingInline: "2" },
+      css: {
+        minHeight: "control.sm",
+        minWidth: "control.sm",
+        paddingInline: "2",
+      },
     },
     {
       variant: "ghost",
