@@ -15,6 +15,7 @@ import { Button } from "../Button";
 import { IconButton } from "../IconButton";
 import { Text } from "../Text";
 import { Drawer, DrawerBody, DrawerFooter, DrawerHeader } from "./Drawer";
+import { focusRing } from "ui/styles/focus";
 
 const meta = {
   title: "Components/Drawer",
@@ -37,7 +38,7 @@ const navLink = css({
   textDecoration: "none",
   fontSize: "sm",
   _hover: { background: "overlay.hover" },
-  _focusVisible: { outline: "2px solid token(colors.focusRing)" },
+  _focusVisible: focusRing.inset,
   "& svg": { width: "20px", height: "20px", color: "fg.muted" },
 });
 
