@@ -11,7 +11,7 @@ import {
 
 import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
-import { ledgeShadow } from "ui/styles/ledge";
+import { ledgeLayers } from "ui/styles/ledge";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -91,8 +91,12 @@ const thumbStyles = css({
   width: "var(--thumb-width)",
   translate: "var(--thumb-x) 0",
   borderRadius: "sm",
-  background: "bg.surface",
-  boxShadow: `0 0 0 1px token(colors.border.default), ${ledgeShadow("token(colors.border.edge)")}`,
+  // The face's 1px border sits just outside the thumb's box, where the ring
+  // used to be.
+  ...ledgeLayers("token(radii.sm)"),
+  "--ledge-face": "{colors.bg.surface}",
+  "--ledge-border": "{colors.border.default}",
+  "--ledge-edge": "{colors.border.edge}",
   transitionProperty: "translate, width",
   transitionDuration: "normal",
   transitionTimingFunction: "out",

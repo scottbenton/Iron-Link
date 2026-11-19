@@ -1,5 +1,5 @@
 import { focusRing } from "ui/styles/focus";
-import { ledgeHeight, ledgeShadow } from "ui/styles/ledge";
+import { ledgeHeight, ledgeLayers } from "ui/styles/ledge";
 
 import { cva } from "styled-system/css";
 
@@ -18,10 +18,10 @@ export const gradientLedgeStyles = "ui-button-gradient-ledge";
 export const gradientFaceStyles = "ui-button-gradient-face";
 
 /**
- * The tactile button. It sits on a solid ledge (a bottom edge drawn with
- * box-shadow), and a press sinks it 1px onto the ledge. Colours come from
- * the --btn-* variables each variant sets, so hover and press follow the
- * variant without a rule per variant.
+ * The tactile button. It sits on a solid ledge (drawn as a layer under its
+ * face, see `ledgeLayers`), and a press sinks it onto the ledge. Colours
+ * come from the --btn-* variables each variant sets, so hover and press
+ * follow the variant without a rule per variant.
  */
 export const buttonStyles = cva({
   base: {
@@ -45,8 +45,10 @@ export const buttonStyles = cva({
     borderRadius: "md",
     borderWidth: "1px",
     borderStyle: "solid",
-    borderColor: "var(--btn-border)",
-    background: "var(--btn-bg)",
+    ...ledgeLayers(),
+    "--ledge-face": "var(--btn-bg)",
+    "--ledge-border": "var(--btn-border)",
+    "--ledge-edge": "var(--btn-edge)",
     color: "var(--btn-fg)",
     fontFamily: "body",
     fontWeight: "semibold",
@@ -58,40 +60,40 @@ export const buttonStyles = cva({
     cursor: "pointer",
     userSelect: "none",
     WebkitTapHighlightColor: "transparent",
-    boxShadow: ledgeShadow("var(--btn-edge)"),
     transform: "translateY(0)",
-    transitionProperty: "transform, box-shadow, background-color, border-color",
+    transitionProperty: "transform",
     transitionDuration: "fast",
     transitionTimingFunction: "out",
     outline: "none",
     _focusVisible: focusRing.outset,
     _hover: {
-      background: "var(--btn-hover)",
+      "--ledge-face": "var(--btn-hover)",
+      "--ledge-height": ledgeHeight.lifted,
       transform: "translateY(var(--spacing-lift))",
-      boxShadow: ledgeShadow("var(--btn-edge)", "lifted"),
     },
     _pressed: {
-      background: "var(--btn-press)",
+      "--ledge-face": "var(--btn-press)",
+      "--ledge-height": ledgeHeight.sunk,
       transform: "translateY(var(--spacing-sink))",
-      boxShadow: ledgeShadow("var(--btn-edge)", "sunk"),
       transitionDuration: "instant",
     },
     // A menu or popover trigger keeps the pressed colour while its popup is
     // open, without sinking, so it shows what the popup belongs to.
-    "&[data-popup-open]": { background: "var(--btn-press)" },
-    "&:is(:disabled, [data-disabled]):not([data-busy])": {
+    "&[data-popup-open]": { "--ledge-face": "var(--btn-press)" },
+    [disabled]: {
       cursor: "not-allowed",
       transform: "none",
-      background: "bg.emphasized",
       color: "fg.subtle",
-      borderColor: "border.default",
-      boxShadow: ledgeShadow("token(colors.border.default)"),
+      "--ledge-face": "{colors.bg.emphasized}",
+      "--ledge-border": "{colors.border.default}",
+      "--ledge-edge": "{colors.border.default}",
+      "--ledge-height": ledgeHeight.rest,
     },
     "&[data-busy]": {
       cursor: "progress",
       transform: "none",
-      background: "var(--btn-bg)",
-      boxShadow: ledgeShadow("var(--btn-edge)"),
+      "--ledge-face": "var(--btn-bg)",
+      "--ledge-height": ledgeHeight.rest,
     },
     "& svg": { flex: "none", width: "1.15em", height: "1.15em" },
     _touch: { minHeight: "touch" },
@@ -127,8 +129,8 @@ export const buttonStyles = cva({
       gradient: {
         "--btn-fg": "{colors.white}",
         "--btn-border": "transparent",
-        // No box-shadow ledge and no button background: both were one fixed
-        // colour (the ring's end colour, darkened), which went brown against
+        // The shared face and ledge layers stay empty: as one fixed colour
+        // (the ring's end colour, darkened) the ledge went brown against
         // the turning ring and showed as a dark fringe around its rounded
         // corners. The ledge is a second copy of the turning ring, darkened
         // and set the ledge's height lower, under the ring: the ring keeps
@@ -150,15 +152,14 @@ export const buttonStyles = cva({
         "--btn-ring": "2px",
         "--btn-face-base": "{colors.gray.900}",
         "--btn-face": "var(--btn-face-base)",
+        "--ledge-border-width": "0px",
         alignItems: "stretch",
         borderWidth: 0,
-        boxShadow: "none",
         _hover: {
           "--btn-ring": "3px",
           "--btn-ledge": ledgeHeight.lifted,
           "--btn-face":
             "color-mix(in oklab, var(--btn-face-base) 82%, {colors.gray.700})",
-          boxShadow: "none",
         },
         _focusVisible: { "--btn-ring": "3px" },
         _pressed: {
@@ -166,17 +167,15 @@ export const buttonStyles = cva({
           "--btn-ledge": ledgeHeight.sunk,
           "--btn-face":
             "color-mix(in oklab, var(--btn-face-base) 60%, {colors.black})",
-          boxShadow: "none",
         },
         [disabled]: {
           "--btn-fg": "{colors.fg.subtle}",
           "--btn-ring": "2px",
           "--btn-face": "{colors.bg.emphasized}",
-          background: "transparent",
-          borderColor: "transparent",
-          boxShadow: "none",
+          "--ledge-face": "transparent",
+          "--ledge-border": "transparent",
+          "--ledge-edge": "transparent",
         },
-        "&[data-busy]": { background: "transparent", boxShadow: "none" },
         [`& .${gradientRingStyles}[data-gradient-ring]`]: {
           display: "flex",
           flex: "1 1 auto",
@@ -240,18 +239,13 @@ export const buttonStyles = cva({
         "--btn-edge": "transparent",
         "--btn-hover": "{colors.overlay.hover}",
         "--btn-press": "{colors.overlay.pressed}",
-        boxShadow: "none",
-        _hover: { transform: "none", boxShadow: "none" },
-        _pressed: {
-          transform: "translateY(min(var(--spacing-sink), 1px))",
-          boxShadow: "none",
+        _hover: { transform: "none" },
+        _pressed: { transform: "translateY(min(var(--spacing-sink), 1px))" },
+        [disabled]: {
+          "--ledge-face": "transparent",
+          "--ledge-border": "transparent",
+          "--ledge-edge": "transparent",
         },
-        "&:is(:disabled, [data-disabled]):not([data-busy])": {
-          background: "transparent",
-          borderColor: "transparent",
-          boxShadow: "none",
-        },
-        "&[data-busy]": { boxShadow: "none" },
       },
       /** Ghost in the accent colour, for text-like actions. */
       text: {
@@ -261,14 +255,13 @@ export const buttonStyles = cva({
         "--btn-edge": "transparent",
         "--btn-hover": "{colors.overlay.hover}",
         "--btn-press": "{colors.overlay.pressed}",
-        boxShadow: "none",
         paddingInline: "2",
-        _hover: { transform: "none", boxShadow: "none" },
-        _pressed: { transform: "none", boxShadow: "none" },
-        "&:is(:disabled, [data-disabled]):not([data-busy])": {
-          background: "transparent",
-          borderColor: "transparent",
-          boxShadow: "none",
+        _hover: { transform: "none" },
+        _pressed: { transform: "none" },
+        [disabled]: {
+          "--ledge-face": "transparent",
+          "--ledge-border": "transparent",
+          "--ledge-edge": "transparent",
         },
       },
     },
