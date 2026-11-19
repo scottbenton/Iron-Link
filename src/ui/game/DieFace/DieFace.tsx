@@ -6,18 +6,11 @@ import {
   DiceThree,
   DiceTwo,
 } from "@phosphor-icons/react";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
-import { css, cva, cx } from "styled-system/css";
+import { cva, cx } from "styled-system/css";
 
 export type DieFaceValue = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -35,40 +28,93 @@ export function nextDieFace(current: DieFaceValue): DieFaceValue {
   return (((current + Math.floor(Math.random() * 5)) % 6) + 1) as DieFaceValue;
 }
 
-/**
- * A die's face and a `roll` that turns it to a new one, for a button that
- * rolls something. Starts on five, the die the app shows everywhere else.
- */
-export function useDieFace(
-  initial: DieFaceValue = 5,
-): [DieFaceValue, () => void] {
-  const [face, setFace] = useState<DieFaceValue>(initial);
-  const roll = useCallback(() => setFace(nextDieFace), []);
-  return [face, roll];
+/** `value` as a die face, or undefined when it is not a whole 1 to 6. */
+export function toDieFace(value: unknown): DieFaceValue | undefined {
+  return typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 1 &&
+    value <= 6
+    ? (value as DieFaceValue)
+    : undefined;
 }
 
 /**
- * How a new face arrives. The options are here to compare (see the
- * DieFace story "Motion options"); once one is chosen the rest go.
- * - `swap`: the new face replaces the old at once.
- * - `tilt`: the new face turns in from a small angle.
- * - `pop`: the new face grows in from a little smaller.
- * - `cycle`: two quick random faces flash before it lands.
- * - `fade`: the new face crossfades over the old.
+ * What a roll handler may hand back to the die: the action die it rolled
+ * (1 to 6), so the die lands on it, or anything else (nothing, an oracle's
+ * 1 to 100), so it lands on a new face of its own. A promise keeps the die
+ * cycling until it settles.
  */
-export type DieFaceMotion = "swap" | "tilt" | "pop" | "cycle" | "fade";
+export type DieRollResult = unknown;
+
+/** A die's state, spread onto `DieFace`. */
+export interface DieState {
+  face: DieFaceValue;
+  /** Counts rolls, so a roll that lands on the same face still cycles. */
+  rolls: number;
+  /** True while a roll's result is still on its way. */
+  pending?: boolean;
+}
 
 /**
- * The motion every DieFace without its own `motion` uses, `tilt` unless a
- * provider says otherwise. It exists so a story can show each option on
- * the real roll buttons, stat cards, meters and oracle rows; it goes with
- * the options once one is chosen.
+ * A die for a button that rolls something: its state, to spread onto
+ * `DieFace`, and a `roll` to call with the roll's result. When the result
+ * is the action die (a whole number from 1 to 6) the die lands on it;
+ * otherwise it lands on a new face. Starts on five, the die the app shows
+ * everywhere else.
+ *
+ * ```tsx
+ * const [die, rollDie] = useDieFace();
+ * <button onClick={() => rollDie(onRoll())}><DieFace {...die} /></button>
+ * ```
  */
-export const DieFaceMotionContext = createContext<DieFaceMotion>("tilt");
+export function useDieFace(
+  initial: DieFaceValue = 5,
+): [DieState, (result?: DieRollResult) => void] {
+  const [die, setDie] = useState<DieState>({ face: initial, rolls: 0 });
+  // Only the latest roll may land the die.
+  const latest = useRef(0);
+  const land = useCallback((token: number, result: unknown) => {
+    if (token !== latest.current) return;
+    setDie((current) => ({
+      face: toDieFace(result) ?? nextDieFace(current.face),
+      rolls: current.rolls,
+    }));
+  }, []);
+  const roll = useCallback(
+    (result?: DieRollResult) => {
+      const token = ++latest.current;
+      if (result instanceof Promise) {
+        setDie((current) => ({
+          ...current,
+          rolls: current.rolls + 1,
+          pending: true,
+        }));
+        result.then(
+          (value: unknown) => land(token, value),
+          () => land(token, undefined),
+        );
+        return;
+      }
+      setDie((current) => ({
+        face: toDieFace(result) ?? nextDieFace(current.face),
+        rolls: current.rolls + 1,
+      }));
+    },
+    [land],
+  );
+  return [die, roll];
+}
 
 export interface DieFaceProps extends LayoutProps {
-  /** The face showing. Changing it shows the new face with `motion`. */
+  /** The face the die lands on. */
   face: DieFaceValue;
+  /**
+   * Counts rolls (from `useDieFace`). A change cycles the die even when it
+   * lands on the face it showed. Without it, a change of `face` cycles.
+   */
+  rolls?: number;
+  /** Keeps the die cycling until it turns false, then it lands. */
+  pending?: boolean;
   /**
    * The icon size: 14px, 18px (default) or 24px, or `inherit` to leave it to
    * the parent's own icon rule (a Button's `svg`, a row's glyph).
@@ -76,8 +122,6 @@ export interface DieFaceProps extends LayoutProps {
   size?: "sm" | "md" | "lg" | "inherit";
   /** The icon weight: `bold` (default), or `fill` as stat cards draw it. */
   weight?: "bold" | "fill";
-  /** How a new face arrives; `DieFaceMotionContext` (`tilt`) by default. */
-  motion?: DieFaceMotion;
   className?: string;
 }
 
@@ -88,8 +132,6 @@ const rootStyles = cva({
   base: {
     display: "inline-grid",
     flex: "none",
-    // Both faces share one cell, so a fading face sits over the old one.
-    "& > *": { gridArea: "1 / 1", display: "block" },
     "& svg": { display: "block" },
   },
   variants: {
@@ -103,136 +145,101 @@ const rootStyles = cva({
   defaultVariants: { size: "md" },
 });
 
-/** Each motion's entrance; none under reduced motion. */
-const enterStyles = {
-  tilt: css({
-    animation: "dieTilt token(durations.fast) token(easings.out)",
-    _reducedMotion: { animation: "none" },
-  }),
-  pop: css({
-    animation: "diePop token(durations.fast) token(easings.out)",
-    _reducedMotion: { animation: "none" },
-  }),
-  fade: css({
-    animation: "fadeIn token(durations.fast) token(easings.out)",
-    _reducedMotion: { animation: "none" },
-  }),
-};
-
-const exitStyles = css({
-  animation: "fadeOut token(durations.fast) token(easings.in) forwards",
-  _reducedMotion: { display: "none" },
-});
-
-/** The time each in-between face shows for `cycle`. */
+/** How long each in-between face shows, and how many show at least. */
 const CYCLE_STEP_MS = 50;
 const CYCLE_STEPS = 2;
+/** A result that never arrives stops the cycling after this many faces. */
+const CYCLE_MAX_STEPS = 100;
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 
 /**
- * For `cycle`, the face to draw: a couple of random faces in turn, then
- * `face`. Any other motion draws `face` at once.
+ * The face to draw: on each roll a couple of random faces in turn (more
+ * while the result is pending), then `face`. With reduced motion the die
+ * keeps its face while pending and then simply shows the new one.
  */
-function useCycledFace(face: DieFaceValue, active: boolean): DieFaceValue {
+function useCycledFace(
+  face: DieFaceValue,
+  rollKey: number,
+  pending: boolean,
+): DieFaceValue {
   const [shown, setShown] = useState(face);
-  // The face the last cycle ended on, so mounting (or a rerender with the
-  // same face) shows it without cycling.
-  const landed = useRef(face);
+  // Read by the running cycle, so a result arriving mid-cycle lands it.
+  const target = useRef({ face, pending });
+  target.current = { face, pending };
+  // The roll the last cycle started for, so mounting (or a rerender of the
+  // same roll) shows the face without cycling.
+  const started = useRef(rollKey);
+  const cycling = useRef(false);
+
+  // A new roll starts a cycle; the face and pending are read live from
+  // `target`, so a result arriving mid-cycle lands it.
   useEffect(() => {
-    if (face === landed.current) return;
-    landed.current = face;
-    if (!active || prefersReducedMotion()) {
-      setShown(face);
-      return;
-    }
+    if (rollKey === started.current) return;
+    started.current = rollKey;
+    if (prefersReducedMotion()) return;
+    cycling.current = true;
     let step = 0;
-    let current = face;
-    const timer = window.setInterval(() => {
-      step += 1;
-      if (step > CYCLE_STEPS) {
+    let current = target.current.face;
+    const advance = () => {
+      const next = target.current;
+      if (step >= CYCLE_MAX_STEPS || (step >= CYCLE_STEPS && !next.pending)) {
         window.clearInterval(timer);
-        setShown(face);
+        cycling.current = false;
+        setShown(next.face);
         return;
       }
-      current = nextDieFace(current);
-      setShown(current === face ? nextDieFace(face) : current);
-    }, CYCLE_STEP_MS);
+      step += 1;
+      let between = nextDieFace(current);
+      // The last face before landing is never the one it lands on.
+      if (!next.pending && step >= CYCLE_STEPS && between === next.face) {
+        between = nextDieFace(between);
+      }
+      current = between;
+      setShown(between);
+    };
+    const timer = window.setInterval(advance, CYCLE_STEP_MS);
     // The first in-between face shows straight away.
-    current = nextDieFace(face);
-    setShown(current);
-    return () => window.clearInterval(timer);
-  }, [face, active]);
-  return active ? shown : face;
+    advance();
+    return () => {
+      window.clearInterval(timer);
+      cycling.current = false;
+    };
+  }, [rollKey]);
+
+  // Outside a cycle (reduced motion, or a face set without a roll), the
+  // die shows its face once nothing is pending.
+  useEffect(() => {
+    if (!cycling.current && !pending) setShown(face);
+  }, [face, pending, rollKey]);
+
+  return shown;
 }
 
 /**
- * A die icon (decorative) showing one face. When `face` changes the new
- * face arrives with `motion`, quickly; with reduced motion it simply
- * replaces the old one. Pair it with `useDieFace` on anything that rolls
- * (OracleTextField's button, roll buttons, stat cards, meters, oracle
- * rows), so each roll shows a new face.
- *
- * ```tsx
- * const [face, rollDie] = useDieFace();
- * <button onClick={() => { rollDie(); roll(); }}><DieFace face={face} /></button>
- * ```
+ * A die icon (decorative) showing one face. On each roll it cycles through
+ * two quick random faces (50ms each, longer while the result is pending)
+ * and lands on `face`; with reduced motion it simply shows the new face.
+ * Pair it with `useDieFace` on anything that rolls (OracleTextField's
+ * button, roll buttons, stat cards, meters, oracle rows), and hand the roll's
+ * result back so an action roll lands on its action die.
  */
 export function DieFace(props: DieFaceProps) {
   const {
     face: target,
+    rolls,
+    pending = false,
     size = "md",
     weight = "bold",
-    motion: motionProp,
     className,
   } = withLayoutProps(props);
-  const contextMotion = useContext(DieFaceMotionContext);
-  const motion = motionProp ?? contextMotion;
-  const face = useCycledFace(target, motion === "cycle");
-  // The face before the last change, and a count that restarts the
-  // entrance. Updated during render, so the new face never shows a frame
-  // without its motion.
-  const [shown, setShown] = useState({
-    face,
-    previous: null as DieFaceValue | null,
-    change: 0,
-  });
-  if (shown.face !== face) {
-    setShown({ face, previous: shown.face, change: shown.change + 1 });
-  }
-  const Face = faceIcons[shown.face];
-  const Previous =
-    motion === "fade" && shown.previous !== null
-      ? faceIcons[shown.previous]
-      : null;
-  const change = shown.change;
-  const enter =
-    change > 0 && (motion === "tilt" || motion === "pop" || motion === "fade")
-      ? enterStyles[motion]
-      : undefined;
-
+  const face = useCycledFace(target, rolls ?? target, pending);
+  const Face = faceIcons[face];
   return (
     <span className={cx(rootStyles({ size }), className)} aria-hidden>
-      {Previous && (
-        <span
-          key={`out-${change}`}
-          className={exitStyles}
-          onAnimationEnd={() =>
-            setShown((current) =>
-              current.change === change
-                ? { ...current, previous: null }
-                : current,
-            )
-          }
-        >
-          <Previous weight={weight} />
-        </span>
-      )}
-      <span key={`in-${change}`} className={enter}>
-        <Face weight={weight} />
-      </span>
+      <Face weight={weight} />
     </span>
   );
 }
