@@ -25,6 +25,8 @@ import { clamp, formatSigned } from "../shared/format";
 const chipStyles = css({
   display: "inline-flex",
   alignItems: "center",
+  // Its own width, even as a stretching column's child (a Stack, a grid).
+  width: "fit-content",
   maxWidth: "100%",
   minWidth: 0,
   gap: "0.5",
