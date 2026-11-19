@@ -208,7 +208,7 @@ const removeStyles = css({
   _active: {
     background: "color-mix(in oklab, currentColor 22%, transparent)",
   },
-  _focusVisible: { outline: "2px solid token(colors.focusRing)" },
+  _focusVisible: focusRing.outset,
   "& svg": {
     width: "var(--chip-remove-icon)",
     height: "var(--chip-remove-icon)",
