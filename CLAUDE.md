@@ -224,6 +224,12 @@ that are easy to miss. When you learn a new one, add a line here.
   `RichTextContentStore` and saves through `saveMergedRichText`, guarded by the
   row's `updated_at`. A new rich text column needs a versioned row and a store.
 
+- Note images resize only through `ImageResizeHandle`, a `<button>` slider on
+  the moving edge (sizing rules in `lib/noteImageResize.lib.ts`). Controls in
+  a node view are buttons because Tiptap stops a button's events from reaching
+  ProseMirror; a div's pointer and key events would select or drag the node.
+  The `<img>` is never draggable, or the browser drops a copy of it.
+
 - Guide-only secrets never go in a document players can read. Each note,
   entry Notes or world Notes keeps its secrets in one companion Yjs document,
   a `rich_text_secrets` row created by the first save, read only by Guides who
