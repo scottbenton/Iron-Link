@@ -50,11 +50,19 @@ const toolbarStyles = css({
   gap: "2",
 });
 
+/**
+ * One column in a sidebar; side by side wherever there is room for two
+ * tracks at a comfortable width (a sheet's tab across the main column),
+ * each row as tall as its tallest track. The empty state spans the row.
+ */
 const listStyles = css({
   display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 22rem), 1fr))",
   gap: "3",
+  alignItems: "start",
   minWidth: 0,
   outline: "none",
+  "& > :only-child": { gridColumn: "1 / -1" },
 });
 
 const sectionsStyles = css({
