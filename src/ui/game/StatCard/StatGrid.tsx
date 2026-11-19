@@ -4,6 +4,7 @@ import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 
+import { DieRollResult } from "../DieFace";
 import { StatCard } from "./StatCard";
 
 /**
@@ -95,8 +96,11 @@ export interface StatGridStat {
 
 export interface StatGridProps extends LayoutProps {
   stats: StatGridStat[];
-  /** Rolls a stat. Without it every card is a static readout. */
-  onRoll?: (stat: StatGridStat) => void;
+  /**
+   * Rolls a stat. Return the action die (1 to 6) and the card's die lands
+   * on it. Without it every card is a static readout.
+   */
+  onRoll?: (stat: StatGridStat) => DieRollResult;
   /** Adds for the next roll, badged on every card. */
   adds?: number;
   /** Shows the cards but blocks rolling, such as while a roll is saving. */
