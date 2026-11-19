@@ -29,7 +29,7 @@ export const guideScenario: SettingsScenario = {
   themeGame: { name: drownedArchive, theme: "myriad", canEdit: true },
 };
 
-/** Parham, a player in that game, on their own character Orrin. */
+/** Phoebe, a player in that game, on their own character Orrin. */
 export const playerScenario: SettingsScenario = {
   character: { name: orrin.name, isOwner: true },
   game: { name: drownedArchive, isGuide: false, secondScreen: true },
