@@ -2,7 +2,7 @@ import { UserCircle } from "@phosphor-icons/react";
 import { CSSProperties, ComponentPropsWithoutRef, useState } from "react";
 
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
-import type { SchemeName } from "ui/theme";
+import { SchemeName, schemes } from "ui/theme";
 
 import { cva, cx } from "styled-system/css";
 
@@ -41,6 +41,26 @@ export const portraitStyles = cva({
       textShadow: "0 1px 2px rgb(0 0 0 / 0.3)",
       boxShadow: "inset 0 0 0 1px rgb(0 0 0 / 0.08)",
       userSelect: "none",
+    },
+    // A colour scheme rings the portrait, as the app does today; the face
+    // inside stays neutral. Drawn over the image, inside the clip.
+    "&[data-scheme] > [data-portrait-face]": {
+      background: "bg.emphasized",
+      color: "fg.muted",
+      textShadow: "none",
+      boxShadow: "none",
+    },
+    "&[data-scheme] > [data-portrait-face]::after": {
+      content: '""',
+      position: "absolute",
+      inset: 0,
+      borderRadius: "inherit",
+      boxShadow: "inset 0 0 0 var(--portrait-ring-width) var(--portrait-ring)",
+      pointerEvents: "none",
+    },
+    "&[data-scheme]": {
+      "--portrait-ring": "var(--portrait-ring-light)",
+      _dark: { "--portrait-ring": "var(--portrait-ring-dark)" },
     },
     "& [data-portrait-image]": {
       position: "absolute",
@@ -90,11 +110,11 @@ export const portraitStyles = cva({
   },
   variants: {
     size: {
-      xs: { "--portrait-font": "0.625rem" },
-      sm: { "--portrait-font": "0.8125rem" },
-      md: { "--portrait-font": "1.0625rem" },
-      lg: { "--portrait-font": "1.375rem" },
-      xl: { "--portrait-font": "2rem" },
+      xs: { "--portrait-font": "0.625rem", "--portrait-ring-width": "1.5px" },
+      sm: { "--portrait-font": "0.8125rem", "--portrait-ring-width": "2px" },
+      md: { "--portrait-font": "1.0625rem", "--portrait-ring-width": "2px" },
+      lg: { "--portrait-font": "1.375rem", "--portrait-ring-width": "2px" },
+      xl: { "--portrait-font": "2rem", "--portrait-ring-width": "3px" },
     },
     shape: {
       circle: { "--portrait-radius": "{radii.full}" },
@@ -136,7 +156,10 @@ export interface CharacterPortraitProps
   crop?: PortraitCrop;
   size?: PortraitSize;
   shape?: "circle" | "rounded";
-  /** Tints the initials' gradient with the character's colour scheme. */
+  /**
+   * The character's colour scheme: a ring in its colour around a neutral
+   * face. Without one, the initials sit on a gradient from `colorSeed`.
+   */
   colorScheme?: SchemeName;
   /** A hue (0 to 360) for the gradient when there is no scheme. */
   colorSeed?: number;
@@ -157,8 +180,9 @@ export interface CharacterPortraitProps
 }
 
 /**
- * A character's portrait: their image, or initials over a gradient tinted by
- * their colour scheme. A dot at the corner shows a status.
+ * A character's portrait: their image, or their initials. A colour scheme
+ * rings it in the scheme's colour; without one the initials sit on a
+ * gradient. A dot at the corner shows a status.
  */
 export function CharacterPortrait(props: CharacterPortraitProps) {
   const {
@@ -184,6 +208,8 @@ export function CharacterPortrait(props: CharacterPortraitProps) {
   const showImage = !!portraitUrl && failedUrl !== portraitUrl && !loading;
 
   const pixels = portraitSizes[size];
+  const scheme =
+    colorScheme && colorScheme in schemes ? schemes[colorScheme] : undefined;
   const scale = crop?.scale ?? 1;
   const position = crop?.position ?? { x: 0.5, y: 0.5 };
 
@@ -197,10 +223,10 @@ export function CharacterPortrait(props: CharacterPortraitProps) {
 
   const variables = {
     "--portrait-size": `${pixels}px`,
-    "--portrait-gradient": getPortraitGradient({
-      name,
-      colorScheme,
-      colorSeed,
+    "--portrait-gradient": getPortraitGradient({ name, colorSeed }),
+    ...(scheme && {
+      "--portrait-ring-light": scheme.light.solid,
+      "--portrait-ring-dark": scheme.dark.solid,
     }),
     "--portrait-scale": `${scale * 100}%`,
     "--portrait-x": `${position.x * -100}%`,
@@ -211,6 +237,7 @@ export function CharacterPortrait(props: CharacterPortraitProps) {
     <span
       className={cx(portraitStyles({ size, shape }), className)}
       data-loading={loading || undefined}
+      data-scheme={scheme ? colorScheme : undefined}
       style={{ ...variables, ...style }}
       {...a11y}
       {...rest}
