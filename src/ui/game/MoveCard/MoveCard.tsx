@@ -13,6 +13,7 @@ import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { RollButton } from "ui/game/RollButton";
 import { formatSigned } from "ui/game/shared";
+import { focusRing } from "ui/styles/focus";
 import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
@@ -80,10 +81,7 @@ const titleButtonStyles = css({
   WebkitTapHighlightColor: "transparent",
   "& svg": { color: "fg.muted" },
   _hover: { "& svg": { color: "fg.default" } },
-  _focusVisible: {
-    outline: "2px solid token(colors.focusRing)",
-    outlineOffset: "2px",
-  },
+  _focusVisible: focusRing.outset,
 });
 
 const sectionStyles = css({
