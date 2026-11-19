@@ -31,6 +31,7 @@ const entry = (id: string, parentEntryId: string | null): IWorldEntry => ({
   parentEntryId,
   name: id,
   imageFilename: null,
+  imageCrop: null,
   icon: null,
   readPermissions: ReadPermissions.AllPlayers,
   editPermissions: EditPermissions.AllPlayers,

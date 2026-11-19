@@ -1,5 +1,4 @@
 import DescriptionIcon from "@mui/icons-material/Description";
-import { Box } from "@mui/material";
 
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
@@ -15,6 +14,7 @@ import {
   WorldCategoryIcon,
   type WorldCategoryIconSize,
 } from "../categories/WorldCategoryIcon";
+import { WorldEntryImage } from "./WorldEntryImage";
 
 const PORTRAIT_SIZE: Record<WorldCategoryIconSize, number> = {
   small: 24,
@@ -32,7 +32,7 @@ export function WorldEntryIcon({
 }: {
   entry: Pick<
     IWorldEntry,
-    "id" | "worldId" | "categoryId" | "icon" | "imageFilename"
+    "id" | "worldId" | "categoryId" | "icon" | "imageFilename" | "imageCrop"
   >;
   size?: WorldCategoryIconSize;
 }) {
@@ -41,23 +41,15 @@ export function WorldEntryIcon({
   );
   const locationType = useWorldEntryLocationType(entry);
   if (entry.imageFilename) {
-    const box = PORTRAIT_SIZE[size];
     return (
-      <Box
-        component="img"
-        alt=""
-        src={WorldEntriesService.getWorldEntryImageUrl(
+      <WorldEntryImage
+        url={WorldEntriesService.getWorldEntryImageUrl(
           entry.worldId,
           entry.id,
           entry.imageFilename,
         )}
-        sx={{
-          width: box,
-          height: box,
-          flexShrink: 0,
-          objectFit: "cover",
-          borderRadius: 1,
-        }}
+        crop={entry.imageCrop}
+        size={PORTRAIT_SIZE[size]}
       />
     );
   }

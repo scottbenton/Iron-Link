@@ -40,6 +40,8 @@ import { worldEntry } from "./fixtures";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("stores/auth.store", () => ({ useUID: () => "author" }));
+// jsdom has no canvas; the crop dialog only needs the editor to mount.
+vi.mock("react-avatar-editor", () => ({ default: () => null }));
 vi.mock("react-i18next", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-i18next")>()),
   useTranslation: () => ({ t: translate }),
@@ -379,6 +381,11 @@ describe("entry images", () => {
     ).toBeInTheDocument();
     const file = new File(["png"], "map.png", { type: "image/png" });
     await user.upload(screen.getByTestId("world-entry-image-input"), file);
+    // Nothing uploads until the crop is saved.
+    const dialog = await screen.findByRole("dialog", { name: "Crop image" });
+    expect(upload).not.toHaveBeenCalled();
+    await user.click(within(dialog).getByRole("button", { name: "Zoom in" }));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
     await waitFor(() =>
       expect(removeImage).toHaveBeenCalledWith(
         category.worldId,
@@ -389,7 +396,36 @@ describe("entry images", () => {
     expect(upload).toHaveBeenCalledWith(category.worldId, "entry-1", file);
     expect(update).toHaveBeenCalledWith("entry-1", {
       imageFilename: "new.png",
+      imageCrop: { position: { x: 0.5, y: 0.5 }, scale: 1.1 },
     });
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+  });
+
+  it("crops the stored portrait without uploading it again", async () => {
+    const user = userEvent.setup();
+    const crop = { position: { x: 0.5, y: 0.3 }, scale: 1.5 };
+    loadEntries([worldEntry({ imageFilename: "old.png", imageCrop: crop })]);
+    const upload = vi.spyOn(WorldEntriesService, "uploadWorldEntryImage");
+    vi.spyOn(WorldEntriesService, "getWorldEntryImageUrl").mockReturnValue(
+      "https://x/old.png",
+    );
+    const update = vi
+      .spyOn(WorldEntriesService, "updateWorldEntry")
+      .mockResolvedValue();
+    renderStrip();
+    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(screen.getByRole("menuitem", { name: "Crop image" }));
+    const dialog = await screen.findByRole("dialog", { name: "Crop image" });
+    await user.click(within(dialog).getByRole("button", { name: "Zoom out" }));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(update).toHaveBeenCalledWith("entry-1", {
+        imageCrop: { ...crop, scale: 1.4 },
+      }),
+    );
+    expect(upload).not.toHaveBeenCalled();
   });
 
   it("offers Add image in More when there is no portrait", async () => {
@@ -441,7 +477,10 @@ describe("entry images", () => {
     await user.click(screen.getByRole("button", { name: "More" }));
     await user.click(screen.getByRole("menuitem", { name: "Remove image" }));
     await waitFor(() => expect(removeImage).toHaveBeenCalled());
-    expect(update).toHaveBeenCalledWith("entry-1", { imageFilename: null });
+    expect(update).toHaveBeenCalledWith("entry-1", {
+      imageFilename: null,
+      imageCrop: null,
+    });
   });
 });
 

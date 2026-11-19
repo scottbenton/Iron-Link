@@ -131,6 +131,10 @@ that are easy to miss. When you learn a new one, add a line here.
   nearest Sector's Region) shows editors a note naming the parent it needs
   when none fits (`getWorldFieldParentRequirements`); the wording is built
   from the rules, so templates need no copy for it.
+- An entry's image is stored whole (the full-size view shows the upload) and
+  its icon shows the part chosen in `WorldEntryImageDialog`:
+  `image_position_x|y` and `image_scale`, a character portrait's crop shape
+  (`lib/imageCrop.lib.ts`, which clamps it, and the shared `ImageCropper`).
 - A world entry is either Guide prep (`only_guides` read and edit) or shared
   with everyone (`all_players` read and edit, so players can add notes).
   Only Guides choose, and only in guided worlds; a trigger refuses permission
