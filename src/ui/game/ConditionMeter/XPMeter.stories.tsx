@@ -4,8 +4,9 @@ import { fn } from "storybook/test";
 
 import { HStack } from "ui/primitives";
 
-import { ConditionMeter, MomentumMeter } from "../ConditionMeter";
-import { XPMeter } from "./XPTrack";
+import { ConditionMeter } from "./ConditionMeter";
+import { MomentumMeter } from "./MomentumMeter";
+import { XPMeter } from "./XPMeter";
 
 const meta = {
   title: "Game/XPMeter",
