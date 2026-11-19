@@ -8,6 +8,7 @@ import {
 import { ReactNode } from "react";
 
 import { focusRing } from "ui/styles/focus";
+import { quietPressable } from "ui/styles/pressable";
 
 import { css, cx } from "styled-system/css";
 
@@ -25,27 +26,18 @@ import {
 import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
 
 const triggerStyles = css({
-  boxSizing: "border-box",
+  ...quietPressable,
   display: "flex",
   alignItems: "center",
   gap: "2",
   minWidth: 0,
   maxWidth: "100%",
   minHeight: "touch",
-  margin: 0,
   paddingInline: "1.5",
-  border: 0,
   borderRadius: "md",
-  background: "transparent",
   color: "inherit",
   font: "inherit",
   textAlign: "start",
-  cursor: "pointer",
-  outline: "none",
-  WebkitTapHighlightColor: "transparent",
-  transition: "background-color token(durations.fast) linear",
-  _hoverable: { _hover: { background: "overlay.hover" } },
-  _active: { background: "overlay.pressed" },
   "&[data-popup-open]": { background: "overlay.pressed" },
   // Inside the bar's h1, which clips: the ring stays inside the button.
   _focusVisible: focusRing.inset,

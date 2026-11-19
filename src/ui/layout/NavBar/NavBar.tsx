@@ -5,6 +5,7 @@ import { ReactNode, useRef, useState } from "react";
 import { focusRing } from "ui/styles/focus";
 import { ledgeLayers } from "ui/styles/ledge";
 import { ledgeShadow } from "ui/styles/ledge";
+import { quietPressable } from "ui/styles/pressable";
 
 import { css, cx } from "styled-system/css";
 
@@ -184,6 +185,7 @@ const drawerListStyles = css({
 });
 
 const drawerLinkStyles = css({
+  ...quietPressable,
   position: "relative",
   display: "flex",
   alignItems: "center",
@@ -195,14 +197,11 @@ const drawerLinkStyles = css({
   color: "fg.muted",
   fontSize: "sm",
   fontWeight: "semibold",
-  textDecoration: "none",
-  outline: "none",
-  WebkitTapHighlightColor: "transparent",
-  transition:
-    "background-color token(durations.fast) linear, color token(durations.fast) linear",
+  transitionProperty: "background-color, color",
   "& svg": { width: "icon.md", height: "icon.md", flex: "none" },
-  _hover: { background: "overlay.hover", color: "fg.default" },
-  _active: { background: "overlay.pressed" },
+  _hoverable: {
+    _hover: { background: "overlay.hover", color: "fg.default" },
+  },
   _focusVisible: focusRing.inset,
   _current: {
     ...ledgeLayers(),
