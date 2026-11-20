@@ -106,6 +106,7 @@ import MuiWhatshot from "@mui/icons-material/Whatshot";
 import MuiWrapText from "@mui/icons-material/WrapText";
 import MuiZoomIn from "@mui/icons-material/ZoomIn";
 import MuiZoomOut from "@mui/icons-material/ZoomOut";
+import { CalendarSlashIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { ComponentType } from "react";
 
@@ -117,7 +118,8 @@ import {
   sectionStyles,
 } from "../../docs/foundations/foundationStyles";
 import { Icon, IconSize } from "../Icon";
-import { muiIconMap } from "../iconMap";
+import * as icons from "../index";
+import type { IconWeight } from "../index";
 
 const meta: Meta = {
   title: "Foundations/Icons",
@@ -125,10 +127,17 @@ const meta: Meta = {
 };
 export default meta;
 
+/** The names of the icons `ui/icons` exports. */
+type IconName = {
+  [K in keyof typeof icons]: (typeof icons)[K] extends icons.PhosphorIcon
+    ? K
+    : never;
+}[keyof typeof icons];
+
 type Row = {
   mui: string;
   Mui: ComponentType<{ fontSize?: "inherit" }>;
-  phosphor: string;
+  phosphor: IconName;
   files: number;
 };
 
@@ -528,9 +537,8 @@ const rowStyles = css({
 
 /**
  * Each MUI icon the app uses, beside the Phosphor icon that replaces it, at
- * 24px. "Files" is how many app files import the MUI icon. The map lives in
- * `src/ui/icons/iconMap.ts`; screens import the Phosphor icons from
- * `ui/icons`.
+ * 24px. "Files" is how many app files import the MUI icon. Screens swap each
+ * MUI import for its icon from `ui/icons`.
  */
 export const MuiToPhosphor: StoryObj = {
   render: () => (
@@ -563,7 +571,7 @@ export const MuiToPhosphor: StoryObj = {
               </td>
               <td>
                 <span className={glyphStyles}>
-                  <Icon icon={muiIconMap[row.mui]} />
+                  <Icon icon={icons[row.phosphor]} />
                 </span>
               </td>
               <td className={codeStyles}>{row.phosphor}</td>
@@ -588,7 +596,7 @@ export const SizesAndColors: StoryObj = {
       <div className={rowStyles}>
         {sizes.map((size) => (
           <div key={size} className={sectionStyles}>
-            <Icon icon={muiIconMap.Casino} size={size} />
+            <Icon icon={icons.DiceFiveIcon} size={size} />
             <Text variant="caption" color="muted">
               {size}
             </Text>
@@ -607,7 +615,7 @@ export const SizesAndColors: StoryObj = {
           ] as const
         ).map((color) => (
           <div key={color} className={sectionStyles}>
-            <Icon icon={muiIconMap.Info} size="lg" color={color} />
+            <Icon icon={icons.InfoIcon} size="lg" color={color} />
             <Text variant="caption" color="muted">
               {color}
             </Text>
@@ -615,9 +623,77 @@ export const SizesAndColors: StoryObj = {
         ))}
       </div>
       <Text>
-        Inline with text <Icon icon={muiIconMap.Lock} label="Locked" /> at the
+        Inline with text <Icon icon={icons.LockIcon} label="Locked" /> at the
         text size.
       </Text>
     </div>
   ),
 };
+
+const weights: IconWeight[] = [
+  "thin",
+  "light",
+  "regular",
+  "bold",
+  "fill",
+  "duotone",
+];
+
+const slashedIcons = [
+  { name: "ImageSlashIcon (ours)", Glyph: icons.ImageSlashIcon },
+  { name: "EyeSlashIcon", Glyph: icons.EyeSlashIcon },
+  { name: "CalendarSlashIcon", Glyph: CalendarSlashIcon },
+];
+
+const weightGridStyles = css({
+  display: "grid",
+  gridTemplateColumns: "max-content repeat(6, max-content)",
+  alignItems: "center",
+  gap: "4",
+});
+
+/**
+ * `ImageSlashIcon` is our own, made with `createIcon`. It follows Phosphor's
+ * slashed icons: the slash is each weight's line width, lines below it run
+ * into it, and lines above it stop short with round ends. Phosphor's
+ * EyeSlash and CalendarSlash are here to compare, at every weight.
+ */
+export const SlashedIcons: StoryObj = {
+  render: () => (
+    <div className={pageStyles}>
+      <div className={weightGridStyles}>
+        <span />
+        {weights.map((weight) => (
+          <Text key={weight} variant="caption" color="muted">
+            {weight}
+          </Text>
+        ))}
+        {slashedIcons.map(({ name, Glyph }) => (
+          <SlashedRow key={name} name={name} Glyph={Glyph} />
+        ))}
+      </div>
+      <div className={rowStyles}>
+        {sizes.map((size) => (
+          <div key={size} className={sectionStyles}>
+            <Icon icon={icons.ImageSlashIcon} size={size} />
+            <Text variant="caption" color="muted">
+              {size}
+            </Text>
+          </div>
+        ))}
+      </div>
+    </div>
+  ),
+};
+
+function SlashedRow(props: { name: string; Glyph: icons.PhosphorIcon }) {
+  const { name, Glyph } = props;
+  return (
+    <>
+      <span className={codeStyles}>{name}</span>
+      {weights.map((weight) => (
+        <Glyph key={weight} size={64} weight={weight} aria-hidden />
+      ))}
+    </>
+  );
+}
