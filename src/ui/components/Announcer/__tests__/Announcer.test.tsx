@@ -1,7 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { LiveRegion } from "../Announcer";
+import { LiveRegion } from "../LiveRegion";
 
 describe("LiveRegion", () => {
   beforeEach(() => vi.useFakeTimers());
