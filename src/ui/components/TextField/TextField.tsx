@@ -14,6 +14,8 @@ import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { cx } from "styled-system/css";
 
+import { useControllableState } from "../../hooks/useControllableState";
+import { mergeRefs } from "../../utils/mergeRefs";
 import {
   FieldOwnProps,
   FieldShell,
@@ -21,8 +23,6 @@ import {
   fieldIconButtonStyles,
   fieldInputStyles,
   fieldShellStyles,
-  mergeRefs,
-  useControllableState,
 } from "../Field";
 import { Tooltip } from "../Tooltip";
 

@@ -18,7 +18,8 @@ import { css, cx } from "styled-system/css";
 import { contentCardStyles } from "../MoveCard/cardStyles";
 import { RulesText } from "../RulesText/RulesText";
 import { RulesTextOptions } from "../RulesText/RulesTextContext";
-import { AssetControlField, AssetOptionField } from "./AssetFields";
+import { AssetControlField } from "./AssetControlField";
+import { AssetOptionField } from "./AssetOptionField";
 import {
   AssetCardState,
   AssetControl,

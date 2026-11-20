@@ -9,115 +9,24 @@
  */
 import type { Datasworn } from "@datasworn-community/core";
 
-import { MoveListItem } from "../../game/MoveListItem";
-import { OracleListItem } from "../../game/OracleListItem";
-import { ReferenceCategory } from "../../game/ReferenceCategory";
 import { starforgedRules } from "./datasworn";
+import {
+  LooseMoveCategory,
+  LooseOracleCollection,
+} from "./referenceTreeHelpers";
 
-export interface LooseOracleCollection {
-  _id: string;
-  name: string;
-  oracle_type: string;
-  contents?: Record<string, { _id: string; name: string }>;
-  collections?: Record<string, LooseOracleCollection>;
-}
-
-export interface LooseMoveCategory {
-  _id?: string;
-  name: string;
-  contents: Record<string, Datasworn.AnyMove>;
-  collections?: Record<string, LooseMoveCategory>;
-}
-
-const isSharedRoll = (collection: LooseOracleCollection) =>
-  collection.oracle_type !== "tables";
-
-/** Every oracle a collection rolls, its sub-collections included. */
-export function countOracles(collection: LooseOracleCollection): number {
-  if (isSharedRoll(collection)) return 1;
-  return (
-    Object.keys(collection.contents ?? {}).length +
-    Object.values(collection.collections ?? {}).reduce(
-      (total, child) => total + countOracles(child),
-      0,
-    )
-  );
-}
-
-export const oracleCountLabel = (count: number) =>
-  count === 1 ? "1 oracle" : `${count} oracles`;
-export const moveCountLabel = (count: number) =>
-  count === 1 ? "1 move" : `${count} moves`;
-
-export interface TreeOpenOptions {
-  /** Every category starts open (true) or closed (false). */
-  defaultOpen?: boolean;
-  /** Only these collection ids start open; wins over `defaultOpen`. */
-  openIds?: ReadonlySet<string>;
-}
-
-const startsOpen = (id: string | undefined, options: TreeOpenOptions) =>
-  options.openIds ? !!id && options.openIds.has(id) : !!options.defaultOpen;
-
-/** An oracle collection and everything under it. */
-export function OracleCollectionTree(
-  props: { collection: LooseOracleCollection } & TreeOpenOptions,
-) {
-  const { collection, ...options } = props;
-  return (
-    <ReferenceCategory
-      title={collection.name}
-      count={countOracles(collection)}
-      countLabel={oracleCountLabel}
-      defaultOpen={startsOpen(collection._id, options)}
-    >
-      {Object.values(collection.contents ?? {}).map((oracle) => (
-        <OracleListItem key={oracle._id} name={oracle.name} onRoll={() => {}} />
-      ))}
-      {Object.values(collection.collections ?? {}).map((child) =>
-        isSharedRoll(child) ? (
-          <OracleListItem key={child._id} name={child.name} onRoll={() => {}} />
-        ) : (
-          <OracleCollectionTree
-            key={child._id}
-            collection={child}
-            {...options}
-          />
-        ),
-      )}
-    </ReferenceCategory>
-  );
-}
-
-/** A move category, with any categories nested in it (custom content). */
-export function MoveCategoryTree(
-  props: { category: LooseMoveCategory } & TreeOpenOptions,
-) {
-  const { category, ...options } = props;
-  const children = Object.values(category.collections ?? {});
-  const count = (c: LooseMoveCategory): number =>
-    Object.keys(c.contents).length +
-    Object.values(c.collections ?? {}).reduce((n, x) => n + count(x), 0);
-  return (
-    <ReferenceCategory
-      title={category.name}
-      count={count(category)}
-      countLabel={moveCountLabel}
-      defaultOpen={startsOpen(category._id, options)}
-    >
-      {Object.values(category.contents).map((move) => (
-        <MoveListItem key={move._id} move={move} />
-      ))}
-      {children.map((child) => (
-        <MoveCategoryTree
-          key={child._id ?? child.name}
-          category={child}
-          {...options}
-        />
-      ))}
-    </ReferenceCategory>
-  );
-}
+export { MoveCategoryTree } from "./MoveCategoryTree";
+export { OracleCollectionTree } from "./OracleCollectionTree";
+export {
+  countOracles,
+  moveCountLabel,
+  oracleCountLabel,
+} from "./referenceTreeHelpers";
+export type {
+  LooseMoveCategory,
+  LooseOracleCollection,
+  TreeOpenOptions,
+} from "./referenceTreeHelpers";
 
 export const starforgedOracleCollections = Object.values(
   starforgedRules.oracles as Record<string, LooseOracleCollection>,

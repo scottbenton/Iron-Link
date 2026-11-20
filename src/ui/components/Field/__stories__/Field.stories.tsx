@@ -6,19 +6,13 @@ import { Box, Grid, HStack, Stack } from "ui/primitives";
 
 import { css } from "styled-system/css";
 
+import { Field, FieldDescription, FieldError, FieldLabel, FieldRoot } from "..";
 import { Combobox } from "../../Combobox";
 import { Select } from "../../Select";
 import { Text } from "../../Text";
 import { TextArea } from "../../TextArea";
 import { TextField } from "../../TextField";
 import { Tooltip } from "../../Tooltip";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-  FieldRoot,
-} from "../Field";
 import { fieldIconButtonStyles } from "../fieldStyles";
 
 const meta = {

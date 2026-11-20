@@ -6,6 +6,7 @@ import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cva, cx } from "styled-system/css";
 
+import { mergeRefs } from "../../utils/mergeRefs";
 import {
   FieldOwnProps,
   FieldShell,
@@ -13,7 +14,6 @@ import {
   fieldInputStyles,
   fieldRootRecipe,
   fieldShellStyles,
-  mergeRefs,
 } from "../Field";
 import { focusInputOnWellPress } from "../TextField";
 

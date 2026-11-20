@@ -6,6 +6,7 @@ import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
+import { useControllableState } from "../../hooks/useControllableState";
 import { Checkbox, choiceListStyles } from "../Checkbox";
 import {
   FieldError,
@@ -15,7 +16,6 @@ import {
   fieldDescriptionStyles,
   fieldsetDescriptionStyles,
   resolveFieldError,
-  useControllableState,
 } from "../Field";
 
 export interface CheckboxGroupProps extends FieldOwnProps, CssProp {

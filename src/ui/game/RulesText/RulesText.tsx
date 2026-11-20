@@ -7,24 +7,22 @@ import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { cx } from "styled-system/css";
 
 import { OracleTable } from "../OracleTable";
-import {
-  RulesTextMacro,
-  RulesTextOptions,
-  mergeRulesTextOptions,
-  useRulesTextOptions,
-} from "./RulesTextContext";
+import { HeadingLike } from "./HeadingLike";
+import { RulesTextMacro, RulesTextOptions } from "./RulesTextContext";
 import {
   INLINE_MACRO_SCHEME,
   parseBlockMacro,
   parseInlineMacro,
   prepareMarkdown,
 } from "./macros";
+import { mergeRulesTextOptions } from "./mergeRulesTextOptions";
 import {
   compactTableStyles,
   rulesLinkStyles,
   rulesTextStyles,
   tableScrollStyles,
 } from "./rulesTextStyles";
+import { useRulesTextOptions } from "./useRulesTextOptions";
 
 const DATASWORN_SCHEME = "datasworn:";
 const TABLE_MACROS = new Set(["table"]);
@@ -178,12 +176,4 @@ function getComponents(
       return <>{children}</>;
     },
   };
-}
-
-/**
- * Headings inside rules text are labels within someone else's section, so
- * they look like headings without joining the page's outline.
- */
-function HeadingLike(props: { children?: ReactNode }) {
-  return <p data-rules-heading="">{props.children}</p>;
 }
