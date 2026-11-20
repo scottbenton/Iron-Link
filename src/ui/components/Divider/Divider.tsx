@@ -1,7 +1,7 @@
 import { Separator } from "@base-ui/react/separator";
 import { ComponentProps, ReactNode, forwardRef } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -50,7 +50,7 @@ const labelledStyles = css({
 
 export interface DividerProps
   extends Omit<ComponentProps<"div">, "children">,
-    LayoutProps {
+    CssProp {
   orientation?: "horizontal" | "vertical";
   /** The lighter hairline, for dividers inside a card. */
   subtle?: boolean;
@@ -76,7 +76,7 @@ export const Divider = forwardRef<HTMLDivElement, DividerProps>(
       labelAlign = "center",
       className,
       ...rest
-    } = withLayoutProps(props);
+    } = withCssProp(props);
     if (children !== undefined && children !== null) {
       return (
         <div

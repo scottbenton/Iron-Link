@@ -6,8 +6,8 @@ import {
   useContext,
 } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -44,9 +44,9 @@ const tableStyles = css({
 });
 
 export interface TableProps
-  // The table's own width attribute gives way to the layout props.
+  // The table's old width attribute is left out: size it with `css`.
   extends Omit<ComponentProps<"table">, "width">,
-    Omit<LayoutProps, "maxHeight"> {
+    CssProp {
   /** Compact rows for dense data, such as oracle tables. */
   density?: "comfortable" | "compact";
   /**
@@ -74,7 +74,7 @@ export interface TableProps
 export const Table = forwardRef<HTMLTableElement, TableProps>(
   function Table(props, ref) {
     const { className, containerClassName, ...ownProps } = props;
-    // The layout props place the scrolling box, so they join its class.
+    // The css prop places the scrolling box, so it joins that box's class.
     const {
       density = "comfortable",
       stickyHeader = false,
@@ -82,9 +82,7 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(
       "aria-label": ariaLabel,
       className: boxClassName,
       ...rest
-    } = withLayoutProps({ ...ownProps, className: containerClassName }, [
-      "maxHeight",
-    ]);
+    } = withCssProp({ ...ownProps, className: containerClassName });
     const scrolls = maxHeight !== undefined;
     return (
       <TableContext.Provider value={{ density, stickyHeader }}>
@@ -100,8 +98,7 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(
             ref={ref}
             className={cx(tableStyles, className)}
             aria-label={scrolls ? undefined : ariaLabel}
-            // The layout props are gone from `rest`, though its type keeps them.
-            {...(rest as Omit<ComponentProps<"table">, "width">)}
+            {...rest}
           />
         </div>
       </TableContext.Provider>

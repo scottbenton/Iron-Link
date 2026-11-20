@@ -2,7 +2,7 @@ import { CheckboxGroup as BaseCheckboxGroup } from "@base-ui/react/checkbox-grou
 import { Fieldset as BaseFieldset } from "@base-ui/react/fieldset";
 import { ReactNode, useId } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
@@ -18,7 +18,7 @@ import {
   useControllableState,
 } from "../Field";
 
-export interface CheckboxGroupProps extends FieldOwnProps, LayoutProps {
+export interface CheckboxGroupProps extends FieldOwnProps, CssProp {
   /** The Checkboxes, each with a `value`. */
   children: ReactNode;
   /** The `value`s of the ticked checkboxes, when controlled. */
@@ -93,7 +93,7 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
     required,
     disabled,
     requiredIndicator,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const { invalid, message } = resolveFieldError(error, invalidProp);
   const descriptionId = useId();
   const allTitleId = useId();

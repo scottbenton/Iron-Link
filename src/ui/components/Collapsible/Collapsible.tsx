@@ -2,8 +2,8 @@ import { Collapsible as BaseCollapsible } from "@base-ui/react/collapsible";
 import { CaretRight } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode, forwardRef } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { quietPressable } from "ui/styles/pressable";
 
 import { css, cx } from "styled-system/css";
@@ -14,7 +14,7 @@ type RootProps = ComponentProps<typeof BaseCollapsible.Root>;
 
 export interface CollapsibleProps
   extends Omit<RootProps, "className">,
-    LayoutProps {
+    CssProp {
   className?: string;
 }
 
@@ -26,7 +26,7 @@ export interface CollapsibleProps
  */
 export const Collapsible = forwardRef<HTMLDivElement, CollapsibleProps>(
   function Collapsible(props, ref) {
-    const { className, ...rest } = withLayoutProps(props);
+    const { className, ...rest } = withCssProp(props);
     return <BaseCollapsible.Root ref={ref} className={className} {...rest} />;
   },
 );

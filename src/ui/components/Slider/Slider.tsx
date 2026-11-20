@@ -1,8 +1,8 @@
 import { Slider as BaseSlider } from "@base-ui/react/slider";
 import { ReactNode, Ref } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { ledgeLayers } from "ui/styles/ledge";
 
 import { css } from "styled-system/css";
@@ -13,7 +13,7 @@ type SliderValue = number | readonly number[];
 
 export interface SliderProps<V extends SliderValue = number>
   extends FieldOwnProps,
-    LayoutProps {
+    CssProp {
   /**
    * The value, when controlled. Pass an array of two numbers for a range
    * with two thumbs.
@@ -194,7 +194,7 @@ export function Slider<V extends SliderValue = number>(props: SliderProps<V>) {
     required,
     disabled,
     requiredIndicator,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const thumbCount = Array.isArray(value ?? defaultValue)
     ? ((value ?? defaultValue) as readonly number[]).length
