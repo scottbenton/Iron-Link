@@ -1,9 +1,9 @@
 /**
  * Every icon Iron Link uses. Screens import icons from here, never from
- * Phosphor, so the icon set can change in this folder alone.
+ * Phosphor, so the icon set can change in this folder alone. Icons of our own
+ * are made with `createIcon` and exported here beside Phosphor's.
  *
- * `muiIconMap` in iconMap.ts lists the MUI icon each one replaces; the
- * "Foundations/Icons" story shows them side by side.
+ * The "Foundations/Icons" story shows the MUI icon each one replaces.
  */
 export {
   ArrowCounterClockwiseIcon,
@@ -103,7 +103,9 @@ export {
   XIcon,
 } from "@phosphor-icons/react";
 
-export type { IconWeight } from "@phosphor-icons/react";
+export type { IconWeight, Icon as PhosphorIcon } from "@phosphor-icons/react";
 export { Icon } from "./Icon";
+export { createIcon } from "./createIcon";
+export type { IconDrawing } from "./createIcon";
 export { ImageSlashIcon } from "./ImageSlashIcon";
 export type { IconProps, IconSize } from "./Icon";
