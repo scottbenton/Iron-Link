@@ -243,3 +243,30 @@ export const StackedBothCollapsed: Story = {
   parameters: { layout: "padded" },
   render: (args) => <BothOnRails args={args} />,
 };
+
+const compactFrame = css({
+  width: "760px",
+  maxWidth: "100%",
+  height: "720px",
+  border: "1px solid token(colors.border.default)",
+});
+
+/**
+ * From 600 to 900px (shown at 760px) neither sidebar can be pinned: both
+ * stay on one rail before the notes, and a rail button opens its sidebar
+ * as a flyout over them, with no Keep Open. Below 600px phones get the
+ * phone game page instead.
+ */
+export const Flyouts: Story = {
+  args: {
+    stackSidebars: true,
+    startSidebar: { panels: [character], defaultWidth: 350, pinnable: false },
+    endSidebar: { panels: [reference], defaultWidth: 350, pinnable: false },
+  },
+  parameters: { layout: "padded" },
+  render: (args) => (
+    <div className={compactFrame}>
+      <SectionedGameLayout {...args} />
+    </div>
+  ),
+};

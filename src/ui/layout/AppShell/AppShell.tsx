@@ -27,7 +27,7 @@ const frameStyles = css({
   display: "grid",
   gridTemplateColumns: "minmax(0, 1fr)",
   minHeight: "inherit",
-  "@container shell (min-width: 900px)": {
+  "@container shell (min-width: 600px)": {
     gridTemplateColumns: "auto minmax(0, 1fr)",
   },
 });
@@ -41,7 +41,7 @@ const fillStyles = css({
 
 const railSlotStyles = css({
   display: "none",
-  "@container shell (min-width: 900px)": { display: "block" },
+  "@container shell (min-width: 600px)": { display: "block" },
 });
 
 const columnStyles = css({
@@ -65,18 +65,18 @@ const bottomSlotStyles = css({
   bottom: 0,
   zIndex: "sticky",
   flex: "none",
-  "@container shell (min-width: 900px)": { display: "none" },
+  "@container shell (min-width: 600px)": { display: "none" },
 });
 
 export interface AppShellProps {
-  /** The NavRail, shown on wide screens (900px and up). */
+  /** The NavRail, shown on wide screens (600px and up). */
   rail?: ReactNode;
   /**
    * The NavBar. It renders inside `<main>`, so the page's h1 in it is where
    * route focus lands.
    */
   topBar?: ReactNode;
-  /** The MobileNav bottom bar, shown on phones (below 900px). */
+  /** The MobileNav bottom bar, shown on phones (below 600px). */
   bottomNav?: ReactNode;
   /** The page. */
   children?: ReactNode;
@@ -95,7 +95,7 @@ export interface AppShellProps {
  * The app's frame: a skip link, the NavRail beside the page on wide
  * screens, and the MobileNav under it on phones. The shell is a size
  * container named `shell` whose width drives every layout component inside
- * it, so the switch at 900px needs no script.
+ * it, so the switch at 600px needs no script.
  *
  * Its height is `--app-shell-height` (100dvh by default); set the variable
  * to fit it in a frame.

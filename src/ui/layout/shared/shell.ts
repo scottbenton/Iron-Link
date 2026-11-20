@@ -6,11 +6,11 @@ import { css } from "styled-system/css";
  * in a story or a docs page a narrow frame shows the phone layout.
  *
  * Panda cannot take these keys from a constant, so components write them out:
- * - wide: `@container shell (min-width: 900px)` (md, the rail and sidebars)
- * - phone: `@container shell (max-width: 899.98px)` (the bottom bar, tabs)
- * - sm: `@container shell (min-width: 600px)` (wider page insets)
+ * - wide: `@container shell (min-width: 600px)` (sm, the rail and sidebars)
+ * - phone: `@container shell (max-width: 599.98px)` (the bottom bar, tabs)
+ * - md: `@container shell (min-width: 900px)` (wider page insets)
  *
- * The 900px edge is the app's `useIsMobile()` (smaller than md), so a
+ * The 600px edge is the library's `useIsMobile()` (smaller than sm), so a
  * component that takes a `compact` prop agrees with the shell around it.
  */
 export const SHELL_CONTAINER_NAME = "shell";
@@ -34,12 +34,12 @@ export const pageInset = css({
   "@container shell (min-width: 900px)": { paddingInline: "8" },
 });
 
-/** Shown only on phones (below 900px of shell). */
+/** Shown only on phones (below 600px of shell). */
 export const phoneOnly = css({
-  "@container shell (min-width: 900px)": { display: "none!" },
+  "@container shell (min-width: 600px)": { display: "none!" },
 });
 
-/** Shown only on wide screens (900px of shell and up). */
+/** Shown only on wide screens (600px of shell and up). */
 export const wideOnly = css({
-  "@container shell (max-width: 899.98px)": { display: "none!" },
+  "@container shell (max-width: 599.98px)": { display: "none!" },
 });

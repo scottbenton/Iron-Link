@@ -47,7 +47,7 @@ function Shell(props: { fill?: boolean }) {
 
 /**
  * The rail beside the page on wide screens; the bar over it and the bottom
- * navigation under it on phones. Resize the window past 900px to switch.
+ * navigation under it on phones. Resize the window past 600px to switch.
  */
 export const Playground: Story = { render: () => <Shell /> };
 
