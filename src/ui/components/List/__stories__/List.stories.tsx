@@ -13,8 +13,6 @@ import { Grid } from "ui/primitives";
 
 import { css } from "styled-system/css";
 
-import { sampleCharacters } from "../../../docs/fixtures/characters";
-import { IconButton } from "../../IconButton";
 import {
   List,
   ListItem,
@@ -23,7 +21,9 @@ import {
   ListItemIcon,
   ListItemText,
   ListSubheader,
-} from "../List";
+} from "..";
+import { sampleCharacters } from "../../../docs/fixtures/characters";
+import { IconButton } from "../../IconButton";
 
 const frame = css({
   width: "100%",

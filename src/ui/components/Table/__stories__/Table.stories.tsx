@@ -3,9 +3,6 @@ import { useState } from "react";
 
 import { Stack } from "ui/primitives";
 
-import { sampleCharacters } from "../../../docs/fixtures/characters";
-import { starforgedRules } from "../../../docs/fixtures/datasworn";
-import { Button } from "../../Button";
 import {
   Table,
   TableBody,
@@ -14,7 +11,10 @@ import {
   TableHead,
   TableHeaderCell,
   TableRow,
-} from "../Table";
+} from "..";
+import { sampleCharacters } from "../../../docs/fixtures/characters";
+import { starforgedRules } from "../../../docs/fixtures/datasworn";
+import { Button } from "../../Button";
 
 interface OracleRow {
   roll: { min: number; max: number };
