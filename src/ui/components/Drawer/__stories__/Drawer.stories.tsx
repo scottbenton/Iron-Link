@@ -45,7 +45,7 @@ const navLink = css({
   "& svg": { width: "20px", height: "20px", color: "fg.muted" },
 });
 
-/** The phone navigation: it stays at its side on phones too. */
+/** The phone navigation, from the left. */
 export const Navigation: Story = {
   render: function Render() {
     const [open, setOpen] = useState(false);
@@ -58,7 +58,6 @@ export const Navigation: Story = {
           open={open}
           onClose={() => setOpen(false)}
           side="left"
-          mobile="side"
           size="sm"
         >
           <DrawerHeader title="Iron Link" />
@@ -83,7 +82,7 @@ export const Navigation: Story = {
   },
 };
 
-/** A tool drawer: at the right on wide screens, a bottom sheet on phones. */
+/** A tool drawer, from the right at every width. */
 export const Oracles: Story = {
   render: function Render() {
     const [open, setOpen] = useState(false);
