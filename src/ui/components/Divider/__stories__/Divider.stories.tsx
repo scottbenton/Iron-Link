@@ -2,9 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HStack, Stack } from "ui/primitives";
 
-import { Button } from "../Button";
-import { Text } from "../Text";
-import { Divider } from "./Divider";
+import { Button } from "../../Button";
+import { Text } from "../../Text";
+import { Divider } from "../Divider";
 
 const meta: Meta<typeof Divider> = {
   title: "Components/Divider",

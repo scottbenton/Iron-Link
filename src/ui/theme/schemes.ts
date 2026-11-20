@@ -1,11 +1,10 @@
-import { distributeStops, toOklch } from "./color";
-
 /**
  * Iron Link's nine colour schemes, matching `ColorScheme` in
  * repositories/shared.types. Each carries the accent for light mode (the 700
  * stop, AA on white) and dark mode (400 for text, 500 for fills), plus the two
  * brand gradients: `ring` for roll buttons and the current page tab, `icon`
- * for the logo and favicon.
+ * for the logo and favicon. Colours are OKLCH, converted once from the
+ * app's hex values.
  */
 export interface SchemeDefinition {
   label: string;
@@ -26,70 +25,150 @@ const prideStops = [
   "oklch(60.6% 0.25 292.717)",
 ];
 
-const onLight = "#ffffff";
-const onDark = "#030712";
+const onLight = "oklch(100% 0 0)";
+const onDark = "oklch(12.96% 0.0274 261.69)";
 
 export const schemes = {
   default: {
     label: "Sunrise",
-    light: { fg: "#be123c", solid: "#be123c", onSolid: onLight },
-    dark: { fg: "#fb7185", solid: "#f43f5e", onSolid: onDark },
-    ring: ["#e11d48", "#f59e0b"],
-    icon: ["#fb7185", "#d08700"],
+    light: {
+      fg: "oklch(51.43% 0.1978 16.93)",
+      solid: "oklch(51.43% 0.1978 16.93)",
+      onSolid: onLight,
+    },
+    dark: {
+      fg: "oklch(71.92% 0.169 13.43)",
+      solid: "oklch(64.5% 0.2154 16.44)",
+      onSolid: onDark,
+    },
+    ring: ["oklch(58.58% 0.222 17.58)", "oklch(76.86% 0.1647 70.08)"],
+    icon: ["oklch(71.92% 0.169 13.43)", "oklch(68.22% 0.1465 71.47)"],
   },
   cinder: {
     label: "Cinder",
-    light: { fg: "#b91c1c", solid: "#b91c1c", onSolid: onLight },
-    dark: { fg: "#f87171", solid: "#ef4444", onSolid: onDark },
-    ring: ["#fca5a5", "#b91c1c"],
-    icon: ["#f87171", "#991b1b"],
+    light: {
+      fg: "oklch(50.54% 0.1905 27.52)",
+      solid: "oklch(50.54% 0.1905 27.52)",
+      onSolid: onLight,
+    },
+    dark: {
+      fg: "oklch(71.06% 0.1661 22.22)",
+      solid: "oklch(63.68% 0.2078 25.33)",
+      onSolid: onDark,
+    },
+    ring: ["oklch(80.77% 0.1035 19.57)", "oklch(50.54% 0.1905 27.52)"],
+    icon: ["oklch(71.06% 0.1661 22.22)", "oklch(44.37% 0.1613 26.9)"],
   },
   eidolon: {
     label: "Eidolon",
-    light: { fg: "#a16207", solid: "#a16207", onSolid: onLight },
-    dark: { fg: "#facc15", solid: "#eab308", onSolid: onDark },
-    ring: ["#fef08a", "#ca8a04"],
-    icon: ["#fde047", "#854d0e"],
+    light: {
+      fg: "oklch(55.38% 0.1207 66.44)",
+      solid: "oklch(55.38% 0.1207 66.44)",
+      onSolid: onLight,
+    },
+    dark: {
+      fg: "oklch(86.06% 0.1731 91.94)",
+      solid: "oklch(79.52% 0.1617 86.05)",
+      onSolid: onDark,
+    },
+    ring: ["oklch(94.51% 0.1243 101.54)", "oklch(68.06% 0.1423 75.83)"],
+    icon: ["oklch(90.52% 0.1657 98.11)", "oklch(47.62% 0.1034 61.91)"],
   },
   hinterlands: {
     label: "Hinterlands",
-    light: { fg: "#047857", solid: "#047857", onSolid: onLight },
-    dark: { fg: "#34d399", solid: "#10b981", onSolid: onDark },
-    ring: ["#6ee7b7", "#059669"],
-    icon: ["#6ee7b7", "#065f46"],
+    light: {
+      fg: "oklch(50.81% 0.1049 165.61)",
+      solid: "oklch(50.81% 0.1049 165.61)",
+      onSolid: onLight,
+    },
+    dark: {
+      fg: "oklch(77.29% 0.1535 163.22)",
+      solid: "oklch(69.59% 0.1491 162.48)",
+      onSolid: onDark,
+    },
+    ring: ["oklch(84.52% 0.1299 164.98)", "oklch(59.6% 0.1274 163.23)"],
+    icon: ["oklch(84.52% 0.1299 164.98)", "oklch(43.18% 0.0865 166.91)"],
   },
   myriad: {
     label: "Myriad",
-    light: { fg: "#1d4ed8", solid: "#1d4ed8", onSolid: onLight },
-    dark: { fg: "#60a5fa", solid: "#3b82f6", onSolid: onDark },
-    ring: ["#22d3ee", "#2563eb"],
-    icon: ["#67e8f9", "#1d4ed8"],
+    light: {
+      fg: "oklch(48.82% 0.2172 264.38)",
+      solid: "oklch(48.82% 0.2172 264.38)",
+      onSolid: onLight,
+    },
+    dark: {
+      fg: "oklch(71.37% 0.1434 254.62)",
+      solid: "oklch(62.31% 0.188 259.81)",
+      onSolid: onDark,
+    },
+    ring: ["oklch(79.71% 0.1339 211.53)", "oklch(54.61% 0.2152 262.88)"],
+    icon: ["oklch(86.51% 0.1153 207.08)", "oklch(48.82% 0.2172 264.38)"],
   },
   mystic: {
     label: "Mystic",
-    light: { fg: "#7e22ce", solid: "#7e22ce", onSolid: onLight },
-    dark: { fg: "#d8b4fe", solid: "#c084fc", onSolid: onDark },
-    ring: ["#a78bfa", "#9333ea"],
-    icon: ["#a78bfa", "#6b21a8"],
+    light: {
+      fg: "oklch(49.55% 0.2369 301.92)",
+      solid: "oklch(49.55% 0.2369 301.92)",
+      onSolid: onLight,
+    },
+    dark: {
+      fg: "oklch(82.68% 0.1082 306.38)",
+      solid: "oklch(72.17% 0.1767 305.5)",
+      onSolid: onDark,
+    },
+    ring: ["oklch(70.9% 0.1592 293.54)", "oklch(55.75% 0.2525 302.32)"],
+    icon: ["oklch(70.9% 0.1592 293.54)", "oklch(43.83% 0.1983 303.72)"],
   },
   orchid: {
     label: "Orchid",
-    light: { fg: "#be185d", solid: "#be185d", onSolid: onLight },
-    dark: { fg: "#f472b6", solid: "#ec4899", onSolid: onDark },
-    ring: ["#f472b6", "#db2777"],
-    icon: ["#e879f9", "#be185d"],
+    light: {
+      fg: "oklch(52.46% 0.199 3.96)",
+      solid: "oklch(52.46% 0.199 3.96)",
+      onSolid: onLight,
+    },
+    dark: {
+      fg: "oklch(72.53% 0.1752 349.76)",
+      solid: "oklch(65.59% 0.2118 354.31)",
+      onSolid: onDark,
+    },
+    ring: ["oklch(72.53% 0.1752 349.76)", "oklch(59.16% 0.218 0.58)"],
+    icon: ["oklch(74.77% 0.207 322.16)", "oklch(52.46% 0.199 3.96)"],
   },
   gloaming: {
     label: "Gloaming",
-    light: { fg: "#7e22ce", solid: "#7e22ce", onSolid: onLight },
-    dark: { fg: "#d8b4fe", solid: "#c084fc", onSolid: onDark },
-    ring: ["#f472b6", "#a855f7", "#60a5fa"],
-    icon: ["#ec4899", "#9333ea", "#3b82f6"],
+    light: {
+      fg: "oklch(49.55% 0.2369 301.92)",
+      solid: "oklch(49.55% 0.2369 301.92)",
+      onSolid: onLight,
+    },
+    dark: {
+      fg: "oklch(82.68% 0.1082 306.38)",
+      solid: "oklch(72.17% 0.1767 305.5)",
+      onSolid: onDark,
+    },
+    ring: [
+      "oklch(72.53% 0.1752 349.76)",
+      "oklch(62.68% 0.2325 303.9)",
+      "oklch(71.37% 0.1434 254.62)",
+    ],
+    icon: [
+      "oklch(65.59% 0.2118 354.31)",
+      "oklch(55.75% 0.2525 302.32)",
+      "oklch(62.31% 0.188 259.81)",
+    ],
   },
   pride_traditional: {
     label: "Pride",
-    light: { fg: "#1d4ed8", solid: "#1d4ed8", onSolid: onLight },
-    dark: { fg: "#60a5fa", solid: "#3b82f6", onSolid: onDark },
+    light: {
+      fg: "oklch(48.82% 0.2172 264.38)",
+      solid: "oklch(48.82% 0.2172 264.38)",
+      onSolid: onLight,
+    },
+    dark: {
+      fg: "oklch(71.37% 0.1434 254.62)",
+      solid: "oklch(62.31% 0.188 259.81)",
+      onSolid: onDark,
+    },
     ring: prideStops,
     icon: prideStops,
     linearRing: true,
@@ -99,20 +178,6 @@ export const schemes = {
 export type SchemeName = keyof typeof schemes;
 export const schemeNames = Object.keys(schemes) as SchemeName[];
 
-/** Tailwind's Zinc: the one neutral ramp every scheme shares. */
-const zinc = [
-  "#fafafa",
-  "#f4f4f5",
-  "#e4e4e7",
-  "#d4d4d8",
-  "#a1a1aa",
-  "#71717a",
-  "#52525b",
-  "#3f3f46",
-  "#27272a",
-  "#18181b",
-  "#09090b",
-];
 export const grayStepNames = [
   "50",
   "100",
@@ -128,12 +193,38 @@ export const grayStepNames = [
 ] as const;
 
 /**
- * The neutral ramp, Zinc in OKLCH. Schemes don't tint it: their colour is in
- * the accent, ring and icon tokens alone.
+ * The neutral ramp: Tailwind's Zinc, as Tailwind publishes it. Schemes don't
+ * tint it: their colour is in the accent, ring and icon tokens alone.
  */
-export const zincGrays = Object.fromEntries(
-  zinc.map((hex, index) => [grayStepNames[index], toOklch(hex)]),
-) as Record<(typeof grayStepNames)[number], string>;
+export const zincGrays: Record<(typeof grayStepNames)[number], string> = {
+  "50": "oklch(98.5% 0 0)",
+  "100": "oklch(96.7% 0.001 286.375)",
+  "200": "oklch(92% 0.004 286.32)",
+  "300": "oklch(87.1% 0.006 286.286)",
+  "400": "oklch(70.5% 0.015 286.067)",
+  "500": "oklch(55.2% 0.016 285.938)",
+  "600": "oklch(44.2% 0.017 285.786)",
+  "700": "oklch(37% 0.013 285.805)",
+  "800": "oklch(27.4% 0.006 286.033)",
+  "900": "oklch(21% 0.006 285.885)",
+  "950": "oklch(14.1% 0.005 285.823)",
+};
+
+const round = (value: number, places: number) =>
+  Math.round(value * 10 ** places) / 10 ** places;
+
+/** Spreads colour stops evenly across [start, end] percent, as Iron Link does today. */
+function distributeStops(colors: string[], start: number, end: number) {
+  return colors
+    .map((color, index) => {
+      const position =
+        colors.length === 1
+          ? start
+          : start + ((end - start) * index) / (colors.length - 1);
+      return `${color} ${round(position, 2)}%`;
+    })
+    .join(", ");
+}
 
 export function ringGradient(scheme: SchemeDefinition) {
   return scheme.linearRing
@@ -151,19 +242,19 @@ export function schemeTokens(scheme: SchemeDefinition) {
     colors: {
       scheme: {
         light: {
-          fg: { value: toOklch(scheme.light.fg) },
-          solid: { value: toOklch(scheme.light.solid) },
-          onSolid: { value: toOklch(scheme.light.onSolid) },
+          fg: { value: scheme.light.fg },
+          solid: { value: scheme.light.solid },
+          onSolid: { value: scheme.light.onSolid },
         },
         dark: {
-          fg: { value: toOklch(scheme.dark.fg) },
-          solid: { value: toOklch(scheme.dark.solid) },
-          onSolid: { value: toOklch(scheme.dark.onSolid) },
+          fg: { value: scheme.dark.fg },
+          solid: { value: scheme.dark.solid },
+          onSolid: { value: scheme.dark.onSolid },
         },
       },
       ring: {
-        start: { value: toOklch(scheme.ring[0]) },
-        end: { value: toOklch(scheme.ring[scheme.ring.length - 1]) },
+        start: { value: scheme.ring[0] },
+        end: { value: scheme.ring[scheme.ring.length - 1] },
       },
     },
     gradients: {

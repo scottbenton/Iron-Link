@@ -1,7 +1,7 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import { ComponentProps, ReactElement, ReactNode, forwardRef } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
@@ -37,7 +37,7 @@ const swap = css({
 
 export interface ButtonProps
   extends Omit<ComponentProps<typeof BaseButton>, "className" | "render">,
-    LayoutProps {
+    CssProp {
   variant?: "outline" | "primary" | "gradient" | "danger" | "ghost" | "text";
   size?: "sm" | "md";
   fullWidth?: boolean;
@@ -85,7 +85,7 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(
       focusableWhenDisabled,
       onClick,
       ...rest
-    } = withLayoutProps(props);
+    } = withCssProp(props);
 
     // A busy button, or a disabled one asked to stay focusable, says so to a
     // screen reader. Base UI's own aria-disabled would be overwritten here.
