@@ -28,7 +28,10 @@ export type IconSize = keyof typeof sizes;
 
 export type IconProps = RecipeVariantProps<typeof iconStyles> &
   CssProp & {
-    /** The icon, one of the exports of `ui/icons`. */
+    /**
+     * The icon, one of the exports of `ui/icons`: Phosphor's, or one of our
+     * own made with `createIcon`.
+     */
     icon: PhosphorIcon;
     /**
      * `inherit` (default) follows the text around it. MUI's
