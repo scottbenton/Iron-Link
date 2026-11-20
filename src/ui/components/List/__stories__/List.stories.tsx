@@ -27,7 +27,8 @@ import {
   ListItemText,
   ListSubheader,
 } from "../List";
-import { ListRow, ListRowButton } from "../ListRow";
+import { ListRow } from "../ListRow";
+import { ListRowButton } from "../ListRowButton";
 
 const frame = css({
   width: "100%",
