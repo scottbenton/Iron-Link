@@ -20,8 +20,7 @@ import {
   Typography,
 } from "@mui/material";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { Resizable } from "re-resizable";
-import { FormEvent, useCallback, useState } from "react";
+import { DragEvent, FormEvent, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
@@ -35,6 +34,7 @@ import { useSecondScreenStore } from "stores/secondScreen.store";
 import { getDialogFormSlotProps } from "lib/dialogForm.lib";
 
 import { isGuideImageSrc, useImageDisplaySrc } from "../secrets/guideImages";
+import { ImageResizeHandles } from "./ImageResizeHandles";
 import { Alignment, TextWrapping } from "./RichImageNodeAttributes";
 
 export function RichImageNodeView(props: NodeViewProps) {
@@ -92,6 +92,10 @@ export function RichImageNodeView(props: NodeViewProps) {
   }
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const columnRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  // The width while the resize handle is dragged, saved when it is let go.
+  const [previewWidth, setPreviewWidth] = useState<number | null>(null);
 
   // An image inside a secret shows through a signed URL, and never goes to
   // the second screen, which players watch.
@@ -160,22 +164,19 @@ export function RichImageNodeView(props: NodeViewProps) {
   }
 
   return (
-    <NodeViewWrapper>
+    <NodeViewWrapper ref={columnRef}>
       <Box
-        component={Resizable}
-        lockAspectRatio
-        size={{
-          width: width ?? "100%",
-        }}
-        minWidth={50}
-        maxWidth={"100%"}
-        onResizeStop={(_, __, ref) => {
-          updateAttributes({
-            width: ref.getBoundingClientRect().width,
-          });
-        }}
+        ref={frameRef}
+        className="note-image-frame"
+        // The browser's own image drag would drop a copy of the image.
+        onDragStart={(event: DragEvent) => event.preventDefault()}
         sx={{
+          position: "relative",
           display: "flex",
+          width: previewWidth ?? width ?? "100%",
+          minWidth: 50,
+          maxWidth: "100%",
+          boxSizing: "border-box",
           my: 1,
           float,
           mr,
@@ -184,7 +185,7 @@ export function RichImageNodeView(props: NodeViewProps) {
           borderStyle: "solid",
           borderColor: selected ? "primary.main" : "transparent",
           borderRadius: 1,
-          overflow: "hidden",
+          // Not clipped, so the corner handles draw over the border.
         }}
       >
         <Box
@@ -193,9 +194,19 @@ export function RichImageNodeView(props: NodeViewProps) {
           sx={{
             width: "100%",
             objectFit: "contain",
+            borderRadius: "2px",
           }}
           src={displaySrc}
           alt={imageAlt}
+          draggable={false}
+        />
+        <ImageResizeHandles
+          alignment={alignment}
+          visible={selected}
+          imageRef={frameRef}
+          columnRef={columnRef}
+          onPreview={setPreviewWidth}
+          onResize={(newWidth) => updateAttributes({ width: newWidth })}
         />
         <Popper
           open={selected && !isReadOnly}
