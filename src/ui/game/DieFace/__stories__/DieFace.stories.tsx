@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HStack } from "ui/primitives";
 
+import { DieFace, DieFaceValue, useDieFace } from "..";
 import { Button } from "../../../components/Button";
-import { DieFace, DieFaceValue, useDieFace } from "../DieFace";
 
 const meta = {
   title: "Game/DieFace",

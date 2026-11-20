@@ -26,19 +26,17 @@ import { HStack, Stack } from "ui/primitives";
 import { Button } from "../../Button";
 import { IconButton } from "../../IconButton";
 import { Text } from "../../Text";
-import {
-  Menu,
-  MenuCheckboxItem,
-  MenuContent,
-  MenuGroup,
-  MenuItem,
-  MenuLinkItem,
-  MenuRadioGroup,
-  MenuRadioItem,
-  MenuSeparator,
-  MenuSubmenu,
-  MenuTrigger,
-} from "../Menu";
+import { Menu } from "../Menu";
+import { MenuCheckboxItem } from "../MenuCheckboxItem";
+import { MenuContent } from "../MenuContent";
+import { MenuGroup } from "../MenuGroup";
+import { MenuItem } from "../MenuItem";
+import { MenuLinkItem } from "../MenuLinkItem";
+import { MenuRadioGroup } from "../MenuRadioGroup";
+import { MenuRadioItem } from "../MenuRadioItem";
+import { MenuSeparator } from "../MenuSeparator";
+import { MenuSubmenu } from "../MenuSubmenu";
+import { MenuTrigger } from "../MenuTrigger";
 
 const meta = {
   title: "Components/Menu",

@@ -15,7 +15,8 @@ import { ledgeLayers } from "ui/styles/ledge";
 
 import { css, cva, cx } from "styled-system/css";
 
-import { mergeRefs, useControllableState } from "../Field";
+import { useControllableState } from "../../hooks/useControllableState";
+import { mergeRefs } from "../../utils/mergeRefs";
 
 export interface SegmentedControlOption<V extends string = string> {
   value: V;

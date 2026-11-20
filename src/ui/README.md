@@ -15,6 +15,7 @@ src/ui/
   theme/        tokens, colour schemes, applyUITheme
   styles/       the entry stylesheet (import once) and the css prop
   icons/        Icon and every icon the app uses (Phosphor)
+  hooks/        generic hooks, imported by file path
   primitives/   layout: Box, Stack, HStack, Flex, Grid, Container, ...
   components/   general components (Button, Dialog, Menu, Field, Tabs, ...)
   game/         Iron Link's own pieces (stats, tracks, rolls, assets, ...)
@@ -26,6 +27,16 @@ src/ui/
 Each component is a folder: `Name/Name.tsx`, `Name/index.ts` re-exporting
 it, stories in `Name/__stories__/` and tests in `Name/__tests__/` (as in the
 rest of the app). Import as `ui/components/Button`.
+
+- One component per file, named after it (`Menu/MenuItem.tsx` holds
+  `MenuItem`), private pieces too; those are left out of `index.ts`.
+- A part that is really a separate component gets its own folder
+  (`PreviewCard` beside `Popover`), not a file in another's.
+- Every hook in its own file named after it. Generic hooks (media queries,
+  focus-within) go in `ui/hooks`; hooks tied to one component or its context
+  sit beside that component.
+- A context gets its own file (`dialogContext.ts`), and the hook that reads
+  it its own too.
 
 ## Styling
 
@@ -73,6 +84,8 @@ rest of the app). Import as `ui/components/Button`.
   `_disabled`, `_startingStyle`/`_endingStyle` (Base UI transitions),
   `_hoverable` (`@media (hover: hover)`), `_touch` (`pointer: coarse`),
   `_reducedMotion`, breakpoints `sm` 600, `md` 900, `lg` 1200 and `smDown` etc.
+  (widths in `theme/breakpoints.ts`; `hooks/useBreakpoint` switches at the
+  same pixel in JavaScript).
 
 ## The look: tactile flat
 

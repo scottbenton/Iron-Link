@@ -4,6 +4,11 @@ Notes for anyone (person or agent) changing this repo. `CONTRIBUTING.md`
 covers setup, data flow and folder layout; this file holds the conventions
 that are easy to miss. When you learn a new one, add a line here.
 
+## UI library
+
+- `src/ui` files hold one component or one hook each, with contexts and
+  generic hooks in their own files; the rules are in `src/ui/README.md`.
+
 ## User-facing copy
 
 - Never end a menu item or button label with an ellipsis ("…" or "..."),
