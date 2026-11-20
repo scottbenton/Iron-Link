@@ -1,4 +1,11 @@
 export * from "./RulesText";
-export * from "./RulesTextContext";
+export type {
+  RulesTextMacro,
+  RulesTextOracle,
+  RulesTextOptions,
+} from "./RulesTextContext";
+export * from "./RulesTextProvider";
+export * from "./mergeRulesTextOptions";
+export * from "./useRulesTextOptions";
 export * from "./rulesTextStyles";
 export { getMacroFallbackLabel } from "./macros";

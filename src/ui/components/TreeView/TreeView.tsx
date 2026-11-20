@@ -5,7 +5,6 @@ import {
   KeyboardEvent,
   MouseEvent,
   ReactNode,
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -17,6 +16,7 @@ import { focusRing } from "ui/styles/focus";
 
 import { css, cva, cx } from "styled-system/css";
 
+import { useControllableState } from "../../hooks/useControllableState";
 import { Spinner } from "../Spinner";
 import { VisuallyHidden } from "../VisuallyHidden";
 
@@ -139,23 +139,6 @@ function visibleIds<T>(items: TreeViewItem<T>[], expanded: Set<string>) {
   };
   walk(items);
   return ids;
-}
-
-function useControllable<V>(
-  controlled: V | undefined,
-  initial: V,
-  onChange?: (value: V) => void,
-) {
-  const [uncontrolled, setUncontrolled] = useState(initial);
-  const value = controlled !== undefined ? controlled : uncontrolled;
-  const setValue = useCallback(
-    (next: V) => {
-      if (controlled === undefined) setUncontrolled(next);
-      onChange?.(next);
-    },
-    [controlled, onChange],
-  );
-  return [value, setValue] as const;
 }
 
 const treeStyles = css({
@@ -304,7 +287,7 @@ export function TreeView<T = unknown>(props: TreeViewProps<T>) {
   const currentSelectedId =
     selectedIdProp !== undefined ? selectedIdProp : selectedId;
 
-  const [expandedList, setExpandedList] = useControllable<string[]>(
+  const [expandedList, setExpandedList] = useControllableState<string[]>(
     expandedIdsProp,
     defaultExpandedIds,
     onExpandedChange,

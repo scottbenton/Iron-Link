@@ -7,11 +7,8 @@ import { css, cx } from "styled-system/css";
 
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
-import {
-  ChallengeDieColors,
-  DiceDisplay,
-  OracleDice,
-} from "../DiceDisplay/DiceDisplay";
+import { ChallengeDieColors, DiceDisplay } from "../DiceDisplay/DiceDisplay";
+import { OracleDice } from "../DiceDisplay/OracleDice";
 import { DiceDisplayStrings } from "../DiceDisplay/diceDisplayStrings";
 import {
   RollTextOverrides,
