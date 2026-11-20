@@ -8,7 +8,7 @@ import {
 } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { cva, cx } from "styled-system/css";
 
@@ -105,7 +105,7 @@ export function useDieFace(
   return [die, roll];
 }
 
-export interface DieFaceProps extends LayoutProps {
+export interface DieFaceProps extends CssProp {
   /** The face the die lands on. */
   face: DieFaceValue;
   /**
@@ -234,7 +234,7 @@ export function DieFace(props: DieFaceProps) {
     size = "md",
     weight = "bold",
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const face = useCycledFace(target, rolls ?? target, pending);
   const Face = faceIcons[face];
   return (

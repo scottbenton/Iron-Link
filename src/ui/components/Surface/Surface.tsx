@@ -2,7 +2,7 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { ComponentProps, ReactElement, forwardRef } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { cx } from "styled-system/css";
 
@@ -11,7 +11,7 @@ import { SurfaceVariants, surfaceStyles } from "./surfaceStyles";
 export interface SurfaceProps
   extends ComponentProps<"div">,
     Pick<SurfaceVariants, "tone" | "radius" | "padding">,
-    LayoutProps {
+    CssProp {
   /** Render another element, such as `<section />`. */
   render?: ReactElement;
 }
@@ -24,7 +24,7 @@ export interface SurfaceProps
 export const Surface = forwardRef<HTMLDivElement, SurfaceProps>(
   function Surface(props, ref) {
     const { tone, radius, padding, className, render, ...rest } =
-      withLayoutProps(props);
+      withCssProp(props);
     return useRender({
       defaultTagName: "div",
       render,

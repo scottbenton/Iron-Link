@@ -9,12 +9,12 @@ import {
 import { IconButton } from "ui/components/IconButton";
 import { ListRow, ListRowButton } from "ui/components/List";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { DieFace, useDieFace } from "../DieFace";
 
 export interface OracleListItemProps
-  extends LayoutProps,
+  extends CssProp,
     Omit<ComponentPropsWithoutRef<"div">, "children"> {
   /** The oracle's name. */
   name: string;
@@ -63,7 +63,7 @@ export function OracleListItem(props: OracleListItemProps) {
     as: Wrapper = "div",
     className,
     ...rest
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const [die, rollDie] = useDieFace();
   const isLink = render !== undefined;

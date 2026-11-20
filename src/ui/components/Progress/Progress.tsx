@@ -1,6 +1,6 @@
 import { Progress as BaseProgress } from "@base-ui/react/progress";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -69,7 +69,7 @@ const valueStyles = css({
   fontVariantNumeric: "tabular-nums",
 });
 
-export interface ProgressProps extends LayoutProps {
+export interface ProgressProps extends CssProp {
   /** 0 to `max`. Leave it out (or pass null) while the amount is unknown. */
   value?: number | null;
   max?: number;
@@ -97,7 +97,7 @@ export function Progress(props: ProgressProps) {
     size,
     tone,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   return (
     <BaseProgress.Root

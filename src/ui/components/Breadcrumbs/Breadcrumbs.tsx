@@ -10,8 +10,8 @@ import {
   isValidElement,
 } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 
@@ -69,7 +69,7 @@ const crumbStyles = css({
   "&[aria-current=page]": { color: "fg.default", fontWeight: "semibold" },
 });
 
-export interface BreadcrumbsProps extends ComponentProps<"nav">, LayoutProps {
+export interface BreadcrumbsProps extends ComponentProps<"nav">, CssProp {
   /** Names the trail. */
   "aria-label"?: string;
   /** `BreadcrumbItem`s, from the top level to the current page. */
@@ -87,7 +87,7 @@ export const Breadcrumbs = forwardRef<HTMLElement, BreadcrumbsProps>(
       children,
       className,
       ...rest
-    } = withLayoutProps(props);
+    } = withCssProp(props);
     const items = Children.toArray(children).filter(isValidElement);
     return (
       <nav ref={ref} aria-label={ariaLabel} className={className} {...rest}>

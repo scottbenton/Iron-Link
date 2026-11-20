@@ -9,8 +9,8 @@ import {
   useRef,
 } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { ledgeLayers } from "ui/styles/ledge";
 
 import { css, cx } from "styled-system/css";
@@ -216,7 +216,7 @@ export interface NoteTab {
   unread?: number;
 }
 
-export interface NoteTabsProps extends LayoutProps {
+export interface NoteTabsProps extends CssProp {
   /** The open notes, in order. */
   tabs: NoteTab[];
   /** The open note's id, or null with none open. */
@@ -265,7 +265,7 @@ export function NoteTabs(props: NoteTabsProps) {
     unreadLabel = (count: number) => `${count} new`,
     children,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const listRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);

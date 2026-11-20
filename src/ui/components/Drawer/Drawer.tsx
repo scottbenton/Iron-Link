@@ -6,6 +6,7 @@ import { css, cva, cx } from "styled-system/css";
 
 import { IconButton } from "../IconButton";
 import { Text } from "../Text";
+import { isPressOnToasts } from "../Toast/toastViewport";
 import { useIsPhone } from "./useIsPhone";
 
 type Placement = "left" | "right" | "bottom";
@@ -175,8 +176,9 @@ export function Drawer(props: DrawerProps) {
   return (
     <BaseDrawer.Root
       open={open}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen) onClose();
+      onOpenChange={(nextOpen, details) => {
+        // Toasts sit above modals; pressing one is not a press outside.
+        if (!nextOpen && !isPressOnToasts(details)) onClose();
       }}
       swipeDirection={placement === "bottom" ? "down" : placement}
       modal={modal}

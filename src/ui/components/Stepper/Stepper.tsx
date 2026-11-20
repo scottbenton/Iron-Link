@@ -1,8 +1,8 @@
 import { Check } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 
@@ -125,7 +125,7 @@ const stepButtonStyles = css({
 
 export interface StepperProps
   extends Omit<ComponentProps<"ol">, "children">,
-    LayoutProps {
+    CssProp {
   steps: StepperStep[];
   /** The index of the current step; earlier steps are complete. */
   activeStep: number;
@@ -153,7 +153,7 @@ export function Stepper(props: StepperProps) {
     "aria-label": ariaLabel = "Progress",
     className,
     ...rest
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   return (
     <ol aria-label={ariaLabel} className={cx(listStyles, className)} {...rest}>
       {steps.map((step, index) => {

@@ -1,6 +1,6 @@
 import { ReactNode, useLayoutEffect, useRef, useState } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { cx } from "styled-system/css";
 
@@ -65,7 +65,7 @@ export function AddsBadge(props: AddsBadgeProps) {
   );
 }
 
-export interface AddsAnchorProps extends LayoutProps {
+export interface AddsAnchorProps extends CssProp {
   /** The roll control: a stat card, a meter's roller, a roll button. */
   children: ReactNode;
   adds: number;
@@ -83,7 +83,7 @@ export interface AddsAnchorProps extends LayoutProps {
  * remounted and keeps focus.
  */
 export function AddsAnchor(props: AddsAnchorProps) {
-  const { children, adds, fullWidth, className } = withLayoutProps(props);
+  const { children, adds, fullWidth, className } = withCssProp(props);
   return (
     <span
       className={cx(addsAnchorStyles, className)}

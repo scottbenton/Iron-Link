@@ -1,7 +1,7 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import { ComponentProps, Ref, forwardRef } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { cx } from "styled-system/css";
 
@@ -19,7 +19,7 @@ import {
 } from "./statCardStyles";
 
 export interface StatCardProps
-  extends LayoutProps,
+  extends CssProp,
     Omit<
       ComponentProps<typeof BaseButton>,
       "className" | "children" | "onClick"
@@ -62,7 +62,7 @@ export const StatCard = forwardRef<HTMLElement, StatCardProps>(
       className,
       disabled,
       ...rest
-    } = withLayoutProps<StatCardProps>(props);
+    } = withCssProp<StatCardProps>(props);
 
     const [die, rollDie] = useDieFace();
     const valueText = formatSigned(value);
