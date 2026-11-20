@@ -16,10 +16,10 @@ import {
 import { formatSigned } from "../shared/format";
 import {
   ConditionMeter,
-  MeterNumber,
   MeterTone,
   meterValueTextStyles,
 } from "./ConditionMeter";
+import { MeterNumber } from "./MeterNumber";
 
 /**
  * The value opens Burn and Reset, so it is an outline Button (its border,
