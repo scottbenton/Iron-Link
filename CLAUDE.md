@@ -28,6 +28,10 @@ that are easy to miss. When you learn a new one, add a line here.
   call `useMediaQuery` with a breakpoint by hand. Touch decides control
   size and gestures (44px targets, long press): `useIsTouchDevice`
   (`pointer: coarse`), so a tablet gets the wide layout sized for fingers.
+- In `src/ui`, phone width is below 600px (`useIsMobile` from
+  `src/ui/hooks`, the CSS's `smDown`); from 600 to 900px pages get the wide
+  layout with sidebars on a rail that open as flyouts and can't be pinned.
+  The app's own `useIsMobile` stays at 900px until its screens move over.
 
 ## Accessibility
 
