@@ -4,10 +4,10 @@ import { fn } from "storybook/test";
 
 import { Box, HStack, Stack } from "ui/primitives";
 
-import { Button } from "../../components/Button";
-import { TrackDialog } from "./TrackDialog";
-import { TracksPanel } from "./TracksPanel";
-import { TracksPanelDemo } from "./TracksPanelDemo";
+import { Button } from "../../../components/Button";
+import { TrackDialog } from "../TrackDialog";
+import { TracksPanel } from "../TracksPanel";
+import { TracksPanelDemo } from "../TracksPanelDemo";
 import {
   classicCompletionMoves,
   classicTracks,
@@ -16,8 +16,8 @@ import {
   sampleConnections,
   sampleTracks,
   starforgedCompletionMoves,
-} from "./tracksPanelSamples";
-import type { TrackKind } from "./tracksPanelTypes";
+} from "../tracksPanelSamples";
+import type { TrackKind } from "../tracksPanelTypes";
 
 /** The character column's width at its default, on the sheet's surface. */
 function Column(props: { width?: number; children: ReactNode }) {

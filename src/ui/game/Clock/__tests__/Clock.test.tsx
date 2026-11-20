@@ -2,9 +2,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { AnnouncerProvider } from "../../components/Announcer";
-import { Clock, ClockProps } from "./Clock";
-import { advanceClock } from "./clockValue";
+import { AnnouncerProvider } from "../../../components/Announcer";
+import { Clock, ClockProps } from "../Clock";
+import { advanceClock } from "../clockValue";
 
 function renderClock(props: Partial<ClockProps> = {}) {
   const onChange = vi.fn();

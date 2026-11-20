@@ -4,11 +4,11 @@ import { useState } from "react";
 
 import { Box, HStack, Stack } from "ui/primitives";
 
-import { IconButton } from "../../components/IconButton";
-import { sampleMoves } from "../../stories/fixtures/datasworn";
-import { ProgressTrack } from "../ProgressTrack";
-import { RollButton } from "../RollButton";
-import { Clock, ClockProps } from "./Clock";
+import { IconButton } from "../../../components/IconButton";
+import { sampleMoves } from "../../../docs/fixtures/datasworn";
+import { ProgressTrack } from "../../ProgressTrack";
+import { RollButton } from "../../RollButton";
+import { Clock, ClockProps } from "../Clock";
 
 const meta = {
   title: "Game/Clock",

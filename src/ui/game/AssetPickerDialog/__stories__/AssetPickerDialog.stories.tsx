@@ -26,8 +26,8 @@ import { css } from "styled-system/css";
 import {
   classicRules,
   starforgedRules,
-} from "../../stories/fixtures/datasworn";
-import { AssetCard } from "../AssetCard";
+} from "../../../docs/fixtures/datasworn";
+import { AssetCard } from "../../AssetCard";
 
 /**
  * Option D from the picker prototypes: one list of collapsible groups, one
@@ -391,7 +391,7 @@ function AssetPicker(props: AssetPickerProps) {
                           </ListItemButton>
                           <Button
                             size="sm"
-                            flex="none"
+                            css={{ flex: "none" }}
                             aria-label={`Add ${asset.name}`}
                             onClick={() => add(asset)}
                           >

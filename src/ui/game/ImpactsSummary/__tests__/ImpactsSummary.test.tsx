@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { ImpactsSummary } from "./ImpactsSummary";
+import { ImpactsSummary } from "../ImpactsSummary";
 
 // jsdom has no PointerEvent; Base UI's checkbox dispatches one on click.
 if (!("PointerEvent" in window)) {

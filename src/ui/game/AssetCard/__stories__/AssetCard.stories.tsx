@@ -8,9 +8,9 @@ import { Grid, Stack } from "ui/primitives";
 import {
   sampleAssets,
   starforgedAsset,
-} from "../../stories/fixtures/datasworn";
-import { AssetCard, AssetCardProps } from "./AssetCard";
-import { AssetCardState } from "./assetData";
+} from "../../../docs/fixtures/datasworn";
+import { AssetCard, AssetCardProps } from "../AssetCard";
+import { AssetCardState } from "../assetData";
 
 const meta: Meta<typeof AssetCard> = {
   title: "Game/AssetCard",

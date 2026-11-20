@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { ProgressBoxes } from "./ProgressBoxes";
+import { ProgressBoxes } from "../ProgressBoxes";
 
 function lines(container: HTMLElement) {
   return Array.from(container.querySelectorAll("line"));

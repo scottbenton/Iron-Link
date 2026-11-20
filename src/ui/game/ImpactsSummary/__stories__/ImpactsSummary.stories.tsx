@@ -7,9 +7,9 @@ import { Box } from "ui/primitives";
 import {
   classicRules,
   starforgedRules,
-} from "../../stories/fixtures/datasworn";
-import type { ImpactGroup } from "../ImpactsChecklist";
-import { ImpactsSummary, ImpactsSummaryProps } from "./ImpactsSummary";
+} from "../../../docs/fixtures/datasworn";
+import type { ImpactGroup } from "../../ImpactsChecklist";
+import { ImpactsSummary, ImpactsSummaryProps } from "../ImpactsSummary";
 
 type LooseImpacts = Record<
   string,

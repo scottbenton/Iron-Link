@@ -5,7 +5,7 @@ import {
   getBoxTicks,
   getProgressScore,
   getProgressValueText,
-} from "./progress";
+} from "../progress";
 
 describe("progress helpers", () => {
   it("scores full boxes only", () => {

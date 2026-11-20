@@ -4,7 +4,7 @@ import {
   TICK_ANIMATION_BUDGET_MS,
   getTickAnimationPlan,
   getTickAnimationTotal,
-} from "./tickAnimation";
+} from "../tickAnimation";
 
 describe("tick animation plans", () => {
   it("finishes within the budget however many ticks are added", () => {

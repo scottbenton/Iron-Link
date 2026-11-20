@@ -2,10 +2,10 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { AnnouncerProvider } from "../../components/Announcer";
-import { TrackDialog } from "./TrackDialog";
-import { TracksPanel, TracksPanelProps } from "./TracksPanel";
-import type { ConnectionItem, TrackItem } from "./tracksPanelTypes";
+import { AnnouncerProvider } from "../../../components/Announcer";
+import { TrackDialog } from "../TrackDialog";
+import { TracksPanel, TracksPanelProps } from "../TracksPanel";
+import type { ConnectionItem, TrackItem } from "../tracksPanelTypes";
 
 const tracks: TrackItem[] = [
   {

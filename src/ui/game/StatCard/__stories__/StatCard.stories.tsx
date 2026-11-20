@@ -6,13 +6,13 @@ import { Button } from "ui/components/Button";
 import { Text } from "ui/components/Text";
 import { Box, HStack, Stack } from "ui/primitives";
 
-import { sampleCharacters } from "../../stories/fixtures/characters";
-import { sampleMoves } from "../../stories/fixtures/datasworn";
-import { ConditionMeter } from "../ConditionMeter";
-import { RollButton } from "../RollButton";
-import { clamp, formatSigned } from "../shared/format";
-import { StatCard } from "./StatCard";
-import { StatGrid, StatGridStat } from "./StatGrid";
+import { sampleCharacters } from "../../../docs/fixtures/characters";
+import { sampleMoves } from "../../../docs/fixtures/datasworn";
+import { ConditionMeter } from "../../ConditionMeter";
+import { RollButton } from "../../RollButton";
+import { clamp, formatSigned } from "../../shared/format";
+import { StatCard } from "../StatCard";
+import { StatGrid, StatGridStat } from "../StatGrid";
 
 const kira = sampleCharacters[0];
 const statNames = {

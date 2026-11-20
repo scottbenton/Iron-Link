@@ -4,14 +4,14 @@ import { fn } from "storybook/test";
 
 import { Box, HStack, Stack } from "ui/primitives";
 
-import { Text } from "../../components/Text";
-import { sampleCharacters } from "../../stories/fixtures/characters";
-import { sampleMoves } from "../../stories/fixtures/datasworn";
-import { StatGrid } from "../StatCard";
-import { capitalize, formatSigned } from "../shared/format";
-import { AddsControl } from "./AddsControl";
-import { ConditionMeter } from "./ConditionMeter";
-import { MomentumMeter } from "./MomentumMeter";
+import { Text } from "../../../components/Text";
+import { sampleCharacters } from "../../../docs/fixtures/characters";
+import { sampleMoves } from "../../../docs/fixtures/datasworn";
+import { StatGrid } from "../../StatCard";
+import { capitalize, formatSigned } from "../../shared/format";
+import { AddsControl } from "../AddsControl";
+import { ConditionMeter } from "../ConditionMeter";
+import { MomentumMeter } from "../MomentumMeter";
 
 const meta = {
   title: "Game/AddsControl",

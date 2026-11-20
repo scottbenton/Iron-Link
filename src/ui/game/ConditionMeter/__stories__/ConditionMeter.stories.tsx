@@ -4,10 +4,10 @@ import { fn } from "storybook/test";
 
 import { HStack, Stack } from "ui/primitives";
 
-import { sampleCharacters } from "../../stories/fixtures/characters";
-import { capitalize } from "../shared/format";
-import { ConditionMeter } from "./ConditionMeter";
-import { MomentumMeter } from "./MomentumMeter";
+import { sampleCharacters } from "../../../docs/fixtures/characters";
+import { capitalize } from "../../shared/format";
+import { ConditionMeter } from "../ConditionMeter";
+import { MomentumMeter } from "../MomentumMeter";
 
 const meta = {
   title: "Game/ConditionMeter",

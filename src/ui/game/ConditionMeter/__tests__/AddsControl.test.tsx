@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { AnnouncerProvider } from "../../components/Announcer";
-import { AddsControl } from "./AddsControl";
+import { AnnouncerProvider } from "../../../components/Announcer";
+import { AddsControl } from "../AddsControl";
 
 function renderAdds(value: number) {
   const onChange = vi.fn();

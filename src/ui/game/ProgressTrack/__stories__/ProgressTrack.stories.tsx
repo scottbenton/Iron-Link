@@ -5,10 +5,10 @@ import { fn } from "storybook/test";
 
 import { Box, HStack, Stack } from "ui/primitives";
 
-import { IconButton } from "../../components/IconButton";
-import { sampleMoves } from "../../stories/fixtures/datasworn";
-import { RollButton } from "../RollButton";
-import { ProgressTrack } from "./ProgressTrack";
+import { IconButton } from "../../../components/IconButton";
+import { sampleMoves } from "../../../docs/fixtures/datasworn";
+import { RollButton } from "../../RollButton";
+import { ProgressTrack } from "../ProgressTrack";
 
 const meta = {
   title: "Game/ProgressTrack",

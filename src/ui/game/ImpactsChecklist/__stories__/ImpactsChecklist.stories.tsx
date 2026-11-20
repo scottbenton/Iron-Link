@@ -6,8 +6,8 @@ import { Box, Stack } from "ui/primitives";
 import {
   classicRules,
   starforgedRules,
-} from "../../stories/fixtures/datasworn";
-import { ImpactGroup, ImpactsChecklist } from "./ImpactsChecklist";
+} from "../../../docs/fixtures/datasworn";
+import { ImpactGroup, ImpactsChecklist } from "../ImpactsChecklist";
 
 const meters: Record<string, string> = {
   health: "Health",

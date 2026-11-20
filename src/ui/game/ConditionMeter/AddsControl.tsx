@@ -1,7 +1,7 @@
 import { Minus, Plus, Question } from "@phosphor-icons/react";
 import { useId } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
@@ -135,7 +135,7 @@ const helpStyles = css({
   "[data-adds-control][data-read-only] &": { marginInlineEnd: "0.5" },
 });
 
-export interface AddsControlProps extends LayoutProps {
+export interface AddsControlProps extends CssProp {
   /** Adds on the next roll, -9 to +9 in Iron Link. */
   value: number;
   /** Changes the adds. Without it the chip is read-only (no steppers). */
@@ -187,7 +187,7 @@ export function AddsControl(props: AddsControlProps) {
     incrementLabel = (l) => `Add 1 to ${l}`,
     changeAnnouncement = (l, v) => `${l} is now ${v}`,
     className,
-  } = withLayoutProps<AddsControlProps>(props);
+  } = withCssProp<AddsControlProps>(props);
 
   const labelId = useId();
   const valueId = useId();

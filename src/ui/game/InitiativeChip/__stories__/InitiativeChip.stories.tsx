@@ -3,8 +3,8 @@ import { useState } from "react";
 
 import { HStack, Stack } from "ui/primitives";
 
-import { InitiativeChip } from "./InitiativeChip";
-import { InitiativeOption, InitiativeStatus } from "./initiativeLabels";
+import { InitiativeChip } from "../InitiativeChip";
+import { InitiativeOption, InitiativeStatus } from "../initiativeLabels";
 
 const meta = {
   title: "Game/InitiativeChip",

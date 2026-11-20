@@ -9,8 +9,8 @@ import {
   useState,
 } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 
@@ -163,7 +163,7 @@ const labelStyles = css({
   overflowWrap: "anywhere",
 });
 
-export interface ClockProps extends LayoutProps {
+export interface ClockProps extends CssProp {
   /** The clock's name, such as "The Iron Siege falls". */
   label: string;
   /** 4, 6, 8 or 10 for a campaign or tension clock. */
@@ -243,7 +243,7 @@ export function Clock(props: ClockProps) {
     titleAs: Title = "span",
     strings: stringsProp,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const strings = { ...defaultClockStrings, ...stringsProp };
 
   const labelId = useId();
