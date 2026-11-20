@@ -153,6 +153,17 @@ jobs:
           if [ -z "${POSTHOG_CLI_HOST:-}" ]; then unset POSTHOG_CLI_HOST; fi
           npm run build:cloudflare
 
+      # PR previews also carry the component library's Storybook under
+      # /storybook/, so changes to it can be looked at in a browser before
+      # review. Production builds leave it out.
+      - name: Build Storybook
+        if: github.event_name == 'pull_request'
+        env:
+          STORYBOOK_DISABLE_TELEMETRY: "1"
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+        run: npx storybook build --quiet --output-dir dist/storybook
+
       - name: Deploy to Cloudflare Pages
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

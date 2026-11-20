@@ -1,0 +1,41 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction" />
+
+# Iron Link components
+
+The redesign's component library, built from the Workbench exploration:
+tactile flat surfaces, a gradient ring on roll and oracle buttons, condensed
+headings, and quiet motion. It lives in `src/ui` beside MUI, so screens can
+move over one at a time.
+
+## How to look around
+
+- **Mode and Scheme** in the toolbar switch light or dark and the nine colour
+  schemes for every story at once.
+- **Ring** switches how a stat card's ring appears: Fade (the default), Draw
+  or Thicken.
+- The **Accessibility** panel under each story runs axe on it.
+
+## Sections
+
+- **Foundations**: colour, type, space, radius, elevation, motion and the
+  colour schemes.
+- **Components**: general building blocks that replace MUI, such as buttons,
+  fields, menus, dialogs, tabs, lists and toasts.
+- **Game**: Iron Link's own pieces, such as stats, meters, progress tracks,
+  clocks, roll cards, the game log, assets, moves, oracles and portraits.
+- **Layout**: the app chrome, such as the nav bar and rail, page headers and
+  the game page sidebar.
+
+## Built on
+
+- [Base UI](https://base-ui.com) for behaviour and accessibility.
+- [Panda CSS](https://panda-css.com) for styles and tokens, with its
+  preflight off so MUI is untouched.
+- [Sonner](https://sonner.emilkowal.ski) to position and stack toasts, which
+  render our own elements and never dismiss themselves.
+- [Phosphor](https://phosphoricons.com) for icons.
+
+Content in the stories comes from the Ironsworn and Starforged rules in
+Datasworn, so moves, assets and oracles are the real thing.
