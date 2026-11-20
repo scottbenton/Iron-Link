@@ -5,12 +5,12 @@ import { fn } from "storybook/test";
 
 import { Box, Stack } from "ui/primitives";
 
-import { Text } from "../../components/Text";
-import { sampleCharacters } from "../../stories/fixtures/characters";
-import { sampleRolls } from "../../stories/fixtures/rolls";
-import { CharacterPortrait } from "../CharacterPortrait";
-import { extraRolls } from "../RollCard/RollCard.fixtures";
-import { GameLog, GameLogAuthor, GameLogEntry } from "./GameLog";
+import { Text } from "../../../components/Text";
+import { sampleCharacters } from "../../../docs/fixtures/characters";
+import { sampleRolls } from "../../../docs/fixtures/rolls";
+import { CharacterPortrait } from "../../CharacterPortrait";
+import { extraRolls } from "../../RollCard/RollCard.fixtures";
+import { GameLog, GameLogAuthor, GameLogEntry } from "../GameLog";
 
 const [kira, orrin, senna] = sampleCharacters;
 

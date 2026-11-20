@@ -4,8 +4,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button } from "ui/components/Button";
 import { Grid } from "ui/primitives";
 
-import { sampleCharacters } from "../../stories/fixtures/characters";
-import { CharacterCard } from "./CharacterCard";
+import { sampleCharacters } from "../../../docs/fixtures/characters";
+import { CharacterCard } from "../CharacterCard";
 
 const [kira] = sampleCharacters;
 

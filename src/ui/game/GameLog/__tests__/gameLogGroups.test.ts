@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
-import { getGameLogGroupPositions } from "./gameLogGroups";
+import { getGameLogGroupPositions } from "../gameLogGroups";
 
 const at = (minutes: number) => new Date(2026, 10, 18, 20, minutes);
 const kira = { name: "Kira Vale" };

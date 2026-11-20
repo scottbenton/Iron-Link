@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
-import { formatGameLogRelativeTime } from "./gameLogTime";
+import { formatGameLogRelativeTime } from "../gameLogTime";
 
 const now = new Date(2026, 10, 18, 20, 15);
 const minutesBefore = (minutes: number) =>

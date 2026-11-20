@@ -3,8 +3,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Box, Stack } from "ui/primitives";
 
-import { IconButton } from "../../components/IconButton";
-import { SecretCard } from "./SecretCard";
+import { IconButton } from "../../../components/IconButton";
+import { SecretCard } from "../SecretCard";
 
 const meta = {
   title: "Game/SecretCard",

@@ -6,10 +6,10 @@ import { schemeNames } from "ui/theme";
 import {
   sampleCharacters,
   samplePortraitSrc,
-} from "../../stories/fixtures/characters";
-import { CharacterPortrait } from "./CharacterPortrait";
-import { PortraitPlaceholder } from "./PortraitPlaceholder";
-import { PortraitSize } from "./portraitData";
+} from "../../../docs/fixtures/characters";
+import { CharacterPortrait } from "../CharacterPortrait";
+import { PortraitPlaceholder } from "../PortraitPlaceholder";
+import { PortraitSize } from "../portraitData";
 
 const sizes: PortraitSize[] = ["xs", "sm", "md", "lg", "xl"];
 const [kira, orrin, senna] = sampleCharacters;

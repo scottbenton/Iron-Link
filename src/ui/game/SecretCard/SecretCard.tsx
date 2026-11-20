@@ -2,8 +2,8 @@ import { Collapsible as BaseCollapsible } from "@base-ui/react/collapsible";
 import { CaretRight, LockSimple } from "@phosphor-icons/react";
 import { ElementType, ReactNode, useId } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 
@@ -112,7 +112,7 @@ const bodyStyles = css({
   "&[data-padding=none]": { padding: 0 },
 });
 
-export interface SecretCardProps extends LayoutProps {
+export interface SecretCardProps extends CssProp {
   /** "Secret", "Guide only" or the group's name, in the header. */
   label: ReactNode;
   /** Before the label: a lock by default, `null` for none. */
@@ -166,7 +166,7 @@ export function SecretCard(props: SecretCardProps) {
     headingAs,
     padding = "default",
     className,
-  } = withLayoutProps<SecretCardProps>(props);
+  } = withCssProp<SecretCardProps>(props);
   const labelId = useId();
   const iconNode =
     icon === undefined ? <LockSimple weight="bold" aria-hidden /> : icon;

@@ -7,7 +7,7 @@ import { Text } from "ui/components/Text";
 import { Stack } from "ui/primitives";
 import { schemes } from "ui/theme";
 
-import { sampleCharacters } from "../../stories/fixtures/characters";
+import { sampleCharacters } from "../../../docs/fixtures/characters";
 import {
   ThemeChange,
   ThemeDialog,
@@ -15,8 +15,8 @@ import {
   ThemeDialogGame,
   ThemeDialogProps,
   ThemeTarget,
-} from "./ThemeDialog";
-import { ThemeChoice } from "./resolveTheme";
+} from "../ThemeDialog";
+import { ThemeChoice } from "../resolveTheme";
 
 const [kira, orrin, senna] = sampleCharacters;
 

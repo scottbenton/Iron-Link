@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HStack } from "ui/primitives";
 
-import { CopyButton } from "./CopyButton";
+import { CopyButton } from "../CopyButton";
 
 const meta: Meta<typeof CopyButton> = {
   title: "Components/CopyButton",

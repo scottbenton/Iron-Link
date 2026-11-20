@@ -4,7 +4,7 @@ import {
   charactersHaveThemes,
   getAutomaticScheme,
   resolveTheme,
-} from "./resolveTheme";
+} from "../resolveTheme";
 
 const november = new Date(2026, 10, 18);
 const june = new Date(2026, 5, 12);

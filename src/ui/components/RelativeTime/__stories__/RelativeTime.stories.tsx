@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Stack } from "ui/primitives";
 
-import { RelativeTime } from "./RelativeTime";
+import { RelativeTime } from "../RelativeTime";
 
 const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000);
 const clock = (date: Date) =>

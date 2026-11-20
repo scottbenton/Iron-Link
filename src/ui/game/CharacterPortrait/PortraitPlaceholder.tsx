@@ -2,8 +2,8 @@ import { Button as BaseButton } from "@base-ui/react/button";
 import { Camera } from "@phosphor-icons/react";
 import { CSSProperties, ComponentProps, forwardRef } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { cva, cx } from "styled-system/css";
 
@@ -68,7 +68,7 @@ const placeholderStyles = cva({
 });
 
 export interface PortraitPlaceholderProps
-  extends LayoutProps,
+  extends CssProp,
     Omit<
       ComponentProps<typeof BaseButton>,
       "className" | "children" | "style"
@@ -96,7 +96,7 @@ export const PortraitPlaceholder = forwardRef<
     className,
     style,
     ...rest
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const pixels = portraitSizes[size];
   const showCaption = pixels >= portraitSizes.xl;
   return (

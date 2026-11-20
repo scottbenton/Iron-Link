@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Stack } from "ui/primitives";
 
-import { sampleCharacters } from "../../stories/fixtures/characters";
-import { PortraitGroup, PortraitGroupMember } from "./PortraitGroup";
+import { sampleCharacters } from "../../../docs/fixtures/characters";
+import { PortraitGroup, PortraitGroupMember } from "../PortraitGroup";
 
 const partySchemes = ["cinder", "myriad", undefined] as const;
 

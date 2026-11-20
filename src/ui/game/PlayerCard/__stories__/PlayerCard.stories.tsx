@@ -4,8 +4,8 @@ import { Button } from "ui/components/Button";
 import { Grid } from "ui/primitives";
 import { SchemeName } from "ui/theme";
 
-import { sampleCharacters } from "../../stories/fixtures/characters";
-import { PlayerCard } from "./PlayerCard";
+import { sampleCharacters } from "../../../docs/fixtures/characters";
+import { PlayerCard } from "../PlayerCard";
 
 const [kira, orrin, senna] = sampleCharacters;
 const member = (

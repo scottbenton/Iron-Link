@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Stack } from "ui/primitives";
 import { SchemeName, schemes } from "ui/theme";
 
-import { ColorSchemePicker } from "./ColorSchemePicker";
+import { ColorSchemePicker } from "../ColorSchemePicker";
 
 const meta: Meta<typeof ColorSchemePicker> = {
   title: "Game/ColorSchemePicker",

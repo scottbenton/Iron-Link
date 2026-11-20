@@ -8,7 +8,7 @@ import {
 
 import { Card, CardLinkOverlay } from "ui/components/Card";
 import { Text } from "ui/components/Text";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import type { SchemeName } from "ui/theme";
 
 import { css, cx } from "styled-system/css";
@@ -47,7 +47,7 @@ const actionsStyles = css({
 });
 
 export interface CharacterCardProps
-  extends LayoutProps,
+  extends CssProp,
     Omit<ComponentPropsWithoutRef<"article">, "children"> {
   name: string;
   /** The player, shown under the name. Leave out in solo games. */
@@ -87,7 +87,7 @@ export function CharacterCard(props: CharacterCardProps) {
     headingAs = "h3",
     className,
     ...rest
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const pressable = !!render || !!onOpen;
 
