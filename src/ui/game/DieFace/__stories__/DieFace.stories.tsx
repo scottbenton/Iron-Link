@@ -4,15 +4,15 @@ import { useState } from "react";
 
 import { Grid, HStack } from "ui/primitives";
 
-import { Button } from "../../components/Button";
-import { Text } from "../../components/Text";
+import { Button } from "../../../components/Button";
+import { Text } from "../../../components/Text";
 import {
   DieFace,
   DieFaceMotion,
   DieFaceValue,
   nextDieFace,
   useDieFace,
-} from "./DieFace";
+} from "../DieFace";
 
 const meta = {
   title: "Game/DieFace",

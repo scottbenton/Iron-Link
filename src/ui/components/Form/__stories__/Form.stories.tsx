@@ -4,20 +4,20 @@ import { FormEvent, useState } from "react";
 
 import { Grid, HStack } from "ui/primitives";
 
-import { Button } from "../Button";
-import { Checkbox } from "../Checkbox";
+import { Button } from "../../Button";
+import { Checkbox } from "../../Checkbox";
 import {
   Dialog,
   DialogActions,
   DialogBody,
   DialogClose,
   DialogHeader,
-} from "../Dialog";
-import { RadioCard, RadioCardGroup } from "../RadioCard";
-import { Select } from "../Select";
-import { TextArea } from "../TextArea";
-import { TextField } from "../TextField";
-import { Form, FormActions } from "./Form";
+} from "../../Dialog";
+import { RadioCard, RadioCardGroup } from "../../RadioCard";
+import { Select } from "../../Select";
+import { TextArea } from "../../TextArea";
+import { TextField } from "../../TextField";
+import { Form, FormActions } from "../Form";
 
 const meta = {
   title: "Components/Form",

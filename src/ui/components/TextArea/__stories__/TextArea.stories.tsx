@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Stack } from "ui/primitives";
 
-import { TextField } from "../TextField";
-import { TextArea } from "./TextArea";
+import { TextField } from "../../TextField";
+import { TextArea } from "../TextArea";
 
 const meta = {
   title: "Components/TextArea",

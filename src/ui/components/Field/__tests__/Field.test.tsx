@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { TextField } from "../TextField";
+import { TextField } from "../../TextField";
 
 describe("FieldShell", () => {
   it("puts help and then the error under the control, so side-by-side fields line up", () => {

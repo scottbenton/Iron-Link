@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Grid, Stack } from "ui/primitives";
 
-import { TextField } from "./TextField";
+import { TextField } from "../TextField";
 
 const meta = {
   title: "Components/TextField",

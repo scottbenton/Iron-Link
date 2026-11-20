@@ -2,7 +2,7 @@ import { fireEvent, render } from "@testing-library/react";
 import { act } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { DieFace, DieFaceValue, nextDieFace } from "./DieFace";
+import { DieFace, DieFaceValue, nextDieFace } from "../DieFace";
 
 describe("DieFace", () => {
   it("never rolls the face already showing, and reaches every other", () => {

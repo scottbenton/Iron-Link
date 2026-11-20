@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import { Radio, RadioGroup } from "../RadioGroup";
-import { Checkbox } from "./Checkbox";
+import { Radio, RadioGroup } from "../../RadioGroup";
+import { Checkbox } from "../Checkbox";
 
 describe("Checkbox", () => {
   it("is named by its title and described by its description", () => {

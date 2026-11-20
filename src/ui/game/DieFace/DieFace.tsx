@@ -8,7 +8,7 @@ import {
 } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -51,7 +51,7 @@ export function useDieFace(
  */
 export type DieFaceMotion = "swap" | "tilt" | "pop" | "cycle" | "fade";
 
-export interface DieFaceProps extends LayoutProps {
+export interface DieFaceProps extends CssProp {
   /** The face showing. Changing it shows the new face with `motion`. */
   face: DieFaceValue;
   /**
@@ -172,7 +172,7 @@ export function DieFace(props: DieFaceProps) {
     weight = "bold",
     motion = "tilt",
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const face = useCycledFace(target, motion === "cycle");
   // The face before the last change, and a count that restarts the
   // entrance. Updated during render, so the new face never shows a frame
