@@ -7,7 +7,7 @@ import { Flex, Stack } from "ui/primitives";
 import { css } from "styled-system/css";
 
 import { Text } from "../../../components/Text";
-import { CharacterColumn } from "../../Examples/GamePageColumns";
+import { CharacterColumn } from "../../Examples/CharacterColumn";
 import {
   CharacterSheetPlaceholder,
   ReferencePlaceholder,

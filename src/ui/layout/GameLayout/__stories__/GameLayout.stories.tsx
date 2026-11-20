@@ -6,12 +6,10 @@ import { css } from "styled-system/css";
 
 import { Alert } from "../../../components/Alert";
 import { Button } from "../../../components/Button";
-import {
-  CharacterColumn,
-  CharacterColumnActions,
-  NotesColumn,
-  ReferenceColumn,
-} from "../../Examples/GamePageColumns";
+import { CharacterColumn } from "../../Examples/CharacterColumn";
+import { CharacterColumnActions } from "../../Examples/CharacterColumnActions";
+import { NotesColumn } from "../../Examples/NotesColumn";
+import { ReferenceColumn } from "../../Examples/ReferenceColumn";
 import { GamePageTabs } from "../../Examples/StoryPlaceholders";
 import {
   characterSections,

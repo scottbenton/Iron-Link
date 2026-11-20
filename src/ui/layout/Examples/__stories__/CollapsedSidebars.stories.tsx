@@ -26,12 +26,10 @@ import { GameLayout } from "../../GameLayout";
 import { NavBar } from "../../NavBar";
 import { NavRail } from "../../NavRail";
 import { LayoutPanel } from "../../shared/layoutPanel";
-import {
-  CharacterColumn,
-  CharacterColumnActions,
-  NotesColumn,
-  ReferenceColumn,
-} from "../GamePageColumns";
+import { CharacterColumn } from "../CharacterColumn";
+import { CharacterColumnActions } from "../CharacterColumnActions";
+import { NotesColumn } from "../NotesColumn";
+import { ReferenceColumn } from "../ReferenceColumn";
 import { GamePageTabs } from "../StoryPlaceholders";
 import { characterSections, referenceSections } from "../columnSections";
 import { getNavItems } from "../storyData";

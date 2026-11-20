@@ -63,14 +63,12 @@ import {
   guideScenario,
 } from "../../SettingsMenu/settingsMenuScenarios";
 import { LayoutPanel } from "../../shared/layoutPanel";
-import {
-  CharacterColumn,
-  CharacterColumnActions,
-  NotesColumn,
-  OverviewColumn,
-  ReferenceColumn,
-} from "../GamePageColumns";
+import { CharacterColumn } from "../CharacterColumn";
+import { CharacterColumnActions } from "../CharacterColumnActions";
+import { NotesColumn } from "../NotesColumn";
+import { OverviewColumn } from "../OverviewColumn";
 import { PhoneGamePage } from "../PhoneGamePage";
+import { ReferenceColumn } from "../ReferenceColumn";
 import { GamePageTabs } from "../StoryPlaceholders";
 import {
   characterSections,
