@@ -7,6 +7,8 @@ import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { css, cx } from "styled-system/css";
 import { visuallyHidden } from "styled-system/patterns";
 
+import { useControllableState } from "../../hooks/useControllableState";
+import { mergeRefs } from "../../utils/mergeRefs";
 import {
   FieldOwnProps,
   FieldShell,
@@ -14,8 +16,6 @@ import {
   fieldIconButtonStyles,
   fieldInputRecipe,
   fieldShellStyles,
-  mergeRefs,
-  useControllableState,
 } from "../Field";
 import {
   listGroupLabelStyles,

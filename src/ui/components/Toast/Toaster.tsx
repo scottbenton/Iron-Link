@@ -1,20 +1,16 @@
 import { Broom } from "@phosphor-icons/react";
-import {
-  CSSProperties,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { CSSProperties, useLayoutEffect, useRef } from "react";
 import { Toaster as SonnerToaster, useSonner } from "sonner";
 
 import { css } from "styled-system/css";
 
+import { useFocusWithin } from "../../hooks/useFocusWithin";
 import { useAnnounce } from "../Announcer";
 import { Button } from "../Button";
 import { toast } from "./toast";
 import { subscribeToToastAnnouncements } from "./toastAnnouncements";
 import { toastViewportAttribute } from "./toastViewport";
+import { useCollapseAfterRemoval } from "./useCollapseAfterRemoval";
 
 const BASE_OFFSET = "calc(20px + env(safe-area-inset-bottom, 0px))";
 const FOOTER_SPACE = 48;
@@ -139,73 +135,6 @@ export interface ToasterProps {
   clearAllLabel?: string;
   /** The count of hidden toasts, such as "2 more". */
   moreLabel?: (count: number) => string;
-}
-
-/**
- * Whether focus is inside `ref`'s element. Removing the focused element
- * sends no focusout, so it is also re-read whenever the element's content
- * changes: a toast closed with its own Dismiss button leaves the page only
- * after its exit, well after `recheckKey` (the toast list) has moved on, and
- * until then the stack stayed fanned out.
- */
-function useFocusWithin(
-  ref: { current: HTMLElement | null },
-  recheckKey: unknown,
-) {
-  const [focusWithin, setFocusWithin] = useState(false);
-  useLayoutEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    const onFocusIn = () => setFocusWithin(true);
-    const onFocusOut = (event: FocusEvent) => {
-      const next = event.relatedTarget;
-      if (next instanceof Node && element.contains(next)) return;
-      setFocusWithin(false);
-    };
-    const observer = new MutationObserver(() => {
-      if (!element.contains(document.activeElement)) setFocusWithin(false);
-    });
-    element.addEventListener("focusin", onFocusIn);
-    element.addEventListener("focusout", onFocusOut);
-    observer.observe(element, { childList: true, subtree: true });
-    return () => {
-      element.removeEventListener("focusin", onFocusIn);
-      element.removeEventListener("focusout", onFocusOut);
-      observer.disconnect();
-    };
-  }, [ref]);
-  useLayoutEffect(() => {
-    const element = ref.current;
-    setFocusWithin(!!element && element.contains(document.activeElement));
-  }, [ref, recheckKey]);
-  return focusWithin;
-}
-
-/**
- * Sonner collapses the fanned-out stack when the pointer leaves it, which
- * React reports from the element the pointer was last over. When that
- * element was a toast just dismissed (its close button), it is gone from the
- * page, the browser reports no leave, and the stack stayed fanned out until
- * the pointer went back in and out again. So while the stack is fanned out,
- * a pointer moving outside it reports the leave itself.
- */
-function useCollapseAfterRemoval(ref: { current: HTMLElement | null }) {
-  useEffect(() => {
-    const onPointerMove = (event: PointerEvent) => {
-      if (event.pointerType !== "mouse") return;
-      const list = ref.current?.querySelector("[data-sonner-toaster]");
-      if (!list || !list.querySelector('[data-expanded="true"]')) return;
-      if (event.target instanceof Node && list.contains(event.target)) return;
-      list.dispatchEvent(
-        new MouseEvent("mouseout", {
-          bubbles: true,
-          relatedTarget: document.body,
-        }),
-      );
-    };
-    document.addEventListener("pointermove", onPointerMove, { passive: true });
-    return () => document.removeEventListener("pointermove", onPointerMove);
-  }, [ref]);
 }
 
 /**

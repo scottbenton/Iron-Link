@@ -9,6 +9,14 @@ import { useState } from "react";
 
 import { Grid } from "ui/primitives";
 
+import {
+  Card,
+  CardActionArea,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  CardLinkOverlay,
+} from "..";
 import { sampleCharacters } from "../../../docs/fixtures/characters";
 import { Avatar, AvatarGroup } from "../../Avatar";
 import { Button } from "../../Button";
@@ -21,14 +29,6 @@ import {
   MenuTrigger,
 } from "../../Menu";
 import { Text } from "../../Text";
-import {
-  Card,
-  CardActionArea,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  CardLinkOverlay,
-} from "../Card";
 
 const meta: Meta<typeof Card> = {
   title: "Components/Card",

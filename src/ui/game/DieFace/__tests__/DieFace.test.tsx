@@ -1,13 +1,7 @@
 import { act, render, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  DieFace,
-  DieFaceValue,
-  nextDieFace,
-  toDieFace,
-  useDieFace,
-} from "../DieFace";
+import { DieFace, DieFaceValue, nextDieFace, toDieFace, useDieFace } from "..";
 
 /** The markup a die shows when it rests on `face`. */
 function faceHtml(face: DieFaceValue) {
