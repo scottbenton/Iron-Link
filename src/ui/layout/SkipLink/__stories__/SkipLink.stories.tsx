@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Box, Stack } from "ui/primitives";
 
-import { Text } from "../../components/Text";
-import { SkipLink } from "./SkipLink";
+import { Text } from "../../../components/Text";
+import { SkipLink } from "../SkipLink";
 
 const meta: Meta<typeof SkipLink> = {
   title: "Layout/SkipLink",

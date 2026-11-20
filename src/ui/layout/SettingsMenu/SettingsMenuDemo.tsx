@@ -7,8 +7,8 @@
  */
 import { ReactElement, useEffect, useState, useSyncExternalStore } from "react";
 
+import { sampleCharacters } from "../../docs/fixtures/characters";
 import { ThemeChoice, ThemeDialog, ThemeTarget } from "../../game/ThemeDialog";
-import { sampleCharacters } from "../../stories/fixtures/characters";
 import { SchemeName, applyUITheme } from "../../theme";
 import { ColorModeToggle } from "./ColorModeToggle";
 import {

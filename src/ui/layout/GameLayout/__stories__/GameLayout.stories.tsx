@@ -4,21 +4,21 @@ import { useState } from "react";
 
 import { css } from "styled-system/css";
 
-import { Alert } from "../../components/Alert";
-import { Button } from "../../components/Button";
+import { Alert } from "../../../components/Alert";
+import { Button } from "../../../components/Button";
 import {
   CharacterColumn,
   CharacterColumnActions,
   NotesColumn,
   ReferenceColumn,
-} from "../Examples/GamePageColumns";
-import { GamePageTabs } from "../Examples/StoryPlaceholders";
+} from "../../Examples/GamePageColumns";
+import { GamePageTabs } from "../../Examples/StoryPlaceholders";
 import {
   characterSections,
   referenceSections,
-} from "../Examples/columnSections";
-import { LayoutPanel } from "../shared/layoutPanel";
-import { GameLayout, GameLayoutProps } from "./GameLayout";
+} from "../../Examples/columnSections";
+import { LayoutPanel } from "../../shared/layoutPanel";
+import { GameLayout, GameLayoutProps } from "../GameLayout";
 
 const character: LayoutPanel = {
   id: "character",

@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Box } from "ui/primitives";
 
-import { Text } from "../../components/Text";
-import { PageContent } from "./PageContent";
+import { Text } from "../../../components/Text";
+import { PageContent } from "../PageContent";
 
 const meta: Meta<typeof PageContent> = {
   title: "Layout/PageContent",

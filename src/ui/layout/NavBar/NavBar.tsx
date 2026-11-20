@@ -10,7 +10,7 @@ import { quietPressable } from "ui/styles/pressable";
 import { css, cx } from "styled-system/css";
 
 import { IconButton } from "../../components/IconButton";
-import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
+import { CssProp, withCssProp } from "../../styles/cssProp";
 import { Logo } from "../Logo";
 import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
 import { NavItem } from "../shared/navItem";
@@ -219,7 +219,7 @@ const drawerFooterStyles = css({
   borderTop: "1px solid token(colors.border.subtle)",
 });
 
-export interface NavBarProps extends LayoutProps {
+export interface NavBarProps extends CssProp {
   /**
    * The page's title, rendered as its one h1. Visible on phones; on wide
    * screens it stays for screen readers only (CLAUDE.md), since the page
@@ -281,7 +281,7 @@ export function NavBar(props: NavBarProps) {
     menuFooter,
     linkComponent,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const Link = useLinkComponent(linkComponent);
   const [menuOpen, setMenuOpen] = useState(false);

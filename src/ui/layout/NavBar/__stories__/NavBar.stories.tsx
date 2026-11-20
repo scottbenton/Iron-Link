@@ -3,11 +3,11 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { css, cx } from "styled-system/css";
 
-import { IconButton } from "../../components/IconButton";
-import { GamePageTabs, PhoneFrame } from "../Examples/StoryPlaceholders";
-import { getNavItems } from "../Examples/storyData";
-import { shellContainer } from "../shared/shell";
-import { NavBar } from "./NavBar";
+import { IconButton } from "../../../components/IconButton";
+import { GamePageTabs, PhoneFrame } from "../../Examples/StoryPlaceholders";
+import { getNavItems } from "../../Examples/storyData";
+import { shellContainer } from "../../shared/shell";
+import { NavBar } from "../NavBar";
 
 const meta: Meta<typeof NavBar> = {
   title: "Layout/NavBar",

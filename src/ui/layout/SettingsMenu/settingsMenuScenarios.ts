@@ -1,8 +1,8 @@
 /**
  * Who is looking, and where, for the settings menu stories. Story-only.
  */
+import { sampleCharacters } from "../../docs/fixtures/characters";
 import { ThemeDialogCharacter, ThemeDialogGame } from "../../game/ThemeDialog";
-import { sampleCharacters } from "../../stories/fixtures/characters";
 import { SettingsMenuContext } from "./settingsMenuSections";
 
 const [kira, orrin, senna] = sampleCharacters;

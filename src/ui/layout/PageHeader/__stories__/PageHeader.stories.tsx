@@ -1,11 +1,11 @@
 import { PencilSimpleIcon, ShareNetworkIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { BreadcrumbItem, Breadcrumbs } from "../../components/Breadcrumbs";
-import { Button } from "../../components/Button";
-import { IconButton } from "../../components/IconButton";
-import { heroImageSrc } from "../Examples/storyData";
-import { PageHeader } from "./PageHeader";
+import { BreadcrumbItem, Breadcrumbs } from "../../../components/Breadcrumbs";
+import { Button } from "../../../components/Button";
+import { IconButton } from "../../../components/IconButton";
+import { heroImageSrc } from "../../Examples/storyData";
+import { PageHeader } from "../PageHeader";
 
 const meta: Meta<typeof PageHeader> = {
   title: "Layout/PageHeader",

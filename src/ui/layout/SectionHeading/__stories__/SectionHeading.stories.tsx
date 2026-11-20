@@ -1,8 +1,8 @@
 import { PlusIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Button } from "../../components/Button";
-import { SectionHeading } from "./SectionHeading";
+import { Button } from "../../../components/Button";
+import { SectionHeading } from "../SectionHeading";
 
 const meta: Meta<typeof SectionHeading> = {
   title: "Layout/SectionHeading",

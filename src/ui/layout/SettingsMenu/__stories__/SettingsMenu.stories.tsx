@@ -6,16 +6,16 @@ import { Box, Stack } from "ui/primitives";
 
 import { css } from "styled-system/css";
 
-import { Text } from "../../components/Text";
-import { sampleCharacters } from "../../stories/fixtures/characters";
-import { PhoneGamePage } from "../Examples/PhoneGamePage";
-import { getNavItems } from "../Examples/storyData";
-import { NavRail } from "../NavRail";
-import { SettingsMenu } from "./SettingsMenu";
+import { Text } from "../../../components/Text";
+import { sampleCharacters } from "../../../docs/fixtures/characters";
+import { PhoneGamePage } from "../../Examples/PhoneGamePage";
+import { getNavItems } from "../../Examples/storyData";
+import { NavRail } from "../../NavRail";
+import { SettingsMenu } from "../SettingsMenu";
 import {
   DemoCharacterSettingsMenu,
   DemoSettingsMenu,
-} from "./SettingsMenuDemo";
+} from "../SettingsMenuDemo";
 import {
   SettingsScenario,
   gamesListScenario,
@@ -23,9 +23,9 @@ import {
   playerScenario,
   soloScenario,
   soloTwoCharactersScenario,
-} from "./settingsMenuScenarios";
-import { SettingsMenuAction } from "./settingsMenuSections";
-import { defaultSettingsMenuStrings } from "./settingsMenuStrings";
+} from "../settingsMenuScenarios";
+import { SettingsMenuAction } from "../settingsMenuSections";
+import { defaultSettingsMenuStrings } from "../settingsMenuStrings";
 
 const meta: Meta<typeof SettingsMenu> = {
   title: "Layout/SettingsMenu",

@@ -6,15 +6,15 @@ import { Flex, Stack } from "ui/primitives";
 
 import { css } from "styled-system/css";
 
-import { Text } from "../../components/Text";
-import { CharacterColumn } from "../Examples/GamePageColumns";
+import { Text } from "../../../components/Text";
+import { CharacterColumn } from "../../Examples/GamePageColumns";
 import {
   CharacterSheetPlaceholder,
   ReferencePlaceholder,
-} from "../Examples/StoryPlaceholders";
-import { characterSections } from "../Examples/columnSections";
-import { LayoutPanel } from "../shared/layoutPanel";
-import { Sidebar, SidebarProps } from "./Sidebar";
+} from "../../Examples/StoryPlaceholders";
+import { characterSections } from "../../Examples/columnSections";
+import { LayoutPanel } from "../../shared/layoutPanel";
+import { Sidebar, SidebarProps } from "../Sidebar";
 
 const panels: LayoutPanel[] = [
   {

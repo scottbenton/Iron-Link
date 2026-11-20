@@ -2,12 +2,12 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { ColorModeToggle } from "./ColorModeToggle";
-import { SettingsMenu, SettingsMenuProps } from "./SettingsMenu";
+import { ColorModeToggle } from "../ColorModeToggle";
+import { SettingsMenu, SettingsMenuProps } from "../SettingsMenu";
 import {
   getCharacterMenuItems,
   getSettingsMenuSections,
-} from "./settingsMenuSections";
+} from "../settingsMenuSections";
 
 const kira = { name: "Kira Vale", isOwner: true };
 const archive = { name: "The Drowned Archive", isGuide: true };

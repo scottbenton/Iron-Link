@@ -12,13 +12,13 @@ import { css } from "styled-system/css";
 import { PageTab, PageTabs } from "../../components/Tabs";
 import { Text } from "../../components/Text";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
-import { CharacterPortrait } from "../../game/CharacterPortrait";
 import {
   SampleCharacter,
   sampleCharacters,
   samplePortraitSrc,
-} from "../../stories/fixtures/characters";
-import { sampleMoves } from "../../stories/fixtures/datasworn";
+} from "../../docs/fixtures/characters";
+import { sampleMoves } from "../../docs/fixtures/datasworn";
+import { CharacterPortrait } from "../../game/CharacterPortrait";
 
 const cardStyles = css({
   boxSizing: "border-box",

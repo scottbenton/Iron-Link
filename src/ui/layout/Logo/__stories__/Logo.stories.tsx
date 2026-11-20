@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HStack } from "ui/primitives";
 
-import { Logo } from "./Logo";
+import { Logo } from "../Logo";
 
 const meta: Meta<typeof Logo> = {
   title: "Layout/Logo",

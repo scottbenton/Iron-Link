@@ -9,9 +9,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Flex } from "ui/primitives";
 
-import { PhoneFrame } from "../Examples/StoryPlaceholders";
-import { getNavItems } from "../Examples/storyData";
-import { MobileNav } from "./MobileNav";
+import { PhoneFrame } from "../../Examples/StoryPlaceholders";
+import { getNavItems } from "../../Examples/storyData";
+import { MobileNav } from "../MobileNav";
 
 const meta: Meta<typeof MobileNav> = {
   title: "Layout/MobileNav",

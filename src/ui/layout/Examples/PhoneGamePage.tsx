@@ -71,6 +71,12 @@ import {
   ToolbarSeparator,
 } from "../../components/Toolbar";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
+import { sampleCharacters } from "../../docs/fixtures/characters";
+import {
+  classicRules,
+  sampleAssets,
+  starforgedRules,
+} from "../../docs/fixtures/datasworn";
 import { characterAuthor, gameLogEntries } from "../../examples/sampleLog";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
@@ -101,12 +107,6 @@ import {
   classicTracks,
   sampleBonds,
 } from "../../game/TracksPanel/tracksPanelSamples";
-import { sampleCharacters } from "../../stories/fixtures/characters";
-import {
-  classicRules,
-  sampleAssets,
-  starforgedRules,
-} from "../../stories/fixtures/datasworn";
 import { ActionToolbar, ActionToolbarIconButton } from "../ActionToolbar";
 import { AppShell } from "../AppShell";
 import { MobileNav } from "../MobileNav";

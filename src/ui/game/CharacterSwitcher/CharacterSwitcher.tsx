@@ -23,7 +23,7 @@ import {
   LayoutLinkComponent,
   useLinkComponent,
 } from "../../layout/shared/linkContext";
-import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
+import { CssProp, withCssProp } from "../../styles/cssProp";
 
 const triggerStyles = css({
   ...quietPressable,
@@ -106,7 +106,7 @@ export interface CharacterSwitcherCharacter {
   portrait?: ReactNode;
 }
 
-export interface CharacterSwitcherProps extends LayoutProps {
+export interface CharacterSwitcherProps extends CssProp {
   /** The game's characters, in the game's order. */
   characters: CharacterSwitcherCharacter[];
   /**
@@ -144,7 +144,7 @@ export function CharacterSwitcher(props: CharacterSwitcherProps) {
     overviewLabel = "Game overview",
     linkComponent,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const Link = useLinkComponent(linkComponent);
   const character = characters.find((item) => item.id === current);
   const check = (

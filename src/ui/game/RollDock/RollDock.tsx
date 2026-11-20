@@ -4,7 +4,7 @@ import { CSSProperties, useLayoutEffect, useRef, useState } from "react";
 import { css, cx } from "styled-system/css";
 
 import { Button } from "../../components/Button";
-import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
+import { CssProp, withCssProp } from "../../styles/cssProp";
 import { DockedCard } from "./DockedCard";
 import type { DockedItem } from "./DockedCard";
 import { RecentRollsSheet } from "./RecentRollsSheet";
@@ -68,7 +68,7 @@ const showAllRowStyles = css({
   marginBlockStart: "-1",
 });
 
-export interface RollDockProps extends LayoutProps {
+export interface RollDockProps extends CssProp {
   /**
    * Recent rolls and notifications, oldest first; the newest shows in full.
    */
@@ -112,7 +112,7 @@ export function RollDock(props: RollDockProps) {
     clearAllLabel = "Clear all",
     emptyLabel = "No notifications",
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const newest = items[items.length - 1];

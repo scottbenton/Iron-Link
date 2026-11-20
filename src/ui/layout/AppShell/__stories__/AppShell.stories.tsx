@@ -2,14 +2,14 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Box } from "ui/primitives";
 
-import { Text } from "../../components/Text";
-import { PhoneFrame } from "../Examples/StoryPlaceholders";
-import { getNavItems } from "../Examples/storyData";
-import { MobileNav } from "../MobileNav";
-import { NavBar } from "../NavBar";
-import { NavRail } from "../NavRail";
-import { PageContent } from "../PageContent";
-import { AppShell } from "./AppShell";
+import { Text } from "../../../components/Text";
+import { PhoneFrame } from "../../Examples/StoryPlaceholders";
+import { getNavItems } from "../../Examples/storyData";
+import { MobileNav } from "../../MobileNav";
+import { NavBar } from "../../NavBar";
+import { NavRail } from "../../NavRail";
+import { PageContent } from "../../PageContent";
+import { AppShell } from "../AppShell";
 
 const meta: Meta<typeof AppShell> = {
   title: "Layout/AppShell",

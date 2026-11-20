@@ -2,10 +2,10 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { css } from "styled-system/css";
 
-import { getNavItems } from "../Examples/storyData";
-import { DemoSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
-import { gamesListScenario } from "../SettingsMenu/settingsMenuScenarios";
-import { NavRail } from "./NavRail";
+import { getNavItems } from "../../Examples/storyData";
+import { DemoSettingsMenu } from "../../SettingsMenu/SettingsMenuDemo";
+import { gamesListScenario } from "../../SettingsMenu/settingsMenuScenarios";
+import { NavRail } from "../NavRail";
 
 const meta: Meta<typeof NavRail> = {
   title: "Layout/NavRail",

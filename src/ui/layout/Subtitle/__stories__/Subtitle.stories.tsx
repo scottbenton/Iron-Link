@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Subtitle } from "./Subtitle";
+import { Subtitle } from "../Subtitle";
 
 const meta: Meta<typeof Subtitle> = {
   title: "Layout/Subtitle",

@@ -2,8 +2,8 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
 
-import { Sidebar } from "./Sidebar";
-import { SidebarHeaderEnd } from "./SidebarHeaderEnd";
+import { Sidebar } from "../Sidebar";
+import { SidebarHeaderEnd } from "../SidebarHeaderEnd";
 
 const sections = [
   { id: "overview", title: "Overview", icon: <svg /> },
