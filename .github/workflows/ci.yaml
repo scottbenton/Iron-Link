@@ -5,9 +5,13 @@ on:
   push:
     branches:
       - main
+      # The long-lived redesign branch deploys to its own Cloudflare Pages
+      # branch address (Preview settings), which the beta subdomain points at.
+      - redesign
   workflow_dispatch:
 
-# A newer push to a PR cancels its older run; runs on main always finish.
+# A newer push to a PR cancels its older run; runs on main and redesign
+# always finish.
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
