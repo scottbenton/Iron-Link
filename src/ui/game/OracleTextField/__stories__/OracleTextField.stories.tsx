@@ -3,8 +3,8 @@ import { useState } from "react";
 
 import { Grid, Stack } from "ui/primitives";
 
-import { starforgedRules } from "../../stories/fixtures/datasworn";
-import { OracleTextField } from "./OracleTextField";
+import { starforgedRules } from "../../../docs/fixtures/datasworn";
+import { OracleTextField } from "../OracleTextField";
 
 interface OracleRow {
   roll: { min: number; max: number } | null;

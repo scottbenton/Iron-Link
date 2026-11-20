@@ -1,8 +1,8 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { AnnouncerProvider } from "../../components/Announcer";
-import { OracleTextField } from "./OracleTextField";
+import { AnnouncerProvider } from "../../../components/Announcer";
+import { OracleTextField } from "../OracleTextField";
 
 describe("OracleTextField", () => {
   it("rolls the oracle into the field and names the button after it", async () => {

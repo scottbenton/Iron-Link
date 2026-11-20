@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { Stack } from "ui/primitives";
 
-import { Checkbox } from "./Checkbox";
+import { Checkbox } from "../Checkbox";
 
 const meta = {
   title: "Components/Checkbox",

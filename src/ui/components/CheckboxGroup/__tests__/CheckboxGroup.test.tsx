@@ -2,9 +2,9 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import { Checkbox } from "../Checkbox";
-import { Radio, RadioGroup } from "../RadioGroup";
-import { CheckboxGroup } from "./CheckboxGroup";
+import { Checkbox } from "../../Checkbox";
+import { Radio, RadioGroup } from "../../RadioGroup";
+import { CheckboxGroup } from "../CheckboxGroup";
 
 describe("group help", () => {
   it("describes the group, not each choice again", () => {

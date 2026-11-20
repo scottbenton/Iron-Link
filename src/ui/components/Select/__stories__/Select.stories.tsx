@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Stack } from "ui/primitives";
 
-import { Select, SelectOptions, SelectProps } from "./Select";
+import { Select, SelectOptions, SelectProps } from "../Select";
 
 type SingleSelectProps<V extends string> = Extract<
   SelectProps<V>,

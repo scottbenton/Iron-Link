@@ -10,7 +10,7 @@ import {
   useRef,
 } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { cx } from "styled-system/css";
 
@@ -46,7 +46,7 @@ type NativeInputProps = Omit<
 export interface TextFieldProps
   extends FieldOwnProps,
     NativeInputProps,
-    LayoutProps {
+    CssProp {
   /** The text. Use with `onChange` or `onValueChange`. */
   value?: string;
   /** The starting text when uncontrolled. */
@@ -138,7 +138,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       validate,
       validationMode,
       ...inputProps
-    } = withLayoutProps(props);
+    } = withCssProp(props);
 
     const inputRef = useRef<HTMLInputElement>(null);
     const [value, setValue] = useControllableState(

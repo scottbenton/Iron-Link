@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { Stack } from "ui/primitives";
 
-import { Combobox, ComboboxOption, ComboboxProps } from "./Combobox";
+import { Combobox, ComboboxOption, ComboboxProps } from "../Combobox";
 
 type SingleComboboxProps = Extract<ComboboxProps, { multiple?: false }>;
 

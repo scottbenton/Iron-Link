@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { Stack } from "ui/primitives";
 
-import { SearchField } from "./SearchField";
+import { SearchField } from "../SearchField";
 
 const moves = [
   "Face Danger",

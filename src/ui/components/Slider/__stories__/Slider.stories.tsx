@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { Stack } from "ui/primitives";
 
-import { Slider } from "./Slider";
+import { Slider } from "../Slider";
 
 const meta = {
   title: "Components/Slider",

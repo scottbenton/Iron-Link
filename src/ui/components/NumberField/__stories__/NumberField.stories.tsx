@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { Grid, HStack, Stack } from "ui/primitives";
 
-import { NumberField } from "./NumberField";
+import { NumberField } from "../NumberField";
 
 const meta = {
   title: "Components/NumberField",

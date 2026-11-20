@@ -14,12 +14,12 @@ import { useState } from "react";
 
 import { HStack, Stack } from "ui/primitives";
 
-import { SegmentedControl } from "./SegmentedControl";
+import { SegmentedControl } from "../SegmentedControl";
 import {
   ToggleGroup,
   ToggleGroupItem,
   ToggleGroupSingleProps,
-} from "./ToggleGroup";
+} from "../ToggleGroup";
 
 type Tool = "pan" | "paint" | "erase" | "pin";
 
