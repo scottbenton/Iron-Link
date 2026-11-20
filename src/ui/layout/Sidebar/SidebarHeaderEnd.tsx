@@ -1,6 +1,6 @@
 import { useContext, useLayoutEffect } from "react";
 
-import { SidebarHeaderSlotContext } from "./sidebarHeaderSlot";
+import { SidebarHeaderSlotContext } from "./sidebarHeaderSlotContext";
 
 /**
  * Where a sidebar panel's header controls go instead of its header: put it

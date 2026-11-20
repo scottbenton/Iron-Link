@@ -1,40 +1,9 @@
 /**
  * Story-only: the widths the responsive game page stories step through,
- * and which of the app's three game page layouts a width gets. The app
- * decides with `useIsMobile()` (below the 900px `md` breakpoint) and
- * `useIsBreakpoint("greater-than", "lg")` (1200px); these follow the
- * window the same way, so the toolbar's viewports, or resizing the
- * window, walk a page from desktop down to the phone.
+ * so the toolbar's viewports, or resizing the window, walk a page from
+ * desktop down to the phone. `useGamePageTier` says which layout a width
+ * gets.
  */
-import { useSyncExternalStore } from "react";
-
-export type GamePageTier = "phone" | "medium" | "wide";
-
-const MEDIUM_QUERY = "(min-width: 900px)";
-const WIDE_QUERY = "(min-width: 1200px)";
-
-function subscribe(onChange: () => void) {
-  if (typeof window === "undefined" || !window.matchMedia) return () => {};
-  const queries = [MEDIUM_QUERY, WIDE_QUERY].map((query) =>
-    window.matchMedia(query),
-  );
-  queries.forEach((query) => query.addEventListener("change", onChange));
-  return () =>
-    queries.forEach((query) => query.removeEventListener("change", onChange));
-}
-
-function getTier(): GamePageTier {
-  if (typeof window === "undefined" || !window.matchMedia) return "wide";
-  if (window.matchMedia(WIDE_QUERY).matches) return "wide";
-  if (window.matchMedia(MEDIUM_QUERY).matches) return "medium";
-  return "phone";
-}
-
-/** Phone below 900px, medium to 1200px, wide from there. */
-export function useGamePageTier(): GamePageTier {
-  return useSyncExternalStore(subscribe, getTier, () => "wide");
-}
-
 const viewport = (name: string, width: number, height: number) => ({
   name,
   styles: { width: `${width}px`, height: `${height}px` },

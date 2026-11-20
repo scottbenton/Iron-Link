@@ -19,8 +19,9 @@ import {
 import { EmptyState } from "../../layout/EmptyState";
 import type { ProgressRank } from "../ProgressTrack";
 import { BondsSection } from "./BondsSection";
+import { ClockEntry } from "./ClockEntry";
 import { ConnectionsSection } from "./ConnectionsSection";
-import { ClockEntry, ProgressTrackEntry } from "./TrackEntries";
+import { ProgressTrackEntry } from "./ProgressTrackEntry";
 import { TrackMenu } from "./TrackMenu";
 import {
   TracksPanelStrings,

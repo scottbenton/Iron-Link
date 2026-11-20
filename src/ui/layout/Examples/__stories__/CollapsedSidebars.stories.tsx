@@ -28,9 +28,9 @@ import { NavRail } from "../../NavRail";
 import { LayoutPanel } from "../../shared/layoutPanel";
 import { CharacterColumn } from "../CharacterColumn";
 import { CharacterColumnActions } from "../CharacterColumnActions";
+import { GamePageTabs } from "../GamePageTabs";
 import { NotesColumn } from "../NotesColumn";
 import { ReferenceColumn } from "../ReferenceColumn";
-import { GamePageTabs } from "../StoryPlaceholders";
 import { characterSections, referenceSections } from "../columnSections";
 import { getNavItems } from "../storyData";
 

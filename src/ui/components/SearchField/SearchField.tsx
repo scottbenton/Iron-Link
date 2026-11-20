@@ -1,7 +1,7 @@
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { KeyboardEvent, forwardRef } from "react";
 
-import { useControllableState } from "../Field";
+import { useControllableState } from "../../hooks/useControllableState";
 import { TextField, TextFieldProps } from "../TextField";
 
 export interface SearchFieldProps

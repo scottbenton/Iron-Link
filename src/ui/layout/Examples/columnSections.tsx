@@ -1,6 +1,6 @@
 /**
  * The game page columns' own tabs, as rail buttons for a collapsed sidebar.
- * Story-only, beside GamePageColumns.
+ * Story-only, beside the game page columns.
  */
 import {
   CardsIcon,

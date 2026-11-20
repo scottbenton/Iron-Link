@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { DemoSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
+import { DemoSettingsMenu } from "../SettingsMenu/DemoSettingsMenu";
 import { guideScenario } from "../SettingsMenu/settingsMenuScenarios";
 import { SecondScreenDialog } from "./SecondScreenDialog";
 

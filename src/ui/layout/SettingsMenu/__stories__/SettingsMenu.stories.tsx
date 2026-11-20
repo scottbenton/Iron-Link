@@ -11,11 +11,9 @@ import { sampleCharacters } from "../../../docs/fixtures/characters";
 import { PhoneGamePage } from "../../Examples/PhoneGamePage";
 import { getNavItems } from "../../Examples/storyData";
 import { NavRail } from "../../NavRail";
+import { DemoCharacterSettingsMenu } from "../DemoCharacterSettingsMenu";
+import { DemoSettingsMenu } from "../DemoSettingsMenu";
 import { SettingsMenu } from "../SettingsMenu";
-import {
-  DemoCharacterSettingsMenu,
-  DemoSettingsMenu,
-} from "../SettingsMenuDemo";
 import {
   SettingsScenario,
   gamesListScenario,

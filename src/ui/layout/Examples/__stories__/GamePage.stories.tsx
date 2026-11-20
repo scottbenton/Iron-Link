@@ -57,7 +57,7 @@ import { AppShell } from "../../AppShell";
 import { GameLayout } from "../../GameLayout";
 import { NavBar } from "../../NavBar";
 import { NavRail } from "../../NavRail";
-import { DemoSettingsMenu } from "../../SettingsMenu/SettingsMenuDemo";
+import { DemoSettingsMenu } from "../../SettingsMenu/DemoSettingsMenu";
 import {
   SettingsScenario,
   guideScenario,
@@ -65,18 +65,19 @@ import {
 import { LayoutPanel } from "../../shared/layoutPanel";
 import { CharacterColumn } from "../CharacterColumn";
 import { CharacterColumnActions } from "../CharacterColumnActions";
+import { GamePageTabs } from "../GamePageTabs";
 import { NotesColumn } from "../NotesColumn";
 import { OverviewColumn } from "../OverviewColumn";
 import { PhoneGamePage } from "../PhoneGamePage";
 import { ReferenceColumn } from "../ReferenceColumn";
-import { GamePageTabs } from "../StoryPlaceholders";
 import {
   characterSections,
   overviewSections,
   referenceSections,
 } from "../columnSections";
-import { responsiveViewports, useGamePageTier } from "../responsiveViewports";
+import { responsiveViewports } from "../responsiveViewports";
 import { getNavItems } from "../storyData";
+import { useGamePageTier } from "../useGamePageTier";
 
 const meta: Meta = {
   title: "Examples/Game page",

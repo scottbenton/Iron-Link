@@ -1,7 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { NOW_TICK_MS, useNow } from "../useNow";
+import { NOW_TICK_MS, useNow } from "../../../hooks/useNow";
 
 let clockRenders = 0;
 let listRenders = 0;

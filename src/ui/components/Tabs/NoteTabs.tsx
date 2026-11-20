@@ -1,13 +1,6 @@
 import { Tabs as BaseTabs } from "@base-ui/react/tabs";
 import { Plus, X } from "@phosphor-icons/react";
-import {
-  ComponentProps,
-  KeyboardEvent,
-  ReactNode,
-  forwardRef,
-  useLayoutEffect,
-  useRef,
-} from "react";
+import { KeyboardEvent, ReactNode, useLayoutEffect, useRef } from "react";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
@@ -15,12 +8,10 @@ import { ledgeLayers } from "ui/styles/ledge";
 
 import { css, cx } from "styled-system/css";
 
+import { useScrollFade } from "../../hooks/useScrollFade";
+import { useScrollSelectedIntoView } from "../../hooks/useScrollSelectedIntoView";
 import { IconButton } from "../IconButton";
-import {
-  scrollStripStyles,
-  useScrollFade,
-  useScrollSelectedIntoView,
-} from "./scrollStrip";
+import { scrollStripStyles } from "./scrollStrip";
 
 const rootStyles = css({
   display: "flex",
@@ -189,14 +180,6 @@ const labelWithIconStyles = css({
   alignItems: "center",
   gap: "1.5",
   "& svg": { flex: "none", width: "icon.md", height: "icon.md" },
-});
-
-const panelStyles = css({
-  flex: "1 1 auto",
-  minHeight: 0,
-  overflow: "auto",
-  outline: "none",
-  _focusVisible: focusRing.inset,
 });
 
 export interface NoteTab {
@@ -427,25 +410,3 @@ export function NoteTabs(props: NoteTabsProps) {
     </BaseTabs.Root>
   );
 }
-
-export interface NoteTabPanelProps
-  extends Omit<ComponentProps<typeof BaseTabs.Panel>, "className"> {
-  className?: string;
-}
-
-/**
- * A note's content, shown while its tab is open. It fills the rest of the
- * column and scrolls.
- */
-export const NoteTabPanel = forwardRef<HTMLDivElement, NoteTabPanelProps>(
-  function NoteTabPanel(props, ref) {
-    const { className, ...rest } = props;
-    return (
-      <BaseTabs.Panel
-        ref={ref}
-        className={cx(panelStyles, className)}
-        {...rest}
-      />
-    );
-  },
-);

@@ -3,15 +3,10 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Stack } from "ui/primitives";
 
+import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "..";
 import { starforgedRules } from "../../../docs/fixtures/datasworn";
 import { IconButton } from "../../IconButton";
 import { Text } from "../../Text";
-import {
-  Accordion,
-  AccordionItem,
-  AccordionPanel,
-  AccordionTrigger,
-} from "../Accordion";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Loose = any;

@@ -8,10 +8,8 @@ import { css } from "styled-system/css";
 
 import { Text } from "../../../components/Text";
 import { CharacterColumn } from "../../Examples/CharacterColumn";
-import {
-  CharacterSheetPlaceholder,
-  ReferencePlaceholder,
-} from "../../Examples/StoryPlaceholders";
+import { CharacterSheetPlaceholder } from "../../Examples/CharacterSheetPlaceholder";
+import { ReferencePlaceholder } from "../../Examples/ReferencePlaceholder";
 import { characterSections } from "../../Examples/columnSections";
 import { LayoutPanel } from "../../shared/layoutPanel";
 import { Sidebar, SidebarProps } from "../Sidebar";

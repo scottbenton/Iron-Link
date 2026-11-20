@@ -8,7 +8,7 @@ import { cx } from "styled-system/css";
 
 import { DieFace, DieRollResult, useDieFace } from "../DieFace";
 import { formatSigned } from "../shared/format";
-import { AddsAnchor } from "./AddsBadge";
+import { AddsAnchor } from "./AddsAnchor";
 import { rollButtonStyles } from "./rollButtonStyles";
 
 export interface RollButtonProps

@@ -13,13 +13,12 @@ import { Box, Stack } from "ui/primitives";
 
 import { css, cx } from "styled-system/css";
 
-import { samplePortraitSrc } from "../../../docs/fixtures/characters";
-import { Avatar } from "../../Avatar";
-import { Button } from "../../Button";
-import { Text } from "../../Text";
-import { NoteTab, NoteTabPanel, NoteTabs } from "../NoteTabs";
-import { PageTab, PageTabs } from "../PageTabs";
 import {
+  NoteTab,
+  NoteTabPanel,
+  NoteTabs,
+  PageTab,
+  PageTabs,
   SectionTab,
   SectionTabList,
   SectionTabsAlign,
@@ -27,7 +26,11 @@ import {
   SectionTabsVariant,
   TabPanel,
   Tabs,
-} from "../SectionTabs";
+} from "..";
+import { samplePortraitSrc } from "../../../docs/fixtures/characters";
+import { Avatar } from "../../Avatar";
+import { Button } from "../../Button";
+import { Text } from "../../Text";
 
 const sectionTabsVariants: SectionTabsVariant[] = ["well", "underline"];
 

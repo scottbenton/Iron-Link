@@ -4,7 +4,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { css, cx } from "styled-system/css";
 
 import { IconButton } from "../../../components/IconButton";
-import { GamePageTabs, PhoneFrame } from "../../Examples/StoryPlaceholders";
+import { GamePageTabs } from "../../Examples/GamePageTabs";
+import { PhoneFrame } from "../../Examples/PhoneFrame";
 import { getNavItems } from "../../Examples/storyData";
 import { shellContainer } from "../../shared/shell";
 import { NavBar } from "../NavBar";

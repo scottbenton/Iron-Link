@@ -4,7 +4,7 @@ import { Text } from "../../components/Text";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
 import { AddsControl } from "../../game/ConditionMeter";
 import { InitiativeChip } from "../../game/InitiativeChip";
-import { DemoCharacterSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
+import { DemoCharacterSettingsMenu } from "../SettingsMenu/DemoCharacterSettingsMenu";
 import { guideScenario } from "../SettingsMenu/settingsMenuScenarios";
 import { PlaySheet } from "./usePlaySheet";
 

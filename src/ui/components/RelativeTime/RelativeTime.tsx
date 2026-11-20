@@ -1,6 +1,6 @@
+import { useNow } from "../../hooks/useNow";
 import { Tooltip } from "../Tooltip";
 import { formatRelativeTime } from "./formatRelativeTime";
-import { useNow } from "./useNow";
 
 export interface RelativeTimeProps {
   date: Date;

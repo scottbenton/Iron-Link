@@ -1,4 +1,4 @@
-import { DemoCharacterSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
+import { DemoCharacterSettingsMenu } from "../SettingsMenu/DemoCharacterSettingsMenu";
 
 /**
  * The character column's menu, as in the live column header: only Kira's

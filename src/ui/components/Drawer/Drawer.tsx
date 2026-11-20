@@ -1,13 +1,10 @@
 import { Drawer as BaseDrawer } from "@base-ui/react/drawer";
-import { XIcon } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode } from "react";
 
 import { css, cva, cx } from "styled-system/css";
 
-import { IconButton } from "../IconButton";
-import { Text } from "../Text";
+import { useBreakpoint } from "../../hooks/useBreakpoint";
 import { isPressOnToasts } from "../Toast/toastViewport";
-import { useIsPhone } from "./useIsPhone";
 
 type Placement = "left" | "right" | "bottom";
 
@@ -169,7 +166,9 @@ export function Drawer(props: DrawerProps) {
     finalFocus,
   } = props;
 
-  const isPhone = useIsPhone();
+  // Phone width (the CSS's `smDown`) is needed in JavaScript as well as CSS,
+  // because the swipe direction that dismisses the drawer is a prop.
+  const isPhone = useBreakpoint("smaller-than", "sm");
   const placement: Placement =
     side === "bottom" || (isPhone && mobile === "sheet") ? "bottom" : side;
 
@@ -206,127 +205,3 @@ export function Drawer(props: DrawerProps) {
     </BaseDrawer.Root>
   );
 }
-
-const headerStyles = css({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "3",
-  flex: "none",
-  paddingBlockStart: "4",
-  paddingBlockEnd: "2",
-  paddingInlineStart: "5",
-  paddingInlineEnd: "3",
-  "[data-placement=bottom] > &": { paddingBlockStart: "2" },
-});
-
-export interface DrawerHeaderProps {
-  /** The drawer's name. Only this is the title element. */
-  title: ReactNode;
-  /** Buttons beside the title, before Close. */
-  actions?: ReactNode;
-  closeLabel?: string;
-  hideClose?: boolean;
-  className?: string;
-}
-
-/** The title and a Close button. */
-export function DrawerHeader(props: DrawerHeaderProps) {
-  const { title, actions, closeLabel = "Close", hideClose, className } = props;
-  return (
-    <div className={cx(headerStyles, className)}>
-      <BaseDrawer.Title
-        render={<Text variant="h2" />}
-        className={css({ minWidth: 0 })}
-      >
-        {title}
-      </BaseDrawer.Title>
-      <div className={css({ display: "flex", gap: "1", flex: "none" })}>
-        {actions}
-        {!hideClose && (
-          <BaseDrawer.Close
-            render={
-              <IconButton label={closeLabel} tooltipSide="bottom">
-                <XIcon />
-              </IconButton>
-            }
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-export function DrawerDescription(props: ComponentProps<"p">) {
-  const { className, ...rest } = props;
-  return (
-    <BaseDrawer.Description
-      className={cx(
-        css({
-          margin: 0,
-          paddingInline: "5",
-          color: "fg.muted",
-          fontSize: "sm",
-        }),
-        className,
-      )}
-      {...rest}
-    />
-  );
-}
-
-const bodyStyles = css({
-  display: "grid",
-  alignContent: "start",
-  gap: "3",
-  flex: "1 1 auto",
-  minHeight: 0,
-  overflowY: "auto",
-  overscrollBehavior: "contain",
-  paddingBlockStart: "2",
-  paddingBlockEnd: "4",
-  paddingInline: "5",
-  // The last thing in a bottom sheet clears the home indicator.
-  "[data-placement=bottom] > &": {
-    "&:last-child": {
-      paddingBlockEnd:
-        "calc(token(spacing.4) + env(safe-area-inset-bottom, 0px))",
-    },
-  },
-});
-
-/**
- * The scrolling middle. Text in it can be selected with a mouse without
- * starting a swipe.
- */
-export function DrawerBody(props: ComponentProps<"div">) {
-  const { className, ...rest } = props;
-  return <BaseDrawer.Content className={cx(bodyStyles, className)} {...rest} />;
-}
-
-const footerStyles = css({
-  display: "flex",
-  justifyContent: "flex-end",
-  flexWrap: "wrap",
-  gap: "2",
-  flex: "none",
-  paddingBlock: "4",
-  paddingInline: "5",
-  borderTop: "1px solid token(colors.border.subtle)",
-  background: "bg.muted",
-  "[data-placement=bottom] > &": {
-    paddingBlockEnd:
-      "calc(token(spacing.4) + env(safe-area-inset-bottom, 0px))",
-  },
-  "[data-placement=left] > &": { borderEndEndRadius: "xl" },
-  "[data-placement=right] > &": { borderEndStartRadius: "xl" },
-});
-
-/** Actions pinned under the body. */
-export function DrawerFooter(props: ComponentProps<"div">) {
-  const { className, ...rest } = props;
-  return <div className={cx(footerStyles, className)} {...rest} />;
-}
-
-/** Closes the drawer; give it a Button through `render`. */
-export const DrawerClose = BaseDrawer.Close;

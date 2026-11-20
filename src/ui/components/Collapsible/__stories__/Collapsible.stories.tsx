@@ -3,15 +3,15 @@ import { useId, useState } from "react";
 
 import { Stack } from "ui/primitives";
 
-import { sampleMoves } from "../../../docs/fixtures/datasworn";
-import { Button } from "../../Button";
-import { Text } from "../../Text";
 import {
   Collapse,
   Collapsible,
   CollapsiblePanel,
   CollapsibleTrigger,
-} from "../Collapsible";
+} from "..";
+import { sampleMoves } from "../../../docs/fixtures/datasworn";
+import { Button } from "../../Button";
+import { Text } from "../../Text";
 
 const meta: Meta<typeof Collapsible> = {
   title: "Components/Collapsible",

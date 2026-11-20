@@ -8,9 +8,9 @@ import { Alert } from "../../../components/Alert";
 import { Button } from "../../../components/Button";
 import { CharacterColumn } from "../../Examples/CharacterColumn";
 import { CharacterColumnActions } from "../../Examples/CharacterColumnActions";
+import { GamePageTabs } from "../../Examples/GamePageTabs";
 import { NotesColumn } from "../../Examples/NotesColumn";
 import { ReferenceColumn } from "../../Examples/ReferenceColumn";
-import { GamePageTabs } from "../../Examples/StoryPlaceholders";
 import {
   characterSections,
   referenceSections,

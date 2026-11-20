@@ -3,12 +3,10 @@ import { forwardRef } from "react";
 import { css, cx } from "styled-system/css";
 
 import { useAnnounce } from "../../components/Announcer";
-import {
-  fieldIconButtonStyles,
-  useControllableState,
-} from "../../components/Field";
+import { fieldIconButtonStyles } from "../../components/Field";
 import { TextField, TextFieldProps } from "../../components/TextField";
 import { Tooltip } from "../../components/Tooltip";
+import { useControllableState } from "../../hooks/useControllableState";
 import { DieFace, useDieFace } from "../DieFace";
 
 /**

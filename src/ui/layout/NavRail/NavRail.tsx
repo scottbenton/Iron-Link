@@ -7,8 +7,9 @@ import { css, cx } from "styled-system/css";
 import { GradientBox } from "../../components/GradientBox";
 import { CssProp, withCssProp } from "../../styles/cssProp";
 import { Logo } from "../Logo";
-import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
+import { LayoutLinkComponent } from "../shared/linkComponentContext";
 import { NavItem } from "../shared/navItem";
+import { useLinkComponent } from "../shared/useLinkComponent";
 
 const railStyles = css({
   boxSizing: "border-box",

@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { AppShell } from "../AppShell";
 import { NavBar } from "../NavBar";
 import { NavRail } from "../NavRail";
-import { DemoSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
+import { DemoSettingsMenu } from "../SettingsMenu/DemoSettingsMenu";
 import { guideScenario } from "../SettingsMenu/settingsMenuScenarios";
 import { character } from "./playLayoutsShared";
 import { getNavItems } from "./storyData";

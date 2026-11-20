@@ -42,6 +42,7 @@ import { GameLayout } from "../GameLayout";
 import type { LayoutPanel, LayoutSection } from "../shared/layoutPanel";
 import { Assets } from "./Assets";
 import { ColumnTabs } from "./ColumnTabs";
+import { GamePageTabs } from "./GamePageTabs";
 import { Impacts } from "./Impacts";
 import { Legacy } from "./Legacy";
 import { Log } from "./Log";
@@ -52,7 +53,6 @@ import { PlayShell } from "./PlayShell";
 import { Rolls } from "./Rolls";
 import { SheetHeader } from "./SheetHeader";
 import { SheetSection } from "./SheetSection";
-import { GamePageTabs } from "./StoryPlaceholders";
 import { character } from "./playLayoutsShared";
 import { usePlaySheet } from "./usePlaySheet";
 

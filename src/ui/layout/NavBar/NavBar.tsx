@@ -12,9 +12,10 @@ import { css, cx } from "styled-system/css";
 import { IconButton } from "../../components/IconButton";
 import { CssProp, withCssProp } from "../../styles/cssProp";
 import { Logo } from "../Logo";
-import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
+import { LayoutLinkComponent } from "../shared/linkComponentContext";
 import { NavItem } from "../shared/navItem";
 import { phoneOnly } from "../shared/shell";
+import { useLinkComponent } from "../shared/useLinkComponent";
 
 const barStyles = css({
   boxSizing: "border-box",

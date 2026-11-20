@@ -15,7 +15,10 @@ import { css } from "styled-system/css";
 import { Button } from "../../Button";
 import { IconButton } from "../../IconButton";
 import { Text } from "../../Text";
-import { Drawer, DrawerBody, DrawerFooter, DrawerHeader } from "../Drawer";
+import { Drawer } from "../Drawer";
+import { DrawerBody } from "../DrawerBody";
+import { DrawerFooter } from "../DrawerFooter";
+import { DrawerHeader } from "../DrawerHeader";
 
 const meta = {
   title: "Components/Drawer",

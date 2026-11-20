@@ -24,7 +24,7 @@ import { NavBar } from "../../NavBar";
 import { NavRail } from "../../NavRail";
 import { PageContent } from "../../PageContent";
 import { PageHeader } from "../../PageHeader";
-import { PhoneFrame } from "../StoryPlaceholders";
+import { PhoneFrame } from "../PhoneFrame";
 import { getNavItems } from "../storyData";
 
 const meta: Meta = {

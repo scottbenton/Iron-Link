@@ -8,7 +8,6 @@ import {
 import {
   CSSProperties,
   Fragment,
-  ReactNode,
   useCallback,
   useEffect,
   useId,
@@ -21,6 +20,7 @@ import { focusRing } from "ui/styles/focus";
 import { css, cva, cx } from "styled-system/css";
 
 import { IconButton } from "../../components/IconButton";
+import { useControllableState } from "../../hooks/useControllableState";
 import { CssProp, withCssProp } from "../../styles/cssProp";
 import { LayoutPanel } from "../shared/layoutPanel";
 import {
@@ -28,9 +28,9 @@ import {
   sectionTabStyles,
   srOnlyStyles,
 } from "../shared/sectionTabs";
-import { useControllableState } from "../shared/useControllableState";
+import { PanelInitial } from "./PanelInitial";
 import { SidebarResizeHandle } from "./SidebarResizeHandle";
-import { SidebarHeaderSlotContext } from "./sidebarHeaderSlot";
+import { SidebarHeaderSlotContext } from "./sidebarHeaderSlotContext";
 
 const rootStyles = cva({
   base: {
@@ -896,13 +896,6 @@ export function Sidebar(props: SidebarProps) {
   );
 }
 
-const initialStyles = css({
-  fontFamily: "heading",
-  fontWeight: "bold",
-  fontSize: "md",
-  lineHeight: "none",
-});
-
 /**
  * The node under the document's body that holds this one: the app's root,
  * or a popup's portal.
@@ -917,13 +910,4 @@ function topLevelNode(node: Node): Node {
     current = current.parentNode;
   }
   return current;
-}
-
-/** The first letter of a panel without an icon, for the collapsed rail. */
-function PanelInitial(props: { title: string }): ReactNode {
-  return (
-    <span className={initialStyles} aria-hidden="true">
-      {props.title.trim().charAt(0).toUpperCase()}
-    </span>
-  );
 }
