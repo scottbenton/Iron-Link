@@ -9,7 +9,7 @@ import { css, cx } from "styled-system/css";
 import { useAnnounce } from "../../components/Announcer";
 import { IconButton } from "../../components/IconButton";
 import { DieFace, DieRollResult, useDieFace } from "../DieFace";
-import { AddsAnchor } from "../RollButton/AddsBadge";
+import { AddsAnchor } from "../RollButton/AddsAnchor";
 import {
   statCardBaseStyles,
   statInnerStyles,
