@@ -8,8 +8,8 @@ import {
   useContext,
 } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -26,7 +26,7 @@ const ToggleGroupContext = createContext<{
   variant: ToggleGroupVariant;
 }>({ size: "md", tone: "accent", variant: "outline" });
 
-interface ToggleGroupBaseProps extends LayoutProps {
+interface ToggleGroupBaseProps extends CssProp {
   /** The ToggleGroupItems. */
   children: ReactNode;
   /** Names the group for screen readers. Required unless a label is nearby. */
@@ -270,7 +270,7 @@ export function ToggleGroup<V extends string = string>(
     disabled,
     className,
     ref,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const single = !props.multiple;
   const [current, setCurrent] = useControllableState<V[]>(

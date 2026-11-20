@@ -1,6 +1,6 @@
 import { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { cva, cx } from "styled-system/css";
 import type { RecipeVariantProps } from "styled-system/css";
@@ -138,7 +138,7 @@ const defaultElement: Record<NonNullable<TextVariant>, ElementType> = {
 type TextOwnProps<E extends ElementType> = RecipeVariantProps<
   typeof textStyles
 > &
-  LayoutProps & {
+  CssProp & {
     /**
      * The element. `variant` sets the look and `as` the element, so a label
      * that only looks like a heading can stay a span (CLAUDE.md, headings).
@@ -164,7 +164,7 @@ export type TextProps<E extends ElementType = "p"> = TextOwnProps<E> &
  * - `fontFamily="fontFamilyTitle"` -> `font="heading"`
  * - `textTransform="uppercase"` -> `uppercase`; `textAlign` -> `align`
  * - `color="text.secondary"` -> `color="muted"`; `noWrap` -> `truncate`
- * - `ml`, `mt` and other margins -> the same layout props
+ * - `ml`, `mt` and other margins -> `css={{ ml: ..., mt: ... }}`
  */
 export function Text<E extends ElementType = "p">(props: TextProps<E>) {
   const {
@@ -178,8 +178,8 @@ export function Text<E extends ElementType = "p">(props: TextProps<E>) {
     truncate,
     className,
     ...rest
-  } = withLayoutProps(props);
-  const Element = as ?? defaultElement[variant ?? "body"];
+  } = withCssProp(props);
+  const Element: ElementType = as ?? defaultElement[variant ?? "body"];
   return (
     <Element
       className={cx(
