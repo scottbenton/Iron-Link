@@ -3,9 +3,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HStack, Stack } from "ui/primitives";
 
-import { Button } from "../Button";
-import { IconButton } from "../IconButton";
-import { Text } from "../Text";
+import { Button } from "../../Button";
+import { IconButton } from "../../IconButton";
+import { Text } from "../../Text";
 import {
   Popover,
   PopoverClose,
@@ -14,7 +14,7 @@ import {
   PreviewCard,
   PreviewCardContent,
   PreviewCardTrigger,
-} from "./Popover";
+} from "../Popover";
 
 const meta = {
   title: "Components/Popover",

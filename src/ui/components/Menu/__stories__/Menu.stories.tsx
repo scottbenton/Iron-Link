@@ -23,9 +23,9 @@ import { useState } from "react";
 
 import { HStack, Stack } from "ui/primitives";
 
-import { Button } from "../Button";
-import { IconButton } from "../IconButton";
-import { Text } from "../Text";
+import { Button } from "../../Button";
+import { IconButton } from "../../IconButton";
+import { Text } from "../../Text";
 import {
   Menu,
   MenuCheckboxItem,
@@ -38,7 +38,7 @@ import {
   MenuSeparator,
   MenuSubmenu,
   MenuTrigger,
-} from "./Menu";
+} from "../Menu";
 
 const meta = {
   title: "Components/Menu",

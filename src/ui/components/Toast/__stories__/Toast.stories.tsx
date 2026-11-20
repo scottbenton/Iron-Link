@@ -1,13 +1,20 @@
 import { DiceFiveIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { Grid } from "ui/primitives";
 
-import { Button } from "../Button";
-import { ToastCard } from "./ToastCard";
-import { toast } from "./toast";
-import { useToast } from "./useToast";
+import { Button } from "../../Button";
+import {
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogDescription,
+  DialogHeader,
+} from "../../Dialog";
+import { ToastCard } from "../ToastCard";
+import { toast } from "../toast";
+import { useToast } from "../useToast";
 
 const meta = {
   title: "Components/Toast",
@@ -164,6 +171,45 @@ export const Stacked: Story = {
     }, [toasts]);
     return (
       <Button onClick={() => showFourToasts(toasts)}>Show Four Toasts</Button>
+    );
+  },
+};
+
+/**
+ * A toast raised from inside a dialog shows above it, under popovers and
+ * tooltips. Pressing the toast (its Dismiss, Clear All) leaves the dialog
+ * open; a press anywhere else outside the dialog still closes it.
+ */
+export const OverADialog: Story = {
+  render: function Render() {
+    const toasts = useToast();
+    const [open, setOpen] = useState(true);
+    useEffect(() => () => toasts.dismissAll(), [toasts]);
+    return (
+      <>
+        <Button onClick={() => setOpen(true)}>Open Dialog</Button>
+        <Dialog open={open} onClose={() => setOpen(false)}>
+          <DialogHeader title="Edit Asset" />
+          <DialogBody>
+            <DialogDescription>
+              Save twice to stack two toasts above the dialog.
+            </DialogDescription>
+          </DialogBody>
+          <DialogActions>
+            <Button
+              variant="outline"
+              onClick={() =>
+                toasts.error(
+                  "Could not save your notes. Check your connection and try again.",
+                )
+              }
+            >
+              Fail to Save
+            </Button>
+            <Button onClick={() => toasts.success("Asset saved")}>Save</Button>
+          </DialogActions>
+        </Dialog>
+      </>
     );
   },
 };

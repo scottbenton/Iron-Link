@@ -16,6 +16,7 @@ import { css, cva, cx } from "styled-system/css";
 import { LiveRegion } from "../Announcer";
 import { IconButton } from "../IconButton";
 import { Text } from "../Text";
+import { isPressOnToasts } from "../Toast/toastViewport";
 
 export const dialogBackdropStyles = css({
   position: "fixed",
@@ -99,7 +100,6 @@ export const dialogPopupStyles = cva({
 
 interface DialogContextValue {
   announce: (message: string) => void;
-  extras?: ReactNode;
 }
 const DialogContext = createContext<DialogContextValue | null>(null);
 
@@ -125,11 +125,6 @@ export interface DialogProps {
    * already prevented.
    */
   onSubmit?: (event: FormEvent<HTMLFormElement>) => void;
-  /**
-   * Shown under the header, such as the recent roll cards
-   * (Iron Link's DialogExtrasContext).
-   */
-  extras?: ReactNode;
   className?: string;
   /** Element to focus on open; defaults to the first focusable. */
   initialFocus?: ComponentProps<typeof BaseDialog.Popup>["initialFocus"];
@@ -148,7 +143,6 @@ export function Dialog(props: DialogProps) {
     maxWidth,
     fullScreenOnMobile,
     onSubmit,
-    extras,
     className,
     initialFocus,
   } = props;
@@ -161,16 +155,16 @@ export function Dialog(props: DialogProps) {
     () => ({
       announce: (text) =>
         setMessage((previous) => ({ text, nonce: previous.nonce + 1 })),
-      extras,
     }),
-    [extras],
+    [],
   );
 
   return (
     <BaseDialog.Root
       open={open}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen) onClose();
+      onOpenChange={(nextOpen, details) => {
+        // Toasts sit above modals; pressing one is not a press outside.
+        if (!nextOpen && !isPressOnToasts(details)) onClose();
       }}
     >
       <BaseDialog.Portal>
@@ -239,31 +233,27 @@ export interface DialogHeaderProps {
  */
 export function DialogHeader(props: DialogHeaderProps) {
   const { title, actions, closeLabel = "Close", hideClose } = props;
-  const extras = useContext(DialogContext)?.extras;
   return (
-    <>
-      <div className={headerStyles}>
-        <BaseDialog.Title
-          render={<Text variant="h2" />}
-          className={css({ minWidth: 0 })}
-        >
-          {title}
-        </BaseDialog.Title>
-        <div className={css({ display: "flex", gap: "1", flex: "none" })}>
-          {actions}
-          {!hideClose && (
-            <BaseDialog.Close
-              render={
-                <IconButton label={closeLabel} tooltipSide="bottom">
-                  <X />
-                </IconButton>
-              }
-            />
-          )}
-        </div>
+    <div className={headerStyles}>
+      <BaseDialog.Title
+        render={<Text variant="h2" />}
+        className={css({ minWidth: 0 })}
+      >
+        {title}
+      </BaseDialog.Title>
+      <div className={css({ display: "flex", gap: "1", flex: "none" })}>
+        {actions}
+        {!hideClose && (
+          <BaseDialog.Close
+            render={
+              <IconButton label={closeLabel} tooltipSide="bottom">
+                <X />
+              </IconButton>
+            }
+          />
+        )}
       </div>
-      {extras}
-    </>
+    </div>
   );
 }
 
