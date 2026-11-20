@@ -11,9 +11,8 @@ import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { cva, cx } from "styled-system/css";
 
+import { DieFaceValue } from "./dieFaceValue";
 import { useCycledFace } from "./useCycledFace";
-
-export type DieFaceValue = 1 | 2 | 3 | 4 | 5 | 6;
 
 const faceIcons = {
   1: DiceOne,
@@ -23,21 +22,6 @@ const faceIcons = {
   5: DiceFive,
   6: DiceSix,
 } as const;
-
-/** A face other than `current`, so every roll visibly changes the die. */
-export function nextDieFace(current: DieFaceValue): DieFaceValue {
-  return (((current + Math.floor(Math.random() * 5)) % 6) + 1) as DieFaceValue;
-}
-
-/** `value` as a die face, or undefined when it is not a whole 1 to 6. */
-export function toDieFace(value: unknown): DieFaceValue | undefined {
-  return typeof value === "number" &&
-    Number.isInteger(value) &&
-    value >= 1 &&
-    value <= 6
-    ? (value as DieFaceValue)
-    : undefined;
-}
 
 /**
  * What a roll handler may hand back to the die: the action die it rolled

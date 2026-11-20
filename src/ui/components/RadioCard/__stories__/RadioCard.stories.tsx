@@ -2,8 +2,8 @@ import { User, UserCircleGear, UsersThree } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
+import { RadioCard, RadioCardGroup } from "..";
 import { Button } from "../../Button";
-import { RadioCard, RadioCardGroup } from "../RadioCard";
 
 type GameType = "solo" | "co-op" | "guided";
 

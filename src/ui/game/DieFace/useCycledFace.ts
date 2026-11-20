@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { DieFaceValue, nextDieFace } from "./DieFace";
+import { DieFaceValue, nextDieFace } from "./dieFaceValue";
 
 /** How long each in-between face shows, and how many show at least. */
 const CYCLE_STEP_MS = 50;

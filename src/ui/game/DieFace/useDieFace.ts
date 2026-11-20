@@ -1,12 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
-import {
-  DieFaceValue,
-  DieRollResult,
-  DieState,
-  nextDieFace,
-  toDieFace,
-} from "./DieFace";
+import { DieRollResult, DieState } from "./DieFace";
+import { DieFaceValue, nextDieFace, toDieFace } from "./dieFaceValue";
 
 /**
  * A die for a button that rolls something: its state, to spread onto
