@@ -4,8 +4,8 @@ import { ReactNode } from "react";
 import { Text } from "ui/components/Text";
 import { Box, Stack } from "ui/primitives";
 
-import { sampleMoves, starforgedMove } from "../../stories/fixtures/datasworn";
-import { MoveListItem } from "./MoveListItem";
+import { sampleMoves, starforgedMove } from "../../../docs/fixtures/datasworn";
+import { MoveListItem } from "../MoveListItem";
 
 const meta: Meta<typeof MoveListItem> = {
   title: "Game/MoveListItem",

@@ -11,8 +11,8 @@ import {
 import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { RollButton } from "ui/game/RollButton";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 import { visuallyHidden } from "styled-system/patterns";
@@ -113,7 +113,7 @@ const sizeStyles = {
 };
 
 export interface OracleTableProps
-  extends LayoutProps,
+  extends CssProp,
     Omit<ComponentPropsWithoutRef<"div">, "children"> {
   /** A rollable oracle, standalone or embedded in a move or asset. */
   oracle: AnyOracleRollable;
@@ -167,7 +167,7 @@ export function OracleTable(props: OracleTableProps) {
     size = "sm",
     className,
     ...rest
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const titleId = useId();
   const rows = oracle.rows as Datasworn.OracleRollableRow[];

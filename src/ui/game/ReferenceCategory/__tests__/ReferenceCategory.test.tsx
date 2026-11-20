@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import { ReferenceCategory } from "./ReferenceCategory";
+import { ReferenceCategory } from "../ReferenceCategory";
 
 describe("ReferenceCategory", () => {
   it("steps headings down as categories nest, and opens and closes", async () => {

@@ -10,7 +10,7 @@ import {
 } from "react";
 
 import { ListRow, ListRowButton, listRowStyles } from "ui/components/List";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
@@ -51,7 +51,7 @@ const bodyStyles = css({
 });
 
 export interface MoveListItemProps
-  extends LayoutProps,
+  extends CssProp,
     Omit<ComponentPropsWithoutRef<"div">, "children"> {
   move: Datasworn.AnyMove;
   /** Opens the move in place below the row. */
@@ -96,7 +96,7 @@ export function MoveListItem(props: MoveListItemProps) {
     as: Wrapper = "div",
     className,
     ...rest
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const [expandedState, setExpandedState] = useState(defaultExpanded);
   const expanded = expandedProp ?? expandedState;

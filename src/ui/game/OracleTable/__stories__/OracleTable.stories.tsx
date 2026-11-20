@@ -3,9 +3,9 @@ import { useState } from "react";
 
 import { Stack } from "ui/primitives";
 
-import { sampleMoves, starforgedRules } from "../../stories/fixtures/datasworn";
-import { OracleTable } from "./OracleTable";
-import { findRowForRoll } from "./oracleTableData";
+import { sampleMoves, starforgedRules } from "../../../docs/fixtures/datasworn";
+import { OracleTable } from "../OracleTable";
+import { findRowForRoll } from "../oracleTableData";
 
 const action = starforgedRules.oracles.core.contents.action;
 const goal = starforgedRules.oracles.character.contents.goal;

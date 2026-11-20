@@ -4,9 +4,9 @@ import { ReactNode, useState } from "react";
 import { Text } from "ui/components/Text";
 import { Box, Stack } from "ui/primitives";
 
-import { sampleMoves, starforgedRules } from "../../stories/fixtures/datasworn";
-import { MoveListItem } from "../MoveListItem";
-import { OracleListItem } from "./OracleListItem";
+import { sampleMoves, starforgedRules } from "../../../docs/fixtures/datasworn";
+import { MoveListItem } from "../../MoveListItem";
+import { OracleListItem } from "../OracleListItem";
 
 type Named = { _id: string; name: string };
 const core = Object.values(starforgedRules.oracles.core.contents) as Named[];

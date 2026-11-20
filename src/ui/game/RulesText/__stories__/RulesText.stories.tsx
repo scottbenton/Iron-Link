@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Text } from "ui/components/Text";
 import { Stack } from "ui/primitives";
 
-import { sampleMoves, starforgedRules } from "../../stories/fixtures/datasworn";
-import { RulesText } from "./RulesText";
+import { sampleMoves, starforgedRules } from "../../../docs/fixtures/datasworn";
+import { RulesText } from "../RulesText";
 
 const meta: Meta<typeof RulesText> = {
   title: "Game/RulesText",

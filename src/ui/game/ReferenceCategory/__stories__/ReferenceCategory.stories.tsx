@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 
 import { Box, Stack } from "ui/primitives";
 
-import { starforgedRules } from "../../stories/fixtures/datasworn";
+import { starforgedRules } from "../../../docs/fixtures/datasworn";
 import {
   LooseOracleCollection,
   MoveCategoryTree,
@@ -13,9 +13,9 @@ import {
   oracleCountLabel,
   starforgedMoveCategories,
   starforgedOracleCollections,
-} from "../../stories/fixtures/referenceTrees";
-import { OracleListItem } from "../OracleListItem";
-import { ReferenceCategory } from "./ReferenceCategory";
+} from "../../../docs/fixtures/referenceTrees";
+import { OracleListItem } from "../../OracleListItem";
+import { ReferenceCategory } from "../ReferenceCategory";
 
 const oracles = starforgedRules.oracles as Record<
   string,

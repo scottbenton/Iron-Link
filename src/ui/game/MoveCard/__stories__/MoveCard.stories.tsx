@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Text } from "ui/components/Text";
 import { Stack } from "ui/primitives";
 
-import { sampleMoves } from "../../stories/fixtures/datasworn";
-import { MoveCard } from "./MoveCard";
+import { sampleMoves } from "../../../docs/fixtures/datasworn";
+import { MoveCard } from "../MoveCard";
 
 const meta: Meta<typeof MoveCard> = {
   title: "Game/MoveCard",
