@@ -12,7 +12,7 @@ import { Button } from "ui/components/Button";
 import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { RollButton } from "ui/game/RollButton";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
@@ -86,7 +86,7 @@ const oracleTablesStyles = css({
 });
 
 export interface MoveCardProps
-  extends LayoutProps,
+  extends CssProp,
     RulesTextOptions,
     Omit<ComponentPropsWithoutRef<"article">, "children"> {
   move: Datasworn.AnyMove;
@@ -163,7 +163,7 @@ export function MoveCard(props: MoveCardProps) {
     resolveOracle,
     renderMacro,
     ...rest
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const rollWithLabel =
     rollWithLabelProp ?? defaultRollWithLabels[move.roll_type] ?? "Roll with";

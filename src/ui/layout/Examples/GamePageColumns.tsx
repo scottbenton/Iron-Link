@@ -69,17 +69,17 @@ import {
   SampleCharacter,
   sampleCharacters,
   samplePortraitSrc,
-} from "../../stories/fixtures/characters";
+} from "../../docs/fixtures/characters";
 import {
   sampleAssets,
   starforgedRules,
-} from "../../stories/fixtures/datasworn";
+} from "../../docs/fixtures/datasworn";
 import {
   MoveCategoryTree,
   OracleCollectionTree,
   starforgedMoveCategories,
   starforgedOracleCollections,
-} from "../../stories/fixtures/referenceTrees";
+} from "../../docs/fixtures/referenceTrees";
 import { ActionToolbar, ActionToolbarIconButton } from "../ActionToolbar";
 import { SectionHeading } from "../SectionHeading";
 import { DemoCharacterSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";

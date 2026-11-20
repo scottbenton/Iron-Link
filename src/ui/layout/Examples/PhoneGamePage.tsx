@@ -104,12 +104,6 @@ import {
   classicTracks,
   sampleBonds,
 } from "../../game/TracksPanel/tracksPanelSamples";
-import { sampleCharacters } from "../../stories/fixtures/characters";
-import {
-  classicRules,
-  sampleAssets,
-  starforgedRules,
-} from "../../stories/fixtures/datasworn";
 import { ActionToolbar, ActionToolbarIconButton } from "../ActionToolbar";
 import { AppShell } from "../AppShell";
 import { MobileNav } from "../MobileNav";

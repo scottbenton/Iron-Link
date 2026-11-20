@@ -1,8 +1,8 @@
 import { Toolbar as BaseToolbar } from "@base-ui/react/toolbar";
 import { ComponentProps, ReactElement, ReactNode, forwardRef } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { pressableReset } from "ui/styles/pressable";
 
 import { css, cva, cx } from "styled-system/css";
@@ -40,7 +40,7 @@ const rootStyles = cva({
 
 export interface ToolbarProps
   extends Omit<ComponentProps<typeof BaseToolbar.Root>, "className">,
-    LayoutProps {
+    CssProp {
   /** Names the toolbar, such as "Formatting". */
   "aria-label": string;
   variant?: "bar" | "plain";
@@ -54,7 +54,7 @@ export interface ToolbarProps
  */
 export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
   function Toolbar(props, ref) {
-    const { variant, className, ...rest } = withLayoutProps(props);
+    const { variant, className, ...rest } = withCssProp(props);
     return (
       <BaseToolbar.Root
         ref={ref}

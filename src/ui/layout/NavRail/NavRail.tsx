@@ -5,7 +5,7 @@ import { focusRing } from "ui/styles/focus";
 import { css, cx } from "styled-system/css";
 
 import { GradientBox } from "../../components/GradientBox";
-import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
+import { CssProp, withCssProp } from "../../styles/cssProp";
 import { Logo } from "../Logo";
 import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
 import { NavItem } from "../shared/navItem";
@@ -127,7 +127,7 @@ const actionsStyles = css({
   marginBlockStart: "auto",
 });
 
-export interface NavRailProps extends LayoutProps {
+export interface NavRailProps extends CssProp {
   /** The main destinations: Games, Worlds, Homebrew, Reference. */
   items: NavItem[];
   /** Where the logo links to. Leave out to show the logo without a link. */
@@ -163,7 +163,7 @@ export function NavRail(props: NavRailProps) {
     actions,
     linkComponent,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const Link = useLinkComponent(linkComponent);
 
   return (

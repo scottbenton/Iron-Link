@@ -2,7 +2,7 @@ import { ComponentPropsWithoutRef, ReactNode, useMemo } from "react";
 import ReactMarkdown, { Components, defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { cx } from "styled-system/css";
 
@@ -30,7 +30,7 @@ const DATASWORN_SCHEME = "datasworn:";
 const TABLE_MACROS = new Set(["table"]);
 
 export interface RulesTextProps
-  extends LayoutProps,
+  extends CssProp,
     RulesTextOptions,
     Omit<ComponentPropsWithoutRef<"div">, "children" | "color"> {
   /** Datasworn markdown: a move's text, an ability, a requirement. */
@@ -59,7 +59,7 @@ export function RulesText(props: RulesTextProps) {
     resolveOracle,
     renderMacro,
     ...rest
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const contextOptions = useRulesTextOptions();
   const options = mergeRulesTextOptions(contextOptions, {

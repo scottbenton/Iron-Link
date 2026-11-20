@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { SchemeName, schemeNames, schemes } from "ui/theme";
 
 import { css } from "styled-system/css";
@@ -47,7 +47,7 @@ export interface ColorSchemeFallbackOption {
   description?: ReactNode;
 }
 
-interface ColorSchemePickerCommonProps extends LayoutProps {
+interface ColorSchemePickerCommonProps extends CssProp {
   /** Names for each scheme, for translation. Defaults to the scheme's label. */
   labels?: Partial<Record<SchemeName, string>>;
   /** Which schemes to offer, in order. All nine by default. */
@@ -92,7 +92,7 @@ export function ColorSchemePicker(props: ColorSchemePickerProps) {
     fallback,
     label,
     "aria-label": ariaLabel,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const handleChange = (next: string) => {
     if (props.fallback) {
@@ -127,7 +127,7 @@ export function ColorSchemePicker(props: ColorSchemePickerProps) {
               className={markStyles}
             />
           }
-          gridColumn="1 / -1"
+          css={{ gridColumn: "1 / -1" }}
         />
       )}
       {options.map((name) => (

@@ -3,7 +3,7 @@ import { Radio as BaseRadio } from "@base-ui/react/radio";
 import { RadioGroup as BaseRadioGroup } from "@base-ui/react/radio-group";
 import { ReactNode, Ref, createContext, useContext, useId } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
@@ -25,9 +25,7 @@ import {
 
 const RadioSizeContext = createContext<"sm" | "md">("md");
 
-export interface RadioGroupProps<V = string>
-  extends FieldOwnProps,
-    LayoutProps {
+export interface RadioGroupProps<V = string> extends FieldOwnProps, CssProp {
   /** The Radios. */
   children: ReactNode;
   /** The chosen value, when controlled. */
@@ -93,7 +91,7 @@ export function RadioGroup<V = string>(props: RadioGroupProps<V>) {
     required,
     disabled,
     requiredIndicator,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const { invalid, message } = resolveFieldError(error, invalidProp);
   const descriptionId = useId();
   const hasDescription =
@@ -153,7 +151,7 @@ export function RadioGroup<V = string>(props: RadioGroupProps<V>) {
   );
 }
 
-export interface RadioProps<V = string> extends LayoutProps {
+export interface RadioProps<V = string> extends CssProp {
   /** What choosing this radio sets the group to. */
   value: V;
   /** The text beside the circle, and the radio's name. Pressing it chooses. */
@@ -180,7 +178,7 @@ export function Radio<V = string>(props: RadioProps<V>) {
     "aria-label": ariaLabel,
     className,
     ref,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const size = useContext(RadioSizeContext);
   return (
     <ChoiceItem

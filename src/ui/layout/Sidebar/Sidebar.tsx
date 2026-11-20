@@ -21,7 +21,7 @@ import { focusRing } from "ui/styles/focus";
 import { css, cva, cx } from "styled-system/css";
 
 import { IconButton } from "../../components/IconButton";
-import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
+import { CssProp, withCssProp } from "../../styles/cssProp";
 import { LayoutPanel } from "../shared/layoutPanel";
 import {
   sectionTabListStyles,
@@ -233,7 +233,7 @@ export interface SidebarRailGroup {
 }
 
 export interface SidebarProps
-  extends Omit<LayoutProps, "width" | "minWidth" | "maxWidth"> {
+  extends Omit<CssProp, "width" | "minWidth" | "maxWidth"> {
   /**
    * What the sidebar holds: usually one panel (the game page has the
    * character sheet in one sidebar and the reference in the other), or
@@ -338,7 +338,7 @@ export function Sidebar(props: SidebarProps) {
     railGroups,
     id: idProp,
     className,
-  } = withLayoutProps(props, ["width", "minWidth", "maxWidth"]);
+  } = withCssProp(props);
 
   const {
     collapse: collapseLabel = "Collapse Sidebar",

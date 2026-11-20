@@ -3,8 +3,8 @@ import { useRender } from "@base-ui/react/use-render";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import { ComponentProps, ReactElement, forwardRef } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { cva, cx } from "styled-system/css";
 
@@ -63,7 +63,7 @@ const linkStyles = cva({
 
 export interface LinkProps
   extends Omit<ComponentProps<"a">, "color" | "ref">,
-    LayoutProps {
+    CssProp {
   color?: "accent" | "default" | "muted" | "inherit";
   underline?: "always" | "hover";
   /**
@@ -89,7 +89,7 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(
       className,
       children,
       ...rest
-    } = withLayoutProps(props);
+    } = withCssProp(props);
     return useRender({
       defaultTagName: "a",
       render,

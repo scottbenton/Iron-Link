@@ -2,7 +2,7 @@ import { CSSProperties, ComponentProps } from "react";
 
 import { css, cx } from "styled-system/css";
 
-import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
+import { CssProp, withCssProp } from "../../styles/cssProp";
 
 const rootStyles = css({
   display: "inline-flex",
@@ -49,7 +49,7 @@ const wordmarkStyles = css({
 
 export interface LogoProps
   extends Omit<ComponentProps<"span">, "children">,
-    LayoutProps {
+    CssProp {
   /** The mark's width and height, in pixels or any CSS length. */
   size?: number | string;
   /** Shows the name beside the mark. */
@@ -77,7 +77,7 @@ export function Logo(props: LogoProps) {
     className,
     style,
     ...rest
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const sizeValue = typeof size === "number" ? `${size}px` : size;
   // The wordmark scales with the mark, so a bigger logo stays balanced.

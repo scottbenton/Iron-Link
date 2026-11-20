@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAnnounce } from "ui/components/Announcer";
 import { Button, ButtonProps } from "ui/components/Button";
 import { IconButton } from "ui/components/IconButton";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css } from "styled-system/css";
 
@@ -26,7 +26,7 @@ const swapStyles = css({
 });
 
 export interface CopyButtonProps
-  extends LayoutProps,
+  extends CssProp,
     Omit<
       ButtonProps,
       "children" | "onClick" | "startIcon" | "endIcon" | "iconOnly"
@@ -62,7 +62,7 @@ export function CopyButton(props: CopyButtonProps) {
     onCopied,
     variant,
     ...rest
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const announce = useAnnounce();
   const [copied, setCopied] = useState(false);

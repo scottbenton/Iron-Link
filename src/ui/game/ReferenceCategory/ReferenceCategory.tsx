@@ -2,8 +2,8 @@ import { Collapsible } from "@base-ui/react/collapsible";
 import { CaretRightIcon } from "@phosphor-icons/react";
 import { ElementType, ReactNode, createContext, useContext } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { overlayTint } from "ui/styles/pressable";
 
 import { css, cva, cx } from "styled-system/css";
@@ -156,7 +156,7 @@ const contentStyles = cva({
   },
 });
 
-export interface ReferenceCategoryProps extends LayoutProps {
+export interface ReferenceCategoryProps extends CssProp {
   /** The category's name, such as "Planet Oracles" or "Desert World". */
   title: ReactNode;
   /** How many moves or oracles it holds, shown after the name. */
@@ -203,7 +203,7 @@ export function ReferenceCategory(props: ReferenceCategoryProps) {
     children,
     as: Wrapper = "section",
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const parent = useContext(CategoryContext);
   const depth = parent ? parent.depth + 1 : 0;

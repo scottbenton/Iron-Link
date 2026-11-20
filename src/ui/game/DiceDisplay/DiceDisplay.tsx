@@ -1,7 +1,7 @@
 import { Flame, Skull } from "@phosphor-icons/react";
 import { CSSProperties, ReactNode } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
@@ -269,7 +269,7 @@ function DieShapeSvg(props: { shape: DieShape; ring: boolean }) {
   );
 }
 
-export interface DieProps extends LayoutProps {
+export interface DieProps extends CssProp {
   value: ReactNode;
   shape: DieShape;
   kind?: "action" | "challenge" | "oracle";
@@ -296,7 +296,7 @@ export interface DieProps extends LayoutProps {
 /** One die, decorative. Something nearby must say what it shows. */
 export function Die(props: DieProps) {
   const { value, shape, kind, state, ring, cancelled, color, size, className } =
-    withLayoutProps(props);
+    withCssProp(props);
   return (
     <span
       className={cx(dieStyles, className)}
@@ -366,7 +366,7 @@ function CursedDieValue(props: { value: number }) {
 /** Colours for the two challenge dice, in place of the status colours. */
 export type ChallengeDieColors = [string | undefined, string | undefined];
 
-export interface DiceDisplayProps extends LayoutProps {
+export interface DiceDisplayProps extends CssProp {
   roll: RollData;
   /** `sm` for compact cards and the game log. */
   size?: "sm" | "md";
@@ -423,7 +423,7 @@ export function DiceDisplay(props: DiceDisplayProps) {
     strings: stringsProp,
     rollText,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const s = { ...defaultDiceDisplayStrings, ...stringsProp };
 
   const a11y = labelled
@@ -665,7 +665,7 @@ const inlineStyles = css({
   fontVariantNumeric: "tabular-nums",
 });
 
-export interface OracleDiceProps extends LayoutProps {
+export interface OracleDiceProps extends CssProp {
   roll: PercentileRollData;
   /** For a shared roll, the table's index: shows that table's d100 only. */
   part?: number;
@@ -686,7 +686,7 @@ export function OracleDice(props: OracleDiceProps) {
     hideCursedDie,
     size = "xs",
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const rolls = Array.isArray(roll.roll) ? roll.roll : [roll.roll];
   const shown = part === undefined ? rolls : [rolls[part]];
   const cursedDie = roll.kind === "oracle" ? roll.cursedDie : undefined;

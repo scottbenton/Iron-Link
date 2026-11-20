@@ -2,8 +2,8 @@ import { Accordion as BaseAccordion } from "@base-ui/react/accordion";
 import { CaretDown } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode, forwardRef } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { quietPressable } from "ui/styles/pressable";
 
 import { css, cx } from "styled-system/css";
@@ -114,9 +114,7 @@ const panelContentStyles = css({
 
 type RootProps = ComponentProps<typeof BaseAccordion.Root>;
 
-export interface AccordionProps
-  extends Omit<RootProps, "className">,
-    LayoutProps {
+export interface AccordionProps extends Omit<RootProps, "className">, CssProp {
   className?: string;
 }
 
@@ -127,7 +125,7 @@ export interface AccordionProps
  */
 export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
   function Accordion(props, ref) {
-    const { className, ...rest } = withLayoutProps(props);
+    const { className, ...rest } = withCssProp(props);
     return (
       <BaseAccordion.Root
         ref={ref}

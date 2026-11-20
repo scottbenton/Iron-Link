@@ -12,8 +12,8 @@ import {
   useState,
 } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cx } from "styled-system/css";
 
@@ -94,7 +94,7 @@ const pageTabStyles = css({
   },
 });
 
-export interface PageTabsProps extends ComponentProps<"nav">, LayoutProps {
+export interface PageTabsProps extends ComponentProps<"nav">, CssProp {
   /** Names the navigation, such as "Game pages". */
   "aria-label": string;
   children: ReactNode;
@@ -109,7 +109,7 @@ export interface PageTabsProps extends ComponentProps<"nav">, LayoutProps {
  */
 export const PageTabs = forwardRef<HTMLElement, PageTabsProps>(
   function PageTabs(props, ref) {
-    const { children, className, ...rest } = withLayoutProps(props);
+    const { children, className, ...rest } = withCssProp(props);
     const stripRef = useRef<HTMLDivElement>(null);
     useScrollFade(stripRef);
     // Re-run when the tabs change, so a new current tab is scrolled to.

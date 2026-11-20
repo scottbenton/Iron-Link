@@ -9,8 +9,8 @@ import {
   useContext,
 } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import {
   disabledSelector,
   quietPressable,
@@ -58,7 +58,7 @@ const listStyles = cva({
   },
 });
 
-export interface ListProps extends ComponentProps<"ul">, LayoutProps {
+export interface ListProps extends ComponentProps<"ul">, CssProp {
   /** Tighter rows, for long lists and side panels. */
   dense?: boolean;
   /** Rounded rows inset from the edges, for navigation and side panels. */
@@ -82,7 +82,7 @@ export const List = forwardRef<HTMLUListElement, ListProps>(
       className,
       render,
       ...rest
-    } = withLayoutProps(props);
+    } = withCssProp(props);
     const element = useRender({
       defaultTagName: "ul",
       render,

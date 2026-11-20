@@ -8,8 +8,8 @@ import {
   forwardRef,
 } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { ledgeHeight, ledgeLayers } from "ui/styles/ledge";
 
 import { css, cva, cx } from "styled-system/css";
@@ -96,7 +96,7 @@ const cardStyles = cva({
   defaultVariants: { padding: "md" },
 });
 
-export interface CardProps extends ComponentProps<"div">, LayoutProps {
+export interface CardProps extends ComponentProps<"div">, CssProp {
   /** Inner padding; `none` for a card whose parts bring their own. */
   padding?: "none" | "sm" | "md";
   /** Raise the card on a ledge without making it pressable. */
@@ -122,8 +122,7 @@ export interface CardProps extends ComponentProps<"div">, LayoutProps {
  */
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   function Card(props, ref) {
-    const { padding, raised, className, render, ...rest } =
-      withLayoutProps(props);
+    const { padding, raised, className, render, ...rest } = withCssProp(props);
     return useRender({
       defaultTagName: "div",
       render,

@@ -2,7 +2,7 @@ import { ElementType, ReactNode } from "react";
 
 import { css, cva, cx } from "styled-system/css";
 
-import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
+import { CssProp, withCssProp } from "../../styles/cssProp";
 
 const rootStyles = cva({
   base: {
@@ -85,7 +85,7 @@ const actionsStyles = css({
   marginBlockStart: "3",
 });
 
-export interface EmptyStateProps extends LayoutProps {
+export interface EmptyStateProps extends CssProp {
   /** A Phosphor icon in a round well, decorative. */
   icon?: ReactNode;
   title?: ReactNode;
@@ -118,7 +118,7 @@ export function EmptyState(props: EmptyStateProps) {
     secondaryAction,
     size,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   return (
     <div className={cx(rootStyles({ size }), className)}>

@@ -1,6 +1,6 @@
 import { CSSProperties } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
@@ -94,7 +94,7 @@ export interface StatGridStat {
   value: number;
 }
 
-export interface StatGridProps extends LayoutProps {
+export interface StatGridProps extends CssProp {
   stats: StatGridStat[];
   /**
    * Rolls a stat. Return the action die (1 to 6) and the card's die lands
@@ -135,7 +135,7 @@ export function StatGrid(props: StatGridProps) {
     columns,
     rollLabel,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const count = stats.length;
 

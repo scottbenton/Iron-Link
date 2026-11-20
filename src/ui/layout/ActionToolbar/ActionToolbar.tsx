@@ -13,7 +13,7 @@ import { quietPressable, quietSelected } from "ui/styles/pressable";
 import { css, cva, cx } from "styled-system/css";
 
 import { Tooltip } from "../../components/Tooltip";
-import { LayoutProps, withLayoutProps } from "../../styles/layoutProps";
+import { CssProp, withCssProp } from "../../styles/cssProp";
 
 const rootStyles = css({
   boxSizing: "border-box",
@@ -151,7 +151,7 @@ function useScrollFade(enabled: boolean) {
   return { scrollerRef, rowRef };
 }
 
-export interface ActionToolbarProps extends LayoutProps {
+export interface ActionToolbarProps extends CssProp {
   /** The toolbar's name, such as "Note actions". */
   label: string;
   /** Above the strip, such as Breadcrumbs to the open note. */
@@ -178,7 +178,7 @@ export function ActionToolbar(props: ActionToolbarProps) {
     children,
     wrap = false,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const { scrollerRef, rowRef } = useScrollFade(!wrap && !!children);
 
   return (
@@ -202,7 +202,7 @@ export function ActionToolbar(props: ActionToolbarProps) {
 
 export interface ActionToolbarButtonProps
   extends Omit<ComponentProps<typeof Toolbar.Button>, "className">,
-    LayoutProps {
+    CssProp {
   /** An icon before the label. */
   icon?: ReactNode;
   /** Red text, for a destructive action that asks to confirm. */
@@ -215,7 +215,7 @@ export const ActionToolbarButton = forwardRef<
   HTMLButtonElement,
   ActionToolbarButtonProps
 >(function ActionToolbarButton(props, ref) {
-  const { icon, danger, children, className, ...rest } = withLayoutProps(props);
+  const { icon, danger, children, className, ...rest } = withCssProp(props);
   return (
     <Toolbar.Button
       ref={ref}
@@ -245,8 +245,7 @@ export const ActionToolbarIconButton = forwardRef<
   HTMLButtonElement,
   ActionToolbarIconButtonProps
 >(function ActionToolbarIconButton(props, ref) {
-  const { label, children, danger, className, ...rest } =
-    withLayoutProps(props);
+  const { label, children, danger, className, ...rest } = withCssProp(props);
   return (
     <Tooltip title={label} side="bottom">
       <Toolbar.Button
@@ -272,10 +271,10 @@ export function ActionToolbarSeparator() {
 /** Actions that belong together, such as text formatting. */
 export function ActionToolbarGroup(
   props: Omit<ComponentProps<typeof Toolbar.Group>, "className"> &
-    LayoutProps & {
+    CssProp & {
       className?: string;
     },
 ) {
-  const { className, ...rest } = withLayoutProps(props);
+  const { className, ...rest } = withCssProp(props);
   return <Toolbar.Group className={cx(groupStyles, className)} {...rest} />;
 }

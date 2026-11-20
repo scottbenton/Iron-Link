@@ -1,6 +1,6 @@
 import { CSSProperties } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -28,7 +28,7 @@ const skeletonStyles = cva({
 
 const linesStyles = css({ display: "grid", gap: "2", width: "100%" });
 
-export interface SkeletonProps extends Omit<LayoutProps, "width" | "height"> {
+export interface SkeletonProps extends Omit<CssProp, "width" | "height"> {
   variant?: "text" | "circle" | "rect";
   /** A CSS length or pixels. */
   width?: number | string;
@@ -50,7 +50,7 @@ export function Skeleton(props: SkeletonProps) {
     height,
     lines = 1,
     className,
-  } = withLayoutProps(props, ["width", "height"]);
+  } = withCssProp(props);
   const size: CSSProperties = { width, height };
 
   if (variant === "text" && lines > 1) {
