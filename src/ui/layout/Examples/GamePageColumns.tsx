@@ -46,6 +46,18 @@ import {
 } from "../../components/Tabs";
 import { Text } from "../../components/Text";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
+import {
+  SampleCharacter,
+  sampleCharacters,
+  samplePortraitSrc,
+} from "../../docs/fixtures/characters";
+import { sampleAssets, starforgedRules } from "../../docs/fixtures/datasworn";
+import {
+  MoveCategoryTree,
+  OracleCollectionTree,
+  starforgedMoveCategories,
+  starforgedOracleCollections,
+} from "../../docs/fixtures/referenceTrees";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterCard } from "../../game/CharacterCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
@@ -65,21 +77,6 @@ import { PlayerCard } from "../../game/PlayerCard";
 import { ProgressTrack } from "../../game/ProgressTrack";
 import { StatGrid } from "../../game/StatCard";
 import { TracksPanelDemo } from "../../game/TracksPanel/TracksPanelDemo";
-import {
-  SampleCharacter,
-  sampleCharacters,
-  samplePortraitSrc,
-} from "../../docs/fixtures/characters";
-import {
-  sampleAssets,
-  starforgedRules,
-} from "../../docs/fixtures/datasworn";
-import {
-  MoveCategoryTree,
-  OracleCollectionTree,
-  starforgedMoveCategories,
-  starforgedOracleCollections,
-} from "../../docs/fixtures/referenceTrees";
 import { ActionToolbar, ActionToolbarIconButton } from "../ActionToolbar";
 import { SectionHeading } from "../SectionHeading";
 import { DemoCharacterSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";

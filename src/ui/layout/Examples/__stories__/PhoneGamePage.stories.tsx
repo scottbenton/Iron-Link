@@ -11,9 +11,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { userEvent, within } from "storybook/test";
 
-import { withstandDamageTable } from "../../game/RollCard/RollCard.fixtures";
-import { sampleRolls } from "../../stories/fixtures/rolls";
-import { PhoneGamePage } from "./PhoneGamePage";
+import { sampleRolls } from "../../../docs/fixtures/rolls";
+import { withstandDamageTable } from "../../../game/RollCard/RollCard.fixtures";
+import { PhoneGamePage } from "../PhoneGamePage";
 
 const meta: Meta<typeof PhoneGamePage> = {
   title: "Examples/Phone game page",

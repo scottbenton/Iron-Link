@@ -12,20 +12,20 @@ import { Grid } from "ui/primitives";
 
 import { css } from "styled-system/css";
 
-import { Button } from "../../components/Button";
-import { Card, CardHeader, CardLinkOverlay } from "../../components/Card";
-import { VisuallyHidden } from "../../components/VisuallyHidden";
-import { CharacterPortrait } from "../../game/CharacterPortrait";
-import type { SchemeName } from "../../theme/schemes";
-import { AppShell } from "../AppShell";
-import { EmptyState } from "../EmptyState";
-import { MobileNav } from "../MobileNav";
-import { NavBar } from "../NavBar";
-import { NavRail } from "../NavRail";
-import { PageContent } from "../PageContent";
-import { PageHeader } from "../PageHeader";
-import { PhoneFrame } from "./StoryPlaceholders";
-import { getNavItems } from "./storyData";
+import { Button } from "../../../components/Button";
+import { Card, CardHeader, CardLinkOverlay } from "../../../components/Card";
+import { VisuallyHidden } from "../../../components/VisuallyHidden";
+import { CharacterPortrait } from "../../../game/CharacterPortrait";
+import type { SchemeName } from "../../../theme/schemes";
+import { AppShell } from "../../AppShell";
+import { EmptyState } from "../../EmptyState";
+import { MobileNav } from "../../MobileNav";
+import { NavBar } from "../../NavBar";
+import { NavRail } from "../../NavRail";
+import { PageContent } from "../../PageContent";
+import { PageHeader } from "../../PageHeader";
+import { PhoneFrame } from "../StoryPlaceholders";
+import { getNavItems } from "../storyData";
 
 const meta: Meta = {
   title: "Examples/Games list page",

@@ -42,6 +42,14 @@ import {
   Tabs,
 } from "../../components/Tabs";
 import { Text } from "../../components/Text";
+import { sampleCharacters } from "../../docs/fixtures/characters";
+import { sampleAssets, starforgedRules } from "../../docs/fixtures/datasworn";
+import {
+  OracleCollectionTree,
+  moveCountLabel,
+  starforgedMoveCategories,
+  starforgedOracleCollections,
+} from "../../docs/fixtures/referenceTrees";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
 import {
@@ -64,17 +72,6 @@ import { ReferenceCategory } from "../../game/ReferenceCategory";
 import type { RollData } from "../../game/RollCard";
 import { StatGrid } from "../../game/StatCard";
 import { TracksPanelDemo } from "../../game/TracksPanel/TracksPanelDemo";
-import { sampleCharacters } from "../../stories/fixtures/characters";
-import {
-  sampleAssets,
-  starforgedRules,
-} from "../../stories/fixtures/datasworn";
-import {
-  OracleCollectionTree,
-  moveCountLabel,
-  starforgedMoveCategories,
-  starforgedOracleCollections,
-} from "../../stories/fixtures/referenceTrees";
 import { AppShell } from "../AppShell";
 import { GameLayout } from "../GameLayout";
 import { NavBar } from "../NavBar";

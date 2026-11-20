@@ -75,6 +75,12 @@ import {
   ToolbarSeparator,
 } from "../../components/Toolbar";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
+import { sampleCharacters } from "../../docs/fixtures/characters";
+import {
+  classicRules,
+  sampleAssets,
+  starforgedRules,
+} from "../../docs/fixtures/datasworn";
 import { AssetCard } from "../../game/AssetCard";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
 import { CharacterSwitcher } from "../../game/CharacterSwitcher";

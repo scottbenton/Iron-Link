@@ -13,9 +13,9 @@
  */
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { PhoneGamePage } from "./PhoneGamePage";
-import { SheetFirstPage } from "./PlayLayouts";
-import { responsiveViewports, useGamePageTier } from "./responsiveViewports";
+import { PhoneGamePage } from "../PhoneGamePage";
+import { SheetFirstPage } from "../PlayLayouts";
+import { responsiveViewports, useGamePageTier } from "../responsiveViewports";
 
 const viewports = {
   desktopSmall: {

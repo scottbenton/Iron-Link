@@ -20,21 +20,21 @@ import { userEvent, within } from "storybook/test";
 
 import { css } from "styled-system/css";
 
-import { IconButton } from "../../components/IconButton";
-import { AppShell } from "../AppShell";
-import { GameLayout } from "../GameLayout";
-import { NavBar } from "../NavBar";
-import { NavRail } from "../NavRail";
-import { LayoutPanel } from "../shared/layoutPanel";
+import { IconButton } from "../../../components/IconButton";
+import { AppShell } from "../../AppShell";
+import { GameLayout } from "../../GameLayout";
+import { NavBar } from "../../NavBar";
+import { NavRail } from "../../NavRail";
+import { LayoutPanel } from "../../shared/layoutPanel";
 import {
   CharacterColumn,
   CharacterColumnActions,
   NotesColumn,
   ReferenceColumn,
-} from "./GamePageColumns";
-import { GamePageTabs } from "./StoryPlaceholders";
-import { characterSections, referenceSections } from "./columnSections";
-import { getNavItems } from "./storyData";
+} from "../GamePageColumns";
+import { GamePageTabs } from "../StoryPlaceholders";
+import { characterSections, referenceSections } from "../columnSections";
+import { getNavItems } from "../storyData";
 
 const meta: Meta = {
   title: "Examples/Game page, collapsed sidebars",

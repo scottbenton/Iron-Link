@@ -1,8 +1,8 @@
-import { CharacterPortrait } from "../../game/CharacterPortrait";
-import type { GameLogAuthor, GameLogEntry } from "../../game/GameLog";
 import type { SampleCharacter } from "../../docs/fixtures/characters";
 import { sampleCharacters } from "../../docs/fixtures/characters";
 import { sampleRolls } from "../../docs/fixtures/rolls";
+import { CharacterPortrait } from "../../game/CharacterPortrait";
+import type { GameLogAuthor, GameLogEntry } from "../../game/GameLog";
 
 export function characterAuthor(
   character: SampleCharacter,

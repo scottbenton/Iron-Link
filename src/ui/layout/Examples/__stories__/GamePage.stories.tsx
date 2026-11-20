@@ -51,34 +51,34 @@ import { useState } from "react";
 
 import { css } from "styled-system/css";
 
-import { Alert } from "../../components/Alert";
-import { Button } from "../../components/Button";
-import { AppShell } from "../AppShell";
-import { GameLayout } from "../GameLayout";
-import { NavBar } from "../NavBar";
-import { NavRail } from "../NavRail";
-import { DemoSettingsMenu } from "../SettingsMenu/SettingsMenuDemo";
+import { Alert } from "../../../components/Alert";
+import { Button } from "../../../components/Button";
+import { AppShell } from "../../AppShell";
+import { GameLayout } from "../../GameLayout";
+import { NavBar } from "../../NavBar";
+import { NavRail } from "../../NavRail";
+import { DemoSettingsMenu } from "../../SettingsMenu/SettingsMenuDemo";
 import {
   SettingsScenario,
   guideScenario,
-} from "../SettingsMenu/settingsMenuScenarios";
-import { LayoutPanel } from "../shared/layoutPanel";
+} from "../../SettingsMenu/settingsMenuScenarios";
+import { LayoutPanel } from "../../shared/layoutPanel";
 import {
   CharacterColumn,
   CharacterColumnActions,
   NotesColumn,
   OverviewColumn,
   ReferenceColumn,
-} from "./GamePageColumns";
-import { PhoneGamePage } from "./PhoneGamePage";
-import { GamePageTabs } from "./StoryPlaceholders";
+} from "../GamePageColumns";
+import { PhoneGamePage } from "../PhoneGamePage";
+import { GamePageTabs } from "../StoryPlaceholders";
 import {
   characterSections,
   overviewSections,
   referenceSections,
-} from "./columnSections";
-import { responsiveViewports, useGamePageTier } from "./responsiveViewports";
-import { getNavItems } from "./storyData";
+} from "../columnSections";
+import { responsiveViewports, useGamePageTier } from "../responsiveViewports";
+import { getNavItems } from "../storyData";
 
 const meta: Meta = {
   title: "Examples/Game page",
