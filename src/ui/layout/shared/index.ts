@@ -6,4 +6,3 @@ export * from "./navItem";
 export * from "./sectionTabs";
 export * from "./shell";
 export * from "./useLinkComponent";
-export * from "./useControllableState";

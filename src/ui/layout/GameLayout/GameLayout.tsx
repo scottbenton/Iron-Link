@@ -13,10 +13,10 @@ import { focusRing } from "ui/styles/focus";
 import { css, cx } from "styled-system/css";
 
 import { IconButton } from "../../components/IconButton";
+import { useControllableState } from "../../hooks/useControllableState";
 import { Sidebar, SidebarProps } from "../Sidebar";
 import { LayoutPanel } from "../shared/layoutPanel";
 import { srOnlyStyles } from "../shared/sectionTabs";
-import { useControllableState } from "../shared/useControllableState";
 
 const rootStyles = css({
   boxSizing: "border-box",

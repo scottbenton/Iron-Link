@@ -20,6 +20,7 @@ import { focusRing } from "ui/styles/focus";
 import { css, cva, cx } from "styled-system/css";
 
 import { IconButton } from "../../components/IconButton";
+import { useControllableState } from "../../hooks/useControllableState";
 import { CssProp, withCssProp } from "../../styles/cssProp";
 import { LayoutPanel } from "../shared/layoutPanel";
 import {
@@ -27,7 +28,6 @@ import {
   sectionTabStyles,
   srOnlyStyles,
 } from "../shared/sectionTabs";
-import { useControllableState } from "../shared/useControllableState";
 import { PanelInitial } from "./PanelInitial";
 import { SidebarResizeHandle } from "./SidebarResizeHandle";
 import { SidebarHeaderSlotContext } from "./sidebarHeaderSlotContext";
