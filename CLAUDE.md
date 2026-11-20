@@ -148,6 +148,10 @@ that are easy to miss. When you learn a new one, add a line here.
 - A world entry mention stores only the entry id (`kind: "worldEntry"`,
   `label: null`); its name is read live from the entries store, so renames
   show at once and an unreadable entry shows "Unavailable entry".
+- Hovering an entry mention (or focusing it from the keyboard) shows
+  `WorldEntryHoverCard`: picture, name, category and the first few filled-in
+  fields this reader can see. It reads only the loaded stores, never the
+  entry's Notes, so it costs no request. Touch gets no card.
 - Field bindings follow the rules in play, customized worlds included
   (`resolveFieldDefinitions`): inside a game the world's oracle catalog uses
   that game's own playset (`useListenToGameWorld` passes it), and on the

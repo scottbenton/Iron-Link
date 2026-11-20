@@ -1,10 +1,21 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { Editor } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { WorldFieldType } from "types/worldField.type";
+
+import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
+
+import { createWorldFieldConfiguration } from "lib/worldFieldRules";
 
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 
@@ -19,6 +30,10 @@ import { findWorldEntryMentionCandidates } from "../worldEntryMentions";
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 
 const initialEntryState = useWorldEntriesStore.getState().entryState;
+const initialFieldValueState = useWorldEntriesStore.getState().fieldValueState;
+const initialCategories = useWorldCategoriesStore.getState().categories;
+const initialFieldDefinitions =
+  useWorldCategoriesStore.getState().fieldDefinitions;
 
 function category(id: string, name: string, sortOrder: number): IWorldCategory {
   return {
@@ -197,5 +212,114 @@ describe("world entry mentions", () => {
       </MemoryRouter>,
     );
     expect(screen.getByText("Loading entry")).toBeInTheDocument();
+  });
+
+  describe("hover card", () => {
+    const people = category("people", "People", 1);
+
+    function textField(
+      id: string,
+      label: string,
+      sortOrder: number,
+      gmOnly = false,
+    ) {
+      return {
+        id,
+        categoryId: "people",
+        worldId: "world-1",
+        key: id,
+        label,
+        type: WorldFieldType.Text,
+        binding: null,
+        gmOnly,
+        sortOrder,
+        configuration: createWorldFieldConfiguration({}),
+      };
+    }
+
+    function setFields(
+      fields: ReturnType<typeof textField>[],
+      values: Record<string, string>,
+    ) {
+      useWorldCategoriesStore.setState((state) => {
+        state.categories = { people };
+        state.fieldDefinitions = Object.fromEntries(
+          fields.map((item) => [item.id, item]),
+        );
+      });
+      useWorldEntriesStore.setState((state) => {
+        state.fieldValueState.valuesByEntry = {
+          b: Object.fromEntries(
+            Object.entries(values).map(([fieldDefinitionId, value]) => [
+              fieldDefinitionId,
+              {
+                entryId: "b",
+                fieldDefinitionId,
+                worldId: "world-1",
+                gmOnly: false,
+                value,
+              },
+            ]),
+          ),
+        };
+      });
+    }
+
+    afterEach(() => {
+      useWorldCategoriesStore.setState((state) => {
+        state.categories = initialCategories;
+        state.fieldDefinitions = initialFieldDefinitions;
+      });
+      useWorldEntriesStore.setState((state) => {
+        state.fieldValueState = initialFieldValueState;
+      });
+    });
+
+    function renderMention() {
+      render(
+        <MemoryRouter>
+          <WorldEntryMentionLinksContext.Provider
+            value={() => ({ href: "/entry/b" })}
+          >
+            <WorldEntryMention entryId="b" />
+          </WorldEntryMentionLinksContext.Provider>
+        </MemoryRouter>,
+      );
+    }
+
+    it("shows the category and filled-in fields on hover, leaving out Guide-only ones", async () => {
+      setEntries([entry("b", "Brannoc", "people")]);
+      setFields(
+        [
+          textField("role", "Role", 0),
+          textField("secret", "Secret", 1, true),
+          textField("goal", "Goal", 2),
+          textField("look", "Look", 3),
+        ],
+        { role: "Smith", secret: "Spy", goal: "Find his sister" },
+      );
+      renderMention();
+      fireEvent.mouseOver(screen.getByRole("link", { name: "Brannoc" }));
+
+      const card = await screen.findByRole("tooltip");
+      expect(within(card).getByText("People")).toBeInTheDocument();
+      expect(within(card).getByText("Role")).toBeInTheDocument();
+      expect(within(card).getByText("Smith")).toBeInTheDocument();
+      expect(within(card).getByText("Find his sister")).toBeInTheDocument();
+      expect(within(card).queryByText("Spy")).not.toBeInTheDocument();
+      expect(within(card).queryByText("Look")).not.toBeInTheDocument();
+    });
+
+    it("says so when nothing is filled in", async () => {
+      setEntries([entry("b", "Brannoc", "people")]);
+      setFields([textField("role", "Role", 0)], {});
+      renderMention();
+      fireEvent.mouseOver(screen.getByRole("link", { name: "Brannoc" }));
+
+      const card = await screen.findByRole("tooltip");
+      expect(
+        within(card).getByText("No details filled in yet"),
+      ).toBeInTheDocument();
+    });
   });
 });
