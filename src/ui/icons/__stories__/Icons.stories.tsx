@@ -111,13 +111,13 @@ import type { ComponentType } from "react";
 
 import { css } from "styled-system/css";
 
-import { Text } from "../components/Text";
+import { Text } from "../../components/Text";
 import {
   pageStyles,
   sectionStyles,
-} from "../docs/foundations/foundationStyles";
-import { Icon, IconSize } from "./Icon";
-import { muiIconMap } from "./iconMap";
+} from "../../docs/foundations/foundationStyles";
+import { Icon, IconSize } from "../Icon";
+import { muiIconMap } from "../iconMap";
 
 const meta: Meta = {
   title: "Foundations/Icons",

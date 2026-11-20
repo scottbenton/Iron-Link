@@ -11,9 +11,9 @@ import { useState } from "react";
 
 import { Box, Grid, HStack, Stack } from "ui/primitives";
 
-import { schemeNames, schemes } from "../../theme";
-import { Text } from "../Text";
-import { Button } from "./Button";
+import { schemeNames, schemes } from "../../../theme";
+import { Text } from "../../Text";
+import { Button } from "../Button";
 
 const meta = {
   title: "Components/Button",
