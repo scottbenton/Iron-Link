@@ -19,26 +19,70 @@ import { createIcon } from "./createIcon";
 
 const slash = { x1: 48, y1: 40, x2: 208, y2: 216 };
 
-/** The band above the slash, from its centre line out to the cut. */
-const gapBands = {
-  32: "7.64,-4.40 263.26,276.78 286.93,255.26 31.32,-25.92",
-  40: "7.64,-4.40 263.26,276.78 292.85,249.87 37.24,-31.30",
-  24: "7.64,-4.40 263.26,276.78 281.01,260.64 25.40,-20.54",
-};
+type Point = readonly [number, number];
 
-/** Where each cut line ends: frame top, frame right, mountain slope. */
-const cutEnds = {
+/** The slash's direction and the normal pointing to its upper right side. */
+const along: Point = [160 / Math.hypot(160, 176), 176 / Math.hypot(160, 176)];
+const normal: Point = [along[1], -along[0]];
+
+/**
+ * The band above the slash, from its centre line out to `to`, long enough to
+ * cross the whole icon.
+ */
+function band(to: number) {
+  return [
+    [-60, 0],
+    [320, 0],
+    [320, to],
+    [-60, to],
+  ]
+    .map(([t, o]) => {
+      const x = slash.x1 + t * along[0] + o * normal[0];
+      const y = slash.y1 + t * along[1] + o * normal[1];
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(" ");
+}
+
+/**
+ * Where each line above the slash starts again, and which way it runs from
+ * there: frame top, frame right, mountain slope. The ends sit at 32 from the
+ * slash's centre (40 at bold), as CalendarSlash's do.
+ */
+const cutEnds: Record<32 | 40, { at: Point; runs: Point }[]> = {
   32: [
-    [91.25, 40],
-    [216, 177.23],
-    [158.6, 114.09],
+    { at: [91.25, 40], runs: [1, 0] },
+    { at: [216, 177.23], runs: [0, -1] },
+    { at: [158.6, 114.09], runs: [Math.SQRT1_2, -Math.SQRT1_2] },
   ],
   40: [
-    [102.06, 40],
-    [216, 165.34],
-    [164.26, 108.43],
+    { at: [102.06, 40], runs: [1, 0] },
+    { at: [216, 165.34], runs: [0, -1] },
+    { at: [164.26, 108.43], runs: [Math.SQRT1_2, -Math.SQRT1_2] },
   ],
-} as const;
+};
+
+/**
+ * The part of a line from where it crosses the band to its end, so the end
+ * is cut square to the line itself and its round cap fits it exactly.
+ */
+function lineTail(at: Point, runs: Point, width: number) {
+  const half = width / 2 + 0.5;
+  const back = width * 1.5 + 2;
+  const side: Point = [-runs[1], runs[0]];
+  return [
+    [0, half],
+    [0, -half],
+    [-back, -half],
+    [-back, half],
+  ]
+    .map(([t, o]) => {
+      const x = at[0] + t * runs[0] + o * side[0];
+      const y = at[1] + t * runs[1] + o * side[1];
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(" ");
+}
 
 function slashed(
   weight: IconWeight,
@@ -47,14 +91,24 @@ function slashed(
   imagePath: string,
 ) {
   const maskId = `ui-image-slash-${weight}`;
+  // The band stops short of the cut ends, where a line crossing it at an
+  // angle would otherwise be left with a corner beside its round cap.
+  const bandTo = gap - (width / 2) * Math.abs(normal[0]);
   return (
     <>
       <mask id={maskId}>
         <rect x="-16" y="-16" width="288" height="288" fill="white" />
-        <polygon points={gapBands[gap]} fill="black" />
+        <polygon points={band(bandTo)} fill="black" />
+        {cutEnds[gap].map(({ at, runs }) => (
+          <polygon
+            key={`${at}`}
+            points={lineTail(at, runs, width)}
+            fill="black"
+          />
+        ))}
       </mask>
       <path d={imagePath} mask={`url(#${maskId})`} />
-      {cutEnds[gap].map(([cx, cy]) => (
+      {cutEnds[gap].map(({ at: [cx, cy] }) => (
         <circle key={`${cx},${cy}`} cx={cx} cy={cy} r={width / 2} />
       ))}
       <line
@@ -100,7 +154,7 @@ export const ImageSlashIcon = createIcon("ImageSlashIcon", {
     <>
       <mask id="ui-image-slash-fill">
         <rect x="-16" y="-16" width="288" height="288" fill="white" />
-        <polygon points={gapBands[24]} fill="black" />
+        <polygon points={band(24)} fill="black" />
       </mask>
       <path
         d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM48,48H208v77.38l-24.69-24.7a16,16,0,0,0-22.62,0L53.37,208H48ZM80,96a16,16,0,1,1,16,16A16,16,0,0,1,80,96Z"
