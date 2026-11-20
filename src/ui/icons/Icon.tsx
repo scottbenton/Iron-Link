@@ -1,6 +1,6 @@
 import type { IconWeight, Icon as PhosphorIcon } from "@phosphor-icons/react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { cva, cx } from "styled-system/css";
 import type { RecipeVariantProps } from "styled-system/css";
@@ -27,7 +27,7 @@ const sizes = { inherit: "1em", sm: 16, md: 20, lg: 24 } as const;
 export type IconSize = keyof typeof sizes;
 
 export type IconProps = RecipeVariantProps<typeof iconStyles> &
-  LayoutProps & {
+  CssProp & {
     /** The icon, one of the exports of `ui/icons`. */
     icon: PhosphorIcon;
     /**
@@ -61,7 +61,7 @@ export function Icon(props: IconProps) {
     color,
     label,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   return (
     <Component
       size={sizes[size]}

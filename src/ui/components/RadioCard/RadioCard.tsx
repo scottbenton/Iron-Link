@@ -4,8 +4,8 @@ import { RadioGroup as BaseRadioGroup } from "@base-ui/react/radio-group";
 import { CheckCircle } from "@phosphor-icons/react";
 import { CSSProperties, ReactNode, Ref, useId } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { ledgeHeight, ledgeLayers } from "ui/styles/ledge";
 
 import { css, cx } from "styled-system/css";
@@ -22,7 +22,7 @@ import {
 
 export interface RadioCardGroupProps<V = string>
   extends FieldOwnProps,
-    LayoutProps {
+    CssProp {
   /** The RadioCards. */
   children: ReactNode;
   value?: V;
@@ -95,7 +95,7 @@ export function RadioCardGroup<V = string>(props: RadioCardGroupProps<V>) {
     required,
     disabled,
     requiredIndicator,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const { invalid, message } = resolveFieldError(error, invalidProp);
 
   const gridStyle = {
@@ -299,7 +299,7 @@ const footerStyles = css({
   marginTop: "-1",
 });
 
-export interface RadioCardProps<V = string> extends LayoutProps {
+export interface RadioCardProps<V = string> extends CssProp {
   /** What choosing this card sets the group to. */
   value: V;
   /** The card's name, in the heading face. */
@@ -344,7 +344,7 @@ export function RadioCard<V = string>(props: RadioCardProps<V>) {
     footer,
     className,
     ref,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const titleId = useId();
   const descriptionId = useId();
   const describedByIds = [

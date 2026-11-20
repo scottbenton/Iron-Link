@@ -11,7 +11,7 @@ import {
 import { IconButton } from "ui/components/IconButton";
 import { Text } from "ui/components/Text";
 import { Tooltip } from "ui/components/Tooltip";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
@@ -152,7 +152,7 @@ export const defaultAssetCardStrings: AssetCardStrings = {
 };
 
 export interface AssetCardProps
-  extends LayoutProps,
+  extends CssProp,
     RulesTextOptions,
     Omit<ComponentPropsWithoutRef<"article">, "children"> {
   asset: Datasworn.Asset;
@@ -217,7 +217,7 @@ export function AssetCard(props: AssetCardProps) {
     resolveOracle,
     renderMacro,
     ...rest
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const strings = { ...defaultAssetCardStrings, ...stringsProp };
   const rulesOptions: RulesTextOptions = {

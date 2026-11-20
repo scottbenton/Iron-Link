@@ -1,7 +1,7 @@
 import { Skull, Sparkle, X } from "@phosphor-icons/react";
 import { ReactNode, Ref } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
@@ -252,7 +252,7 @@ export interface RollCardAction {
  */
 export type RollCardDiceDetail = "dice" | "captions";
 
-export interface RollCardProps extends Omit<LayoutProps, "width"> {
+export interface RollCardProps extends Omit<CssProp, "width"> {
   roll: RollData;
   /**
    * Shows a named Dismiss button. A roll card dismisses only through it,
@@ -340,7 +340,7 @@ export function RollCard(props: RollCardProps) {
     oneOnActionDieLabel = "One on the action die",
     cancelledLabel = "Matched negative momentum",
     className,
-  } = withLayoutProps(props, ["width"]);
+  } = withCssProp(props);
 
   const text = getRollText(textProp);
   const title = getRollTitle(roll);

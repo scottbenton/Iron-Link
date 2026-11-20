@@ -2,7 +2,7 @@ import { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
 import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -137,7 +137,7 @@ const youStyles = css({
 });
 
 export interface PlayerCardProps
-  extends LayoutProps,
+  extends CssProp,
     Omit<ComponentPropsWithoutRef<"article">, "children"> {
   /** The player's display name. */
   name: string;
@@ -187,7 +187,7 @@ export function PlayerCard(props: PlayerCardProps) {
     headingAs = "h3",
     className,
     ...rest
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const hasCharacters = characters && characters.length > 0;
 

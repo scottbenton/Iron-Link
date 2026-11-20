@@ -8,7 +8,7 @@ import {
   useRef,
 } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
@@ -310,7 +310,7 @@ function initials(name: string): string {
   return letters.map((word) => word[0]?.toUpperCase() ?? "").join("");
 }
 
-export interface GameLogProps extends LayoutProps {
+export interface GameLogProps extends CssProp {
   /** Entries oldest first; the newest sits at the bottom by the composer. */
   entries: GameLogEntry[];
   /** Sends a message. Without it there is no composer (viewers). */
@@ -371,7 +371,7 @@ export function GameLog(props: GameLogProps) {
     groupWithinMinutes = GAME_LOG_GROUP_WINDOW_MS / 60_000,
     maxContentWidth,
     className,
-  } = withLayoutProps<GameLogProps>(props);
+  } = withCssProp<GameLogProps>(props);
   const strings = { ...defaultGameLogStrings, ...stringsProp };
 
   const formatDay =

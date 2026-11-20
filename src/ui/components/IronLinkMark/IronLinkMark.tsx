@@ -1,12 +1,12 @@
 import { useId } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
 const markStyles = css({ display: "block", flex: "none" });
 
-export interface IronLinkMarkProps extends LayoutProps {
+export interface IronLinkMarkProps extends CssProp {
   /**
    * The gradient's stops, top left to bottom right: a scheme's `icon`
    * colours (`schemes.cinder.icon`).
@@ -25,7 +25,7 @@ export interface IronLinkMarkProps extends LayoutProps {
  * gradient. Size it with `width` and `height`.
  */
 export function IronLinkMark(props: IronLinkMarkProps) {
-  const { colors, label, className } = withLayoutProps(props);
+  const { colors, label, className } = withCssProp(props);
   const id = useId();
   const a11y = label
     ? ({ role: "img", "aria-label": label } as const)

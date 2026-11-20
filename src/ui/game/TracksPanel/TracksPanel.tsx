@@ -1,7 +1,7 @@
 import { PlusIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
@@ -79,7 +79,7 @@ const allKinds: TrackKind[] = [
   "clock",
 ];
 
-export interface TracksPanelProps extends LayoutProps {
+export interface TracksPanelProps extends CssProp {
   /** Vows, journeys, fights, scene challenges and clocks, in display order. */
   tracks: TrackItem[];
   /** A viewer's view: no Add, no marking, no menus or rolls. */
@@ -179,7 +179,7 @@ export function TracksPanel(props: TracksPanelProps) {
     rankLabels,
     strings: stringsProp,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const strings = { ...defaultTracksPanelStrings, ...stringsProp };
   const announce = useAnnounce();
   const listRef = useRef<HTMLDivElement>(null);

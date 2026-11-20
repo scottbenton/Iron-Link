@@ -2,7 +2,7 @@
  * Sample tracks for stories. Story-only: imports the rules fixtures, so
  * nothing in the app may import it.
  */
-import { classicMove, starforgedMove } from "../../stories/fixtures/datasworn";
+import { classicMove, starforgedMove } from "../../docs/fixtures/datasworn";
 import type {
   BondItem,
   ConnectionItem,

@@ -1,8 +1,8 @@
 import { XIcon } from "@phosphor-icons/react";
 import { ReactNode } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -222,7 +222,7 @@ const removeStyles = css({
   },
 });
 
-export interface ChipProps extends LayoutProps {
+export interface ChipProps extends CssProp {
   /** The chip's text. */
   children: ReactNode;
   variant?: "outline" | "soft";
@@ -259,7 +259,7 @@ export function Chip(props: ChipProps) {
     onRemove,
     removeLabel,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const content = (
     <>

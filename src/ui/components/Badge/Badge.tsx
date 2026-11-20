@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -66,7 +66,7 @@ const badgeStyles = cva({
   defaultVariants: { tone: "accent", dot: false },
 });
 
-export interface BadgeProps extends LayoutProps {
+export interface BadgeProps extends CssProp {
   /** The thing the badge marks, usually an IconButton. */
   children: ReactNode;
   count?: number;
@@ -95,7 +95,7 @@ export function Badge(props: BadgeProps) {
     invisible = false,
     tone,
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const hidden = invisible || (!dot && count === 0 && !showZero);
   const text = count > max ? `${max}+` : String(count);

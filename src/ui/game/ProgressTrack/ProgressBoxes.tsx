@@ -1,6 +1,6 @@
 import { CSSProperties, useState } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 
@@ -69,7 +69,7 @@ const boxStyles = css({
   },
 });
 
-export interface ProgressBoxesProps extends LayoutProps {
+export interface ProgressBoxesProps extends CssProp {
   /** 0 to 40. */
   ticks: number;
   /** The track is completed; the marks keep their usual colour. */
@@ -84,7 +84,7 @@ export interface ProgressBoxesProps extends LayoutProps {
  * the end state at once.
  */
 export function ProgressBoxes(props: ProgressBoxesProps) {
-  const { ticks: rawTicks, complete, className } = withLayoutProps(props);
+  const { ticks: rawTicks, complete, className } = withCssProp(props);
   const ticks = clampTicks(rawTicks);
 
   // The count before the latest change, kept as state (React's pattern for

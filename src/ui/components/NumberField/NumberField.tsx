@@ -2,7 +2,7 @@ import { NumberField as BaseNumberField } from "@base-ui/react/number-field";
 import { Minus, Plus } from "@phosphor-icons/react";
 import { CSSProperties, Ref, useRef } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -17,7 +17,7 @@ import {
 } from "../Field";
 import { focusInputOnWellPress } from "../TextField";
 
-export interface NumberFieldProps extends FieldOwnProps, LayoutProps {
+export interface NumberFieldProps extends FieldOwnProps, CssProp {
   /** The number, or null while empty, when controlled. */
   value?: number | null;
   defaultValue?: number;
@@ -166,7 +166,7 @@ export function NumberField(props: NumberFieldProps) {
     required,
     disabled,
     requiredIndicator,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const inputRef = useRef<HTMLInputElement>(null);
   const resolvedFormat: Intl.NumberFormatOptions | undefined = showSign
     ? { signDisplay: "exceptZero", ...format }
