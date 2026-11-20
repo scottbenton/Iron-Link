@@ -10,14 +10,14 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Box } from "ui/primitives";
 
-import { BreadcrumbItem, Breadcrumbs } from "../../../components/Breadcrumbs";
 import {
   ActionToolbar,
   ActionToolbarButton,
   ActionToolbarGroup,
   ActionToolbarIconButton,
   ActionToolbarSeparator,
-} from "../ActionToolbar";
+} from "..";
+import { BreadcrumbItem, Breadcrumbs } from "../../../components/Breadcrumbs";
 
 const meta: Meta<typeof ActionToolbar> = {
   title: "Layout/ActionToolbar",

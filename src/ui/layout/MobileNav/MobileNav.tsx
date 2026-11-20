@@ -6,8 +6,9 @@ import { Badge } from "../../components/Badge";
 import { GradientBox } from "../../components/GradientBox";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { CssProp, withCssProp } from "../../styles/cssProp";
-import { LayoutLinkComponent, useLinkComponent } from "../shared/linkContext";
+import { LayoutLinkComponent } from "../shared/linkComponentContext";
 import { NavItem } from "../shared/navItem";
+import { useLinkComponent } from "../shared/useLinkComponent";
 
 const barStyles = css({
   boxSizing: "border-box",

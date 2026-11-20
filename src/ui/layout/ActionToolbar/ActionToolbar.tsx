@@ -1,18 +1,8 @@
 import { Toolbar } from "@base-ui/react/toolbar";
-import {
-  ComponentProps,
-  ReactNode,
-  forwardRef,
-  useLayoutEffect,
-  useRef,
-} from "react";
+import { ReactNode, useLayoutEffect, useRef } from "react";
 
-import { focusRing } from "ui/styles/focus";
-import { quietPressable, quietSelected } from "ui/styles/pressable";
+import { css, cx } from "styled-system/css";
 
-import { css, cva, cx } from "styled-system/css";
-
-import { Tooltip } from "../../components/Tooltip";
 import { CssProp, withCssProp } from "../../styles/cssProp";
 
 const rootStyles = css({
@@ -56,62 +46,6 @@ const rowStyles = css({
   flex: "none",
   minWidth: "100%",
   "[data-wrap] > &": { flexWrap: "wrap", flex: "1 1 auto", minWidth: 0 },
-});
-
-/**
- * Toolbar buttons have no ledge, so they never move: hover tints them and a
- * press darkens the tint (README, the look).
- */
-const toolbarButtonStyles = cva({
-  base: {
-    ...quietPressable,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "1.5",
-    flex: "none",
-    minHeight: "control.sm",
-    minWidth: "control.sm",
-    paddingInline: "3",
-    borderRadius: "sm",
-    color: "fg.default",
-    fontFamily: "body",
-    fontSize: "sm",
-    fontWeight: "semibold",
-    lineHeight: "1.2",
-    whiteSpace: "nowrap",
-    "& svg": { width: "icon.md", height: "icon.md", flex: "none" },
-    _focusVisible: focusRing.inset,
-    ...quietSelected,
-    "&:is(:disabled, [data-disabled])": {
-      cursor: "not-allowed",
-      color: "fg.disabled",
-      background: "transparent",
-    },
-    _touch: { minHeight: "control.md", minWidth: "control.md" },
-  },
-  variants: {
-    iconOnly: { true: { paddingInline: 0 }, false: {} },
-    /** Red text, for a destructive action that asks to confirm. */
-    danger: { true: { color: "danger.fg" }, false: {} },
-  },
-});
-
-const iconSlotStyles = css({ display: "flex" });
-
-const separatorStyles = css({
-  flex: "none",
-  alignSelf: "stretch",
-  width: "1px",
-  marginBlock: "1",
-  marginInline: "1",
-  background: "border.default",
-});
-
-const groupStyles = css({
-  display: "flex",
-  alignItems: "center",
-  gap: "0.5",
 });
 
 /** Marks the strip's edges that have more of the row beyond them. */
@@ -198,83 +132,4 @@ export function ActionToolbar(props: ActionToolbarProps) {
       )}
     </div>
   );
-}
-
-export interface ActionToolbarButtonProps
-  extends Omit<ComponentProps<typeof Toolbar.Button>, "className">,
-    CssProp {
-  /** An icon before the label. */
-  icon?: ReactNode;
-  /** Red text, for a destructive action that asks to confirm. */
-  danger?: boolean;
-  className?: string;
-}
-
-/** A labelled action in the strip. */
-export const ActionToolbarButton = forwardRef<
-  HTMLButtonElement,
-  ActionToolbarButtonProps
->(function ActionToolbarButton(props, ref) {
-  const { icon, danger, children, className, ...rest } = withCssProp(props);
-  return (
-    <Toolbar.Button
-      ref={ref}
-      className={cx(toolbarButtonStyles({ danger }), className)}
-      {...rest}
-    >
-      {icon && (
-        <span aria-hidden="true" className={iconSlotStyles}>
-          {icon}
-        </span>
-      )}
-      {children}
-    </Toolbar.Button>
-  );
-});
-
-export interface ActionToolbarIconButtonProps
-  extends Omit<ActionToolbarButtonProps, "icon" | "children"> {
-  /** The accessible name, also shown as the tooltip. */
-  label: string;
-  /** The icon. */
-  children: ReactNode;
-}
-
-/** An icon-only action, named by `label` and shown as a tooltip. */
-export const ActionToolbarIconButton = forwardRef<
-  HTMLButtonElement,
-  ActionToolbarIconButtonProps
->(function ActionToolbarIconButton(props, ref) {
-  const { label, children, danger, className, ...rest } = withCssProp(props);
-  return (
-    <Tooltip title={label} side="bottom">
-      <Toolbar.Button
-        ref={ref}
-        aria-label={label}
-        className={cx(
-          toolbarButtonStyles({ iconOnly: true, danger }),
-          className,
-        )}
-        {...rest}
-      >
-        {children}
-      </Toolbar.Button>
-    </Tooltip>
-  );
-});
-
-/** A thin rule between groups of actions. */
-export function ActionToolbarSeparator() {
-  return <Toolbar.Separator className={separatorStyles} />;
-}
-
-/** Actions that belong together, such as text formatting. */
-export function ActionToolbarGroup(
-  props: Omit<ComponentProps<typeof Toolbar.Group>, "className"> &
-    CssProp & {
-      className?: string;
-    },
-) {
-  const { className, ...rest } = withCssProp(props);
-  return <Toolbar.Group className={cx(groupStyles, className)} {...rest} />;
 }

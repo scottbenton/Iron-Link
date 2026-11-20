@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { css } from "styled-system/css";
 
 import { getNavItems } from "../../Examples/storyData";
-import { DemoSettingsMenu } from "../../SettingsMenu/SettingsMenuDemo";
+import { DemoSettingsMenu } from "../../SettingsMenu/DemoSettingsMenu";
 import { gamesListScenario } from "../../SettingsMenu/settingsMenuScenarios";
 import { NavRail } from "../NavRail";
 

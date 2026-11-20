@@ -19,11 +19,10 @@ import {
   MenuLinkItem,
   MenuSeparator,
 } from "../../components/Menu";
-import {
-  LayoutLinkComponent,
-  useLinkComponent,
-} from "../../layout/shared/linkContext";
+import { LayoutLinkComponent } from "../../layout/shared/linkComponentContext";
+import { useLinkComponent } from "../../layout/shared/useLinkComponent";
 import { CssProp, withCssProp } from "../../styles/cssProp";
+import { Lead } from "./Lead";
 
 const triggerStyles = css({
   ...quietPressable,
@@ -62,41 +61,6 @@ const triggerStyles = css({
 const contentStyles = css({ width: "280px" });
 
 const checkStyles = css({ color: "accent.fg", display: "flex" });
-
-/** A 24px leading slot, so portraits and icons line up. */
-const leadStyles = css({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "2.5",
-  minWidth: 0,
-  "& > [data-part=lead]": {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flex: "none",
-    width: "24px",
-    height: "24px",
-    color: "fg.muted",
-  },
-  "& > [data-part=lead] > svg": { width: "icon.md", height: "icon.md" },
-  "& > [data-part=text]": {
-    minWidth: 0,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  },
-});
-
-function Lead(props: { lead?: ReactNode; children: ReactNode }) {
-  return (
-    <span className={leadStyles}>
-      <span data-part="lead" aria-hidden>
-        {props.lead}
-      </span>
-      <span data-part="text">{props.children}</span>
-    </span>
-  );
-}
 
 export interface CharacterSwitcherCharacter {
   id: string;

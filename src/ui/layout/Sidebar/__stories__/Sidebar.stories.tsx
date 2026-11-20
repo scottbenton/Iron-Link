@@ -7,11 +7,9 @@ import { Flex, Stack } from "ui/primitives";
 import { css } from "styled-system/css";
 
 import { Text } from "../../../components/Text";
-import { CharacterColumn } from "../../Examples/GamePageColumns";
-import {
-  CharacterSheetPlaceholder,
-  ReferencePlaceholder,
-} from "../../Examples/StoryPlaceholders";
+import { CharacterColumn } from "../../Examples/CharacterColumn";
+import { CharacterSheetPlaceholder } from "../../Examples/CharacterSheetPlaceholder";
+import { ReferencePlaceholder } from "../../Examples/ReferencePlaceholder";
 import { characterSections } from "../../Examples/columnSections";
 import { LayoutPanel } from "../../shared/layoutPanel";
 import { Sidebar, SidebarProps } from "../Sidebar";

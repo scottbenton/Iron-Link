@@ -1,6 +1,9 @@
 import { PropsWithChildren } from "react";
 
-import { LayoutLinkComponent, LinkComponentContext } from "./linkContext";
+import {
+  LayoutLinkComponent,
+  LinkComponentContext,
+} from "./linkComponentContext";
 
 export interface LinkComponentProviderProps extends PropsWithChildren {
   /** Renders every link in the layout components, such as a router link. */
