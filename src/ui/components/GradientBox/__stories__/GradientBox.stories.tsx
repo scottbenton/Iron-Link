@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Text } from "ui/components/Text";
 import { Stack } from "ui/primitives";
 
-import { GradientBox } from "./GradientBox";
+import { GradientBox } from "../GradientBox";
 
 const meta: Meta<typeof GradientBox> = {
   title: "Components/GradientBox",

@@ -8,13 +8,13 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { css } from "styled-system/css";
 
-import { MenuItem, MenuSeparator } from "../Menu";
-import { Text } from "../Text";
+import { MenuItem, MenuSeparator } from "../../Menu";
+import { Text } from "../../Text";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuTrigger,
-} from "./ContextMenu";
+} from "../ContextMenu";
 
 const meta = {
   title: "Components/ContextMenu",

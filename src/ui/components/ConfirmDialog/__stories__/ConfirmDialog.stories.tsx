@@ -3,10 +3,10 @@ import { useState } from "react";
 
 import { HStack, Stack } from "ui/primitives";
 
-import { Button } from "../Button";
-import { Text } from "../Text";
-import { ConfirmDialog } from "./ConfirmDialog";
-import { useConfirm } from "./useConfirm";
+import { Button } from "../../Button";
+import { Text } from "../../Text";
+import { ConfirmDialog } from "../ConfirmDialog";
+import { useConfirm } from "../useConfirm";
 
 const meta = {
   title: "Components/ConfirmDialog",

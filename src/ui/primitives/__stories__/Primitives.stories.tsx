@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ReactNode } from "react";
 
-import { Text } from "../components/Text";
+import { Text } from "../../components/Text";
 import {
   Box,
   Center,
@@ -12,7 +12,7 @@ import {
   HStack,
   Spacer,
   Stack,
-} from "./index";
+} from "../index";
 
 const meta: Meta = {
   title: "Foundations/Layout primitives",

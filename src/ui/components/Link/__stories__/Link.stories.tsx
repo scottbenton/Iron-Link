@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Stack } from "ui/primitives";
 
-import { Text } from "../Text";
-import { Link } from "./Link";
+import { Text } from "../../Text";
+import { Link } from "../Link";
 
 const meta: Meta<typeof Link> = {
   title: "Components/Link",

@@ -3,10 +3,10 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Grid, HStack, Stack } from "ui/primitives";
 
-import { Button } from "../Button";
-import { IconButton } from "../IconButton";
-import { Text } from "../Text";
-import { Tooltip } from "./Tooltip";
+import { Button } from "../../Button";
+import { IconButton } from "../../IconButton";
+import { Text } from "../../Text";
+import { Tooltip } from "../Tooltip";
 
 /**
  * A short hint shown on hover and on keyboard focus. Touch screens never
