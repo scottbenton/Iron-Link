@@ -14,12 +14,14 @@ import { useAnnounce } from "../Announcer";
 import { Button } from "../Button";
 import { toast } from "./toast";
 import { subscribeToToastAnnouncements } from "./toastAnnouncements";
+import { toastViewportAttribute } from "./toastViewport";
 
 const BASE_OFFSET = "calc(20px + env(safe-area-inset-bottom, 0px))";
 const FOOTER_SPACE = 48;
 
 const toasterStyles = css({
-  // Below dialogs and drawers (see the token). Sonner's own value is huge.
+  // Above dialogs and drawers, below popovers and tooltips (see the token).
+  // Sonner's own value is huge.
   zIndex: "toast!",
   // The stack rises to make room for Clear All when a second toast arrives.
   // Without this it jumped there while the new toast slid in, the hitch on
@@ -249,8 +251,17 @@ export function Toaster(props: ToasterProps) {
     ? `calc(${BASE_OFFSET} + ${FOOTER_SPACE}px)`
     : BASE_OFFSET;
 
+  // The wrapper marks the toasts so dialogs and drawers ignore presses on
+  // them (`isPressOnToasts`). Its `aria-live="off"` announces nothing: an
+  // open modal hides everything outside itself from screen readers except
+  // live regions, and this keeps Clear All in reach with the toasts.
+  const viewport = {
+    [toastViewportAttribute]: "",
+    "aria-live": "off",
+  } as const;
+
   return (
-    <>
+    <div {...viewport}>
       <SonnerToaster
         ref={regionRef}
         position="bottom-center"
@@ -281,6 +292,6 @@ export function Toaster(props: ToasterProps) {
           </Button>
         </div>
       )}
-    </>
+    </div>
   );
 }
