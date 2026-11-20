@@ -2,7 +2,7 @@ import { MouseEvent, ReactNode, forwardRef } from "react";
 
 import { Button, type ButtonProps } from "ui/components/Button";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
-import { withLayoutProps } from "ui/styles/layoutProps";
+import { withCssProp } from "ui/styles/cssProp";
 
 import { cx } from "styled-system/css";
 
@@ -72,7 +72,7 @@ export const RollButton = forwardRef<HTMLElement, RollButtonProps>(
       onClick,
       onRoll,
       ...rest
-    } = withLayoutProps<RollButtonProps>(props);
+    } = withCssProp<RollButtonProps>(props);
     const [die, rollDie] = useDieFace();
     const iconNode =
       icon === undefined ? <DieFace {...die} size="inherit" /> : icon;

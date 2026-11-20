@@ -3,8 +3,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HStack, Stack } from "ui/primitives";
 
-import { sampleMoves } from "../../stories/fixtures/datasworn";
-import { RollButton } from "./RollButton";
+import { sampleMoves } from "../../../docs/fixtures/datasworn";
+import { RollButton } from "../RollButton";
 
 const meta = {
   title: "Game/RollButton",

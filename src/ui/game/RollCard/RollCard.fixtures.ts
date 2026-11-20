@@ -1,11 +1,11 @@
 /**
  * More sample rolls for the roll card, dice and game log stories, on top of
- * `stories/fixtures/rolls`, so every roll type the app logs has an example.
+ * `docs/fixtures/rolls`, so every roll type the app logs has an example.
  * Story-only. Oracle text is real Datasworn rows: Sundered Isles' Island Name
  * and Cursed Island Name, Crew Characteristics and Cursed Crew, Offshore
  * Observations, and Starforged's Sector Trouble and Withstand Damage.
  */
-import { sampleRolls } from "../../stories/fixtures/rolls";
+import { sampleRolls } from "../../docs/fixtures/rolls";
 import type {
   ActionRollData,
   ClockRollData,

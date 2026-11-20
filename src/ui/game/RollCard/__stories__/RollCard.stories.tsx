@@ -5,14 +5,14 @@ import { fn } from "storybook/test";
 
 import { Grid, HStack, Stack } from "ui/primitives";
 
-import { Button } from "../../components/Button";
-import { Text } from "../../components/Text";
-import { useToast } from "../../components/Toast";
-import { sampleRolls } from "../../stories/fixtures/rolls";
-import { RollCard, RollCardProps } from "./RollCard";
-import { allRolls, extraRolls, rollsByType } from "./RollCard.fixtures";
-import { getRollSummary } from "./getRollSummary";
-import { RollData } from "./rollTypes";
+import { Button } from "../../../components/Button";
+import { Text } from "../../../components/Text";
+import { useToast } from "../../../components/Toast";
+import { sampleRolls } from "../../../docs/fixtures/rolls";
+import { RollCard, RollCardProps } from "../RollCard";
+import { allRolls, extraRolls, rollsByType } from "../RollCard.fixtures";
+import { getRollSummary } from "../getRollSummary";
+import { RollData } from "../rollTypes";
 
 const meta = {
   title: "Game/RollCard",

@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { AddsBadge } from "./AddsBadge";
+import { AddsBadge } from "../AddsBadge";
 
 function badgeOf(container: HTMLElement) {
   const badge = container.querySelector<HTMLElement>("[data-adds]");

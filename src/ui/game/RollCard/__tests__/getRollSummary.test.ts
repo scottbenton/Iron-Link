@@ -9,15 +9,15 @@ import {
   fulfillYourVowProgress,
   gatherInformationCancelled,
   strikeMiss,
-} from "../../stories/fixtures/rolls";
+} from "../../../docs/fixtures/rolls";
 import {
   clockAdvances,
   crewCursedAdds,
   islandNameCursed,
   withstandDamageMissMatch,
-} from "./RollCard.fixtures";
-import { getRollSummary, getRollTitle } from "./getRollSummary";
-import { getRollCritical, getRollOutcome } from "./rollTypes";
+} from "../RollCard.fixtures";
+import { getRollSummary, getRollTitle } from "../getRollSummary";
+import { getRollCritical, getRollOutcome } from "../rollTypes";
 
 describe("getRollSummary", () => {
   it("reads an action roll with a match", () => {
