@@ -6,7 +6,8 @@ import { Grid, Stack } from "ui/primitives";
 import { Text } from "../../../components/Text";
 import { sampleRolls } from "../../../docs/fixtures/rolls";
 import { allRolls, extraRolls } from "../../RollCard/RollCard.fixtures";
-import { DiceDisplay, OracleDice } from "../DiceDisplay";
+import { DiceDisplay } from "../DiceDisplay";
+import { OracleDice } from "../OracleDice";
 
 const meta = {
   title: "Game/DiceDisplay",
