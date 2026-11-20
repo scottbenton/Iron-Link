@@ -3,7 +3,7 @@ import { ComponentProps, ReactNode } from "react";
 
 import { css, cva, cx } from "styled-system/css";
 
-import { useBreakpoint } from "../../hooks/useBreakpoint";
+import { useIsMobile } from "../../hooks/useIsMobile";
 import { isPressOnToasts } from "../Toast/toastViewport";
 
 type Placement = "left" | "right" | "bottom";
@@ -168,7 +168,7 @@ export function Drawer(props: DrawerProps) {
 
   // Phone width (the CSS's `smDown`) is needed in JavaScript as well as CSS,
   // because the swipe direction that dismisses the drawer is a prop.
-  const isPhone = useBreakpoint("smaller-than", "sm");
+  const isPhone = useIsMobile();
   const placement: Placement =
     side === "bottom" || (isPhone && mobile === "sheet") ? "bottom" : side;
 
