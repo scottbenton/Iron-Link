@@ -6,7 +6,7 @@ import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { cx } from "styled-system/css";
 
 import { DieFace, DieRollResult, useDieFace } from "../DieFace";
-import { AddsAnchor } from "../RollButton/AddsBadge";
+import { AddsAnchor } from "../RollButton/AddsAnchor";
 import { formatSigned } from "../shared/format";
 import {
   statCardBaseStyles,
