@@ -47,7 +47,10 @@ rest of the app). Import as `ui/components/Button`.
 - Code outside `src/ui` never imports Panda (`styled-system/*`) or Phosphor
   (`@phosphor-icons/*`); ESLint refuses both. Icons come from `ui/icons`,
   drawn with `<Icon icon={DiceFiveIcon} size="md" />`; components that take
-  an icon (`startIcon`, `IconButton`) size the bare icon themselves. That keeps the styling system replaceable inside `src/ui`.
+  an icon (`startIcon`, `IconButton`) size the bare icon themselves. An icon
+  Phosphor lacks is made with `createIcon` in `ui/icons` (see
+  `ImageSlashIcon`) and exported with the rest. That keeps the styling
+  system replaceable inside `src/ui`.
 - Panda reads style props only from `ui/primitives`, the library's
   components and `styled-system/jsx`, by name, at build time. Import primitives under their
   own names, and give style props literal values (a ternary of literals is
@@ -83,13 +86,16 @@ rest of the app). Import as `ui/components/Button`.
   a screen edge use `shadows.float`.
 - A press sinks the element `var(--spacing-sink)` (1px) onto its ledge over
   `durations.instant`. Hover changes colour only (`--spacing-lift` is 0
-  unless the page opts in). Reduced motion zeroes both.
+  unless the page opts in). Reduced motion zeroes both. Build a ledge with
+  `ledge(colour, state)` or `ledgeShadow(colour, state)` from
+  `ui/styles/ledge` (states `rest`, `lifted`, `sunk`) rather than writing
+  the shadow and offset by hand.
 - Things without a ledge (tabs, menu items, toolbar buttons, list rows) never
   move; they answer press with `overlay.pressed`.
 - Fields are inset: `bg.field` with `shadows.field`, a 1px
   `border.control` border, accent border and focus ring on focus.
 - The gradient ring (`gradients.ring`) marks roll and oracle buttons and the
-  current page tab. Stat cards show it only on hover, press and keyboard
+  current page tab; its spinning layer is `ringLayer` from `ui/styles/ring`. Stat cards show it only on hover, press and keyboard
   focus (see `game/StatCard`).
 - Motion: CSS transitions for hover and press; Base UI's
   `data-starting-style`/`data-ending-style` for enter and exit. Enter with
