@@ -31,7 +31,7 @@ const barStyles = css({
   paddingTop: "env(safe-area-inset-top, 0px)",
   // On wide screens the bar is gone (the rail has the logo and the links),
   // and only its heading stays, for screen readers.
-  "@container shell (min-width: 900px)": {
+  "@container shell (min-width: 600px)": {
     position: "static",
     padding: 0,
     paddingTop: 0,
@@ -49,7 +49,7 @@ const rowStyles = css({
   gap: "1",
   minHeight: "56px",
   paddingInline: "2",
-  "@container shell (min-width: 900px)": {
+  "@container shell (min-width: 600px)": {
     minHeight: "64px",
     gap: "3",
     paddingInline: "4",
@@ -72,7 +72,7 @@ const titleStyles = css({
 
 /** Visually hidden on wide screens, where the page shows its own title. */
 const srOnlyOnWideStyles = css({
-  "@container shell (min-width: 900px)": {
+  "@container shell (min-width: 600px)": {
     position: "absolute",
     width: "1px",
     height: "1px",

@@ -16,7 +16,7 @@ const rootStyles = css({
   fontFamily: "body",
   paddingBlockStart: "6",
   paddingBlockEnd: "6",
-  "@container shell (min-width: 900px)": { paddingBlockStart: "8" },
+  "@container shell (min-width: 600px)": { paddingBlockStart: "8" },
 });
 
 const dividerStyles = css({

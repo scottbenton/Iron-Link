@@ -150,8 +150,10 @@ export interface GameLayoutProps {
   endSidebar?: GameSidebar;
   /**
    * Put both sidebars on the start side of the main column, as the live app
-   * does between 900 and 1200px. Pass `!useIsBreakpoint("greater-than",
-   * "lg")`. Each sidebar is pinned open or collapsed to a rail on its own,
+   * does between 900 and 1200px; the library does it from 600px, the edge of
+   * `useIsMobile()`. Pass `!useBreakpoint("greater-than", "lg")`. From 600
+   * to 900px also make both sidebars not `pinnable`, so they share one rail
+   * and open as flyouts over the notes. Each sidebar is pinned open or collapsed to a rail on its own,
    * and all of it sits at the start: with both open, the end sidebar stacks
    * under the start one in a single column (with the start sidebar's width
    * and resize handle, and the end one's Collapse in its first panel's
@@ -174,7 +176,9 @@ export interface GameLayoutProps {
  * column has its own h2 and scrolls on its own, so the page fills the
  * screen (give AppShell `fill`). The reader can resize and collapse the
  * sidebars; between 900 and 1200px both sit at the start, the sheet and the
- * reference in one column while both are open (`stackSidebars`). Phones use a layout of
+ * reference in one column while both are open (`stackSidebars`), and from
+ * 600 to 900px they stay on one rail and open as flyouts (`stackSidebars`
+ * with neither sidebar `pinnable`). Phones, below 600px, use a layout of
  * their own (the phone game page), not this one.
  */
 export function GameLayout(props: GameLayoutProps) {
