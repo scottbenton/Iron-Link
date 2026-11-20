@@ -7,7 +7,6 @@
  * theme (`schemeThemes` in `schemes.ts`) that overrides them under
  * `[data-panda-theme=<scheme>]`; `applyUITheme` sets that attribute.
  */
-import { toOklch } from "./color";
 import { grayStepNames, schemes, zincGrays } from "./schemes";
 import { iconGradient, ringGradient } from "./schemes";
 
@@ -28,41 +27,54 @@ export const tokens = {
     ),
     scheme: {
       light: {
-        fg: { value: toOklch(defaultScheme.light.fg) },
-        solid: { value: toOklch(defaultScheme.light.solid) },
-        onSolid: { value: toOklch(defaultScheme.light.onSolid) },
+        fg: { value: defaultScheme.light.fg },
+        solid: { value: defaultScheme.light.solid },
+        onSolid: { value: defaultScheme.light.onSolid },
       },
       dark: {
-        fg: { value: toOklch(defaultScheme.dark.fg) },
-        solid: { value: toOklch(defaultScheme.dark.solid) },
-        onSolid: { value: toOklch(defaultScheme.dark.onSolid) },
+        fg: { value: defaultScheme.dark.fg },
+        solid: { value: defaultScheme.dark.solid },
+        onSolid: { value: defaultScheme.dark.onSolid },
       },
     },
     ring: {
-      start: { value: toOklch(defaultScheme.ring[0]) },
-      end: { value: toOklch(defaultScheme.ring[1]) },
+      start: { value: defaultScheme.ring[0] },
+      end: { value: defaultScheme.ring[1] },
     },
-    status: {
-      success: {
-        light: { value: toOklch("#007a55") },
-        dark: { value: toOklch("#00d492") },
-      },
-      warning: {
-        light: { value: toOklch("#bb4d00") },
-        dark: { value: toOklch("#ffb900") },
-      },
-      danger: {
-        light: { value: toOklch("#c10007") },
-        dark: { value: toOklch("#ff6467") },
-      },
-      info: {
-        light: { value: toOklch("#00699d") },
-        dark: { value: toOklch("#00bcff") },
-      },
-      cursed: {
-        light: { value: toOklch("#497d00") },
-        dark: { value: toOklch("#9ae600") },
-      },
+    /**
+     * Status colours are Tailwind's own steps, as Tailwind publishes them:
+     * 700 for text in light mode, 400 in dark, and 50 and 950 for the
+     * matching backgrounds.
+     */
+    emerald: {
+      50: { value: "oklch(97.9% 0.021 166.113)" },
+      400: { value: "oklch(76.5% 0.177 163.223)" },
+      700: { value: "oklch(50.8% 0.118 165.612)" },
+      950: { value: "oklch(26.2% 0.051 172.552)" },
+    },
+    amber: {
+      50: { value: "oklch(98.7% 0.022 95.277)" },
+      400: { value: "oklch(82.8% 0.189 84.429)" },
+      700: { value: "oklch(55.5% 0.163 48.998)" },
+      950: { value: "oklch(27.9% 0.077 45.635)" },
+    },
+    red: {
+      50: { value: "oklch(97.1% 0.013 17.38)" },
+      400: { value: "oklch(70.4% 0.191 22.216)" },
+      700: { value: "oklch(50.5% 0.213 27.518)" },
+      950: { value: "oklch(25.8% 0.092 26.042)" },
+    },
+    sky: {
+      50: { value: "oklch(97.7% 0.013 236.62)" },
+      400: { value: "oklch(74.6% 0.16 232.661)" },
+      700: { value: "oklch(50% 0.134 242.749)" },
+      950: { value: "oklch(29.3% 0.066 243.157)" },
+    },
+    lime: {
+      50: { value: "oklch(98.6% 0.031 120.757)" },
+      400: { value: "oklch(84.1% 0.238 128.85)" },
+      700: { value: "oklch(53.2% 0.157 131.589)" },
+      950: { value: "oklch(27.4% 0.072 132.109)" },
     },
   },
   gradients: {
@@ -176,14 +188,15 @@ export const tokens = {
   },
   zIndex: {
     sticky: { value: 100 },
-    /**
-     * Below drawers and dialogs: a modal hides the toasts, as in the app
-     * today, so pressing a toast never counts as a press outside the modal.
-     * A dialog shows recent roll cards through its own `extras` instead.
-     */
-    toast: { value: 1100 },
     drawer: { value: 1200 },
     dialog: { value: 1300 },
+    /**
+     * Above drawers and dialogs, so a roll made in one shows its card on
+     * top; below popovers, menus and tooltips, which belong to whatever the
+     * reader is pointing at. Dialogs and drawers ignore presses in the toast
+     * area rather than closing.
+     */
+    toast: { value: 1350 },
     popover: { value: 1400 },
     tooltip: { value: 1600 },
   },
@@ -264,41 +277,26 @@ export const semanticTokens = {
     },
     focusRing: lightDark(v("scheme-light-fg"), v("scheme-dark-fg")),
     success: {
-      fg: lightDark(v("status-success-light"), v("status-success-dark")),
-      soft: lightDark(
-        mix(v("status-success-light"), 8, v("bg-surface")),
-        mix(v("status-success-dark"), 14, v("bg-surface")),
-      ),
+      fg: lightDark(v("emerald-700"), v("emerald-400")),
+      soft: lightDark(v("emerald-50"), v("emerald-950")),
     },
     warning: {
-      fg: lightDark(v("status-warning-light"), v("status-warning-dark")),
-      soft: lightDark(
-        mix(v("status-warning-light"), 8, v("bg-surface")),
-        mix(v("status-warning-dark"), 14, v("bg-surface")),
-      ),
+      fg: lightDark(v("amber-700"), v("amber-400")),
+      soft: lightDark(v("amber-50"), v("amber-950")),
     },
     info: {
-      fg: lightDark(v("status-info-light"), v("status-info-dark")),
-      soft: lightDark(
-        mix(v("status-info-light"), 8, v("bg-surface")),
-        mix(v("status-info-dark"), 14, v("bg-surface")),
-      ),
+      fg: lightDark(v("sky-700"), v("sky-400")),
+      soft: lightDark(v("sky-50"), v("sky-950")),
     },
     cursed: {
-      fg: lightDark(v("status-cursed-light"), v("status-cursed-dark")),
-      soft: lightDark(
-        mix(v("status-cursed-light"), 8, v("bg-surface")),
-        mix(v("status-cursed-dark"), 14, v("bg-surface")),
-      ),
+      fg: lightDark(v("lime-700"), v("lime-400")),
+      soft: lightDark(v("lime-50"), v("lime-950")),
     },
     danger: {
-      fg: lightDark(v("status-danger-light"), v("status-danger-dark")),
-      solid: lightDark(v("status-danger-light"), v("status-danger-dark")),
+      fg: lightDark(v("red-700"), v("red-400")),
+      solid: lightDark(v("red-700"), v("red-400")),
       onSolid: lightDark(v("white"), v("gray-950")),
-      soft: lightDark(
-        mix(v("status-danger-light"), 8, v("bg-surface")),
-        mix(v("status-danger-dark"), 14, v("bg-surface")),
-      ),
+      soft: lightDark(v("red-50"), v("red-950")),
       solidHover: { value: mix(v("danger-solid"), 90, v("danger-on-solid")) },
       solidPressed: { value: mix(v("danger-solid"), 85, "black") },
       edge: { value: mix(v("danger-solid"), 60, "black") },

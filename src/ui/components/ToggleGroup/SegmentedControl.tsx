@@ -9,8 +9,8 @@ import {
   useState,
 } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { ledgeLayers } from "ui/styles/ledge";
 
 import { css, cva, cx } from "styled-system/css";
@@ -29,7 +29,7 @@ export interface SegmentedControlOption<V extends string = string> {
 }
 
 export interface SegmentedControlProps<V extends string = string>
-  extends LayoutProps {
+  extends CssProp {
   options: SegmentedControlOption<V>[];
   /** The chosen segment, when controlled. One is always chosen. */
   value?: V;
@@ -173,7 +173,7 @@ export function SegmentedControl<V extends string = string>(
     name,
     className,
     ref,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
   const [current, setCurrent] = useControllableState<V | undefined>(
     value,
     defaultValue ?? options[0]?.value,

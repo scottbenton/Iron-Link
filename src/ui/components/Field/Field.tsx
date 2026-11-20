@@ -9,7 +9,7 @@ import {
   useContext,
 } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cx } from "styled-system/css";
 import { visuallyHidden } from "styled-system/patterns";
@@ -73,7 +73,7 @@ export function resolveFieldError(error: ReactNode, invalid?: boolean) {
 
 export interface FieldRootProps
   extends Omit<ComponentProps<typeof BaseField.Root>, "className">,
-    LayoutProps {
+    CssProp {
   className?: string;
   /** `sm` sets the parts closer together. */
   size?: FieldSize;
@@ -84,7 +84,7 @@ export interface FieldRootProps
  * aria. Most callers want `Field`, or a control's own `label` props.
  */
 export function FieldRoot(props: FieldRootProps) {
-  const { className, size = "md", ...rest } = withLayoutProps(props);
+  const { className, size = "md", ...rest } = withCssProp(props);
   return (
     <InFieldContext.Provider value>
       <BaseField.Root
@@ -331,7 +331,7 @@ export function FieldShell(props: FieldShellProps) {
   );
 }
 
-export interface FieldProps extends FieldOwnProps, LayoutProps {
+export interface FieldProps extends FieldOwnProps, CssProp {
   /** The control, or several parts of a custom one. */
   children: ReactNode;
   /** `sm` gives a smaller, muted label and tighter spacing. */
@@ -354,7 +354,7 @@ export interface FieldProps extends FieldOwnProps, LayoutProps {
  * ```
  */
 export function Field(props: FieldProps) {
-  const { children, ...rest } = withLayoutProps(props);
+  const { children, ...rest } = withCssProp(props);
   return <FieldShell {...rest}>{children}</FieldShell>;
 }
 
@@ -374,13 +374,13 @@ const legendStyles = css({
 
 export interface FieldsetProps
   extends Omit<ComponentProps<typeof BaseFieldset.Root>, "className">,
-    LayoutProps {
+    CssProp {
   className?: string;
 }
 
 /** Groups related controls under one legend. */
 export function Fieldset(props: FieldsetProps) {
-  const { className, ...rest } = withLayoutProps(props);
+  const { className, ...rest } = withCssProp(props);
   return (
     <BaseFieldset.Root className={cx(fieldsetStyles, className)} {...rest} />
   );

@@ -8,7 +8,7 @@ import {
   useRef,
 } from "react";
 
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { cx } from "styled-system/css";
 
@@ -37,7 +37,7 @@ type NativeTextAreaProps = Omit<
 export interface TextAreaProps
   extends FieldOwnProps,
     NativeTextAreaProps,
-    LayoutProps {
+    CssProp {
   value?: string;
   defaultValue?: string;
   onChange?: (event: ChangeEvent<HTMLTextAreaElement>) => void;
@@ -92,7 +92,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       validate,
       validationMode,
       ...textareaProps
-    } = withLayoutProps(props);
+    } = withCssProp(props);
 
     const elementRef = useRef<HTMLTextAreaElement>(null);
     const [value, setValue] = useControllableState(
