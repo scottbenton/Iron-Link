@@ -1,9 +1,9 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { AnnouncerProvider } from "../Announcer";
-import { Toaster } from "./Toaster";
-import { toast } from "./toast";
+import { AnnouncerProvider } from "../../Announcer";
+import { Toaster } from "../Toaster";
+import { toast } from "../toast";
 
 function getToastItems() {
   return Array.from(

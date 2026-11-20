@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HStack, Stack } from "ui/primitives";
 
-import { Skeleton } from "./Skeleton";
+import { Skeleton } from "../Skeleton";
 
 const meta = {
   title: "Components/Skeleton",
