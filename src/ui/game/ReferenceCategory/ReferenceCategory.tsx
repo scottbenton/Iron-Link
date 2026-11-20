@@ -1,6 +1,6 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import { CaretRightIcon } from "@phosphor-icons/react";
-import { ElementType, ReactNode, createContext, useContext } from "react";
+import { ElementType, ReactNode, useContext } from "react";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
@@ -10,14 +10,7 @@ import { css, cva, cx } from "styled-system/css";
 
 import { collapsiblePanelStyles } from "../../components/Collapsible/collapsibleStyles";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
-
-type HeadingLevel = 2 | 3 | 4 | 5 | 6;
-
-/** Where a category sits: its depth and the heading level it renders. */
-const CategoryContext = createContext<{
-  depth: number;
-  headingLevel: HeadingLevel;
-} | null>(null);
+import { CategoryContext, HeadingLevel } from "./categoryContext";
 
 const rootStyles = css({
   display: "grid",

@@ -1,3 +1,4 @@
 export * from "./AssetCard";
-export * from "./AssetFields";
+export * from "./AssetOptionField";
+export * from "./AssetControlField";
 export * from "./assetData";

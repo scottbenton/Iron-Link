@@ -10,11 +10,9 @@ import { css } from "styled-system/css";
 
 import { MenuItem, MenuSeparator } from "../../Menu";
 import { Text } from "../../Text";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuTrigger,
-} from "../ContextMenu";
+import { ContextMenu } from "../ContextMenu";
+import { ContextMenuContent } from "../ContextMenuContent";
+import { ContextMenuTrigger } from "../ContextMenuTrigger";
 
 const meta = {
   title: "Components/ContextMenu",
