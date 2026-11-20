@@ -13,18 +13,19 @@ Run `npm run storybook` to browse it. `npm run prepare` (also run by
 ```
 src/ui/
   theme/        tokens, colour schemes, applyUITheme
-  styles/       the entry stylesheet (import once) and layout props
+  styles/       the entry stylesheet (import once) and the css prop
   icons/        Icon and every icon the app uses (Phosphor)
   primitives/   layout: Box, Stack, HStack, Flex, Grid, Container, ...
   components/   general components (Button, Dialog, Menu, Field, Tabs, ...)
   game/         Iron Link's own pieces (stats, tracks, rolls, assets, ...)
   layout/       app chrome (nav bar, rail, sidebar, page header, ...)
-  docs/         Storybook pages (MDX)
-  stories/      shared story fixtures (Datasworn data, sample characters)
+  docs/         Storybook pages and shared story fixtures (docs/fixtures:
+                Datasworn data, sample characters)
 ```
 
-Each component is a folder: `Name/Name.tsx`, `Name/Name.stories.tsx`,
-`Name/index.ts` re-exporting it. Import as `ui/components/Button`.
+Each component is a folder: `Name/Name.tsx`, `Name/index.ts` re-exporting
+it, stories in `Name/__stories__/` and tests in `Name/__tests__/` (as in the
+rest of the app). Import as `ui/components/Button`.
 
 ## Styling
 
@@ -34,15 +35,15 @@ Each component is a folder: `Name/Name.tsx`, `Name/Name.stories.tsx`,
   `HStack`, `VStack`, `Flex`, `Grid`, `GridItem`, `Container`, `Center`,
   `Spacer`), which take style props. They replace MUI's `Box`, `Stack`,
   `Grid` and `Container`.
-- Every other component takes layout props only: margin (`mt`, `mx`,
-  ...), size (`w`, `h`, `minW`, `maxW`, ...), placement in a flex or grid
-  parent (`flex`, `alignSelf`, `gridColumn`, ...) and `hideFrom`/`hideBelow`
-  (`styles/layoutProps.ts`). A component reads them with
-  `withLayoutProps(props)` where it destructures its props. Colours,
-  borders and padding are not props: a visual change is a variant. Layout
-  props place a component; they must not fight a size the component sets
-  itself (see the `cx` rule below), so a component that sizes itself takes
-  a variant for it instead.
+- Every other component takes one style prop, `css`: a Panda style object
+  merged after the component's own classes (`styles/cssProp.ts`), as in
+  `<Button css={{ mt: "2", alignSelf: "end" }}>`. A component reads it with
+  `withCssProp(props)` where it destructures its props. It is for placing a
+  component (margin, size, its place in a flex or grid parent,
+  `hideFrom`/`hideBelow`). Colours, borders and padding are not props: a
+  visual change is a variant, and `css` must not fight a property the
+  component sets itself (see the `cx` rule below). Values are literals,
+  because Panda reads them at build time.
 - Code outside `src/ui` never imports Panda (`styled-system/*`) or Phosphor
   (`@phosphor-icons/*`); ESLint refuses both. Icons come from `ui/icons`,
   drawn with `<Icon icon={DiceFiveIcon} size="md" />`; components that take
@@ -125,6 +126,6 @@ Each component is a folder: `Name/Name.tsx`, `Name/Name.stories.tsx`,
 
 - Every component gets stories: a playground with controls, then one story
   per meaningful state. Use real Iron Link content (Datasworn moves, assets,
-  oracles from `stories/fixtures`), not lorem ipsum.
+  oracles from `docs/fixtures`), not lorem ipsum.
 - Check stories in light and dark mode and a few colour schemes from the
   toolbar, and keep the a11y panel clean.

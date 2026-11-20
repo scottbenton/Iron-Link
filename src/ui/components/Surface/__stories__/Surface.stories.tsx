@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Grid } from "ui/primitives";
 
-import { Text } from "../Text";
-import { Surface } from "./Surface";
+import { Text } from "../../Text";
+import { Surface } from "../Surface";
 
 const meta: Meta<typeof Surface> = {
   title: "Components/Surface",
