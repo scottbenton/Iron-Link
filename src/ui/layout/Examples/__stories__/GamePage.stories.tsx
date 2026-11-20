@@ -13,8 +13,10 @@
  *   → `PageTabs` / `PageTab` in GameLayout's `tabs`.
  * - `SidebarLayout` → `GameLayout`: 1200px and up, three columns (sheet
  *   350px, notes, reference 350px); 900 to 1200px, the sheet over the
- *   reference in one column beside the notes (`stackSidebars`). Phones
- *   get their own page (Examples/Phone game page).
+ *   reference in one column beside the notes (`stackSidebars`); 600 to
+ *   900px, both on one rail before the notes, opening as flyouts that
+ *   can't be pinned. Phones, below 600px, get their own page
+ *   (Examples/Phone game page).
  * - `CharacterSidebarContents` → the start sidebar's panel: h2 "Character"
  *   with `CharacterSettingsMenu` (the library's `CharacterSettingsMenu`: only
  *   that character's actions), then `StyledTabs`
@@ -193,6 +195,8 @@ function WorldsBetaBanner() {
 
 function WideGamePage(props: {
   stacked?: boolean;
+  /** Both sidebars on one rail, opening as flyouts (600 to 900px). */
+  flyouts?: boolean;
   banner?: boolean;
   page?: GamePageKind;
 }) {
@@ -234,15 +238,17 @@ function WideGamePage(props: {
           <GamePageTabs current={page === "overview" ? "overview" : "kira"} />
         }
         main={notes}
-        stackSidebars={props.stacked}
+        stackSidebars={props.stacked || props.flyouts}
         startSidebar={{
           panels: [character],
           width: sheetWidth,
+          pinnable: !props.flyouts,
           onWidthChange: setSheetWidth,
         }}
         endSidebar={{
           panels: [reference],
           width: referenceWidth,
+          pinnable: !props.flyouts,
           onWidthChange: setReferenceWidth,
         }}
       />
@@ -303,18 +309,47 @@ export const Medium: Story = {
   ),
 };
 
+const compactFrame = css({
+  width: "760px",
+  maxWidth: "100%",
+  height: "760px",
+  marginInline: "auto",
+  border: "1px solid token(colors.border.default)",
+  overflow: "hidden",
+  "--app-shell-height": "100%",
+});
+
+/**
+ * 600 to 900px (shown at 760px): the sheet and the reference share one rail
+ * before the notes. Each opens as a flyout over the notes and can't be
+ * pinned, so the notes keep the width. Below 600px the phone page takes
+ * over.
+ */
+export const Compact: Story = {
+  name: "Compact (760px)",
+  parameters: { layout: "padded" },
+  render: () => (
+    <div className={compactFrame}>
+      <WideGamePage flyouts />
+    </div>
+  ),
+};
+
 function ResponsiveGamePage() {
   const tier = useGamePageTier();
   if (tier === "phone") return <PhoneGamePage />;
-  return <WideGamePage stacked={tier === "medium"} />;
+  return (
+    <WideGamePage stacked={tier === "medium"} flyouts={tier === "compact"} />
+  );
 }
 
 /**
  * The current layout at every width, as the app picks it: three columns
  * from 1200px, the sheet and the reference stacked at the start from 900px
- * (each on a rail when collapsed), and the phone page below 900px, as
- * `useIsMobile()` decides. Step through the toolbar's viewports, from 1600
- * down to 390, or resize the window with the canvas open on its own.
+ * (each on a rail when collapsed), both on one rail as flyouts from 600px,
+ * and the phone page below 600px, as `useIsMobile()` decides. Step
+ * through the toolbar's viewports, from 1600 down to 390, or resize the
+ * window with the canvas open on its own.
  */
 export const Responsive: Story = {
   name: "Responsive, desktop to phone",

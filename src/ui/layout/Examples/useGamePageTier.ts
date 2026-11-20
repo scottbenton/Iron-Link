@@ -1,17 +1,20 @@
 import { useBreakpoint } from "../../hooks/useBreakpoint";
 import { useIsMobile } from "../../hooks/useIsMobile";
 
-export type GamePageTier = "phone" | "medium" | "wide";
+export type GamePageTier = "phone" | "compact" | "medium" | "wide";
 
 /**
- * Story-only: which of the app's three game page layouts the window gets.
- * The app decides with `useIsMobile()` (below the 900px `md` breakpoint)
- * and `useIsBreakpoint("greater-than", "lg")` (1200px), and so does this:
- * phone below 900px, medium to 1200px, wide from there.
+ * Story-only: which of the game page's layouts the window gets. The
+ * library's `useIsMobile()` (below the 600px `sm` breakpoint) picks the
+ * phone page; `md` (900px) and `lg` (1200px) split the rest: compact from
+ * 600px (both sidebars on one rail, opening as flyouts), medium from 900px
+ * (the sheet over the reference beside the notes) and wide from 1200px.
  */
 export function useGamePageTier(): GamePageTier {
   const isMobile = useIsMobile();
+  const isMedium = useBreakpoint("greater-than", "md");
   const isWide = useBreakpoint("greater-than", "lg");
   if (isMobile) return "phone";
-  return isWide ? "wide" : "medium";
+  if (isWide) return "wide";
+  return isMedium ? "medium" : "compact";
 }

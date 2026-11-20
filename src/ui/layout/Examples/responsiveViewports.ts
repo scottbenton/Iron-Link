@@ -7,7 +7,7 @@
 const viewport = (name: string, width: number, height: number) => ({
   name,
   styles: { width: `${width}px`, height: `${height}px` },
-  type: width < 900 ? "mobile" : width < 1200 ? "tablet" : "desktop",
+  type: width < 600 ? "mobile" : width < 1200 ? "tablet" : "desktop",
 });
 
 /** From the widest desktop down to a phone, each tier at its edges. */
@@ -19,8 +19,9 @@ export const responsiveViewports = {
   r1100: viewport("1100 x 800 (medium)", 1100, 800),
   r1024: viewport("1024 x 768 (medium)", 1024, 768),
   r900: viewport("900 x 1000 (medium, its narrowest)", 900, 1000),
-  r820: viewport("820 x 1180 (phone layout, tablet)", 820, 1180),
-  r600: viewport("600 x 960 (phone layout)", 600, 960),
+  r820: viewport("820 x 1180 (flyouts, tablet)", 820, 1180),
+  r600: viewport("600 x 960 (flyouts, their narrowest)", 600, 960),
+  r599: viewport("599 x 960 (phone layout)", 599, 960),
   r390: viewport("390 x 844 (phone)", 390, 844),
 };
 

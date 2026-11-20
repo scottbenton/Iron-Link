@@ -102,14 +102,14 @@ function ResponsiveSheetFirst() {
   if (tier === "phone") return <PhoneGamePage />;
   // Below 1200px the reference stays on its rail; above it, it is as the
   // reader left it.
-  return <SheetFirstPage sidebarPinnable={tier !== "medium"} />;
+  return <SheetFirstPage sidebarPinnable={tier === "wide"} />;
 }
 
 /**
  * Sheet first at every width: the reference open beside the sheet from
- * 1200px, held on its rail from 900px (a rail button opens it over the
- * sheet, and it can't be kept open there), and below 900px the phone page, which already opens on the sheet
- * with the notes a tab away. Step through the toolbar's viewports, from
+ * 1200px, held on its rail from 600px (a rail button opens it over the
+ * sheet, and it can't be kept open there), and below 600px the phone page,
+ * which already opens on the sheet with the notes a tab away. Step through the toolbar's viewports, from
  * 1600 down to 390, or resize the window with the canvas open on its own.
  */
 export const SheetFirstResponsive: Story = {

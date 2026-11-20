@@ -11,7 +11,9 @@
  * over the reference in one column while both are open, and each still
  * collapses on its own, so the sheet can stay pinned with the reference's
  * rail before it (the rail takes its width from the notes), the other way
- * round, or both collapsed into one rail, grouped by sidebar.
+ * round, or both collapsed into one rail, grouped by sidebar. From 600 to
+ * 900px neither can be pinned, so both stay on that one rail and open as
+ * flyouts (Examples/Game page, "Compact").
  */
 import { GearSixIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
