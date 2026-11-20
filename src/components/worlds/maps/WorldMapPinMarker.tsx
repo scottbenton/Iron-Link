@@ -146,7 +146,7 @@ export function WorldMapPinMarker({
                   bgcolor: "transparent",
                 },
                 "& svg": { width: "100%", height: "100%" },
-                "& img": { borderRadius: "50%" },
+                "& .world-entry-image": { borderRadius: "50%" },
               }),
         }}
       >

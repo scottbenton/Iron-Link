@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -73,5 +73,46 @@ describe("WorldIconPickerDialog", () => {
       key: "GiCompass",
       color: IconColors.Purple,
     });
+  });
+
+  it("offers an Image tab only when asked, leaving it open", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(
+      <WorldIconPickerDialog
+        value={null}
+        title="Choose category icon"
+        onSave={() => {}}
+        onClose={() => {}}
+      />,
+    );
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+    unmount();
+
+    const calls: string[] = [];
+    renderDialog({
+      onClose: () => calls.push("close"),
+      onUploadImage: () => calls.push("upload"),
+    });
+    await user.click(screen.getByRole("tab", { name: "Image" }));
+    expect(
+      screen.queryByRole("button", { name: "Save" }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Upload image" }));
+    // The caller closes the picker once a file reaches cropping.
+    expect(calls).toEqual(["upload"]);
+  });
+
+  it("uploads an image dropped on the Image tab", async () => {
+    const user = userEvent.setup();
+    const upload = vi.fn();
+    const close = vi.fn();
+    renderDialog({ onClose: close, onUploadImage: upload });
+    await user.click(screen.getByRole("tab", { name: "Image" }));
+    const file = new File(["png"], "map.png", { type: "image/png" });
+    fireEvent.drop(screen.getByText(/Drop a picture here/), {
+      dataTransfer: { files: [file] },
+    });
+    expect(close).not.toHaveBeenCalled();
+    expect(upload).toHaveBeenCalledWith(file);
   });
 });

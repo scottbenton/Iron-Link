@@ -107,7 +107,6 @@ export function WorldPanel(props: WorldPanelProps) {
           additionalSettings={additionalSettings}
           navigation={navigation}
           rootBreadcrumb={rootBreadcrumb}
-          layout={layout}
         />
       </HeadingOffset>
     </WorldEntryMentionLinksContext.Provider>

@@ -2,6 +2,7 @@ import { IconDefinition } from "types/Icon.type";
 import { Json } from "types/supabase-generated.type";
 
 import { byteaToUint8Array } from "lib/bytea.lib";
+import { ImageCrop } from "lib/imageCrop.lib";
 
 import { RepositoryError } from "repositories/errors/RepositoryErrors";
 import {
@@ -29,6 +30,8 @@ export interface IWorldEntry {
   // Avatar resolution order: imageFilename -> icon -> a template's derived
   // default -> the category's icon.
   imageFilename: string | null;
+  // The part of the image the entry's icon shows; null shows its centre.
+  imageCrop: ImageCrop | null;
   icon: IconDefinition | null;
   readPermissions: ReadPermissions;
   editPermissions: EditPermissions;
@@ -116,6 +119,13 @@ export class WorldEntriesService {
       icon:
         entry.icon === undefined ? undefined : (entry.icon as unknown as Json),
       image_filename: entry.imageFilename,
+      ...(entry.imageCrop === undefined
+        ? {}
+        : {
+            image_position_x: entry.imageCrop?.position.x ?? null,
+            image_position_y: entry.imageCrop?.position.y ?? null,
+            image_scale: entry.imageCrop?.scale ?? null,
+          }),
       read_permissions: entry.readPermissions,
       edit_permissions: entry.editPermissions,
     });
@@ -301,6 +311,18 @@ export class WorldEntriesService {
       parentEntryId: entry.parent_entry_id,
       name: entry.name,
       imageFilename: entry.image_filename,
+      imageCrop:
+        entry.image_position_x === null ||
+        entry.image_position_y === null ||
+        entry.image_scale === null
+          ? null
+          : {
+              position: {
+                x: entry.image_position_x,
+                y: entry.image_position_y,
+              },
+              scale: entry.image_scale,
+            },
       icon: (entry.icon as unknown as IconDefinition) ?? null,
       readPermissions,
       editPermissions,

@@ -118,7 +118,8 @@ export function GameRulesetChooserDialog(props: GameRulesetChooserDialogProps) {
           activePlaysetConfig={playset}
           onPlaysetChange={setPlayset}
         />
-        {/* Release guard until #236 previews oracle changes. */}
+        {/* World fields follow the rules in play, so this can change which
+            oracles they roll. */}
         {linkedToWorld && changed && (
           <Box sx={{ mt: 2 }}>
             <WorldOracleChangeWarning />

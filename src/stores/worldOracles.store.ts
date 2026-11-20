@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 
+import type { LinkedGamePlayset } from "lib/effectivePlayset";
 import {
   type WorldOracleCatalog,
   getBindingPackageIds,
@@ -33,6 +34,7 @@ interface WorldOraclesStoreActions {
     settingKey: string | null,
     bindingPackageIds: string[],
     allPackages: boolean,
+    gamePlayset?: LinkedGamePlayset,
   ) => () => void;
   setAllPackages: (allPackages: boolean) => void;
   retry: () => void;
@@ -54,7 +56,13 @@ export const useWorldOraclesStore = createWithEqualityFn<
   immer((set) => ({
     ...defaultWorldOraclesState,
 
-    loadWorldOracles: (worldId, settingKey, bindingPackageIds, allPackages) => {
+    loadWorldOracles: (
+      worldId,
+      settingKey,
+      bindingPackageIds,
+      allPackages,
+      gamePlayset,
+    ) => {
       let active = true;
       set((state) => {
         if (state.worldId !== worldId) {
@@ -70,6 +78,7 @@ export const useWorldOraclesStore = createWithEqualityFn<
           loadWorldOracleCatalog({
             settingKey,
             linkedGames,
+            gamePlayset,
             bindingPackageIds,
             allPackages,
           }),
@@ -118,8 +127,12 @@ export const useWorldOraclesStore = createWithEqualityFn<
 
 // Loads the oracles that bindings in this world can target. Mount it with the
 // world and configuration subscriptions, so the catalog loads once per world
-// rather than each time a world view opens.
-export function useListenToWorldOracles(worldId: string | undefined) {
+// rather than each time a world view opens. Inside a game, pass the game's
+// rules: world fields roll with them there.
+export function useListenToWorldOracles(
+  worldId: string | undefined,
+  gamePlayset?: LinkedGamePlayset,
+) {
   const loadWorldOracles = useWorldOraclesStore(
     (store) => store.loadWorldOracles,
   );
@@ -150,6 +163,9 @@ export function useListenToWorldOracles(worldId: string | undefined) {
       : undefined,
   );
 
+  // Compared by value: the game store hands out new objects on every update.
+  const gamePlaysetKey = gamePlayset ? JSON.stringify(gamePlayset) : undefined;
+
   useEffect(() => {
     if (worldId && settingKey !== undefined && bindingPackageIds) {
       return loadWorldOracles(
@@ -157,6 +173,7 @@ export function useListenToWorldOracles(worldId: string | undefined) {
         settingKey,
         bindingPackageIds,
         allPackages,
+        gamePlaysetKey ? JSON.parse(gamePlaysetKey) : undefined,
       );
     }
   }, [
@@ -165,6 +182,7 @@ export function useListenToWorldOracles(worldId: string | undefined) {
     worldVersion,
     bindingPackageIds,
     allPackages,
+    gamePlaysetKey,
     attempt,
     loadWorldOracles,
   ]);

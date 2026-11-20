@@ -12,6 +12,7 @@ export function worldEntry(overrides: Partial<IWorldEntry> = {}): IWorldEntry {
     parentEntryId: null,
     name: "Hollowmere",
     imageFilename: null,
+    imageCrop: null,
     icon: null,
     readPermissions: ReadPermissions.AllPlayers,
     editPermissions: EditPermissions.GuidesAndAuthor,

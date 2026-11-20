@@ -8,6 +8,7 @@ import {
   type EffectivePlayset,
   type LinkedGamePlayset,
   buildOracleReplacementCandidates,
+  buildOracleReplacementMap,
   computeEffectivePlayset,
   getBindingDivergence,
   getPackageIdFromDataswornId,
@@ -26,6 +27,10 @@ export interface WorldOracleCatalog {
   effectivePlayset: EffectivePlayset;
   choices: WorldOracleChoice[];
   replacementMap: Record<string, string>;
+  // Replacements across every game linked to the world. Inside a game the
+  // catalog follows that game's rules, so this can differ from
+  // replacementMap; elsewhere the two are the same.
+  worldReplacementMap: Record<string, string>;
   collisions: Record<string, string[]>;
   missingPackageIds: string[];
 }
@@ -62,6 +67,7 @@ export function buildWorldOracleCatalog(
   tree: Record<string, Datasworn.RulesPackage>,
   effectivePlayset: EffectivePlayset,
   missingPackageIds: string[] = [],
+  worldPlayset: EffectivePlayset = effectivePlayset,
 ): WorldOracleCatalog {
   const choices: WorldOracleChoice[] = [];
   for (const [packageId, rulesPackage] of Object.entries(tree)) {
@@ -93,6 +99,9 @@ export function buildWorldOracleCatalog(
     );
   }
   const candidates = buildOracleReplacementCandidates(tree, effectivePlayset);
+  const replacementMap = Object.fromEntries(
+    Object.entries(candidates).map(([id, ids]) => [id, ids[0]]),
+  );
   return {
     tree,
     effectivePlayset,
@@ -102,9 +111,11 @@ export function buildWorldOracleCatalog(
         a.label.localeCompare(b.label) ||
         a.id.localeCompare(b.id),
     ),
-    replacementMap: Object.fromEntries(
-      Object.entries(candidates).map(([id, ids]) => [id, ids[0]]),
-    ),
+    replacementMap,
+    worldReplacementMap:
+      worldPlayset === effectivePlayset
+        ? replacementMap
+        : buildOracleReplacementMap(tree, worldPlayset),
     collisions: Object.fromEntries(
       Object.entries(candidates).filter(([, ids]) => ids.length > 1),
     ),
@@ -114,23 +125,37 @@ export function buildWorldOracleCatalog(
 
 export async function loadWorldOracleCatalog({
   linkedGames,
+  gamePlayset,
   settingKey,
   bindingPackageIds: bindingPackages = [],
   allPackages = false,
 }: {
   linkedGames: LinkedGamePlayset[];
+  // Inside a game, the game's own rules: world fields roll with them there,
+  // so a game without Starsmith rolls Starforged oracles even when another
+  // linked game uses Starsmith. Without it (the world page), every linked
+  // game's rules combined.
+  gamePlayset?: LinkedGamePlayset;
   settingKey: string | null;
   // Packages that existing bindings point at; see getBindingPackageIds.
   bindingPackageIds?: string[];
   allPackages?: boolean;
 }): Promise<WorldOracleCatalog> {
-  const effectivePlayset = computeEffectivePlayset(linkedGames, [
+  const standalonePackageIds = [
     ...getWorldSettingPackageIds(settingKey),
     ...bindingPackages,
-  ]);
+  ];
+  const worldPlayset = computeEffectivePlayset(
+    linkedGames,
+    standalonePackageIds,
+  );
+  const effectivePlayset = gamePlayset
+    ? computeEffectivePlayset([gamePlayset], standalonePackageIds)
+    : worldPlayset;
   const ids = [
     ...new Set([
       ...effectivePlayset.packageIds,
+      ...worldPlayset.packageIds,
       ...bindingPackages,
       ...(allPackages ? Object.keys(allDefaultPackages) : []),
     ]),
@@ -145,6 +170,7 @@ export async function loadWorldOracleCatalog({
     Object.fromEntries(loaded),
     effectivePlayset,
     missingPackageIds,
+    worldPlayset,
   );
 }
 

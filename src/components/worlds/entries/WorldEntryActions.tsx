@@ -1,5 +1,6 @@
 import AddPhotoIcon from "@mui/icons-material/AddPhotoAlternate";
 import CheckIcon from "@mui/icons-material/Check";
+import CropIcon from "@mui/icons-material/Crop";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import GroupsIcon from "@mui/icons-material/Groups";
@@ -221,6 +222,21 @@ export function WorldEntryActions({
           </ListItemText>
         </MenuItem>,
         <MenuItem
+          key="crop-image"
+          disabled={image.busy}
+          onClick={() => {
+            setAnchor(null);
+            image.crop();
+          }}
+        >
+          <ListItemIcon>
+            <CropIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>
+            {t("worlds.entries.crop-image", "Crop image")}
+          </ListItemText>
+        </MenuItem>,
+        <MenuItem
           key="remove-image"
           disabled={image.busy}
           onClick={() => {
@@ -393,6 +409,7 @@ export function WorldEntryActions({
         </>
       )}
       {showEditActions && image.input}
+      {showEditActions && image.dialog}
       {choosingIcon && (
         <WorldIconPickerDialog
           value={entry.icon}
@@ -402,6 +419,12 @@ export function WorldEntryActions({
             updateEntry(entry.id, { icon }).catch(onError);
           }}
           onClose={() => setChoosingIcon(false)}
+          onUploadImage={(file) => {
+            const close = () => setChoosingIcon(false);
+            if (!file) image.choose(close);
+            else if (image.takeFile(file)) close();
+          }}
+          uploadDisabled={image.busy}
         />
       )}
       {moving && (
