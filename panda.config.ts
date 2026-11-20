@@ -1,5 +1,6 @@
 import { defineConfig } from "@pandacss/dev";
 
+import { breakpointWidths } from "./src/ui/theme/breakpoints";
 import { globalCss } from "./src/ui/theme/globalCss";
 import { schemeThemes } from "./src/ui/theme/schemes";
 import { semanticTokens, tokens } from "./src/ui/theme/tokens";
@@ -87,10 +88,10 @@ export default defineConfig({
   theme: {
     extend: {
       breakpoints: {
-        sm: "600px",
-        md: "900px",
-        lg: "1200px",
-        xl: "1536px",
+        sm: `${breakpointWidths.sm}px`,
+        md: `${breakpointWidths.md}px`,
+        lg: `${breakpointWidths.lg}px`,
+        xl: `${breakpointWidths.xl}px`,
       },
       tokens,
       semanticTokens,
