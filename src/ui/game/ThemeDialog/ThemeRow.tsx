@@ -1,9 +1,9 @@
 import { CaretDown, LockSimple } from "@phosphor-icons/react";
-import { CSSProperties, ReactNode, useId } from "react";
+import { ReactNode, useId } from "react";
 
 import { Button } from "ui/components/Button";
 import { Collapse } from "ui/components/Collapsible";
-import { SchemeName, ringGradient, schemes } from "ui/theme";
+import { schemes } from "ui/theme";
 
 import { css } from "styled-system/css";
 
@@ -11,6 +11,7 @@ import {
   ColorSchemeFallbackOption,
   ColorSchemePicker,
 } from "../ColorSchemePicker";
+import { SchemeSwatch } from "./SchemeSwatch";
 import { ResolvedTheme, ThemeChoice, ThemeSource } from "./resolveTheme";
 import { ThemeDialogStrings } from "./themeDialogStrings";
 
@@ -85,22 +86,6 @@ const resolvedStyles = css({
   "& [data-changed]": { color: "accent.fg", fontWeight: "semibold" },
 });
 
-/** The scheme's ring around a dark chip, small: the picker's swatch. */
-const miniSwatchStyles = css({
-  flex: "none",
-  display: "inline-grid",
-  width: "18px",
-  height: "18px",
-  padding: "2px",
-  borderRadius: "sm",
-  background: "var(--swatch-ring)",
-  verticalAlign: "middle",
-  "& > span": {
-    borderRadius: "calc(token(radii.sm) - 2px)",
-    background: "bg.chip",
-  },
-});
-
 const caretStyles = css({
   transition: "rotate token(durations.normal) token(easings.out)",
   _reducedMotion: { transition: "none" },
@@ -108,21 +93,6 @@ const caretStyles = css({
 });
 
 const panelInnerStyles = css({ paddingBlockStart: "3" });
-
-export function SchemeSwatch(props: { scheme: SchemeName }) {
-  const { scheme } = props;
-  return (
-    <span
-      className={miniSwatchStyles}
-      style={
-        { "--swatch-ring": ringGradient(schemes[scheme]) } as CSSProperties
-      }
-      aria-hidden
-    >
-      <span />
-    </span>
-  );
-}
 
 export interface ThemeRowProps {
   /** A portrait or an icon well, 44px. */

@@ -1,3 +1,3 @@
 export * from "./RelativeTime";
 export * from "./formatRelativeTime";
-export * from "./useNow";
+export * from "../../hooks/useNow";
