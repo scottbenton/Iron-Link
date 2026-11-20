@@ -3,8 +3,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HStack } from "ui/primitives";
 
-import { IconButton } from "../IconButton";
-import { Badge } from "./Badge";
+import { IconButton } from "../../IconButton";
+import { Badge } from "../Badge";
 
 const meta = {
   title: "Components/Badge",

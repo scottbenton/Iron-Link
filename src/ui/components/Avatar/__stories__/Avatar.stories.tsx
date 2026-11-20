@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HStack, Stack } from "ui/primitives";
 
-import { Avatar, AvatarGroup } from "./Avatar";
+import { Avatar, AvatarGroup } from "../Avatar";
 
 const meta = {
   title: "Components/Avatar",

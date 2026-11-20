@@ -16,7 +16,7 @@ import { useState } from "react";
 
 import { Stack } from "ui/primitives";
 
-import { ToggleGroup, ToggleGroupItem } from "../ToggleGroup";
+import { ToggleGroup, ToggleGroupItem } from "../../ToggleGroup";
 import {
   Toolbar,
   ToolbarButton,
@@ -24,7 +24,7 @@ import {
   ToolbarLink,
   ToolbarSeparator,
   ToolbarStatus,
-} from "./Toolbar";
+} from "../Toolbar";
 
 const meta: Meta<typeof Toolbar> = {
   title: "Components/Toolbar",

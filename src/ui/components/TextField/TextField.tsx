@@ -188,9 +188,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
             required={required}
             readOnly={readOnly}
             name={name}
-            // The layout props are gone from `inputProps`, though its type
-            // keeps them.
-            {...(inputProps as NativeInputProps)}
+            {...inputProps}
           />
           {showClear && (
             <Tooltip title={clearLabel}>

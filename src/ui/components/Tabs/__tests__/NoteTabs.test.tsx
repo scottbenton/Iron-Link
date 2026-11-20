@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import { NoteTabs } from "./NoteTabs";
+import { NoteTabs } from "../NoteTabs";
 
 const tabs = [
   { id: "notes-1", label: "Session 4" },

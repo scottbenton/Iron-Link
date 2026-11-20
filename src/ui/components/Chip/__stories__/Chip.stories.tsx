@@ -10,7 +10,7 @@ import { useState } from "react";
 
 import { HStack, Stack } from "ui/primitives";
 
-import { Chip } from "./Chip";
+import { Chip } from "../Chip";
 
 const meta = {
   title: "Components/Chip",

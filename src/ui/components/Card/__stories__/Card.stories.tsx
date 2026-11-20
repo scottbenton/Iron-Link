@@ -9,18 +9,18 @@ import { useState } from "react";
 
 import { Grid } from "ui/primitives";
 
-import { sampleCharacters } from "../../stories/fixtures/characters";
-import { Avatar, AvatarGroup } from "../Avatar";
-import { Button } from "../Button";
-import { IconButton } from "../IconButton";
+import { sampleCharacters } from "../../../docs/fixtures/characters";
+import { Avatar, AvatarGroup } from "../../Avatar";
+import { Button } from "../../Button";
+import { IconButton } from "../../IconButton";
 import {
   Menu,
   MenuContent,
   MenuItem,
   MenuSeparator,
   MenuTrigger,
-} from "../Menu";
-import { Text } from "../Text";
+} from "../../Menu";
+import { Text } from "../../Text";
 import {
   Card,
   CardActionArea,
@@ -28,7 +28,7 @@ import {
   CardFooter,
   CardHeader,
   CardLinkOverlay,
-} from "./Card";
+} from "../Card";
 
 const meta: Meta<typeof Card> = {
   title: "Components/Card",

@@ -1,8 +1,8 @@
 import { GlobeHemisphereWestIcon, NotePencilIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Button } from "../../components/Button";
-import { EmptyState } from "./EmptyState";
+import { Button } from "../../../components/Button";
+import { EmptyState } from "../EmptyState";
 
 const meta: Meta<typeof EmptyState> = {
   title: "Layout/EmptyState",

@@ -3,8 +3,8 @@ import { useState } from "react";
 
 import { HStack, Stack } from "ui/primitives";
 
-import { Button } from "../Button";
-import { Stepper } from "./Stepper";
+import { Button } from "../../Button";
+import { Stepper } from "../Stepper";
 
 const createGameSteps = [
   { label: "Game Type" },

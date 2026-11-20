@@ -1,8 +1,8 @@
 import { ScrollArea as BaseScrollArea } from "@base-ui/react/scroll-area";
 import { ReactNode, forwardRef } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -67,7 +67,7 @@ const thumbStyles = css({
   },
 });
 
-export interface ScrollAreaProps extends LayoutProps {
+export interface ScrollAreaProps extends CssProp {
   children: ReactNode;
   /** Which way it scrolls. Both draws both scrollbars. */
   orientation?: "vertical" | "horizontal" | "both";
@@ -94,7 +94,7 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
       "aria-label": ariaLabel,
       className,
       contentClassName,
-    } = withLayoutProps(props);
+    } = withCssProp(props);
     const fadeVariant = !fade
       ? "none"
       : orientation === "horizontal"

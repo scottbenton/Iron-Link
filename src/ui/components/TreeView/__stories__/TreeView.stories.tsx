@@ -13,10 +13,10 @@ import { Grid, Stack } from "ui/primitives";
 
 import { css } from "styled-system/css";
 
-import { starforgedRules } from "../../stories/fixtures/datasworn";
-import { IconButton } from "../IconButton";
-import { Text } from "../Text";
-import { TreeView, TreeViewItem } from "./TreeView";
+import { starforgedRules } from "../../../docs/fixtures/datasworn";
+import { IconButton } from "../../IconButton";
+import { Text } from "../../Text";
+import { TreeView, TreeViewItem } from "../TreeView";
 
 // The rules JSON is loose: a collection has `contents` and maybe nested
 // `collections`.

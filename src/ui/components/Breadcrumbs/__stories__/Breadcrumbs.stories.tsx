@@ -1,7 +1,7 @@
 import { GlobeHemisphereWest } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { BreadcrumbItem, Breadcrumbs } from "./Breadcrumbs";
+import { BreadcrumbItem, Breadcrumbs } from "../Breadcrumbs";
 
 const meta: Meta<typeof Breadcrumbs> = {
   title: "Components/Breadcrumbs",

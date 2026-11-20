@@ -12,8 +12,8 @@ import {
   useState,
 } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -54,7 +54,7 @@ export interface TreeViewItemState {
   loading: boolean;
 }
 
-export interface TreeViewProps<T = unknown> extends LayoutProps {
+export interface TreeViewProps<T = unknown> extends CssProp {
   items: TreeViewItem<T>[];
   /** Names the tree, such as "Moves" or "Destinations". */
   "aria-label": string;
@@ -293,7 +293,7 @@ export function TreeView<T = unknown>(props: TreeViewProps<T>) {
     disabled: treeDisabled = false,
     loadingLabel = "Loading",
     className,
-  } = withLayoutProps(props);
+  } = withCssProp(props);
 
   const selectionMode =
     selectedIdProp !== undefined || onSelectedChange !== undefined;

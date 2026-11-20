@@ -4,9 +4,9 @@ import { HStack, Stack } from "ui/primitives";
 
 import { css } from "styled-system/css";
 
-import { starforgedRules } from "../../stories/fixtures/datasworn";
-import { Text } from "../Text";
-import { ScrollArea } from "./ScrollArea";
+import { starforgedRules } from "../../../docs/fixtures/datasworn";
+import { Text } from "../../Text";
+import { ScrollArea } from "../ScrollArea";
 
 const themes: { text: string }[] =
   starforgedRules.oracles.core.contents.theme.rows;

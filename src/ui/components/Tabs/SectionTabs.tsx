@@ -7,17 +7,15 @@ import {
   useContext,
 } from "react";
 
+import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
-import { LayoutProps, withLayoutProps } from "ui/styles/layoutProps";
 import { ledgeLayers } from "ui/styles/ledge";
 
 import { css, cva, cx } from "styled-system/css";
 
 type BaseRootProps = ComponentProps<typeof BaseTabs.Root>;
 
-export interface TabsProps
-  extends Omit<BaseRootProps, "className">,
-    LayoutProps {
+export interface TabsProps extends Omit<BaseRootProps, "className">, CssProp {
   className?: string;
 }
 
@@ -28,7 +26,7 @@ export interface TabsProps
  */
 export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
   function Tabs(props, ref) {
-    const { className, ...rest } = withLayoutProps(props);
+    const { className, ...rest } = withCssProp(props);
     return <BaseTabs.Root ref={ref} className={className} {...rest} />;
   },
 );
@@ -207,7 +205,7 @@ const indicatorStyles = cva({
 
 export interface SectionTabListProps
   extends Omit<ComponentProps<typeof BaseTabs.List>, "className">,
-    LayoutProps {
+    CssProp {
   /** Names the tab set, such as "Character sections". */
   "aria-label"?: string;
   /**
@@ -251,7 +249,7 @@ export const SectionTabList = forwardRef<HTMLDivElement, SectionTabListProps>(
       className,
       children,
       ...rest
-    } = withLayoutProps(props);
+    } = withCssProp(props);
     return (
       <VariantContext.Provider value={{ variant, size }}>
         <BaseTabs.List
