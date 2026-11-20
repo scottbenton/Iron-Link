@@ -47,7 +47,10 @@ rest of the app). Import as `ui/components/Button`.
 - Code outside `src/ui` never imports Panda (`styled-system/*`) or Phosphor
   (`@phosphor-icons/*`); ESLint refuses both. Icons come from `ui/icons`,
   drawn with `<Icon icon={DiceFiveIcon} size="md" />`; components that take
-  an icon (`startIcon`, `IconButton`) size the bare icon themselves. That keeps the styling system replaceable inside `src/ui`.
+  an icon (`startIcon`, `IconButton`) size the bare icon themselves. An icon
+  Phosphor lacks is made with `createIcon` in `ui/icons` (see
+  `ImageSlashIcon`) and exported with the rest. That keeps the styling
+  system replaceable inside `src/ui`.
 - Panda reads style props only from `ui/primitives`, the library's
   components and `styled-system/jsx`, by name, at build time. Import primitives under their
   own names, and give style props literal values (a ternary of literals is
