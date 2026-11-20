@@ -6,13 +6,14 @@ import {
   DiceThree,
   DiceTwo,
 } from "@phosphor-icons/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
 import { css, cva, cx } from "styled-system/css";
 
-export type DieFaceValue = 1 | 2 | 3 | 4 | 5 | 6;
+import { DieFaceValue } from "./dieFaceValue";
+import { useCycledFace } from "./useCycledFace";
 
 const faceIcons = {
   1: DiceOne,
@@ -22,23 +23,6 @@ const faceIcons = {
   5: DiceFive,
   6: DiceSix,
 } as const;
-
-/** A face other than `current`, so every roll visibly changes the die. */
-export function nextDieFace(current: DieFaceValue): DieFaceValue {
-  return (((current + Math.floor(Math.random() * 5)) % 6) + 1) as DieFaceValue;
-}
-
-/**
- * A die's face and a `roll` that turns it to a new one, for a button that
- * rolls something. Starts on five, the die the app shows everywhere else.
- */
-export function useDieFace(
-  initial: DieFaceValue = 5,
-): [DieFaceValue, () => void] {
-  const [face, setFace] = useState<DieFaceValue>(initial);
-  const roll = useCallback(() => setFace(nextDieFace), []);
-  return [face, roll];
-}
 
 /**
  * How a new face arrives. The options are here to compare (see the
@@ -108,50 +92,6 @@ const exitStyles = css({
   animation: "fadeOut token(durations.fast) token(easings.in) forwards",
   _reducedMotion: { display: "none" },
 });
-
-/** The time each in-between face shows for `cycle`. */
-const CYCLE_STEP_MS = 50;
-const CYCLE_STEPS = 2;
-
-const prefersReducedMotion = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
-
-/**
- * For `cycle`, the face to draw: a couple of random faces in turn, then
- * `face`. Any other motion draws `face` at once.
- */
-function useCycledFace(face: DieFaceValue, active: boolean): DieFaceValue {
-  const [shown, setShown] = useState(face);
-  // The face the last cycle ended on, so mounting (or a rerender with the
-  // same face) shows it without cycling.
-  const landed = useRef(face);
-  useEffect(() => {
-    if (face === landed.current) return;
-    landed.current = face;
-    if (!active || prefersReducedMotion()) {
-      setShown(face);
-      return;
-    }
-    let step = 0;
-    let current = face;
-    const timer = window.setInterval(() => {
-      step += 1;
-      if (step > CYCLE_STEPS) {
-        window.clearInterval(timer);
-        setShown(face);
-        return;
-      }
-      current = nextDieFace(current);
-      setShown(current === face ? nextDieFace(face) : current);
-    }, CYCLE_STEP_MS);
-    // The first in-between face shows straight away.
-    current = nextDieFace(face);
-    setShown(current);
-    return () => window.clearInterval(timer);
-  }, [face, active]);
-  return active ? shown : face;
-}
 
 /**
  * A die icon (decorative) showing one face. When `face` changes the new
