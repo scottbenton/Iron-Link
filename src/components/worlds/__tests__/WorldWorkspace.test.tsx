@@ -58,7 +58,10 @@ vi.mock("services/worlds.service", () => ({
     countGamesLinkedToWorld: state.count,
   },
 }));
-vi.mock("material-ui-confirm", () => ({ useConfirm: () => state.confirm }));
+vi.mock("ui/components/ConfirmDialog", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("ui/components/ConfirmDialog")>()),
+  useConfirm: () => state.confirm,
+}));
 vi.mock("pages/games/gamePageLayout/hooks/useGameId", () => ({
   useGameId: () => state.gameId,
 }));

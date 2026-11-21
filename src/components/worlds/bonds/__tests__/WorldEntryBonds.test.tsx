@@ -7,9 +7,10 @@ import {
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ConfirmProvider } from "material-ui-confirm";
-import { enqueueSnackbar } from "notistack";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { ConfirmProvider } from "ui/components/ConfirmDialog";
+import { toast } from "ui/components/Toast";
 
 import { useDataswornTreeStore } from "stores/dataswornTree.store";
 import { GamePermission, useGameStore } from "stores/game.store";
@@ -32,10 +33,19 @@ import { WorldEntryBonds } from "../WorldEntryBonds";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("stores/auth.store", () => ({ useUID: () => "me" }));
-vi.mock("notistack", () => ({
-  enqueueSnackbar: vi.fn(),
-  closeSnackbar: vi.fn(),
-}));
+vi.mock("ui/components/Toast", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("ui/components/Toast")>();
+  return {
+    ...actual,
+    toast: {
+      ...actual.toast,
+      info: vi.fn(),
+      success: vi.fn(),
+      warning: vi.fn(),
+      error: vi.fn(),
+    },
+  };
+});
 const roll = vi.fn();
 let routeGameId: string | undefined;
 vi.mock("pages/games/gamePageLayout/hooks/useGameId", () => ({
@@ -174,7 +184,7 @@ afterEach(() => {
   // real repository.
   cleanup();
   vi.restoreAllMocks();
-  vi.mocked(enqueueSnackbar).mockClear();
+  vi.mocked(toast.info).mockClear();
   roll.mockClear();
   useWorldEntryBondsStore.setState({
     bonds: {},
@@ -228,9 +238,11 @@ describe("world entry bonds", () => {
       useGameCharactersStore.getState().characters.kira.specialTracks.bonds
         .value,
     ).toBe(4);
-    expect(enqueueSnackbar).toHaveBeenCalledWith(
+    expect(toast.info).toHaveBeenCalledWith(
       "Marked a tick on Kira's Bonds track",
-      expect.objectContaining({ action: expect.any(Function) }),
+      expect.objectContaining({
+        action: expect.objectContaining({ label: "Undo" }),
+      }),
     );
     await waitFor(() =>
       expect(screen.getByRole("checkbox", { name: "Kira" })).toBeChecked(),
@@ -273,7 +285,7 @@ describe("world entry bonds", () => {
 
     await user.click(screen.getByRole("checkbox", { name: "Bonded" }));
     await waitFor(() =>
-      expect(enqueueSnackbar).toHaveBeenCalledWith(
+      expect(toast.info).toHaveBeenCalledWith(
         "Marked 2 ticks on Kira's Bonds track.",
         expect.anything(),
       ),
@@ -315,7 +327,7 @@ describe("world entry bonds", () => {
 
     await user.click(screen.getByRole("checkbox", { name: "Bonded" }));
     await waitFor(() =>
-      expect(enqueueSnackbar).toHaveBeenCalledWith(
+      expect(toast.info).toHaveBeenCalledWith(
         expect.stringContaining("Vex should mark"),
         expect.anything(),
       ),

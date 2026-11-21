@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ConfirmProvider } from "ui/components/ConfirmDialog";
+
 import { useWorldStore } from "stores/world.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
@@ -71,16 +73,18 @@ function renderBrowser(
     categories.map((item) => [item.id, item]),
   );
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <WorldEntriesOwnerFixture worldId={category.worldId}>
-        <Routes>
-          <Route
-            path="/worlds/:worldId/*"
-            element={<WorldBrowserRouteFixture {...fixtureProps} />}
-          />
-        </Routes>
-      </WorldEntriesOwnerFixture>
-    </MemoryRouter>,
+    <ConfirmProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <WorldEntriesOwnerFixture worldId={category.worldId}>
+          <Routes>
+            <Route
+              path="/worlds/:worldId/*"
+              element={<WorldBrowserRouteFixture {...fixtureProps} />}
+            />
+          </Routes>
+        </WorldEntriesOwnerFixture>
+      </MemoryRouter>
+    </ConfirmProvider>,
   );
 }
 

@@ -25,6 +25,11 @@ export interface ToastOptions {
   dismissLabel?: string;
   /** Allow a swipe to dismiss, as well as the Dismiss button. */
   swipeToDismiss?: boolean;
+  /**
+   * Milliseconds before it closes itself, paused while hovered. Leave it
+   * out to keep it until dismissed, as the library does by default.
+   */
+  duration?: number;
   /** Runs however the toast closes. */
   onDismiss?: () => void;
 }
@@ -39,6 +44,8 @@ export interface CustomToastOptions {
   /** What a screen reader hears. A custom toast is silent without one. */
   announcement?: string;
   swipeToDismiss?: boolean;
+  /** Milliseconds before it closes itself; kept until dismissed without. */
+  duration?: number;
   onDismiss?: () => void;
 }
 
@@ -71,14 +78,17 @@ function custom(
   const id = options.id ?? createId();
   const controls: ToastControls = { id, dismiss: () => dismiss(id) };
   openIds.add(id);
+  // Sonner reports a timed close apart from a dismissal; both close it.
+  const onClosed = () => {
+    openIds.delete(id);
+    options.onDismiss?.();
+  };
   sonnerToast.custom(() => <>{render(controls)}</>, {
     id,
-    duration: Infinity,
+    duration: options.duration ?? Infinity,
     dismissible: options.swipeToDismiss ?? false,
-    onDismiss: () => {
-      openIds.delete(id);
-      options.onDismiss?.();
-    },
+    onDismiss: onClosed,
+    onAutoClose: onClosed,
   });
   if (options.announcement) announceToast(options.announcement);
   return id;
@@ -117,6 +127,7 @@ function show(tone: ToastTone, message: string, options: ToastOptions = {}) {
       id: options.id,
       announcement: spoken,
       swipeToDismiss: options.swipeToDismiss,
+      duration: options.duration,
       onDismiss: options.onDismiss,
     },
   );
@@ -132,7 +143,11 @@ function promise<T>(
   messages: PromiseToastMessages<T>,
   options: Omit<ToastOptions, "action"> = {},
 ): Promise<T> {
-  const id = show("loading", messages.loading, options);
+  // A duration applies to the result; the loading toast waits for it.
+  const id = show("loading", messages.loading, {
+    ...options,
+    duration: undefined,
+  });
   work.then(
     (data) => {
       if (!openIds.has(id)) return;
@@ -157,7 +172,7 @@ export interface ToastApi {
   info: (message: string, options?: ToastOptions) => string;
   success: (message: string, options?: ToastOptions) => string;
   warning: (message: string, options?: ToastOptions) => string;
-  /** Errors stay until dismissed, like every toast here. */
+  /** Errors stay until dismissed, like every toast without a duration. */
   error: (message: string, options?: ToastOptions) => string;
   /** A spinner toast; replace it by calling another method with its id. */
   loading: (message: string, options?: ToastOptions) => string;
@@ -169,8 +184,9 @@ export interface ToastApi {
 
 /**
  * Toasts, callable from anywhere (stores and services included); `useToast()`
- * returns the same object. Nothing dismisses itself: every toast has a
- * Dismiss button, and the Toaster offers Clear All when several are open.
+ * returns the same object. Nothing dismisses itself unless given a
+ * `duration`: every toast has a Dismiss button, and the Toaster offers Clear
+ * All when several are open.
  * Each toast is announced once through `useAnnounce()`; Sonner's own live
  * region is switched off so nothing is read twice. An open modal dialog or
  * drawer reads the same announcement in its own region.

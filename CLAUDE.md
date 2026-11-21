@@ -71,8 +71,13 @@ that are easy to miss. When you learn a new one, add a line here.
   card. Dialogs render the recent roll cards through `DialogExtrasContext`
   (from `DialogTitleWithCloseButton`); `useIsActiveRollCardHost` lets only
   the newest place show them.
-- Snackbars read their message through the live region (dialogs hide the
-  snackbar container); the alert itself is not live. Errors persist.
+- Snackbars (`createInfoSnackbar` and the rest, `providers/SnackbarProvider`)
+  render the library's toasts and read their message through the live
+  region; Sonner's own region stays off. Errors persist, others close after
+  10s, and an Undo is the `action` option.
+- Confirms use `useConfirm` from `ui/components/ConfirmDialog` (danger tone
+  by default, from `AppUIProvider`). MUI modals have `disableEnforceFocus` so
+  a confirm opened over one keeps focus; drop it with MUI.
 - Filters announce their result count with `useAnnounceSearchResults`.
 
 ## Deploys

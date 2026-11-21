@@ -1,7 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ConfirmProvider } from "material-ui-confirm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { ConfirmProvider } from "ui/components/ConfirmDialog";
 
 import { DeleteWorldButton } from "../DeleteWorldButton";
 import { translate } from "../categories/__tests__/fixtures";
@@ -43,14 +44,15 @@ describe("World deletion", () => {
         { wrapper: ConfirmProvider },
       );
       await user.click(screen.getByRole("button", { name: "Delete World" }));
-      expect(screen.getByRole("dialog")).toHaveTextContent(
+      expect(screen.getByRole("alertdialog")).toHaveTextContent(
         'delete "Our world"',
       );
       if (count)
-        expect(screen.getByRole("dialog")).toHaveTextContent(
+        expect(screen.getByRole("alertdialog")).toHaveTextContent(
           `${count} ${count === 1 ? "game is" : "games are"} linked`,
         );
-      else expect(screen.getByRole("dialog")).not.toHaveTextContent("linked");
+      else
+        expect(screen.getByRole("alertdialog")).not.toHaveTextContent("linked");
       expect(state.deleteWorld).not.toHaveBeenCalled();
       await user.click(screen.getByRole("button", { name: "Delete" }));
       await waitFor(() => expect(onDeleted).toHaveBeenCalledOnce());
@@ -66,7 +68,7 @@ describe("World deletion", () => {
     await user.click(screen.getByRole("button", { name: "Delete World" }));
     await user.click(await screen.findByRole("button", { name: "Cancel" }));
     await waitFor(() =>
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument(),
     );
     expect(state.deleteWorld).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Delete World" })).toBeEnabled();

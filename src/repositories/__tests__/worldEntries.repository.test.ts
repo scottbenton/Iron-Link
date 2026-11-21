@@ -1,5 +1,6 @@
-import { enqueueSnackbar } from "notistack";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { toast } from "ui/components/Toast";
 
 import { ErrorReason } from "../errors/RepositoryErrors";
 import { WorldEntriesRepository } from "../worldEntries.repository";
@@ -34,7 +35,9 @@ vi.mock("lib/supabase.lib", () => ({
     }),
   },
 }));
-vi.mock("notistack", () => ({ enqueueSnackbar: vi.fn() }));
+vi.mock("ui/components/Toast", () => ({
+  toast: { info: vi.fn(), success: vi.fn(), warning: vi.fn(), error: vi.fn() },
+}));
 vi.mock("services/analytics.service", () => ({
   AnalyticsService: { logError: vi.fn() },
 }));
@@ -51,7 +54,7 @@ describe("updateWorldEntry", () => {
     ).resolves.toBeUndefined();
     expect(mocks.update).toHaveBeenCalledWith({ name: "Hollowmere" });
     expect(mocks.eq).toHaveBeenCalledWith("id", "entry");
-    expect(enqueueSnackbar).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it("rejects and reports an update that changed no rows", async () => {
@@ -61,9 +64,9 @@ describe("updateWorldEntry", () => {
         read_permissions: "only_guides",
       }),
     ).rejects.toMatchObject({ reason: ErrorReason.Forbidden });
-    expect(enqueueSnackbar).toHaveBeenCalledWith(
+    expect(toast.error).toHaveBeenCalledWith(
       expect.stringContaining("Forbidden"),
-      { variant: "error", persist: true },
+      expect.objectContaining({ duration: undefined }),
     );
   });
 });
