@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 import { SkullIcon } from "assets/SkullIcon";
 
 import { EmptyState } from "components/Layout/EmptyState";
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+
+import { RulesText } from "ui/game/RulesText";
 
 import { useOracleRollable } from "hooks/datasworn/useOracleRollable";
 
@@ -93,8 +94,9 @@ export function Oracle(props: OracleProps) {
         {currentOracle === oracle._id && (
           <>
             {(oracle as unknown as { summary?: string }).summary && (
-              <MarkdownRenderer
+              <RulesText
                 markdown={(oracle as unknown as { summary: string }).summary}
+                size="sm"
               />
             )}
             <OracleButton
@@ -119,10 +121,11 @@ export function Oracle(props: OracleProps) {
           {currentOracle === cursedOracle._id && (
             <>
               {(cursedOracle as unknown as { summary?: string }).summary && (
-                <MarkdownRenderer
+                <RulesText
                   markdown={
                     (cursedOracle as unknown as { summary: string }).summary
                   }
+                  size="sm"
                 />
               )}
               <OracleButton

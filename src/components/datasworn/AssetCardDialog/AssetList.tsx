@@ -3,7 +3,8 @@ import { Box, Button } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { GridLayout } from "components/Layout";
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+
+import { RulesText } from "ui/game/RulesText";
 
 import { AssetMap } from "stores/dataswornTree.store";
 
@@ -29,7 +30,7 @@ export function AssetList(props: AssetListProps) {
     <Box>
       {assetCollection.name}
       {assetCollection.description && (
-        <MarkdownRenderer markdown={assetCollection.description} />
+        <RulesText markdown={assetCollection.description} size="sm" />
       )}
       <GridLayout
         items={Object.values(assetCollection.contents)

@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { RulesText } from "ui/game/RulesText";
 
 export interface RollResultProps {
   result?: string;
@@ -31,16 +31,21 @@ export function RollResult(props: RollResultProps) {
       )}
       {markdown && (
         <Box maxWidth={"30ch"}>
-          <MarkdownRenderer markdown={markdown} inheritColor disableLinks />
+          <RulesText
+            markdown={markdown}
+            size="sm"
+            color="inherit"
+            disableLinks
+          />
         </Box>
       )}
       {secondaryMarkdown && (
         <Box maxWidth={"30ch"}>
-          <MarkdownRenderer
+          <RulesText
             markdown={secondaryMarkdown}
-            inheritColor
+            size="sm"
+            color="inherit"
             disableLinks
-            inlineParagraph
           />
         </Box>
       )}

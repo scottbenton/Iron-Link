@@ -1,7 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { RulesText } from "ui/game/RulesText";
 
 import { AssetEnhancements as IAssetEnhancements } from "./RollOptions/extractRollOptions";
 
@@ -36,11 +36,7 @@ export function AssetEnhancements(props: AssetEnhancementsProps) {
                     { assetName },
                   )}
             </Typography>
-            <MarkdownRenderer
-              disableLinks
-              typographyVariant="body2"
-              markdown={assetAbilityText}
-            />
+            <RulesText markdown={assetAbilityText} size="sm" disableLinks />
           </Box>
         ),
       )}

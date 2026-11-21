@@ -2,7 +2,7 @@ import LockIcon from "@mui/icons-material/Lock";
 import { Box, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { RulesText } from "ui/game/RulesText";
 
 // A truth's quest starter, in an inlay marked Guide only. Only Guides' screens
 // render it; players never receive a written one.
@@ -44,11 +44,7 @@ export function WorldTruthQuestStarter({
           {t("worlds.entries.guide-only", "Guide only")}
         </Typography>
       </Box>
-      <MarkdownRenderer
-        markdown={markdown}
-        typographyVariant="body2"
-        disableLinks={disableLinks}
-      />
+      <RulesText markdown={markdown} size="sm" disableLinks={disableLinks} />
     </Box>
   );
 }
