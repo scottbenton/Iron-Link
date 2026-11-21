@@ -23,7 +23,23 @@ export function getWorldEntrySubtitle(
   const snapshot = getWorldFieldSnapshot(entryId, snapshots);
   if (!snapshot || !resolveFieldDefinition(definition, snapshot).visible)
     return undefined;
-  const value = snapshot.entry.values[definition.id];
+  return getWorldFieldDisplayText(
+    definition,
+    snapshot.entry.values[definition.id],
+    entries,
+  );
+}
+
+/**
+ * A field value as one line of text: list values joined by commas, and
+ * linked entries as the names of the ones this client can read. Undefined
+ * when nothing readable is left.
+ */
+export function getWorldFieldDisplayText(
+  definition: Pick<IWorldFieldDefinition, "type" | "configuration">,
+  value: unknown,
+  entries: Readonly<Record<string, Pick<IWorldEntry, "name">>>,
+): string | undefined {
   const values = (Array.isArray(value) ? value : [value]).filter(
     (item): item is string => typeof item === "string" && !!item.trim(),
   );

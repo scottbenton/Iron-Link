@@ -1,8 +1,10 @@
 import AtIcon from "@mui/icons-material/AlternateEmail";
-import { Chip } from "@mui/material";
+import { Chip, Tooltip, TooltipProps } from "@mui/material";
+import { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LinkComponent } from "components/LinkComponent";
+import { WorldEntryHoverCard } from "components/worlds/entries/WorldEntryHoverCard";
 
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
@@ -36,21 +38,65 @@ export function WorldEntryMention({ entryId }: { entryId: string }) {
   }
 
   if (!getLinkProps) {
-    return <Chip icon={<AtIcon />} size="small" label={entry.name} />;
+    return (
+      <WorldEntryHoverCardTooltip entry={entry}>
+        <Chip icon={<AtIcon />} size="small" label={entry.name} />
+      </WorldEntryHoverCardTooltip>
+    );
   }
 
   return (
-    <Chip
-      icon={<AtIcon />}
-      size="small"
-      label={entry.name}
-      clickable
-      component={LinkComponent}
-      {...getLinkProps({
-        type: "entry",
-        categoryId: entry.categoryId,
-        entryId: entry.id,
-      })}
-    />
+    <WorldEntryHoverCardTooltip entry={entry}>
+      <Chip
+        icon={<AtIcon />}
+        size="small"
+        label={entry.name}
+        clickable
+        component={LinkComponent}
+        {...getLinkProps({
+          type: "entry",
+          categoryId: entry.categoryId,
+          entryId: entry.id,
+        })}
+      />
+    </WorldEntryHoverCardTooltip>
   );
 }
+
+// Hover or keyboard focus shows the entry's card after a short pause, the
+// way a link preview does. Touch gets none: a tap already opens the entry.
+function WorldEntryHoverCardTooltip({
+  entry,
+  children,
+}: {
+  entry: Parameters<typeof WorldEntryHoverCard>[0]["entry"];
+  children: ReactElement;
+}) {
+  return (
+    <Tooltip
+      title={<WorldEntryHoverCard entry={entry} />}
+      enterDelay={500}
+      enterNextDelay={500}
+      disableTouchListener
+      placement="bottom-start"
+      slotProps={HOVER_CARD_SLOT_PROPS}
+    >
+      {children}
+    </Tooltip>
+  );
+}
+
+const HOVER_CARD_SLOT_PROPS: TooltipProps["slotProps"] = {
+  tooltip: {
+    sx: {
+      p: 0,
+      maxWidth: 320,
+      bgcolor: "background.paper",
+      color: "text.primary",
+      border: 1,
+      borderColor: "divider",
+      boxShadow: 4,
+      typography: "body2",
+    },
+  },
+};
