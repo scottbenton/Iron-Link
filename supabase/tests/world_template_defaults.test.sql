@@ -254,7 +254,7 @@ select is((select jsonb_agg(field->'key' order by (field->>'sort_order')::int) f
  from catalog_worlds w join (values
   ('blank','["pronouns","location","tags"]'::jsonb),
   ('classic','["pronouns","location","species","descriptor","role","goal"]'::jsonb),
-  ('forge','["pronouns","callsign","difficulty","location","firstLook","role","disposition","goal","revealedAspect"]'::jsonb),
+  ('forge','["pronouns","callsign","location","firstLook","role","disposition","goal","revealedAspect"]'::jsonb),
   ('isles','["pronouns","location","firstLook","role","disposition","goal"]'::jsonb),
   ('elegy','["pronouns","location","tags","traits","occupation","goal","disposition"]'::jsonb)
  ) expected(world_key,fields) on expected.world_key=w.key;

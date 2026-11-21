@@ -264,8 +264,6 @@ Supports: bonds. Subtitle: Location.
 
 - **Pronouns** (`pronouns`): Text
 - **Callsign** (`callsign`): Text; oracle `oracle_rollable:starforged/character/name/callsign`
-- **Difficulty** (`difficulty`): Option list, single, allows other values
-  - Options: "Troublesome", "Dangerous", "Formidable", "Extreme", "Epic"
 - **Location** (`location`): Linked entry → Locations, single
 - **First Look** (`firstLook`): Text; Guide-only; oracle `oracle_rollable:starforged/character/first_look`
 - **Role** (`role`): Text; Guide-only; oracle `oracle_rollable:starforged/character/role`

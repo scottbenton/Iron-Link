@@ -119,7 +119,7 @@ select is((select field->'configuration'->'suggestions' from template_fields
   'Santa Maria Location Type has no suggestions');
 select ok(bool_and(field->>'type'='select' and field->'configuration'->>'multiple'='false'
   and field->'configuration'->>'allowOther'='true'),key||' is an open single list select')
-  from template_fields join (values ('region'),('planetClass'),('species'),('difficulty'),('cursed'),('derelictLocation')) k(key)
+  from template_fields join (values ('region'),('planetClass'),('species'),('cursed'),('derelictLocation')) k(key)
   on field->>'key'=k.key group by k.key;
 select ok(bool_and(field->>'type'='select' and field->'configuration'->>'multiple'='true'
   and field->'configuration'->>'allowOther'='true'),'every Tags default is an open multi list select')
