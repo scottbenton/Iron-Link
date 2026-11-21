@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+
 export interface ImpactsSummaryStrings {
   /** The card's label over the marked impacts. */
   activeLabel: string;
@@ -13,26 +15,34 @@ export interface ImpactsSummaryStrings {
   dismissError: string;
 }
 
-export const impactsSummaryWording: Record<
-  "ironsworn" | "starforged",
-  ImpactsSummaryStrings
-> = {
-  ironsworn: {
-    activeLabel: "Active Debilities",
-    none: "None",
-    edit: "Edit Debilities",
-    done: "Done",
-    saveError: (impact) =>
-      `${impact} could not be saved, so it is back as it was. Try again.`,
-    dismissError: "Dismiss",
-  },
-  starforged: {
-    activeLabel: "Active Impacts",
-    none: "None",
-    edit: "Edit Impacts",
-    done: "Done",
-    saveError: (impact) =>
-      `${impact} could not be saved, so it is back as it was. Try again.`,
-    dismissError: "Dismiss",
-  },
-};
+/** Ironsworn says "Debilities", the others "Impacts". */
+export function getImpactsSummaryWording(
+  t: TFunction,
+  wording: "ironsworn" | "starforged",
+): ImpactsSummaryStrings {
+  const shared = {
+    none: t("ui.impacts-summary.none", "None"),
+    done: t("ui.impacts-summary.done", "Done"),
+    saveError: (impact: string) =>
+      t(
+        "ui.impacts-summary.save-error",
+        "{{impact}} could not be saved, so it is back as it was. Try again.",
+        { impact },
+      ),
+    dismissError: t("ui.common.dismiss", "Dismiss"),
+  };
+  return wording === "ironsworn"
+    ? {
+        ...shared,
+        activeLabel: t(
+          "ui.impacts-summary.active-debilities",
+          "Active Debilities",
+        ),
+        edit: t("ui.impacts-summary.edit-debilities", "Edit Debilities"),
+      }
+    : {
+        ...shared,
+        activeLabel: t("ui.impacts-summary.active-impacts", "Active Impacts"),
+        edit: t("ui.impacts-summary.edit-impacts", "Edit Impacts"),
+      };
+}

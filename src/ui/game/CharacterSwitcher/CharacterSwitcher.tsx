@@ -6,6 +6,7 @@ import {
   UsersThreeIcon,
 } from "@phosphor-icons/react";
 import { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { focusRing } from "ui/styles/focus";
 import { quietPressable } from "ui/styles/pressable";
@@ -97,15 +98,19 @@ export interface CharacterSwitcherProps extends CssProp {
  * in NavBar's `title`, so the button's text is the page's h1.
  */
 export function CharacterSwitcher(props: CharacterSwitcherProps) {
+  const { t } = useTranslation();
   const {
     characters,
     current,
     gameName,
     overviewHref,
     addCharacterHref,
-    charactersLabel = "Characters",
-    addCharacterLabel = "Add Character",
-    overviewLabel = "Game overview",
+    charactersLabel = t("ui.character-switcher.characters", "Characters"),
+    addCharacterLabel = t(
+      "ui.character-switcher.add-character",
+      "Add Character",
+    ),
+    overviewLabel = t("ui.character-switcher.overview", "Game overview"),
     linkComponent,
     className,
   } = withCssProp(props);

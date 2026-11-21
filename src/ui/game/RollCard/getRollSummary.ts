@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+
 import {
   OracleResultPart,
   RollData,
@@ -43,40 +45,73 @@ export interface RollText {
   clock: string;
 }
 
-export const defaultRollText: RollText = {
-  outcomes: { strongHit: "Strong Hit", weakHit: "Weak Hit", miss: "Miss" },
-  match: "Match",
-  moveAndLabel: (move, label) => `${move}, ${label}`,
-  oracleWithCategory: (name, category) => `${name} (${category})`,
-  heading: (name, result) => `${name}: ${result}`,
-  momentumBurned: (momentum) =>
-    `Burned ${momentum} momentum in place of the action score.`,
-  actionDie: (value) => `Action die ${value}`,
-  actionDieCancelled: ", cancelled by negative momentum",
-  plus: (value) => ` plus ${value}`,
-  total: (value) => `, total ${value}`,
-  challengeDice: (a, b) => `Challenge dice ${a} and ${b}.`,
-  oneOnActionDie: "One on the action die.",
-  progress: (score, a, b) =>
-    `Progress ${score} against challenge dice ${a} and ${b}.`,
-  oracleRoll: (roll) => `Roll ${roll}.`,
-  cursedDie: (value) => `Cursed die ${value}.`,
-  cursedDieAdds: (result) => `The cursed die adds: ${result}`,
-  cursed: "Cursed",
-  clock: "Clock",
-};
+export function getDefaultRollText(t: TFunction): RollText {
+  return {
+    outcomes: {
+      strongHit: t("ui.roll.strong-hit", "Strong Hit"),
+      weakHit: t("ui.roll.weak-hit", "Weak Hit"),
+      miss: t("ui.roll.miss", "Miss"),
+    },
+    match: t("ui.roll.match", "Match"),
+    moveAndLabel: (move, label) =>
+      t("ui.roll.move-and-label", "{{move}}, {{label}}", { move, label }),
+    oracleWithCategory: (name, category) =>
+      t("ui.roll.oracle-with-category", "{{name}} ({{category}})", {
+        name,
+        category,
+      }),
+    heading: (name, result) =>
+      t("ui.roll.heading", "{{name}}: {{result}}", { name, result }),
+    momentumBurned: (momentum) =>
+      t(
+        "ui.roll.momentum-burned",
+        "Burned {{momentum}} momentum in place of the action score.",
+        { momentum },
+      ),
+    actionDie: (value) =>
+      t("ui.roll.action-die", "Action die {{value}}", { value }),
+    actionDieCancelled: t(
+      "ui.roll.action-die-cancelled",
+      ", cancelled by negative momentum",
+    ),
+    plus: (value) => t("ui.roll.plus", " plus {{value}}", { value }),
+    total: (value) => t("ui.roll.total", ", total {{value}}", { value }),
+    challengeDice: (first, second) =>
+      t("ui.roll.challenge-dice", "Challenge dice {{first}} and {{second}}.", {
+        first,
+        second,
+      }),
+    oneOnActionDie: t("ui.roll.one-on-action-die", "One on the action die."),
+    progress: (score, first, second) =>
+      t(
+        "ui.roll.progress",
+        "Progress {{score}} against challenge dice {{first}} and {{second}}.",
+        { score, first, second },
+      ),
+    oracleRoll: (roll) => t("ui.roll.oracle-roll", "Roll {{roll}}.", { roll }),
+    cursedDie: (value) =>
+      t("ui.roll.cursed-die", "Cursed die {{value}}.", { value }),
+    cursedDieAdds: (result) =>
+      t("ui.roll.cursed-die-adds", "The cursed die adds: {{result}}", {
+        result,
+      }),
+    cursed: t("ui.roll.cursed", "Cursed"),
+    clock: t("ui.roll.clock", "Clock"),
+  };
+}
 
 /** Translated words for some or all of `RollText`. */
 export type RollTextOverrides = Partial<Omit<RollText, "outcomes">> & {
   outcomes?: Partial<Record<RollOutcome, string>>;
 };
 
-/** Merges translated words over the English defaults. */
-export function getRollText(text?: RollTextOverrides): RollText {
+/** Merges overrides over the translated defaults. */
+export function getRollText(t: TFunction, text?: RollTextOverrides): RollText {
+  const defaults = getDefaultRollText(t);
   return {
-    ...defaultRollText,
+    ...defaults,
     ...text,
-    outcomes: { ...defaultRollText.outcomes, ...text?.outcomes },
+    outcomes: { ...defaults.outcomes, ...text?.outcomes },
   };
 }
 
@@ -133,77 +168,82 @@ function endSentence(text: string): string {
  */
 export function getRollSummary(
   roll: RollData,
+  t: TFunction,
   options: { text?: RollTextOverrides; prefix?: string } = {},
 ): string {
-  const t = getRollText(options.text);
+  const words = getRollText(t, options.text);
   const sentences: string[] = [];
   if (options.prefix) sentences.push(endSentence(options.prefix));
 
   switch (roll.kind) {
     case "action": {
       const name = roll.moveName
-        ? t.moveAndLabel(roll.moveName, roll.statName)
+        ? words.moveAndLabel(roll.moveName, roll.statName)
         : roll.statName;
-      sentences.push(endSentence(t.heading(name, t.outcomes[roll.outcome])));
+      sentences.push(
+        endSentence(words.heading(name, words.outcomes[roll.outcome])),
+      );
       if (roll.momentumBurned) {
-        sentences.push(t.momentumBurned(roll.momentumBurned));
+        sentences.push(words.momentumBurned(roll.momentumBurned));
       } else {
-        let action = t.actionDie(roll.actionDie);
+        let action = words.actionDie(roll.actionDie);
         if (roll.negativeMomentumCancelled) {
-          action += t.actionDieCancelled;
+          action += words.actionDieCancelled;
           if (roll.statValue || roll.adds) action += ",";
         }
-        if (roll.statValue) action += t.plus(roll.statValue);
-        if (roll.adds) action += t.plus(roll.adds);
+        if (roll.statValue) action += words.plus(roll.statValue);
+        if (roll.adds) action += words.plus(roll.adds);
         if (roll.statValue || roll.adds) {
-          action += t.total(Math.min(roll.actionScore, 10));
+          action += words.total(Math.min(roll.actionScore, 10));
         }
         sentences.push(endSentence(action));
       }
-      sentences.push(t.challengeDice(...roll.challengeDice));
-      if (isChallengeMatch(roll)) sentences.push(endSentence(t.match));
+      sentences.push(words.challengeDice(...roll.challengeDice));
+      if (isChallengeMatch(roll)) sentences.push(endSentence(words.match));
       if (roll.actionDie === 1 && !roll.momentumBurned) {
-        sentences.push(t.oneOnActionDie);
+        sentences.push(words.oneOnActionDie);
       }
       break;
     }
     case "progress": {
       const name = roll.moveName
-        ? t.moveAndLabel(roll.moveName, roll.trackName)
+        ? words.moveAndLabel(roll.moveName, roll.trackName)
         : roll.trackName;
-      sentences.push(endSentence(t.heading(name, t.outcomes[roll.outcome])));
-      sentences.push(t.progress(roll.progressScore, ...roll.challengeDice));
-      if (isChallengeMatch(roll)) sentences.push(endSentence(t.match));
+      sentences.push(
+        endSentence(words.heading(name, words.outcomes[roll.outcome])),
+      );
+      sentences.push(words.progress(roll.progressScore, ...roll.challengeDice));
+      if (isChallengeMatch(roll)) sentences.push(endSentence(words.match));
       break;
     }
     case "oracle": {
       const name = roll.category
-        ? t.oracleWithCategory(roll.oracleName, roll.category)
+        ? words.oracleWithCategory(roll.oracleName, roll.category)
         : roll.oracleName;
       sentences.push(
-        endSentence(t.heading(name, getOracleResultText(roll.result))),
+        endSentence(words.heading(name, getOracleResultText(roll.result))),
       );
-      if (roll.cursed) sentences.push(endSentence(t.cursed));
+      if (roll.cursed) sentences.push(endSentence(words.cursed));
       if (roll.cursedResult) {
-        sentences.push(endSentence(t.cursedDieAdds(roll.cursedResult)));
+        sentences.push(endSentence(words.cursedDieAdds(roll.cursedResult)));
       }
       sentences.push(
-        t.oracleRoll(
+        words.oracleRoll(
           Array.isArray(roll.roll) ? roll.roll.join(", ") : `${roll.roll}`,
         ),
       );
-      if (roll.cursedDie) sentences.push(t.cursedDie(roll.cursedDie));
-      if (roll.match) sentences.push(endSentence(t.match));
+      if (roll.cursedDie) sentences.push(words.cursedDie(roll.cursedDie));
+      if (roll.match) sentences.push(endSentence(words.match));
       break;
     }
     case "clock": {
-      const name = t.oracleWithCategory(
-        t.moveAndLabel(t.clock, roll.clockName),
+      const name = words.oracleWithCategory(
+        words.moveAndLabel(words.clock, roll.clockName),
         roll.oddsName,
       );
-      sentences.push(endSentence(t.heading(name, roll.result)));
-      sentences.push(t.oracleRoll(`${roll.roll}`));
-      if (roll.match) sentences.push(endSentence(t.match));
+      sentences.push(endSentence(words.heading(name, roll.result)));
+      sentences.push(words.oracleRoll(`${roll.roll}`));
+      if (roll.match) sentences.push(endSentence(words.match));
       break;
     }
   }

@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+
 export interface GameLogStrings {
   emptyTitle: string;
   emptyText: string;
@@ -12,14 +14,19 @@ export interface GameLogStrings {
   label: string;
 }
 
-export const defaultGameLogStrings: GameLogStrings = {
-  emptyTitle: "No rolls or messages yet",
-  emptyText: "Rolls and messages from everyone in this game show up here.",
-  guideOnly: "Guide only",
-  loadEarlier: "Load Earlier Entries",
-  loading: "Loading entries",
-  today: "Today",
-  yesterday: "Yesterday",
-  justNow: "Just now",
-  label: "Game log",
-};
+export function getDefaultGameLogStrings(t: TFunction): GameLogStrings {
+  return {
+    emptyTitle: t("ui.game-log.empty-title", "No rolls or messages yet"),
+    emptyText: t(
+      "ui.game-log.empty-text",
+      "Rolls and messages from everyone in this game show up here.",
+    ),
+    guideOnly: t("ui.game-log.guide-only", "Guide only"),
+    loadEarlier: t("ui.game-log.load-earlier", "Load Earlier Entries"),
+    loading: t("ui.game-log.loading", "Loading entries"),
+    today: t("ui.game-log.today", "Today"),
+    yesterday: t("ui.game-log.yesterday", "Yesterday"),
+    justNow: t("ui.relative-time.just-now", "Just now"),
+    label: t("ui.game-log.label", "Game log"),
+  };
+}

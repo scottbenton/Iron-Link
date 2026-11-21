@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { css } from "styled-system/css";
 
@@ -16,14 +17,10 @@ import { Select } from "../../components/Select";
 import { TextArea } from "../../components/TextArea";
 import { TextField } from "../../components/TextField";
 import { Clock } from "../Clock";
-import {
-  ProgressRank,
-  defaultRankLabels,
-  ticksPerMark,
-} from "../ProgressTrack";
+import { ProgressRank, getRankLabels, ticksPerMark } from "../ProgressTrack";
 import {
   TracksPanelStrings,
-  defaultTracksPanelStrings,
+  getDefaultTracksPanelStrings,
 } from "./tracksPanelStrings";
 import type { TrackItem, TrackKind } from "./tracksPanelTypes";
 
@@ -86,8 +83,9 @@ export function TrackDialog(props: TrackDialogProps) {
     rankLabels: rankLabelsProp,
     strings: stringsProp,
   } = props;
-  const strings = { ...defaultTracksPanelStrings, ...stringsProp };
-  const rankLabels = { ...defaultRankLabels, ...rankLabelsProp };
+  const { t } = useTranslation();
+  const strings = { ...getDefaultTracksPanelStrings(t), ...stringsProp };
+  const rankLabels = { ...getRankLabels(t), ...rankLabelsProp };
   const isClock = kind === "clock";
   const initialRank = track && track.kind !== "clock" ? track.rank : undefined;
 

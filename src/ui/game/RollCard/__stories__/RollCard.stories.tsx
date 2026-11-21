@@ -1,5 +1,6 @@
 import { ArrowsClockwise, Copy, Flame } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import i18next from "i18next";
 import { ReactNode, useState } from "react";
 import { fn } from "storybook/test";
 
@@ -392,7 +393,7 @@ function ToastDemo() {
       ({ dismiss }) => (
         <RollCard roll={roll} onDismiss={dismiss} elevated animateIn />
       ),
-      { announcement: getRollSummary(roll) },
+      { announcement: getRollSummary(roll, i18next.t) },
     );
   return (
     <HStack gap="2" flexWrap="wrap">
@@ -421,7 +422,7 @@ export const Summaries: Story = {
   render: () => (
     <Stack gap="2" maxWidth="640px" fontSize="sm">
       {Object.entries(allRolls).map(([key, roll]) => (
-        <p key={key}>{getRollSummary(roll)}</p>
+        <p key={key}>{getRollSummary(roll, i18next.t)}</p>
       ))}
     </Stack>
   ),

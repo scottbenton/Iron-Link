@@ -8,6 +8,7 @@ import {
   useId,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
@@ -25,7 +26,7 @@ import {
   trackCardTitleStyles,
 } from "../ProgressTrack/trackCardStyles";
 import { ringSegmentPath, wedgePath } from "./clockGeometry";
-import { ClockStrings, defaultClockStrings } from "./clockStrings";
+import { ClockStrings, getDefaultClockStrings } from "./clockStrings";
 import { advanceClock, clampClockValue } from "./clockValue";
 
 const rootStyles = css({
@@ -244,7 +245,8 @@ export function Clock(props: ClockProps) {
     strings: stringsProp,
     className,
   } = withCssProp(props);
-  const strings = { ...defaultClockStrings, ...stringsProp };
+  const { t } = useTranslation();
+  const strings = { ...getDefaultClockStrings(t), ...stringsProp };
 
   const labelId = useId();
   const announce = useAnnounce();

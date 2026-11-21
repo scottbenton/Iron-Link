@@ -1,6 +1,7 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import { Minus, Plus } from "@phosphor-icons/react";
 import { CSSProperties, ReactNode, useId } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -203,6 +204,7 @@ export interface ConditionMeterProps extends CssProp {
  * can be a roll button.
  */
 export function ConditionMeter(props: ConditionMeterProps) {
+  const { t } = useTranslation();
   const {
     label,
     value,
@@ -211,7 +213,7 @@ export function ConditionMeter(props: ConditionMeterProps) {
     onChange,
     onRoll,
     adds = 0,
-    addsLabel = (a) => `adds ${a}`,
+    addsLabel = (a) => t("ui.common.adds", "adds {{adds}}", { adds: a }),
     disabled,
     formatValue = formatSigned,
     tone: toneProp,
@@ -220,10 +222,16 @@ export function ConditionMeter(props: ConditionMeterProps) {
     stepperSize = "sm",
     children,
     valueControl,
-    rollLabel = "Roll",
-    decrementLabel = (l) => `Subtract 1 from ${l}`,
-    incrementLabel = (l) => `Add 1 to ${l}`,
-    changeAnnouncement = (l, v) => `${l} is now ${v}`,
+    rollLabel = t("ui.common.roll", "Roll"),
+    decrementLabel = (l) =>
+      t("ui.meter.decrement", "Subtract 1 from {{label}}", { label: l }),
+    incrementLabel = (l) =>
+      t("ui.meter.increment", "Add 1 to {{label}}", { label: l }),
+    changeAnnouncement = (l, v) =>
+      t("ui.meter.changed", "{{label}} is now {{value}}", {
+        label: l,
+        value: v,
+      }),
     className,
   } = withCssProp<ConditionMeterProps>(props);
 
@@ -232,6 +240,10 @@ export function ConditionMeter(props: ConditionMeterProps) {
   const announce = useAnnounce();
 
   const valueText = formatValue(value);
+  const rollName = t("ui.common.roll-name", "{{roll}} {{name}}", {
+    roll: rollLabel,
+    name: label,
+  });
   const numberSizes = [formatValue(min), formatValue(max)];
   const tone: MeterTone =
     toneProp ?? (warnAtMin && value <= min ? "danger" : "default");
@@ -256,8 +268,8 @@ export function ConditionMeter(props: ConditionMeterProps) {
         disabled={disabled}
         aria-label={
           adds
-            ? `${rollLabel} ${label}, ${valueText}, ${addsLabel(formatSigned(adds))}`
-            : `${rollLabel} ${label}, ${valueText}`
+            ? `${rollName}, ${valueText}, ${addsLabel(formatSigned(adds))}`
+            : `${rollName}, ${valueText}`
         }
         onClick={() => {
           rollDie(onRoll());

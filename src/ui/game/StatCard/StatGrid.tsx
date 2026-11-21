@@ -1,4 +1,5 @@
 import { CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -126,12 +127,13 @@ export interface StatGridProps extends CssProp {
  * card, since they apply to whichever stat is rolled next.
  */
 export function StatGrid(props: StatGridProps) {
+  const { t } = useTranslation();
   const {
     stats,
     onRoll,
     adds,
     disabled,
-    label = "Stats",
+    label = t("ui.stat-grid.label", "Stats"),
     columns,
     rollLabel,
     className,

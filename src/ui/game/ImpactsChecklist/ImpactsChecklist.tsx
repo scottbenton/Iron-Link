@@ -1,4 +1,5 @@
 import { ReactNode, useId } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -7,7 +8,7 @@ import { css, cx } from "styled-system/css";
 import { Checkbox } from "../../components/Checkbox";
 import {
   ImpactsChecklistStrings,
-  impactsChecklistWording,
+  getImpactsChecklistWording,
 } from "./impactsChecklistStrings";
 
 export interface Impact {
@@ -125,7 +126,8 @@ export function ImpactsChecklist(props: ImpactsChecklistProps) {
     size = "md",
     className,
   } = withCssProp(props);
-  const strings = { ...impactsChecklistWording[wording], ...stringsProp };
+  const { t } = useTranslation();
+  const strings = { ...getImpactsChecklistWording(t, wording), ...stringsProp };
   const titleId = useId();
 
   const known = new Set(

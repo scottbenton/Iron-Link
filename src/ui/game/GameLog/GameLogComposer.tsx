@@ -1,5 +1,6 @@
 import { PaperPlaneRight } from "@phosphor-icons/react";
 import { FormEvent, KeyboardEvent, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -73,13 +74,14 @@ export interface GameLogComposerProps extends CssProp {
  * and the field grows to about five lines.
  */
 export function GameLogComposer(props: GameLogComposerProps) {
+  const { t } = useTranslation();
   const {
     onSend,
     disabled,
-    label = "Message to the game log",
-    placeholder = "Write a message",
-    sendLabel = "Send message",
-    sentAnnouncement = "Message sent",
+    label = t("ui.game-log-composer.label", "Message to the game log"),
+    placeholder = t("ui.game-log-composer.placeholder", "Write a message"),
+    sendLabel = t("ui.game-log-composer.send", "Send message"),
+    sentAnnouncement = t("ui.game-log-composer.sent", "Message sent"),
     className,
   } = withCssProp(props);
 

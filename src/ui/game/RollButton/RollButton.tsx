@@ -1,4 +1,5 @@
 import { MouseEvent, ReactNode, forwardRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button, type ButtonProps } from "ui/components/Button";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
@@ -61,13 +62,14 @@ export interface RollButtonProps
  */
 export const RollButton = forwardRef<HTMLElement, RollButtonProps>(
   function RollButton(props, ref) {
+    const { t } = useTranslation();
     const {
       children,
       icon,
       size,
       fullWidth,
       adds = 0,
-      addsLabel = (a) => `adds ${a}`,
+      addsLabel = (a) => t("ui.common.adds", "adds {{adds}}", { adds: a }),
       className,
       onClick,
       onRoll,
