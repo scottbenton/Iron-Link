@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import { css, cx } from "styled-system/css";
 
@@ -77,6 +78,7 @@ const clamp = (value: number, min: number, max: number) =>
  * release, so the page does not re-render on every pointer move.
  */
 export function SidebarResizeHandle(props: SidebarResizeHandleProps) {
+  const { t } = useTranslation();
   const {
     targetId,
     targetRef,
@@ -88,7 +90,8 @@ export function SidebarResizeHandle(props: SidebarResizeHandleProps) {
     onWidthChange,
     onCollapse,
     label,
-    formatValue = (value) => `${value} pixels`,
+    formatValue = (value) =>
+      t("ui.sidebar.width-value", "{{value}} pixels", { value }),
   } = props;
 
   const handleRef = useRef<HTMLDivElement>(null);

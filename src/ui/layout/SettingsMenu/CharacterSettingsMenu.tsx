@@ -16,7 +16,7 @@ import {
   SettingsMenuGame,
   getCharacterMenuItems,
 } from "./settingsMenuSections";
-import { defaultSettingsMenuStrings } from "./settingsMenuStrings";
+import { useSettingsMenuStrings } from "./useSettingsMenuStrings";
 
 export interface CharacterSettingsMenuProps extends SharedMenuProps {
   character: SettingsMenuCharacter;
@@ -44,7 +44,7 @@ export function CharacterSettingsMenu(props: CharacterSettingsMenuProps) {
     defaultOpen,
     onOpenChange,
   } = props;
-  const strings = { ...defaultSettingsMenuStrings, ...props.strings };
+  const strings = useSettingsMenuStrings(props.strings);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
 
   return (

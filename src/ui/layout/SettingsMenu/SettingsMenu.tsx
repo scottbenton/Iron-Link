@@ -22,8 +22,8 @@ import {
   SettingsMenuColorMode,
   SettingsMenuStrings,
   SettingsMenuThemeScope,
-  defaultSettingsMenuStrings,
 } from "./settingsMenuStrings";
+import { useSettingsMenuStrings } from "./useSettingsMenuStrings";
 
 export interface SettingsMenuProps
   extends SettingsMenuContext,
@@ -97,7 +97,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
     defaultOpen,
     onOpenChange,
   } = props;
-  const strings = { ...defaultSettingsMenuStrings, ...props.strings };
+  const strings = useSettingsMenuStrings(props.strings);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
 
   const sections = getSettingsMenuSections({

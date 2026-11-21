@@ -9,6 +9,7 @@ import {
   forwardRef,
   useRef,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -110,6 +111,7 @@ export function focusInputOnWellPress(
  */
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
   function TextField(props, ref) {
+    const { t } = useTranslation();
     const {
       label,
       hideLabel,
@@ -128,7 +130,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       startAdornment,
       endAdornment,
       clearable,
-      clearLabel = "Clear",
+      clearLabel = t("ui.common.clear", "Clear"),
       onClear,
       className,
       shellClassName,

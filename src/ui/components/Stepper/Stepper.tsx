@@ -1,5 +1,6 @@
 import { Check } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
@@ -145,12 +146,13 @@ export interface StepperProps
  * readers and show a check.
  */
 export function Stepper(props: StepperProps) {
+  const { t } = useTranslation();
   const {
     steps,
     activeStep,
     onStepSelect,
-    completedLabel = "Completed",
-    "aria-label": ariaLabel = "Progress",
+    completedLabel = t("ui.stepper.completed", "Completed"),
+    "aria-label": ariaLabel = t("ui.stepper.label", "Progress"),
     className,
     ...rest
   } = withCssProp(props);

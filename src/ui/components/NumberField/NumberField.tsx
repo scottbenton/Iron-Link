@@ -1,6 +1,7 @@
 import { NumberField as BaseNumberField } from "@base-ui/react/number-field";
 import { Minus, Plus } from "@phosphor-icons/react";
 import { CSSProperties, Ref, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -131,6 +132,7 @@ const stepButton = css({
  * ```
  */
 export function NumberField(props: NumberFieldProps) {
+  const { t } = useTranslation();
   const {
     value,
     defaultValue,
@@ -152,8 +154,8 @@ export function NumberField(props: NumberFieldProps) {
     readOnly,
     placeholder,
     "aria-label": ariaLabel,
-    decrementLabel = "Decrease",
-    incrementLabel = "Increase",
+    decrementLabel = t("ui.number-field.decrease", "Decrease"),
+    incrementLabel = t("ui.number-field.increase", "Increase"),
     id,
     className,
     inputClassName,

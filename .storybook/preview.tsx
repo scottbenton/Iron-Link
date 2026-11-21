@@ -1,6 +1,7 @@
 import type { Decorator, Preview } from "@storybook/react-vite";
 import { useEffect } from "react";
 
+import "../src/i18n/config";
 import { UIProvider } from "../src/ui/components/UIProvider";
 import "../src/ui/styles/index.css";
 import { schemeNames, schemes } from "../src/ui/theme";

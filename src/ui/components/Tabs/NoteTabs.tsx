@@ -1,6 +1,7 @@
 import { Tabs as BaseTabs } from "@base-ui/react/tabs";
 import { Plus, X } from "@phosphor-icons/react";
 import { KeyboardEvent, ReactNode, useLayoutEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
@@ -236,16 +237,19 @@ export interface NoteTabsProps extends CssProp {
  * first and in view, and cannot be closed.
  */
 export function NoteTabs(props: NoteTabsProps) {
+  const { t } = useTranslation();
   const {
     tabs,
     value,
     onValueChange,
     onClose,
     onAdd,
-    "aria-label": ariaLabel = "Open notes",
-    addLabel = "New Note",
-    closeLabel = (label: string) => `Close ${label}`,
-    unreadLabel = (count: number) => `${count} new`,
+    "aria-label": ariaLabel = t("ui.note-tabs.label", "Open notes"),
+    addLabel = t("ui.note-tabs.add", "New Note"),
+    closeLabel = (label: string) =>
+      t("ui.note-tabs.close", "Close {{label}}", { label }),
+    unreadLabel = (count: number) =>
+      t("ui.note-tabs.unread", "{{count}} new", { count }),
     children,
     className,
   } = withCssProp(props);

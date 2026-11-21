@@ -7,6 +7,7 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -142,6 +143,7 @@ export interface AlertProps
  * response to something the person did, or announce it with `useAnnounce`.
  */
 export function Alert(props: AlertProps) {
+  const { t } = useTranslation();
   const {
     tone = "info",
     title,
@@ -149,7 +151,7 @@ export function Alert(props: AlertProps) {
     action,
     icon,
     onClose,
-    closeLabel = "Dismiss",
+    closeLabel = t("ui.common.dismiss", "Dismiss"),
     titleAs: TitleTag = "div",
     className,
     ...rest

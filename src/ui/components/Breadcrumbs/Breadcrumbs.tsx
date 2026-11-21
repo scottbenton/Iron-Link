@@ -6,6 +6,7 @@ import {
   forwardRef,
   isValidElement,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -52,8 +53,9 @@ export interface BreadcrumbsProps extends ComponentProps<"nav">, CssProp {
  */
 export const Breadcrumbs = forwardRef<HTMLElement, BreadcrumbsProps>(
   function Breadcrumbs(props, ref) {
+    const { t } = useTranslation();
     const {
-      "aria-label": ariaLabel = "Breadcrumb",
+      "aria-label": ariaLabel = t("ui.breadcrumbs.label", "Breadcrumb"),
       children,
       className,
       ...rest

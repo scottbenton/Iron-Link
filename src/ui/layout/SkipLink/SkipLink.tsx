@@ -1,4 +1,5 @@
 import { ComponentProps } from "react";
+import { useTranslation } from "react-i18next";
 
 import { css, cx } from "styled-system/css";
 
@@ -27,9 +28,10 @@ export interface SkipLinkProps
  * so the address keeps no `#main-content` and Safari moves focus too.
  */
 export function SkipLink(props: SkipLinkProps) {
+  const { t } = useTranslation();
   const {
     targetId = MAIN_CONTENT_ID,
-    label = "Skip to Content",
+    label = t("ui.skip-link.label", "Skip to Content"),
     className,
     onClick,
     ...rest
