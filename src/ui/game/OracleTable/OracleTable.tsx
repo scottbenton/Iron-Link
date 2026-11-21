@@ -7,6 +7,7 @@ import {
   useId,
   useRef,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
@@ -152,6 +153,7 @@ export interface OracleTableProps
  * rolled row highlighted. With `onRoll` its header carries a Roll button.
  */
 export function OracleTable(props: OracleTableProps) {
+  const { t } = useTranslation();
   const {
     oracle,
     rolledRowId,
@@ -159,11 +161,11 @@ export function OracleTable(props: OracleTableProps) {
     rollKey,
     maxHeight,
     onRoll,
-    rollLabel = "Roll",
+    rollLabel = t("ui.common.roll", "Roll"),
     hideHeader,
     titleAs = "h3",
     columnLabels,
-    rolledLabel = "Rolled",
+    rolledLabel = t("ui.oracle-table.rolled", "Rolled"),
     size = "sm",
     className,
     ...rest
@@ -172,7 +174,7 @@ export function OracleTable(props: OracleTableProps) {
   const titleId = useId();
   const rows = oracle.rows as Datasworn.OracleRollableRow[];
   const textColumns = getOracleTextColumns(oracle);
-  const labels = getOracleColumnLabels(oracle, columnLabels);
+  const labels = getOracleColumnLabels(t, oracle, columnLabels);
 
   const rolledRow =
     rolledRowId !== undefined

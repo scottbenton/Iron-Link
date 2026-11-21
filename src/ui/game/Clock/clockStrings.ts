@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+
 export interface ClockStrings {
   /** "3 of 6 segments filled" */
   valueText: (value: number, segments: number) => string;
@@ -13,11 +15,20 @@ export interface ClockStrings {
   completedLabel: string;
 }
 
-export const defaultClockStrings: ClockStrings = {
-  valueText: (value, segments) => `${value} of ${segments} segments filled`,
-  changed: (label, text) => `${label}, ${text}`,
-  advanceLabel: (label) => `Advance ${label}`,
-  removeLabel: (label) => `Remove a segment from ${label}`,
-  fullHint: "The clock is full",
-  completedLabel: "Completed",
-};
+export function getDefaultClockStrings(t: TFunction): ClockStrings {
+  return {
+    valueText: (value, segments) =>
+      t("ui.clock.value-text", "{{value}} of {{segments}} segments filled", {
+        value,
+        segments,
+      }),
+    changed: (label, text) =>
+      t("ui.clock.changed", "{{label}}, {{text}}", { label, text }),
+    advanceLabel: (label) =>
+      t("ui.clock.advance", "Advance {{label}}", { label }),
+    removeLabel: (label) =>
+      t("ui.clock.remove", "Remove a segment from {{label}}", { label }),
+    fullHint: t("ui.clock.full", "The clock is full"),
+    completedLabel: t("ui.clock.completed", "Completed"),
+  };
+}

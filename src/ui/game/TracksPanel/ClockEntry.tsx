@@ -1,4 +1,5 @@
 import { ElementType, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { css } from "styled-system/css";
 
@@ -54,6 +55,7 @@ export interface ClockEntryProps {
  * and Complete.
  */
 export function ClockEntry(props: ClockEntryProps) {
+  const { t } = useTranslation();
   const {
     clock,
     editable,
@@ -97,7 +99,10 @@ export function ClockEntry(props: ClockEntryProps) {
                   label: strings.oddsLabels[value],
                 }))}
                 renderValue={(value) =>
-                  `${strings.odds}: ${strings.oddsLabels[value as OracleOdds]}`
+                  t("ui.common.label-value", "{{label}}: {{value}}", {
+                    label: strings.odds,
+                    value: strings.oddsLabels[value as OracleOdds],
+                  })
                 }
               />
             )}

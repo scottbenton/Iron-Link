@@ -6,6 +6,7 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import { ReactNode, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { focusRing } from "ui/styles/focus";
 import { quietPressable } from "ui/styles/pressable";
@@ -126,6 +127,7 @@ export interface OpenNotesSheetProps {
  * puts focus on the open note.
  */
 export function OpenNotesSheet(props: OpenNotesSheetProps) {
+  const { t } = useTranslation();
   const {
     open,
     onClose,
@@ -135,12 +137,13 @@ export function OpenNotesSheet(props: OpenNotesSheetProps) {
     onCloseNote,
     onNewNote,
     onAllNotes,
-    title = "Open notes",
-    newNoteLabel = "New note",
-    allNotesLabel = "All notes",
-    closeNoteLabel = (name) => `Close ${name}`,
-    emptyLabel = "No notes open.",
-    closeLabel = "Close",
+    title = t("ui.open-notes.title", "Open notes"),
+    newNoteLabel = t("ui.open-notes.new-note", "New note"),
+    allNotesLabel = t("ui.open-notes.all-notes", "All notes"),
+    closeNoteLabel = (name) =>
+      t("ui.open-notes.close-note", "Close {{name}}", { name }),
+    emptyLabel = t("ui.open-notes.empty", "No notes open."),
+    closeLabel = t("ui.common.close", "Close"),
   } = props;
 
   const rows = useRef(new Map<string, HTMLButtonElement>());

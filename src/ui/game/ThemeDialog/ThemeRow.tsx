@@ -1,9 +1,10 @@
 import { CaretDown, LockSimple } from "@phosphor-icons/react";
 import { ReactNode, useId } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "ui/components/Button";
 import { Collapse } from "ui/components/Collapsible";
-import { schemes } from "ui/theme";
+import { getSchemeLabels } from "ui/theme";
 
 import { css } from "styled-system/css";
 
@@ -143,6 +144,7 @@ export function ThemeRow(props: ThemeRowProps) {
     strings,
   } = props;
 
+  const { t } = useTranslation();
   const panelId = useId();
   const source = strings.source(
     resolved.source === level ? "own" : resolved.source,
@@ -166,7 +168,7 @@ export function ThemeRow(props: ThemeRowProps) {
         <p className={resolvedStyles}>
           <SchemeSwatch scheme={resolved.scheme} />
           <span>
-            {strings.resolved(schemes[resolved.scheme].label, source)}
+            {strings.resolved(getSchemeLabels(t)[resolved.scheme], source)}
           </span>
           {changed && <span data-changed="">{strings.changed}</span>}
         </p>

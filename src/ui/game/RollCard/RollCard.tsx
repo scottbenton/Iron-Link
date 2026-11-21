@@ -1,5 +1,6 @@
 import { Skull, Sparkle, X } from "@phosphor-icons/react";
 import { ReactNode, Ref } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -317,6 +318,7 @@ export interface RollCardProps extends Omit<CssProp, "width"> {
  * inside a toast (`elevated`, with the toast's dismiss as `onDismiss`).
  */
 export function RollCard(props: RollCardProps) {
+  const { t } = useTranslation();
   const {
     roll,
     onDismiss,
@@ -334,15 +336,18 @@ export function RollCard(props: RollCardProps) {
     text: textProp,
     diceStrings,
     oneOnActionDieMatters,
-    oneOnActionDieLabel = "One on the action die",
-    cancelledLabel = "Matched negative momentum",
+    oneOnActionDieLabel = t(
+      "ui.roll-card.one-on-action-die",
+      "One on the action die",
+    ),
+    cancelledLabel = t("ui.roll-card.cancelled", "Matched negative momentum"),
     className,
   } = withCssProp(props);
 
-  const text = getRollText(textProp);
+  const text = getRollText(t, textProp);
   const title = getRollTitle(roll);
   const context = getRollContext(roll);
-  const summary = getRollSummary(roll, {
+  const summary = getRollSummary(roll, t, {
     text: textProp,
     prefix: summaryPrefix,
   });
@@ -502,7 +507,10 @@ export function RollCard(props: RollCardProps) {
         <span className={dismissStyles}>
           <IconButton
             ref={dismissButtonRef}
-            label={dismissLabel ?? `Dismiss ${title}`}
+            label={
+              dismissLabel ??
+              t("ui.roll-card.dismiss", "Dismiss {{title}}", { title })
+            }
             size="sm"
             onClick={onDismiss}
           >

@@ -1,5 +1,6 @@
 import { PlusIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -25,7 +26,7 @@ import { ProgressTrackEntry } from "./ProgressTrackEntry";
 import { TrackMenu } from "./TrackMenu";
 import {
   TracksPanelStrings,
-  defaultTracksPanelStrings,
+  getDefaultTracksPanelStrings,
 } from "./tracksPanelStrings";
 import type {
   BondItem,
@@ -181,7 +182,8 @@ export function TracksPanel(props: TracksPanelProps) {
     strings: stringsProp,
     className,
   } = withCssProp(props);
-  const strings = { ...defaultTracksPanelStrings, ...stringsProp };
+  const { t } = useTranslation();
+  const strings = { ...getDefaultTracksPanelStrings(t), ...stringsProp };
   const announce = useAnnounce();
   const listRef = useRef<HTMLDivElement>(null);
 

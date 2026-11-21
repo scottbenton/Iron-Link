@@ -5,6 +5,7 @@ import {
   ReactElement,
   ReactNode,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import { IconButton } from "ui/components/IconButton";
 import { ListRow, ListRowButton } from "ui/components/List";
@@ -26,8 +27,8 @@ export interface OracleListItemProps
   icon?: ReactNode;
   /** Opens the full table, as an icon button beside the row. */
   onViewTable?: () => void;
-  /** The view button's name; the oracle's name is added after it. */
-  viewTableLabel?: string;
+  /** The view button's name, given the oracle's name. */
+  viewTableLabel?: (name: string) => string;
   /** Another control beside the row, in place of the view button. */
   secondaryAction?: ReactNode;
   /**
@@ -49,13 +50,17 @@ export interface OracleListItemProps
  * optional View table button lies over the row's end.
  */
 export function OracleListItem(props: OracleListItemProps) {
+  const { t } = useTranslation();
   const {
     name,
     onRoll,
-    actionLabel = "Roll",
+    actionLabel = t("ui.common.roll", "Roll"),
     icon,
     onViewTable,
-    viewTableLabel = "View table for",
+    viewTableLabel = (oracle: string) =>
+      t("ui.oracle-list-item.view-table", "View table for {{name}}", {
+        name: oracle,
+      }),
     secondaryAction,
     render,
     current,
@@ -76,7 +81,7 @@ export function OracleListItem(props: OracleListItemProps) {
     secondaryAction ??
     (onViewTable && (
       <IconButton
-        label={`${viewTableLabel} ${name}`}
+        label={viewTableLabel(name)}
         size="sm"
         onClick={onViewTable}
         disabled={disabled}

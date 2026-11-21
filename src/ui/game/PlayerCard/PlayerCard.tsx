@@ -1,4 +1,5 @@
 import { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Text } from "ui/components/Text";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
@@ -172,17 +173,24 @@ export interface PlayerCardProps
  * the card.
  */
 export function PlayerCard(props: PlayerCardProps) {
+  const { t } = useTranslation();
   const {
     name,
     role,
-    roleLabels = { guide: "Guide", player: "Player", viewer: "Viewer" },
+    roleLabels = {
+      guide: t("ui.player-card.guide", "Guide"),
+      player: t("ui.player-card.player", "Player"),
+      viewer: t("ui.player-card.viewer", "Viewer"),
+    },
     isYou,
-    youLabel = "(you)",
+    youLabel = t("ui.player-card.you", "(you)"),
     avatarUrl,
     status,
     statusLabel,
     characters,
-    charactersLabel = `${name}'s characters`,
+    charactersLabel = t("ui.player-card.characters", "{{name}}'s characters", {
+      name,
+    }),
     actions,
     headingAs = "h3",
     className,

@@ -1,12 +1,14 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import type { Datasworn } from "@datasworn-community/core";
 import { CaretDown } from "@phosphor-icons/react";
+import type { TFunction } from "i18next";
 import {
   ComponentPropsWithoutRef,
   ElementType,
   ReactNode,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "ui/components/Button";
 import { Text } from "ui/components/Text";
@@ -126,11 +128,13 @@ export interface MoveCardProps
   className?: string;
 }
 
-const defaultRollWithLabels: Record<string, string> = {
-  action_roll: "Roll with",
-  progress_roll: "Roll progress",
-  special_track: "Roll your legacy",
-};
+function getDefaultRollWithLabels(t: TFunction): Record<string, string> {
+  return {
+    action_roll: t("ui.move-card.roll-with", "Roll with"),
+    progress_roll: t("ui.move-card.roll-progress", "Roll progress"),
+    special_track: t("ui.move-card.roll-legacy", "Roll your legacy"),
+  };
+}
 
 /**
  * A move: category, name, rules text with its trigger and outcomes, a roll
@@ -141,18 +145,19 @@ const defaultRollWithLabels: Record<string, string> = {
  * move list, the reference) wrap it themselves.
  */
 export function MoveCard(props: MoveCardProps) {
+  const { t } = useTranslation();
   const {
     move,
     category,
     rollOptions = [],
     onRoll,
     rollWithLabel: rollWithLabelProp,
-    noTracksLabel = "No tracks to roll",
+    noTracksLabel = t("ui.move-card.no-tracks", "No tracks to roll"),
     onRollOracle,
     rolledOracleRows,
     defaultOraclesShown = false,
-    showOraclesLabel = "Show oracles",
-    hideOraclesLabel = "Hide oracles",
+    showOraclesLabel = t("ui.move-card.show-oracles", "Show oracles"),
+    hideOraclesLabel = t("ui.move-card.hide-oracles", "Hide oracles"),
     actions,
     headingAs = "h3",
     hideName,
@@ -166,7 +171,9 @@ export function MoveCard(props: MoveCardProps) {
   } = withCssProp(props);
 
   const rollWithLabel =
-    rollWithLabelProp ?? defaultRollWithLabels[move.roll_type] ?? "Roll with";
+    rollWithLabelProp ??
+    getDefaultRollWithLabels(t)[move.roll_type] ??
+    t("ui.move-card.roll-with", "Roll with");
   const showNoTracks =
     move.roll_type === "progress_roll" && rollOptions.length === 0;
 
@@ -265,7 +272,10 @@ export function MoveCard(props: MoveCardProps) {
         <div
           className={sectionStyles}
           role="group"
-          aria-label={`${rollWithLabel}: ${move.name}`}
+          aria-label={t("ui.move-card.roll-group", "{{rollWith}}: {{move}}", {
+            rollWith: rollWithLabel,
+            move: move.name,
+          })}
         >
           <Text variant="label" color="muted">
             {rollWithLabel}

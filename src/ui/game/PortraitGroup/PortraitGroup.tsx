@@ -1,4 +1,5 @@
 import { CSSProperties, ComponentPropsWithoutRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Tooltip } from "ui/components/Tooltip";
 import { CssProp, withCssProp } from "ui/styles/cssProp";
@@ -89,13 +90,18 @@ export interface PortraitGroupProps
  * one it overlaps.
  */
 export function PortraitGroup(props: PortraitGroupProps) {
+  const { t } = useTranslation();
   const {
     members,
     size = "sm",
     max,
     spacing,
-    label = "Characters",
-    overflowLabel = (count, names) => `${count} more: ${names.join(", ")}`,
+    label = t("ui.portrait-group.label", "Characters"),
+    overflowLabel = (count, names) =>
+      t("ui.portrait-group.overflow", "{{count}} more: {{names}}", {
+        count,
+        names: names.join(", "),
+      }),
     className,
     style,
     ...rest

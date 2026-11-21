@@ -1,4 +1,5 @@
 import type { Datasworn } from "@datasworn-community/core";
+import i18next from "i18next";
 import { useState } from "react";
 
 import type { GameLogEntry } from "../../game/GameLog";
@@ -97,7 +98,7 @@ export function usePlaySheet() {
     roll,
     /** A move's roll buttons, with Kira's values. */
     moveRollOptions: (move: Datasworn.AnyMove): MoveRollOption[] =>
-      getMoveRollOptions(move).map((option) => ({
+      getMoveRollOptions(move, i18next.t).map((option) => ({
         ...option,
         value: statValue(option.id),
       })),

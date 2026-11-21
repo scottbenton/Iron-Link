@@ -1,5 +1,6 @@
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 import { CSSProperties, useLayoutEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { css, cx } from "styled-system/css";
 
@@ -99,18 +100,22 @@ export interface RollDockProps extends CssProp {
  * width less 16px each side.
  */
 export function RollDock(props: RollDockProps) {
+  const { t } = useTranslation();
   const {
     items,
     onDismiss,
     onClearAll,
     clampHeight = 240,
-    label = "Notifications",
+    label = t("ui.roll-dock.notifications", "Notifications"),
     countLabel = (count: number) =>
-      count === 1 ? "1 notification" : `${count} notifications`,
-    showAllLabel = "Show all",
-    showLessLabel = "Show less",
-    clearAllLabel = "Clear all",
-    emptyLabel = "No notifications",
+      t("ui.roll-dock.count", "{{count}} notifications", {
+        count,
+        defaultValue_one: "{{count}} notification",
+      }),
+    showAllLabel = t("ui.roll-dock.show-all", "Show all"),
+    showLessLabel = t("ui.roll-dock.show-less", "Show less"),
+    clearAllLabel = t("ui.roll-dock.clear-all", "Clear all"),
+    emptyLabel = t("ui.roll-dock.empty", "No notifications"),
     className,
   } = withCssProp(props);
 

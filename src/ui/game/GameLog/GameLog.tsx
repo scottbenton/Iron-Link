@@ -7,6 +7,7 @@ import {
   useLayoutEffect,
   useRef,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -23,7 +24,7 @@ import {
   GAME_LOG_GROUP_WINDOW_MS,
   getGameLogGroupPositions,
 } from "./gameLogGroups";
-import { GameLogStrings, defaultGameLogStrings } from "./gameLogStrings";
+import { GameLogStrings, getDefaultGameLogStrings } from "./gameLogStrings";
 import { sameDay } from "./gameLogTime";
 
 export interface GameLogAuthor {
@@ -239,7 +240,8 @@ export function GameLog(props: GameLogProps) {
     maxContentWidth,
     className,
   } = withCssProp<GameLogProps>(props);
-  const strings = { ...defaultGameLogStrings, ...stringsProp };
+  const { t } = useTranslation();
+  const strings = { ...getDefaultGameLogStrings(t), ...stringsProp };
 
   const formatDay =
     formatDayProp ??

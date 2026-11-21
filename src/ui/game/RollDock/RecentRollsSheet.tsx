@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import { css } from "styled-system/css";
 
@@ -43,16 +44,17 @@ export interface RecentRollsSheetProps {
  * sheet too. The roll dock's "N notifications" handle opens it.
  */
 export function RecentRollsSheet(props: RecentRollsSheetProps) {
+  const { t } = useTranslation();
   const {
     open,
     onClose,
     items,
     onDismiss,
     onClearAll,
-    title = "Notifications",
-    clearAllLabel = "Clear all",
-    emptyLabel = "No notifications",
-    closeLabel = "Close",
+    title = t("ui.roll-dock.notifications", "Notifications"),
+    clearAllLabel = t("ui.roll-dock.clear-all", "Clear all"),
+    emptyLabel = t("ui.roll-dock.empty", "No notifications"),
+    closeLabel = t("ui.common.close", "Close"),
   } = props;
   const newestFirst = [...items].reverse();
   // When the last card is dismissed, focus moves to the message saying so

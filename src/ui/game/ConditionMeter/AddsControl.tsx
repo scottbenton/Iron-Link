@@ -1,5 +1,6 @@
 import { Minus, Plus, Question } from "@phosphor-icons/react";
 import { useId } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -173,6 +174,7 @@ export interface AddsControlProps extends CssProp {
  * which a tooltip does not), and is also the group's description.
  */
 export function AddsControl(props: AddsControlProps) {
+  const { t } = useTranslation();
   const {
     value,
     onChange,
@@ -180,12 +182,19 @@ export function AddsControl(props: AddsControlProps) {
     max = 9,
     disabled,
     stepperSize = "sm",
-    label = "Adds",
-    hint = "Added to your next action roll",
-    helpLabel = (l) => `About ${l}`,
-    decrementLabel = (l) => `Subtract 1 from ${l}`,
-    incrementLabel = (l) => `Add 1 to ${l}`,
-    changeAnnouncement = (l, v) => `${l} is now ${v}`,
+    label = t("ui.adds-control.label", "Adds"),
+    hint = t("ui.adds-control.hint", "Added to your next action roll"),
+    helpLabel = (l) =>
+      t("ui.adds-control.help", "About {{label}}", { label: l }),
+    decrementLabel = (l) =>
+      t("ui.meter.decrement", "Subtract 1 from {{label}}", { label: l }),
+    incrementLabel = (l) =>
+      t("ui.meter.increment", "Add 1 to {{label}}", { label: l }),
+    changeAnnouncement = (l, v) =>
+      t("ui.meter.changed", "{{label}} is now {{value}}", {
+        label: l,
+        value: v,
+      }),
     className,
   } = withCssProp<AddsControlProps>(props);
 
