@@ -1,6 +1,7 @@
-import { useConfirm } from "material-ui-confirm";
 import { ChangeEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { useWorldMapsStore } from "stores/worldMaps.store";
 
@@ -66,7 +67,6 @@ export function useWorldMapBackgroundUpload(
         "The image is deleted from this map. Painted cells and pins stay. This cannot be undone.",
       ),
       confirmationText: t("worlds.maps.background.remove-confirm", "Remove"),
-      confirmationButtonProps: { color: "error", variant: "contained" },
     });
     if (confirmed) await run(null);
   };

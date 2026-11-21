@@ -12,13 +12,14 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 import { CreateWorldForm } from "components/worlds/CreateWorldForm";
 import { WorldOracleChangeWarning } from "components/worlds/WorldOracleChangeWarning";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 

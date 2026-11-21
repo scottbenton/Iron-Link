@@ -1,9 +1,10 @@
 import DeleteIcon from "@mui/icons-material/Delete";
 import { ListItemIcon, ListItemText, MenuItem } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 import { pathConfig } from "pages/pathConfig";

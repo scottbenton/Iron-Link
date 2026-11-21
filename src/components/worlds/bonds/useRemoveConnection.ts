@@ -1,6 +1,7 @@
-import { useConfirm } from "material-ui-confirm";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { IWorldEntryConnection } from "services/worldEntryBonds.service";
 

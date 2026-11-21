@@ -7,11 +7,12 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { WorldSettingsSection } from "components/worlds/WorldSettingsSection";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 

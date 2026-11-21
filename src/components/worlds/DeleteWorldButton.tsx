@@ -1,8 +1,9 @@
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Button } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { useWorldStore } from "stores/world.store";
 

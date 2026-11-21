@@ -1,10 +1,12 @@
-import { Button, capitalize } from "@mui/material";
+import { capitalize } from "@mui/material";
 import { TFunction } from "i18next";
-import { closeSnackbar, enqueueSnackbar } from "notistack";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import { parseRepositoryErrorAndCreateSnackbar } from "providers/SnackbarProvider";
+import {
+  createInfoSnackbar,
+  parseRepositoryErrorAndCreateSnackbar,
+} from "providers/SnackbarProvider";
 
 import { useGameCharactersStore } from "stores/gameCharacters.store";
 import { useWorldEntryBondsStore } from "stores/worldEntryBonds.store";
@@ -71,20 +73,13 @@ export function useWorldBondActions(mechanics: WorldBondMechanics | null) {
 
   const notify = useCallback(
     (message: string, undo: () => Promise<unknown>) => {
-      enqueueSnackbar(message, {
-        variant: "info",
-        action: (id) => (
-          <Button
-            color="inherit"
-            size="small"
-            onClick={() => {
-              closeSnackbar(id);
-              undo().catch(parseRepositoryErrorAndCreateSnackbar);
-            }}
-          >
-            {t("worlds.bonds.undo", "Undo")}
-          </Button>
-        ),
+      createInfoSnackbar(message, {
+        action: {
+          label: t("worlds.bonds.undo", "Undo"),
+          onClick: () => {
+            undo().catch(parseRepositoryErrorAndCreateSnackbar);
+          },
+        },
       });
     },
     [t],

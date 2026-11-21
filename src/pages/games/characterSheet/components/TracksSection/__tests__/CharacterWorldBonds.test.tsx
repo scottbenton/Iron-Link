@@ -28,10 +28,19 @@ import { CharacterWorldBonds } from "../CharacterWorldBonds";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("stores/auth.store", () => ({ useUID: () => "me" }));
-vi.mock("notistack", () => ({
-  enqueueSnackbar: vi.fn(),
-  closeSnackbar: vi.fn(),
-}));
+vi.mock("ui/components/Toast", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("ui/components/Toast")>();
+  return {
+    ...actual,
+    toast: {
+      ...actual.toast,
+      info: vi.fn(),
+      success: vi.fn(),
+      warning: vi.fn(),
+      error: vi.fn(),
+    },
+  };
+});
 vi.mock("pages/games/characterSheet/hooks/useCharacterId", () => ({
   useCharacterId: () => "kira",
   useCharacterIdOptional: () => "kira",

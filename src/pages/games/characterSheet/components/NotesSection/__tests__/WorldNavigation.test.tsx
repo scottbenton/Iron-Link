@@ -71,7 +71,10 @@ vi.mock("stores/game.store", () => ({
 vi.mock("hooks/advancedFeatures/advancedFeatures", () => ({
   useAdvancedFeatureToggle: () => context.worldsEnabled,
 }));
-vi.mock("material-ui-confirm", () => ({ useConfirm: () => confirm }));
+vi.mock("ui/components/ConfirmDialog", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("ui/components/ConfirmDialog")>()),
+  useConfirm: () => confirm,
+}));
 vi.mock("pages/games/gamePageLayout/hooks/useGameId", () => ({
   useGameId: () => "game-a",
 }));

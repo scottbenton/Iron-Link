@@ -1,6 +1,5 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ConfirmProvider } from "material-ui-confirm";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -8,6 +7,8 @@ import {
   type WorldNavigation,
   getWorldViewPath,
 } from "components/worlds/worldNavigation";
+
+import { ConfirmProvider } from "ui/components/ConfirmDialog";
 
 import { IconColors } from "types/Icon.type";
 
