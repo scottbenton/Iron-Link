@@ -59,9 +59,11 @@ describe("clock dial, app and library", () => {
     },
   );
 
-  it("differs on a one segment clock: the app's arc has no length", () => {
+  // changes.md row 34: the app's one segment arc had no length; it now
+  // draws the library's full circle (the app offers no one segment clock).
+  it("draws a one segment clock as the library's circle", () => {
     expect(normalisePath(renderSegmentPath(0, 1))).toEqual(
-      normalisePath("M 50 50 L 50 0 A 50 50 0 1 1 50 0 z"),
+      normalisePath(wedgePath(0, 1)),
     );
     expect(wedgePath(0, 1)).toMatch(/^M 50 0 A/);
   });
