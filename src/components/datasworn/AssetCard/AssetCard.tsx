@@ -1,5 +1,6 @@
-import { Datasworn } from "@datasworn-community/core";
 import { Box, Card, Stack, SxProps, Theme, Typography } from "@mui/material";
+
+import { getAssetFields } from "ui/game/AssetCard/assetData";
 
 import { useAsset } from "hooks/datasworn/useAsset";
 
@@ -70,38 +71,12 @@ export function AssetCard(props: AssetCardProps) {
     );
   }
 
-  const assetControls: Record<
-    string,
-    Datasworn.AssetControlField | Datasworn.AssetAbilityControlField
-  > = { ...asset.controls };
-  const assetOptions = { ...asset.options };
-
-  asset.abilities.forEach((ability, index) => {
-    const isEnabled = ability.enabled || assetDocument?.enabledAbilities[index];
-
-    if (isEnabled) {
-      const controls = ability.controls ?? {};
-      const options = ability.options ?? {};
-      Object.keys(controls).forEach((controlKey) => {
-        assetControls[controlKey] = controls[controlKey];
-      });
-      Object.keys(options).forEach((optionKey) => {
-        assetOptions[optionKey] = options[optionKey];
-      });
-
-      const enhanceControls = ability.enhance_asset?.controls ?? {};
-      Object.keys(enhanceControls).forEach((controlKey) => {
-        const enhancement = enhanceControls[controlKey];
-        const assetControl = assetControls[controlKey];
-        if (assetControl?.field_type === enhancement.field_type) {
-          assetControls[controlKey] = {
-            ...assetControl,
-            ...(enhancement as Partial<typeof assetControl>),
-          };
-        }
-      });
-    }
-  });
+  // Abilities ticked on add their own controls and options, and can
+  // enhance the asset's (the library counts them for both cards).
+  const { controls: assetControls, options: assetOptions } = getAssetFields(
+    asset,
+    assetDocument,
+  );
 
   return (
     <Card

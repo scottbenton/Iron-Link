@@ -15,6 +15,7 @@ import {
 } from "../../components/Popover";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { clamp, formatSigned } from "../shared/format";
+import { getMeterStrings } from "./meterStrings";
 
 /**
  * One pill holding the label, a help button and the stepper: a modifier
@@ -186,15 +187,9 @@ export function AddsControl(props: AddsControlProps) {
     hint = t("ui.adds-control.hint", "Added to your next action roll"),
     helpLabel = (l) =>
       t("ui.adds-control.help", "About {{label}}", { label: l }),
-    decrementLabel = (l) =>
-      t("ui.meter.decrement", "Subtract 1 from {{label}}", { label: l }),
-    incrementLabel = (l) =>
-      t("ui.meter.increment", "Add 1 to {{label}}", { label: l }),
-    changeAnnouncement = (l, v) =>
-      t("ui.meter.changed", "{{label}} is now {{value}}", {
-        label: l,
-        value: v,
-      }),
+    decrementLabel = getMeterStrings(t).decrement,
+    incrementLabel = getMeterStrings(t).increment,
+    changeAnnouncement = getMeterStrings(t).changed,
     className,
   } = withCssProp<AddsControlProps>(props);
 
