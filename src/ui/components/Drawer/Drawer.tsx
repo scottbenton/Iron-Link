@@ -3,6 +3,8 @@ import { ComponentProps, ReactNode } from "react";
 
 import { css, cva, cx } from "styled-system/css";
 
+import { LiveRegion } from "../Announcer";
+import { HeadingOffset } from "../HeadingOffset";
 import { isPressOnToasts } from "../Toast/toastViewport";
 
 type Placement = "left" | "right" | "bottom";
@@ -183,7 +185,9 @@ export function Drawer(props: DrawerProps) {
             finalFocus={finalFocus}
           >
             {side === "bottom" && <div className={handleStyles} aria-hidden />}
-            {children}
+            <HeadingOffset reset>{children}</HeadingOffset>
+            {/* A modal drawer makes the page inert; this reads the same store. */}
+            {modal && <LiveRegion />}
           </BaseDrawer.Popup>
         </BaseDrawer.Viewport>
       </BaseDrawer.Portal>

@@ -19,8 +19,7 @@ export interface ToastOptions {
   action?: ToastAction;
   /**
    * What a screen reader hears; defaults to the message (and a string
-   * description). Pass `false` to stay silent, for example when an open
-   * dialog announces it instead through `useDialogAnnounce()`.
+   * description). Pass `false` to stay silent.
    */
   announcement?: string | false;
   dismissLabel?: string;
@@ -173,17 +172,8 @@ export interface ToastApi {
  * returns the same object. Nothing dismisses itself: every toast has a
  * Dismiss button, and the Toaster offers Clear All when several are open.
  * Each toast is announced once through `useAnnounce()`; Sonner's own live
- * region is switched off so nothing is read twice.
- *
- * While a modal dialog is open, the page's live region may be hidden from
- * screen readers. A dialog that stays open after the action should announce
- * through its own region and keep the toast silent:
- *
- * ```ts
- * const dialogAnnounce = useDialogAnnounce();
- * toast.success("Asset added", { announcement: dialogAnnounce ? false : undefined });
- * dialogAnnounce?.("Asset added");
- * ```
+ * region is switched off so nothing is read twice. An open modal dialog or
+ * drawer reads the same announcement in its own region.
  */
 export const toast: ToastApi = {
   info: (message, options) => show("info", message, options),

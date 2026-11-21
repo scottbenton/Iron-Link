@@ -6,8 +6,13 @@ import { Toaster } from "../Toast";
 import { TooltipProvider } from "../Tooltip";
 
 export interface UIProviderProps extends PropsWithChildren {
-  /** Route announcements to the app's live region (`useSetAnnouncement`). */
+  /**
+   * Route announcements to the app's own store (`useSetAnnouncement`), with
+   * its latest `message` and `nonce`, so dialog and drawer regions read it.
+   */
   announce?: Announce;
+  message?: string | null;
+  nonce?: number;
 }
 
 /**
@@ -16,9 +21,9 @@ export interface UIProviderProps extends PropsWithChildren {
  * mode and scheme are attributes on <html>; set them with applyUITheme.
  */
 export function UIProvider(props: UIProviderProps) {
-  const { announce, children } = props;
+  const { announce, message, nonce, children } = props;
   return (
-    <AnnouncerProvider announce={announce}>
+    <AnnouncerProvider announce={announce} message={message} nonce={nonce}>
       <TooltipProvider delay={500} closeDelay={0}>
         <ConfirmProvider>{children}</ConfirmProvider>
         <Toaster />

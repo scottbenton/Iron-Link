@@ -9,8 +9,12 @@ import { overlayTint } from "ui/styles/pressable";
 import { css, cva, cx } from "styled-system/css";
 
 import { collapsiblePanelStyles } from "../../components/Collapsible/collapsibleStyles";
+import {
+  getHeadingLevel,
+  useHeadingLevel,
+} from "../../components/HeadingOffset";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
-import { CategoryContext, HeadingLevel } from "./categoryContext";
+import { CategoryContext, CategoryHeadingLevel } from "./categoryContext";
 
 const rootStyles = css({
   display: "grid",
@@ -165,7 +169,7 @@ export interface ReferenceCategoryProps extends CssProp {
    * under its h2). Nested categories take the next level down by
    * themselves, to h6 at most.
    */
-  headingLevel?: HeadingLevel;
+  headingLevel?: CategoryHeadingLevel;
   disabled?: boolean;
   /** Rows (`MoveListItem`, `OracleListItem`) and nested categories. */
   children: ReactNode;
@@ -200,7 +204,13 @@ export function ReferenceCategory(props: ReferenceCategoryProps) {
 
   const parent = useContext(CategoryContext);
   const depth = parent ? parent.depth + 1 : 0;
-  const headingLevel = headingLevelProp ?? parent?.headingLevel ?? 3;
+  // A written level is shifted by any surrounding HeadingOffset; a nested
+  // category follows its parent, which already was.
+  const offsetLevel = useHeadingLevel(headingLevelProp ?? 3);
+  const headingLevel =
+    headingLevelProp !== undefined
+      ? offsetLevel
+      : (parent?.headingLevel ?? offsetLevel);
   const Heading = `h${headingLevel}` as const;
   const step = depth === 0 ? "band" : depth === 1 ? "sub" : "deep";
 
@@ -233,7 +243,7 @@ export function ReferenceCategory(props: ReferenceCategoryProps) {
           <CategoryContext.Provider
             value={{
               depth,
-              headingLevel: Math.min(headingLevel + 1, 6) as HeadingLevel,
+              headingLevel: getHeadingLevel(headingLevel + 1),
             }}
           >
             {children}

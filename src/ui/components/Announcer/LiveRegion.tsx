@@ -1,32 +1,33 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 
 import { VisuallyHidden } from "../VisuallyHidden";
+import { AnnouncementContext } from "./announcementContext";
 import { useLiveText } from "./useLiveText";
 
 export interface LiveRegionProps {
-  /** The message to read, or null for none. */
-  message: string | null;
   /**
-   * Goes up with every message, so the same words sent twice are read twice
-   * (Iron Link's `useAnnouncementId`).
+   * The message to read, or null for none. Leave it out to read the shared
+   * announcement store, which is what the page, dialogs and drawers do.
    */
+  message?: string | null;
+  /** Goes up with every message, so the same words sent twice are read twice. */
   nonce?: number;
   id?: string;
 }
 
 /**
- * A live region fed by a message and its count. Dialogs render one, since a
- * modal dialog makes everything outside it inert, and so can the app, from
- * its own announcement store:
- * `<LiveRegion message={useAnnouncement()} nonce={useAnnouncementId()} />`.
+ * A polite live region. It starts empty, so one mounted after a message (a
+ * dialog opening) does not read it again. The page renders one, and so does
+ * every modal dialog and drawer, since a modal makes the page inert.
  */
 export function LiveRegion(props: LiveRegionProps) {
   const { message, nonce = 0, id } = props;
-  const value = useMemo(
+  const shared = useContext(AnnouncementContext);
+  const own = useMemo(
     () => (message ? { text: message, nonce } : null),
     [message, nonce],
   );
-  const text = useLiveText(value);
+  const text = useLiveText(message === undefined ? shared : own);
   return (
     <VisuallyHidden id={id} role="status" aria-live="polite" aria-atomic="true">
       {text}

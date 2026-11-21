@@ -1,14 +1,6 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import RollIcon from "@mui/icons-material/Casino";
-import {
-  Box,
-  Button,
-  IconButton,
-  Tooltip,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+import { Box, Button, IconButton, Tooltip, Typography } from "@mui/material";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +10,8 @@ import { OracleTree } from "components/datasworn/OracleTree";
 import { TreeLinkMode } from "components/datasworn/_helpers/treeLinkMode";
 
 import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";
+
+import { useIsMobile } from "hooks/useIsMobile";
 
 import {
   referenceDetailMaxWidth,
@@ -48,8 +42,7 @@ export interface ReferenceBrowseSectionProps {
 export function ReferenceBrowseSection(props: ReferenceBrowseSectionProps) {
   const { tab, section, selectedId, detail } = props;
   const { t } = useTranslation();
-  const theme = useTheme();
-  const isSmall = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmall = useIsMobile();
 
   const overrides = useReferenceSettings(
     (state) => state.sourceVisibility[tab.id],

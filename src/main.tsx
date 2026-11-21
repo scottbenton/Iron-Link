@@ -14,6 +14,7 @@ import { installStaleChunkReload } from "lib/staleChunkReload.lib";
 
 import "./App.css";
 import "./lib/audio.lib";
+import "./ui/styles/index.css";
 
 installStaleChunkReload();
 
