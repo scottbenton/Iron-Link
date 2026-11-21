@@ -18,6 +18,7 @@ import {
 } from "../StatCard/statCardStyles";
 import { clamp, formatSigned } from "../shared/format";
 import { MeterNumber } from "./MeterNumber";
+import { getMeterStrings } from "./meterStrings";
 
 const meterStyles = css({
   display: "inline-grid",
@@ -223,15 +224,9 @@ export function ConditionMeter(props: ConditionMeterProps) {
     children,
     valueControl,
     rollLabel = t("ui.common.roll", "Roll"),
-    decrementLabel = (l) =>
-      t("ui.meter.decrement", "Subtract 1 from {{label}}", { label: l }),
-    incrementLabel = (l) =>
-      t("ui.meter.increment", "Add 1 to {{label}}", { label: l }),
-    changeAnnouncement = (l, v) =>
-      t("ui.meter.changed", "{{label}} is now {{value}}", {
-        label: l,
-        value: v,
-      }),
+    decrementLabel = getMeterStrings(t).decrement,
+    incrementLabel = getMeterStrings(t).increment,
+    changeAnnouncement = getMeterStrings(t).changed,
     className,
   } = withCssProp<ConditionMeterProps>(props);
 

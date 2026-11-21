@@ -3,3 +3,4 @@ export * from "./MeterNumber";
 export * from "./MomentumMeter";
 export * from "./AddsControl";
 export * from "./XPMeter";
+export * from "./meterStrings";
