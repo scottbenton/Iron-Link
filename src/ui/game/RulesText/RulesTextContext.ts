@@ -1,14 +1,16 @@
 import type { Datasworn } from "@datasworn-community/core";
 import { ReactNode, createContext } from "react";
 
-/** A `{{type>id}}` macro in Datasworn's rules text. */
+/**
+ * A `{{type>id}}` macro standing alone as a paragraph in Datasworn's rules
+ * text, as a table does. A macro inside a sentence shows as written: rules
+ * text never has one (only FE Runners' oracle row templates do).
+ */
 export interface RulesTextMacro {
-  /** `table`, `table_columns`, `text`, or another macro name. */
+  /** `table`, `table_columns`, or another macro name. */
   type: string;
   /** The Datasworn id it names. */
   id: string;
-  /** Whether it stands alone as a paragraph (a table) or sits in a sentence. */
-  block: boolean;
 }
 
 export type RulesTextOracle =
@@ -31,7 +33,7 @@ export interface RulesTextOptions {
   resolveOracle?: (id: string) => RulesTextOracle | undefined;
   /**
    * Draws a macro yourself. Return undefined to fall back: oracle tables
-   * through `resolveOracle`, inline text as its name, anything else hidden.
+   * through `resolveOracle`, anything else hidden.
    */
   renderMacro?: (macro: RulesTextMacro) => ReactNode | undefined;
 }

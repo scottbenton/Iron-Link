@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { D10Grey } from "assets/D10Grey";
 import { SkullIcon } from "assets/SkullIcon";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { RulesText } from "ui/game/RulesText";
 
 import { useOracleRollable } from "hooks/datasworn/useOracleRollable";
 
@@ -76,12 +76,11 @@ export function OracleRollAccordion(props: OracleRollAccordionProps) {
               : oracle.name}
           </Link>
         )}
-        <MarkdownRenderer markdown={roll.result} typographyVariant="body1" />
+        <RulesText markdown={roll.result} size="md" />
         {roll.cursedDieAdditiveResult && (
-          <MarkdownRenderer
-            markdown={roll.cursedDieAdditiveResult}
-            typographyVariant="body1"
-          />
+          <Box mt={1}>
+            <RulesText markdown={roll.cursedDieAdditiveResult} size="md" />
+          </Box>
         )}
       </AccordionDetails>
     </Accordion>

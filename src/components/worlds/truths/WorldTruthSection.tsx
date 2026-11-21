@@ -6,7 +6,8 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useHeadingComponent } from "components/HeadingLevel";
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+
+import { RulesText } from "ui/game/RulesText";
 
 import {
   type WorldTruthChoice,
@@ -153,18 +154,16 @@ export function WorldTruthSection({
         )}
       </Box>
       {question && (
-        <MarkdownRenderer
-          markdown={question}
-          typographyVariant="body1"
-          sx={{ fontWeight: 600 }}
-        />
+        <Box sx={{ fontWeight: 600, mb: 1 }}>
+          <RulesText markdown={question} size="md" />
+        </Box>
       )}
       {truth.your_character && (
         <Box sx={{ color: "text.secondary", mb: 2 }}>
-          <MarkdownRenderer
+          <RulesText
             markdown={truth.your_character}
-            typographyVariant="body2"
-            inheritColor
+            size="sm"
+            color="inherit"
           />
         </Box>
       )}

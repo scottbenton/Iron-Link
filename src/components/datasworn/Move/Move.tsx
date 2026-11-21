@@ -2,7 +2,8 @@ import { Box, SxProps, Theme, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+
+import { RulesText } from "ui/game/RulesText";
 
 import { useMove } from "hooks/datasworn/useMove";
 
@@ -39,7 +40,7 @@ export function Move(props: MoveProps) {
     <Box bgcolor="background.paper" sx={sx}>
       {!hideMoveName && <Typography variant={"h6"}>{move.name}</Typography>}
       {!hideRollOptions && <MoveRollOptions move={move} />}
-      <MarkdownRenderer markdown={move.text} />
+      <RulesText markdown={move.text} size="sm" />
       <MoveOracles move={move} />
     </Box>
   );

@@ -8,4 +8,3 @@ export * from "./RulesTextProvider";
 export * from "./mergeRulesTextOptions";
 export * from "./useRulesTextOptions";
 export * from "./rulesTextStyles";
-export { getMacroFallbackLabel } from "./macros";
