@@ -9,6 +9,7 @@ import { TextField, TextFieldProps } from "../../components/TextField";
 import { Tooltip } from "../../components/Tooltip";
 import { useControllableState } from "../../hooks/useControllableState";
 import { DieFace, useDieFace } from "../DieFace";
+import { getOracleTextFieldStrings } from "./oracleTextFieldStrings";
 
 /**
  * The roll button inside the well: the field's small ghost button, with the
@@ -84,9 +85,7 @@ export const OracleTextField = forwardRef<
   const {
     onRoll,
     oracleName,
-    rollLabel = t("ui.oracle-text-field.roll", "Roll {{oracle}}", {
-      oracle: oracleName,
-    }),
+    rollLabel = getOracleTextFieldStrings(t).roll(oracleName),
     rollAnnouncement,
     value: valueProp,
     defaultValue = "",
@@ -117,10 +116,7 @@ export const OracleTextField = forwardRef<
     const name = typeof label === "string" ? label : oracleName;
     const spoken = rollAnnouncement
       ? rollAnnouncement(result)
-      : t("ui.oracle-text-field.updated", "Updated {{name}} to {{result}}", {
-          name,
-          result,
-        });
+      : getOracleTextFieldStrings(t).updated(name, result);
     if (spoken) announce(spoken);
   };
 
