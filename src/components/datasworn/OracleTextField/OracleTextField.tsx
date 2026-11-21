@@ -6,22 +6,17 @@ import {
   TextFieldProps,
   Tooltip,
 } from "@mui/material";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import { getOracleCollection } from "hooks/datasworn/useOracleCollection";
-import { getOracleRollable } from "hooks/datasworn/useOracleRollable";
-import { useRollOracle } from "hooks/useRollOracle";
+import { getOracleTextFieldStrings } from "ui/game/OracleTextField/oracleTextFieldStrings";
 
 import { useSetAnnouncement } from "stores/appState.store";
 
-import { IOracleTableRoll } from "services/gameLog.service";
+import { OracleTextFieldOracleConfig } from "./oracleTextFieldRoll";
+import { useOracleTextFieldRoll } from "./useOracleTextFieldRoll";
 
-export type OracleTextFieldOracleConfig = {
-  tableIds: (string | OracleTextFieldOracleConfig)[];
-  joinTables?: boolean;
-  joinSeparator?: string;
-};
+export type { OracleTextFieldOracleConfig } from "./oracleTextFieldRoll";
 
 export type OracleTextFieldProps = Omit<TextFieldProps, "onChange"> & {
   value?: string;
@@ -36,29 +31,22 @@ export function OracleTextField(props: OracleTextFieldProps) {
   const { t } = useTranslation();
   const announce = useSetAnnouncement();
 
-  const doesOracleExist = useMemo(() => {
-    return checkIfAtLeastOneOracleExists(oracleId, oracleConfig);
-  }, [oracleId, oracleConfig]);
+  const { canRoll: doesOracleExist, roll } = useOracleTextFieldRoll(
+    oracleId || oracleConfig,
+  );
 
-  const getOracleResult = useRollOracle();
-
+  // A roll that finds nothing still clears the field and is announced
+  // (changes.md row 38 proposes the library's: leave it as it is).
   const handleOracleRoll = useCallback(() => {
-    let value = "";
-    if (oracleId || oracleConfig) {
-      value = rollOracle(oracleId ?? oracleConfig, getOracleResult);
-    }
+    const value = roll() ?? "";
     onChange(value);
     announce(
-      t(
-        "datasworn.a11y.oracle-field-rolled",
-        "Updated {{label}} to {{value}}",
-        {
-          label,
-          value,
-        },
+      getOracleTextFieldStrings(t).updated(
+        typeof label === "string" ? label : "",
+        value,
       ),
     );
-  }, [announce, label, oracleId, oracleConfig, getOracleResult, onChange, t]);
+  }, [announce, label, roll, onChange, t]);
 
   return (
     <TextField
@@ -93,49 +81,4 @@ export function OracleTextField(props: OracleTextFieldProps) {
       }}
     />
   );
-}
-
-function checkIfAtLeastOneOracleExists(
-  oracleId: string | undefined,
-  oracleConfig: OracleTextFieldOracleConfig | undefined,
-): boolean {
-  if (oracleId) {
-    const oracle = getOracleRollable(oracleId) ?? getOracleCollection(oracleId);
-    return !!oracle;
-  } else if (oracleConfig) {
-    for (const tableId of oracleConfig.tableIds) {
-      if (typeof tableId === "string") {
-        if (getOracleRollable(tableId) || getOracleCollection(tableId)) {
-          return true;
-        }
-      } else {
-        if (checkIfAtLeastOneOracleExists(undefined, tableId)) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-
-function rollOracle(
-  oracle: string | OracleTextFieldOracleConfig | undefined,
-  getOracleResult: (oracleId: string) => IOracleTableRoll | undefined,
-): string {
-  if (!oracle) return "";
-  if (typeof oracle === "string") {
-    const result = getOracleResult(oracle);
-    return result?.result ?? "";
-  } else {
-    if (oracle.joinTables) {
-      // Roll each and join results
-      return oracle.tableIds
-        .map((tableId) => rollOracle(tableId, getOracleResult))
-        .join(oracle.joinSeparator ?? " ");
-    } else {
-      const oracleIndex = Math.floor(Math.random() * oracle.tableIds.length);
-      const subOracle = oracle.tableIds[oracleIndex];
-      return rollOracle(subOracle, getOracleResult);
-    }
-  }
 }
