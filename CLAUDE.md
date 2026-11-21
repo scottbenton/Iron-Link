@@ -11,6 +11,9 @@ that are easy to miss. When you learn a new one, add a line here.
 
 ## User-facing copy
 
+- `src/ui` text goes through `t()` with a `ui.` key and its English default;
+  the rules are in `src/ui/README.md`, and lint flags JSX text there.
+
 - Never end a menu item or button label with an ellipsis ("…" or "..."),
   including in-progress button states ("Creating World", not "Creating
   World..."). A loading status that is not a control may keep one.

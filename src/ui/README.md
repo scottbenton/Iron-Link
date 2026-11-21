@@ -138,8 +138,27 @@ rest of the app). Import as `ui/components/Button`.
 - Icon-only buttons are `IconButton` with a `label` (its name and tooltip).
 - Components never call services; data comes in through props and hooks
   outside the library. Nothing in `src/ui` imports from the app.
-- Strings in components are props with English defaults, so the app can pass
-  translated text.
+- Text a person reads goes through react-i18next's `t()` with a `ui.` key
+  and its English as the default: `t("ui.clock.advance", "Advance")`. Keys are
+  `ui.<component>.<leaf>` in kebab case, and text several components say the
+  same way is under `ui.common` (Close, Roll, Cancel). The prop that carries a
+  string stays, so a screen can still pass its own words.
+  - A prop default calls `t` in the destructure, so `useTranslation()` comes
+    before it.
+  - A component with many strings keeps them in a `get<Component>Strings(t)`
+    function beside it, merged with the `strings` prop; one shared by several
+    components gets a `use<Component>Strings` hook.
+  - Pure helpers take `t: TFunction` from `i18next`; stories and tests pass
+    `i18next.t`.
+  - Counts use i18next plurals, never string building:
+    `t("ui.roll-dock.count", "{{count}} notifications", { count, defaultValue_one: "{{count}} notification" })`.
+  - Word order belongs to the language, so a phrase built from parts is one
+    template (`"Roll {{oracle}}"`), not a sentence glued together in code.
+  - Rules text and names from Datasworn, fixtures, samples and stories are not
+    translated here.
+  - The `i18next/no-literal-string` lint rule flags JSX text and label-like
+    attributes in `src/ui` (not stories, tests or docs). It cannot see default
+    parameter values, so check those by eye.
 
 ## Stories
 
