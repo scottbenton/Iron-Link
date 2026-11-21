@@ -2,6 +2,8 @@ import { Datasworn } from "@datasworn-community/core";
 
 import { Difficulty } from "repositories/tracks.repository";
 
+import { getTicksPerMark } from "./progressTrack.lib";
+
 // Bonds follow the game's rules packages, homebrew included, so nothing is
 // configured per world:
 // - Connections when a move rolls progress on "Connection" tracks (Datasworn's
@@ -79,9 +81,9 @@ export const CONNECTION_BOND_REWARD_TICKS: Record<Difficulty, number> = {
 
 // Mark progress on a connection, as on any progress track of its rank.
 export const CONNECTION_PROGRESS_TICKS: Record<Difficulty, number> = {
-  [Difficulty.Troublesome]: 12,
-  [Difficulty.Dangerous]: 8,
-  [Difficulty.Formidable]: 4,
-  [Difficulty.Extreme]: 2,
-  [Difficulty.Epic]: 1,
+  [Difficulty.Troublesome]: getTicksPerMark(Difficulty.Troublesome),
+  [Difficulty.Dangerous]: getTicksPerMark(Difficulty.Dangerous),
+  [Difficulty.Formidable]: getTicksPerMark(Difficulty.Formidable),
+  [Difficulty.Extreme]: getTicksPerMark(Difficulty.Extreme),
+  [Difficulty.Epic]: getTicksPerMark(Difficulty.Epic),
 };
