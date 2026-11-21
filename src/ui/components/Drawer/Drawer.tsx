@@ -3,7 +3,6 @@ import { ComponentProps, ReactNode } from "react";
 
 import { css, cva, cx } from "styled-system/css";
 
-import { useBreakpoint } from "../../hooks/useBreakpoint";
 import { isPressOnToasts } from "../Toast/toastViewport";
 
 type Placement = "left" | "right" | "bottom";
@@ -122,14 +121,12 @@ export interface DrawerProps {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
-  /** The edge it slides from on wide screens. */
-  side?: Placement;
   /**
-   * On phones, a side drawer becomes a bottom sheet (`sheet`, for tool
-   * drawers such as oracles and moves) or stays at its side (`side`, for
-   * navigation).
+   * The edge it slides from, at every width: a side drawer stays a side
+   * drawer on phones (its width is capped to leave a strip of the page).
+   * `bottom` is a sheet everywhere.
    */
-  mobile?: "sheet" | "side";
+  side?: Placement;
   /** Width of a side drawer: 320, 380 or 480px. */
   size?: "sm" | "md" | "lg";
   /**
@@ -147,8 +144,8 @@ export interface DrawerProps {
 }
 
 /**
- * A panel that slides in from an edge: the side on wide screens and up from
- * the bottom on phones. Swipe it back towards its edge to close it. Compose
+ * A panel that slides in from an edge, the same at every width. Swipe it
+ * back towards its edge to close it. Compose
  * it from DrawerHeader, DrawerBody and DrawerFooter.
  */
 export function Drawer(props: DrawerProps) {
@@ -157,7 +154,6 @@ export function Drawer(props: DrawerProps) {
     onClose,
     children,
     side = "right",
-    mobile = "sheet",
     size,
     modal = true,
     "aria-label": ariaLabel,
@@ -166,12 +162,6 @@ export function Drawer(props: DrawerProps) {
     finalFocus,
   } = props;
 
-  // Phone width (the CSS's `smDown`) is needed in JavaScript as well as CSS,
-  // because the swipe direction that dismisses the drawer is a prop.
-  const isPhone = useBreakpoint("smaller-than", "sm");
-  const placement: Placement =
-    side === "bottom" || (isPhone && mobile === "sheet") ? "bottom" : side;
-
   return (
     <BaseDrawer.Root
       open={open}
@@ -179,25 +169,20 @@ export function Drawer(props: DrawerProps) {
         // Toasts sit above modals; pressing one is not a press outside.
         if (!nextOpen && !isPressOnToasts(details)) onClose();
       }}
-      swipeDirection={placement === "bottom" ? "down" : placement}
+      swipeDirection={side === "bottom" ? "down" : side}
       modal={modal}
     >
       <BaseDrawer.Portal>
         {modal && <BaseDrawer.Backdrop className={backdropStyles} />}
-        <BaseDrawer.Viewport
-          className={viewportStyles}
-          data-placement={placement}
-        >
+        <BaseDrawer.Viewport className={viewportStyles} data-placement={side}>
           <BaseDrawer.Popup
             className={cx("ui-root", popupStyles({ size }), className)}
-            data-placement={placement}
+            data-placement={side}
             aria-label={ariaLabel}
             initialFocus={initialFocus}
             finalFocus={finalFocus}
           >
-            {placement === "bottom" && (
-              <div className={handleStyles} aria-hidden />
-            )}
+            {side === "bottom" && <div className={handleStyles} aria-hidden />}
             {children}
           </BaseDrawer.Popup>
         </BaseDrawer.Viewport>
