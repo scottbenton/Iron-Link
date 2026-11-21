@@ -4089,30 +4089,6 @@
           {
             "binding": null,
             "configuration": {
-              "allowOther": true,
-              "helpText": "",
-              "multiple": false,
-              "rules": [],
-              "suggestions": [
-                "Troublesome",
-                "Dangerous",
-                "Formidable",
-                "Extreme",
-                "Epic"
-              ],
-              "version": 1,
-              "visible": true
-            },
-            "gm_only": false,
-            "id": "5a98b394-70a0-5da6-aeb7-e04d4d63f3ce",
-            "key": "difficulty",
-            "label": "Difficulty",
-            "sort_order": 2,
-            "type": "select"
-          },
-          {
-            "binding": null,
-            "configuration": {
               "allowOther": false,
               "helpText": "",
               "multiple": false,
@@ -4126,7 +4102,7 @@
             "id": "6e3859b1-311d-5d41-9a47-a5b3c567b7d0",
             "key": "location",
             "label": "Location",
-            "sort_order": 3,
+            "sort_order": 2,
             "type": "select"
           },
           {
@@ -4146,7 +4122,7 @@
             "id": "14feef6f-26c7-5673-b620-98dcdbf3b041",
             "key": "firstLook",
             "label": "First Look",
-            "sort_order": 4,
+            "sort_order": 3,
             "type": "text"
           },
           {
@@ -4166,7 +4142,7 @@
             "id": "1079e4ba-145a-5ea9-8e68-34bbf9ce35cb",
             "key": "role",
             "label": "Role",
-            "sort_order": 5,
+            "sort_order": 4,
             "type": "text"
           },
           {
@@ -4186,7 +4162,7 @@
             "id": "45871e64-15cd-5682-b86d-7f51253301d0",
             "key": "disposition",
             "label": "Disposition",
-            "sort_order": 6,
+            "sort_order": 5,
             "type": "text"
           },
           {
@@ -4206,7 +4182,7 @@
             "id": "a1006a71-ed0b-5817-9915-c07a9f23b878",
             "key": "goal",
             "label": "Goal",
-            "sort_order": 7,
+            "sort_order": 6,
             "type": "text"
           },
           {
@@ -4226,7 +4202,7 @@
             "id": "dfa7e868-2ea6-5d10-b2b9-818e4a6d5d9a",
             "key": "revealedAspect",
             "label": "Revealed Aspect",
-            "sort_order": 8,
+            "sort_order": 7,
             "type": "text"
           }
         ],
