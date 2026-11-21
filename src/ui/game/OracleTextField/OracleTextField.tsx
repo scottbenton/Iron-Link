@@ -102,9 +102,9 @@ export const OracleTextField = forwardRef<
     onValueChange,
   );
 
-  // Each roll turns the die to a new face, crossfading from the old one.
-  // Only the field that rolled changes, so a form full of these stays calm.
-  const [face, rollDie] = useDieFace();
+  // Each roll cycles the die onto a new face. Only the field that rolled
+  // changes, so a form full of these stays calm.
+  const [die, rollDie] = useDieFace();
 
   const handleRoll = () => {
     rollDie();
@@ -139,7 +139,7 @@ export const OracleTextField = forwardRef<
                 aria-label={rollLabel}
                 onClick={handleRoll}
               >
-                <DieFace face={face} />
+                <DieFace {...die} />
               </button>
             </Tooltip>
           </>

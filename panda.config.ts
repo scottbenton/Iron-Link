@@ -102,15 +102,6 @@ export default defineConfig({
         // Skeletons fade in and out together rather than sweep, so a group
         // of them reads as one block loading.
         pulse: { "50%": { opacity: 0.45 } },
-        // A die landing on a new face: a small turn, or a small pop.
-        dieTilt: {
-          from: { transform: "rotate(-18deg)" },
-          to: { transform: "rotate(0)" },
-        },
-        diePop: {
-          from: { transform: "scale(0.75)" },
-          to: { transform: "scale(1)" },
-        },
         indeterminate: {
           from: { transform: "translateX(-100%)" },
           to: { transform: "translateX(250%)" },
