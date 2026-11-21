@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { css, cx } from "styled-system/css";
 
+import { LiveRegion } from "../Announcer";
 import { Button, ButtonProps } from "../Button";
 import {
   DialogHeader,
@@ -12,6 +13,7 @@ import {
   dialogBodyStyles,
   dialogPopupStyles,
 } from "../Dialog";
+import { HeadingOffset } from "../HeadingOffset";
 
 const descriptionStyles = css({
   margin: 0,
@@ -122,7 +124,7 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
                   {description}
                 </AlertDialog.Description>
               )}
-              {content}
+              <HeadingOffset reset>{content}</HeadingOffset>
             </div>
           ) : (
             <div className={css({ height: "3" })} />
@@ -147,6 +149,8 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
               {confirmationText}
             </Button>
           </div>
+          {/* The page is inert behind a modal; this reads the same store. */}
+          <LiveRegion />
         </AlertDialog.Popup>
       </AlertDialog.Portal>
     </AlertDialog.Root>

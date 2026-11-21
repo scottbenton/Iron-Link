@@ -1,4 +1,4 @@
-import { LinearProgress, useMediaQuery, useTheme } from "@mui/material";
+import { LinearProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation } from "react-router";
@@ -18,6 +18,7 @@ import { useSyncColorScheme } from "pages/games/hooks/useSyncColorScheme";
 
 import { useShowWorldsBetaBanner } from "hooks/advancedFeatures/worldsBetaBanner";
 import { useDocumentTitle } from "hooks/useDocumentTitle";
+import { useIsMobile } from "hooks/useIsMobile";
 
 import { useDataswornTreeStore } from "stores/dataswornTree.store";
 import { useGameStore } from "stores/game.store";
@@ -76,8 +77,7 @@ export default function GameLayout() {
   }
   useDocumentTitle(documentTitle);
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobile = useIsMobile();
 
   const [openMobileTab, setOpenMobileTab] = useState(MobileTabs.Outlet);
 

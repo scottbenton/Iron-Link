@@ -1,44 +1,69 @@
-import { PropsWithChildren, useCallback, useRef, useState } from "react";
+import {
+  PropsWithChildren,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-import { VisuallyHidden } from "../VisuallyHidden";
+import { LiveRegion } from "./LiveRegion";
+import { AnnouncementContext } from "./announcementContext";
 import { Announce, AnnouncerContext } from "./announcerContext";
-import { LiveMessage, useLiveText } from "./useLiveText";
+import { LiveMessage } from "./useLiveText";
 
 export interface AnnouncerProviderProps extends PropsWithChildren {
   /**
    * Hand announcements to the app's own store (Iron Link's
-   * `useSetAnnouncement`), which feeds a `LiveRegion`. Without one the
-   * provider renders its own region.
+   * `useSetAnnouncement`). Pass the store's latest `message` and `nonce`
+   * with it, so dialog and drawer regions read the same store. Without
+   * one the provider keeps its own and renders the page's region itself.
    */
   announce?: Announce;
+  /** The store's latest announcement (`useAnnouncement()`). */
+  message?: string | null;
+  /** Goes up with every announcement (`useAnnouncementId()`). */
+  nonce?: number;
 }
 
 /**
- * One polite live region for the library. Toasts and roll results announce
+ * One announcement store for the library. Toasts and roll results announce
  * through it, one message per action: a second message in the same tick
- * replaces the first.
+ * replaces the first. Every live region reads it.
  */
 export function AnnouncerProvider(props: AnnouncerProviderProps) {
-  const { announce: externalAnnounce, children } = props;
-  const [message, setMessage] = useState<LiveMessage | null>(null);
+  const {
+    announce: externalAnnounce,
+    message: externalMessage,
+    nonce: externalNonce = 0,
+    children,
+  } = props;
+  const [internalMessage, setInternalMessage] = useState<LiveMessage | null>(
+    null,
+  );
   const nonce = useRef(0);
 
   const internalAnnounce = useCallback<Announce>((text) => {
     nonce.current += 1;
-    setMessage({ text, nonce: nonce.current });
+    setInternalMessage({ text, nonce: nonce.current });
   }, []);
 
-  const announce = externalAnnounce ?? internalAnnounce;
-  const text = useLiveText(externalAnnounce ? null : message);
+  const external = !!externalAnnounce;
+  const message = useMemo<LiveMessage | null>(
+    () =>
+      external
+        ? externalMessage
+          ? { text: externalMessage, nonce: externalNonce }
+          : null
+        : internalMessage,
+    [external, externalMessage, externalNonce, internalMessage],
+  );
 
   return (
-    <AnnouncerContext.Provider value={announce}>
-      {children}
-      {!externalAnnounce && (
-        <VisuallyHidden role="status" aria-live="polite" aria-atomic="true">
-          {text}
-        </VisuallyHidden>
-      )}
+    <AnnouncerContext.Provider value={externalAnnounce ?? internalAnnounce}>
+      <AnnouncementContext.Provider value={message}>
+        {children}
+        {!external && <LiveRegion />}
+      </AnnouncementContext.Provider>
     </AnnouncerContext.Provider>
   );
 }

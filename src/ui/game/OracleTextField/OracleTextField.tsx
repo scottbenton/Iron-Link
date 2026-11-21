@@ -53,8 +53,7 @@ export interface OracleTextFieldProps extends TextFieldProps {
   rollLabel?: string;
   /**
    * What a screen reader hears after a roll. Defaults to "Updated {label}
-   * to {result}". Pass a function returning `false` to stay silent, for
-   * example when a dialog announces it through `useDialogAnnounce()`.
+   * to {result}". Pass a function returning `false` to stay silent.
    */
   rollAnnouncement?: (result: string) => string | false;
 }

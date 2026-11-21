@@ -1,4 +1,4 @@
-import { useMediaQuery } from "@mui/material";
+import { useMediaQuery } from "ui/hooks/useMediaQuery";
 
 // Whether the main pointer is a finger, so controls need touch-sized targets
 // and gestures like long press. This is about input, not screen size: a
