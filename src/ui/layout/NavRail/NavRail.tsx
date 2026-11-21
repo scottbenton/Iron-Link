@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { focusRing } from "ui/styles/focus";
 
@@ -156,11 +157,12 @@ export interface NavRailProps extends CssProp {
  * the link has `aria-current="page"`.
  */
 export function NavRail(props: NavRailProps) {
+  const { t } = useTranslation();
   const {
     items,
     homeHref,
     homeLabel = "Iron Link",
-    label = "Main",
+    label = t("ui.nav.main", "Main"),
     actions,
     linkComponent,
     className,

@@ -1,5 +1,6 @@
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { ReactNode, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import { css, cx } from "styled-system/css";
 
@@ -65,16 +66,17 @@ export interface ConfirmDialogProps extends ConfirmOptions {
  * question needs live state.
  */
 export function ConfirmDialog(props: ConfirmDialogProps) {
+  const { t } = useTranslation();
   const {
     open,
     onConfirm,
     onCancel,
     onClosed,
-    title = "Are you sure?",
+    title = t("ui.confirm-dialog.title", "Are you sure?"),
     description,
     content,
-    confirmationText = "Confirm",
-    cancellationText = "Cancel",
+    confirmationText = t("ui.confirm-dialog.confirm", "Confirm"),
+    cancellationText = t("ui.common.cancel", "Cancel"),
     tone = "default",
     hideCancelButton = false,
     allowClose = true,

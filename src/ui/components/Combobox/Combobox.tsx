@@ -1,6 +1,7 @@
 import { Combobox as BaseCombobox } from "@base-ui/react/combobox";
 import { CaretDown, Check, Plus, X } from "@phosphor-icons/react";
 import { ReactNode, Ref, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -256,6 +257,7 @@ const createIconStyles = css({
  * ```
  */
 export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
+  const { t } = useTranslation();
   const {
     options,
     inputValue: inputValueProp,
@@ -264,10 +266,11 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
     placeholder,
     filter: filterProp,
     loading = false,
-    loadingLabel = "Loading",
-    emptyLabel = "No matches",
+    loadingLabel = t("ui.common.loading", "Loading"),
+    emptyLabel = t("ui.combobox.empty", "No matches"),
     onCreate,
-    createLabel = (text: string) => `Create “${text}”`,
+    createLabel = (text: string) =>
+      t("ui.combobox.create", "Create “{{text}}”", { text }),
     freeText = false,
     hideSelected = false,
     autoHighlight,
@@ -277,9 +280,10 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
     readOnly,
     startAdornment,
     clearable = true,
-    clearLabel = "Clear",
-    openLabel = "Show options",
-    removeLabel = (label: string) => `Remove ${label}`,
+    clearLabel = t("ui.common.clear", "Clear"),
+    openLabel = t("ui.combobox.open", "Show options"),
+    removeLabel = (label: string) =>
+      t("ui.combobox.remove", "Remove {{label}}", { label }),
     "aria-label": ariaLabel,
     id,
     className,

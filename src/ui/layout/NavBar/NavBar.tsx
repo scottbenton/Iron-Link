@@ -1,6 +1,7 @@
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { CaretLeftIcon, ListIcon, XIcon } from "@phosphor-icons/react";
 import { ReactNode, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { focusRing } from "ui/styles/focus";
 import { ledgeLayers } from "ui/styles/ledge";
@@ -266,6 +267,7 @@ export interface NavBarProps extends CssProp {
  * its h1 there.
  */
 export function NavBar(props: NavBarProps) {
+  const { t } = useTranslation();
   const {
     title,
     titleId,
@@ -273,12 +275,12 @@ export function NavBar(props: NavBarProps) {
     homeLabel = "Iron Link",
     items,
     backHref,
-    backLabel = "Go Back",
+    backLabel = t("ui.nav-bar.back", "Go Back"),
     actions,
     secondaryRow,
-    navLabel = "Main",
-    menuLabel = "Open Navigation Menu",
-    closeMenuLabel = "Close Navigation Menu",
+    navLabel = t("ui.nav.main", "Main"),
+    menuLabel = t("ui.nav-bar.open-menu", "Open Navigation Menu"),
+    closeMenuLabel = t("ui.nav-bar.close-menu", "Close Navigation Menu"),
     menuFooter,
     linkComponent,
     className,

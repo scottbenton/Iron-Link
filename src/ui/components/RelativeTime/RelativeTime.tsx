@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { useNow } from "../../hooks/useNow";
 import { Tooltip } from "../Tooltip";
 import { formatRelativeTime } from "./formatRelativeTime";
@@ -26,10 +28,11 @@ export interface RelativeTimeProps {
  * the absolute time.
  */
 export function RelativeTime(props: RelativeTimeProps) {
+  const { t } = useTranslation();
   const {
     date,
     absolute,
-    justNowLabel = "Just now",
+    justNowLabel = t("ui.relative-time.just-now", "Just now"),
     format = (value: Date, now: Date) =>
       formatRelativeTime(value, now, justNowLabel),
     className,

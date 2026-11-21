@@ -1,5 +1,6 @@
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { KeyboardEvent, forwardRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useControllableState } from "../../hooks/useControllableState";
 import { TextField, TextFieldProps } from "../TextField";
@@ -21,8 +22,9 @@ export interface SearchFieldProps
  */
 export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
   function SearchField(props, ref) {
+    const { t } = useTranslation();
     const {
-      label = "Search",
+      label = t("ui.search-field.label", "Search"),
       hideLabel = true,
       value: valueProp,
       defaultValue = "",

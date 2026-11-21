@@ -1,5 +1,6 @@
 import { Check, Copy } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useAnnounce } from "ui/components/Announcer";
 import { Button, ButtonProps } from "ui/components/Button";
@@ -52,11 +53,12 @@ export interface CopyButtonProps
  * every variant, so it reads the same on any background.
  */
 export function CopyButton(props: CopyButtonProps) {
+  const { t } = useTranslation();
   const {
     text,
-    label = "Copy",
-    copiedLabel = "Copied",
-    failedLabel = "Could not copy",
+    label = t("ui.copy-button.copy", "Copy"),
+    copiedLabel = t("ui.copy-button.copied", "Copied"),
+    failedLabel = t("ui.copy-button.failed", "Could not copy"),
     iconOnly,
     resetAfter = 2000,
     onCopied,

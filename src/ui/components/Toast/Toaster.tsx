@@ -1,5 +1,6 @@
 import { Broom } from "@phosphor-icons/react";
 import { CSSProperties, useLayoutEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Toaster as SonnerToaster, useSonner } from "sonner";
 
 import { css } from "styled-system/css";
@@ -144,11 +145,12 @@ export interface ToasterProps {
  * it once. Show toasts with `toast.*` or `useToast()`.
  */
 export function Toaster(props: ToasterProps) {
+  const { t } = useTranslation();
   const {
     visibleToasts = 3,
-    label = "Notifications",
-    clearAllLabel = "Clear All",
-    moreLabel = (count) => `${count} more`,
+    label = t("ui.toaster.label", "Notifications"),
+    clearAllLabel = t("ui.toaster.clear-all", "Clear All"),
+    moreLabel = (count) => t("ui.toaster.more", "{{count}} more", { count }),
   } = props;
 
   const announce = useAnnounce();

@@ -1,6 +1,7 @@
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { X } from "@phosphor-icons/react";
 import { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { css } from "styled-system/css";
 
@@ -33,7 +34,13 @@ export interface DialogHeaderProps {
  * the dialog's accessible name is the title alone; buttons sit beside it.
  */
 export function DialogHeader(props: DialogHeaderProps) {
-  const { title, actions, closeLabel = "Close", hideClose } = props;
+  const { t } = useTranslation();
+  const {
+    title,
+    actions,
+    closeLabel = t("ui.common.close", "Close"),
+    hideClose,
+  } = props;
   return (
     <div className={headerStyles}>
       <BaseDialog.Title

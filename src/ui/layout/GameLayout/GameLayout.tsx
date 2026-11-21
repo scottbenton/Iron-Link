@@ -7,6 +7,7 @@ import {
   useId,
   useRef,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import { focusRing } from "ui/styles/focus";
 
@@ -182,6 +183,7 @@ export interface GameLayoutProps {
  * their own (the phone game page), not this one.
  */
 export function GameLayout(props: GameLayoutProps) {
+  const { t } = useTranslation();
   const {
     tabs,
     banner,
@@ -234,7 +236,9 @@ export function GameLayout(props: GameLayoutProps) {
   const pendingFocus = useRef<"endExpand" | "endCollapse" | "endOpen" | null>(
     null,
   );
-  const endCollapseLabel = endSidebar?.labels?.collapse ?? "Collapse Sidebar";
+  const endCollapseLabel =
+    endSidebar?.labels?.collapse ??
+    t("ui.sidebar.collapse", "Collapse Sidebar");
   useEffect(() => {
     const pending = pendingFocus.current;
     pendingFocus.current = null;
@@ -299,7 +303,10 @@ export function GameLayout(props: GameLayoutProps) {
   // Stacked, the end sidebar's Collapse sits in its first panel's header,
   // and each Collapse names its sidebar, since the column holds two.
   const nameOf = (sidebar: GameSidebar) =>
-    sidebar.labels?.collapse ?? `Collapse ${sidebar.panels[0]?.title ?? ""}`;
+    sidebar.labels?.collapse ??
+    t("ui.game-layout.collapse-named", "Collapse {{name}}", {
+      name: sidebar.panels[0]?.title ?? "",
+    });
   const stackedEndPanels =
     stacked && endSidebar
       ? endSidebar.panels.map((panel, index) =>
@@ -382,7 +389,10 @@ export function GameLayout(props: GameLayoutProps) {
             label: titleOf(startSidebar),
             panelIds: startSidebar.panels.map((panel) => panel.id),
             expandLabel:
-              startSidebar.labels?.expand ?? `Expand ${titleOf(startSidebar)}`,
+              startSidebar.labels?.expand ??
+              t("ui.game-layout.expand-named", "Expand {{name}}", {
+                name: titleOf(startSidebar),
+              }),
             onExpand: () => setStartCollapsed(false),
             pinnable: startSidebar.pinnable,
           },
@@ -391,7 +401,10 @@ export function GameLayout(props: GameLayoutProps) {
             label: titleOf(endSidebar),
             panelIds: endSidebar.panels.map((panel) => panel.id),
             expandLabel:
-              endSidebar.labels?.expand ?? `Expand ${titleOf(endSidebar)}`,
+              endSidebar.labels?.expand ??
+              t("ui.game-layout.expand-named", "Expand {{name}}", {
+                name: titleOf(endSidebar),
+              }),
             onExpand: () => changeEndCollapsed(false),
             pinnable: endSidebar.pinnable,
           },

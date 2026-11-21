@@ -5,8 +5,8 @@ import { IconButton, IconButtonProps } from "../../components/IconButton";
 import {
   SettingsMenuColorMode,
   SettingsMenuStrings,
-  defaultSettingsMenuStrings,
 } from "./settingsMenuStrings";
+import { useSettingsMenuStrings } from "./useSettingsMenuStrings";
 
 export interface ColorModeToggleProps
   extends Omit<IconButtonProps, "label" | "children" | "onClick"> {
@@ -29,8 +29,7 @@ export const ColorModeToggle = forwardRef<HTMLElement, ColorModeToggleProps>(
   function ColorModeToggle(props, ref) {
     const { colorMode, onColorModeChange, strings, ...rest } = props;
     const next = colorMode === "dark" ? "light" : "dark";
-    const switchColorMode =
-      strings?.switchColorMode ?? defaultSettingsMenuStrings.switchColorMode;
+    const { switchColorMode } = useSettingsMenuStrings(strings);
     return (
       <IconButton
         ref={ref}

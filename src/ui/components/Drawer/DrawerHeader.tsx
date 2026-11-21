@@ -1,6 +1,7 @@
 import { Drawer as BaseDrawer } from "@base-ui/react/drawer";
 import { XIcon } from "@phosphor-icons/react";
 import { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { css, cx } from "styled-system/css";
 
@@ -32,7 +33,14 @@ export interface DrawerHeaderProps {
 
 /** The title and a Close button. */
 export function DrawerHeader(props: DrawerHeaderProps) {
-  const { title, actions, closeLabel = "Close", hideClose, className } = props;
+  const { t } = useTranslation();
+  const {
+    title,
+    actions,
+    closeLabel = t("ui.common.close", "Close"),
+    hideClose,
+    className,
+  } = props;
   return (
     <div className={cx(headerStyles, className)}>
       <BaseDrawer.Title

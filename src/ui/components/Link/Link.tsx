@@ -2,6 +2,7 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import { ComponentProps, ReactElement, forwardRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
@@ -80,11 +81,12 @@ export interface LinkProps
 /** A text link in the accent colour with an offset underline. */
 export const Link = forwardRef<HTMLAnchorElement, LinkProps>(
   function Link(props, ref) {
+    const { t } = useTranslation();
     const {
       color,
       underline,
       external,
-      externalLabel = "(opens in a new tab)",
+      externalLabel = t("ui.link.opens-in-new-tab", "(opens in a new tab)"),
       render,
       className,
       children,

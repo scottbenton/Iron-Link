@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { focusRing } from "ui/styles/focus";
 
 import { css, cx } from "styled-system/css";
@@ -156,11 +158,13 @@ export interface MobileNavProps extends CssProp {
  * the keyboard and the text being typed.
  */
 export function MobileNav(props: MobileNavProps) {
+  const { t } = useTranslation();
   const {
     items,
-    label = "Main",
+    label = t("ui.nav.main", "Main"),
     linkComponent,
-    badgeLabel = (count: number) => `${count} unread`,
+    badgeLabel = (count: number) =>
+      t("ui.mobile-nav.unread", "{{count}} unread", { count }),
     className,
   } = withCssProp(props);
   const Link = useLinkComponent(linkComponent);

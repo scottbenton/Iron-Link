@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import i18next from "i18next";
 import { useState } from "react";
 import { screen, userEvent, within } from "storybook/test";
 
@@ -23,7 +24,7 @@ import {
   soloTwoCharactersScenario,
 } from "../settingsMenuScenarios";
 import { SettingsMenuAction } from "../settingsMenuSections";
-import { defaultSettingsMenuStrings } from "../settingsMenuStrings";
+import { getDefaultSettingsMenuStrings } from "../settingsMenuStrings";
 
 const meta: Meta<typeof SettingsMenu> = {
   title: "Layout/SettingsMenu",
@@ -47,19 +48,24 @@ const pageStyles = css({
   background: "bg.surface",
 });
 
-const actionNames: Record<SettingsMenuAction, string> = {
-  characterDetails: defaultSettingsMenuStrings.characterDetails,
-  characterStats: defaultSettingsMenuStrings.characterStats,
-  characterAccess: defaultSettingsMenuStrings.characterAccess,
-  gameName: defaultSettingsMenuStrings.gameName,
-  gameRulesets: defaultSettingsMenuStrings.gameRulesets,
-  secondScreen: defaultSettingsMenuStrings.secondScreen,
-  theme: defaultSettingsMenuStrings.theme,
-  accessibility: defaultSettingsMenuStrings.accessibility,
-  advancedFeatures: defaultSettingsMenuStrings.advancedFeatures,
-  admin: defaultSettingsMenuStrings.admin,
-  signOut: defaultSettingsMenuStrings.signOut,
-};
+/** The menu's own name for each action, for the story's "Chose …" line. */
+function actionName(action: SettingsMenuAction): string {
+  const strings = getDefaultSettingsMenuStrings(i18next.t);
+  const names: Record<SettingsMenuAction, string> = {
+    characterDetails: strings.characterDetails,
+    characterStats: strings.characterStats,
+    characterAccess: strings.characterAccess,
+    gameName: strings.gameName,
+    gameRulesets: strings.gameRulesets,
+    secondScreen: strings.secondScreen,
+    theme: strings.theme,
+    accessibility: strings.accessibility,
+    advancedFeatures: strings.advancedFeatures,
+    admin: strings.admin,
+    signOut: strings.signOut,
+  };
+  return names[action];
+}
 
 /**
  * The nav rail with the mode toggle and the gear at its foot, beside a page
@@ -80,7 +86,7 @@ function RailPage(props: { scenario: SettingsScenario; caption: string }) {
             side="inline-end"
             align="end"
             tooltipSide="right"
-            onSelect={(action) => setLast(`Chose ${actionNames[action]}.`)}
+            onSelect={(action) => setLast(`Chose ${actionName(action)}.`)}
             onDeleted={(what) =>
               setLast(
                 what === "game"
