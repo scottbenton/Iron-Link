@@ -1,6 +1,6 @@
 import { Datasworn } from "@datasworn-community/core";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { RulesText } from "ui/game/RulesText";
 
 import { SimpleTable, SimpleTableColumnDefinition } from "./SimpleTable";
 
@@ -30,7 +30,7 @@ export function OracleRollableTable(props: OracleRollableTableProps) {
     },
     {
       label: oracle.column_labels.text,
-      renderer: (row) => <MarkdownRenderer markdown={row.text} />,
+      renderer: (row) => <RulesText markdown={row.text} size="sm" />,
     },
   ];
 
@@ -42,8 +42,9 @@ export function OracleRollableTable(props: OracleRollableTableProps) {
       label: oracle.column_labels.text2,
       renderer: (row) =>
         (row as Datasworn.OracleRollableRowText2).text2 ? (
-          <MarkdownRenderer
+          <RulesText
             markdown={(row as Datasworn.OracleRollableRowText3).text2 ?? ""}
+            size="sm"
           />
         ) : null,
     });
@@ -54,8 +55,9 @@ export function OracleRollableTable(props: OracleRollableTableProps) {
       label: oracle.column_labels.text3,
       renderer: (row) =>
         (row as Datasworn.OracleRollableRowText3).text3 ? (
-          <MarkdownRenderer
+          <RulesText
             markdown={(row as Datasworn.OracleRollableRowText3).text3 ?? ""}
+            size="sm"
           />
         ) : null,
     });

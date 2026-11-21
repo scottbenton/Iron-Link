@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { RulesText } from "ui/game/RulesText";
 
 import {
   useConditionMeterRules,
@@ -78,7 +78,7 @@ export function ReferenceRules(props: ReferenceRulesProps) {
         >
           {stats.map(([key, rule]) => (
             <RuleEntry key={key} label={rule.label}>
-              <MarkdownRenderer markdown={rule.description} />
+              <RulesText markdown={rule.description} size="sm" />
             </RuleEntry>
           ))}
         </RulesGroup>
@@ -99,7 +99,7 @@ export function ReferenceRules(props: ReferenceRulesProps) {
                 { min: rule.min, max: rule.max, value: rule.value },
               )}
             >
-              <MarkdownRenderer markdown={rule.description} />
+              <RulesText markdown={rule.description} size="sm" />
             </RuleEntry>
           ))}
         </RulesGroup>
@@ -132,7 +132,7 @@ export function ReferenceRules(props: ReferenceRulesProps) {
               </Typography>
               <Box px={2} pt={1.5}>
                 {category.description && (
-                  <MarkdownRenderer markdown={category.description} />
+                  <RulesText markdown={category.description} size="sm" />
                 )}
                 {Object.entries(category.contents ?? {}).map(
                   ([key, impact]) => {
@@ -162,7 +162,7 @@ export function ReferenceRules(props: ReferenceRulesProps) {
                         headingComponent="h4"
                         detail={notes.length > 0 ? notes.join(". ") : undefined}
                       >
-                        <MarkdownRenderer markdown={impact.description} />
+                        <RulesText markdown={impact.description} size="sm" />
                       </RuleEntry>
                     );
                   },
@@ -180,7 +180,7 @@ export function ReferenceRules(props: ReferenceRulesProps) {
         >
           {tracks.map(([key, rule]) => (
             <RuleEntry key={key} label={rule.label}>
-              <MarkdownRenderer markdown={rule.description} />
+              <RulesText markdown={rule.description} size="sm" />
             </RuleEntry>
           ))}
         </RulesGroup>

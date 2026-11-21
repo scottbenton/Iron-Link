@@ -66,7 +66,9 @@ export const rulesTextStyles = cva({
     overflowWrap: "break-word",
     "& > :first-child": { marginBlockStart: 0 },
     "& > :last-child": { marginBlockEnd: 0 },
-    "& p": { margin: "0 0 0.6em" },
+    // Datasworn breaks lines inside a paragraph, as in Sundered Isles'
+    // oracle rows ("**Feature**" over a link), and those breaks show.
+    "& p": { margin: "0 0 0.6em", whiteSpace: "pre-line" },
     "& :is(strong, b)": {
       fontWeight: "semibold",
       color: "var(--rules-text-strong)",

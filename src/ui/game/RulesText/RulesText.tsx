@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, ReactNode, useMemo } from "react";
+import { ComponentPropsWithoutRef, ReactNode } from "react";
 import ReactMarkdown, { Components, defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -9,12 +9,7 @@ import { cx } from "styled-system/css";
 import { OracleTable } from "../OracleTable";
 import { HeadingLike } from "./HeadingLike";
 import { RulesTextMacro, RulesTextOptions } from "./RulesTextContext";
-import {
-  INLINE_MACRO_SCHEME,
-  parseBlockMacro,
-  parseInlineMacro,
-  prepareMarkdown,
-} from "./macros";
+import { parseBlockMacro } from "./macros";
 import { mergeRulesTextOptions } from "./mergeRulesTextOptions";
 import {
   compactTableStyles,
@@ -37,6 +32,11 @@ export interface RulesTextProps
   size?: "sm" | "md";
   /** `muted` for secondary text such as an asset's requirement. */
   color?: "default" | "muted" | "inherit";
+  /**
+   * Shows every link as plain text in its sentence, where the text sits
+   * inside a control of its own (a roll result, a selectable option).
+   */
+  disableLinks?: boolean;
   className?: string;
 }
 
@@ -51,6 +51,7 @@ export function RulesText(props: RulesTextProps) {
     markdown,
     size,
     color,
+    disableLinks,
     className,
     onLinkClick,
     canOpenLink,
@@ -67,8 +68,7 @@ export function RulesText(props: RulesTextProps) {
     renderMacro,
   });
 
-  const prepared = useMemo(() => prepareMarkdown(markdown), [markdown]);
-  const components = getComponents(options, size ?? "md");
+  const components = getComponents(options, size ?? "md", !!disableLinks);
 
   return (
     <div className={cx(rulesTextStyles({ size, color }), className)} {...rest}>
@@ -77,15 +77,15 @@ export function RulesText(props: RulesTextProps) {
         components={components}
         urlTransform={transformUrl}
       >
-        {prepared}
+        {markdown}
       </ReactMarkdown>
     </div>
   );
 }
 
-/** Keeps our own schemes and makes anything else safe as usual. */
+/** Keeps `datasworn:` links and makes anything else safe as usual. */
 function transformUrl(url: string) {
-  if (url.startsWith(DATASWORN_SCHEME) || url.startsWith(INLINE_MACRO_SCHEME)) {
+  if (url.startsWith(DATASWORN_SCHEME)) {
     return url;
   }
   return defaultUrlTransform(url);
@@ -118,6 +118,7 @@ function renderBlockMacro(
 function getComponents(
   options: RulesTextOptions,
   size: "sm" | "md",
+  disableLinks: boolean,
 ): Components {
   return {
     p: ({ node, children }) => {
@@ -141,12 +142,7 @@ function getComponents(
     ),
     a: ({ href, children }) => {
       const url = href ?? "";
-
-      const macro = parseInlineMacro(url);
-      if (macro) {
-        const custom = options.renderMacro?.(macro);
-        return custom !== undefined ? custom : <>{children}</>;
-      }
+      if (disableLinks) return <>{children}</>;
 
       if (url.startsWith(DATASWORN_SCHEME)) {
         const id = url.slice(DATASWORN_SCHEME.length);

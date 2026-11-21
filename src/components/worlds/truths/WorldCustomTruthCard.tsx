@@ -3,7 +3,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import { Box, Button, Card, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { RulesText } from "ui/game/RulesText";
 
 import { WorldTruthQuestStarter } from "./WorldTruthQuestStarter";
 
@@ -54,7 +54,7 @@ export function WorldCustomTruthCard({
       </Box>
       {selected && description !== undefined ? (
         <>
-          <MarkdownRenderer markdown={description} typographyVariant="body2" />
+          <RulesText markdown={description} size="sm" />
           {questStarter && <WorldTruthQuestStarter markdown={questStarter} />}
           <Box sx={{ mt: 2 }}>
             <Button

@@ -1,23 +1,22 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { ReactElement } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
-import { getDataswornItem } from "components/datasworn/DataswornDialog/useGetDataswornItem";
 import { DataswornLinkHandlerProvider } from "components/datasworn/DataswornLinkHandler";
+import { loadLegacyIdMap } from "components/datasworn/DataswornRulesTextProvider";
 
 import { RulesText } from "ui/game/RulesText";
 
 import { getOracleRollable } from "hooks/datasworn/useOracleRollable";
 
-import { idMap } from "data/idMap";
-
 import { RULESETS, RulesetName, loadRules } from "tests/datasworn/rulesets";
 
-// One table of Datasworn rules text, run against every renderer the app has
-// had. `expected` is what the app shows today. Where the library's RulesText
-// shows something else before slice 3's fixes, `libraryBefore` says what,
-// and the row in the migration's changes list that decides it.
+// One table of Datasworn rules text, run against RulesText as the app wires
+// it (links through DataswornRulesTextProvider, no oracle lookup) and as a
+// page that draws tables would (with `resolveOracle`). `expected` is what the
+// app shows; `withOracles` is what changes with the lookup. Before slice 3
+// these cases ran against MarkdownRenderer; the one difference since is
+// changes.md row 21.
 
 interface Expected {
   /** The text on screen, whitespace collapsed; unchecked when undefined. */
@@ -39,7 +38,7 @@ interface Case {
   rules?: RulesetName;
   disableLinks?: boolean;
   expected: Expected;
-  libraryBefore?: Partial<Expected>;
+  withOracles?: Partial<Expected>;
 }
 
 const CASES: Case[] = [
@@ -133,12 +132,9 @@ const CASES: Case[] = [
   {
     name: "a link in another scheme",
     markdown: "[A file](ftp://example.com/file)",
-    expected: {
-      text: "A file",
-      links: [["A file", "ftp://example.com/file"]],
-    },
-    // changes.md row 21: RulesText links only http(s) and mailto.
-    libraryBefore: { links: [] },
+    // changes.md row 21: RulesText links only http(s) and mailto;
+    // MarkdownRenderer linked any URL.
+    expected: { text: "A file" },
   },
   {
     name: "a Datasworn link with links turned off",
@@ -152,19 +148,18 @@ const CASES: Case[] = [
     disableLinks: true,
     markdown: "[the site](https://www.ironswornrpg.com)",
     expected: { text: "the site" },
-    // RulesText had no way to turn web links off.
-    libraryBefore: { links: [["the site", "https://www.ironswornrpg.com"]] },
   },
   {
     name: "a table macro naming a loaded table",
     rules: "classic",
     markdown:
       "Roll on the table.\n\n{{table>move.oracle_rollable:classic/fate/pay_the_price.pay_the_price}}",
-    // Today's OracleTableRenderer draws nothing: a move's tables come from
-    // MoveOracles, and outcome text (roll results, the log) repeats macros.
+    // The app draws nothing here: a move's tables come from MoveOracles,
+    // and outcome text (roll results, the log) repeats the macros.
     expected: { text: "Roll on the table." },
-    // With resolveOracle, RulesText draws the table (and its rows) here.
-    libraryBefore: { text: undefined, tables: 1 },
+    // With resolveOracle, RulesText draws the table (and its rows, one of
+    // which links Ask the Oracle) here.
+    withOracles: { text: undefined, tables: 1, buttons: ["Ask the Oracle"] },
   },
   {
     name: "a table macro in its colon form",
@@ -172,7 +167,7 @@ const CASES: Case[] = [
     markdown:
       "Roll on the table.\n\n{{table:move.oracle_rollable:classic/fate/pay_the_price.pay_the_price}}",
     expected: { text: "Roll on the table." },
-    libraryBefore: { text: undefined, tables: 1 },
+    withOracles: { text: undefined, tables: 1, buttons: ["Ask the Oracle"] },
   },
   {
     name: "a column table macro",
@@ -197,11 +192,7 @@ const CASES: Case[] = [
       text: "Roll on the list below: 1-20: The ritual fails 21-100: It works",
       listItems: ["1-20: The ritual fails", "21-100: It works"],
     },
-    // changes.md row 6: the paragraph split read the macro as inline and
-    // printed its name.
-    libraryBefore: {
-      text: "Roll on the list below: Perform ritual 1-20: The ritual fails 21-100: It works",
-    },
+    withOracles: { text: undefined, tables: 1 },
   },
   {
     name: "a table macro closed with four braces",
@@ -212,7 +203,6 @@ const CASES: Case[] = [
     expected: {
       text: "Roll on the table. {{table>move.oracle_rollable:fe_runners/exploration/reveal_danger.reveal_danger}}}}",
     },
-    libraryBefore: { text: "Roll on the table. Reveal danger}}" },
   },
   {
     name: "a macro inside a sentence",
@@ -220,8 +210,6 @@ const CASES: Case[] = [
     expected: {
       text: "Roll {{text>oracle_rollable:starforged/core/action}} now.",
     },
-    // changes.md row 6: the rules-macro scheme printed the id's last part.
-    libraryBefore: { text: "Roll Action now." },
   },
 ];
 
@@ -232,48 +220,50 @@ interface RenderOptions {
 
 type Renderer = (markdown: string, options: RenderOptions) => ReactElement;
 
-// What the app renders today.
-const renderMarkdownRenderer: Renderer = (markdown, options) => (
+// Rules text as the app renders it.
+const renderAppRulesText: Renderer = (markdown, options) => (
   <DataswornLinkHandlerProvider onOpen={options.onOpen}>
-    <MarkdownRenderer markdown={markdown} disableLinks={options.disableLinks} />
+    <RulesText markdown={markdown} disableLinks={options.disableLinks} />
   </DataswornLinkHandlerProvider>
 );
 
-// The library's RulesText as it stands, given the app's link rules by hand.
-const renderLibraryRulesText: Renderer = (markdown, options) => (
-  <RulesText
-    markdown={markdown}
-    onLinkClick={(id) => options.onOpen(idMap[id] ?? id)}
-    canOpenLink={(id) =>
-      !options.disableLinks &&
-      !id.startsWith("atlas_entry") &&
-      !!getDataswornItem(idMap[id] ?? id)
-    }
-    resolveOracle={getOracleRollable}
-  />
+// Rules text on a page that draws the tables its macros name.
+const renderWithOracles: Renderer = (markdown, options) => (
+  <DataswornLinkHandlerProvider onOpen={options.onOpen}>
+    <RulesText
+      markdown={markdown}
+      disableLinks={options.disableLinks}
+      resolveOracle={getOracleRollable}
+    />
+  </DataswornLinkHandlerProvider>
 );
 
 const RENDERERS: Array<[string, Renderer, boolean]> = [
-  ["MarkdownRenderer", renderMarkdownRenderer, false],
-  ["RulesText (library, before slice 3)", renderLibraryRulesText, true],
+  ["RulesText in the app", renderAppRulesText, false],
+  ["RulesText with an oracle lookup", renderWithOracles, true],
 ];
 
 function normalize(text: string | null) {
   return (text ?? "").replace(/\s+/g, " ").trim();
 }
 
+// Loaded on demand in the app; loaded up front here so every render has it.
+beforeAll(async () => {
+  await loadLegacyIdMap();
+});
+
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe.each(RENDERERS)("%s", (_name, renderer, isLibraryBefore) => {
+describe.each(RENDERERS)("%s", (_name, renderer, withOracles) => {
   it.each(CASES.map((testCase) => [testCase.name, testCase] as const))(
     "renders %s",
     (_caseName, testCase) => {
       loadRules(RULESETS[testCase.rules ?? "classic"]);
       const expected: Expected = {
         ...testCase.expected,
-        ...(isLibraryBefore ? testCase.libraryBefore : undefined),
+        ...(withOracles ? testCase.withOracles : undefined),
       };
       const onOpen = vi.fn();
       vi.spyOn(console, "warn").mockImplementation(() => {});
