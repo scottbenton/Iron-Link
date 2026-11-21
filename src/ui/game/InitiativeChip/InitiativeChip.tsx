@@ -1,5 +1,6 @@
 import { Menu } from "@base-ui/react/menu";
 import { CaretDown, Check } from "@phosphor-icons/react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
@@ -168,18 +169,23 @@ export interface InitiativeChipProps<T extends string = InitiativeStatus>
 export function InitiativeChip<T extends string = InitiativeStatus>(
   props: InitiativeChipProps<T>,
 ) {
+  const { t } = useTranslation();
   const {
     status,
     onStatusChange,
     options: optionsProp,
     wording = "starforged",
     labels,
-    changeLabel = "Initiative",
+    changeLabel = t("ui.initiative.label", "Initiative"),
     className,
   } = withCssProp(props);
   const options =
     optionsProp ??
-    (getInitiativeOptions(wording, labels) as unknown as InitiativeOption<T>[]);
+    (getInitiativeOptions(
+      t,
+      wording,
+      labels,
+    ) as unknown as InitiativeOption<T>[]);
   const current = options.find((option) => option.value === status);
   const label = current?.label ?? status;
   const resting = current?.resting ? "" : undefined;
@@ -204,7 +210,10 @@ export function InitiativeChip<T extends string = InitiativeStatus>(
         className={cx(chipStyles, triggerStyles, className)}
         data-status={status}
         data-resting={resting}
-        aria-label={`${changeLabel}: ${label}`}
+        aria-label={t("ui.initiative.change", "{{change}}: {{status}}", {
+          change: changeLabel,
+          status: label,
+        })}
       >
         {content}
         <CaretDown weight="bold" aria-hidden />

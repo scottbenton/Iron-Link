@@ -1,4 +1,5 @@
 import { forwardRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import { css, cx } from "styled-system/css";
 
@@ -80,10 +81,13 @@ export const OracleTextField = forwardRef<
   HTMLInputElement,
   OracleTextFieldProps
 >(function OracleTextField(props, ref) {
+  const { t } = useTranslation();
   const {
     onRoll,
     oracleName,
-    rollLabel = `Roll ${oracleName}`,
+    rollLabel = t("ui.oracle-text-field.roll", "Roll {{oracle}}", {
+      oracle: oracleName,
+    }),
     rollAnnouncement,
     value: valueProp,
     defaultValue = "",
@@ -114,7 +118,10 @@ export const OracleTextField = forwardRef<
     const name = typeof label === "string" ? label : oracleName;
     const spoken = rollAnnouncement
       ? rollAnnouncement(result)
-      : `Updated ${name} to ${result}`;
+      : t("ui.oracle-text-field.updated", "Updated {{name}} to {{result}}", {
+          name,
+          result,
+        });
     if (spoken) announce(spoken);
   };
 

@@ -1,5 +1,6 @@
 import { DotsThreeIcon } from "@phosphor-icons/react";
 import { ElementType } from "react";
+import { useTranslation } from "react-i18next";
 
 import { css } from "styled-system/css";
 
@@ -14,11 +15,7 @@ import {
   MenuSeparator,
   MenuTrigger,
 } from "../../components/Menu";
-import {
-  ProgressRank,
-  ProgressTrack,
-  defaultRankLabels,
-} from "../ProgressTrack";
+import { ProgressRank, ProgressTrack, getRankLabels } from "../ProgressTrack";
 import { RollButton } from "../RollButton";
 import type { ConnectionsSectionProps } from "./ConnectionsSection";
 import type { ConnectionItem } from "./tracksPanelTypes";
@@ -56,7 +53,8 @@ export function ConnectionEntry(
     rankLabels: rankLabelsProp,
     strings,
   } = props;
-  const rankLabels = { ...defaultRankLabels, ...rankLabelsProp };
+  const { t } = useTranslation();
+  const rankLabels = { ...getRankLabels(t), ...rankLabelsProp };
   const editable = !readOnly && connection.editable !== false;
   const menuActions = connection.menuActions ?? [];
   const label = connection.label;

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import i18next from "i18next";
 import { useState } from "react";
 
 import { Card } from "ui/components/Card";
@@ -196,7 +197,7 @@ export const WithStatCards: Story = {
                 </Text>
                 <StatGrid
                   label={`Roll ${move.name} with`}
-                  stats={getMoveRollOptions(move)
+                  stats={getMoveRollOptions(move, i18next.t)
                     .filter((option) => option.id in kiraStats)
                     .map((option) => ({
                       key: option.id,

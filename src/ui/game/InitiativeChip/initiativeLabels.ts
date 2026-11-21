@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+
 /** The statuses Iron Link has today. Datasworn may bring others. */
 export type InitiativeStatus = "hasInitiative" | "noInitiative" | "outOfCombat";
 
@@ -20,21 +22,24 @@ export interface InitiativeOption<T extends string = string> {
   resting?: boolean;
 }
 
-export const initiativeLabels: Record<
-  InitiativeWording,
-  Record<InitiativeStatus, string>
-> = {
-  ironsworn: {
-    hasInitiative: "Has Initiative",
-    noInitiative: "No Initiative",
-    outOfCombat: "Out of Combat",
-  },
-  starforged: {
-    hasInitiative: "In Control",
-    noInitiative: "In a Bad Spot",
-    outOfCombat: "Out of Combat",
-  },
-};
+/** Each game's words for the built-in statuses. */
+export function getInitiativeLabels(
+  t: TFunction,
+): Record<InitiativeWording, Record<InitiativeStatus, string>> {
+  const outOfCombat = t("ui.initiative.out-of-combat", "Out of Combat");
+  return {
+    ironsworn: {
+      hasInitiative: t("ui.initiative.has-initiative", "Has Initiative"),
+      noInitiative: t("ui.initiative.no-initiative", "No Initiative"),
+      outOfCombat,
+    },
+    starforged: {
+      hasInitiative: t("ui.initiative.in-control", "In Control"),
+      noInitiative: t("ui.initiative.in-a-bad-spot", "In a Bad Spot"),
+      outOfCombat,
+    },
+  };
+}
 
 const order: InitiativeStatus[] = [
   "hasInitiative",
@@ -44,10 +49,11 @@ const order: InitiativeStatus[] = [
 
 /** The built-in statuses as options, in menu order, with a game's words. */
 export function getInitiativeOptions(
+  t: TFunction,
   wording: InitiativeWording = "starforged",
   labels?: Partial<Record<InitiativeStatus, string>>,
 ): InitiativeOption<InitiativeStatus>[] {
-  const words = { ...initiativeLabels[wording], ...labels };
+  const words = { ...getInitiativeLabels(t)[wording], ...labels };
   return order.map((value) => ({
     value,
     label: words[value],

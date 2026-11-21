@@ -2,6 +2,7 @@ import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox";
 import type { Datasworn } from "@datasworn-community/core";
 import { CaretDown, UsersThree, Warning } from "@phosphor-icons/react";
 import { ComponentPropsWithoutRef, ElementType, ReactNode, useId } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   checkboxFillStyles,
@@ -20,6 +21,10 @@ import { RulesText } from "../RulesText/RulesText";
 import { RulesTextOptions } from "../RulesText/RulesTextContext";
 import { AssetControlField } from "./AssetControlField";
 import { AssetOptionField } from "./AssetOptionField";
+import {
+  AssetCardStrings,
+  getDefaultAssetCardStrings,
+} from "./assetCardStrings";
 import {
   AssetCardState,
   AssetControl,
@@ -136,22 +141,6 @@ const fieldsStyles = css({
 /** The asset's own fields (a name, a stat), set apart from what follows. */
 const optionsStyles = css({ paddingBlockEnd: "2" });
 
-export interface AssetCardStrings {
-  shared: string;
-  outOfUse: (marks: string[]) => string;
-  expand: string;
-  collapse: string;
-  rollLabel: string;
-}
-
-export const defaultAssetCardStrings: AssetCardStrings = {
-  shared: "Shared asset",
-  outOfUse: (marks) => `${marks.join(", ")}: this asset is out of use`,
-  expand: "Show all abilities",
-  collapse: "Hide unchecked abilities",
-  rollLabel: "Roll",
-};
-
 export interface AssetCardProps
   extends CssProp,
     RulesTextOptions,
@@ -196,6 +185,7 @@ export interface AssetCardProps
  * of use. Read-only without handlers or with `readOnly`.
  */
 export function AssetCard(props: AssetCardProps) {
+  const { t } = useTranslation();
   const {
     asset,
     state,
@@ -220,7 +210,7 @@ export function AssetCard(props: AssetCardProps) {
     ...rest
   } = withCssProp(props);
 
-  const strings = { ...defaultAssetCardStrings, ...stringsProp };
+  const strings = { ...getDefaultAssetCardStrings(t), ...stringsProp };
   const rulesOptions: RulesTextOptions = {
     onLinkClick,
     canOpenLink,

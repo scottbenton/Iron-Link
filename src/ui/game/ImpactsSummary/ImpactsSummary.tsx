@@ -1,5 +1,6 @@
 import { PencilSimpleIcon } from "@phosphor-icons/react";
 import { ReactNode, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -19,7 +20,7 @@ import { IconButton } from "../../components/IconButton";
 import { ImpactGroup, ImpactsChecklist } from "../ImpactsChecklist";
 import {
   ImpactsSummaryStrings,
-  impactsSummaryWording,
+  getImpactsSummaryWording,
 } from "./impactsSummaryStrings";
 
 const headStyles = css({
@@ -102,7 +103,8 @@ export function ImpactsSummary(props: ImpactsSummaryProps) {
     dialogFooter,
     className,
   } = withCssProp(props);
-  const strings = { ...impactsSummaryWording[wording], ...stringsProp };
+  const { t } = useTranslation();
+  const strings = { ...getImpactsSummaryWording(t, wording), ...stringsProp };
 
   const [open, setOpen] = useState(false);
   // Ticks still saving, shown at once; dropped when the save settles.

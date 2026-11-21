@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { css, cx } from "styled-system/css";
 
 import { IconButton } from "../../components/IconButton";
@@ -77,12 +79,14 @@ export interface OpenNotesBarProps extends CssProp {
  * them in a sheet, like a phone browser's tab button.
  */
 export function OpenNotesBar(props: OpenNotesBarProps) {
+  const { t } = useTranslation();
   const {
     title,
     count,
     onOpenList,
     listOpen = false,
-    countLabel = (n: number) => `Open notes, ${n}`,
+    countLabel = (n: number) =>
+      t("ui.open-notes.count", "Open notes, {{count}}", { count: n }),
     className,
   } = withCssProp(props);
   const shown = count > MAX_SHOWN ? `${MAX_SHOWN}+` : String(count);

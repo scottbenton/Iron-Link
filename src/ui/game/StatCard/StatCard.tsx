@@ -1,5 +1,6 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import { ComponentProps, Ref, forwardRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -52,13 +53,14 @@ export interface StatCardProps
  */
 export const StatCard = forwardRef<HTMLElement, StatCardProps>(
   function StatCard(props, ref) {
+    const { t } = useTranslation();
     const {
       name,
       value,
       onRoll,
       adds = 0,
-      rollLabel = "Roll",
-      addsLabel = (a) => `adds ${a}`,
+      rollLabel = t("ui.common.roll", "Roll"),
+      addsLabel = (a) => t("ui.common.adds", "adds {{adds}}", { adds: a }),
       className,
       disabled,
       ...rest
@@ -67,6 +69,10 @@ export const StatCard = forwardRef<HTMLElement, StatCardProps>(
     const [die, rollDie] = useDieFace();
     const valueText = formatSigned(value);
     const addsText = adds ? formatSigned(adds) : undefined;
+    const rollName = t("ui.common.roll-name", "{{roll}} {{name}}", {
+      roll: rollLabel,
+      name,
+    });
 
     const content = (
       <span data-stat-inner="" className={statInnerStyles}>
@@ -106,8 +112,8 @@ export const StatCard = forwardRef<HTMLElement, StatCardProps>(
           className={cx(statCardBaseStyles, statRollableStyles)}
           aria-label={
             addsText
-              ? `${rollLabel} ${name}, ${valueText}, ${addsLabel(addsText)}`
-              : `${rollLabel} ${name}, ${valueText}`
+              ? `${rollName}, ${valueText}, ${addsLabel(addsText)}`
+              : `${rollName}, ${valueText}`
           }
           disabled={disabled}
           onClick={() => {

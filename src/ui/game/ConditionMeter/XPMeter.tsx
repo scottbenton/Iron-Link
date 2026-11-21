@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { ConditionMeter, ConditionMeterProps } from "./ConditionMeter";
 
 export interface XPMeterProps
@@ -23,8 +25,9 @@ const plain = (value: number) => String(value);
  * experience differently, so the meter only counts what is left to spend.
  */
 export function XPMeter(props: XPMeterProps) {
+  const { t } = useTranslation();
   const {
-    label = "Experience",
+    label = t("ui.xp-meter.label", "Experience"),
     max = 100,
     formatValue = plain,
     ...rest

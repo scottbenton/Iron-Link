@@ -1,4 +1,5 @@
 import { ArrowCounterClockwise, CaretDown, Flame } from "@phosphor-icons/react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -104,6 +105,7 @@ export interface MomentumMeterProps extends CssProp {
  * colour and the menu says which action die it cancels.
  */
 export function MomentumMeter(props: MomentumMeterProps) {
+  const { t } = useTranslation();
   const {
     value,
     onChange,
@@ -113,16 +115,44 @@ export function MomentumMeter(props: MomentumMeterProps) {
     resetValue = 2,
     disabled,
     stepperSize,
-    label = "Momentum",
-    burnLabel = "Burn",
-    resetLabel = "Reset",
+    label = t("ui.momentum-meter.label", "Momentum"),
+    burnLabel = t("ui.momentum-meter.burn", "Burn"),
+    resetLabel = t("ui.momentum-meter.reset", "Reset"),
     burnDescription = (v, r) =>
-      `Replace an action die with ${v}, then reset to ${r}`,
-    resetDescription = (r) => `Set to ${r}`,
-    menuLabel = (l, v) => `${l} ${v}, ${burnLabel} or ${resetLabel}`,
-    limitsText = (m, r) => `Max ${m}, reset ${r}`,
-    negativeText = (n) => `Cancels an action die of ${n}`,
-    changeAnnouncement = (l, v) => `${l} is now ${v}`,
+      t(
+        "ui.momentum-meter.burn-description",
+        "Replace an action die with {{value}}, then reset to {{reset}}",
+        { value: v, reset: r },
+      ),
+    resetDescription = (r) =>
+      t("ui.momentum-meter.reset-description", "Set to {{reset}}", {
+        reset: r,
+      }),
+    menuLabel = (l, v) =>
+      t(
+        "ui.momentum-meter.menu",
+        "{{label}} {{value}}, {{burn}} or {{reset}}",
+        {
+          label: l,
+          value: v,
+          burn: burnLabel,
+          reset: resetLabel,
+        },
+      ),
+    limitsText = (m, r) =>
+      t("ui.momentum-meter.limits", "Max {{max}}, reset {{reset}}", {
+        max: m,
+        reset: r,
+      }),
+    negativeText = (n) =>
+      t("ui.momentum-meter.negative", "Cancels an action die of {{value}}", {
+        value: n,
+      }),
+    changeAnnouncement = (l, v) =>
+      t("ui.meter.changed", "{{label}} is now {{value}}", {
+        label: l,
+        value: v,
+      }),
     className,
   } = withCssProp<MomentumMeterProps>(props);
 

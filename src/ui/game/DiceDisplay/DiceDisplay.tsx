@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -20,7 +21,7 @@ import { ProgressChip } from "./ProgressChip";
 import { Term } from "./Term";
 import {
   DiceDisplayStrings,
-  defaultDiceDisplayStrings,
+  getDefaultDiceDisplayStrings,
 } from "./diceDisplayStrings";
 import { strikeStyles } from "./strikeStyles";
 
@@ -141,10 +142,11 @@ export function DiceDisplay(props: DiceDisplayProps) {
     rollText,
     className,
   } = withCssProp(props);
-  const s = { ...defaultDiceDisplayStrings, ...stringsProp };
+  const { t } = useTranslation();
+  const s = { ...getDefaultDiceDisplayStrings(t), ...stringsProp };
 
   const a11y = labelled
-    ? { role: "img", "aria-label": getRollSummary(roll, { text: rollText }) }
+    ? { role: "img", "aria-label": getRollSummary(roll, t, { text: rollText }) }
     : { "aria-hidden": true };
 
   let left: ReactNode = null;

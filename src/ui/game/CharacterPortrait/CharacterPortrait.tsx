@@ -1,5 +1,6 @@
 import { UserCircle } from "@phosphor-icons/react";
 import { CSSProperties, ComponentPropsWithoutRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { SchemeName, schemes } from "ui/theme";
@@ -173,6 +174,7 @@ export interface CharacterPortraitProps
  * status.
  */
 export function CharacterPortrait(props: CharacterPortraitProps) {
+  const { t } = useTranslation();
   const {
     name,
     portraitUrl,
@@ -200,7 +202,10 @@ export function CharacterPortrait(props: CharacterPortraitProps) {
   const scale = crop?.scale ?? 1;
   const position = crop?.position ?? { x: 0.5, y: 0.5 };
 
-  const accessibleName = [label ?? `Portrait of ${name}`, statusLabel]
+  const accessibleName = [
+    label ?? t("ui.character-portrait.label", "Portrait of {{name}}", { name }),
+    statusLabel,
+  ]
     .filter(Boolean)
     .join(", ");
   const a11y =

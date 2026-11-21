@@ -1,6 +1,7 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import { Camera } from "@phosphor-icons/react";
 import { CSSProperties, ComponentProps, forwardRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
@@ -89,10 +90,11 @@ export const PortraitPlaceholder = forwardRef<
   HTMLElement,
   PortraitPlaceholderProps
 >(function PortraitPlaceholder(props, ref) {
+  const { t } = useTranslation();
   const {
     size = "lg",
     shape,
-    label = "Upload portrait",
+    label = t("ui.portrait-placeholder.label", "Upload portrait"),
     className,
     style,
     ...rest
