@@ -33,15 +33,17 @@ describe("getRollSummary", () => {
     );
   });
 
-  it("reads burned momentum in place of the action score", () => {
+  // changes.md rows 27 and 29: the app's wording.
+  it("reads burned momentum in place of the action die", () => {
     expect(getRollSummary(compelBurnedMomentum, i18next.t)).toBe(
-      "Compel, Heart: Strong Hit. Burned 9 momentum in place of the action score. Challenge dice 5 and 8.",
+      "Compel, Heart: Strong Hit. Burned 9 momentum in place of the action die. Challenge dice 5 and 8.",
     );
   });
 
+  // changes.md row 28: the app's wording, with no comma before "plus".
   it("reads a cancelled action die", () => {
     expect(getRollSummary(gatherInformationCancelled, i18next.t)).toBe(
-      "Gather Information, Wits: Miss. Action die 2, cancelled by negative momentum, plus 1, total 1. Challenge dice 3 and 6.",
+      "Gather Information, Wits: Miss. Action die 2, cancelled by negative momentum plus 1, total 1. Challenge dice 3 and 6.",
     );
   });
 
@@ -75,9 +77,10 @@ describe("getRollSummary", () => {
     );
   });
 
+  // changes.md row 30: the app's wording, named by the clock alone.
   it("reads a clock roll", () => {
     expect(getRollSummary(clockAdvances, i18next.t)).toBe(
-      "Clock, The Iron Syndicate seizes the Bleakhold mines (Likely): Yes. Roll 33. Match.",
+      "The Iron Syndicate seizes the Bleakhold mines: Yes. Roll 33. Match.",
     );
   });
 

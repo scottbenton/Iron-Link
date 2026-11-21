@@ -30,6 +30,7 @@ import {
   RollSummaryNames,
   getRollSummary,
   getRollTitle,
+  toRollData,
 } from "../rollSummary.lib";
 
 const t = i18n.t.bind(i18n);
@@ -365,7 +366,8 @@ const rollPairCases: RollPairCase[] = [
   },
 ];
 
-// What each case reads today: the app's summary and the library's.
+// What each case reads: the app's summary and the library's. Since slice 4
+// the app reads through the library, so the two columns agree.
 const rollPairSummaries: Record<string, { app: string; library: string }> = {
   "stat roll with a move": {
     app: "Face Danger, Edge: Weak Hit. Action die 3 plus 2, total 5. Challenge dice 4 and 7.",
@@ -385,12 +387,14 @@ const rollPairSummaries: Record<string, { app: string; library: string }> = {
   "stat roll cancelled by negative momentum": {
     app: "Gather Information, Wits: Miss. Action die 2, cancelled by negative momentum plus 1, total 1. Challenge dice 3 and 6.",
     library:
-      "Gather Information, Wits: Miss. Action die 2, cancelled by negative momentum, plus 1, total 1. Challenge dice 3 and 6.",
+      // changes.md row 28: no comma after "cancelled by negative momentum".
+      "Gather Information, Wits: Miss. Action die 2, cancelled by negative momentum plus 1, total 1. Challenge dice 3 and 6.",
   },
   "stat roll with burned momentum and a one on the action die": {
     app: "Compel, Heart: Strong Hit. Burned 9 momentum in place of the action die. Challenge dice 5 and 8. One on the action die.",
     library:
-      "Compel, Heart: Strong Hit. Burned 9 momentum in place of the action score. Challenge dice 5 and 8.",
+      // changes.md rows 27 and 29: "action die", and the one still read.
+      "Compel, Heart: Strong Hit. Burned 9 momentum in place of the action die. Challenge dice 5 and 8. One on the action die.",
   },
   "stat roll with a match and a one, no stat": {
     app: "Edge: Miss. Action die 1. Challenge dice 6 and 6. Match. One on the action die.",
@@ -422,8 +426,8 @@ const rollPairSummaries: Record<string, { app: string; library: string }> = {
   },
   "clock roll": {
     app: "The Iron Syndicate seizes the mines: Yes. Roll 33. Match.",
-    library:
-      "Clock, The Iron Syndicate seizes the mines (Likely): Yes. Roll 33. Match.",
+    // changes.md row 30: no "Clock, … (Likely)" heading.
+    library: "The Iron Syndicate seizes the mines: Yes. Roll 33. Match.",
   },
 };
 
@@ -433,6 +437,10 @@ describe("roll summaries, app and library", () => {
       app: getRollSummary(roll, names, t),
       library: getLibraryRollSummary(data, t),
     }).toEqual(rollPairSummaries[name]);
+  });
+
+  it.each(rollPairCases)("maps a $name onto the library's data", (c) => {
+    expect(toRollData(c.roll, c.names)).toEqual(c.data);
   });
 
   it.each(rollPairCases)("titles a $name alike", ({ roll, names, data }) => {
