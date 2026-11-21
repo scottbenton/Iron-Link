@@ -1,10 +1,11 @@
 import DeleteIcon from "@mui/icons-material/Delete";
 import { IconButton, Tooltip } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import { AssetCard } from "components/datasworn/AssetCard";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { useAsset } from "hooks/datasworn/useAsset";
 

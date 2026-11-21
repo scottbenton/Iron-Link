@@ -5,10 +5,11 @@ import ThemeIcon from "@mui/icons-material/Palette";
 import RulesetIcon from "@mui/icons-material/PlaylistAdd";
 import { ListItemIcon, ListItemText, MenuItem } from "@mui/material";
 import { ListSubheader } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { pathConfig } from "pages/pathConfig";
 
@@ -62,7 +63,6 @@ export function GameSettingsMenuItems(props: GameSettingsMenuItemsProps) {
           "Are you sure you want to delete this game? This action cannot be undone.",
         ),
         confirmationText: t("common.delete", "Delete"),
-        confirmationButtonProps: { color: "error" },
       })
         .then(({ confirmed }) => {
           if (!confirmed) {

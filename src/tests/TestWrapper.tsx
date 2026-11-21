@@ -1,13 +1,13 @@
 import { PropsWithChildren } from "react";
 
-import { SnackbarProvider } from "providers/SnackbarProvider";
+import { AppUIProvider } from "providers/AppUIProvider";
 import { ThemeProvider } from "providers/ThemeProvider";
 
 export function TestWrapper(props: PropsWithChildren) {
   const { children } = props;
   return (
     <ThemeProvider>
-      <SnackbarProvider>{children}</SnackbarProvider>
+      <AppUIProvider>{children}</AppUIProvider>
     </ThemeProvider>
   );
 }

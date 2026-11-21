@@ -1,4 +1,4 @@
-import { enqueueSnackbar } from "notistack";
+import { toast } from "ui/components/Toast";
 
 import { i18n } from "i18n/config";
 
@@ -11,30 +11,67 @@ import {
 
 import { AnalyticsService } from "services/analytics.service";
 
-export function createInfoSnackbar(message: string) {
-  enqueueSnackbar(message, {
-    variant: "info",
+// Long enough to reach with a screen reader; errors stay until dismissed.
+const AUTO_HIDE_MS = 10000;
+
+export interface SnackbarAction {
+  /** The button's label, such as "Undo". */
+  label: string;
+  /** Runs on a press; the snackbar then closes. */
+  onClick: () => void;
+}
+
+export interface SnackbarOptions {
+  /** A button beside Dismiss, such as Undo. */
+  action?: SnackbarAction;
+}
+
+type SnackbarVariant = "info" | "success" | "warning" | "error";
+
+function showSnackbar(
+  variant: SnackbarVariant,
+  message: string,
+  options: SnackbarOptions = {},
+) {
+  // One toast per message: the same message again replaces the one already
+  // open rather than stacking a copy (notistack's preventDuplicate, which
+  // the app used before the library). The library's Toaster reads it through
+  // the app's live region.
+  toast[variant](message, {
+    id: `app-snackbar:${message}`,
+    duration: variant === "error" ? undefined : AUTO_HIDE_MS,
+    action: options.action,
+    dismissLabel: i18n.t("common.dismiss-notification", "Dismiss notification"),
   });
 }
 
-export function createSuccessSnackbar(message: string) {
-  enqueueSnackbar(message, {
-    variant: "success",
-  });
-}
-export function createWarningSnackbar(message: string) {
-  enqueueSnackbar(message, {
-    variant: "warning",
-  });
+export function createInfoSnackbar(message: string, options?: SnackbarOptions) {
+  showSnackbar("info", message, options);
 }
 
-export function createErrorSnackbar(message: string) {
-  enqueueSnackbar(message, {
-    variant: "error",
-    // An error stays until it is dismissed, so there is time to find it and
-    // read it again.
-    persist: true,
-  });
+export function createSuccessSnackbar(
+  message: string,
+  options?: SnackbarOptions,
+) {
+  showSnackbar("success", message, options);
+}
+
+export function createWarningSnackbar(
+  message: string,
+  options?: SnackbarOptions,
+) {
+  showSnackbar("warning", message, options);
+}
+
+/**
+ * An error stays until it is dismissed, so there is time to find it and read
+ * it again.
+ */
+export function createErrorSnackbar(
+  message: string,
+  options?: SnackbarOptions,
+) {
+  showSnackbar("error", message, options);
 }
 
 export function parseRepositoryErrorAndGetText(error: RepositoryError) {

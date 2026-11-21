@@ -1,8 +1,9 @@
 import MoreIcon from "@mui/icons-material/MoreHoriz";
 import { IconButton, Menu, MenuItem } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import { useCallback, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 

@@ -1,8 +1,10 @@
+import { Dialog } from "@mui/material";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useConfirm } from "material-ui-confirm";
 import { useState } from "react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { Providers } from "../Providers";
 
@@ -106,5 +108,33 @@ describe("app confirm", () => {
       ).not.toBeInTheDocument(),
     );
     await act(async () => {});
+  });
+
+  // Several confirms open from inside an MUI dialog (Delete field from the
+  // field editor). MUI's focus trap must not pull focus back out of the
+  // confirm, which sits outside that dialog.
+  it("keeps focus in a confirm opened from an MUI dialog", async () => {
+    const user = userEvent.setup();
+    render(
+      <Providers>
+        <Dialog open aria-label="Edit field">
+          <Probe options={deleteOptions} />
+        </Dialog>
+      </Providers>,
+    );
+    await user.click(screen.getByRole("button", { name: "Ask" }));
+    const confirm = await screen.findByRole("alertdialog", {
+      name: "Delete World",
+    });
+    await waitFor(() =>
+      expect(confirm).toContainElement(document.activeElement as HTMLElement),
+    );
+    // MUI rechecks its trap every 50ms.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
+    expect(confirm).toContainElement(document.activeElement as HTMLElement);
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(result()).toBe("cancelled"));
   });
 });

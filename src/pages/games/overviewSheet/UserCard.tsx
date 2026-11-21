@@ -1,7 +1,8 @@
 import { Box, Button, Card, Typography } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { useUID } from "stores/auth.store";
 import { GamePermission, useGameStore } from "stores/game.store";

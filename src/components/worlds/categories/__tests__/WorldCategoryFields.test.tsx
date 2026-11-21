@@ -6,8 +6,9 @@ import {
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ConfirmProvider } from "material-ui-confirm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { ConfirmProvider } from "ui/components/ConfirmDialog";
 
 import { WorldCategoryFields } from "../WorldCategoryFields";
 import { category, field, optionList, translate } from "./fixtures";
@@ -118,7 +119,7 @@ describe("WorldCategoryFields", () => {
     // Clicks inside it use fireEvent: user-event's synchronous focus patch
     // makes the two MUI focus traps recurse in jsdom.
     fireEvent.click(
-      within(screen.getByRole("dialog")).getByRole("button", {
+      within(screen.getByRole("alertdialog")).getByRole("button", {
         name: "Cancel",
       }),
     );

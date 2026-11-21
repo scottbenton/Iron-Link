@@ -1,5 +1,6 @@
-import { enqueueSnackbar } from "notistack";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { toast } from "ui/components/Toast";
 
 import { ErrorReason } from "repositories/errors/RepositoryErrors";
 import {
@@ -19,7 +20,9 @@ import {
 } from "../worldEntries.store";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
-vi.mock("notistack", () => ({ enqueueSnackbar: vi.fn() }));
+vi.mock("ui/components/Toast", () => ({
+  toast: { info: vi.fn(), success: vi.fn(), warning: vi.fn(), error: vi.fn() },
+}));
 vi.mock("services/analytics.service", () => ({
   AnalyticsService: { logError: vi.fn() },
 }));
@@ -59,7 +62,7 @@ beforeEach(() => {
 afterEach(() => {
   store().reset();
   vi.restoreAllMocks();
-  vi.mocked(enqueueSnackbar).mockClear();
+  vi.mocked(toast.error).mockClear();
 });
 
 describe("world entry parents", () => {
@@ -75,9 +78,9 @@ describe("world entry parents", () => {
       store().setEntryParent("region", "area"),
     ).rejects.toMatchObject({ reason: ErrorReason.InvalidParent });
     expect(setParent).not.toHaveBeenCalled();
-    expect(enqueueSnackbar).toHaveBeenCalledWith(
+    expect(toast.error).toHaveBeenCalledWith(
       "That entry can't be placed there. Choose an entry in the same category that isn't the entry itself or one of its nested entries.",
-      { variant: "error", persist: true },
+      expect.objectContaining({ duration: undefined }),
     );
   });
 });

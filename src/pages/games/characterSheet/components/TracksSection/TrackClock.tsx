@@ -10,11 +10,12 @@ import {
   Typography,
 } from "@mui/material";
 import { Box } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { ClockCircle } from "components/datasworn/Clocks/ClockCircle";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";

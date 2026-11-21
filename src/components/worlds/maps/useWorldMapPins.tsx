@@ -1,7 +1,7 @@
-import { Button } from "@mui/material";
-import { closeSnackbar, enqueueSnackbar } from "notistack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { createInfoSnackbar } from "providers/SnackbarProvider";
 
 import { useUID } from "stores/auth.store";
 import { useWorldIsGuided, useWorldPermission } from "stores/world.store";
@@ -128,23 +128,18 @@ export function useWorldMapPins(
         : t("worlds.maps.pin-group", "{{count}} places", {
             count: entryIds.length,
           });
-    enqueueSnackbar(t("worlds.maps.pins.moved", "Moved {{name}}", { name }), {
-      variant: "info",
-      action: (id) => (
-        <Button
-          color="inherit"
-          size="small"
-          onClick={() => {
-            closeSnackbar(id);
+    createInfoSnackbar(
+      t("worlds.maps.pins.moved", "Moved {{name}}", { name }),
+      {
+        action: {
+          label: t("worlds.maps.pins.undo", "Undo"),
+          onClick: () =>
             before.forEach((pin) =>
               setPin({ ...pin, mapEntryId: entry.id }).catch(onError),
-            );
-          }}
-        >
-          {t("worlds.maps.pins.undo", "Undo")}
-        </Button>
-      ),
-    });
+            ),
+        },
+      },
+    );
   };
 
   const onToolPointer = (event: WorldMapPointerEvent) => {

@@ -382,6 +382,15 @@ export function getTheme(colorScheme: ColorScheme): Theme {
       },
     },
     components: {
+      MuiModal: {
+        defaultProps: {
+          // The library's dialogs (useConfirm, opened over MUI dialogs and
+          // menus) render outside MUI's modal, and MUI's trap would pull
+          // focus back out of them. Tab still wraps inside MUI dialogs;
+          // remove this with MUI.
+          disableEnforceFocus: true,
+        },
+      },
       MuiPaper: {
         styleOverrides: {
           root: {

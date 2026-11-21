@@ -10,12 +10,13 @@ import {
   Stack,
   Tooltip,
 } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { BreadcrumbItem } from "components/Layout/BreadcrumbTrail";
 import { LinkComponent } from "components/LinkComponent";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { useWorldOracles } from "hooks/useWorldOracles";
 
