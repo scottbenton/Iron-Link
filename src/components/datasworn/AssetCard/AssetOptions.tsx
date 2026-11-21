@@ -1,6 +1,8 @@
 import { Datasworn } from "@datasworn-community/core";
 import { Stack } from "@mui/material";
 
+import { sortByLabel } from "ui/game/AssetCard/assetData";
+
 import { IAsset } from "services/asset.service";
 
 import { AssetOption } from "./AssetOption";
@@ -24,22 +26,15 @@ export function AssetOptions(props: AssetOptionsProps) {
 
   return (
     <Stack spacing={1} mb={2}>
-      {Object.keys(options)
-        .sort((o1, o2) => {
-          const option1 = options[o1];
-          const option2 = options[o2];
-
-          return option1.label.localeCompare(option2.label);
-        })
-        .map((assetOptionKey) => (
-          <AssetOption
-            value={assetDocument?.optionValues?.[assetOptionKey]}
-            key={assetOptionKey}
-            assetOptionKey={assetOptionKey}
-            assetOption={options[assetOptionKey]}
-            onAssetOptionChange={onAssetOptionChange}
-          />
-        ))}
+      {sortByLabel(options).map(([assetOptionKey, assetOption]) => (
+        <AssetOption
+          value={assetDocument?.optionValues?.[assetOptionKey]}
+          key={assetOptionKey}
+          assetOptionKey={assetOptionKey}
+          assetOption={assetOption}
+          onAssetOptionChange={onAssetOptionChange}
+        />
+      ))}
     </Stack>
   );
 }
