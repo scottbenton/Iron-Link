@@ -1,5 +1,7 @@
 import { SimplePaletteColorOptions, Theme, createTheme } from "@mui/material";
 
+import { breakpointWidths } from "ui/theme/breakpoints";
+
 import { ColorScheme } from "repositories/shared.types";
 
 import {
@@ -281,6 +283,8 @@ const secondaryDark: SimplePaletteColorOptions = {
 
 export function getTheme(colorScheme: ColorScheme): Theme {
   return createTheme({
+    // One breakpoint table for MUI, the app's hooks and the UI library.
+    breakpoints: { values: { xs: 0, ...breakpointWidths } },
     shape: {
       borderRadius: BORDER_RADIUS,
     },

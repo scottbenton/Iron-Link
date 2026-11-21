@@ -3,6 +3,7 @@ import { PropsWithChildren } from "react";
 
 import { useAppState } from "stores/appState.store";
 
+import { UIThemeBridge } from "./UIThemeBridge";
 import { getTheme } from "./themes/themeConfig";
 
 export function ThemeProvider(props: PropsWithChildren) {
@@ -14,6 +15,7 @@ export function ThemeProvider(props: PropsWithChildren) {
   return (
     <MuiThemeProvider theme={theme}>
       <CssBaseline enableColorScheme />
+      <UIThemeBridge />
       {children}
     </MuiThemeProvider>
   );

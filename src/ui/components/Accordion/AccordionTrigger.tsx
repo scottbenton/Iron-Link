@@ -7,6 +7,8 @@ import { quietPressable } from "ui/styles/pressable";
 
 import { css, cx } from "styled-system/css";
 
+import { useHeadingComponent } from "../HeadingOffset";
+
 const headerStyles = css({
   display: "flex",
   alignItems: "center",
@@ -81,7 +83,8 @@ export interface AccordionTriggerProps {
   actions?: ReactNode;
   /**
    * The heading element. Headings nest by section, so pick the level that
-   * follows the heading above (CLAUDE.md).
+   * follows the heading above (CLAUDE.md). A surrounding `HeadingOffset`
+   * shifts it.
    */
   headingLevel?: 2 | 3 | 4 | 5 | 6;
   disabled?: boolean;
@@ -102,7 +105,7 @@ export const AccordionTrigger = forwardRef<
     disabled,
     className,
   } = props;
-  const Heading = `h${headingLevel}` as const;
+  const Heading = useHeadingComponent(headingLevel);
   return (
     <BaseAccordion.Header render={<Heading />} className={headerStyles}>
       <BaseAccordion.Trigger

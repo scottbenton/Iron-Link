@@ -3,6 +3,7 @@ import { PropsWithChildren } from "react";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter } from "react-router";
 
+import { AppUIProvider } from "./AppUIProvider";
 import { HeadProvider } from "./HeadProvider";
 import { SnackbarProvider } from "./SnackbarProvider";
 import { ThemeProvider } from "./ThemeProvider";
@@ -25,7 +26,9 @@ export function Providers(props: PropsWithChildren) {
           }}
         >
           <SnackbarProvider>
-            <BrowserRouter>{children}</BrowserRouter>
+            <BrowserRouter>
+              <AppUIProvider>{children}</AppUIProvider>
+            </BrowserRouter>
           </SnackbarProvider>
         </ConfirmProvider>
       </HeadProvider>
