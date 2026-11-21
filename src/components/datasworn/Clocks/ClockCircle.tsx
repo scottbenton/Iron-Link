@@ -1,6 +1,8 @@
 import { Box, ButtonBase, SxProps, Theme, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { getDefaultClockStrings } from "ui/game/Clock/clockStrings";
+
 import { ClockSegment } from "./ClockSegment";
 
 export type ClockSize = "small" | "medium" | "large";
@@ -31,14 +33,11 @@ export function ClockCircle(props: ClockCircleProps) {
   const theme = useTheme();
   const { t } = useTranslation();
 
-  const valueText = t(
-    "datasworn.clock.value-text",
-    "{{label}}, {{value}} of {{segments}} segments filled",
-    {
-      label: label ?? t("datasworn.clock.default-label", "Clock"),
-      value,
-      segments,
-    },
+  // "Siege, 3 of 6 segments filled", from the library's clock words.
+  const clockStrings = getDefaultClockStrings(t);
+  const valueText = clockStrings.changed(
+    label ?? t("datasworn.clock.default-label", "Clock"),
+    clockStrings.valueText(value, segments),
   );
 
   const sxArray = Array.isArray(sx) ? sx : [sx];
