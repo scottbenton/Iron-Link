@@ -119,6 +119,11 @@ that are easy to miss. When you learn a new one, add a line here.
 - An entry's Notes take the main column with its fields in a side panel when
   the entry's container is wide enough (a container query, so a game's
   narrower Notes column keeps them stacked).
+- A category's entries show as a grid of cards or a list
+  (`WorldEntryLayoutToggle`), remembered per category on the device with the
+  list's open branches (`worldEntryLayout.store.ts`); an entry's Places follow
+  its category. Nesting categories default to the list, a tree built by
+  `getWorldEntryTree` (shared with the Move dialog); the rest to the grid.
 - A world is guided (`world_is_guided`, `useWorldIsGuided`) when a linked
   game is guided or a member is a player or viewer. Guide-only controls
   (Share, Guide only wells, lock icons) appear only in guided worlds.

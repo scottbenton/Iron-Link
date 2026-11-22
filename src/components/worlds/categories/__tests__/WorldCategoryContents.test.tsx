@@ -13,6 +13,7 @@ import {
   useListenToWorldEntries,
   useWorldEntriesStore,
 } from "stores/worldEntries.store";
+import { useWorldEntryLayoutStore } from "stores/worldEntryLayout.store";
 
 import { createWorldFieldConfiguration } from "lib/worldFieldRules";
 
@@ -48,6 +49,7 @@ beforeEach(() => {
   useWorldStore.setState({ worldPermission: WorldPermission.Viewer });
   useWorldCategoriesStore.setState({ fieldDefinitions: {} });
   useWorldEntriesStore.getState().reset();
+  useWorldEntryLayoutStore.setState({ layouts: {}, expanded: {} });
 });
 
 const entry = (
@@ -271,7 +273,8 @@ describe("WorldCategoryContents", () => {
       entry("havens", category.id, "The Havens"),
     ];
 
-    it("lists only the top level, with places holding others as folders", () => {
+    it("lists only the top level as cards, with places holding others as folders", () => {
+      useWorldEntryLayoutStore.getState().setLayout(category.id, "grid");
       loadWorld(places, [], []);
       renderList();
       expect(
@@ -285,6 +288,31 @@ describe("WorldCategoryContents", () => {
         "href",
         `/worlds/${category.worldId}/categories/${category.id}/entries/havens`,
       );
+    });
+
+    it("opens as a tree that remembers which places are open", async () => {
+      loadWorld(places, [], []);
+      const { unmount } = renderList();
+      expect(
+        screen.getAllByRole("link").map((link) => link.textContent),
+      ).toEqual(["The Havens", "The Ironlands"]);
+      // Rows open the entry itself; their places open in place.
+      expect(row("The Ironlands")).toHaveAttribute(
+        "href",
+        `/worlds/${category.worldId}/categories/${category.id}/entries/ironlands`,
+      );
+      const toggle = screen.getByRole("button", {
+        name: "Places in The Ironlands",
+      });
+      expect(toggle).toHaveAttribute("aria-expanded", "false");
+      await act(async () => toggle.click());
+      expect(toggle).toHaveAttribute("aria-expanded", "true");
+      expect(row("The Hinterlands")).toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: /^Kingsmark/ })).toBeNull();
+
+      unmount();
+      renderList();
+      expect(row("The Hinterlands")).toBeInTheDocument();
     });
 
     it("lists entries under a hidden parent at the top level", () => {

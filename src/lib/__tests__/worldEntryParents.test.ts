@@ -4,6 +4,7 @@ import {
   countWorldEntryChildren,
   getWorldEntryAncestors,
   getWorldEntryPath,
+  getWorldEntryTree,
   isTopLevelWorldEntry,
   isValidWorldEntryParent,
 } from "../worldEntryParents";
@@ -111,5 +112,41 @@ describe("world entry hierarchy", () => {
 
   it("counts visible children", () => {
     expect(countWorldEntryChildren(entries)).toEqual({ region: 1, area: 1 });
+  });
+});
+
+describe("getWorldEntryTree", () => {
+  const named = (
+    id: string,
+    parentEntryId: string | null,
+    categoryId = "places",
+  ) => ({ ...entry(id, parentEntryId, categoryId), name: id });
+  const tree = Object.fromEntries(
+    [
+      named("Zeta", null),
+      named("Alpha", null),
+      named("Child B", "Alpha"),
+      named("Child A", "Alpha"),
+      // Its parent is hidden from this client.
+      named("Orphan", "hidden"),
+      // Its parent is in another category.
+      named("Stray", "Person"),
+      named("Person", null, "people"),
+    ].map((item) => [item.id, item]),
+  );
+
+  it("groups a category's entries under their parents, by name", () => {
+    const { roots, children } = getWorldEntryTree(tree, "places");
+    expect(roots.map((item) => item.id)).toEqual([
+      "Alpha",
+      "Orphan",
+      "Stray",
+      "Zeta",
+    ]);
+    expect(children.Alpha.map((item) => item.id)).toEqual([
+      "Child A",
+      "Child B",
+    ]);
+    expect(children.Person).toBeUndefined();
   });
 });
