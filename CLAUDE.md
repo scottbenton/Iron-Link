@@ -78,6 +78,10 @@ that are easy to miss. When you learn a new one, add a line here.
   `.github/workflows/ci.yaml` (Direct Upload with wrangler), after unit
   tests, lint and database tests pass; Cloudflare's own Git builds are off.
   Build variables live in the `production` and `preview` GitHub environments.
+- Storybook deploys from `.github/workflows/storybook.yaml` on every branch
+  push to its own Pages project (`iron-link-storybook`), one preview address
+  per branch; the project's production branch, set in Cloudflare, gets the
+  main address. It needs no Supabase variables and comments on nothing.
 - A tab left open across a deploy asks for chunks that are gone (Cloudflare
   Pages answers with index.html). `installStaleChunkReload` reloads once on
   Vite's `vite:preloadError`, whatever the browser's wording, with a 10s

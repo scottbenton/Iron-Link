@@ -1,0 +1,62 @@
+name: Storybook
+
+# Every branch's push publishes the component library's Storybook to its own
+# Cloudflare Pages project, separate from the app's. Each branch gets a
+# preview address (<branch>.<project>.pages.dev) that follows its newest
+# push; the branch set as the project's production branch in Cloudflare
+# (redesign for now, main once the migration lands) publishes to the main
+# <project>.pages.dev address. Nothing is commented on PRs.
+on:
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+# A newer push to a branch replaces its older run.
+concurrency:
+  group: storybook-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy Storybook
+    # Forks and Dependabot have no access to the Cloudflare secrets.
+    if: >-
+      github.event.repository.fork == false &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    # The app's deploy job reads the Cloudflare secrets from here, so this
+    # job does too (an environment also sees repository secrets).
+    environment: preview
+
+    permissions:
+      contents: read
+
+    env:
+      STORYBOOK_PAGES_PROJECT_NAME: ${{ vars.STORYBOOK_PAGES_PROJECT_NAME || 'iron-link-storybook' }}
+      DEPLOY_BRANCH: ${{ github.ref_name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build Storybook
+        env:
+          STORYBOOK_DISABLE_TELEMETRY: "1"
+        run: npx storybook build --quiet --output-dir storybook-static
+
+      - name: Deploy to Cloudflare Pages
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          npx --yes wrangler@4 pages deploy storybook-static \
+            --project-name "$STORYBOOK_PAGES_PROJECT_NAME" \
+            --branch "$DEPLOY_BRANCH" \
+            --commit-hash "$GITHUB_SHA"
