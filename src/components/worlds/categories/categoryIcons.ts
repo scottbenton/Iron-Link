@@ -31,14 +31,10 @@ function getBodyPaths(body: string) {
 let loadedIcons: CategoryIconSet | undefined;
 let iconsPromise: Promise<CategoryIconSet> | undefined;
 export function loadCategoryIcons() {
-  iconsPromise ??= Promise.all([
-    import("@iconify-json/game-icons"),
-    import("./legacyGameIconPaths"),
-  ]).then(([{ icons }, { LEGACY_GAME_ICON_PATHS }]) => {
+  iconsPromise ??= import("@iconify-json/game-icons").then(({ icons }) => {
     const set: CategoryIconSet = {};
     for (const [name, icon] of Object.entries(icons.icons)) {
-      const key = getGameIconKey(name);
-      set[key] = LEGACY_GAME_ICON_PATHS[key] ?? getBodyPaths(icon.body);
+      set[getGameIconKey(name)] = getBodyPaths(icon.body);
     }
     loadedIcons = set;
     return set;

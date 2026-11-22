@@ -8,7 +8,6 @@ import {
   loadCategoryIcons,
 } from "../categoryIcons";
 import { getGameIconKey } from "../gameIconKeys";
-import { LEGACY_GAME_ICON_PATHS } from "../legacyGameIconPaths";
 
 // Every Game Icons key react-icons 5.7.0 offered, which is every key a
 // world category or entry can have stored.
@@ -64,11 +63,5 @@ describe("the Game Icons set", () => {
     );
     expect(icons.GiEskimo).toBeUndefined();
     expect(categoryIconName("GiSattelite")).toBe("Satellite");
-  });
-
-  it("keeps the old drawing of icons Iconify redrew", async () => {
-    const icons = await loadCategoryIcons();
-    expect(Object.keys(LEGACY_GAME_ICON_PATHS)).toHaveLength(38);
-    expect(icons.GiBat).toBe(LEGACY_GAME_ICON_PATHS.GiBat);
   });
 });
