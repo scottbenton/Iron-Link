@@ -38,6 +38,22 @@ export const Debilities: Story = {
 };
 
 /**
+ * Read-only choices can't be changed here, like an asset ability that is
+ * always on. They keep the accent but don't look clickable; disabled ones
+ * grey out instead.
+ */
+export const ReadOnly: Story = {
+  render: () => (
+    <Stack gap="2">
+      <Checkbox label="Always on" defaultChecked readOnly />
+      <Checkbox label="Ticked by you" defaultChecked />
+      <Checkbox label="Not yet" readOnly />
+      <Checkbox label="Disabled" defaultChecked disabled />
+    </Stack>
+  ),
+};
+
+/**
  * Iron Link uses checkboxes, never switches, for on/off settings in forms.
  * A setting that used a Switch takes a Checkbox with a description.
  */

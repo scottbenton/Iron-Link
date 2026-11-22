@@ -41,6 +41,8 @@ export const choiceLabelStyles = cva({
     userSelect: "none",
     WebkitTapHighlightColor: "transparent",
     "&[data-disabled]": { cursor: "not-allowed", color: "fg.subtle" },
+    // A read-only choice can't be changed, so the row isn't a click target.
+    "&:has(> [data-readonly])": { cursor: "default" },
     // A 44px row for one line; the box stays beside the title.
     _touch: { minHeight: "touch", paddingBlock: "3" },
   },
@@ -82,7 +84,15 @@ export const choiceDescriptionStyles = cva({
   defaultVariants: { size: "md" },
 });
 
-/** The box (checkbox) or circle (radio), and what fills it. */
+/**
+ * The box (checkbox) or circle (radio), and what fills it.
+ *
+ * A read-only choice (an asset ability that is always on) keeps its colour
+ * but drops everything that invites a click: no hover border, no press, no
+ * pointer. A checked one is outlined in the accent with an accent tick on a
+ * faint accent tint, so it reads as set for you rather than as one you ticked.
+ * Disabled is still the greyed-out look.
+ */
 export const choiceBoxStyles = cva({
   base: {
     "--choice-size": "20px",
@@ -109,15 +119,22 @@ export const choiceBoxStyles = cva({
     transitionTimingFunction: "linear, token(easings.out)",
     _focusVisible: focusRing.outset,
     "label:hover > &": {
-      "&:not([data-disabled], [data-checked], [data-indeterminate])": {
-        borderColor: "fg.muted",
-      },
+      "&:not([data-disabled], [data-readonly], [data-checked], [data-indeterminate])":
+        {
+          borderColor: "fg.muted",
+        },
     },
     "&:is([data-checked], [data-indeterminate])": {
       borderColor: "accent.solid",
     },
     "&[data-invalid]:not([data-checked])": { borderColor: "danger.fg" },
-    "label:active > &": { "&:not([data-disabled])": { scale: "0.9" } },
+    "label:active > &": {
+      "&:not([data-disabled], [data-readonly])": { scale: "0.9" },
+    },
+    "&[data-readonly]": { cursor: "default" },
+    "&[data-readonly]:is([data-checked], [data-indeterminate])": {
+      borderColor: "accent.fg",
+    },
     "&[data-disabled]": {
       cursor: "not-allowed",
       background: "bg.muted",
@@ -160,6 +177,7 @@ export const checkboxFillStyles = css({
     transitionDuration: "token(durations.fast), token(durations.normal)",
     transitionTimingFunction: "out",
   },
+  "[data-readonly] > &": { background: "accent.soft" },
   "[data-disabled] > &": { background: "fg.disabled" },
   _reducedMotion: { scale: "1" },
 });
@@ -192,6 +210,7 @@ export const checkboxMarkStyles = css({
   "[data-indeterminate] > &": {
     "& [data-mark=dash]": { strokeDashoffset: 0, transition: drawIn },
   },
+  "[data-readonly] > &": { color: "accent.fg" },
   "[data-disabled] > &": { color: "bg.surface" },
 });
 
