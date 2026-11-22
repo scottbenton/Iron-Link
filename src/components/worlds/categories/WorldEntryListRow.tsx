@@ -29,6 +29,7 @@ export function WorldEntryListRow({
   subtitle,
   depth,
   ancestorIds,
+  nested,
   tree,
   subtitleOf,
   category,
@@ -42,6 +43,7 @@ export function WorldEntryListRow({
   depth: number;
   // Existing bad data may hold a loop; a branch never repeats its ancestors.
   ancestorIds: string[];
+  nested: boolean;
   tree: Record<string, IWorldEntry[]>;
   subtitleOf: (entry: IWorldEntry) => string | undefined;
   category: IWorldCategory;
@@ -102,7 +104,7 @@ export function WorldEntryListRow({
             />
           </IconButton>
         ) : (
-          <Box sx={{ width: rowHeight - 8, flexShrink: 0 }} />
+          nested && <Box sx={{ width: rowHeight - 8, flexShrink: 0 }} />
         )}
         <ButtonBase
           LinkComponent={LinkComponent}
@@ -189,6 +191,7 @@ export function WorldEntryListRow({
               subtitle={subtitleOf(child)}
               depth={depth + 1}
               ancestorIds={path}
+              nested
               tree={tree}
               subtitleOf={subtitleOf}
               category={category}

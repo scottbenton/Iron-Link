@@ -30,6 +30,8 @@ export function WorldEntryList({
   onDeleted: () => void;
   onError: (cause: unknown) => void;
 }) {
+  // A flat list keeps no gap for the open and close buttons.
+  const nested = Object.keys(tree).length > 0;
   return (
     <Box
       component="ul"
@@ -51,6 +53,7 @@ export function WorldEntryList({
           subtitle={subtitle}
           depth={0}
           ancestorIds={[]}
+          nested={nested}
           tree={tree}
           subtitleOf={subtitleOf}
           category={category}
