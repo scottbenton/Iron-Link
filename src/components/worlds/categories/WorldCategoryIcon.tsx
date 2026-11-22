@@ -1,5 +1,4 @@
 import CategoryOutlined from "@mui/icons-material/CategoryOutlined";
-import Groups2Icon from "@mui/icons-material/Groups2";
 import { Box } from "@mui/material";
 import { useEffect, useState } from "react";
 
@@ -7,12 +6,13 @@ import { IconDefinition } from "types/Icon.type";
 
 import { GameIconGlyph } from "./GameIconGlyph";
 import {
-  GROUPS_CATEGORY_ICON_KEY,
   getCategoryIconColor,
   getCategoryIconPaths,
   getLoadedCategoryIcons,
+  isMaterialCategoryIconKey,
   loadCategoryIcons,
 } from "./categoryIcons";
+import { MaterialCategoryIconGlyph } from "./materialCategoryIcons";
 
 export type WorldCategoryIconSize = "small" | "medium" | "large" | "xlarge";
 
@@ -27,7 +27,7 @@ export function WorldCategoryIcon({
 }) {
   const [icons, setIcons] = useState(getLoadedCategoryIcons);
   useEffect(() => {
-    if (icons || !icon?.key || icon.key === GROUPS_CATEGORY_ICON_KEY) return;
+    if (icons || !icon?.key || isMaterialCategoryIconKey(icon.key)) return;
     let active = true;
     loadCategoryIcons()
       .then((loaded) => {
@@ -57,8 +57,11 @@ export function WorldCategoryIcon({
         color: getCategoryIconColor(icon.color, theme.palette.mode),
       })}
     >
-      {icon.key === GROUPS_CATEGORY_ICON_KEY ? (
-        <Groups2Icon sx={{ fontSize: glyph }} />
+      {isMaterialCategoryIconKey(icon.key) ? (
+        <MaterialCategoryIconGlyph
+          iconKey={icon.key}
+          sx={{ fontSize: glyph }}
+        />
       ) : paths ? (
         <GameIconGlyph paths={paths} sx={{ fontSize: glyph }} />
       ) : (

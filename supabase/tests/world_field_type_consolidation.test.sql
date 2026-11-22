@@ -517,10 +517,10 @@ select set_config('request.jwt.claim.sub','f9000000-0000-4000-8000-000000000001'
 insert into public.world_entries(id,world_id,category_id,name,author_id) values
   ('f9300000-0000-4000-8000-000000000009',pg_temp.w('forge'),pg_temp.c('forge','locations'),'Star',auth.uid());
 insert into public.world_entry_field_values(entry_id,field_definition_id,world_id,value) values
-  ('f9300000-0000-4000-8000-000000000009',pg_temp.f('forge','locations','starDescription'),pg_temp.w('forge'),'"Bright"');
+  ('f9300000-0000-4000-8000-000000000009',pg_temp.f('forge','locations','description'),pg_temp.w('forge'),'"Bright"');
 set local session_replication_role = replica;
 update public.world_templates t set configuration=jsonb_set(t.configuration,'{categories}',(
-  select jsonb_agg(jsonb_set(c.value,'{fields}',(select jsonb_agg(case when f.value->>'key'='starDescription'
+  select jsonb_agg(jsonb_set(c.value,'{fields}',(select jsonb_agg(case when f.value->>'key'='description'
     then jsonb_set(f.value,'{type}','"oracleText"') else f.value end order by f.position)
     from jsonb_array_elements(c.value->'fields') with ordinality f(value,position))) order by c.position)
   from jsonb_array_elements(t.configuration->'categories') with ordinality c(value,position)))

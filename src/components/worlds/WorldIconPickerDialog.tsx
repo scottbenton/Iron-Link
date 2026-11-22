@@ -1,5 +1,4 @@
 import AddPhotoIcon from "@mui/icons-material/AddPhotoAlternate";
-import Groups2Icon from "@mui/icons-material/Groups2";
 import SearchIcon from "@mui/icons-material/Search";
 import {
   Alert,
@@ -35,14 +34,16 @@ import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 import { GameIconGlyph } from "./categories/GameIconGlyph";
 import { WorldCategoryIcon } from "./categories/WorldCategoryIcon";
 import {
-  GROUPS_CATEGORY_ICON_KEY,
+  MATERIAL_CATEGORY_ICON_KEYS,
   categoryIconName,
   getCanonicalCategoryIconKey,
   getCategoryIconColor,
   getCategoryIconPaths,
   getLoadedCategoryIcons,
+  isMaterialCategoryIconKey,
   loadCategoryIcons,
 } from "./categories/categoryIcons";
+import { MaterialCategoryIconGlyph } from "./categories/materialCategoryIcons";
 
 const BATCH_SIZE = 240;
 
@@ -132,7 +133,7 @@ export function WorldIconPickerDialog({
   // renamed icon's stored key stands in for its new name, so it shows once.
   const initialKey =
     initial?.key &&
-    (initial.key === GROUPS_CATEGORY_ICON_KEY ||
+    (isMaterialCategoryIconKey(initial.key) ||
       getCategoryIconPaths(icons, initial.key))
       ? initial.key
       : null;
@@ -140,7 +141,7 @@ export function WorldIconPickerDialog({
     initialKey && getCanonicalCategoryIconKey(initialKey);
   const matches = [
     ...(initialKey ? [initialKey] : []),
-    ...[GROUPS_CATEGORY_ICON_KEY, ...Object.keys(icons ?? {})].filter(
+    ...[...MATERIAL_CATEGORY_ICON_KEYS, ...Object.keys(icons ?? {})].filter(
       (key) => key !== initialKey && key !== initialCanonicalKey,
     ),
   ].filter((key) => categoryIconName(key).toLowerCase().includes(query));
@@ -369,8 +370,8 @@ export function WorldIconPickerDialog({
                               draft.key === key ? "action.selected" : undefined,
                           })}
                         >
-                          {key === GROUPS_CATEGORY_ICON_KEY ? (
-                            <Groups2Icon />
+                          {isMaterialCategoryIconKey(key) ? (
+                            <MaterialCategoryIconGlyph iconKey={key} />
                           ) : (
                             <GameIconGlyph
                               paths={getCategoryIconPaths(icons, key) ?? []}

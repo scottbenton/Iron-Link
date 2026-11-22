@@ -110,7 +110,7 @@ Supports: hierarchy, map, bonds. Subtitle: Location Type.
 - **Planet Class** (`planetClass`): Option list, single, allows other values; hidden unless a rule shows it
   - Options: "Desert World", "Furnace World", "Grave World", "Ice World", "Jovian World", "Jungle World", "Ocean World", "Rocky World", "Shattered World", "Tainted World", "Vital World"
   - when Location Type = "Planet" → show
-- **Description** (`starDescription`): Text; hidden unless a rule shows it
+- **Description** (`description`): Text; hidden unless a rule shows it
   - when Location Type = "Planet" → show
   - when Location Type = "Star" → show, oracle `oracle_rollable:starforged/space/stellar_object`
 - **Feature** (`planetFeature`): Text; Guide-only; hidden unless a rule shows it
