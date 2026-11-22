@@ -21,6 +21,7 @@
     "supabase:reset-db": "supabase db reset",
     "supabase:gen-types": "supabase gen types typescript > ./src/types/supabase-generated.type.ts",
     "generate:world-defaults": "node scripts/generate-world-defaults.mjs",
+    "generate:bundled-game-icons": "node scripts/generate-bundled-game-icons.mjs",
     "supabase:create-db-script": "supabase db diff -f changes",
     "supabase:create-empty-script": "supabase migration new changes",
     "supabase:serve-functions": "supabase functions serve"

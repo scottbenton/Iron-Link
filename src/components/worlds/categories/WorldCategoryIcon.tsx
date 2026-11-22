@@ -27,7 +27,13 @@ export function WorldCategoryIcon({
 }) {
   const [icons, setIcons] = useState(getLoadedCategoryIcons);
   useEffect(() => {
-    if (icons || !icon?.key || isMaterialCategoryIconKey(icon.key)) return;
+    if (
+      icons ||
+      !icon?.key ||
+      isMaterialCategoryIconKey(icon.key) ||
+      getCategoryIconPaths(undefined, icon.key)
+    )
+      return;
     let active = true;
     loadCategoryIcons()
       .then((loaded) => {

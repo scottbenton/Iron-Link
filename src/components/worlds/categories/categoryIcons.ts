@@ -12,6 +12,7 @@ import {
 
 import { IconColors } from "types/Icon.type";
 
+import { BUNDLED_GAME_ICONS } from "./bundledGameIcons";
 import { RENAMED_GAME_ICON_KEYS, getGameIconKey } from "./gameIconKeys";
 
 // Keep Material icons curated and namespaced so stored keys never collide
@@ -67,11 +68,14 @@ export function getCanonicalCategoryIconKey(key: string) {
   return RENAMED_GAME_ICON_KEYS[key] ?? key;
 }
 
+// Icons the built-in templates use are bundled, so they draw before the set
+// has loaded, or without loading it at all. Pass no set to read only those.
 export function getCategoryIconPaths(
   icons: CategoryIconSet | undefined,
   key: string,
 ): GameIconPaths | undefined {
-  return icons?.[getCanonicalCategoryIconKey(key)];
+  const canonicalKey = getCanonicalCategoryIconKey(key);
+  return icons?.[canonicalKey] ?? BUNDLED_GAME_ICONS[canonicalKey];
 }
 
 export function categoryIconName(key: string) {
