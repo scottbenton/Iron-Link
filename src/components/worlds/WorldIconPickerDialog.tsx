@@ -13,7 +13,6 @@ import {
   LinearProgress,
   Link,
   Stack,
-  SvgIcon,
   Tab,
   Tabs,
   TextField,
@@ -33,11 +32,14 @@ import { IconColors, IconDefinition } from "types/Icon.type";
 
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 
+import { GameIconGlyph } from "./categories/GameIconGlyph";
 import { WorldCategoryIcon } from "./categories/WorldCategoryIcon";
 import {
   GROUPS_CATEGORY_ICON_KEY,
   categoryIconName,
+  getCanonicalCategoryIconKey,
   getCategoryIconColor,
+  getCategoryIconPaths,
   getLoadedCategoryIcons,
   loadCategoryIcons,
 } from "./categories/categoryIcons";
@@ -126,16 +128,20 @@ export function WorldIconPickerDialog({
       active = false;
     };
   }, [icons]);
-  // The icon it opened on leads the grid, so it is in view and selected.
+  // The icon it opened on leads the grid, so it is in view and selected. A
+  // renamed icon's stored key stands in for its new name, so it shows once.
   const initialKey =
     initial?.key &&
-    (initial.key === GROUPS_CATEGORY_ICON_KEY || icons?.[initial.key])
+    (initial.key === GROUPS_CATEGORY_ICON_KEY ||
+      getCategoryIconPaths(icons, initial.key))
       ? initial.key
       : null;
+  const initialCanonicalKey =
+    initialKey && getCanonicalCategoryIconKey(initialKey);
   const matches = [
     ...(initialKey ? [initialKey] : []),
     ...[GROUPS_CATEGORY_ICON_KEY, ...Object.keys(icons ?? {})].filter(
-      (key) => key !== initialKey,
+      (key) => key !== initialKey && key !== initialCanonicalKey,
     ),
   ].filter((key) => categoryIconName(key).toLowerCase().includes(query));
   const color = draft.color ?? IconColors.Grey;
@@ -366,7 +372,9 @@ export function WorldIconPickerDialog({
                           {key === GROUPS_CATEGORY_ICON_KEY ? (
                             <Groups2Icon />
                           ) : (
-                            <SvgIcon component={icons[key]} inheritViewBox />
+                            <GameIconGlyph
+                              paths={getCategoryIconPaths(icons, key) ?? []}
+                            />
                           )}
                         </IconButton>
                       </Tooltip>

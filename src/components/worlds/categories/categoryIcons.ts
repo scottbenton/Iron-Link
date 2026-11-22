@@ -9,22 +9,35 @@ import {
   red,
   yellow,
 } from "@mui/material/colors";
-import type { IconType } from "react-icons";
 
 import { IconColors } from "types/Icon.type";
+
+import { RENAMED_GAME_ICON_KEYS, getGameIconKey } from "./gameIconKeys";
 
 // Keep Material icons curated and namespaced so stored keys never collide
 // with game-icons keys. Import individual modules to avoid bundling the set.
 export const GROUPS_CATEGORY_ICON_KEY = "mui:Groups2";
 
-let loadedIcons: Record<string, IconType> | undefined;
-let iconsPromise: Promise<Record<string, IconType>> | undefined;
+// A game icon is the d attribute of each of its paths, drawn in a 512 box.
+export type GameIconPaths = string[];
+export type CategoryIconSet = Record<string, GameIconPaths>;
+
+// Iconify bodies are plain <path fill="currentColor" d="..."/> elements, so
+// only their d attributes are kept and nothing is set as HTML.
+function getBodyPaths(body: string) {
+  return Array.from(body.matchAll(/\sd="([^"]*)"/g), (match) => match[1]);
+}
+
+let loadedIcons: CategoryIconSet | undefined;
+let iconsPromise: Promise<CategoryIconSet> | undefined;
 export function loadCategoryIcons() {
-  // The module exports only Game Icons components. Its type also carries a
-  // synthetic default export, which does not exist at runtime.
-  iconsPromise ??= import("react-icons/gi").then((icons) => {
-    loadedIcons = icons as Omit<typeof icons, "default">;
-    return loadedIcons;
+  iconsPromise ??= import("@iconify-json/game-icons").then(({ icons }) => {
+    const set: CategoryIconSet = {};
+    for (const [name, icon] of Object.entries(icons.icons)) {
+      set[getGameIconKey(name)] = getBodyPaths(icon.body);
+    }
+    loadedIcons = set;
+    return set;
   });
   return iconsPromise;
 }
@@ -35,9 +48,24 @@ export function getLoadedCategoryIcons() {
   return loadedIcons;
 }
 
+// The key the icon set lists a stored key under. Keys of icons Iconify
+// renamed stay stored as they are and read as the new name.
+export function getCanonicalCategoryIconKey(key: string) {
+  return RENAMED_GAME_ICON_KEYS[key] ?? key;
+}
+
+export function getCategoryIconPaths(
+  icons: CategoryIconSet | undefined,
+  key: string,
+): GameIconPaths | undefined {
+  return icons?.[getCanonicalCategoryIconKey(key)];
+}
+
 export function categoryIconName(key: string) {
   if (key === GROUPS_CATEGORY_ICON_KEY) return "Groups";
-  return key.replace(/^Gi/, "").replace(/([a-z0-9])([A-Z])/g, "$1 $2");
+  return getCanonicalCategoryIconKey(key)
+    .replace(/^Gi/, "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2");
 }
 
 const categoryIconPalettes = {
