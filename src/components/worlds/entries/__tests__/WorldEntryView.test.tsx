@@ -14,6 +14,7 @@ import { IconColors } from "types/Icon.type";
 import { useWorldStore } from "stores/world.store";
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
+import { useWorldEntryLayoutStore } from "stores/worldEntryLayout.store";
 import { useWorldOraclesStore } from "stores/worldOracles.store";
 
 import { catalogOf, oracle } from "lib/__tests__/worldOracleFixtures";
@@ -80,6 +81,7 @@ const PEOPLE = "people";
 beforeEach(() => {
   vi.restoreAllMocks();
   useWorldEntriesStore.getState().reset();
+  useWorldEntryLayoutStore.setState({ layouts: {}, expanded: {} });
   useWorldCategoriesStore.setState({ fieldDefinitions: {}, categories: {} });
   useWorldStore.setState({ isGuided: true });
   vi.spyOn(WorldEntriesService, "getWorldEntryNotesContent").mockResolvedValue({
@@ -614,7 +616,24 @@ describe("entry Places", () => {
     );
   });
 
-  it("lists the places inside, with those holding more as folders", () => {
+  it("lists the places inside as a tree by default", () => {
+    loadEntries(places());
+    renderView("region", category, "places");
+    const list = screen.getByRole("region", {
+      name: "Places in The Hinterlands",
+    });
+    expect(
+      within(list)
+        .getAllByRole("link")
+        .map((link) => link.textContent),
+    ).toEqual(["Ford of Ashes", "Kingsmark"]);
+    expect(
+      within(list).getByRole("button", { name: "Places in Kingsmark" }),
+    ).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("lists the places inside as cards, with those holding more as folders", () => {
+    useWorldEntryLayoutStore.getState().setLayout(category.id, "grid");
     loadEntries(places());
     renderView("region", category, "places");
     expect(screen.getByRole("tab", { name: "Places 2" })).toHaveAttribute(

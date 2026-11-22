@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useWorldStore } from "stores/world.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
+import { useWorldEntryLayoutStore } from "stores/worldEntryLayout.store";
 
 import {
   EditPermissions,
@@ -48,6 +49,7 @@ vi.mock("react-i18next", async (importOriginal) => ({
 }));
 beforeEach(() => {
   vi.restoreAllMocks();
+  useWorldEntryLayoutStore.setState({ layouts: {}, expanded: {} });
   state.oracle.loading = false;
   vi.spyOn(
     WorldEntryFieldValuesService,
@@ -333,6 +335,8 @@ describe("WorldCategoryBrowser routes", () => {
     expect((name as HTMLInputElement).selectionEnd).toBe("Untitled".length);
   });
   it("browses into places, with each ancestor going back to its Places, and creates a place inside", async () => {
+    // Folder cards open into Places; the default list opens them in place.
+    useWorldEntryLayoutStore.getState().setLayout(category.id, "grid");
     const user = userEvent.setup();
     useWorldStore.setState({ worldPermission: WorldPermission.Player });
     const listen = vi
