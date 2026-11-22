@@ -12,7 +12,7 @@ import { usePreviewRolls } from "./previewRolls";
 const page = css({
   minHeight: "100dvh",
   display: "grid",
-  placeItems: "start center",
+  placeItems: "center",
   paddingBlock: { base: "6", sm: "10" },
   paddingInline: "4",
   overflowX: "hidden",

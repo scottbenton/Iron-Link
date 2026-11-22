@@ -46,11 +46,28 @@ function filterCategories(search: string) {
     .filter((category) => category.moves.length > 0);
 }
 
-const frame = css({
+/**
+ * A sidebar at its usual width on the left, bordered as in the app, and
+ * hatching for the rest so it reads as the space the game would fill.
+ */
+const page = css({
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 350px) minmax(0, 1fr)",
   height: "100dvh",
   minHeight: "480px",
-  overflowY: "auto",
   background: "bg.surface",
+});
+
+const frame = css({
+  minWidth: 0,
+  overflowY: "auto",
+  borderInlineEnd: "1px solid token(colors.border.default)",
+  background: "bg.surface",
+});
+
+const filler = css({
+  backgroundImage:
+    "repeating-linear-gradient(-45deg, token(colors.border.subtle) 0 1px, transparent 1px 12px)",
 });
 
 const searchRow = css({
@@ -135,8 +152,11 @@ function MovesPanel() {
 
 function MovesSidebarPreview() {
   return (
-    <div className={frame}>
-      <MovesPanel />
+    <div className={page}>
+      <div className={frame}>
+        <MovesPanel />
+      </div>
+      <div className={filler} aria-hidden />
     </div>
   );
 }
