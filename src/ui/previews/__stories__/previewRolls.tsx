@@ -1,6 +1,6 @@
 /**
  * Preview-only helpers: an Ironsworn character and rolls that land as roll
- * cards in the toast stack. Not committed.
+ * cards in the toast stack.
  */
 import type { Datasworn } from "@datasworn-community/core";
 import { useCallback, useState } from "react";
@@ -63,5 +63,44 @@ export function usePreviewRolls() {
     [],
   );
 
-  return { adds, setAdds, roll, moveRollOptions };
+  const [rolledOracleRows, setRolledOracleRows] = useState<
+    Record<string, string>
+  >({});
+
+  /** Rolls one of a move's own tables (Pay the Price, Ask the Oracle). */
+  const rollMoveOracle = useCallback(
+    (move: Datasworn.AnyMove, oracle: Datasworn.EmbeddedOracleRollable) => {
+      const value = Math.floor(Math.random() * 100) + 1;
+      const row = oracle.rows.find(
+        (candidate) =>
+          candidate.roll !== null &&
+          value >= candidate.roll.min &&
+          value <= candidate.roll.max,
+      );
+      if (row) {
+        setRolledOracleRows((current) => ({
+          ...current,
+          [oracle._id]: row._id,
+        }));
+      }
+      showRollToast({
+        kind: "oracle",
+        oracleName: oracle.name,
+        category: move.name,
+        roll: value,
+        result: row?.text ?? "No result",
+        match: value % 11 === 0 && value !== 100,
+      });
+    },
+    [],
+  );
+
+  return {
+    adds,
+    setAdds,
+    roll,
+    moveRollOptions,
+    rolledOracleRows,
+    rollMoveOracle,
+  };
 }

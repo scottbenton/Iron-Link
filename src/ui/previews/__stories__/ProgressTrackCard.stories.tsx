@@ -1,4 +1,3 @@
-import { DotsThree } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
@@ -6,7 +5,6 @@ import { Stack } from "ui/primitives";
 
 import { css } from "styled-system/css";
 
-import { IconButton } from "../../components/IconButton";
 import { classicRules } from "../../docs/fixtures/datasworn";
 import { ProgressTrack } from "../../game/ProgressTrack";
 import { getProgressScore } from "../../game/ProgressTrack/progress";
@@ -52,13 +50,8 @@ function ProgressTrackPreview() {
           description="Sworn on the ashes of Thornwall, before the elders."
           ticks={ticks}
           onChange={setTicks}
-          headerAction={
-            <IconButton label="Vow options" size="sm">
-              <DotsThree weight="bold" />
-            </IconButton>
-          }
           actions={
-            <RollButton size="sm" icon={null} onRoll={rollProgress}>
+            <RollButton size="sm" onRoll={rollProgress}>
               {fulfillYourVow.name}
             </RollButton>
           }

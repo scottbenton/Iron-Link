@@ -1,9 +1,8 @@
 import type { Datasworn } from "@datasworn-community/core";
-import { BookOpenIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect, useMemo, useState } from "react";
 
-import { Flex, Stack } from "ui/primitives";
+import { Stack } from "ui/primitives";
 
 import { css } from "styled-system/css";
 
@@ -13,7 +12,6 @@ import { Text } from "../../components/Text";
 import { classicRules } from "../../docs/fixtures/datasworn";
 import { MoveListItem } from "../../game/MoveListItem";
 import { ReferenceCategory } from "../../game/ReferenceCategory";
-import { Sidebar } from "../../layout/Sidebar";
 import { usePreviewRolls } from "./previewRolls";
 
 interface MoveCategory {
@@ -49,9 +47,9 @@ function filterCategories(search: string) {
 }
 
 const frame = css({
-  display: "flex",
   height: "100dvh",
   minHeight: "480px",
+  overflowY: "auto",
   background: "bg.surface",
 });
 
@@ -61,7 +59,7 @@ const searchRow = css({
   zIndex: 1,
   paddingInline: "4",
   paddingBlock: "3",
-  background: "bg.muted",
+  background: "bg.surface",
 });
 
 const listStyles = css({
@@ -74,7 +72,8 @@ const listStyles = css({
 
 function MovesPanel() {
   const [search, setSearch] = useState("");
-  const { roll, moveRollOptions } = usePreviewRolls();
+  const { roll, moveRollOptions, rolledOracleRows, rollMoveOracle } =
+    usePreviewRolls();
   const visible = useMemo(() => filterCategories(search), [search]);
   const total = visible.reduce((n, c) => n + c.moves.length, 0);
   const searching = search.trim() !== "";
@@ -117,6 +116,8 @@ function MovesPanel() {
                   rollOptions: moveRollOptions(move),
                   onRoll: (option) =>
                     roll(option.label, option.value ?? 0, move.name),
+                  onRollOracle: (oracle) => rollMoveOracle(move, oracle),
+                  rolledOracleRows,
                 }}
               />
             ))}
@@ -133,39 +134,10 @@ function MovesPanel() {
 }
 
 function MovesSidebarPreview() {
-  const [width, setWidth] = useState(380);
-  const [collapsed, setCollapsed] = useState(false);
   return (
-    <Flex className={frame}>
-      <Sidebar
-        panels={[
-          {
-            id: "moves",
-            title: "Moves",
-            icon: <BookOpenIcon />,
-            content: <MovesPanel />,
-          },
-        ]}
-        side="start"
-        resizable
-        collapsible
-        minWidth={300}
-        maxWidth={560}
-        width={width}
-        onWidthChange={setWidth}
-        collapsed={collapsed}
-        onCollapsedChange={setCollapsed}
-      />
-      <Stack flex="1" minWidth="0" padding="6" gap="2">
-        <Text variant="h3" as="p">
-          Every Ironsworn move, one search away
-        </Text>
-        <Text color="muted" css={{ maxWidth: "52ch" }}>
-          Search by move or category name, open a move to read it, and roll
-          straight from its card. Drag the sidebar's edge to resize it.
-        </Text>
-      </Stack>
-    </Flex>
+    <div className={frame}>
+      <MovesPanel />
+    </div>
   );
 }
 
@@ -177,7 +149,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** The Ironsworn moves, from Datasworn, in the game page's sidebar. */
+/** The Ironsworn moves, from Datasworn, as the game page's moves panel. */
 export const IronswornMoves: Story = {
   name: "Ironsworn moves",
   render: () => <MovesSidebarPreview />,
