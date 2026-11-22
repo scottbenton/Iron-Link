@@ -2,7 +2,11 @@ import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { WorldCategoryIcon } from "../WorldCategoryIcon";
-import { GROUPS_CATEGORY_ICON_KEY, loadCategoryIcons } from "../categoryIcons";
+import {
+  GROUPS_CATEGORY_ICON_KEY,
+  MAP_CATEGORY_ICON_KEY,
+  loadCategoryIcons,
+} from "../categoryIcons";
 
 describe("WorldCategoryIcon", () => {
   it("renders no placeholder when the user chooses no icon", () => {
@@ -28,6 +32,15 @@ describe("WorldCategoryIcon", () => {
     expect(
       view.container.querySelector('[data-testid="CategoryOutlinedIcon"]'),
     ).toBeNull();
+  });
+
+  it("renders the curated Material map icon", () => {
+    const view = render(
+      <WorldCategoryIcon icon={{ key: MAP_CATEGORY_ICON_KEY, color: null }} />,
+    );
+    expect(
+      view.container.querySelector('[data-testid="MapIcon"]'),
+    ).not.toBeNull();
   });
 
   it("renders a game icon immediately once the icon set has loaded", async () => {

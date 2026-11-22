@@ -17,6 +17,19 @@ import { RENAMED_GAME_ICON_KEYS, getGameIconKey } from "./gameIconKeys";
 // Keep Material icons curated and namespaced so stored keys never collide
 // with game-icons keys. Import individual modules to avoid bundling the set.
 export const GROUPS_CATEGORY_ICON_KEY = "mui:Groups2";
+export const MAP_CATEGORY_ICON_KEY = "mui:Map";
+const MATERIAL_CATEGORY_ICON_NAMES: Record<string, string> = {
+  [GROUPS_CATEGORY_ICON_KEY]: "Groups",
+  [MAP_CATEGORY_ICON_KEY]: "Map",
+};
+// Listed ahead of the Game Icons in the picker.
+export const MATERIAL_CATEGORY_ICON_KEYS = Object.keys(
+  MATERIAL_CATEGORY_ICON_NAMES,
+);
+
+export function isMaterialCategoryIconKey(key: string) {
+  return key in MATERIAL_CATEGORY_ICON_NAMES;
+}
 
 // A game icon is the d attribute of each of its paths, drawn in a 512 box.
 export type GameIconPaths = string[];
@@ -62,7 +75,8 @@ export function getCategoryIconPaths(
 }
 
 export function categoryIconName(key: string) {
-  if (key === GROUPS_CATEGORY_ICON_KEY) return "Groups";
+  const material = MATERIAL_CATEGORY_ICON_NAMES[key];
+  if (material) return material;
   return getCanonicalCategoryIconKey(key)
     .replace(/^Gi/, "")
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2");

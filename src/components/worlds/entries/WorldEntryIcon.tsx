@@ -1,5 +1,6 @@
 import DescriptionIcon from "@mui/icons-material/Description";
 
+import { useWorldSettingKey } from "stores/world.store";
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
@@ -40,6 +41,7 @@ export function WorldEntryIcon({
     (store) => store.categories[entry.categoryId]?.icon ?? null,
   );
   const locationType = useWorldEntryLocationType(entry);
+  const settingKey = useWorldSettingKey(entry.worldId);
   if (entry.imageFilename) {
     return (
       <WorldEntryImage
@@ -55,7 +57,7 @@ export function WorldEntryIcon({
   }
   const icon = entry.icon?.key
     ? entry.icon
-    : (getLocationTypeIcon(locationType) ?? categoryIcon);
+    : (getLocationTypeIcon(locationType, settingKey) ?? categoryIcon);
   return icon?.key ? (
     <WorldCategoryIcon icon={icon} size={size} />
   ) : (

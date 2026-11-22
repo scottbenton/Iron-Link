@@ -134,7 +134,15 @@ that are easy to miss. When you learn a new one, add a line here.
 - Game Icons come from `@iconify-json/game-icons`, but stored icon keys keep
   react-icons' `Gi*` names: `getGameIconKey` builds them from Iconify names,
   and `RENAMED_GAME_ICON_KEYS` reads renamed ones. Render through
-  `getCategoryIconPaths` and `GameIconGlyph`.
+  `getCategoryIconPaths` and `GameIconGlyph`. Material icons are a short
+  curated list of `mui:` keys (`MATERIAL_CATEGORY_ICON_KEYS`, drawn by
+  `MaterialCategoryIconGlyph`); add one there, never import the whole set.
+- Location Type icons (`getLocationTypeIcon`) are shared by type name, with
+  per-setting overrides keyed by `setting_key` (a Forge settlement is a
+  station). Pass the world's setting key (`useWorldSettingKey`).
+- Inherited field IDs are UUIDv5 of the field's key, so renaming a template
+  field's key moves inherited worlds' values to the new ID in the same
+  migration, before the template update (which re-checks every value).
 - An entry's image is stored whole (the full-size view shows the upload) and
   its icon shows the part chosen in `WorldEntryImageDialog`:
   `image_position_x|y` and `image_scale`, a character portrait's crop shape

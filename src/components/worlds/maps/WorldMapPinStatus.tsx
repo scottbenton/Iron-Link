@@ -2,6 +2,8 @@ import AddLocationAltIcon from "@mui/icons-material/AddLocationAlt";
 import { Box, Button, Paper, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { useWorldStore } from "stores/world.store";
+
 import { getLocationTypeIcon } from "lib/worldMap/locationTypeIcons";
 
 import { IWorldEntry } from "services/worldEntries.service";
@@ -29,13 +31,15 @@ export function WorldMapPinStatus({
   touch?: boolean;
 }) {
   const { t } = useTranslation();
+  // The map is always inside the loaded world.
+  const settingKey = useWorldStore((store) => store.world?.settingKey);
   const place =
     target.type === "entry"
       ? places.find((option) => option.entry.id === target.entryId)
       : undefined;
   const typeIcon =
     target.type === "new"
-      ? getLocationTypeIcon(target.locationType ?? undefined)
+      ? getLocationTypeIcon(target.locationType ?? undefined, settingKey)
       : undefined;
   const name =
     target.type === "new"

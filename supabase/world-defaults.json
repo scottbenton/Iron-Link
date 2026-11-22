@@ -42,7 +42,7 @@
         ],
         "icon": {
           "color": "green",
-          "key": "GiWorld"
+          "key": "mui:Map"
         },
         "id": "762df5e2-d5a3-5700-8575-77a56c5f3db8",
         "key": "locations",
@@ -301,7 +301,7 @@
         ],
         "icon": {
           "color": "green",
-          "key": "GiWorld"
+          "key": "GiDirectionSigns"
         },
         "id": "762df5e2-d5a3-5700-8575-77a56c5f3db8",
         "key": "locations",
@@ -547,7 +547,7 @@
         ],
         "icon": {
           "color": "green",
-          "key": "GiWorld"
+          "key": "mui:Map"
         },
         "id": "762df5e2-d5a3-5700-8575-77a56c5f3db8",
         "key": "locations",
@@ -921,7 +921,7 @@
             },
             "gm_only": false,
             "id": "27d4f643-400a-536c-bd66-d31786d4d303",
-            "key": "starDescription",
+            "key": "description",
             "label": "Description",
             "sort_order": 4,
             "type": "text"
