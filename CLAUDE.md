@@ -90,7 +90,8 @@ that are easy to miss. When you learn a new one, add a line here.
 - Database tests: `npm run test:db` (pgTAP under `supabase/tests/`).
 - After changing a world template migration, regenerate
   `supabase/world-defaults.json` and `.md` with
-  `npm run generate:world-defaults`.
+  `npm run generate:world-defaults`, then the icons it uses with
+  `npm run generate:bundled-game-icons`.
 
 ## Games
 
@@ -134,7 +135,10 @@ that are easy to miss. When you learn a new one, add a line here.
 - Game Icons come from `@iconify-json/game-icons`, but stored icon keys keep
   react-icons' `Gi*` names: `getGameIconKey` builds them from Iconify names,
   and `RENAMED_GAME_ICON_KEYS` reads renamed ones. Render through
-  `getCategoryIconPaths` and `GameIconGlyph`. Material icons are a short
+  `getCategoryIconPaths` and `GameIconGlyph`. The icons the templates,
+  Location Types and field preview use are bundled (`bundledGameIcons.ts`,
+  generated) so they draw without the 6 MB lazy set, which loads only for
+  other icons and the picker. Material icons are a short
   curated list of `mui:` keys (`MATERIAL_CATEGORY_ICON_KEYS`, drawn by
   `MaterialCategoryIconGlyph`); add one there, never import the whole set.
 - The icon picker never leaves an icon out, only orders them
