@@ -131,6 +131,11 @@ that are easy to miss. When you learn a new one, add a line here.
   nearest Sector's Region) shows editors a note naming the parent it needs
   when none fits (`getWorldFieldParentRequirements`); the wording is built
   from the rules, so templates need no copy for it.
+- Game Icons come from `@iconify-json/game-icons`, but stored icon keys keep
+  react-icons' `Gi*` names: `getGameIconKey` builds them from Iconify names,
+  `RENAMED_GAME_ICON_KEYS` reads renamed ones, and `legacyGameIconPaths.ts`
+  keeps the old drawing of the 38 icons Iconify redrew. Render through
+  `getCategoryIconPaths` and `GameIconGlyph`.
 - An entry's image is stored whole (the full-size view shows the upload) and
   its icon shows the part chosen in `WorldEntryImageDialog`:
   `image_position_x|y` and `image_scale`, a character portrait's crop shape
