@@ -18,6 +18,8 @@ const d10 = () => Math.floor(Math.random() * 10) + 1;
 
 const page = css({
   minHeight: "100dvh",
+  display: "grid",
+  placeItems: "center",
   padding: { base: "4", sm: "6" },
   background: "bg.surface",
   boxSizing: "border-box",
@@ -41,7 +43,7 @@ function ProgressTrackPreview() {
   };
 
   return (
-    <Stack className={page} alignItems="flex-start">
+    <div className={page}>
       <Stack width="360px" maxWidth="100%">
         <ProgressTrack
           label={label}
@@ -57,7 +59,7 @@ function ProgressTrackPreview() {
           }
         />
       </Stack>
-    </Stack>
+    </div>
   );
 }
 
