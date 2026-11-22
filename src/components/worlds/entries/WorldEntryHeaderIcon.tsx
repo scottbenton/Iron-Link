@@ -31,9 +31,10 @@ export function WorldEntryHeaderIcon({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const updateEntry = useWorldEntriesStore((store) => store.updateEntry);
-  const categoryIcon = useWorldCategoriesStore(
-    (store) => store.categories[entry.categoryId]?.icon ?? null,
+  const category = useWorldCategoriesStore(
+    (store) => store.categories[entry.categoryId],
   );
+  const categoryIcon = category?.icon ?? null;
   const image = useWorldEntryImage(entry, onError);
 
   const hasImage = !!entry.imageFilename;
@@ -83,6 +84,7 @@ export function WorldEntryHeaderIcon({
         <WorldIconPickerDialog
           value={entry.icon}
           inherited={categoryIcon}
+          category={category}
           title={t("worlds.entries.choose-icon-title", "Choose entry icon")}
           onSave={(icon) => {
             updateEntry(entry.id, { icon }).catch(onError);

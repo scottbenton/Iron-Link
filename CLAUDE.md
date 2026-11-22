@@ -137,6 +137,11 @@ that are easy to miss. When you learn a new one, add a line here.
   `getCategoryIconPaths` and `GameIconGlyph`. Material icons are a short
   curated list of `mui:` keys (`MATERIAL_CATEGORY_ICON_KEYS`, drawn by
   `MaterialCategoryIconGlyph`); add one there, never import the whole set.
+- The icon picker never leaves an icon out, only orders them
+  (`iconPickerOrder.ts`): the icon it opened on, the curated
+  `ICON_SHORTLIST` led by the group that fits the category (read from its
+  name and supports, since categories store no kind), icons used in the
+  world, then the rest. Add shortlist icons there; a test checks every key.
 - Location Type icons (`getLocationTypeIcon`) are shared by type name, with
   per-setting overrides keyed by `setting_key` (a Forge settlement is a
   station). Pass the world's setting key (`useWorldSettingKey`).
