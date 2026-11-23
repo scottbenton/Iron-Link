@@ -1,14 +1,15 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { WorldCategoryDetails } from "../WorldCategoryDetails";
 import { WorldCategoryEditor } from "../WorldCategoryEditor";
-import { category, field, translate } from "./fixtures";
+import { category, field, optionList, translate } from "./fixtures";
 
 const actions = vi.hoisted(() => ({
   updateCategory: vi.fn(),
   getCategoryCounts: vi.fn(),
+  getFieldOptions: vi.fn(),
 }));
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("react-i18next", async (importOriginal) => ({
@@ -30,6 +31,7 @@ const counts = (nestedEntryCount: number) => ({
 beforeEach(() => {
   vi.clearAllMocks();
   actions.getCategoryCounts.mockResolvedValue(counts(0));
+  actions.getFieldOptions.mockResolvedValue([]);
 });
 
 describe("WorldCategoryEditor", () => {
@@ -96,7 +98,76 @@ describe("WorldCategoryDetails", () => {
     await user.click(screen.getByRole("option", { name: "Type (Text, 2)" }));
     expect(actions.updateCategory).toHaveBeenCalledWith(category.id, {
       subtitleFieldDefinitionId: second.id,
+      subtitleOverrides: [],
     });
+  });
+
+  it("chooses a subtitle field per value of a single-choice subtitle", async () => {
+    const user = userEvent.setup();
+    actions.updateCategory.mockResolvedValue(undefined);
+    actions.getFieldOptions.mockResolvedValue(["Sector", "Moon"]);
+    const type = optionList(
+      { id: "cccccccc-0000-4000-8000-000000000000", label: "Location Type" },
+      { suggestions: ["Sector", "Star"] },
+    );
+    const region = field({ label: "Region" });
+    render(
+      <WorldCategoryDetails
+        category={{
+          ...category,
+          subtitleFieldDefinitionId: type.id,
+          subtitleOverrides: [{ value: "Star", fieldDefinitionId: region.id }],
+        }}
+        fields={[type, region]}
+        readOnly={false}
+        disabled={false}
+      />,
+    );
+    const group = screen.getByRole("group", {
+      name: "Subtitle by Location Type",
+    });
+    // Options first, then the values entries use, each once.
+    await waitFor(() =>
+      expect(
+        within(group)
+          .getAllByRole("combobox")
+          .map((box) => box.textContent),
+      ).toEqual(["Location Type", "Region", "Location Type"]),
+    );
+    expect(
+      within(group).getByRole("combobox", { name: "Moon" }),
+    ).toBeInTheDocument();
+    expect(
+      within(group).getByRole("combobox", { name: "Star" }),
+    ).toHaveTextContent("Region");
+    await user.click(within(group).getByRole("combobox", { name: "Sector" }));
+    await user.click(screen.getByRole("option", { name: "Region" }));
+    expect(actions.updateCategory).toHaveBeenLastCalledWith(category.id, {
+      subtitleOverrides: [
+        { value: "Star", fieldDefinitionId: region.id },
+        { value: "Sector", fieldDefinitionId: region.id },
+      ],
+    });
+    await user.click(within(group).getByRole("combobox", { name: "Star" }));
+    await user.click(screen.getByRole("option", { name: "Location Type" }));
+    expect(actions.updateCategory).toHaveBeenLastCalledWith(category.id, {
+      subtitleOverrides: [{ value: "Sector", fieldDefinitionId: region.id }],
+    });
+  });
+
+  it("offers no per-value subtitles for a free text subtitle", () => {
+    const text = field({ label: "Pronouns" });
+    render(
+      <WorldCategoryDetails
+        category={{ ...category, subtitleFieldDefinitionId: text.id }}
+        fields={[text, field({ id: "other", label: "Region" })]}
+        readOnly={false}
+        disabled={false}
+      />,
+    );
+    expect(
+      screen.queryByRole("group", { name: /Subtitle by/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("does not save an unchanged or blank name", async () => {

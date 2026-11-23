@@ -16,6 +16,7 @@ export const category: IWorldCategory = {
   supportsMap: false,
   supportsBonds: false,
   subtitleFieldDefinitionId: null,
+  subtitleOverrides: [],
 };
 
 export function field(

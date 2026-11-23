@@ -9,7 +9,10 @@ import type { IWorldEntry } from "services/worldEntries.service";
 import type { IWorldEntryFieldValue } from "services/worldEntryFieldValues.service";
 
 import { getWorldEntriesLinkingTo } from "../worldEntryLinks";
-import { getWorldEntrySubtitle } from "../worldEntrySubtitle";
+import {
+  getWorldEntrySubtitle,
+  getWorldEntrySubtitleOverrides,
+} from "../worldEntrySubtitle";
 import { createWorldFieldConfiguration } from "../worldFieldRules";
 import { buildWorldFieldEntrySnapshots } from "../worldFieldSnapshot";
 
@@ -141,6 +144,100 @@ describe("getWorldEntrySubtitle", () => {
         "Smith",
       ),
     ).toBe("Smith");
+  });
+});
+
+describe("subtitle overrides", () => {
+  const type = definition(
+    WorldFieldType.Select,
+    { multiple: false, suggestions: ["Sector", "Star"] },
+    "type",
+  );
+  const region = definition(WorldFieldType.Text, {}, "region");
+  const description = definition(
+    WorldFieldType.Text,
+    {
+      visible: false,
+      rules: [
+        {
+          conditions: [
+            {
+              source: "entry",
+              fieldId: "type",
+              operator: "equals",
+              value: "Star",
+            },
+          ],
+          visible: true,
+        },
+      ],
+    },
+    "description",
+  );
+  const definitions = { type, region, description };
+  const overrides = getWorldEntrySubtitleOverrides(
+    type,
+    [
+      { value: "Sector", fieldDefinitionId: "region" },
+      { value: "Star", fieldDefinitionId: "description" },
+      { value: "Planet", fieldDefinitionId: "removed" },
+    ],
+    definitions,
+  );
+
+  function overridden(values: Record<string, IWorldEntryFieldValue["value"]>) {
+    const snapshots = buildWorldFieldEntrySnapshots(
+      entries,
+      valuesFor({ kell: values }),
+    );
+    return getWorldEntrySubtitle(type, "kell", snapshots, entries, overrides);
+  }
+
+  it("shows the field chosen for the entry's value, ignoring case and spaces", () => {
+    expect(overridden({ type: "Sector", region: "Terminus" })).toBe("Terminus");
+    expect(overridden({ type: " sector ", region: "Terminus" })).toBe(
+      "Terminus",
+    );
+  });
+
+  it("falls back to the subtitle field when the chosen field shows nothing", () => {
+    expect(overridden({ type: "Sector" })).toBe("Sector");
+    expect(overridden({ type: "Sector", region: "  " })).toBe("Sector");
+    // Description is shown only for Stars, so a Sector never reads it.
+    expect(
+      getWorldEntrySubtitle(
+        type,
+        "kell",
+        buildWorldFieldEntrySnapshots(
+          entries,
+          valuesFor({ kell: { type: "Sector", description: "Bright" } }),
+        ),
+        entries,
+        [{ value: "Sector", field: description }],
+      ),
+    ).toBe("Sector");
+    expect(overridden({ type: "Star", description: "Red giant" })).toBe(
+      "Red giant",
+    );
+  });
+
+  it("keeps the subtitle field for values without an override", () => {
+    expect(overridden({ type: "Vault", region: "Terminus" })).toBe("Vault");
+  });
+
+  it("skips overrides whose field is gone, and every override of a multi-value field", () => {
+    expect(overrides.map((override) => override.field.id)).toEqual([
+      "region",
+      "description",
+    ]);
+    const tags = definition(WorldFieldType.Select, { multiple: true }, "tags");
+    expect(
+      getWorldEntrySubtitleOverrides(
+        tags,
+        [{ value: "Sector", fieldDefinitionId: "region" }],
+        definitions,
+      ),
+    ).toEqual([]);
   });
 });
 

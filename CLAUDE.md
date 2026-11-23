@@ -133,6 +133,11 @@ that are easy to miss. When you learn a new one, add a line here.
 - Entry field values save through `useWorldFieldDraft`: a change shows at
   once and saves after a 1s pause, and keeps showing until the stored value
   matches it, because realtime echoes of an earlier save can arrive late.
+- A category's subtitle field can be replaced per value
+  (`subtitle_overrides`: a Forge Sector shows its Region), only while the
+  subtitle field is a single-choice option list. An entry falls back to the
+  subtitle field while the override field shows nothing; resolve through
+  `getWorldEntrySubtitle` with `useWorldEntrySubtitleFields`.
 - A field whose oracle comes from an ancestor's value (Population from the
   nearest Sector's Region) shows editors a note naming the parent it needs
   when none fits (`getWorldFieldParentRequirements`); the wording is built

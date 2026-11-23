@@ -23,6 +23,15 @@ export interface IWorldCategory {
   // Field whose value renders as secondary content under the entry name in
   // list views. Null means the list shows names only.
   subtitleFieldDefinitionId: string | null;
+  // Fields shown instead of the subtitle field for entries whose subtitle
+  // field holds `value` (trimmed, ignoring case): a Sector's Region. They
+  // apply only while the subtitle field is a single-choice option list.
+  subtitleOverrides: IWorldCategorySubtitleOverride[];
+}
+
+export interface IWorldCategorySubtitleOverride {
+  value: string;
+  fieldDefinitionId: string;
 }
 
 export class WorldCategoriesService {
@@ -77,6 +86,13 @@ export class WorldCategoriesService {
         supports_map: category.supportsMap,
         supports_bonds: category.supportsBonds,
         subtitle_field_definition_id: category.subtitleFieldDefinitionId,
+        subtitle_overrides:
+          category.subtitleOverrides === undefined
+            ? undefined
+            : category.subtitleOverrides.map((override) => ({
+                value: override.value,
+                field_definition_id: override.fieldDefinitionId,
+              })),
       },
       WorldFieldDefinitionsService.convertInheritedBindingsToDTO(
         inheritedFieldDefinitions,
@@ -125,6 +141,24 @@ export class WorldCategoriesService {
       supportsMap: category.supports_map,
       supportsBonds: category.supports_bonds,
       subtitleFieldDefinitionId: category.subtitle_field_definition_id,
+      subtitleOverrides: parseSubtitleOverrides(category.subtitle_overrides),
     };
   }
+}
+
+// Stored as { value, field_definition_id } objects; anything else is skipped
+// so an unexpected row never breaks the category.
+function parseSubtitleOverrides(
+  value: Json | undefined,
+): IWorldCategorySubtitleOverride[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+    const { value: overrideValue, field_definition_id: fieldDefinitionId } =
+      item;
+    return typeof overrideValue === "string" &&
+      typeof fieldDefinitionId === "string"
+      ? [{ value: overrideValue, fieldDefinitionId }]
+      : [];
+  });
 }

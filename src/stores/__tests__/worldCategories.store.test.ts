@@ -51,6 +51,7 @@ function configuration(customized: boolean): IWorldConfiguration {
         supportsMap: false,
         supportsBonds: true,
         subtitleFieldDefinitionId: null,
+        subtitleOverrides: [],
       },
     },
     fieldDefinitions: { [goal.id]: goal },

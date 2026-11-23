@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 
 import { useWorldFieldEntrySnapshots } from "hooks/useWorldFieldEntrySnapshots";
 
-import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import { countWorldEntryChildren } from "lib/worldEntryParents";
@@ -13,17 +12,14 @@ import { IWorldCategory } from "services/worldCategories.service";
 import { IWorldEntry } from "services/worldEntries.service";
 
 import type { WorldEntryCardRow } from "./WorldEntryCards";
+import { useWorldEntrySubtitleFields } from "./useWorldEntrySubtitleFields";
 
 // What a category's entry cards need: each entry's subtitle, and whether it
 // holds other entries, which makes it a folder card counting its places.
 export function useWorldEntryRows(category: IWorldCategory) {
   const { t } = useTranslation();
   const entries = useWorldEntriesStore((store) => store.entryState.entries);
-  const subtitleField = useWorldCategoriesStore((store) =>
-    category.subtitleFieldDefinitionId
-      ? store.fieldDefinitions[category.subtitleFieldDefinitionId]
-      : undefined,
-  );
+  const subtitle = useWorldEntrySubtitleFields(category);
   const snapshots = useWorldFieldEntrySnapshots();
   const childCounts = useMemo(
     () => countWorldEntryChildren(entries),
@@ -31,7 +27,13 @@ export function useWorldEntryRows(category: IWorldCategory) {
   );
 
   const subtitleOf = (entry: IWorldEntry) =>
-    getWorldEntrySubtitle(subtitleField, entry.id, snapshots, entries);
+    getWorldEntrySubtitle(
+      subtitle.field,
+      entry.id,
+      snapshots,
+      entries,
+      subtitle.overrides,
+    );
   const rowOf = (entry: IWorldEntry): WorldEntryCardRow => {
     const subtitle = subtitleOf(entry);
     const count = category.supportsHierarchy ? (childCounts[entry.id] ?? 0) : 0;

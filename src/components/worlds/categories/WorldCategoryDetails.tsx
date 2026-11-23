@@ -8,11 +8,14 @@ import { useDebouncedSync } from "hooks/useDebouncedSync";
 
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 
+import { canWorldSubtitleFieldHaveOverrides } from "lib/worldEntrySubtitle";
+
 import type { IWorldCategory } from "services/worldCategories.service";
 import type { IWorldFieldDefinition } from "services/worldFieldDefinitions.service";
 
 import { WorldCategoryCapabilities } from "./WorldCategoryCapabilities";
 import { WorldCategoryIconPicker } from "./WorldCategoryIconPicker";
+import { WorldCategorySubtitleOverrides } from "./WorldCategorySubtitleOverrides";
 import {
   fieldChoiceLabel,
   getEditorErrorMessage,
@@ -97,6 +100,10 @@ export function WorldCategoryDetails({
     800,
   );
 
+  const subtitleField = fields.find(
+    (field) => field.id === current.subtitleFieldDefinitionId,
+  );
+
   return (
     <WorldSettingsSection title={t("worlds.categories.details", "Details")}>
       <Stack spacing={3} useFlexGap>
@@ -140,16 +147,14 @@ export function WorldCategoryDetails({
             "worlds.categories.subtitle-help",
             "Shown under each entry's name in lists.",
           )}
-          value={
-            fields.some(
-              (field) => field.id === current.subtitleFieldDefinitionId,
-            )
-              ? current.subtitleFieldDefinitionId
-              : ""
-          }
+          value={subtitleField?.id ?? ""}
           disabled={inactive}
           onChange={(event) =>
-            save({ subtitleFieldDefinitionId: event.target.value || null })
+            // Overrides name values of the old subtitle field.
+            save({
+              subtitleFieldDefinitionId: event.target.value || null,
+              subtitleOverrides: [],
+            })
           }
         >
           <MenuItem value="">{t("common.none", "None")}</MenuItem>
@@ -159,6 +164,15 @@ export function WorldCategoryDetails({
             </MenuItem>
           ))}
         </TextField>
+        {subtitleField && canWorldSubtitleFieldHaveOverrides(subtitleField) && (
+          <WorldCategorySubtitleOverrides
+            subtitleField={subtitleField}
+            fields={fields}
+            value={current.subtitleOverrides}
+            disabled={inactive}
+            onChange={(subtitleOverrides) => save({ subtitleOverrides })}
+          />
+        )}
         <WorldCategoryCapabilities
           value={current}
           disabled={inactive}

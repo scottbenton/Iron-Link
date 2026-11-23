@@ -17,7 +17,6 @@ import { LinkComponent } from "components/LinkComponent";
 import { useWorldFieldEntrySnapshots } from "hooks/useWorldFieldEntrySnapshots";
 
 import { useWorldIsGuided } from "stores/world.store";
-import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
 import { countWorldEntryChildren } from "lib/worldEntryParents";
@@ -27,6 +26,7 @@ import { IWorldCategory } from "services/worldCategories.service";
 
 import { WorldEntryBonds } from "../bonds/WorldEntryBonds";
 import { getEditorErrorMessage } from "../categories/categoryEditor.utils";
+import { useWorldEntrySubtitleFields } from "../categories/useWorldEntrySubtitleFields";
 import { WorldEntryMap } from "../maps/WorldEntryMap";
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldEntryFields } from "./WorldEntryFields";
@@ -81,11 +81,7 @@ export function WorldEntryView({
     (cause: unknown) => setNotesError(getEditorErrorMessage(cause)),
     [],
   );
-  const subtitleField = useWorldCategoriesStore((store) =>
-    category.subtitleFieldDefinitionId
-      ? store.fieldDefinitions[category.subtitleFieldDefinitionId]
-      : undefined,
-  );
+  const subtitleFields = useWorldEntrySubtitleFields(category);
   const entries = useWorldEntriesStore((store) => store.entryState.entries);
   const snapshots = useWorldFieldEntrySnapshots();
   const placeCount = useWorldEntriesStore(
@@ -148,10 +144,11 @@ export function WorldEntryView({
     entryId: entry.id,
   };
   const subtitle = getWorldEntrySubtitle(
-    subtitleField,
+    subtitleFields.field,
     entry.id,
     snapshots,
     entries,
+    subtitleFields.overrides,
   );
   return (
     <Stack component="article" spacing={2.5} sx={{ flexGrow: 1 }}>

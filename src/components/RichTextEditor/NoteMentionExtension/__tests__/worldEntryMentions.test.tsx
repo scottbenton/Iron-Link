@@ -46,6 +46,7 @@ function category(id: string, name: string, sortOrder: number): IWorldCategory {
     supportsMap: false,
     supportsBonds: false,
     subtitleFieldDefinitionId: null,
+    subtitleOverrides: [],
   };
 }
 
