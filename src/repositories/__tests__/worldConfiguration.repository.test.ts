@@ -42,6 +42,7 @@ const snapshot = (name: string): WorldConfigurationDTO => ({
       supports_map: false,
       supports_bonds: false,
       subtitle_field_definition_id: null,
+      subtitle_overrides: [],
     },
   ],
   field_definitions: [],

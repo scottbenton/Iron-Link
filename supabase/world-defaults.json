@@ -4044,6 +4044,20 @@
         "name": "Locations",
         "sort_order": 0,
         "subtitle_field_definition_id": "89f08f4c-30cc-51e0-99bf-418e25ceabda",
+        "subtitle_overrides": [
+          {
+            "field_definition_id": "1b67a1b9-4b25-5905-b9f4-63f54495851f",
+            "value": "Sector"
+          },
+          {
+            "field_definition_id": "27d4f643-400a-536c-bd66-d31786d4d303",
+            "value": "Star"
+          },
+          {
+            "field_definition_id": "ef7f7587-ac63-5764-bce6-6ed7cfb5acdb",
+            "value": "Settlement"
+          }
+        ],
         "supports_bonds": true,
         "supports_hierarchy": true,
         "supports_map": true

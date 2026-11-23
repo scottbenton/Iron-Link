@@ -150,6 +150,18 @@ for (const [settingKey, configuration] of Object.entries(defaults)) {
         labels.get(category.subtitle_field_definition_id) ?? "none"
       }.`,
     );
+    const overrides = category.subtitle_overrides ?? [];
+    if (overrides.length > 0) {
+      lines.push(
+        "",
+        `Subtitle by ${labels.get(category.subtitle_field_definition_id)}: ${overrides
+          .map(
+            (override) =>
+              `${quote(override.value)} → ${labels.get(override.field_definition_id)}`,
+          )
+          .join(", ")}.`,
+      );
+    }
     if (fields.length === 0) lines.push("", "No fields.");
     else lines.push("");
     for (const field of fields) {

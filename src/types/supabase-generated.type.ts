@@ -787,6 +787,7 @@ export type Database = {
           name: string;
           sort_order: number;
           subtitle_field_definition_id: string | null;
+          subtitle_overrides: Json;
           supports_bonds: boolean;
           supports_hierarchy: boolean;
           supports_map: boolean;
@@ -800,6 +801,7 @@ export type Database = {
           name: string;
           sort_order?: number;
           subtitle_field_definition_id?: string | null;
+          subtitle_overrides?: Json;
           supports_bonds?: boolean;
           supports_hierarchy?: boolean;
           supports_map?: boolean;
@@ -813,6 +815,7 @@ export type Database = {
           name?: string;
           sort_order?: number;
           subtitle_field_definition_id?: string | null;
+          subtitle_overrides?: Json;
           supports_bonds?: boolean;
           supports_hierarchy?: boolean;
           supports_map?: boolean;

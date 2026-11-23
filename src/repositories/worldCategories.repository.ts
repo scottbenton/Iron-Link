@@ -36,6 +36,7 @@ export class WorldCategoriesRepository {
           supports_bonds: category.supports_bonds ?? false,
           subtitle_field_definition_id:
             category.subtitle_field_definition_id ?? null,
+          subtitle_overrides: category.subtitle_overrides ?? [],
         },
       },
       ErrorNoun.WorldCategory,

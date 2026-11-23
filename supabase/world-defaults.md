@@ -100,6 +100,8 @@ Supports: none. Subtitle: Tags.
 
 Supports: hierarchy, map, bonds. Subtitle: Location Type.
 
+Subtitle by Location Type: "Sector" → Region, "Star" → Description, "Settlement" → Location.
+
 - **Location Type** (`locationType`): Option list, single, allows other values
   - Options: "Sector", "Planet", "Settlement", "Star", "Derelict", "Vault"
 - **Region** (`region`): Option list, single, allows other values; hidden unless a rule shows it
