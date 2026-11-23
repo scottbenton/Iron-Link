@@ -34,11 +34,7 @@ Supabase provides authentication, database, and image storage to this applicatio
 
 The first step is to start the local version of supabase. Make sure you have docker installed and running on your machine, then run `npm run supabase:start` in order to launch your docker containers. Once your local development setup has started, it should output a bunch of URLs and keys into the console. You need to copy the `Project URL` into `VITE_SUPABASE_URL` and the `Publishable` key (under Authentication Keys) into `VITE_SUPABASE_ANON_KEY` in your `.env.local` file in order for the UI to be able to communicate with Supabase.
 
-Once supabase has launched, we need to make a couple more configuration changes - unfortunately supabase does not allow these to be as easily configured, so we need to set them up manually.
-
-1. Launch Supabase Studio - it should be running at `localhost:54323`. You can use the studio to check the values in the database and storage buckets, easily manage tables, and to check the supabase logs.
-2. Navigate to `storage` on the lefthand side, and create a new storage bucket called `characters`, using the following settings. ![Character Storage Settings](./readme_assets/StorageBucketSettings.png)
-3. Add a policy to your storage bucket - this policy is not secure for a production environment, but works fine for development ![Storage Policy](./readme_assets/TemporaryStoragePolicy.png)
+Supabase Studio should be running at `localhost:54323`. You can use the studio to check the values in the database and storage buckets, easily manage tables, and to check the supabase logs.
 
 ### Google and Discord Sign In (Optional)
 
