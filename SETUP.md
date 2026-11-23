@@ -5,8 +5,8 @@
 1. Clone this project `git clone https://github.com/scottbenton/Iron-Link-React.git`
 2. Install node v22 and npm v10
 
-  1. Follow [these instructions](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and- ) to install nvm
-  2. Switch to project dir and `nvm install` to install and configure the correct node version
+   1. Follow [these instructions](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating) to install nvm (macOS, Linux or WSL). On Windows outside WSL, install [fnm](https://github.com/Schniz/fnm?tab=readme-ov-file#installation) instead, which reads the same `.nvmrc`, and set up your shell as its README says
+   2. Switch to project dir and `nvm install` (or `fnm install`, then `fnm use`) to install and configure the correct node version
 
 3. Follow these instructions to [Install docker](https://www.docker.com/get-started/)
 
