@@ -2,7 +2,7 @@
 
 ## Steps
 
-1. Clone this project `git clone https://github.com/scottbenton/Iron-Link-React.git`
+1. Clone this project `git clone https://github.com/scottbenton/Iron-Link.git`
 2. Install node v22 and npm v10
 
    1. Follow [these instructions](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating) to install nvm (macOS, Linux or WSL). On Windows outside WSL, install [fnm](https://github.com/Schniz/fnm?tab=readme-ov-file#installation) instead, which reads the same `.nvmrc`, and set up your shell as its README says
