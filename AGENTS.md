@@ -28,7 +28,7 @@ the file under 150 lines; to add one past that, cut a weaker one.
   values is enough.
 - CI (`.github/workflows/ci.yaml`) runs those checks, then deploys to
   Cloudflare Pages; Cloudflare's Git builds are off and build variables live
-  in GitHub environments. Keep tests out of `npm run build`.
+  in GitHub environments.
 - After changing a world template migration, run
   `npm run generate:world-defaults`, then `generate:bundled-game-icons`.
 
@@ -38,7 +38,7 @@ the file under 150 lines; to add one past that, cut a weaker one.
   through the `add-player-to-game-invite` edge function.
 - Only a Guide changes roles or `game_type`. The triggers that enforce this
   stand aside for roles that bypass RLS, so a SECURITY DEFINER function that
-  writes `game_players` or `games` must check authorisation itself.
+  writes `game_players` or `games` must check authorization itself.
 - Note and folder RLS mirrors `getPermissions` (`notes.store.ts`), and
   `can_edit_character()` mirrors `getCharacterAccess`. Change both sides
   together. Sheet edit controls check `useCanEditCharacter`, not ownership.
@@ -48,20 +48,13 @@ the file under 150 lines; to add one past that, cut a weaker one.
 - Guides may not update `worlds`, so world Notes save through the
   `update_world_notes_if_unchanged` RPC. Guide-only truth quest starters are
   written only through `set_world_custom_truth`.
-- Bonds and connections change through `useWorldBondActions` (it also
-  moves the Bonds track), by people who can edit the character. Rows outlive
-  unlinking a game, so readers filter by the world's linked games.
 - PostgREST's upsert sets every column it was sent, the conflict key too, so
   a client-upserted table needs UPDATE on its key columns. Keep a key fixed
   with a trigger (`world_truths_keep_key`), not by withholding the grant.
-- Paint map cells only through `paint_world_map_cells`, never by writing a
-  chunk's `cells` whole (clearing to `{}` is the one exception).
 - Non-customized worlds read `world_templates` live, so a template migration
   reaches them at once. Inherited field IDs are UUIDv5 of the field's key, so
   renaming a key moves inherited values to the new ID in the same migration,
   before the template update.
-- Stored Game Icon keys keep react-icons' `Gi*` names (`getGameIconKey`).
-  Never import a whole icon set (`MATERIAL_CATEGORY_ICON_KEYS` is curated).
 
 ## Rich text
 
@@ -76,7 +69,6 @@ the file under 150 lines; to add one past that, cut a weaker one.
 - Controls inside a Tiptap node view are `<button>`s, because Tiptap stops a
   button's events from reaching ProseMirror. Pass the editor a stable
   `Toolbar` component; one made each render remounts and swallows clicks.
-- A world entry mention stores only the entry id, never its name.
 
 ## Routing and pages
 
