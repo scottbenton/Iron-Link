@@ -16,7 +16,7 @@ a rule that passes all three tests:
 Don't describe the feature you just built. Prefer enforcing a rule (lint,
 test, type), and put a rule that matters to one file in a comment there. If
 your change makes a line here wrong, fix or delete it in the same PR. Keep
-the file under 130 lines; to add one past that, cut a weaker one.
+the file under 150 lines; to add one past that, cut a weaker one.
 
 ## Checks
 
