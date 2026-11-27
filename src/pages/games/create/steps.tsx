@@ -6,7 +6,7 @@ import { CreateGameState } from "stores/createGame.store";
 import { GameType } from "repositories/game.repository";
 
 import { ChooseGameType } from "./components/ChooseGameType";
-import { CreateCharacter } from "./components/CreateCharacter";
+import { CreateCharacterStep } from "./components/CreateCharacterStep";
 import { GameDetails } from "./components/GameDetails";
 import { RulesetExpansionSection } from "./components/RulesetExpansionSection";
 
@@ -41,7 +41,7 @@ const chooseRulesetStep = (t: TFunction): StepConfig => ({
 });
 const createCharacterStep = (t: TFunction): StepConfig => ({
   label: t("game.create.create-character-step", "Create Character"),
-  component: <CreateCharacter />,
+  component: <CreateCharacterStep />,
   actionLabel: t("game.create.create-character-submit", "Create Character"),
   loadingLabel: t("game.create.creating-character", "Creating Character"),
 });

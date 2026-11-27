@@ -72,6 +72,7 @@ export default tseslint.config(
       "src/pages/games/create/steps.tsx",
       "src/pages/games/create/components/ChooseGameType.tsx",
       "src/pages/games/create/components/GameDetails.tsx",
+      "src/pages/games/create/components/CreateCharacterStep.tsx",
       "src/pages/games/create/components/RulesetExpansionSection.tsx",
       "src/pages/games/create/components/StepButtons.tsx",
       "src/components/datasworn/RulesPackageSelector/**/*.{ts,tsx}",

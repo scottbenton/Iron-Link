@@ -31,7 +31,6 @@ export function Assets() {
   return (
     <>
       <GridLayout
-        sx={{ mt: 2 }}
         items={combinedAssets}
         renderItem={(assetDocument, index) => (
           <AssetGridCard

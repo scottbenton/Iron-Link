@@ -34,8 +34,8 @@ vi.mock("stores/auth.store", () => ({ useUID: () => "me" }));
 vi.mock("services/game.service", () => ({
   GameService: { createGame: mocks.createGame },
 }));
-vi.mock("../components/CreateCharacter", () => ({
-  CreateCharacter: () => <p>Character step</p>,
+vi.mock("../components/CreateCharacterStep", () => ({
+  CreateCharacterStep: () => <p>Character step</p>,
 }));
 vi.mock("../components/SyncRulesPackages", () => ({
   SyncRulesPackages: () => null,
