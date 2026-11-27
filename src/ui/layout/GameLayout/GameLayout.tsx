@@ -19,6 +19,7 @@ import { Sidebar, SidebarProps } from "../Sidebar";
 import { PageWidth, contentRailStyles } from "../shared/contentRail";
 import { LayoutPanel } from "../shared/layoutPanel";
 import { srOnlyStyles } from "../shared/sectionTabs";
+import { GameBanner } from "./GameBanner";
 
 const rootStyles = css({
   boxSizing: "border-box",
@@ -41,23 +42,6 @@ const tabsRowStyles = css({
   background: "bg.surface",
 });
 
-/**
- * The banner runs edge to edge under the bar: no radius and no side or top
- * border, so it reads as part of the page rather than a card on it. The
- * attribute raises these over the Alert's own recipe.
- */
-const bannerStyles = css({
-  flex: "none",
-  "&[data-part=banner] > *": {
-    width: "100%",
-    maxWidth: "none",
-    marginInline: 0,
-    borderRadius: 0,
-    borderInlineWidth: 0,
-    borderTopWidth: 0,
-  },
-});
-
 const bodyStyles = css({
   // Sidebars cap their width at the room left beside the main column.
   containerType: "inline-size",
@@ -71,14 +55,16 @@ const bodyStyles = css({
   _touch: { "--game-rail-width": "61px" },
   "--sidebar-cap":
     "calc((100cqi - var(--game-main-min-width, 360px) - var(--game-rail-count, 0) * var(--game-rail-width)) / var(--game-sidebar-count, 1))",
+  background: "bg.surface",
 });
 
 /**
- * Once the window is wider than the rail, the columns get side borders, so
- * the sidebars' tint stops at an edge rather than fading into the page.
- * One literal per rail width, since Panda reads them at build time.
+ * Once the window is wider than the rail, the tabs and columns become one
+ * page: side borders from the top of the tabs down, on the canvas colour, so
+ * the tab row's white stops at the same edge as the sheet below it. One
+ * literal per rail width, since Panda reads them at build time.
  */
-const railEdgeStyles: Record<PageWidth, string> = {
+const railFrameStyles: Record<PageWidth, string> = {
   xs: css({
     "@media (min-width: 481px)": {
       borderInline: "1px solid token(colors.border.default)",
@@ -99,6 +85,14 @@ const railEdgeStyles: Record<PageWidth, string> = {
       borderInline: "1px solid token(colors.border.default)",
     },
   }),
+};
+
+/** The canvas around the page, past the same widths. */
+const railCanvasStyles: Record<PageWidth, string> = {
+  xs: css({ "@media (min-width: 481px)": { background: "bg.canvas" } }),
+  sm: css({ "@media (min-width: 641px)": { background: "bg.canvas" } }),
+  md: css({ "@media (min-width: 961px)": { background: "bg.canvas" } }),
+  xl: css({ "@media (min-width: 1441px)": { background: "bg.canvas" } }),
 };
 
 const mainStyles = css({
@@ -203,7 +197,8 @@ export interface GameLayoutProps {
   /**
    * The widest the tabs and columns get, centred beyond it: the page rail's
    * xl (1440px) by default, so the notes don't stretch across a wide
-   * monitor. `none` fills the window.
+   * monitor. Past it they are one bordered page on the canvas colour.
+   * `none` fills the window.
    */
   maxWidth?: PageWidth | "none";
   className?: string;
@@ -235,6 +230,7 @@ export function GameLayout(props: GameLayoutProps) {
   } = props;
   const rail =
     maxWidth === "none" ? undefined : contentRailStyles({ maxWidth });
+  const frame = maxWidth === "none" ? undefined : railFrameStyles[maxWidth];
 
   const idPrefix = `game${useId().replace(/:/g, "")}`;
   const mainHeadingId = main.headingId ?? `${idPrefix}-main-heading`;
@@ -307,11 +303,7 @@ export function GameLayout(props: GameLayoutProps) {
     setEndCollapsed(collapsed);
   };
 
-  const bannerSlot = banner && (
-    <div className={bannerStyles} data-part="banner">
-      {banner}
-    </div>
-  );
+  const bannerSlot = banner && <GameBanner>{banner}</GameBanner>;
 
   // Open columns share the room the main column leaves; rails come out of
   // the main column's share.
@@ -476,15 +468,17 @@ export function GameLayout(props: GameLayoutProps) {
       : [startSidebarColumn, mainSlot, endSidebarColumn];
 
   return (
-    <div className={cx(rootStyles, className)}>
+    <div
+      className={cx(
+        rootStyles,
+        maxWidth !== "none" && railCanvasStyles[maxWidth],
+        className,
+      )}
+    >
       {bannerSlot}
-      {tabs && <div className={cx(tabsRowStyles, rail)}>{tabs}</div>}
+      {tabs && <div className={cx(tabsRowStyles, rail, frame)}>{tabs}</div>}
       <div
-        className={cx(
-          bodyStyles,
-          rail,
-          maxWidth !== "none" && railEdgeStyles[maxWidth],
-        )}
+        className={cx(bodyStyles, rail, frame)}
         style={
           {
             "--game-main-min-width": `${mainMinWidth}px`,

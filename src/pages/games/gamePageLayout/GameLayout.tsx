@@ -5,7 +5,7 @@ import { ErrorBoundary } from "components/ErrorBoundary";
 import { useFillShell } from "components/Layout/useFillShell";
 
 import { Progress } from "ui/components/Progress";
-import { EmptyState, PageContent } from "ui/layout";
+import { EmptyState, GameBanner, PageContent } from "ui/layout";
 
 import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
 import { GameSettings } from "pages/games/gamePageLayout/GameSettings";
@@ -47,9 +47,12 @@ export default function GameLayout() {
   const phone = tier === "phone";
 
   const showWorldsBetaBanner = useShowWorldsBetaBanner(gameId);
-  const banner = showWorldsBetaBanner ? (
+  const betaBanner = showWorldsBetaBanner ? (
     <WorldsBetaBanner gameId={gameId} />
   ) : undefined;
+  // GameColumns' layout frames its banner edge to edge; the phone page and
+  // character creation frame theirs the same way.
+  const framedBanner = betaBanner && <GameBanner>{betaBanner}</GameBanner>;
 
   const hasGame = useGameStore((state) => !!state.game);
   const error = useGameStore((state) => state.error);
@@ -108,7 +111,7 @@ export default function GameLayout() {
       <>
         <GamePageNavBar phone={phone} />
         <GameSettings />
-        {banner}
+        {framedBanner}
         {!phone && <GameTabs />}
         <PageContent maxWidth="md">
           <ErrorBoundary>
@@ -127,14 +130,14 @@ export default function GameLayout() {
         <PhoneGamePage
           onCharacter={!!characterId}
           pageKey={characterId ?? "overview"}
-          banner={banner}
+          banner={framedBanner}
         />
       ) : (
         <GameColumns
           tier={tier}
           onCharacter={!!characterId}
           tabs={<GameTabs />}
-          banner={banner}
+          banner={betaBanner}
         />
       )}
     </>
