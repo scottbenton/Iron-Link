@@ -12,7 +12,7 @@ interface Pending<Value> {
  * The new value stays on screen until the saved value changes (the save
  * landing, or someone else's change arriving first, which wins), and a
  * failed save drops it so the saved value shows again. Saves straight away;
- * for rapid repeated clicks, debounce the save as tracks do.
+ * for rapid repeated clicks or typing, use `useDebouncedSync`.
  */
 export function useOptimisticValue<Value>(
   saved: Value,

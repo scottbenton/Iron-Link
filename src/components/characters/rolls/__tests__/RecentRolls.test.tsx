@@ -1,5 +1,5 @@
 /**
- * The cards of the last few rolls (migration slice 10): newest last, three
+ * The cards of the last few rolls: newest last, three
  * at most, each dismissed on its own or all at once. They are toasts over
  * the page, the activity dock on a phone's game page, and a copy of their
  * own inside an MUI dialog, which hides the toasts from screen readers.

@@ -32,9 +32,9 @@ export function useRegisterOpenModal(open: boolean) {
 }
 
 /**
- * Whether a library modal is open. Anything drawn in the page sits under it
- * and is inert, so a part of the page that must stay in view (a phone's
- * docked roll cards) can hand over to the toasts, which sit above modals.
+ * Whether a library modal is open. Anything drawn in the page sits under
+ * it, so a part of the page that must stay in view (a phone's docked roll
+ * cards) can rise above it while one is open.
  */
 export function useIsModalOpen() {
   return useSyncExternalStore(

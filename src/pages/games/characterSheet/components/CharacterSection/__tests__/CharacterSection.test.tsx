@@ -1,5 +1,5 @@
 /**
- * The overview panel of the character column (migration slice 10): the
+ * The overview panel of the character column: the
  * header, stats, meters, impacts, legacy tracks and experience, for the
  * sheet's owner, a player it is shared with, and a viewer.
  */
@@ -343,8 +343,7 @@ describe("meters", () => {
     expect(updates.updateCharacterMomentum).toHaveBeenCalledWith("kira", 1);
   });
 
-  // The old sheet stopped counting at the first unmarked impact, so marks
-  // after it lowered neither the max nor the reset.
+  // A marked impact after an unmarked one still lowers the max and reset.
   it("counts every marked impact, not just the first ones", async () => {
     const user = userEvent.setup();
     setCharacter({
