@@ -102,17 +102,8 @@ the file under 150 lines; to add one past that, cut a weaker one.
 - Files hold one component or hook each, with contexts and generic hooks in
   their own files. Text goes through `t()` with a `ui.` key and its English
   default (lint flags JSX text). Details are in `src/ui/README.md`.
-- Phone width is below 600px (`useIsMobile` from `src/ui/hooks`, `smDown` in
-  CSS); from 600 to 900px sidebars sit on a rail and open as flyouts that
-  can't be pinned. The app's own `useIsMobile` stays at 900px until its
-  screens move over.
-- Confirms use `useConfirm` (`ui/components/ConfirmDialog`). MUI modals keep
-  `disableEnforceFocus` so a confirm opened over one keeps focus; drop it
-  with MUI.
-- Datasworn markdown renders through `RulesText`, which gets the app's link
-  rules from `DataswornRulesTextProvider`. Keep its lazily loaded pre-0.1 id
-  map out of the entry chunk, and pass no `resolveOracle`: move outcome text
-  repeats table macros that must draw nothing there.
+- Two `useIsMobile` hooks exist: `src/ui/hooks`' switches below 600px, the
+  app's own below 900px. Use the one from the layer you're working in.
 
 ## Accessibility
 
