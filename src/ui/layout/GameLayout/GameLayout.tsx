@@ -75,40 +75,16 @@ const bodyStyles = css({
 });
 
 /**
- * Once the window is wider than the rail, the tabs and columns become one
- * page: side borders from the top of the tabs down, on the canvas colour, so
- * the tab row's white stops at the same edge as the sheet below it. One
- * literal per rail width, since Panda reads them at build time.
+ * Once the window is wider than the rail, the margins beside the page are
+ * the nav rail's gray-950 in both modes, so the tabs and columns read as one
+ * sheet in the rail's dark frame. One literal per rail width, since Panda
+ * reads them at build time.
  */
-const railFrameStyles: Record<PageWidth, string> = {
-  xs: css({
-    "@media (min-width: 481px)": {
-      borderInline: "1px solid token(colors.border.default)",
-    },
-  }),
-  sm: css({
-    "@media (min-width: 641px)": {
-      borderInline: "1px solid token(colors.border.default)",
-    },
-  }),
-  md: css({
-    "@media (min-width: 961px)": {
-      borderInline: "1px solid token(colors.border.default)",
-    },
-  }),
-  xl: css({
-    "@media (min-width: 1441px)": {
-      borderInline: "1px solid token(colors.border.default)",
-    },
-  }),
-};
-
-/** The canvas around the page, past the same widths. */
-const railCanvasStyles: Record<PageWidth, string> = {
-  xs: css({ "@media (min-width: 481px)": { background: "bg.canvas" } }),
-  sm: css({ "@media (min-width: 641px)": { background: "bg.canvas" } }),
-  md: css({ "@media (min-width: 961px)": { background: "bg.canvas" } }),
-  xl: css({ "@media (min-width: 1441px)": { background: "bg.canvas" } }),
+const railMarginStyles: Record<PageWidth, string> = {
+  xs: css({ "@media (min-width: 481px)": { background: "gray.950" } }),
+  sm: css({ "@media (min-width: 641px)": { background: "gray.950" } }),
+  md: css({ "@media (min-width: 961px)": { background: "gray.950" } }),
+  xl: css({ "@media (min-width: 1441px)": { background: "gray.950" } }),
 };
 
 const mainStyles = css({
@@ -213,7 +189,7 @@ export interface GameLayoutProps {
   /**
    * The widest the tabs and columns get, centred beyond it: the page rail's
    * xl (1440px) by default, so the notes don't stretch across a wide
-   * monitor. Past it they are one bordered page on the canvas colour.
+   * monitor. Past it the margins are the nav rail's dark gray.
    * `none` fills the window.
    */
   maxWidth?: PageWidth | "none";
@@ -246,7 +222,6 @@ export function GameLayout(props: GameLayoutProps) {
   } = props;
   const rail =
     maxWidth === "none" ? undefined : contentRailStyles({ maxWidth });
-  const frame = maxWidth === "none" ? undefined : railFrameStyles[maxWidth];
 
   const idPrefix = `game${useId().replace(/:/g, "")}`;
   const mainHeadingId = main.headingId ?? `${idPrefix}-main-heading`;
@@ -491,14 +466,14 @@ export function GameLayout(props: GameLayoutProps) {
     <div
       className={cx(
         rootStyles,
-        maxWidth !== "none" && railCanvasStyles[maxWidth],
+        maxWidth !== "none" && railMarginStyles[maxWidth],
         className,
       )}
     >
       {bannerSlot}
-      {tabs && <div className={cx(tabsRowStyles, rail, frame)}>{tabs}</div>}
+      {tabs && <div className={cx(tabsRowStyles, rail)}>{tabs}</div>}
       <div
-        className={cx(bodyStyles, rail, frame)}
+        className={cx(bodyStyles, rail)}
         style={
           {
             "--game-main-min-width": `${mainMinWidth}px`,
