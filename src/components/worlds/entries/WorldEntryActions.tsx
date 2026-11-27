@@ -23,9 +23,10 @@ import {
   MenuItem,
   Tooltip,
 } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";

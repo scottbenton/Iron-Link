@@ -1,7 +1,7 @@
 import { PropsWithChildren } from "react";
 
 import { Announce, AnnouncerProvider } from "../Announcer";
-import { ConfirmProvider } from "../ConfirmDialog";
+import { ConfirmOptions, ConfirmProvider } from "../ConfirmDialog";
 import { Toaster } from "../Toast";
 import { TooltipProvider } from "../Tooltip";
 
@@ -13,6 +13,8 @@ export interface UIProviderProps extends PropsWithChildren {
   announce?: Announce;
   message?: string | null;
   nonce?: number;
+  /** Options every `useConfirm()` question starts from, such as its tone. */
+  confirmDefaults?: ConfirmOptions;
 }
 
 /**
@@ -21,11 +23,13 @@ export interface UIProviderProps extends PropsWithChildren {
  * mode and scheme are attributes on <html>; set them with applyUITheme.
  */
 export function UIProvider(props: UIProviderProps) {
-  const { announce, message, nonce, children } = props;
+  const { announce, message, nonce, confirmDefaults, children } = props;
   return (
     <AnnouncerProvider announce={announce} message={message} nonce={nonce}>
       <TooltipProvider delay={500} closeDelay={0}>
-        <ConfirmProvider>{children}</ConfirmProvider>
+        <ConfirmProvider defaultOptions={confirmDefaults}>
+          {children}
+        </ConfirmProvider>
         <Toaster />
       </TooltipProvider>
     </AnnouncerProvider>

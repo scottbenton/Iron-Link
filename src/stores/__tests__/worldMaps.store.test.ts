@@ -8,7 +8,9 @@ import { IWorldMap, WorldMapsService } from "services/worldMaps.service";
 import { getDisplayedChunks, useWorldMapsStore } from "../worldMaps.store";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
-vi.mock("notistack", () => ({ enqueueSnackbar: vi.fn() }));
+vi.mock("ui/components/Toast", () => ({
+  toast: { info: vi.fn(), success: vi.fn(), warning: vi.fn(), error: vi.fn() },
+}));
 vi.mock("services/analytics.service", () => ({
   AnalyticsService: { logError: vi.fn() },
 }));

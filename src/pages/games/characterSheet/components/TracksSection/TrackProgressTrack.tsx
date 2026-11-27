@@ -1,11 +1,12 @@
 import CheckIcon from "@mui/icons-material/Check";
 import { Box, Button } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DebouncedClockCircle } from "components/datasworn/Clocks/DebouncedClockCircle";
 import { ProgressTrack } from "components/datasworn/ProgressTrack";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 

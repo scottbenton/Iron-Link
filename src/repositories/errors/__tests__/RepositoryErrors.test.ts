@@ -1,5 +1,6 @@
-import { enqueueSnackbar } from "notistack";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { toast } from "ui/components/Toast";
 
 import {
   ErrorNoun,
@@ -8,7 +9,9 @@ import {
   getRepositoryError,
 } from "../RepositoryErrors";
 
-vi.mock("notistack", () => ({ enqueueSnackbar: vi.fn() }));
+vi.mock("ui/components/Toast", () => ({
+  toast: { info: vi.fn(), success: vi.fn(), warning: vi.fn(), error: vi.fn() },
+}));
 vi.mock("services/analytics.service", () => ({
   AnalyticsService: { logError: vi.fn() },
 }));
@@ -35,10 +38,10 @@ describe("repository errors", () => {
       400,
     );
     expect(error.reason).toBe(ErrorReason.InvalidParent);
-    expect(enqueueSnackbar).toHaveBeenCalledWith(invalidParentMessage, {
-      variant: "error",
-      persist: true,
-    });
+    expect(toast.error).toHaveBeenCalledWith(
+      invalidParentMessage,
+      expect.objectContaining({ duration: undefined }),
+    );
   });
 
   it("leaves other check violations as bad requests", () => {
@@ -56,9 +59,9 @@ describe("repository errors", () => {
       400,
     );
     expect(error.reason).toBe(ErrorReason.BadRequest);
-    expect(enqueueSnackbar).toHaveBeenCalledWith(
+    expect(toast.error).toHaveBeenCalledWith(
       "Bad request: Failed to update category",
-      { variant: "error", persist: true },
+      expect.objectContaining({ duration: undefined }),
     );
   });
 });

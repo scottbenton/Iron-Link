@@ -1,7 +1,6 @@
 import { Datasworn } from "@datasworn-community/core";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ConfirmProvider } from "material-ui-confirm";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -10,6 +9,8 @@ import {
   translate,
 } from "components/worlds/categories/__tests__/fixtures";
 import { worldEntry } from "components/worlds/entries/__tests__/fixtures";
+
+import { ConfirmProvider } from "ui/components/ConfirmDialog";
 
 import { useDataswornTreeStore } from "stores/dataswornTree.store";
 import { GamePermission, useGameStore } from "stores/game.store";
@@ -31,10 +32,19 @@ import { CharacterConnections } from "../CharacterConnections";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("stores/auth.store", () => ({ useUID: () => "me" }));
-vi.mock("notistack", () => ({
-  enqueueSnackbar: vi.fn(),
-  closeSnackbar: vi.fn(),
-}));
+vi.mock("ui/components/Toast", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("ui/components/Toast")>();
+  return {
+    ...actual,
+    toast: {
+      ...actual.toast,
+      info: vi.fn(),
+      success: vi.fn(),
+      warning: vi.fn(),
+      error: vi.fn(),
+    },
+  };
+});
 vi.mock("pages/games/hooks/useRollCompleteProgressTrack", () => ({
   useRollCompleteProgressTrack: () => vi.fn(),
 }));

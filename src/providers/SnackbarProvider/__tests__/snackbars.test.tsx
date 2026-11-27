@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { LiveRegion } from "ui/components/Announcer";
+import { toast } from "ui/components/Toast";
 
 import { Providers } from "../../Providers";
 import {
@@ -24,6 +25,9 @@ beforeAll(() => {
 
 afterEach(() => {
   vi.useRealTimers();
+  // Toasts live in module state, so one test's open errors would show in
+  // the next test's Toaster; the app mounts a single Toaster.
+  act(() => toast.dismissAll());
 });
 
 function renderApp() {

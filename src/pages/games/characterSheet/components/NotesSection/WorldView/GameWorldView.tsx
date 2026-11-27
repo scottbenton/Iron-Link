@@ -1,7 +1,6 @@
 import LinkOffIcon from "@mui/icons-material/LinkOff";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import { Box, Button, Stack } from "@mui/material";
-import { useConfirm } from "material-ui-confirm";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
@@ -15,6 +14,8 @@ import type {
   WorldNavigation,
   WorldView,
 } from "components/worlds/worldNavigation";
+
+import { useConfirm } from "ui/components/ConfirmDialog";
 
 import { getNotesItemLinkProps } from "pages/games/gamePageLayout/hooks/notesDestination";
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";

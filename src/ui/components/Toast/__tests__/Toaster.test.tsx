@@ -1,5 +1,5 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AnnouncerProvider } from "../../Announcer";
 import { Toaster } from "../Toaster";
@@ -140,5 +140,32 @@ describe("Toaster", () => {
     await flush();
     const region = screen.getByRole("region", { name: "Notifications" });
     expect(region).toHaveAttribute("aria-live", "off");
+  });
+
+  it("closes itself after its duration and reports the close", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      render(
+        <AnnouncerProvider>
+          <Toaster />
+        </AnnouncerProvider>,
+      );
+      const onDismiss = vi.fn();
+      act(() => {
+        toast.info("Invite link copied", { duration: 5000, onDismiss });
+        toast.error("Failed to save");
+      });
+      await flush();
+      expect(getToastItems()).toHaveLength(2);
+
+      await act(async () => {
+        vi.advanceTimersByTime(6000);
+      });
+      await waitFor(() => expect(getToastItems()).toHaveLength(1));
+      expect(getToastItems()[0]).toHaveTextContent("Failed to save");
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

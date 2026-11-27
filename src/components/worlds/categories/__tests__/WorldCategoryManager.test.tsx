@@ -1,6 +1,5 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ConfirmProvider } from "material-ui-confirm";
 import {
   MemoryRouter,
   RouterProvider,
@@ -15,6 +14,8 @@ import {
   type WorldView,
   getWorldViewPath,
 } from "components/worlds/worldNavigation";
+
+import { ConfirmProvider } from "ui/components/ConfirmDialog";
 
 import { WorldPermission } from "repositories/shared.types";
 
@@ -202,7 +203,11 @@ describe("WorldCategoryManager", () => {
         ],
       },
     );
-    render(<RouterProvider router={router} />);
+    render(
+      <ConfirmProvider>
+        <RouterProvider router={router} />
+      </ConfirmProvider>,
+    );
     expect(categoryName()).toHaveValue("Locations");
     expect(
       screen.queryByRole("heading", { name: "General world settings" }),
@@ -380,7 +385,7 @@ describe("WorldCategoryManager", () => {
     await user.click(screen.getByRole("button", { name: "Delete Locations" }));
     expect(await screen.findByText(/contains 2 entries/)).toBeInTheDocument();
     expect(
-      screen.queryByRole("dialog", { name: "Delete category" }),
+      screen.queryByRole("alertdialog", { name: "Delete category" }),
     ).not.toBeInTheDocument();
     expect(state.deleteCategory).not.toHaveBeenCalled();
   });
@@ -400,7 +405,7 @@ describe("WorldCategoryManager", () => {
     render(managerView());
     await openCategorySettings(user);
     await user.click(screen.getByRole("button", { name: "Delete Locations" }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("alertdialog");
     expect(dialog).toHaveTextContent("permanently deleted: Region");
     expect(state.deleteCategory).not.toHaveBeenCalled();
     await user.click(within(dialog).getByRole("button", { name: "Delete" }));
