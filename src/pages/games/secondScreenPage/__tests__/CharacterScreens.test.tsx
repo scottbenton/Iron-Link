@@ -1,5 +1,5 @@
 /**
- * The second screen's character views (migration slice 10): the column of
+ * The second screen's character views: the column of
  * every character beside the main screen, and one character on the main
  * screen.
  */
