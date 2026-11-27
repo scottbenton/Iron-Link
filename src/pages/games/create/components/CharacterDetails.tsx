@@ -62,7 +62,7 @@ export function CharacterDetails() {
   }, [rulesets]);
 
   return (
-    <Box display={"flex"} alignItems={"center"} mt={1}>
+    <Box display={"flex"} alignItems={"center"}>
       <ImageInput
         characterName={name}
         value={portrait}

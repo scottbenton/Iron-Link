@@ -57,6 +57,14 @@ export class WorldsService {
     );
   }
 
+  // World id to name, for the worlds the user can read.
+  public static async getWorldNames(
+    worldIds: string[],
+  ): Promise<Record<string, string>> {
+    const worlds = await WorldsRepository.getWorldNames(worldIds);
+    return Object.fromEntries(worlds.map(({ id, name }) => [id, name]));
+  }
+
   public static async getUsersWorlds(
     userId: string,
   ): Promise<Record<string, IUsersWorld>> {

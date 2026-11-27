@@ -118,6 +118,30 @@ export class WorldsRepository {
   // cannot inline -- an unfiltered select runs it once per world in the table.
   // Drive the query from the two membership sources instead (both indexed) so
   // the policy only has to confirm the handful of rows we already narrowed to.
+  // Names only, for lists that show which world a game is linked to. Worlds
+  // the user cannot read are simply missing from the result.
+  public static async getWorldNames(
+    worldIds: string[],
+  ): Promise<{ id: string; name: string }[]> {
+    if (worldIds.length === 0) return [];
+    const { data, error, status } = await this.worlds()
+      .select("id, name")
+      .in("id", worldIds);
+
+    if (error) {
+      console.error(error);
+      throw getRepositoryError(
+        error,
+        ErrorVerb.Read,
+        ErrorNoun.World,
+        true,
+        status,
+      );
+    }
+
+    return data;
+  }
+
   public static async getUsersWorlds(
     userId: string,
   ): Promise<WorldWithRoleDTO[]> {

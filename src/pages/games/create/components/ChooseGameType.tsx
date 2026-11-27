@@ -1,14 +1,25 @@
-import { Box, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { GameTypeIcon } from "assets/GameTypeIcon";
-
-import { RadioCard, RadioCardGroup } from "components/RadioCard";
-import { SectionHeading } from "components/SectionHeading";
+import { RadioCard, RadioCardGroup } from "ui/components/RadioCard";
+import {
+  CoopGameIcon,
+  GuidedGameIcon,
+  Icon,
+  PhosphorIcon,
+  SoloGameIcon,
+} from "ui/icons";
+import { SectionHeading } from "ui/layout";
+import { Stack } from "ui/primitives";
 
 import { useCreateGameStore } from "stores/createGame.store";
 
 import { GameType } from "repositories/game.repository";
+
+const gameTypeIcons: Record<GameType, PhosphorIcon> = {
+  [GameType.Solo]: SoloGameIcon,
+  [GameType.Coop]: CoopGameIcon,
+  [GameType.Guided]: GuidedGameIcon,
+};
 
 export function ChooseGameType() {
   const { t } = useTranslation();
@@ -32,66 +43,39 @@ export function ChooseGameType() {
       "Two or more players, all playing characters.",
     ),
     [GameType.Guided]: t(
-      "game.type.guided-desciption",
+      "game.type.guided-description",
       "One player takes the role of guide, with the rest playing characters.",
     ),
   };
 
+  const heading = t("game.type.choose-game-type", "Choose Game Type");
+
   return (
-    <Box>
+    <Stack gap="4">
       <SectionHeading
-        breakContainer
-        label={t("game.type.choose-game-type", "Choose Game Type")}
-      />
-      <Typography mt={1} color="text.secondary">
-        {t(
-          "game.type.guided-description",
+        title={heading}
+        description={t(
+          "game.type.choose-game-type-description",
           "How will you be playing your game? Game types help to streamline your experience.",
         )}
-      </Typography>
-      <RadioCardGroup
-        label={t("game.type.choose-game-type", "Choose Game Type")}
-        options={Object.values(GameType)}
+      />
+      <RadioCardGroup<GameType>
+        label={heading}
+        hideLabel
         value={gameType}
-        onChange={setGameType}
-        sx={{
-          mt: 2,
-          gridTemplateColumns:
-            "repeat(auto-fill, minmax(min(200px, 100%), 1fr))",
-        }}
-        renderCard={(type, control) => (
-          <RadioCard
-            {...control}
-            titleVariant="h5"
-            descriptionVariant="body1"
-            icon={
-              <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                borderRadius={1}
-                p={1}
-                bgcolor="primary.main"
-                color="primary.contrastText"
-              >
-                <GameTypeIcon
-                  sx={(theme) => ({
-                    width: 32,
-                    height: 32,
-                    strokeWidth: 1,
-                    overflow: "visible",
-                    stroke: theme.palette.common.white,
-                    color: theme.palette.common.white,
-                  })}
-                  gameType={type}
-                />
-              </Box>
-            }
+        onValueChange={setGameType}
+        minCardWidth="200px"
+      >
+        {Object.values(GameType).map((type) => (
+          <RadioCard<GameType>
+            key={type}
+            value={type}
+            icon={<Icon icon={gameTypeIcons[type]} size="lg" />}
             title={labels[type]}
             description={descriptions[type]}
           />
-        )}
-      />
-    </Box>
+        ))}
+      </RadioCardGroup>
+    </Stack>
   );
 }

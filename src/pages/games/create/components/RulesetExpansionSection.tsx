@@ -1,7 +1,9 @@
 import { useTranslation } from "react-i18next";
 
-import { SectionHeading } from "components/SectionHeading";
 import { RulesPackageSelector } from "components/datasworn/RulesPackageSelector";
+
+import { SectionHeading } from "ui/layout";
+import { Stack } from "ui/primitives";
 
 import { useCreateGameStore } from "stores/createGame.store";
 
@@ -16,13 +18,11 @@ export function RulesetExpansionSection() {
   const setPlayset = useCreateGameStore((store) => store.setPlayset);
 
   return (
-    <>
+    <Stack gap="4">
       <SectionHeading
-        label={t("game.create.choose-ruleset-heading", "Choose your Rules")}
-        breakContainer
+        title={t("game.create.choose-ruleset-heading", "Choose your Rules")}
       />
       <RulesPackageSelector
-        sx={{ mt: 1 }}
         activeRulesetConfig={rulesets}
         activeExpansionConfig={expansions}
         onRulesetChange={toggleRuleset}
@@ -30,6 +30,6 @@ export function RulesetExpansionSection() {
         activePlaysetConfig={playset}
         onPlaysetChange={setPlayset}
       />
-    </>
+    </Stack>
   );
 }

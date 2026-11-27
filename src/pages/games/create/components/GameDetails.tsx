@@ -1,8 +1,8 @@
-import { TextField } from "@mui/material";
-import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import { SectionHeading } from "components/SectionHeading";
+import { TextField } from "ui/components/TextField";
+import { SectionHeading } from "ui/layout";
+import { Stack } from "ui/primitives";
 
 import { useCreateGameStore } from "stores/createGame.store";
 
@@ -12,25 +12,16 @@ export function GameDetails() {
   const gameName = useCreateGameStore((store) => store.gameName);
   const setGameName = useCreateGameStore((store) => store.setGameName);
 
-  const handleSetGameName = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setGameName(e.target.value);
-    },
-    [setGameName],
-  );
-
   return (
-    <>
-      <SectionHeading
-        label={t("game.create.game-details", "Game Details")}
-        breakContainer
-      />
+    <Stack gap="4">
+      <SectionHeading title={t("game.create.game-details", "Game Details")} />
       <TextField
-        sx={{ mt: 2 }}
         label={t("game.create.game-name", "Game Name")}
         value={gameName}
-        onChange={handleSetGameName}
+        onValueChange={setGameName}
+        autoComplete="off"
+        css={{ maxWidth: "400px" }}
       />
-    </>
+    </Stack>
   );
 }

@@ -110,5 +110,8 @@ export type { IconWeight, Icon as PhosphorIcon } from "@phosphor-icons/react";
 export { Icon } from "./Icon";
 export { createIcon } from "./createIcon";
 export type { IconDrawing } from "./createIcon";
+export { CoopGameIcon } from "./CoopGameIcon";
+export { GuidedGameIcon } from "./GuidedGameIcon";
 export { ImageSlashIcon } from "./ImageSlashIcon";
+export { SoloGameIcon } from "./SoloGameIcon";
 export type { IconProps, IconSize } from "./Icon";

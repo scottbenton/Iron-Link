@@ -3,10 +3,16 @@
  * the h1 "Your Games" and Create Game, then a grid of game cards (300px and
  * up). Each card shows its characters' portraits the way the live
  * `GameCharacterPortraits` does: one large portrait, two overlapping, or up
- * to four small ones (three and a count past four) in the same square.
+ * to four small ones (three and a count past four) in the same square. The
+ * line under the name is the linked world, or the rules without one.
  */
-import { PlusIcon, SwordIcon } from "@phosphor-icons/react";
+import {
+  GlobeHemisphereWestIcon,
+  PlusIcon,
+  SwordIcon,
+} from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import type { CSSProperties } from "react";
 
 import { Grid } from "ui/primitives";
 
@@ -47,6 +53,8 @@ interface Game {
   name: string;
   /** The rulesets and expansions, as the live card lists them. */
   rules: string;
+  /** The linked world, shown in place of the rules. */
+  world?: string;
   /** Sorted as live: the reader's own characters first, then by name. */
   characters: GameCharacter[];
 }
@@ -56,6 +64,7 @@ const games: Game[] = [
     id: "iron-expanse",
     name: "The Iron Expanse",
     rules: "Starforged, Sundered Isles",
+    world: "The Forge",
     characters: [
       { id: "kira", name: "Kira Vale", colorScheme: "cinder" },
       { id: "orrin", name: "Orrin Thale", colorScheme: "mystic" },
@@ -65,6 +74,7 @@ const games: Game[] = [
     id: "ashes",
     name: "Ashes of the Forge",
     rules: "Ironsworn, Delve",
+    world: "The Ironlands",
     characters: [
       { id: "senna", name: "Senna Ash-Eye", colorScheme: "hinterlands" },
     ],
@@ -113,22 +123,31 @@ const clusterStyles = css({
     insetInlineEnd: 0,
     bottom: 0,
   },
+  // Four to a square: 42px tiles, a 4px gap and a thinner ring, so
+  // neighbouring rings read as edges rather than a heavy grid.
   "&[data-count='many']": {
     display: "flex",
     flexWrap: "wrap",
     alignContent: "center",
     justifyContent: "center",
+    gap: "4px",
   },
 });
 
+// The small portraits' size and ring, set where the portrait reads them.
+const tileStyle = {
+  "--portrait-size": "42px",
+  "--portrait-ring-width": "1.5px",
+} as CSSProperties;
+
+/** The +N tile: the same size and ring as the small portraits. */
 const overflowStyles = css({
   display: "grid",
   placeItems: "center",
-  width: "44px",
-  height: "44px",
-  boxSizing: "border-box",
+  width: "42px",
+  height: "42px",
   borderRadius: "md",
-  border: "1px solid token(colors.border.default)",
+  boxShadow: "inset 0 0 0 1.5px token(colors.border.control)",
   background: "bg.muted",
   color: "fg.muted",
   fontFamily: "heading",
@@ -144,9 +163,14 @@ function GamePortraits(props: { characters: GameCharacter[] }) {
   const { characters } = props;
   if (characters.length === 0) return null;
 
-  const portrait = (character: GameCharacter, size: "xl" | "lg" | "md") => (
+  const portrait = (
+    character: GameCharacter,
+    size: "xl" | "lg" | "md",
+    style?: CSSProperties,
+  ) => (
     <CharacterPortrait
       key={character.id}
+      style={style}
       name={character.name}
       colorScheme={character.colorScheme}
       size={size}
@@ -170,7 +194,7 @@ function GamePortraits(props: { characters: GameCharacter[] }) {
   const shown = characters.length > 4 ? characters.slice(0, 3) : characters;
   return (
     <div className={clusterStyles} data-count="many">
-      {shown.map((character) => portrait(character, "md"))}
+      {shown.map((character) => portrait(character, "md", tileStyle))}
       {characters.length > 4 && (
         <span className={overflowStyles} aria-hidden="true">
           +{characters.length - 3}
@@ -181,6 +205,15 @@ function GamePortraits(props: { characters: GameCharacter[] }) {
 }
 
 const cardTitleStyles = css({
+  fontFamily: "heading",
+  textTransform: "uppercase",
+  letterSpacing: "label",
+});
+
+const subtitleStyles = css({
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "1",
   fontFamily: "heading",
   textTransform: "uppercase",
   letterSpacing: "label",
@@ -198,7 +231,19 @@ function GameCard(props: { game: Game }) {
             <span className={cardTitleStyles}>{game.name}</span>
           </CardLinkOverlay>
         }
-        subtitle={<span className={cardTitleStyles}>{game.rules}</span>}
+        subtitle={
+          <span className={subtitleStyles}>
+            {game.world ? (
+              <>
+                <GlobeHemisphereWestIcon aria-hidden />
+                <VisuallyHidden>World: </VisuallyHidden>
+                {game.world}
+              </>
+            ) : (
+              game.rules
+            )}
+          </span>
+        }
       />
       {game.characters.length > 0 && (
         <VisuallyHidden>

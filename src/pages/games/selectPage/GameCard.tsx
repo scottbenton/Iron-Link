@@ -1,19 +1,21 @@
-import { Box, Card, CardActionArea, Typography } from "@mui/material";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LinkComponent } from "components/LinkComponent";
-import { ScreenReaderOnly } from "components/ScreenReaderOnly";
+
+import { Card, CardHeader, CardLinkOverlay } from "ui/components/Card";
+import { VisuallyHidden } from "ui/components/VisuallyHidden";
+import { GlobeHemisphereWestIcon } from "ui/icons";
+import { Box } from "ui/primitives";
 
 import { pathConfig } from "pages/pathConfig";
 
 import { useUsersGames } from "stores/users.games.store";
 
-import { includedExpansions, includedRulesets } from "data/package.config";
-
 import { IGame } from "services/game.service";
 
 import { GameCharacterPortraits } from "./GameCharacterPortraits";
+import { getGameRulesPackageNames } from "./getGameRulesPackageNames";
 
 export interface GameCardProps {
   gameId: string;
@@ -22,40 +24,29 @@ export interface GameCardProps {
 
 export function GameCard(props: GameCardProps) {
   const { gameId, game } = props;
-
-  const { rulesets, expansions } = game;
   const { t } = useTranslation();
 
   const gameCharacters = useUsersGames(
-    (store) => store.characterDisplayDetails[gameId] ?? {},
+    (store) => store.characterDisplayDetails[gameId],
+  );
+  const hasCharacters =
+    !!gameCharacters && Object.keys(gameCharacters).length > 0;
+
+  const worldName = useUsersGames((store) =>
+    game.worldId ? store.worldNames[game.worldId] : undefined,
   );
 
-  const rulesPackageString = useMemo(() => {
-    const packageNames: string[] = [];
-
-    Object.entries(rulesets).forEach(([rulesetId, isRulesetActive]) => {
-      if (isRulesetActive) {
-        const ruleset = includedRulesets[rulesetId];
-        packageNames.push(ruleset.name);
-
-        Object.entries(expansions[rulesetId] ?? {}).forEach(
-          ([expansionId, isExpansionActive]) => {
-            if (isExpansionActive) {
-              const expansion = includedExpansions[rulesetId]?.[expansionId];
-              packageNames.push(expansion.name);
-            }
-          },
-        );
-      }
-    });
-
-    return packageNames.join(", ");
-  }, [rulesets, expansions]);
+  // Rules packages don't say which setting a game is played in (a Sundered
+  // Isles game may be in the Forge), so a linked world names it instead.
+  const rulesPackageString = useMemo(
+    () => getGameRulesPackageNames(game.rulesets, game.expansions).join(", "),
+    [game.rulesets, game.expansions],
+  );
 
   // The portraits are pictures only, so their names are read here.
   const characterNames = useMemo(
     () =>
-      Object.values(gameCharacters)
+      Object.values(gameCharacters ?? {})
         .map((character) => character.name)
         .sort((a, b) => a.localeCompare(b))
         .join(", "),
@@ -63,48 +54,59 @@ export function GameCard(props: GameCardProps) {
   );
 
   return (
-    <Card variant={"outlined"} sx={{ height: "100%", overflow: "visible" }}>
-      <CardActionArea
-        LinkComponent={LinkComponent}
-        sx={{
-          p: Object.keys(gameCharacters).length > 0 ? 1 : 2,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          justifyContent: "center",
-          height: "100%",
-          overflow: "visible",
-        }}
-        href={pathConfig.game(gameId)}
-      >
-        <Box display="flex" alignItems="center">
-          <GameCharacterPortraits gameCharacterDetails={gameCharacters} />
-          <Box ml={2}>
-            <Typography
-              variant={"h5"}
-              component={"h2"}
-              fontFamily={(theme) => theme.typography.fontFamilyTitle}
+    <Card padding={hasCharacters ? "sm" : "md"} render={<li />}>
+      <CardHeader
+        titleAs="h2"
+        avatar={
+          gameCharacters && (
+            <GameCharacterPortraits gameCharacterDetails={gameCharacters} />
+          )
+        }
+        title={
+          <CardLinkOverlay
+            render={<LinkComponent href={pathConfig.game(gameId)} />}
+          >
+            <Box
+              as="span"
+              fontFamily="heading"
               textTransform="uppercase"
+              letterSpacing="label"
             >
               {game.name}
-            </Typography>
-            <Typography
-              color="text.secondary"
-              fontFamily={(theme) => theme.typography.fontFamilyTitle}
-              textTransform="uppercase"
-            >
-              {rulesPackageString}
-            </Typography>
-            {characterNames && (
-              <ScreenReaderOnly>
-                {t("game.list.characters", "Characters: {{names}}", {
-                  names: characterNames,
-                })}
-              </ScreenReaderOnly>
+            </Box>
+          </CardLinkOverlay>
+        }
+        subtitle={
+          <Box
+            as="span"
+            display="inline-flex"
+            alignItems="center"
+            gap="1"
+            fontFamily="heading"
+            textTransform="uppercase"
+            letterSpacing="label"
+          >
+            {worldName ? (
+              <>
+                <GlobeHemisphereWestIcon aria-hidden />
+                <VisuallyHidden>
+                  {t("game.list.world-label", "World:")}{" "}
+                </VisuallyHidden>
+                {worldName}
+              </>
+            ) : (
+              rulesPackageString
             )}
           </Box>
-        </Box>
-      </CardActionArea>
+        }
+      />
+      {characterNames && (
+        <VisuallyHidden>
+          {t("game.list.characters", "Characters: {{names}}", {
+            names: characterNames,
+          })}
+        </VisuallyHidden>
+      )}
     </Card>
   );
 }

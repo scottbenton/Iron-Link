@@ -15,7 +15,7 @@ export function Stats() {
 
   return (
     <>
-      <Box mt={1}>
+      <Box>
         <Typography
           display={"flex"}
           alignItems={"baseline"}
