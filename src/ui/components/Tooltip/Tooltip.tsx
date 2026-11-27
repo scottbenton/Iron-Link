@@ -1,29 +1,7 @@
 import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
 import { ReactElement, ReactNode } from "react";
 
-import { css } from "styled-system/css";
-
-export const tooltipPopupStyles = css({
-  maxWidth: "280px",
-  paddingBlock: "1",
-  paddingInline: "2",
-  borderRadius: "sm",
-  background: "gray.900",
-  color: "white",
-  fontFamily: "body",
-  fontSize: "xs",
-  fontWeight: "medium",
-  lineHeight: "snug",
-  boxShadow: "0 4px 12px -4px rgb(0 0 0 / 0.35)",
-  transformOrigin: "var(--transform-origin)",
-  transitionProperty: "opacity, scale",
-  transitionDuration: "fast",
-  transitionTimingFunction: "out",
-  zIndex: "tooltip",
-  _dark: { background: "gray.100", color: "gray.950" },
-  _startingStyle: { opacity: 0, scale: "0.96" },
-  _endingStyle: { opacity: 0, scale: "0.96", transitionDuration: "instant" },
-});
+import { tooltipPopupStyles, tooltipPositionerStyles } from "./tooltipStyles";
 
 export interface TooltipProps {
   /** What the tooltip says. */
@@ -49,7 +27,11 @@ export function Tooltip(props: TooltipProps) {
     <BaseTooltip.Root>
       <BaseTooltip.Trigger render={children} />
       <BaseTooltip.Portal>
-        <BaseTooltip.Positioner side={side} sideOffset={6}>
+        <BaseTooltip.Positioner
+          className={tooltipPositionerStyles}
+          side={side}
+          sideOffset={6}
+        >
           <BaseTooltip.Popup className={tooltipPopupStyles}>
             {title}
           </BaseTooltip.Popup>

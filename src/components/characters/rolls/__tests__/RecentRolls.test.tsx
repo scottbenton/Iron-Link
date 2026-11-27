@@ -175,7 +175,7 @@ describe("recent rolls in an MUI dialog", () => {
 });
 
 describe("recent rolls on a phone's game page", () => {
-  it("hands the rolls to the toasts while a library dialog covers the dock", async () => {
+  it("keeps the docked rolls in place over a library dialog", async () => {
     function Page(props: { dialogOpen: boolean }) {
       return (
         <RecentRolls>
@@ -190,23 +190,40 @@ describe("recent rolls on a phone's game page", () => {
       wrapper: TestWrapper,
     });
     addRolls("Edge");
-    expect(
-      screen.getByRole("region", { name: "Recent rolls" }),
-    ).toBeInTheDocument();
+    const region = screen.getByRole("region", { name: "Recent rolls" });
+    expect(region).not.toHaveAttribute("data-above-modals");
 
     rerender(<Page dialogOpen />);
+    await screen.findByText("Move");
+    // The same dock, not a new one, raised over the dialog; no toast.
+    expect(screen.getByRole("region", { name: "Recent rolls" })).toBe(region);
+    expect(region).toHaveAttribute("data-above-modals");
+    expect(region).toHaveAttribute("data-toast-viewport");
     expect(
-      screen.queryByRole("region", { name: "Recent rolls" }),
-    ).not.toBeInTheDocument();
-    expect(
-      await screen.findByRole("button", { name: "Dismiss Edge" }),
-    ).toBeInTheDocument();
+      screen.getAllByRole("button", { name: "Dismiss Edge" }),
+    ).toHaveLength(1);
 
     rerender(<Page dialogOpen={false} />);
-    expect(
-      await screen.findByRole("region", { name: "Recent rolls" }),
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(region).not.toHaveAttribute("data-above-modals"),
+    );
     expect(shownRollIds()).toEqual(["Edge"]);
+  });
+
+  it("opens every roll in the dock's own sheet", async () => {
+    const user = userEvent.setup();
+    render(<RecentRollsDock />, { wrapper: TestWrapper });
+    addRolls("Edge", "Heart");
+
+    await user.click(screen.getByRole("button", { name: "2 recent rolls" }));
+    const sheet = await screen.findByRole("dialog", { name: "Recent rolls" });
+    expect(
+      within(sheet).getByRole("button", { name: "Dismiss Edge" }),
+    ).toBeInTheDocument();
+    // Its own sheet covers the dock rather than the dock rising over it.
+    expect(
+      screen.getByRole("region", { name: "Recent rolls", hidden: true }),
+    ).not.toHaveAttribute("data-above-modals");
   });
 
   it("docks the newest roll, with the rest behind a count", () => {
