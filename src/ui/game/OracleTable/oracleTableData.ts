@@ -1,4 +1,5 @@
 import type { Datasworn } from "@datasworn-community/core";
+import type { TFunction } from "i18next";
 
 export type AnyOracleRollable =
   | Datasworn.OracleRollable
@@ -13,12 +14,15 @@ export interface OracleColumnLabels {
   text3: string;
 }
 
-export const defaultOracleColumnLabels: OracleColumnLabels = {
-  roll: "Roll",
-  text: "Result",
-  text2: "Details",
-  text3: "",
-};
+/** The column labels for tables that do not name their own. */
+export function getDefaultOracleColumnLabels(t: TFunction): OracleColumnLabels {
+  return {
+    roll: t("ui.oracle-table.roll-column", "Roll"),
+    text: t("ui.oracle-table.result-column", "Result"),
+    text2: t("ui.oracle-table.details-column", "Details"),
+    text3: "",
+  };
+}
 
 /** Which text columns a table has, by its oracle type. */
 export function getOracleTextColumns(
@@ -38,10 +42,11 @@ export function getOracleTextColumns(
 
 /** The table's own column labels where it has them, else the fallbacks. */
 export function getOracleColumnLabels(
+  t: TFunction,
   oracle: AnyOracleRollable,
   fallback: Partial<OracleColumnLabels> = {},
 ): OracleColumnLabels {
-  const labels = { ...defaultOracleColumnLabels, ...fallback };
+  const labels = { ...getDefaultOracleColumnLabels(t), ...fallback };
   if ("column_labels" in oracle && oracle.column_labels) {
     return { ...labels, ...oracle.column_labels };
   }

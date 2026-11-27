@@ -1,4 +1,5 @@
 import type { Datasworn } from "@datasworn-community/core";
+import type { TFunction } from "i18next";
 
 import { capitalize, formatSigned } from "../shared";
 
@@ -27,12 +28,15 @@ export interface MoveRollOption {
 }
 
 /** The special tracks a move can roll, by Datasworn's `using` key. */
-const specialTrackLabels: Record<string, string> = {
-  bonds_legacy: "Bonds",
-  quests_legacy: "Quests",
-  discoveries_legacy: "Discoveries",
-  bonds_track: "Bonds",
-};
+function getSpecialTrackLabels(t: TFunction): Record<string, string> {
+  const bonds = t("ui.move-card.track-bonds", "Bonds");
+  return {
+    bonds_legacy: bonds,
+    quests_legacy: t("ui.move-card.track-quests", "Quests"),
+    discoveries_legacy: t("ui.move-card.track-discoveries", "Discoveries"),
+    bonds_track: bonds,
+  };
+}
 
 /** How a roll option's value is written: signed for an action roll. */
 export function formatRollValue(option: MoveRollOption): string | undefined {
@@ -49,11 +53,15 @@ export function formatRollValue(option: MoveRollOption): string | undefined {
  * richer options (values, assets, the character's progress tracks) itself.
  * A progress roll gives none: its options are the character's tracks.
  */
-export function getMoveRollOptions(move: Datasworn.AnyMove): MoveRollOption[] {
+export function getMoveRollOptions(
+  move: Datasworn.AnyMove,
+  t: TFunction,
+): MoveRollOption[] {
   if (move.roll_type !== "action_roll" && move.roll_type !== "special_track") {
     return [];
   }
   const options: MoveRollOption[] = [];
+  const specialTrackLabels = getSpecialTrackLabels(t);
   const seen = new Set<string>();
   const add = (id: string, label: string, kind: MoveRollKind) => {
     if (seen.has(id)) return;

@@ -1,8 +1,6 @@
-import {
-  ProgressTextStrings,
-  defaultProgressText,
-  describeMark,
-} from "./progress";
+import type { TFunction } from "i18next";
+
+import { ProgressTextStrings, describeMark, getProgressText } from "./progress";
 
 export interface ProgressTrackStrings extends ProgressTextStrings {
   /** The plus button's name: "Mark progress on Recover the Hollow Crown". */
@@ -17,12 +15,22 @@ export interface ProgressTrackStrings extends ProgressTextStrings {
   updated: (label: string, valueText: string) => string;
 }
 
-export const defaultProgressTrackStrings: ProgressTrackStrings = {
-  ...defaultProgressText,
-  markLabel: (label) => `Mark progress on ${label}`,
-  eraseLabel: (label) => `Remove progress from ${label}`,
-  completedLabel: "Completed",
-  legacyLabel: "Legacy",
-  markDescription: describeMark,
-  updated: (label, text) => `Updated ${label} to ${text}`,
-};
+export function getDefaultProgressTrackStrings(
+  t: TFunction,
+): ProgressTrackStrings {
+  return {
+    ...getProgressText(t),
+    markLabel: (label) =>
+      t("ui.progress-track.mark", "Mark progress on {{label}}", { label }),
+    eraseLabel: (label) =>
+      t("ui.progress-track.erase", "Remove progress from {{label}}", { label }),
+    completedLabel: t("ui.progress-track.completed", "Completed"),
+    legacyLabel: t("ui.progress-track.legacy", "Legacy"),
+    markDescription: (ticks) => describeMark(t, ticks),
+    updated: (label, text) =>
+      t("ui.progress-track.updated", "Updated {{label}} to {{text}}", {
+        label,
+        text,
+      }),
+  };
+}

@@ -1,7 +1,8 @@
 import { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
-import { SchemeName, schemeNames, schemes } from "ui/theme";
+import { SchemeName, getSchemeLabels, schemeNames, schemes } from "ui/theme";
 
 import { css } from "styled-system/css";
 
@@ -93,6 +94,8 @@ export function ColorSchemePicker(props: ColorSchemePickerProps) {
     label,
     "aria-label": ariaLabel,
   } = withCssProp(props);
+  const { t } = useTranslation();
+  const schemeLabels = getSchemeLabels(t);
 
   const handleChange = (next: string) => {
     if (props.fallback) {
@@ -110,7 +113,11 @@ export function ColorSchemePicker(props: ColorSchemePickerProps) {
       onValueChange={handleChange}
       disabled={disabled}
       label={label}
-      aria-label={label ? undefined : (ariaLabel ?? "Colour scheme")}
+      aria-label={
+        label
+          ? undefined
+          : (ariaLabel ?? t("ui.color-scheme-picker.label", "Colour scheme"))
+      }
       minCardWidth="160px"
       className={className}
     >
@@ -134,7 +141,7 @@ export function ColorSchemePicker(props: ColorSchemePickerProps) {
         <RadioCard
           key={name}
           value={name}
-          title={labels?.[name] ?? schemes[name].label}
+          title={labels?.[name] ?? schemeLabels[name]}
           size="sm"
           className={schemeCardStyles}
           iconFrame="none"

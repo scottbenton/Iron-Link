@@ -1,4 +1,5 @@
 import { PlusIcon } from "@phosphor-icons/react";
+import i18next from "i18next";
 import { useState } from "react";
 
 import { Flex, Stack } from "ui/primitives";
@@ -139,6 +140,7 @@ export function SheetScreen(props: {
             aria-label="Initiative"
             fullWidth
             options={getInitiativeOptions(
+              i18next.t,
               ruleset === "ironsworn" ? "ironsworn" : "starforged",
             )}
             value={initiative}

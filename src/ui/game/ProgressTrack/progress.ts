@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+
 export const TICKS_PER_BOX = 4;
 export const PROGRESS_BOXES = 10;
 export const MAX_TICKS = TICKS_PER_BOX * PROGRESS_BOXES;
@@ -18,13 +20,15 @@ export const ticksPerMark: Record<ProgressRank, number> = {
   epic: 1,
 };
 
-export const defaultRankLabels: Record<ProgressRank, string> = {
-  troublesome: "Troublesome",
-  dangerous: "Dangerous",
-  formidable: "Formidable",
-  extreme: "Extreme",
-  epic: "Epic",
-};
+export function getRankLabels(t: TFunction): Record<ProgressRank, string> {
+  return {
+    troublesome: t("ui.progress.rank-troublesome", "Troublesome"),
+    dangerous: t("ui.progress.rank-dangerous", "Dangerous"),
+    formidable: t("ui.progress.rank-formidable", "Formidable"),
+    extreme: t("ui.progress.rank-extreme", "Extreme"),
+    epic: t("ui.progress.rank-epic", "Epic"),
+  };
+}
 
 /** Clamps a tick count to a track, 0 to 40. */
 export function clampTicks(ticks: number): number {
@@ -68,16 +72,26 @@ export interface ProgressTextStrings {
   ) => string;
 }
 
-export const defaultProgressText: ProgressTextStrings = {
-  boxes: (boxes, total) => `${boxes} of ${total} boxes filled`,
-  boxesAndTicks: (boxes, total, ticks, perBox) =>
-    `${boxes} of ${total} boxes filled, and ${ticks} of ${perBox} ticks`,
-};
+export function getProgressText(t: TFunction): ProgressTextStrings {
+  return {
+    boxes: (boxes, total) =>
+      t("ui.progress.boxes", "{{boxes}} of {{total}} boxes filled", {
+        boxes,
+        total,
+      }),
+    boxesAndTicks: (boxes, total, ticks, ticksPerBox) =>
+      t(
+        "ui.progress.boxes-and-ticks",
+        "{{boxes}} of {{total}} boxes filled, and {{ticks}} of {{ticksPerBox}} ticks",
+        { boxes, total, ticks, ticksPerBox },
+      ),
+  };
+}
 
 /** Reads a track out as text, for aria-valuetext and announcements. */
 export function getProgressValueText(
   ticks: number,
-  strings: ProgressTextStrings = defaultProgressText,
+  strings: ProgressTextStrings,
 ): string {
   const { boxes, ticks: rest } = getProgressBoxes(ticks);
   return rest === 0
@@ -86,10 +100,15 @@ export function getProgressValueText(
 }
 
 /** "2 boxes per mark", "1 tick per mark": what one mark at a rank adds. */
-export function describeMark(ticks: number): string {
+export function describeMark(t: TFunction, ticks: number): string {
   if (ticks % TICKS_PER_BOX === 0) {
-    const boxes = ticks / TICKS_PER_BOX;
-    return `${boxes} ${boxes === 1 ? "box" : "boxes"} per mark`;
+    return t("ui.progress.boxes-per-mark", "{{count}} boxes per mark", {
+      count: ticks / TICKS_PER_BOX,
+      defaultValue_one: "{{count}} box per mark",
+    });
   }
-  return `${ticks} ${ticks === 1 ? "tick" : "ticks"} per mark`;
+  return t("ui.progress.ticks-per-mark", "{{count}} ticks per mark", {
+    count: ticks,
+    defaultValue_one: "{{count}} tick per mark",
+  });
 }

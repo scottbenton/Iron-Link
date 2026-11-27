@@ -1,5 +1,6 @@
 import { CheckCircle } from "@phosphor-icons/react";
 import { ElementType, ReactElement, ReactNode, useId } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -14,13 +15,13 @@ import {
   MAX_TICKS,
   ProgressRank,
   clampTicks,
-  defaultRankLabels,
   getProgressValueText,
+  getRankLabels,
   ticksPerMark,
 } from "./progress";
 import {
   ProgressTrackStrings,
-  defaultProgressTrackStrings,
+  getDefaultProgressTrackStrings,
 } from "./progressTrackStrings";
 import {
   trackCardActionsStyles as actionsStyles,
@@ -105,8 +106,9 @@ export function ProgressTrack(props: ProgressTrackProps) {
     className,
   } = withCssProp(props);
 
-  const strings = { ...defaultProgressTrackStrings, ...stringsProp };
-  const rankLabels = { ...defaultRankLabels, ...rankLabelsProp };
+  const { t } = useTranslation();
+  const strings = { ...getDefaultProgressTrackStrings(t), ...stringsProp };
+  const rankLabels = { ...getRankLabels(t), ...rankLabelsProp };
   const titleId = useId();
   const announce = useAnnounce();
 

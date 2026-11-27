@@ -1,5 +1,6 @@
 import { GlobeHemisphereWest, MapTrifold, Users } from "@phosphor-icons/react";
 import { FormEvent, ReactNode, useId, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Alert } from "ui/components/Alert";
 import { Button } from "ui/components/Button";
@@ -12,7 +13,7 @@ import {
   DialogHeader,
 } from "ui/components/Dialog";
 import { Text } from "ui/components/Text";
-import { schemes } from "ui/theme";
+import { getSchemeLabels } from "ui/theme";
 
 import { css } from "styled-system/css";
 
@@ -28,7 +29,7 @@ import {
 } from "./resolveTheme";
 import {
   ThemeDialogStrings,
-  defaultThemeDialogStrings,
+  getDefaultThemeDialogStrings,
 } from "./themeDialogStrings";
 
 /** A character the person can edit, in this game. */
@@ -180,7 +181,9 @@ export function ThemeDialog(props: ThemeDialogProps) {
     onSave,
     date: dateProp,
   } = props;
-  const strings = { ...defaultThemeDialogStrings, ...props.strings };
+  const { t } = useTranslation();
+  const strings = { ...getDefaultThemeDialogStrings(t), ...props.strings };
+  const schemeLabels = getSchemeLabels(t);
 
   const [now] = useState(() => new Date());
   const date = dateProp ?? now;
@@ -280,7 +283,7 @@ export function ThemeDialog(props: ThemeDialogProps) {
   const appFallback = resolveTheme({}, date);
   const appResolved = resolveTheme({ app: draft.app }, date);
   const gameFallbackText = strings.resolved(
-    schemes[gameFallback.scheme].label,
+    schemeLabels[gameFallback.scheme],
     strings.source(gameFallback.source),
   );
 
@@ -406,7 +409,7 @@ export function ThemeDialog(props: ThemeDialogProps) {
                   scheme: appResolved.scheme,
                   description: game.solo
                     ? strings.resolved(
-                        schemes[appResolved.scheme].label,
+                        schemeLabels[appResolved.scheme],
                         strings.source(appResolved.source),
                       )
                     : strings.useAppThemeForGame,
