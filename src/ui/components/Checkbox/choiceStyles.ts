@@ -177,7 +177,13 @@ export const checkboxFillStyles = css({
     transitionDuration: "token(durations.fast), token(durations.normal)",
     transitionTimingFunction: "out",
   },
-  "[data-readonly] > &": { background: "accent.soft" },
+  // The tint is opaque, so it sits inside the border rather than over it,
+  // or it would hide the accent outline that marks the box as set.
+  "[data-readonly] > &": {
+    inset: 0,
+    borderRadius: "calc(token(radii.xs) - var(--choice-border))",
+    background: "accent.soft",
+  },
   "[data-disabled] > &": { background: "fg.disabled" },
   _reducedMotion: { scale: "1" },
 });
