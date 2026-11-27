@@ -122,7 +122,14 @@ export default function SecondScreenPage() {
       </AnimatePresence>
       <Card
         padding="none"
-        css={{ flex: "1 1 auto", display: "flex", overflow: "hidden" }}
+        css={{
+          flex: "1 1 auto",
+          overflow: "hidden",
+          // One track that fills the card, so the screen's content can
+          // centre itself in the whole column.
+          gridTemplateRows: "minmax(0, 1fr)",
+          gridTemplateColumns: "minmax(0, 1fr)",
+        }}
         render={<motion.div layout transition={transition} />}
       >
         <AnimatePresence mode="popLayout" initial>
@@ -133,7 +140,7 @@ export default function SecondScreenPage() {
             exit="exit"
             variants={fadeVariants}
             transition={transition}
-            style={{ flexGrow: 1, display: "flex", minWidth: 0 }}
+            style={{ display: "flex", minWidth: 0, minHeight: 0 }}
           >
             {!settings && <Default />}
             {settings?.type === "character" && (
