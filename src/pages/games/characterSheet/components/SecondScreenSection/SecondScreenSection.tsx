@@ -18,12 +18,14 @@ import { useSecondScreenStore } from "stores/secondScreen.store";
 
 interface SecondScreenSectionSettingsProps {
   open: boolean;
+  /** Leave out the h3, where a dialog's title already says it. */
+  hideTitle?: boolean;
 }
 
 export function SecondScreenSectionSettings(
   props: SecondScreenSectionSettingsProps,
 ) {
-  const { open } = props;
+  const { open, hideTitle } = props;
   const { t } = useTranslation();
 
   const gameId = useGameId();
@@ -85,9 +87,11 @@ export function SecondScreenSectionSettings(
       gap={2}
       alignItems={"flex-start"}
     >
-      <Typography variant="h6" component="h3">
-        {t("game.second-screen.title", "Second Screen")}
-      </Typography>
+      {!hideTitle && (
+        <Typography variant="h6" component="h3">
+          {t("game.second-screen.title", "Second Screen")}
+        </Typography>
+      )}
       <CopyButton
         link={link}
         dialogTitle={t(

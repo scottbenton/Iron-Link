@@ -75,6 +75,7 @@ beforeEach(() => {
   useMenuState.setState({
     isThemeDialogOpen: false,
     isGameNameDialogOpen: false,
+    isSecondScreenDialogOpen: false,
   });
 });
 
@@ -92,6 +93,7 @@ describe("useGameSettingsContribution", () => {
       isGuide: true,
       solo: true,
       characterCount: 1,
+      secondScreen: false,
     });
     expect(result.current?.character).toBeUndefined();
 
@@ -99,6 +101,12 @@ describe("useGameSettingsContribution", () => {
     expect(useMenuState.getState().isThemeDialogOpen).toBe(true);
     act(() => result.current?.onSelect("gameName"));
     expect(useMenuState.getState().isGameNameDialogOpen).toBe(true);
+  });
+
+  it("opens the second screen's settings, for phones", () => {
+    const { result } = renderHook(() => useGameSettingsContribution());
+    act(() => result.current?.onSelect("secondScreen"));
+    expect(useMenuState.getState().isSecondScreenDialogOpen).toBe(true);
   });
 
   it("adds the open character the person can edit, and its theme", () => {

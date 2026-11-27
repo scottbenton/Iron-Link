@@ -11,6 +11,7 @@ interface MenuStateState {
 
   isGameNameDialogOpen: boolean;
   isRulesetDialogOpen: boolean;
+  isSecondScreenDialogOpen: boolean;
 }
 
 interface MenuStateActions {
@@ -21,6 +22,7 @@ interface MenuStateActions {
 
   setIsGameNameDialogOpen: (open: boolean) => void;
   setIsRulesetDialogOpen: (open: boolean) => void;
+  setIsSecondScreenDialogOpen: (open: boolean) => void;
 }
 
 export const useMenuState = createWithEqualityFn<
@@ -55,6 +57,7 @@ export const useMenuState = createWithEqualityFn<
 
     isGameNameDialogOpen: false,
     isRulesetDialogOpen: false,
+    isSecondScreenDialogOpen: false,
 
     setIsGameNameDialogOpen: (open) => {
       set((state) => {
@@ -64,6 +67,11 @@ export const useMenuState = createWithEqualityFn<
     setIsRulesetDialogOpen: (open) => {
       set((state) => {
         state.isRulesetDialogOpen = open;
+      });
+    },
+    setIsSecondScreenDialogOpen: (open) => {
+      set((state) => {
+        state.isSecondScreenDialogOpen = open;
       });
     },
   })),
