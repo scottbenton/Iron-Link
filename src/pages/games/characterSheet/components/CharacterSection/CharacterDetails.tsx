@@ -11,6 +11,7 @@ import {
 
 import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterId } from "../../hooks/useCharacterId";
+import { CharacterSettingsMenu } from "../CharacterSettingsMenu";
 import { CharacterAccessChip } from "./CharacterAccessChip";
 
 export function CharacterDetails() {
@@ -43,10 +44,13 @@ export function CharacterDetails() {
           decorative
         />
       )}
-      <Stack gap="1" minWidth="0" alignItems="start">
-        <Text variant="h3" as="h3">
-          {name}
-        </Text>
+      <Stack gap="1" minWidth="0" flex="1" alignItems="start">
+        <HStack gap="1" alignItems="center" width="full">
+          <Text variant="h3" as="h3" truncate>
+            {name}
+          </Text>
+          <CharacterSettingsMenu />
+        </HStack>
         <Flex gap="2" flexWrap="wrap" alignItems="center">
           <CharacterInitiativeChip
             status={initiativeStatus}

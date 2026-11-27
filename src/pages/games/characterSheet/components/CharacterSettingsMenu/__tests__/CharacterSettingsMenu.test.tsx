@@ -1,5 +1,5 @@
 /**
- * The character's settings menu and its Change Theme dialogs (migration
+ * The character's settings menu and the game page's Theme dialog (migration
  * slice 12), for the sheet's owner, a player it is shared with and a viewer.
  */
 import {
@@ -13,8 +13,9 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GameColorSchemeDialog } from "pages/games/overviewSheet/gameSettings/GameColorSchemeDialog";
+import { GameThemeDialog } from "pages/games/gamePageLayout/GameSettings/GameThemeDialog";
 
+import { useAppThemeStore } from "stores/appTheme.store";
 import { GamePermission, useGameStore } from "stores/game.store";
 import { useGameCharactersStore } from "stores/gameCharacters.store";
 import { useMenuState } from "stores/menuState";
@@ -28,7 +29,6 @@ import { ColorScheme } from "repositories/shared.types";
 import { ICharacter } from "services/character.service";
 
 import { CharacterSettingsMenu } from "../CharacterSettingsMenu";
-import { ColorSchemeDialog } from "../ColorSchemeDialog";
 
 const session = vi.hoisted(() => ({ uid: "me" }));
 const deleteCharacter = vi.hoisted(() => vi.fn());
@@ -53,10 +53,14 @@ const updateGameColorScheme = vi.fn(() => Promise.resolve());
 const initialGame = useGameStore.getState();
 const initialCharacters = useGameCharactersStore.getState();
 const initialMenu = useMenuState.getState();
+const initialAppTheme = useAppThemeStore.getState();
 
-function setGame(gameType = GameType.Coop) {
+function setGame(
+  gameType = GameType.Coop,
+  gamePermissions = GamePermission.Player,
+) {
   useGameStore.setState({
-    gamePermissions: GamePermission.Player,
+    gamePermissions,
     game: { id: "game", name: "Ashfall", gameType, colorScheme: null },
     updateGameColorScheme,
   } as unknown as Partial<ReturnType<typeof useGameStore.getState>>);
@@ -80,6 +84,8 @@ function setCharacter(changes: Partial<ICharacter> = {}) {
 }
 
 beforeEach(() => {
+  // jsdom has no PointerEvent, which Base UI's radios press with.
+  window.PointerEvent ??= MouseEvent as unknown as typeof PointerEvent;
   session.uid = "me";
   setGame();
   setCharacter();
@@ -91,6 +97,7 @@ afterEach(() => {
   useGameStore.setState(initialGame, true);
   useGameCharactersStore.setState(initialCharacters, true);
   useMenuState.setState(initialMenu, true);
+  useAppThemeStore.setState(initialAppTheme, true);
 });
 
 function renderMenu() {
@@ -120,15 +127,13 @@ describe("the character settings menu", () => {
     ).toEqual([
       "Change Name or Portrait",
       "Update Stats",
-      "Change Theme",
       "Edit Access",
+      "Change Theme",
       "Delete Character",
     ]);
 
-    await user.click(
-      within(menu).getByRole("menuitem", { name: "Change Theme" }),
-    );
-    expect(useMenuState.getState().isColorSchemeDialogOpen).toBe(true);
+    await user.click(within(menu).getByRole("menuitem", { name: /Theme/ }));
+    expect(useMenuState.getState().isThemeDialogOpen).toBe(true);
   });
 
   it("opens the name, stats and access dialogs", async () => {
@@ -192,48 +197,93 @@ describe("the character settings menu", () => {
       within(menu).getByRole("menuitem", { name: "Delete Character" }),
     );
     const dialog = await screen.findByRole("alertdialog");
-    expect(dialog).toHaveTextContent(
-      "Are you sure you want to delete this character? This action cannot be undone.",
+    expect(dialog).toHaveTextContent("Delete Kira?");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Delete Character" }),
     );
-    await user.click(within(dialog).getByRole("button", { name: "Delete" }));
     await waitFor(() => expect(deleteCharacter).toHaveBeenCalledTimes(1));
   });
 });
 
-describe("Change Theme", () => {
-  it("saves the character's theme", async () => {
-    const user = userEvent.setup();
-    const onClose = vi.fn();
-    render(<ColorSchemeDialog open onClose={onClose} />, {
-      wrapper: TestWrapper,
-    });
+describe("the Theme dialog", () => {
+  function openThemeDialog() {
+    useMenuState.setState({ isThemeDialogOpen: true });
+    render(
+      <MemoryRouter>
+        <GameThemeDialog />
+      </MemoryRouter>,
+      { wrapper: TestWrapper },
+    );
+    return screen.findByRole("dialog", { name: "Theme" });
+  }
 
-    const dialog = await screen.findByRole("dialog");
-    await user.click(within(dialog).getByRole("button", { name: /myriad/i }));
+  async function pick(rowName: string, scheme: RegExp) {
+    const user = userEvent.setup();
+    const dialog = await screen.findByRole("dialog", { name: "Theme" });
+    const change = within(dialog).getByRole("button", {
+      name: `Change theme for ${rowName}`,
+    });
+    if (change.getAttribute("aria-expanded") !== "true") {
+      await user.click(change);
+    }
     await user.click(
-      within(dialog).getByRole("button", { name: "Save Changes" }),
+      within(
+        within(dialog).getByRole("radiogroup", { name: new RegExp(rowName) }),
+      ).getByRole("radio", { name: scheme }),
     );
-    expect(updateCharacterColorScheme).toHaveBeenCalledWith(
-      "kira",
-      ColorScheme.Myriad,
+    return { user, dialog };
+  }
+
+  it("saves the character's theme and closes", async () => {
+    await openThemeDialog();
+    const { user, dialog } = await pick("Kira", /myriad/i);
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(updateCharacterColorScheme).toHaveBeenCalledWith(
+        "kira",
+        ColorScheme.Myriad,
+      ),
     );
-    expect(onClose).toHaveBeenCalled();
+    expect(updateGameColorScheme).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(useMenuState.getState().isThemeDialogOpen).toBe(false),
+    );
   });
 
-  it("saves the game's theme", async () => {
-    const user = userEvent.setup();
-    render(<GameColorSchemeDialog open onClose={vi.fn()} />, {
-      wrapper: TestWrapper,
-    });
+  it("lets a Guide save the game's theme", async () => {
+    setGame(GameType.Coop, GamePermission.Guide);
+    await openThemeDialog();
+    const { user, dialog } = await pick("Ashfall", /cinder/i);
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
 
-    const dialog = await screen.findByRole("dialog");
-    await user.click(within(dialog).getByRole("button", { name: /cinder/i }));
-    await user.click(
-      within(dialog).getByRole("button", { name: "Save Changes" }),
+    await waitFor(() =>
+      expect(updateGameColorScheme).toHaveBeenCalledWith(
+        "game",
+        ColorScheme.Cinder,
+      ),
     );
-    expect(updateGameColorScheme).toHaveBeenCalledWith(
-      "game",
-      ColorScheme.Cinder,
+  });
+
+  it("shows a player the game's theme without letting them change it", async () => {
+    const dialog = await openThemeDialog();
+    expect(
+      within(dialog).queryByRole("button", {
+        name: "Change theme for Ashfall",
+      }),
+    ).not.toBeInTheDocument();
+    expect(dialog).toHaveTextContent(
+      "Only the game's Guides can change its theme.",
+    );
+  });
+
+  it("saves the Everywhere theme on this device", async () => {
+    await openThemeDialog();
+    const { user, dialog } = await pick("Your app theme", /sunrise/i);
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(useAppThemeStore.getState().appTheme).toBe(ColorScheme.Default),
     );
   });
 });

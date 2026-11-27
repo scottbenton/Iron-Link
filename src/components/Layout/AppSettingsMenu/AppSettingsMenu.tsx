@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Suspense, lazy, useState } from "react";
 
 import { SettingsMenu, SettingsMenuAction, SettingsMenuProps } from "ui/layout";
 
@@ -13,7 +12,19 @@ import { AdvancedFeaturesDialog } from "../AdvancedFeaturesDialog";
 import { useAppColorMode } from "./useAppColorMode";
 import { useAppSignOut } from "./useAppSignOut";
 
-type AppSettingsDialog = "accessibility" | "advancedFeatures" | "admin";
+// Loaded on first use: the Theme dialog and its scheme previews stay out of
+// the entry chunk.
+const AppThemeDialog = lazy(() =>
+  import("./AppThemeDialog").then((module) => ({
+    default: module.AppThemeDialog,
+  })),
+);
+
+type AppSettingsDialog =
+  | "accessibility"
+  | "advancedFeatures"
+  | "admin"
+  | "theme";
 
 export type AppSettingsMenuProps = Pick<
   SettingsMenuProps,
@@ -23,13 +34,12 @@ export type AppSettingsMenuProps = Pick<
 /**
  * The app's one settings menu: the library's SettingsMenu with the app's own
  * settings and the dialogs they open, plus whatever the page adds through
- * `useContributeAppSettings` (the game page's game and character sections,
- * Change Theme and the log sound). On the rail, pass `hideColorMode`; the
+ * `useContributeAppSettings` (the game page's game and character sections
+ * and the log sound). On the rail, pass `hideColorMode`; the
  * rail's `ColorModeToggle` sits above it.
  */
 export function AppSettingsMenu(props: AppSettingsMenuProps) {
   const { hideColorMode, side, align, tooltipSide } = props;
-  const { t } = useTranslation();
 
   const signedIn = useAuthStatus() === AuthStatus.Authenticated;
   const isAdmin = useAdminStore((state) => state.isAdmin);
@@ -38,23 +48,9 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
   const contribution = useAppSettingsMenuStore((state) => state.contribution);
 
   const [openDialog, setOpenDialog] = useState<AppSettingsDialog | null>(null);
+  // Stays mounted once opened, so it can animate closed.
+  const [themeDialogUsed, setThemeDialogUsed] = useState(false);
   const closeDialog = () => setOpenDialog(null);
-
-  // Until the game page moves to the library's Theme dialog, Change Theme
-  // opens one level's theme, so its second line names that level.
-  const themeTarget = contribution?.themeTarget;
-  const strings = useMemo(
-    () =>
-      themeTarget
-        ? {
-            themeDescription: () =>
-              themeTarget === "character"
-                ? t("iron-link.settings.theme-character", "This character")
-                : t("iron-link.settings.theme-game", "This game"),
-          }
-        : undefined,
-    [t, themeTarget],
-  );
 
   const handleSelect = (action: SettingsMenuAction) => {
     switch (action) {
@@ -66,6 +62,15 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
       case "signOut":
         signOut();
         break;
+      case "theme":
+        // A page with a Theme dialog of its own (the game page) opens it;
+        // elsewhere Change Theme sets the app theme alone.
+        if (contribution) contribution.onSelect(action);
+        else {
+          setThemeDialogUsed(true);
+          setOpenDialog("theme");
+        }
+        break;
       default:
         contribution?.onSelect(action);
     }
@@ -76,9 +81,6 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
       <SettingsMenu
         game={contribution?.game}
         character={contribution?.character}
-        // Change Theme shows only where the page has a theme to change; the
-        // app has none of its own yet.
-        hideTheme={!themeTarget}
         hideColorMode={hideColorMode}
         isAdmin={isAdmin}
         signedIn={signedIn}
@@ -92,7 +94,6 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
         side={side}
         align={align}
         tooltipSide={tooltipSide}
-        strings={strings}
       />
       <A11ySettingsDialog
         open={openDialog === "accessibility"}
@@ -102,6 +103,11 @@ export function AppSettingsMenu(props: AppSettingsMenuProps) {
         open={openDialog === "advancedFeatures"}
         onClose={closeDialog}
       />
+      {themeDialogUsed && (
+        <Suspense fallback={null}>
+          <AppThemeDialog open={openDialog === "theme"} onClose={closeDialog} />
+        </Suspense>
+      )}
       {isAdmin && (
         <AdminDialog open={openDialog === "admin"} onClose={closeDialog} />
       )}

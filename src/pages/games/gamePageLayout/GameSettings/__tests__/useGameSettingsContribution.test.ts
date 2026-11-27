@@ -73,8 +73,7 @@ beforeEach(() => {
   state.canEdit = false;
   state.isOwner = false;
   useMenuState.setState({
-    isColorSchemeDialogOpen: false,
-    isGameThemeDialogOpen: false,
+    isThemeDialogOpen: false,
     isGameNameDialogOpen: false,
   });
 });
@@ -95,10 +94,9 @@ describe("useGameSettingsContribution", () => {
       characterCount: 1,
     });
     expect(result.current?.character).toBeUndefined();
-    expect(result.current?.themeTarget).toBe("game");
 
     act(() => result.current?.onSelect("theme"));
-    expect(useMenuState.getState().isGameThemeDialogOpen).toBe(true);
+    expect(useMenuState.getState().isThemeDialogOpen).toBe(true);
     act(() => result.current?.onSelect("gameName"));
     expect(useMenuState.getState().isGameNameDialogOpen).toBe(true);
   });
@@ -109,21 +107,19 @@ describe("useGameSettingsContribution", () => {
     state.isOwner = true;
     const { result } = renderHook(() => useGameSettingsContribution());
     expect(result.current?.character).toEqual({ name: "Kira", isOwner: true });
-    expect(result.current?.themeTarget).toBe("character");
 
+    // One Theme dialog covers the character, the game and the app.
     act(() => result.current?.onSelect("theme"));
-    expect(useMenuState.getState().isColorSchemeDialogOpen).toBe(true);
-    expect(useMenuState.getState().isGameThemeDialogOpen).toBe(false);
+    expect(useMenuState.getState().isThemeDialogOpen).toBe(true);
   });
 
-  it("leaves out a character the person can't edit, and any theme", () => {
+  it("leaves out a character the person can't edit", () => {
     state.characterId = "a";
     state.gamePermissions = "viewer";
     state.gameType = "guided";
     const { result } = renderHook(() => useGameSettingsContribution());
     expect(result.current?.character).toBeUndefined();
     expect(result.current?.game?.isGuide).toBe(false);
-    expect(result.current?.themeTarget).toBeUndefined();
   });
 
   it("keeps the same contribution across renders", () => {

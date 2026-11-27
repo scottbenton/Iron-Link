@@ -2,6 +2,7 @@ import { useContributeAppSettings } from "components/Layout/AppSettingsMenu/useC
 
 import { CharacterMenuDialogs } from "../../characterSheet/components/CharacterSettingsMenu/CharacterMenuDialogs";
 import { GameSettingsMenuDialogs } from "../../overviewSheet/gameSettings/GameSettingsMenuDialogs";
+import { GameThemeDialog } from "./GameThemeDialog";
 import { useGameSettingsContribution } from "./useGameSettingsContribution";
 
 /**
@@ -15,6 +16,7 @@ export function GameSettings() {
     <>
       <GameSettingsMenuDialogs />
       <CharacterMenuDialogs />
+      <GameThemeDialog />
     </>
   );
 }

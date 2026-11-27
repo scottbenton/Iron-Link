@@ -131,18 +131,19 @@ describe("AppSettingsMenu", () => {
     expect(auth.signOut).toHaveBeenCalledTimes(1);
   });
 
-  it("leaves Change Theme out with nothing to theme", async () => {
+  it("opens the app theme from Change Theme outside a game", async () => {
     renderMenu();
-    const { menu } = await openMenu();
-    expect(
-      within(menu).queryByRole("menuitem", { name: /Change Theme/ }),
-    ).toBeNull();
+    const { user, menu } = await openMenu();
+    await user.click(
+      within(menu).getByRole("menuitem", { name: /Change Theme/ }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Everywhere");
   });
 
   it("adds the game page's sections and hands their items back", async () => {
     const contribution = contribute({
       character: { name: "Kira", isOwner: true },
-      themeTarget: "character",
     });
     renderMenu();
     const { user, menu } = await openMenu();
@@ -155,13 +156,15 @@ describe("AppSettingsMenu", () => {
     expect(contribution.onSelect).toHaveBeenCalledWith("gameName");
   });
 
-  it("names the theme Change Theme opens", async () => {
-    contribute({ themeTarget: "game" });
+  it("hands Change Theme to the game page", async () => {
+    const contribution = contribute({});
     renderMenu();
-    const { menu } = await openMenu();
-    expect(
-      within(menu).getByRole("menuitem", { name: /Change Theme.*This game/ }),
-    ).toBeInTheDocument();
+    const { user, menu } = await openMenu();
+    await user.click(
+      within(menu).getByRole("menuitem", { name: /Change Theme/ }),
+    );
+    expect(contribution.onSelect).toHaveBeenCalledWith("theme");
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("toggles the game's log sound", async () => {

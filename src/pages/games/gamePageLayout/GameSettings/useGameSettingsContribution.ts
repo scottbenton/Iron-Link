@@ -22,8 +22,8 @@ import { useGamePermissions } from "../hooks/usePermissions";
 
 /**
  * The game page's part of the app's settings menu: the open character's
- * settings when the person can edit it, the game's, Change Theme and the
- * log sound. Null until the game has loaded.
+ * settings when the person can edit it, the game's, and the log sound.
+ * Change Theme opens the game page's Theme dialog. Null until the game has loaded.
  */
 export function useGameSettingsContribution() {
   const { t } = useTranslation();
@@ -51,10 +51,9 @@ export function useGameSettingsContribution() {
     setIsCharacterDetailsDialogOpen,
     setIsCharacterStatsDialogOpen,
     setIsCharacterEditAccessDialogOpen,
-    setIsColorSchemeDialogOpen,
+    setIsThemeDialogOpen,
     setIsGameNameDialogOpen,
     setIsRulesetDialogOpen,
-    setIsGameThemeDialogOpen,
   } = menuState;
 
   return useMemo(() => {
@@ -62,11 +61,6 @@ export function useGameSettingsContribution() {
 
     const isGuide = gamePermission === GamePermission.Guide;
     const editsCharacter = !!characterId && canEditCharacter;
-    const themeTarget: "character" | "game" | undefined = editsCharacter
-      ? "character"
-      : isGuide
-        ? "game"
-        : undefined;
 
     const onSelect = (action: ContributedSettingsAction) => {
       switch (action) {
@@ -86,8 +80,7 @@ export function useGameSettingsContribution() {
           setIsRulesetDialogOpen(true);
           break;
         case "theme":
-          if (themeTarget === "character") setIsColorSchemeDialogOpen(true);
-          else if (themeTarget === "game") setIsGameThemeDialogOpen(true);
+          setIsThemeDialogOpen(true);
           break;
       }
     };
@@ -105,7 +98,6 @@ export function useGameSettingsContribution() {
             isOwner: isCharacterOwner,
           }
         : undefined,
-      themeTarget,
       logSound,
       onLogSoundChange: setLogSound,
       onSelect,
@@ -130,9 +122,8 @@ export function useGameSettingsContribution() {
     setIsCharacterDetailsDialogOpen,
     setIsCharacterStatsDialogOpen,
     setIsCharacterEditAccessDialogOpen,
-    setIsColorSchemeDialogOpen,
+    setIsThemeDialogOpen,
     setIsGameNameDialogOpen,
     setIsRulesetDialogOpen,
-    setIsGameThemeDialogOpen,
   ]);
 }

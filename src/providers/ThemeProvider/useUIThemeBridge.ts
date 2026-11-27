@@ -3,7 +3,7 @@ import { useLayoutEffect } from "react";
 
 import { applyUITheme } from "ui/theme";
 
-import { useAppState } from "stores/appState.store";
+import { useEffectiveColorScheme } from "stores/appTheme.store";
 
 import { uiSchemeNames } from "./uiSchemeNames";
 
@@ -17,7 +17,7 @@ export function useUIThemeBridge(element?: HTMLElement) {
   // MUI swaps in the dark palette's theme when dark mode is on, so the
   // theme's mode is always the resolved one (useColorScheme's can be unset).
   const mode = useTheme().palette.mode;
-  const scheme = useAppState((state) => state.colorScheme);
+  const scheme = useEffectiveColorScheme();
 
   useLayoutEffect(() => {
     applyUITheme(

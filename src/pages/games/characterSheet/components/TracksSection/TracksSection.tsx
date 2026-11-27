@@ -1,77 +1,177 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { GridLayout } from "components/Layout";
+import { Spinner } from "ui/components/Spinner";
+import {
+  TrackKind,
+  TracksPanel,
+  TracksPanelStrings,
+} from "ui/game/TracksPanel";
+import { Stack } from "ui/primitives";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
+import { useRollCompleteProgressTrack } from "pages/games/hooks/useRollCompleteProgressTrack";
+
+import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
 
 import { GamePermission } from "stores/game.store";
+import { useSecondScreenStore } from "stores/secondScreen.store";
 import { useTracksStore } from "stores/tracks.store";
 
-import { TrackStatus } from "repositories/tracks.repository";
+import { TrackStatus, TrackTypes } from "repositories/tracks.repository";
 
+import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { CharacterConnections } from "./CharacterConnections";
 import { CharacterWorldBonds } from "./CharacterWorldBonds";
-import { TrackItem } from "./TrackItem";
-import { TracksSectionHeader } from "./TracksSectionHeader";
+import { TrackEditDialog } from "./TrackEditDialog";
+import { getTrackTypeLabel } from "./common";
+import { oracleByOdds, toTrackItem, toTrackItems } from "./trackMappings";
+import { useRollClockProgress } from "./useRollClockProgress";
+import { useTrackCompletionMoves } from "./useTrackCompletionMoves";
 
+interface DialogState {
+  open: boolean;
+  kind: TrackKind;
+  trackId?: string;
+  /** Remounts the form each time it opens. */
+  key: number;
+}
+
+/**
+ * The character column's Tracks tab: the game's tracks and clocks on the
+ * library Tracks panel, then the character's bonds and connections.
+ */
 export function TracksSection() {
   const { t } = useTranslation();
-  const campaignId = useGameId();
+  const gameId = useGameId();
 
-  const showCompletedTracks = useTracksStore(
-    (state) => state.showCompletedTracks,
+  const tracks = useTracksStore((store) => store.tracks);
+  const loading = useTracksStore((store) => store.loading);
+  const showCompleted = useTracksStore((store) => store.showCompletedTracks);
+  const setShowCompleted = useTracksStore(
+    (store) => store.setShowCompletedTracks,
   );
-
-  const areTracksLoading = useTracksStore((state) => state.loading);
-  const hasTracks = useTracksStore(
-    (state) => Object.keys(state.tracks).length > 0,
+  const updateTrackValue = useTracksStore((store) => store.updateTrackValue);
+  const updateClockValue = useTracksStore(
+    (store) => store.updateClockFilledSegments,
   );
-  const sortedTrackIds = useTracksStore((state) =>
-    Object.keys(state.tracks)
-      .sort((a, b) => {
-        const tA = state.tracks[a];
-        const tB = state.tracks[b];
-        return tB.createdDate.getTime() - tA.createdDate.getTime();
-      })
-      .filter((trackId) => {
-        const track = state.tracks[trackId];
-        return showCompletedTracks
-          ? true
-          : track.status !== TrackStatus.Completed;
-      }),
+  const updateTrackStatus = useTracksStore((store) => store.updateTrackStatus);
+  const updateClockOracle = useTracksStore(
+    (store) => store.updateClockSelectedOracle,
   );
+  const deleteTrack = useTracksStore((store) => store.deleteTrack);
 
   const canEdit = useGamePermissions().gamePermission !== GamePermission.Viewer;
+  const canEditCharacter = useCanEditCharacter();
+
+  const completionMoves = useTrackCompletionMoves();
+  const rollCompletion = useRollCompleteProgressTrack();
+  const rollClockProgress = useRollClockProgress();
+
+  const secondScreenEnabled = useSecondScreenFeature();
+  const secondScreenTrackId = useSecondScreenStore((store) =>
+    store.settings?.type === "track" ? store.settings.trackId : null,
+  );
+  const updateSecondScreen = useSecondScreenStore(
+    (store) => store.updateSecondScreenSettings,
+  );
+
+  const [dialog, setDialog] = useState<DialogState>({
+    open: false,
+    kind: "vow",
+    key: 0,
+  });
+  const openDialog = (kind: TrackKind, trackId?: string) =>
+    setDialog((prev) => ({ open: true, kind, trackId, key: prev.key + 1 }));
+
+  // The app's own names for each kind ("Iron Vow", "Journey / Expedition").
+  const strings: Partial<TracksPanelStrings> = {
+    kindLabels: {
+      vow: getTrackTypeLabel(TrackTypes.Vow, t),
+      journey: getTrackTypeLabel(TrackTypes.Journey, t),
+      combat: getTrackTypeLabel(TrackTypes.Fray, t),
+      sceneChallenge: getTrackTypeLabel(TrackTypes.SceneChallenge, t),
+      clock: getTrackTypeLabel(TrackTypes.Clock, t),
+    },
+  };
+
+  const swallow = (promise: Promise<unknown>) => {
+    promise.catch(() => {});
+  };
 
   return (
-    <>
-      <TracksSectionHeader showCompletedTracks={showCompletedTracks} />
-      <GridLayout
-        gap={4}
-        sx={{ mt: 2 }}
-        items={sortedTrackIds}
-        renderItem={(trackId: string) => (
-          <TrackItem
-            key={trackId}
-            gameId={campaignId}
-            canEdit={canEdit}
-            trackId={trackId}
-          />
-        )}
-        minWidth={325}
-        loading={areTracksLoading}
-        emptyStateMessage={
-          hasTracks
-            ? t(
-                "character.character-sidebar.no-active-tracks",
-                "No active tracks",
-              )
-            : t("character.character-sidebar.no-tracks", "No tracks yet")
-        }
+    <Stack gap="6">
+      {loading ? (
+        <Spinner
+          label={t(
+            "character.character-sidebar.tracks-loading",
+            "Loading tracks",
+          )}
+        />
+      ) : (
+        <TracksPanel
+          tracks={toTrackItems(tracks)}
+          readOnly={!canEdit}
+          showCompleted={showCompleted}
+          onShowCompletedChange={setShowCompleted}
+          addKinds={["vow", "combat", "journey", "sceneChallenge", "clock"]}
+          onAdd={(kind) => openDialog(kind)}
+          onTicksChange={(id, ticks) => swallow(updateTrackValue(id, ticks))}
+          onClockChange={(id, value) => swallow(updateClockValue(id, value))}
+          completionMoves={completionMoves}
+          onRollMove={
+            canEditCharacter
+              ? (id, moveId) => {
+                  const track = tracks[id];
+                  if (!track) return;
+                  rollCompletion(track.type, track.label, track.value, moveId);
+                }
+              : undefined
+          }
+          onRollClock={rollClockProgress}
+          onOddsChange={(id, odds) =>
+            swallow(updateClockOracle(id, oracleByOdds[odds]))
+          }
+          onEdit={(id) => {
+            const track = tracks[id];
+            const kind = track && toTrackItem(track)?.kind;
+            if (kind) openDialog(kind, id);
+          }}
+          onCompletedChange={(id, completed) =>
+            swallow(
+              updateTrackStatus(
+                id,
+                completed ? TrackStatus.Completed : TrackStatus.Active,
+              ),
+            )
+          }
+          onDelete={(id) => swallow(deleteTrack(id))}
+          secondScreenTrackId={secondScreenEnabled ? secondScreenTrackId : null}
+          onSecondScreenChange={
+            secondScreenEnabled
+              ? (id, open) =>
+                  swallow(
+                    updateSecondScreen(
+                      gameId,
+                      open ? { type: "track", trackId: id } : null,
+                    ),
+                  )
+              : undefined
+          }
+          strings={strings}
+        />
+      )}
+      <TrackEditDialog
+        key={dialog.key}
+        open={dialog.open}
+        onClose={() => setDialog((prev) => ({ ...prev, open: false }))}
+        kind={dialog.kind}
+        trackId={dialog.trackId}
+        strings={strings}
       />
       <CharacterWorldBonds />
       <CharacterConnections />
-    </>
+    </Stack>
   );
 }

@@ -58,7 +58,7 @@ vi.mock("pages/games/hooks/useRollCompleteProgressTrack", () => ({
   useRollCompleteProgressTrack: () => rollCompletion,
 }));
 vi.mock("hooks/datasworn/useMove", () => ({
-  useMove: (id: string) =>
+  findMove: (_moves: unknown, id: string) =>
     id === "move:starforged/quest/fulfill_your_vow"
       ? { _id: id, name: "Fulfill Your Vow" }
       : undefined,
@@ -130,6 +130,8 @@ function setTracks(tracks: ITrack[], showCompletedTracks = false) {
 }
 
 beforeEach(() => {
+  // jsdom has no PointerEvent, which Base UI's checkboxes press with.
+  window.PointerEvent ??= MouseEvent as unknown as typeof PointerEvent;
   session.uid = "me";
   session.secondScreen = false;
   useGameStore.setState({
@@ -216,7 +218,9 @@ describe("progress tracks", () => {
     renderTracks();
 
     await user.click(
-      screen.getByRole("button", { name: "Increment Find the Hollow Crown" }),
+      screen.getByRole("button", {
+        name: "Mark progress on Find the Hollow Crown",
+      }),
     );
     expect(actions.updateTrackValue).toHaveBeenCalledWith("vow", 16);
   });
@@ -226,7 +230,9 @@ describe("progress tracks", () => {
     setTracks([vow]);
     renderTracks();
 
-    await user.click(screen.getByRole("button", { name: /complete track/i }));
+    await user.click(
+      screen.getByRole("button", { name: "Complete Find the Hollow Crown" }),
+    );
     expect(actions.updateTrackStatus).toHaveBeenCalledWith(
       "vow",
       TrackStatus.Completed,
@@ -238,15 +244,25 @@ describe("progress tracks", () => {
     setTracks([finished], true);
     renderTracks();
 
-    await user.click(screen.getByRole("button", { name: /reopen track/i }));
+    const options = { name: "Options for Bandit Ambush" };
+    await user.click(screen.getByRole("button", options));
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Reopen Track" }),
+    );
     expect(actions.updateTrackStatus).toHaveBeenCalledWith(
       "fight",
       TrackStatus.Active,
     );
 
-    await user.click(screen.getByRole("button", { name: /delete/i }));
+    await user.click(screen.getByRole("button", options));
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Delete Track" }),
+    );
     const dialog = await screen.findByRole("alertdialog");
-    await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+    expect(actions.deleteTrack).not.toHaveBeenCalled();
+    await user.click(
+      within(dialog).getByRole("button", { name: "Delete Track" }),
+    );
     await waitFor(() =>
       expect(actions.deleteTrack).toHaveBeenCalledWith("fight"),
     );
@@ -257,9 +273,8 @@ describe("progress tracks", () => {
     setTracks([vow]);
     const { unmount } = renderTracks();
 
-    await user.click(
-      screen.getByRole("button", { name: /roll fulfill your vow/i }),
-    );
+    const roll = { name: "Fulfill Your Vow for Find the Hollow Crown" };
+    await user.click(screen.getByRole("button", roll));
     expect(rollCompletion).toHaveBeenCalledWith(
       TrackTypes.Vow,
       "Find the Hollow Crown",
@@ -270,12 +285,12 @@ describe("progress tracks", () => {
 
     asAnotherPlayer();
     renderTracks();
-    expect(
-      screen.queryByRole("button", { name: /roll fulfill your vow/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", roll)).not.toBeInTheDocument();
     // They can still mark the shared track.
     expect(
-      screen.getByRole("button", { name: "Increment Find the Hollow Crown" }),
+      screen.getByRole("button", {
+        name: "Mark progress on Find the Hollow Crown",
+      }),
     ).toBeInTheDocument();
   });
 
@@ -286,26 +301,28 @@ describe("progress tracks", () => {
 
     await user.click(screen.getByRole("button", { name: "Add Track" }));
     await user.click(await screen.findByRole("menuitem", { name: "Iron Vow" }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("dialog", {
+      name: "Add Iron Vow",
+    });
     await user.type(
       within(dialog).getByRole("textbox", { name: /title/i }),
       "Avenge Kai",
     );
+    // Dangerous is the dialog's default rank.
     await user.click(
-      within(dialog).getByRole("combobox", { name: /difficulty/i }),
+      within(dialog).getByRole("button", { name: "Add Iron Vow" }),
     );
-    await user.click(await screen.findByRole("option", { name: "Dangerous" }));
-    await user.click(within(dialog).getByRole("button", { name: "Add Track" }));
     await waitFor(() =>
       expect(actions.addProgressTrack).toHaveBeenCalledWith(
         "game",
         TrackTypes.Vow,
         "Avenge Kai",
-        // No description: today's dialog sends undefined.
-        undefined,
+        // An empty description, where the MUI dialog sent undefined.
+        "",
         Difficulty.Dangerous,
       ),
     );
+    await waitFor(() => expect(dialog).not.toBeInTheDocument());
   });
 });
 
@@ -315,7 +332,7 @@ describe("clocks", () => {
     setTracks([clock]);
     renderTracks();
 
-    await user.click(screen.getByRole("button", { name: /fill a segment/i }));
+    await user.click(screen.getByRole("button", { name: "Advance Doom" }));
     expect(actions.updateClockFilledSegments).toHaveBeenCalledWith("doom", 3);
   });
 
@@ -326,10 +343,10 @@ describe("clocks", () => {
     renderTracks();
 
     await user.click(screen.getByRole("button", { name: /roll progress/i }));
-    // With no odds saved, today's roll asks Almost Certain although the
-    // picker shows Likely.
+    // With no odds saved, the roll asks Likely, the odds the picker shows
+    // (the MUI roll asked Almost Certain).
     expect(rollOracle).toHaveBeenCalledWith(
-      askTheOracleEnumMap[AskTheOracle.AlmostCertain]._id,
+      askTheOracleEnumMap[AskTheOracle.Likely]._id,
       false,
       { announce: false },
     );
@@ -369,7 +386,7 @@ describe("clocks", () => {
     setTracks([clock]);
     renderTracks();
 
-    await user.click(screen.getByRole("button", { name: /complete clock/i }));
+    await user.click(screen.getByRole("button", { name: "Complete Doom" }));
     expect(actions.updateTrackStatus).toHaveBeenCalledWith(
       "doom",
       TrackStatus.Completed,
@@ -384,8 +401,10 @@ describe("the second screen", () => {
     setTracks([vow]);
     renderTracks();
 
+    const options = { name: "Options for Find the Hollow Crown" };
+    await user.click(screen.getByRole("button", options));
     await user.click(
-      screen.getByRole("button", { name: /open on second screen/i }),
+      await screen.findByRole("menuitem", { name: "Open on Second Screen" }),
     );
     expect(updateSecondScreenSettings).toHaveBeenCalledWith("game", {
       type: "track",
@@ -395,8 +414,9 @@ describe("the second screen", () => {
     useSecondScreenStore.setState({
       settings: { type: "track", trackId: "vow" },
     });
+    await user.click(screen.getByRole("button", options));
     await user.click(
-      await screen.findByRole("button", { name: /close on second screen/i }),
+      await screen.findByRole("menuitem", { name: "Close on Second Screen" }),
     );
     expect(updateSecondScreenSettings).toHaveBeenLastCalledWith("game", null);
   });
@@ -411,7 +431,7 @@ describe("a viewer", () => {
       screen.queryByRole("button", { name: "Add Track" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /increment/i }),
+      screen.queryByRole("button", { name: /mark progress/i }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /roll progress/i }),
