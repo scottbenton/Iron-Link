@@ -69,8 +69,20 @@ export function ConditionMeters() {
         title={t("character.character-sidebar.meters", "Meters")}
         as="h3"
       />
-      {/* As many meters to a row as fit, each at least a meter's width. */}
-      <Grid gap="2" gridTemplateColumns="repeat(auto-fill, minmax(112px, 1fr))">
+      {/* As many meters to a row as fit, each at least as wide as Momentum
+          needs: two steppers either side of its value and menu caret. The
+          steppers grow on touch; a viewer's meters have no steppers. */}
+      <Grid
+        gap="2"
+        gridTemplateColumns={
+          canEditCharacter
+            ? {
+                base: "repeat(auto-fill, minmax(152px, 1fr))",
+                _touch: "repeat(auto-fill, minmax(168px, 1fr))",
+              }
+            : "repeat(auto-fill, minmax(112px, 1fr))"
+        }
+      >
         {Object.entries(conditionMeterRules).map(([key, rule]) => (
           <SingleConditionMeter
             key={key}
