@@ -5,7 +5,7 @@ import { ErrorBoundary } from "components/ErrorBoundary";
 import { useFillShell } from "components/Layout/useFillShell";
 
 import { Progress } from "ui/components/Progress";
-import { EmptyState, PageContent } from "ui/layout";
+import { EmptyState, GamePageFrame, PageContent } from "ui/layout";
 
 import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
 import { GameSettings } from "pages/games/gamePageLayout/GameSettings";
@@ -109,12 +109,13 @@ export default function GameLayout() {
         <GamePageNavBar phone={phone} />
         <GameSettings />
         {banner}
-        {!phone && <GameTabs />}
-        <PageContent maxWidth="md">
-          <ErrorBoundary>
-            <Outlet />
-          </ErrorBoundary>
-        </PageContent>
+        <GamePageFrame tabs={!phone && <GameTabs />}>
+          <PageContent maxWidth="md">
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
+          </PageContent>
+        </GamePageFrame>
       </>
     );
   }

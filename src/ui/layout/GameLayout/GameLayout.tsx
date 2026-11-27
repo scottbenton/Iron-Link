@@ -19,6 +19,7 @@ import { Sidebar, SidebarProps } from "../Sidebar";
 import { PageWidth, contentRailStyles } from "../shared/contentRail";
 import { LayoutPanel } from "../shared/layoutPanel";
 import { srOnlyStyles } from "../shared/sectionTabs";
+import { gameRailMarginStyles } from "./gameRailMargins";
 
 const rootStyles = css({
   boxSizing: "border-box",
@@ -73,19 +74,6 @@ const bodyStyles = css({
     "calc((100cqi - var(--game-main-min-width, 360px) - var(--game-rail-count, 0) * var(--game-rail-width)) / var(--game-sidebar-count, 1))",
   background: "bg.surface",
 });
-
-/**
- * Once the window is wider than the rail, the margins beside the page are
- * the nav rail's gray-950 in both modes, so the tabs and columns read as one
- * sheet in the rail's dark frame. One literal per rail width, since Panda
- * reads them at build time.
- */
-const railMarginStyles: Record<PageWidth, string> = {
-  xs: css({ "@media (min-width: 481px)": { background: "gray.950" } }),
-  sm: css({ "@media (min-width: 641px)": { background: "gray.950" } }),
-  md: css({ "@media (min-width: 961px)": { background: "gray.950" } }),
-  xl: css({ "@media (min-width: 1441px)": { background: "gray.950" } }),
-};
 
 const mainStyles = css({
   // Whatever the main column stacks inside it (a sticky toolbar's z-index)
@@ -466,7 +454,7 @@ export function GameLayout(props: GameLayoutProps) {
     <div
       className={cx(
         rootStyles,
-        maxWidth !== "none" && railMarginStyles[maxWidth],
+        maxWidth !== "none" && gameRailMarginStyles[maxWidth],
         className,
       )}
     >
