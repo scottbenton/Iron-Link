@@ -26,7 +26,7 @@ export function SecondScreenDialog(props: SecondScreenDialogProps) {
     <Dialog open={open} onClose={onClose} size="md" fullScreenOnMobile>
       <DialogHeader title={t("game.second-screen.title", "Second Screen")} />
       <DialogBody>
-        <SecondScreenSectionSettings open={open} hideTitle />
+        <SecondScreenSectionSettings hideTitle />
       </DialogBody>
       <DialogActions>
         <DialogDoneButton />
