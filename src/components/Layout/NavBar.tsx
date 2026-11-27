@@ -9,8 +9,6 @@ import {
   Toolbar,
   Tooltip,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
 import { ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,6 +16,8 @@ import { useTranslation } from "react-i18next";
 import { HideOnScroll } from "components/HideOnScroll";
 import { LinkComponent } from "components/LinkComponent";
 import { ScreenReaderOnly } from "components/ScreenReaderOnly";
+
+import { useIsMobile } from "hooks/useIsMobile";
 
 import { AppSettingsMenu, MenuAdditionComponent } from "./AppSettingsMenu";
 import { IronLinkLogo } from "./IronLinkLogo";
@@ -42,8 +42,7 @@ export function NavBar(props: NavBarProps) {
   const { t } = useTranslation();
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobile = useIsMobile();
 
   if (!isMobile) {
     // The bar is phone only, but its title is the page's heading, so wider

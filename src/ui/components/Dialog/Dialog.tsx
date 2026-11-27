@@ -1,18 +1,11 @@
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
-import {
-  CSSProperties,
-  ComponentProps,
-  FormEvent,
-  ReactNode,
-  useMemo,
-  useState,
-} from "react";
+import { CSSProperties, ComponentProps, FormEvent, ReactNode } from "react";
 
 import { css, cva, cx } from "styled-system/css";
 
 import { LiveRegion } from "../Announcer";
+import { HeadingOffset } from "../HeadingOffset";
 import { isPressOnToasts } from "../Toast/toastViewport";
-import { DialogContext, DialogContextValue } from "./dialogContext";
 
 export const dialogBackdropStyles = css({
   position: "fixed",
@@ -133,18 +126,6 @@ export function Dialog(props: DialogProps) {
     initialFocus,
   } = props;
 
-  const [message, setMessage] = useState<{ text: string; nonce: number }>({
-    text: "",
-    nonce: 0,
-  });
-  const context = useMemo<DialogContextValue>(
-    () => ({
-      announce: (text) =>
-        setMessage((previous) => ({ text, nonce: previous.nonce + 1 })),
-    }),
-    [],
-  );
-
   return (
     <BaseDialog.Root
       open={open}
@@ -182,10 +163,9 @@ export function Dialog(props: DialogProps) {
             ) : undefined
           }
         >
-          <DialogContext.Provider value={context}>
-            {children}
-          </DialogContext.Provider>
-          <LiveRegion message={message.text || null} nonce={message.nonce} />
+          <HeadingOffset reset>{children}</HeadingOffset>
+          {/* The page is inert behind a modal; this reads the same store. */}
+          <LiveRegion />
         </BaseDialog.Popup>
       </BaseDialog.Portal>
     </BaseDialog.Root>

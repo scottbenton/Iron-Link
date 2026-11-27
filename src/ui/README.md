@@ -128,9 +128,9 @@ rest of the app). Import as `ui/components/Button`.
 - Checkboxes, never switches, for on/off settings in forms.
 - A dialog with inputs and a submit button is a form, so Enter submits:
   pass `onSubmit` to `Dialog` and give the main button `type="submit"`.
-- Announcements go through `useAnnounce()`; one message per action. A modal
-  dialog makes the page inert, so `Dialog` renders its own live region and
-  `useDialogAnnounce()` reaches it.
+- Announcements go through `useAnnounce()`; one message per action, one
+  store. A modal makes the page inert, so `Dialog`, `ConfirmDialog` and a
+  modal `Drawer` each render a `LiveRegion` that reads the same store.
 - One h1 per page and headings nest; a label that only looks like a heading
   keeps a non-heading element (`<Text variant="h3" as="span">`).
 - Roll cards dismiss only through their named button, never a tap on the

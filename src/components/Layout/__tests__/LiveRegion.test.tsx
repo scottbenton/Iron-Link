@@ -4,11 +4,11 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 
+import { LiveRegion } from "ui/components/Announcer";
+
 import { useAppState } from "stores/appState.store";
 
 import { TestWrapper } from "tests/TestWrapper";
-
-import { LiveRegion } from "../LiveRegion";
 
 // Pins how announcements reach screen readers today, so moving the library
 // onto the same store keeps it: one call (useSetAnnouncement), a page
