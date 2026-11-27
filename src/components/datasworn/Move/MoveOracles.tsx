@@ -1,10 +1,11 @@
 import { Datasworn } from "@datasworn-community/core";
-import { Box, Button } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";
+import { OracleTable } from "ui/game/OracleTable";
+import { RollButton } from "ui/game/RollButton";
+import { Flex, Stack } from "ui/primitives";
 
-import { OracleTable } from "../Oracle/OracleTable";
+import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";
 
 export interface MoveOraclesProps {
   move: Datasworn.AnyMove;
@@ -28,43 +29,43 @@ export function MoveOracles(props: MoveOraclesProps) {
     return null;
   }
 
-  // With one table, the roll button right above it already names it.
-  const hideTableLabels = entries.length === 1;
+  // With one table, the roll button right above it already names it, so
+  // its name is read by screen readers only.
+  const hideTableNames = entries.length === 1;
 
   return (
-    <Box>
-      <Box
-        role={"group"}
+    <Stack gap="3" marginBlockStart="2">
+      <Flex
+        role="group"
         aria-label={t("datasworn.move-oracle-rolls", "{{moveName}} rolls", {
           moveName: move.name,
         })}
-        display={"flex"}
-        flexWrap={"wrap"}
-        gap={1}
-        mt={1}
+        flexWrap="wrap"
+        gap="2"
       >
         {entries.map(([key, oracle]) => (
-          <Button
+          <RollButton
             key={key}
-            color="inherit"
-            variant="outlined"
-            onClick={() => rollOracle(oracle._id, false)}
+            size="sm"
+            onRoll={() => void rollOracle(oracle._id, false)}
           >
             {t("datasworn.roll-oracle", "Roll {{oracleName}}", {
               oracleName: oracle.name,
             })}
-          </Button>
+          </RollButton>
         ))}
-      </Box>
-      {entries.map(([key, oracle]) => (
-        <Box mt={1} key={key}>
+      </Flex>
+      {/* More space between tables than inside one, so each reads as its own group. */}
+      <Stack gap="5">
+        {entries.map(([key, oracle]) => (
           <OracleTable
+            key={key}
             oracle={oracle}
-            label={oracle.name}
-            hideLabel={hideTableLabels}
+            hideHeader={hideTableNames}
+            titleAs="p"
           />
-        </Box>
-      ))}
-    </Box>
+        ))}
+      </Stack>
+    </Stack>
   );
 }

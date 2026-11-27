@@ -2,6 +2,7 @@ export * from "./NoteTabs";
 export * from "./NoteTabPanel";
 export * from "./PageTabs";
 export * from "./PageTab";
+export * from "./pageTabsTypes";
 export * from "./Tabs";
 export * from "./sectionTabsTypes";
 export * from "./SectionTabList";

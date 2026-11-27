@@ -1,13 +1,12 @@
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import RollIcon from "@mui/icons-material/Casino";
-import { Box, Button, IconButton, Tooltip, Typography } from "@mui/material";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LinkComponent } from "components/LinkComponent";
-import { MoveTree } from "components/datasworn/MoveTree";
-import { OracleTree } from "components/datasworn/OracleTree";
-import { TreeLinkMode } from "components/datasworn/_helpers/treeLinkMode";
+
+import { Button } from "ui/components/Button";
+import { Text } from "ui/components/Text";
+import { ArrowLeftIcon } from "ui/icons";
+import { Box, Grid, HStack, Stack } from "ui/primitives";
 
 import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";
 
@@ -19,7 +18,6 @@ import {
 } from "../data/referenceLayout";
 import {
   getPackageIdFromDataswornId,
-  getReferenceItemHref,
   getReferenceSectionHref,
 } from "../data/referencePaths";
 import { ReferenceTab } from "../data/referenceTabs";
@@ -28,6 +26,7 @@ import {
   useReferenceSettings,
 } from "../stores/referenceSettings.store";
 import { ReferenceSourcesMenu } from "./ReferenceSourcesMenu";
+import { ReferenceMoveTree, ReferenceOracleTree } from "./ReferenceTree";
 
 export interface ReferenceBrowseSectionProps {
   tab: ReferenceTab;
@@ -63,61 +62,37 @@ export function ReferenceBrowseSection(props: ReferenceBrowseSectionProps) {
     [tab, section, overrides, openPackageId],
   );
 
-  const rollOracle = useRollOracleAndAddToLog();
+  // The open item starts at its top, as a page would. The list keeps its
+  // place.
+  const detailRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    detailRef.current?.scrollTo?.({ top: 0 });
+  }, [selectedId]);
 
-  const renderItemAction = useCallback(
-    (item: { _id: string; name: string }) => {
-      if (!item._id.startsWith("oracle_rollable:")) return null;
-      return (
-        <Tooltip title={t("reference.oracles.quick-roll", "Roll")}>
-          <IconButton
-            edge="end"
-            aria-label={t("reference.oracles.roll-named", "Roll {{name}}", {
-              name: item.name,
-            })}
-            onClick={() => rollOracle(item._id)}
-          >
-            <RollIcon />
-          </IconButton>
-        </Tooltip>
-      );
+  const rollOracleAndAddToLog = useRollOracleAndAddToLog();
+  const rollOracle = useCallback(
+    (oracleId: string) => {
+      rollOracleAndAddToLog(oracleId);
     },
-    [rollOracle, t],
+    [rollOracleAndAddToLog],
   );
 
-  const linkMode = useMemo<TreeLinkMode>(
-    () => ({
-      getHref: getReferenceItemHref,
-      selectedId,
-      isVisible: isSourceVisible,
-      packageOrder: tab.packageIds,
-      renderItemAction: section === "oracles" ? renderItemAction : undefined,
-    }),
-    [selectedId, isSourceVisible, tab.packageIds, section, renderItemAction],
-  );
+  const treeOptions = {
+    selectedId,
+    isVisible: isSourceVisible,
+    packageOrder: tab.packageIds,
+  };
 
   const tree = (
-    <Box>
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        gap={1}
-        px={2}
-        py={1}
-      >
-        <Typography
-          variant="h6"
-          component="h2"
-          fontFamily={(theme) => theme.typography.fontFamilyTitle}
-          textTransform="uppercase"
-        >
+    <Stack gap="3" paddingInline="4" paddingBlock="3">
+      <HStack justifyContent="space-between" gap="2">
+        <Text variant="h3" as="h2">
           {section === "moves"
             ? t("reference.moves.heading", "Moves")
             : t("reference.oracles.heading", "Oracles")}
-        </Typography>
+        </Text>
         <ReferenceSourcesMenu tab={tab} section={section} />
-      </Box>
+      </HStack>
       <nav
         aria-label={
           section === "moves"
@@ -126,16 +101,16 @@ export function ReferenceBrowseSection(props: ReferenceBrowseSectionProps) {
         }
       >
         {section === "moves" ? (
-          <MoveTree linkMode={linkMode} />
+          <ReferenceMoveTree {...treeOptions} />
         ) : (
-          <OracleTree linkMode={linkMode} />
+          <ReferenceOracleTree {...treeOptions} rollOracle={rollOracle} />
         )}
       </nav>
-    </Box>
+    </Stack>
   );
 
   const emptyDetail = (
-    <Typography color="text.secondary" sx={{ mt: 2 }}>
+    <Text color="muted" css={{ marginBlockStart: "4" }}>
       {section === "moves"
         ? t(
             "reference.moves.pick",
@@ -145,66 +120,66 @@ export function ReferenceBrowseSection(props: ReferenceBrowseSectionProps) {
             "reference.oracles.pick",
             "Pick an oracle to see its table, or roll one straight from the list.",
           )}
-    </Typography>
+    </Text>
   );
-
-  const detailContent = detail ?? emptyDetail;
 
   if (isSmall) {
     if (detail) {
-      // Oracle tables bleed 24px past their container on a phone to sit
-      // edge to edge, so the page needs that much padding or it scrolls
-      // sideways.
       return (
-        <Box px={3} py={2}>
-          <Button
-            LinkComponent={LinkComponent}
-            href={getReferenceSectionHref(tab.id, section)}
-            startIcon={<ArrowBackIcon />}
-            color="inherit"
-            sx={{ mb: 1 }}
-          >
-            {section === "moves"
-              ? t("reference.moves.back", "All moves")
-              : t("reference.oracles.back", "All oracles")}
-          </Button>
+        <Stack gap="2" paddingInline="4" paddingBlock="4">
+          <Box>
+            <Button
+              variant="text"
+              startIcon={<ArrowLeftIcon />}
+              nativeButton={false}
+              render={
+                <LinkComponent
+                  href={getReferenceSectionHref(tab.id, section)}
+                />
+              }
+            >
+              {section === "moves"
+                ? t("reference.moves.back", "All moves")
+                : t("reference.oracles.back", "All oracles")}
+            </Button>
+          </Box>
           {detail}
-        </Box>
+        </Stack>
       );
     }
     return tree;
   }
 
-  // Like a game's sheet: the list on the side panel colour, the open item on
-  // the page.
+  // Like a game's sheet: the list in a column of its own, the open item on
+  // the page. The page fills the screen here (see ReferencePage), so each
+  // column scrolls on its own.
   return (
-    <Box
-      display="grid"
+    <Grid
       gridTemplateColumns={`${referenceListWidth}px minmax(0, 1fr)`}
+      gridTemplateRows="minmax(0, 1fr)"
+      gap="0"
       alignItems="stretch"
-      flexGrow={1}
+      flex="1 1 0"
+      minHeight="0"
     >
       <Box
-        sx={(theme) => ({
-          bgcolor: "background.default",
-          borderLeft: `1px solid ${theme.palette.divider}`,
-          borderRight: `1px solid ${theme.palette.divider}`,
-        })}
+        bg="bg.surface"
+        borderInlineWidth="1px"
+        borderColor="border.default"
+        overflowY="auto"
       >
-        <Box
-          sx={{
-            position: "sticky",
-            top: 0,
-            maxHeight: "100vh",
-            overflowY: "auto",
-          }}
-        >
-          {tree}
-        </Box>
+        {tree}
       </Box>
-      <Box minWidth={0} px={3} pt={2} pb={4}>
-        <Box maxWidth={referenceDetailMaxWidth}>{detailContent}</Box>
+      <Box
+        ref={detailRef}
+        overflowY="auto"
+        minWidth="0"
+        paddingInline="6"
+        paddingBlockStart="4"
+        paddingBlockEnd="8"
+      >
+        <Box maxWidth={referenceDetailMaxWidth}>{detail ?? emptyDetail}</Box>
       </Box>
-    </Box>
+    </Grid>
   );
 }

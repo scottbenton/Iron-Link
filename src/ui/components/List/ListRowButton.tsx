@@ -1,5 +1,12 @@
 import { Button as BaseButton } from "@base-ui/react/button";
-import { ComponentPropsWithoutRef, ReactElement, forwardRef } from "react";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
+import {
+  ComponentProps,
+  ComponentPropsWithoutRef,
+  ReactElement,
+  forwardRef,
+} from "react";
 
 import { cx } from "styled-system/css";
 
@@ -27,15 +34,31 @@ export interface ListRowButtonProps
  */
 export const ListRowButton = forwardRef<HTMLElement, ListRowButtonProps>(
   function ListRowButton(props, ref) {
-    const { render, current, className, ...rest } = props;
+    const { render, current, className, disabled, type, ...rest } = props;
     const isLink = render !== undefined;
+    // A link stays a link: Base UI's button would give it role="button".
+    const link = useRender({
+      enabled: isLink,
+      defaultTagName: "a",
+      render,
+      ref,
+      props: mergeProps<"a">(
+        {
+          className: cx(listRowStyles, className),
+          "aria-current": current ? "page" : undefined,
+          "aria-disabled": disabled || undefined,
+        },
+        rest as ComponentProps<"a">,
+      ),
+    });
+    if (link) return link;
     return (
       <BaseButton
         ref={ref}
         className={cx(listRowStyles, className)}
-        render={render}
-        nativeButton={!isLink}
-        aria-current={current ? (isLink ? "page" : "true") : undefined}
+        disabled={disabled}
+        type={type}
+        aria-current={current ? "true" : undefined}
         {...rest}
       />
     );

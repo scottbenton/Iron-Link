@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import { Outlet, useMatch } from "react-router";
 
 import { ErrorBoundary } from "components/ErrorBoundary";
@@ -16,6 +17,7 @@ import { AuthStatus, useAuthStatus } from "stores/auth.store";
 import { AppNavRail } from "./AppNavRail";
 import { LayoutPathListener } from "./LayoutPathListener";
 import { DialogExtrasContext } from "./dialogExtrasContext";
+import { ShellFillContext } from "./shellFillContext";
 import { useFocusPageOnNavigate } from "./useFocusPageOnNavigate";
 
 /**
@@ -35,6 +37,13 @@ export function BaseLayout() {
   const showRail = useShowRail();
   useFocusPageOnNavigate(MAIN_CONTENT_ID);
 
+  // How many mounted pages want the shell to fill the screen.
+  const [fillRequests, setFillRequests] = useState(0);
+  const requestFill = useCallback(() => {
+    setFillRequests((count) => count + 1);
+    return () => setFillRequests((count) => count - 1);
+  }, []);
+
   if (authStatus === AuthStatus.Loading) {
     return <Progress />;
   }
@@ -44,11 +53,16 @@ export function BaseLayout() {
       <LinkComponentProvider linkComponent={LinkComponent}>
         <LiveRegion id={"live-region"} />
         <LayoutPathListener />
-        <AppShell rail={showRail ? <AppNavRail /> : undefined}>
-          <ErrorBoundary>
-            <Outlet />
-          </ErrorBoundary>
-        </AppShell>
+        <ShellFillContext.Provider value={requestFill}>
+          <AppShell
+            rail={showRail ? <AppNavRail /> : undefined}
+            fill={fillRequests > 0}
+          >
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
+          </AppShell>
+        </ShellFillContext.Provider>
         <RollSnackbarSection isPage />
         <DataswornDialog />
       </LinkComponentProvider>

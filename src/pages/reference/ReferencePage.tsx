@@ -1,14 +1,3 @@
-import {
-  Alert,
-  Box,
-  Button,
-  LinearProgress,
-  Link,
-  Tab,
-  TabProps,
-  Tabs,
-  Typography,
-} from "@mui/material";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -20,13 +9,20 @@ import {
   useSearchParams,
 } from "react-router";
 
-import { PageContent, PageHeader } from "components/Layout";
-import { EmptyState } from "components/Layout/EmptyState";
+import { useFillShell } from "components/Layout/useFillShell";
 import { LinkComponent } from "components/LinkComponent";
-import { StyledTab, StyledTabs } from "components/StyledTabs";
 import { getDataswornItem } from "components/datasworn/DataswornDialog/useGetDataswornItem";
 import { DataswornLinkHandlerProvider } from "components/datasworn/DataswornLinkHandler";
 
+import { Alert } from "ui/components/Alert";
+import { Button } from "ui/components/Button";
+import { Link } from "ui/components/Link";
+import { Progress } from "ui/components/Progress";
+import { PageTab, PageTabs } from "ui/components/Tabs";
+import { EmptyState } from "ui/layout";
+import { Box, Stack } from "ui/primitives";
+
+import { useIsMobile } from "hooks/useIsMobile";
 import {
   PageCategory,
   useSendPageViewEvent,
@@ -40,7 +36,7 @@ import { ReferenceBanner } from "./components/ReferenceBanner";
 import { ReferenceBrowseSection } from "./components/ReferenceBrowseSection";
 import { ReferenceItemDetail } from "./components/ReferenceItemDetail";
 import { ReferenceRules } from "./components/ReferenceRules";
-import { referencePageMaxWidth, visuallyHidden } from "./data/referenceLayout";
+import { referencePageMaxWidth } from "./data/referenceLayout";
 import {
   getCandidateIds,
   getPackageIdFromDataswornId,
@@ -220,7 +216,17 @@ export default function ReferencePage() {
     setLastItemId(tabId, section, itemId);
   }, [isLoaded, section, parsed.itemPath, itemId, tabId, setLastItemId]);
 
-  const systemTabsRef = useRef<HTMLDivElement>(null);
+  const systemTabsRef = useRef<HTMLElement>(null);
+
+  // Moves and oracles run edge to edge, with the list on the side panel
+  // colour. The rest of the sections keep the page's padding. Beside the
+  // list (wider than a phone) the page fills the screen, and the list and
+  // the open item scroll on their own.
+  const isMobile = useIsMobile();
+  const isBrowseSection =
+    (section === "moves" || section === "oracles") && isLoaded && !shouldReject;
+  const fillsScreen = isBrowseSection && !isMobile;
+  useFillShell(fillsScreen);
 
   const openDialog = useOpenDataswornDialog();
   const handleOpenLink = useCallback(
@@ -306,14 +312,15 @@ export default function ReferencePage() {
         )}
         action={
           <Button
-            variant="outlined"
-            LinkComponent={LinkComponent}
-            href={getReferenceSectionHref(tabId, "moves")}
+            variant="outline"
+            nativeButton={false}
+            render={
+              <LinkComponent href={getReferenceSectionHref(tabId, "moves")} />
+            }
           >
             {t("reference.not-found.see-moves", "See all moves")}
           </Button>
         }
-        sx={{ mt: 4 }}
       />
     );
   } else if (rules.state === "error") {
@@ -324,11 +331,10 @@ export default function ReferencePage() {
           "reference.load-error.message",
           "Check your connection, then reload the page.",
         )}
-        sx={{ mt: 4 }}
       />
     );
   } else if (!isLoaded || shouldReject) {
-    content = <LinearProgress aria-label={t("reference.loading", "Loading")} />;
+    content = <Progress label={t("reference.loading", "Loading")} />;
   } else if (section === "rules") {
     content = <ReferenceRules tabId={tabId} />;
   } else {
@@ -341,9 +347,11 @@ export default function ReferencePage() {
         )}
         action={
           <Button
-            variant="outlined"
-            LinkComponent={LinkComponent}
-            href={getReferenceSectionHref(tabId, section)}
+            variant="outline"
+            nativeButton={false}
+            render={
+              <LinkComponent href={getReferenceSectionHref(tabId, section)} />
+            }
           >
             {
               {
@@ -357,7 +365,6 @@ export default function ReferencePage() {
             }
           </Button>
         }
-        sx={{ mt: 4 }}
       />
     );
 
@@ -398,77 +405,78 @@ export default function ReferencePage() {
     }
   }
 
-  // Moves and oracles run edge to edge, with the list on the side panel
-  // colour. The rest of the sections keep the page's padding.
-  const isBrowseSection =
-    (section === "moves" || section === "oracles") && isLoaded && !shouldReject;
-
   return (
-    <>
-      <Typography component="h1" sx={visuallyHidden}>
+    <Stack
+      gap="0"
+      flex={fillsScreen ? "1 1 0" : "1 0 auto"}
+      minHeight={fillsScreen ? "0" : undefined}
+      width="100%"
+    >
+      <Box as="h1" srOnly>
         {t("reference.title", "Reference")}
-      </Typography>
-      <PageHeader
-        disablePadding
-        maxWidth={false}
-        sx={(theme) => ({
-          maxWidth: referencePageMaxWidth,
-          borderBottom: `1px solid ${theme.palette.divider}`,
-        })}
+      </Box>
+      {/* The href alone picks the tab. Storing the tab on click as well
+          would render the old address with the new tab for a moment, which
+          read as a link opening another tab. */}
+      <PageTabs
+        ref={systemTabsRef}
+        aria-label={t("reference.tabs.systems", "Rules")}
+        contentWidth={referencePageMaxWidth}
       >
-        <Box ref={systemTabsRef} minWidth={0} width="100%">
-          <Tabs
-            value={tabId}
-            aria-label={t("reference.tabs.systems", "Rules")}
-            variant="scrollable"
-            scrollButtons="auto"
-          >
-            {/* The href alone picks the tab. Storing the tab on click as well
-                would render the old address with the new tab for a moment,
-                which read as a link opening another tab. */}
-            {referenceTabs.map((referenceTab) => (
-              <Tab
-                key={referenceTab.id}
-                value={referenceTab.id}
-                label={referenceTab.label}
-                {...tabLinkProps(getTabHref(referenceTab.id, currentSection))}
-                aria-current={referenceTab.id === tabId ? "page" : undefined}
+        {referenceTabs.map((referenceTab) => (
+          <PageTab
+            key={referenceTab.id}
+            current={referenceTab.id === tabId}
+            render={
+              <LinkComponent
+                href={getTabHref(referenceTab.id, currentSection)}
               />
-            ))}
-          </Tabs>
-        </Box>
-      </PageHeader>
-      <PageContent
-        disablePadding
-        maxWidth={false}
-        sx={{ maxWidth: referencePageMaxWidth }}
+            }
+          >
+            {referenceTab.label}
+          </PageTab>
+        ))}
+      </PageTabs>
+      <PageTabs
+        variant="well"
+        aria-label={t("reference.tabs.sections", "Sections")}
+        contentWidth={referencePageMaxWidth}
       >
-        <StyledTabs
-          value={currentSection}
-          aria-label={t("reference.tabs.sections", "Sections")}
-          variant="scrollable"
-          sx={{ px: 1, py: 0.5 }}
-        >
-          {referenceSections.map((referenceSection) => (
-            <StyledTab
-              key={referenceSection}
-              value={referenceSection}
-              label={sectionLabels[referenceSection]}
-              {...tabLinkProps(getTabHref(tabId, referenceSection))}
-              aria-current={referenceSection === section ? "page" : undefined}
-            />
-          ))}
-        </StyledTabs>
+        {referenceSections.map((referenceSection) => (
+          <PageTab
+            key={referenceSection}
+            current={referenceSection === section}
+            render={
+              <LinkComponent href={getTabHref(tabId, referenceSection)} />
+            }
+          >
+            {sectionLabels[referenceSection]}
+          </PageTab>
+        ))}
+      </PageTabs>
+      <Stack
+        gap="0"
+        flex={fillsScreen ? "1 1 0" : "1 0 auto"}
+        minHeight={fillsScreen ? "0" : undefined}
+        width="100%"
+        maxWidth={referencePageMaxWidth}
+        marginInline="auto"
+      >
         {note && (
-          <Alert severity="info" variant="outlined" sx={{ mx: 2, mt: 2 }}>
+          <Alert tone="info" css={{ marginInline: "4", marginBlockStart: "4" }}>
             {t(
               "reference.switch-note",
               "Opened the {{tab}} tab for this link.",
-              { tab: referenceTabMap[note.toTabId].label },
+              {
+                tab: referenceTabMap[note.toTabId].label,
+              },
             )}{" "}
             <Link
-              component={LinkComponent}
-              href={getTabHref(note.fromTabId, currentSection)}
+              render={
+                <LinkComponent
+                  href={getTabHref(note.fromTabId, currentSection)}
+                />
+              }
             >
               {t("reference.switch-note-back", "Back to {{tab}}", {
                 tab: referenceTabMap[note.fromTabId].label,
@@ -477,16 +485,16 @@ export default function ReferencePage() {
           </Alert>
         )}
         <DataswornLinkHandlerProvider onOpen={handleOpenLink}>
-          <Box
-            flexGrow={1}
-            display="flex"
-            flexDirection="column"
-            px={isBrowseSection ? 0 : 2}
-            pt={isBrowseSection ? 0 : 2}
-            pb={isBrowseSection ? 0 : 4}
+          <Stack
+            gap="0"
+            flex={fillsScreen ? "1 1 0" : "1 0 auto"}
+            minHeight={fillsScreen ? "0" : undefined}
+            paddingInline={isBrowseSection ? "0" : "4"}
+            paddingBlockStart={isBrowseSection ? "0" : "4"}
+            paddingBlockEnd={isBrowseSection ? "0" : "8"}
           >
             {content}
-          </Box>
+          </Stack>
         </DataswornLinkHandlerProvider>
         <ReferenceBanner
           onDismiss={() =>
@@ -495,15 +503,9 @@ export default function ReferencePage() {
               ?.focus()
           }
         />
-      </PageContent>
-    </>
+      </Stack>
+    </Stack>
   );
-}
-
-// Tabs that are links, so a reader can open one in a new browser tab.
-// StyledTab's props don't carry a link component's href.
-function tabLinkProps(href: string): TabProps {
-  return { component: LinkComponent, href } as unknown as TabProps;
 }
 
 function getItemId(

@@ -50,6 +50,8 @@ const LOAD = { timeout: 10000 };
 
 describe("ReferencePage", () => {
   beforeAll(() => {
+    // jsdom has no layout, so the page tabs can't scroll the current one into view.
+    Element.prototype.scrollBy ??= () => {};
     // jsdom has no ResizeObserver; the oracle list's quick roll measures its
     // button with one.
     globalThis.ResizeObserver ??= class {
@@ -153,7 +155,12 @@ describe("ReferencePage", () => {
       LOAD,
     );
 
-    await user.click(screen.getByRole("tab", { name: "Starforged" }));
+    await user.click(
+      within(screen.getByRole("navigation", { name: "Rules" })).getByRole(
+        "link",
+        { name: "Starforged" },
+      ),
+    );
     expect(await screen.findByTestId("location")).toHaveTextContent(
       /^\/reference\/starforged\/moves$/,
     );
@@ -178,10 +185,12 @@ describe("ReferencePage", () => {
         LOAD,
       ),
     ).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Sundered Isles" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
+    expect(
+      within(screen.getByRole("navigation", { name: "Rules" })).getByRole(
+        "link",
+        { name: "Sundered Isles" },
+      ),
+    ).toHaveAttribute("aria-current", "page");
     expect(screen.queryByText(/for this link/)).not.toBeInTheDocument();
   });
 
@@ -274,7 +283,12 @@ describe("ReferencePage", () => {
     expect(
       screen.queryByRole("region", { name: "Ready to play?" }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Starforged" })).toHaveFocus();
+    expect(
+      within(screen.getByRole("navigation", { name: "Rules" })).getByRole(
+        "link",
+        { name: "Starforged" },
+      ),
+    ).toHaveFocus();
     expect(useReferenceBanner.getState().dismissed).toBe(true);
   });
 

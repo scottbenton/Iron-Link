@@ -21,12 +21,14 @@ const SHARED_TEXT_TYPES = [
 /**
  * How many moves or oracles a filtered tree shows, counted the way the tree
  * lists them: a collection whose name matches shows everything in it, and a
- * shared-text table is one row.
+ * shared-text table is one row. `isFullyVisible` counts the collections as
+ * shown whole, as under a parent whose name matched or with no filter.
  */
 export function countVisibleItems(
   collectionIds: string[],
   collectionMap: Record<string, CountableCollection>,
   visibilitySettings: VisibilitySettings,
+  isFullyVisible = false,
 ): number {
   const count = (
     collection: CountableCollection,
@@ -56,6 +58,6 @@ export function countVisibleItems(
 
   return collectionIds.reduce((total, collectionId) => {
     const collection = collectionMap[collectionId];
-    return collection ? total + count(collection, false) : total;
+    return collection ? total + count(collection, isFullyVisible) : total;
   }, 0);
 }

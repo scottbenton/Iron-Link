@@ -193,6 +193,65 @@ export const PageTabsStory: Story = {
   },
 };
 
+const rulesets = [
+  { id: "classic", label: "Ironsworn" },
+  { id: "delve", label: "Delve" },
+  { id: "starforged", label: "Starforged" },
+];
+const referenceSections = [
+  { id: "moves", label: "Moves" },
+  { id: "oracles", label: "Oracles" },
+  { id: "assets", label: "Assets" },
+  { id: "rules", label: "Rules" },
+];
+
+/**
+ * Two rows of page tabs, as the reference page has them: the rulesets
+ * underlined, and each ruleset's sections in a well under them, so the
+ * rows read as different levels.
+ */
+export const PageTabsTwoRows: Story = {
+  name: "Page Tabs, Two Rows",
+  render: function PageTabsTwoRowsStory() {
+    const [ruleset, setRuleset] = useState("classic");
+    const [section, setSection] = useState("moves");
+    return (
+      <div className={frame}>
+        <PageTabs aria-label="Rules">
+          {rulesets.map((r) => (
+            <PageTab
+              key={r.id}
+              href={`#${r.id}`}
+              current={r.id === ruleset}
+              onClick={(event) => {
+                event.preventDefault();
+                setRuleset(r.id);
+              }}
+            >
+              {r.label}
+            </PageTab>
+          ))}
+        </PageTabs>
+        <PageTabs variant="well" aria-label="Sections">
+          {referenceSections.map((s) => (
+            <PageTab
+              key={s.id}
+              href={`#${s.id}`}
+              current={s.id === section}
+              onClick={(event) => {
+                event.preventDefault();
+                setSection(s.id);
+              }}
+            >
+              {s.label}
+            </PageTab>
+          ))}
+        </PageTabs>
+      </div>
+    );
+  },
+};
+
 const party = [
   { id: "overview", name: "Overview" },
   { id: "kira", name: "Kira Vale", colorSeed: 12, portrait: samplePortraitSrc },

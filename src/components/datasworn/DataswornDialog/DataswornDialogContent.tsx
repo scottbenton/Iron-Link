@@ -1,7 +1,8 @@
-import { Box, Button, DialogActions, DialogContent } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { EmptyState } from "components/Layout/EmptyState";
+import { DialogBody } from "ui/components/Dialog";
+import { EmptyState } from "ui/layout";
+import { Box } from "ui/primitives";
 
 import { AssetCard } from "../AssetCard";
 import { Move } from "../Move";
@@ -12,11 +13,12 @@ import { useGetDataswornItem } from "./useGetDataswornItem";
 
 export interface DataswornDialogContentProps {
   id: string;
-  onClose: () => void;
 }
 
+// What the dialog shows for an id, or a note that it can't be found. The
+// header's Close is the one way out, so there is no second Close button.
 export function DataswornDialogContent(props: DataswornDialogContentProps) {
-  const { id, onClose } = props;
+  const { id } = props;
   const { t } = useTranslation();
 
   const item = useGetDataswornItem(id);
@@ -25,9 +27,9 @@ export function DataswornDialogContent(props: DataswornDialogContentProps) {
     return (
       <>
         <DataswornDialogTitle>{item.oracle.name}</DataswornDialogTitle>
-        <DialogContent>
-          <Oracle oracleId={item.oracle._id} hideOracleName />
-        </DialogContent>
+        <DialogBody>
+          <Oracle oracleId={item.oracle._id} />
+        </DialogBody>
       </>
     );
   }
@@ -36,9 +38,9 @@ export function DataswornDialogContent(props: DataswornDialogContentProps) {
     return (
       <>
         <DataswornDialogTitle>{item.move.name}</DataswornDialogTitle>
-        <DialogContent>
-          <Move moveId={item.move._id} hideMoveName />
-        </DialogContent>
+        <DialogBody>
+          <Move moveId={item.move._id} />
+        </DialogBody>
       </>
     );
   }
@@ -47,11 +49,11 @@ export function DataswornDialogContent(props: DataswornDialogContentProps) {
     return (
       <>
         <DataswornDialogTitle>{item.asset.name}</DataswornDialogTitle>
-        <DialogContent>
-          <Box sx={{ maxWidth: 350, mx: "auto" }}>
+        <DialogBody>
+          <Box width="100%" maxWidth="350px" marginInline="auto">
             <AssetCard assetId={item.asset._id} />
           </Box>
-        </DialogContent>
+        </DialogBody>
       </>
     );
   }
@@ -67,9 +69,9 @@ export function DataswornDialogContent(props: DataswornDialogContentProps) {
         <DataswornDialogTitle>
           {item.oracleCollection.name}
         </DataswornDialogTitle>
-        <DialogContent>
+        <DialogBody>
           <OracleTableSharedText oracle={item.oracleCollection} />
-        </DialogContent>
+        </DialogBody>
       </>
     );
   }
@@ -78,7 +80,7 @@ export function DataswornDialogContent(props: DataswornDialogContentProps) {
       <DataswornDialogTitle>
         {t("datasworn.dialog.not-found-title", "Could not find item")}
       </DataswornDialogTitle>
-      <DialogContent>
+      <DialogBody>
         <EmptyState
           message={t(
             "datasworn.dialog.not-found-content",
@@ -86,12 +88,7 @@ export function DataswornDialogContent(props: DataswornDialogContentProps) {
             { itemId: id },
           )}
         />
-      </DialogContent>
-      <DialogActions>
-        <Button color="inherit" onClick={onClose}>
-          {t("common.close", "Close")}
-        </Button>
-      </DialogActions>
+      </DialogBody>
     </>
   );
 }
