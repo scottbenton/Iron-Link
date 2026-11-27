@@ -128,6 +128,13 @@ rest of the app). Import as `ui/components/Button`.
 - Checkboxes, never switches, for on/off settings in forms.
 - A dialog with inputs and a submit button is a form, so Enter submits:
   pass `onSubmit` to `Dialog` and give the main button `type="submit"`.
+- Every dialog ends with the `DialogActions` strip: buttons right-aligned,
+  the main one last. A dialog with nothing to submit ends with
+  `DialogDoneButton`; one with a main action puts Done (`variant="ghost"`)
+  or Cancel before it. A third button that stands apart (Delete, Reset)
+  goes in `start`, which floats it left. Main actions never sit in the body.
+- Table cells align on the baseline, so a row's text lines up with the
+  text of a button in it.
 - Announcements go through `useAnnounce()`; one message per action, one
   store. A modal makes the page inert, so `Dialog`, `ConfirmDialog` and a
   modal `Drawer` each render a `LiveRegion` that reads the same store.

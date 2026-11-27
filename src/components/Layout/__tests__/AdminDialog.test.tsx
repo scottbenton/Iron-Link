@@ -17,10 +17,10 @@ vi.mock("stores/admin.store", () => ({
     selector(admin),
 }));
 
-function renderDialog() {
+function renderDialog(onClose: () => void = () => {}) {
   return render(
     <ThemeProvider theme={getTheme(ColorScheme.Default)}>
-      <AdminDialog open onClose={() => {}} />
+      <AdminDialog open onClose={onClose} />
     </ThemeProvider>,
   );
 }
@@ -72,5 +72,17 @@ describe("AdminDialog", () => {
       within(dialog).getByRole("button", { name: "Get Magic Link" }),
     );
     expect(await within(dialog).findByText("No such user")).toBeInTheDocument();
+  });
+
+  it("closes from Done without getting a link", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    renderDialog(onClose);
+    const dialog = screen.getByRole("dialog", { name: "Admin Actions" });
+
+    await user.type(within(dialog).getByRole("textbox", { name: "UID" }), "u1");
+    await user.click(within(dialog).getByRole("button", { name: "Done" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(admin.getMagicLink).not.toHaveBeenCalled();
   });
 });

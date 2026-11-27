@@ -3,7 +3,13 @@ import { useTranslation } from "react-i18next";
 
 import { Alert } from "ui/components/Alert";
 import { Button } from "ui/components/Button";
-import { Dialog, DialogBody, DialogHeader } from "ui/components/Dialog";
+import {
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogDoneButton,
+  DialogHeader,
+} from "ui/components/Dialog";
 import { Text } from "ui/components/Text";
 import { TextField } from "ui/components/TextField";
 import { Stack } from "ui/primitives";
@@ -56,14 +62,6 @@ export function AdminDialog(props: AdminDialogProps) {
             value={email}
             onValueChange={setEmail}
           />
-          <Button
-            type="submit"
-            variant="primary"
-            loading={loading}
-            loadingLabel={t("admin.getting-magic-link", "Getting Magic Link")}
-          >
-            {t("admin.get-magic-link", "Get Magic Link")}
-          </Button>
           {magicLink && (
             <Text css={{ wordBreak: "break-all" }}>
               {t("admin.magic-link", "Magic Link: {{link}}", {
@@ -73,6 +71,17 @@ export function AdminDialog(props: AdminDialogProps) {
           )}
         </Stack>
       </DialogBody>
+      <DialogActions>
+        <DialogDoneButton variant="ghost" />
+        <Button
+          type="submit"
+          variant="primary"
+          loading={loading}
+          loadingLabel={t("admin.getting-magic-link", "Getting Magic Link")}
+        >
+          {t("admin.get-magic-link", "Get Magic Link")}
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }

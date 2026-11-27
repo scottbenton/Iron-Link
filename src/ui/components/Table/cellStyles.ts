@@ -4,7 +4,7 @@ export const cellStyles = cva({
   base: {
     boxSizing: "border-box",
     textAlign: "start",
-    verticalAlign: "top",
+    verticalAlign: "baseline",
     transition: "background-color token(durations.fast) linear",
   },
   variants: {
