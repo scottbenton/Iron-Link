@@ -17,7 +17,7 @@ export function GameOverviewHeader() {
 
   const { game, themeTarget } = settings;
   return (
-    <Flex alignItems="center" gap="2" marginTop="3">
+    <Flex alignItems="center" gap="2">
       <Text
         variant="h3"
         as="p"

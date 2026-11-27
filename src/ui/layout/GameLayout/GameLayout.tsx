@@ -16,6 +16,7 @@ import { css, cx } from "styled-system/css";
 import { IconButton } from "../../components/IconButton";
 import { useControllableState } from "../../hooks/useControllableState";
 import { Sidebar, SidebarProps } from "../Sidebar";
+import { PageWidth, contentRailStyles } from "../shared/contentRail";
 import { LayoutPanel } from "../shared/layoutPanel";
 import { srOnlyStyles } from "../shared/sectionTabs";
 
@@ -71,6 +72,34 @@ const bodyStyles = css({
   "--sidebar-cap":
     "calc((100cqi - var(--game-main-min-width, 360px) - var(--game-rail-count, 0) * var(--game-rail-width)) / var(--game-sidebar-count, 1))",
 });
+
+/**
+ * Once the window is wider than the rail, the columns get side borders, so
+ * the sidebars' tint stops at an edge rather than fading into the page.
+ * One literal per rail width, since Panda reads them at build time.
+ */
+const railEdgeStyles: Record<PageWidth, string> = {
+  xs: css({
+    "@media (min-width: 481px)": {
+      borderInline: "1px solid token(colors.border.default)",
+    },
+  }),
+  sm: css({
+    "@media (min-width: 641px)": {
+      borderInline: "1px solid token(colors.border.default)",
+    },
+  }),
+  md: css({
+    "@media (min-width: 961px)": {
+      borderInline: "1px solid token(colors.border.default)",
+    },
+  }),
+  xl: css({
+    "@media (min-width: 1441px)": {
+      borderInline: "1px solid token(colors.border.default)",
+    },
+  }),
+};
 
 const mainStyles = css({
   // Whatever the main column stacks inside it (a sticky toolbar's z-index)
@@ -171,6 +200,12 @@ export interface GameLayoutProps {
   stackSidebars?: boolean;
   /** The narrowest the main column gets before sidebars stop growing. */
   mainMinWidth?: number;
+  /**
+   * The widest the tabs and columns get, centred beyond it: the page rail's
+   * xl (1440px) by default, so the notes don't stretch across a wide
+   * monitor. `none` fills the window.
+   */
+  maxWidth?: PageWidth | "none";
   className?: string;
 }
 
@@ -195,8 +230,11 @@ export function GameLayout(props: GameLayoutProps) {
     endSidebar,
     stackSidebars = false,
     mainMinWidth = 360,
+    maxWidth = "xl",
     className,
   } = props;
+  const rail =
+    maxWidth === "none" ? undefined : contentRailStyles({ maxWidth });
 
   const idPrefix = `game${useId().replace(/:/g, "")}`;
   const mainHeadingId = main.headingId ?? `${idPrefix}-main-heading`;
@@ -440,9 +478,13 @@ export function GameLayout(props: GameLayoutProps) {
   return (
     <div className={cx(rootStyles, className)}>
       {bannerSlot}
-      {tabs && <div className={tabsRowStyles}>{tabs}</div>}
+      {tabs && <div className={cx(tabsRowStyles, rail)}>{tabs}</div>}
       <div
-        className={bodyStyles}
+        className={cx(
+          bodyStyles,
+          rail,
+          maxWidth !== "none" && railEdgeStyles[maxWidth],
+        )}
         style={
           {
             "--game-main-min-width": `${mainMinWidth}px`,
