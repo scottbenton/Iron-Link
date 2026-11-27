@@ -76,6 +76,7 @@ export function WorldCategoryEditor({
           <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
             <WorldCategoryIconPicker
               value={draft.icon}
+              category={draft}
               onChange={(icon) =>
                 setDraft({ ...draft, icon: icon ?? { key: null, color: null } })
               }

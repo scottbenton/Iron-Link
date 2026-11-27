@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -73,6 +73,26 @@ describe("WorldIconPickerDialog", () => {
       key: "GiCompass",
       color: IconColors.Purple,
     });
+  });
+
+  it("leads with the shortlist group that fits the category, in named sections", async () => {
+    renderDialog({
+      category: { name: "NPCs", supportsMap: false, supportsBonds: true },
+    });
+    const people = await screen.findByRole("group", { name: "People" });
+    expect(
+      within(people).getByRole("button", { name: "Groups" }),
+    ).toBeInTheDocument();
+    const sections = screen
+      .getAllByRole("group")
+      .map((group) => group.getAttribute("aria-labelledby"))
+      .filter(Boolean)
+      .map((id) => document.getElementById(id!)?.textContent);
+    expect(sections.slice(0, 2)).toEqual(["People", "Places"]);
+    // Nothing is left out: the full set follows the shortlist.
+    expect(
+      screen.getByRole("group", { name: "All icons" }),
+    ).toBeInTheDocument();
   });
 
   it("offers an Image tab only when asked, leaving it open", async () => {

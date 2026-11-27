@@ -19,14 +19,34 @@ const LOCATION_TYPE_ICONS: Record<string, RequiredIconDefinition> = {
   cave: { key: "GiCaveEntrance", color: IconColors.Grey },
 };
 
+// A setting's own icon for a type, where the shared one would look wrong
+// there: a Forge settlement is a station, not a longhouse. Keyed by the
+// world's setting_key; everything else uses the shared table.
+const SETTING_LOCATION_TYPE_ICONS: Record<
+  string,
+  Record<string, RequiredIconDefinition>
+> = {
+  "world:starforged/forge": {
+    settlement: { key: "GiDefenseSatellite", color: IconColors.Grey },
+  },
+  "world:sundered_isles/sundered_isles": {
+    settlement: { key: "GiMedievalVillage01", color: IconColors.Grey },
+  },
+};
+
 export function getLocationTypeIcon(
   type: string | undefined,
+  settingKey?: string | null,
 ): RequiredIconDefinition | undefined {
   if (!type) return undefined;
   const name = type.trim().toLowerCase();
+  const icons = {
+    ...LOCATION_TYPE_ICONS,
+    ...(settingKey ? SETTING_LOCATION_TYPE_ICONS[settingKey] : undefined),
+  };
   return (
-    LOCATION_TYPE_ICONS[name] ??
+    icons[name] ??
     // "Planetside Settlement", "Orbital settlement" and the like.
-    Object.entries(LOCATION_TYPE_ICONS).find(([key]) => name.includes(key))?.[1]
+    Object.entries(icons).find(([key]) => name.includes(key))?.[1]
   );
 }

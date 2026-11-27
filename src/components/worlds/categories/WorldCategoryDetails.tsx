@@ -108,6 +108,7 @@ export function WorldCategoryDetails({
         <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
           <WorldCategoryIconPicker
             value={current.icon}
+            category={current}
             disabled={inactive}
             onChange={(icon) =>
               save({ icon: icon ?? { key: null, color: null } })

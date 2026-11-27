@@ -7,7 +7,7 @@ import type { WorldFieldKind } from "lib/worldFieldRules";
 
 import { WorldCategoryIcon } from "./WorldCategoryIcon";
 
-// The setting defaults' Locations icon.
+// A Locations icon from the setting defaults (Sundered Isles).
 const PREVIEW_CATEGORY_ICON: IconDefinition = {
   key: "GiCompass",
   color: IconColors.Green,

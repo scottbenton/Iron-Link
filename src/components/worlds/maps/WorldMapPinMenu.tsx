@@ -14,6 +14,8 @@ import {
 import { KeyboardEvent, ReactNode, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useWorldStore } from "stores/world.store";
+
 import { getLocationTypeIcon } from "lib/worldMap/locationTypeIcons";
 
 import { WorldCategoryIcon } from "../categories/WorldCategoryIcon";
@@ -49,6 +51,8 @@ export function WorldMapPinMenu({
   touch?: boolean;
 }) {
   const { t } = useTranslation();
+  // The map is always inside the loaded world.
+  const settingKey = useWorldStore((store) => store.world?.settingKey);
   const id = useId();
   const listRef = useRef<HTMLUListElement>(null);
   const [search, setSearch] = useState("");
@@ -151,7 +155,7 @@ export function WorldMapPinMenu({
           subheader(t("worlds.maps.pins.new", "New place"))}
         {newTypes.map((type) => {
           const checked = target.type === "new" && target.locationType === type;
-          const icon = getLocationTypeIcon(type ?? undefined);
+          const icon = getLocationTypeIcon(type ?? undefined, settingKey);
           return (
             <MenuItem
               key={`new-${type ?? ""}`}

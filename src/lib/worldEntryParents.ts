@@ -89,3 +89,35 @@ export function getWorldEntryPath(
     .map((ancestor) => ancestor.name)
     .join(" / ");
 }
+
+export interface WorldEntryTree<T> {
+  /** Entries at the category's top level for this client, by name. */
+  roots: T[];
+  /** The visible entries directly inside each entry, by name. */
+  children: Record<string, T[]>;
+}
+
+/**
+ * A category's entries as a tree, each level by name. Entries whose parent
+ * this client cannot see sit at the top level. Existing bad data may hold a
+ * loop, so a drawer of the tree must still draw each entry once.
+ */
+export function getWorldEntryTree<T extends NamedParentLinkedEntry>(
+  entries: Readonly<Record<string, T>>,
+  categoryId: string,
+): WorldEntryTree<T> {
+  const inCategory = Object.values(entries)
+    .filter((entry) => entry.categoryId === categoryId)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const children: Record<string, T[]> = {};
+  const roots: T[] = [];
+  for (const entry of inCategory) {
+    const parentId = entry.parentEntryId;
+    if (parentId && entries[parentId]?.categoryId === categoryId) {
+      (children[parentId] ??= []).push(entry);
+    } else {
+      roots.push(entry);
+    }
+  }
+  return { roots, children };
+}

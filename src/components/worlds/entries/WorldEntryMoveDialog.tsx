@@ -13,7 +13,10 @@ import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButto
 
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
-import { isValidWorldEntryParent } from "lib/worldEntryParents";
+import {
+  getWorldEntryTree,
+  isValidWorldEntryParent,
+} from "lib/worldEntryParents";
 
 import { IWorldEntry } from "services/worldEntries.service";
 
@@ -40,20 +43,10 @@ export function WorldEntryMoveDialog({
   );
   const [saving, setSaving] = useState(false);
 
-  // Entries whose parent this client cannot see sit at the top level.
-  const siblings = Object.values(entries)
+  const { roots, children } = getWorldEntryTree(entries, entry.categoryId);
+  const expandedItems = Object.values(entries)
     .filter((candidate) => candidate.categoryId === entry.categoryId)
-    .sort((a, b) => a.name.localeCompare(b.name));
-  const children: Record<string, IWorldEntry[]> = {};
-  const roots: IWorldEntry[] = [];
-  for (const candidate of siblings) {
-    const parentId = candidate.parentEntryId;
-    if (parentId && entries[parentId]?.categoryId === entry.categoryId) {
-      (children[parentId] ??= []).push(candidate);
-    } else {
-      roots.push(candidate);
-    }
-  }
+    .map((candidate) => candidate.id);
 
   const parentId = selected === TOP_LEVEL ? null : selected;
   const unchanged = parentId === (entry.parentEntryId ?? null);
@@ -104,7 +97,7 @@ export function WorldEntryMoveDialog({
         <SimpleTreeView
           aria-label={t("worlds.entries.move-destinations", "Destinations")}
           selectedItems={selected}
-          defaultExpandedItems={siblings.map((candidate) => candidate.id)}
+          defaultExpandedItems={expandedItems}
           disableSelection={saving}
           onSelectedItemsChange={(_, itemId) => itemId && setSelected(itemId)}
         >
