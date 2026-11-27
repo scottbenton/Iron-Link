@@ -34,9 +34,9 @@ export interface RecentRollCard {
 
 /**
  * The cards of the last few rolls, oldest first, each with the actions this
- * person may take on it: Copy always, Reroll, Burn Momentum and Delete where
- * they apply (the same as the game log's). A roll not saved to a game log
- * yet has none.
+ * person may take on it: Copy always, Burn Momentum, Reroll and Delete where
+ * they apply (the same as the game log's), Reroll and Delete in the card's ⋯
+ * menu. A roll not saved to a game log yet has none.
  */
 export function useRecentRollCards(): RecentRollCard[] {
   const { t } = useTranslation();
@@ -74,14 +74,6 @@ export function useRecentRollCards(): RecentRollCard[] {
         icon: <CopyIcon />,
         onClick: () => runner.copy(roll),
       });
-      if (available.reroll && openReroll) {
-        actions.push({
-          id: "reroll",
-          label: t("datasworn.roll-card.reroll", "Reroll"),
-          icon: <DiceFiveIcon />,
-          onClick: () => openReroll(rollId, roll),
-        });
-      }
       if (available.burnMomentum) {
         actions.push({
           id: "burn-momentum",
@@ -90,12 +82,23 @@ export function useRecentRollCards(): RecentRollCard[] {
           onClick: () => runner.burnMomentum(rollId, roll),
         });
       }
+      if (available.reroll && openReroll) {
+        actions.push({
+          id: "reroll",
+          label: t("datasworn.roll-card.reroll", "Reroll"),
+          icon: <DiceFiveIcon />,
+          onClick: () => openReroll(rollId, roll),
+          inMenu: true,
+        });
+      }
       if (available.delete) {
         actions.push({
           id: "delete",
           label: t("datasworn.roll-card.delete", "Delete"),
           icon: <TrashIcon />,
           onClick: () => runner.deleteRoll(rollId),
+          inMenu: true,
+          tone: "danger",
         });
       }
     }

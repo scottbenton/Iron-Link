@@ -1,4 +1,4 @@
-import { Skull, Sparkle, X } from "@phosphor-icons/react";
+import { DotsThree, Skull, Sparkle, X } from "@phosphor-icons/react";
 import { ReactNode, Ref } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -8,6 +8,12 @@ import { css, cx } from "styled-system/css";
 
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
+import {
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuTrigger,
+} from "../../components/Menu";
 import { ChallengeDieColors, DiceDisplay } from "../DiceDisplay/DiceDisplay";
 import { OracleDice } from "../DiceDisplay/OracleDice";
 import { DiceDisplayStrings } from "../DiceDisplay/diceDisplayStrings";
@@ -242,6 +248,14 @@ export interface RollCardAction {
   icon?: ReactNode;
   onClick: () => void;
   disabled?: boolean;
+  /**
+   * Puts the action in the card's ⋯ menu instead of the row, for the
+   * rarer ones (Reroll, Delete), so the row keeps the one or two people
+   * reach for.
+   */
+  inMenu?: boolean;
+  /** `danger` for a destructive action such as Delete. */
+  tone?: "default" | "danger";
 }
 
 /**
@@ -263,8 +277,11 @@ export interface RollCardProps extends Omit<CssProp, "width"> {
   /**
    * Buttons under the roll: Reroll, Burn Momentum, Copy. Full cards show
    * them with labels; compact cards show icon buttons when there is an icon.
+   * Actions marked `inMenu` go in a ⋯ menu at the end of the row.
    */
   actions?: RollCardAction[];
+  /** The ⋯ menu's name, "More actions for Face Danger" by default. */
+  moreActionsLabel?: string;
   /**
    * `compact` for the game log: smaller type and dice, and an oracle's roll
    * sits inline after its result.
@@ -325,6 +342,7 @@ export function RollCard(props: RollCardProps) {
     dismissLabel,
     dismissButtonRef,
     actions,
+    moreActionsLabel,
     variant = "default",
     diceDetail = "dice",
     challengeDieColors,
@@ -352,6 +370,8 @@ export function RollCard(props: RollCardProps) {
     prefix: summaryPrefix,
   });
   const compact = variant === "compact";
+  const rowActions = actions?.filter((action) => !action.inMenu) ?? [];
+  const menuActions = actions?.filter((action) => action.inMenu) ?? [];
 
   const critical = getRollCritical(roll);
   const chips: ReactNode[] = [];
@@ -476,7 +496,7 @@ export function RollCard(props: RollCardProps) {
 
       {actions && actions.length > 0 && (
         <div className={actionsStyles}>
-          {actions.map((action) =>
+          {rowActions.map((action) =>
             compact && action.icon ? (
               <IconButton
                 key={action.id}
@@ -499,6 +519,42 @@ export function RollCard(props: RollCardProps) {
                 {action.label}
               </Button>
             ),
+          )}
+          {menuActions.length > 0 && (
+            <Menu>
+              <MenuTrigger
+                render={
+                  <IconButton
+                    label={
+                      moreActionsLabel ??
+                      t(
+                        "ui.roll-card.more-actions",
+                        "More actions for {{title}}",
+                        {
+                          title,
+                        },
+                      )
+                    }
+                    size="sm"
+                  >
+                    <DotsThree weight="bold" />
+                  </IconButton>
+                }
+              />
+              <MenuContent align="start">
+                {menuActions.map((action) => (
+                  <MenuItem
+                    key={action.id}
+                    icon={action.icon}
+                    tone={action.tone}
+                    disabled={action.disabled}
+                    onClick={action.onClick}
+                  >
+                    {action.label}
+                  </MenuItem>
+                ))}
+              </MenuContent>
+            </Menu>
           )}
         </div>
       )}

@@ -154,6 +154,21 @@ describe("getRollTitle", () => {
   });
 });
 
+describe("roll names from Datasworn", () => {
+  it("capitalizes the lower case stat and track names Datasworn stores", () => {
+    expect(
+      getRollSummary(
+        statRoll({ rollLabel: "health" }),
+        { moveName: "Endure Harm" },
+        t,
+      ),
+    ).toBe(
+      "Endure Harm, Health: Weak Hit. Action die 3 plus 2, total 5. Challenge dice 4 and 7.",
+    );
+    expect(getRollTitle(statRoll({ rollLabel: "iron" }), {})).toBe("Iron");
+  });
+});
+
 describe("getPlainRollText", () => {
   it("joins list lines and keeps link text", () => {
     expect(getPlainRollText("* Name: [Kai](link)\n* Role: Pilot")).toBe(

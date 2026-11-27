@@ -5,6 +5,7 @@ import {
   getRollTitle as getLibraryRollTitle,
 } from "ui/game/RollCard/getRollSummary";
 import { RollData, RollOutcome } from "ui/game/RollCard/rollTypes";
+import { capitalize } from "ui/game/shared";
 
 import { RollResult, RollType } from "repositories/shared.types";
 
@@ -60,7 +61,9 @@ export function toRollData(
       return {
         kind: "action",
         ...(names.moveName ? { moveName: names.moveName } : {}),
-        statName: roll.rollLabel,
+        // Datasworn names stats, meters and asset controls in lower case
+        // ("iron", "health"); the card shows them as names.
+        statName: capitalize(roll.rollLabel),
         statValue: roll.modifier,
         adds: roll.adds,
         actionDie: roll.action,
@@ -76,7 +79,8 @@ export function toRollData(
       return {
         kind: "progress",
         ...(names.moveName ? { moveName: names.moveName } : {}),
-        trackName: roll.rollLabel,
+        // Legacy tracks come from Datasworn in lower case ("quests").
+        trackName: capitalize(roll.rollLabel),
         progressScore: roll.trackProgress,
         challengeDice: [roll.challenge1, roll.challenge2],
         outcome: rollOutcomes[roll.result],

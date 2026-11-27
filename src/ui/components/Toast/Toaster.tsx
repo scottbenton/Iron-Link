@@ -76,6 +76,14 @@ const toastItemStyles = css({
     },
   "&[data-expanded=false][data-front=false] > [data-content] > [data-title] > * > *":
     { opacity: 0 },
+  // Sonner fades a new toast in over its whole 400ms slide, so for most of
+  // the slide it is see-through over the toast it is covering (plain in dark
+  // mode). It turns solid in the first 150ms here and keeps the slide; the
+  // exit keeps Sonner's own timing.
+  "&[data-removed=false]": {
+    transition:
+      "transform 400ms, opacity 150ms, height 400ms, box-shadow 200ms",
+  },
   // Toasts past the visible cap fade out; hide them from Tab too.
   "&[data-visible=false]": {
     visibility: "hidden",
