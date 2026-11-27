@@ -1,12 +1,6 @@
-import LockIcon from "@mui/icons-material/Lock";
-import { Box, Card, CardActionArea, Tooltip, Typography } from "@mui/material";
-import { useTranslation } from "react-i18next";
+import { Box, Card, CardActionArea, Typography } from "@mui/material";
 
 import { LinkComponent } from "components/LinkComponent";
-
-import { useWorldEntriesStore } from "stores/worldEntries.store";
-
-import { ReadPermissions } from "repositories/shared.types";
 
 import { IWorldCategory } from "services/worldCategories.service";
 import { IWorldEntry } from "services/worldEntries.service";
@@ -14,6 +8,8 @@ import { IWorldEntry } from "services/worldEntries.service";
 import { WorldEntryActions } from "../entries/WorldEntryActions";
 import { WorldEntryIcon } from "../entries/WorldEntryIcon";
 import type { WorldLinkProps } from "../worldNavigation";
+import { WorldEntryGuidesOnlyIcon } from "./WorldEntryGuidesOnlyIcon";
+import { useWorldEntryItemActions } from "./useWorldEntryItemActions";
 
 // An entry in its category folder, drawn like a note card: its icon, its name
 // with the subtitle beside it in grey, a lock when only Guides can see it in a
@@ -38,20 +34,8 @@ export function WorldCategoryEntryItem({
   onDeleted: () => void;
   onError: (cause: unknown) => void;
 }) {
-  const { t } = useTranslation();
-  const permissions = useWorldEntriesStore(
-    (store) => store.entryState.permissions[entry.id],
-  );
-  const canShare = !!permissions?.canChangePermissions && guided;
-  const canDelete = !!permissions?.canDelete;
-  const canMove = !!permissions?.canEdit && category.supportsHierarchy;
-  const hasMenu = canShare || canMove || canDelete;
-  const guidesOnly =
-    guided && entry.readPermissions === ReadPermissions.OnlyGuides;
-  const guidesOnlyLabel = t(
-    "worlds.entries.guides-only-entry",
-    "Only Guides can see this entry",
-  );
+  const { canShare, canMove, canDelete, hasMenu, guidesOnly } =
+    useWorldEntryItemActions(entry, category, guided);
 
   return (
     <Card
@@ -118,17 +102,7 @@ export function WorldCategoryEntryItem({
             </Typography>
           )}
         </Box>
-        {guidesOnly && (
-          <Tooltip title={guidesOnlyLabel}>
-            <LockIcon
-              role="img"
-              aria-label={guidesOnlyLabel}
-              aria-hidden={false}
-              fontSize="small"
-              sx={{ color: "text.disabled", fontSize: 16 }}
-            />
-          </Tooltip>
-        )}
+        {guidesOnly && <WorldEntryGuidesOnlyIcon />}
       </CardActionArea>
       {hasMenu && (
         <Box

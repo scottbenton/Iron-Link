@@ -8,14 +8,18 @@ import { IconDefinition } from "types/Icon.type";
 import { WorldIconPickerDialog } from "../WorldIconPickerDialog";
 import { WorldCategoryIcon } from "./WorldCategoryIcon";
 import { categoryIconName } from "./categoryIcons";
+import { IconPickerCategory } from "./iconPickerOrder";
 
 // The category's icon as a square tile. Clicking it opens the icon dialog.
 export function WorldCategoryIconPicker({
   value,
+  category,
   onChange,
   disabled,
 }: {
   value: IconDefinition | null;
+  // Its name and what it supports, to put the icons that fit it first.
+  category?: IconPickerCategory | null;
   onChange: (value: IconDefinition | null) => void;
   disabled?: boolean;
 }) {
@@ -57,6 +61,7 @@ export function WorldCategoryIconPicker({
       {open && !disabled && (
         <WorldIconPickerDialog
           value={value}
+          category={category}
           title={label}
           onSave={onChange}
           onClose={() => setOpen(false)}

@@ -49,6 +49,7 @@ import { WorldCategoryBrowser } from "./WorldCategoryBrowser";
 import { WorldCategoryContents } from "./WorldCategoryContents";
 import { CategoryDraft, WorldCategoryEditor } from "./WorldCategoryEditor";
 import { WorldConfigurationView } from "./WorldConfigurationView";
+import { WorldEntryLayoutToggle } from "./WorldEntryLayoutToggle";
 import { WorldEntrySearch } from "./WorldEntrySearch";
 import { getEditorErrorMessage } from "./categoryEditor.utils";
 
@@ -294,6 +295,7 @@ export function WorldCategoryManager({
           ),
           end: (
             <>
+              <WorldEntryLayoutToggle category={selected} />
               <Tooltip
                 title={t(
                   "worlds.categories.settings-named",
@@ -340,23 +342,28 @@ export function WorldCategoryManager({
     const canEditEntry = !!entryPermissions?.canEdit;
     const canMoveEntry = canEditEntry && !!selected?.supportsHierarchy;
     const inPlaces = view.section === "places" && !!selected?.supportsHierarchy;
-    const createChildButton =
-      entry && selected && inPlaces && canCreateEntries ? (
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          disabled={busy}
-          onClick={() => createEntryIn(selected, entry.id)}
-        >
-          {t("worlds.entries.new-child", "Create a place here")}
-        </Button>
+    const placesActions =
+      entry && selected && inPlaces ? (
+        <>
+          <WorldEntryLayoutToggle category={selected} />
+          {canCreateEntries && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              disabled={busy}
+              onClick={() => createEntryIn(selected, entry.id)}
+            >
+              {t("worlds.entries.new-child", "Create a place here")}
+            </Button>
+          )}
+        </>
       ) : undefined;
     const parent = ancestors[ancestors.length - 1];
     // People who can do none of these get no strip at all.
     actions =
       entry && (canShareEntry || canEditEntry || canDeleteEntry)
         ? {
-            end: createChildButton,
+            end: placesActions,
             start: (
               <WorldEntryActions
                 key={entry.id}
@@ -384,7 +391,7 @@ export function WorldCategoryManager({
               />
             ),
           }
-        : createChildButton && { end: createChildButton };
+        : placesActions && { end: placesActions };
   } else {
     title = t("worlds.settings.title", "World settings");
   }
