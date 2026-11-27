@@ -15,6 +15,7 @@ import {
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { Dialog, DialogBody } from "ui/components/Dialog";
 import { toast } from "ui/components/Toast";
 
 import { useAppState } from "stores/appState.store";
@@ -174,6 +175,40 @@ describe("recent rolls in an MUI dialog", () => {
 });
 
 describe("recent rolls on a phone's game page", () => {
+  it("hands the rolls to the toasts while a library dialog covers the dock", async () => {
+    function Page(props: { dialogOpen: boolean }) {
+      return (
+        <RecentRolls>
+          <RecentRollsDock />
+          <Dialog open={props.dialogOpen} onClose={() => {}}>
+            <DialogBody>Move</DialogBody>
+          </Dialog>
+        </RecentRolls>
+      );
+    }
+    const { rerender } = render(<Page dialogOpen={false} />, {
+      wrapper: TestWrapper,
+    });
+    addRolls("Edge");
+    expect(
+      screen.getByRole("region", { name: "Recent rolls" }),
+    ).toBeInTheDocument();
+
+    rerender(<Page dialogOpen />);
+    expect(
+      screen.queryByRole("region", { name: "Recent rolls" }),
+    ).not.toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: "Dismiss Edge" }),
+    ).toBeInTheDocument();
+
+    rerender(<Page dialogOpen={false} />);
+    expect(
+      await screen.findByRole("region", { name: "Recent rolls" }),
+    ).toBeInTheDocument();
+    expect(shownRollIds()).toEqual(["Edge"]);
+  });
+
   it("docks the newest roll, with the rest behind a count", () => {
     render(<RecentRollsDock />, { wrapper: TestWrapper });
     addRolls("Edge", "Heart");

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { css, cx } from "styled-system/css";
 
+import { useRegisterOpenModal } from "../../hooks/useIsModalOpen";
 import { LiveRegion } from "../Announcer";
 import { Button, ButtonProps } from "../Button";
 import {
@@ -90,6 +91,7 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
   const cancelRef = useRef<HTMLElement>(null);
   const confirmRef = useRef<HTMLElement>(null);
   const hasBody = description !== undefined || content !== undefined;
+  useRegisterOpenModal(open);
 
   return (
     <AlertDialog.Root
