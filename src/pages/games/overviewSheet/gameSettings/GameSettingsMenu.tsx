@@ -6,9 +6,9 @@ import { useTranslation } from "react-i18next";
 import { GamePermission } from "stores/game.store";
 
 import { useGamePermissions } from "../../gamePageLayout/hooks/usePermissions";
-import { GameSettingsMenuDialogs } from "./GameSettingsMenuDialogs";
 import { GameSettingsMenuItems } from "./GameSettingsMenuItems";
 
+// Its dialogs are mounted once for the game page, by `GameSettings`.
 export function GameSettingsMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
@@ -47,7 +47,6 @@ export function GameSettingsMenu() {
       >
         <GameSettingsMenuItems closeMenu={closeMenu} />
       </Menu>
-      <GameSettingsMenuDialogs />
     </>
   );
 }

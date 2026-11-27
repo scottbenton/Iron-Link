@@ -1,10 +1,15 @@
 import { ThemeProvider } from "@mui/material";
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getTheme } from "providers/ThemeProvider/themes/themeConfig";
+
+import {
+  AppSettingsContribution,
+  useAppSettingsMenuStore,
+} from "stores/appSettingsMenu.store";
 
 import { ColorScheme } from "repositories/shared.types";
 
@@ -38,14 +43,25 @@ function renderMenu() {
 
 async function openMenu() {
   const user = userEvent.setup();
-  await user.click(screen.getByRole("button", { name: "App Settings" }));
+  await user.click(screen.getByRole("button", { name: "Settings" }));
   return { user, menu: await screen.findByRole("menu") };
+}
+
+function contribute(contribution: Partial<AppSettingsContribution> = {}) {
+  const full: AppSettingsContribution = {
+    game: { name: "The Forsaken", isGuide: true },
+    onSelect: vi.fn(),
+    ...contribution,
+  };
+  act(() => useAppSettingsMenuStore.getState().setContribution(full));
+  return full;
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
   auth.status = 2;
   admin.isAdmin = false;
+  useAppSettingsMenuStore.setState({ contribution: null });
 });
 
 describe("AppSettingsMenu", () => {
@@ -113,5 +129,78 @@ describe("AppSettingsMenu", () => {
     const { user, menu } = await openMenu();
     await user.click(within(menu).getByRole("menuitem", { name: "Sign Out" }));
     expect(auth.signOut).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves Change Theme out with nothing to theme", async () => {
+    renderMenu();
+    const { menu } = await openMenu();
+    expect(
+      within(menu).queryByRole("menuitem", { name: /Change Theme/ }),
+    ).toBeNull();
+  });
+
+  it("adds the game page's sections and hands their items back", async () => {
+    const contribution = contribute({
+      character: { name: "Kira", isOwner: true },
+      themeTarget: "character",
+    });
+    renderMenu();
+    const { user, menu } = await openMenu();
+    expect(
+      within(menu).getByRole("group", { name: "Kira" + " Settings" }),
+    ).toBeInTheDocument();
+    await user.click(
+      within(menu).getByRole("menuitem", { name: /Edit Game Name/ }),
+    );
+    expect(contribution.onSelect).toHaveBeenCalledWith("gameName");
+  });
+
+  it("names the theme Change Theme opens", async () => {
+    contribute({ themeTarget: "game" });
+    renderMenu();
+    const { menu } = await openMenu();
+    expect(
+      within(menu).getByRole("menuitem", { name: /Change Theme.*This game/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("toggles the game's log sound", async () => {
+    const onLogSoundChange = vi.fn();
+    contribute({
+      game: { name: "The Forsaken", isGuide: false },
+      logSound: false,
+      onLogSoundChange,
+    });
+    renderMenu();
+    const { user } = await openMenu();
+    await user.click(screen.getByText("Sound on New Log Messages"));
+    expect(onLogSoundChange).toHaveBeenCalledWith(true);
+  });
+
+  it("deletes the game after its confirm", async () => {
+    const onDeleteGame = vi.fn();
+    contribute({ onDeleteGame });
+    renderMenu();
+    const { user, menu } = await openMenu();
+    await user.click(
+      within(menu).getByRole("menuitem", { name: /Delete Game/ }),
+    );
+    const confirm = await screen.findByRole("alertdialog");
+    await user.click(
+      within(confirm).getByRole("button", { name: "Delete Game" }),
+    );
+    expect(onDeleteGame).toHaveBeenCalledTimes(1);
+  });
+
+  it("drops the game's sections when the page leaves", async () => {
+    const contribution = contribute();
+    act(() =>
+      useAppSettingsMenuStore.getState().clearContribution(contribution),
+    );
+    renderMenu();
+    const { menu } = await openMenu();
+    expect(
+      within(menu).queryByRole("menuitem", { name: /Edit Game Name/ }),
+    ).toBeNull();
   });
 });

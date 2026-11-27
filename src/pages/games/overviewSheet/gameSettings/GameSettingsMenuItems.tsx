@@ -7,19 +7,17 @@ import { ListItemIcon, ListItemText, MenuItem } from "@mui/material";
 import { ListSubheader } from "@mui/material";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
 
 import { useConfirm } from "ui/components/ConfirmDialog";
 
-import { pathConfig } from "pages/pathConfig";
-
-import { GamePermission, useGameStore } from "stores/game.store";
+import { GamePermission } from "stores/game.store";
 import { useMenuState } from "stores/menuState";
 
 import { GameType } from "repositories/game.repository";
 
 import { useGameIdOptional } from "../../gamePageLayout/hooks/useGameId";
 import { useGamePermissions } from "../../gamePageLayout/hooks/usePermissions";
+import { useDeleteGame } from "./useDeleteGame";
 
 export interface GameSettingsMenuItemsProps {
   closeMenu: () => void;
@@ -45,11 +43,9 @@ export function GameSettingsMenuItems(props: GameSettingsMenuItemsProps) {
     (state) => state.setIsNotificationSettingsDialogOpen,
   );
 
-  const deleteGame = useGameStore((store) => store.deleteGame);
+  const deleteGame = useDeleteGame();
   const gameId = useGameIdOptional();
   const confirm = useConfirm();
-
-  const navigate = useNavigate();
 
   const confirmDeleteGame = useCallback(() => {
     if (gameId) {
@@ -69,17 +65,13 @@ export function GameSettingsMenuItems(props: GameSettingsMenuItemsProps) {
             closeMenu();
             return;
           }
-          deleteGame(gameId)
-            .then(() => {
-              navigate(pathConfig.gameSelect);
-            })
-            .catch(() => {});
+          deleteGame();
         })
         .catch(() => {
           closeMenu();
         });
     }
-  }, [confirm, gameId, deleteGame, t, closeMenu, navigate]);
+  }, [confirm, gameId, deleteGame, t, closeMenu]);
 
   if (!gameId || gamePermission !== GamePermission.Guide) {
     return null;

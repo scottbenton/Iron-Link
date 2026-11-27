@@ -16,28 +16,22 @@ import { ScreenReaderOnly } from "components/ScreenReaderOnly";
 
 import { useIsMobile } from "hooks/useIsMobile";
 
+import { AppSettingsMenu } from "../AppSettingsMenu";
 import { IronLinkLogo } from "../IronLinkLogo";
-import {
-  LegacyAppSettingsMenu,
-  MenuAdditionComponent,
-} from "./LegacyAppSettingsMenu";
 
 /**
  * The game page's phone bar until slice 9 moves the game page to the
- * library's NavBar. Every other page uses `AppNavBar`.
+ * library's NavBar. Every other page uses `AppNavBar`. Its gear is the app's
+ * one settings menu, into which the game page adds its own sections.
  */
 export interface LegacyNavBarProps {
   goBackTo?: string;
   pageTitle?: string;
   secondLevel?: ReactNode;
-  menuAdditions?: {
-    menuItems?: MenuAdditionComponent[];
-    menuDialogs?: MenuAdditionComponent[];
-  };
 }
 
 export function LegacyNavBar(props: LegacyNavBarProps) {
-  const { goBackTo, pageTitle, secondLevel, menuAdditions } = props;
+  const { goBackTo, pageTitle, secondLevel } = props;
 
   const { t } = useTranslation();
 
@@ -96,10 +90,7 @@ export function LegacyNavBar(props: LegacyNavBarProps) {
                 <IronLinkLogo sx={{ width: 40, height: 40, ml: 2 }} />
               )}
             </Box>
-            <LegacyAppSettingsMenu
-              menuItems={menuAdditions?.menuItems}
-              menuDialogs={menuAdditions?.menuDialogs}
-            />
+            <AppSettingsMenu />
           </Toolbar>
           {secondLevel && <Toolbar>{secondLevel}</Toolbar>}
         </AppBar>
