@@ -1,8 +1,7 @@
 /**
- * The character sheet's assets, read through roles and names so the tests
- * hold on MUI and on the library (migration slice 11): shared assets first,
- * Show all abilities, adding through the picker, deleting with a
- * confirmation, and what a reader without edit rights sees.
+ * The character sheet's assets, read through roles and names: shared
+ * assets first, Show all abilities, adding through the picker, deleting
+ * with a confirmation, and what a reader without edit rights sees.
  */
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";

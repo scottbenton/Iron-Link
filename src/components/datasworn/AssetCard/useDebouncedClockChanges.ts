@@ -10,8 +10,8 @@ import {
 export const CLOCK_SAVE_DELAY_MS = 2000;
 
 /**
- * Holds a clock's clicks for two seconds before saving them, as the sheet's
- * clocks always have, so filling four segments is one write, not four.
+ * Holds a clock's clicks for two seconds before saving them, so filling
+ * four segments is one write, not four.
  * Every other control saves at once. A held value shows straight away and is
  * saved when the card unmounts.
  */

@@ -12,9 +12,8 @@ import ReferencePage from "../ReferencePage";
 import { useReferenceBanner } from "../stores/referenceBanner.store";
 import { useReferenceSettings } from "../stores/referenceSettings.store";
 
-// Characterizes the reference page's asset list (migration slice 11): the
-// asset types as links, one type's cards at a time, each opening its own
-// page, and search across every type.
+// The reference page's asset list: the asset types as links, one type's
+// cards at a time, each opening its own page, and search across every type.
 
 async function renderAt(path: string) {
   await act(async () => {

@@ -1,6 +1,5 @@
 /**
- * The asset card as players use it, read through roles and names so it
- * holds on the MUI card and on the library one (migration slice 11): the
+ * The asset card as players use it, read through roles and names: the
  * name and requirement, abilities that tick, the name option, the health
  * meter with its roll and its Out of Action box, and what a reader without
  * edit rights can do.
