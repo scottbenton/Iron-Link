@@ -1,5 +1,6 @@
 import { Slider as BaseSlider } from "@base-ui/react/slider";
 import { ReactNode, Ref } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
@@ -195,6 +196,7 @@ export function Slider<V extends SliderValue = number>(props: SliderProps<V>) {
     disabled,
     requiredIndicator,
   } = withCssProp(props);
+  const { t } = useTranslation();
 
   const thumbCount = Array.isArray(value ?? defaultValue)
     ? ((value ?? defaultValue) as readonly number[]).length
@@ -202,7 +204,14 @@ export function Slider<V extends SliderValue = number>(props: SliderProps<V>) {
 
   const valueNode = showValue ? (
     <BaseSlider.Value className={valueStyles}>
-      {(formatted) => formatted.join(" to ")}
+      {(formatted) =>
+        formatted.length === 1
+          ? formatted[0]
+          : t("ui.slider.range", "{{from}} to {{to}}", {
+              from: formatted[0],
+              to: formatted[formatted.length - 1],
+            })
+      }
     </BaseSlider.Value>
   ) : undefined;
 

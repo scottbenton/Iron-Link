@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
@@ -259,6 +260,7 @@ const TYPEAHEAD_RESET_MS = 500;
  * siblings, and typing jumps to an item by name.
  */
 export function TreeView<T = unknown>(props: TreeViewProps<T>) {
+  const { t } = useTranslation();
   const {
     items,
     "aria-label": ariaLabel,
@@ -274,7 +276,7 @@ export function TreeView<T = unknown>(props: TreeViewProps<T>) {
     renderActions,
     dense = false,
     disabled: treeDisabled = false,
-    loadingLabel = "Loading",
+    loadingLabel = t("ui.common.loading", "Loading"),
     className,
   } = withCssProp(props);
 

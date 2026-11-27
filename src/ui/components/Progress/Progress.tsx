@@ -1,4 +1,5 @@
 import { Progress as BaseProgress } from "@base-ui/react/progress";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -88,10 +89,11 @@ export interface ProgressProps extends CssProp {
  * `<Progress />`: indeterminate and named "Loading".
  */
 export function Progress(props: ProgressProps) {
+  const { t } = useTranslation();
   const {
     value = null,
     max = 100,
-    label = "Loading",
+    label = t("ui.common.loading", "Loading"),
     showLabel = false,
     showValue = false,
     size,

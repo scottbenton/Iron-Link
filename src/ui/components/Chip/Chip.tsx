@@ -1,5 +1,6 @@
 import { XIcon } from "@phosphor-icons/react";
 import { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { focusRing } from "ui/styles/focus";
@@ -247,6 +248,7 @@ export interface ChipProps extends CssProp {
  * (toggles with `selected`); removable chips add a named remove button.
  */
 export function Chip(props: ChipProps) {
+  const { t } = useTranslation();
   const {
     children,
     variant,
@@ -303,7 +305,11 @@ export function Chip(props: ChipProps) {
           className={removeStyles}
           aria-label={
             removeLabel ??
-            (typeof children === "string" ? `Remove ${children}` : "Remove")
+            (typeof children === "string"
+              ? t("ui.chip.remove-named", "Remove {{label}}", {
+                  label: children,
+                })
+              : t("ui.chip.remove", "Remove"))
           }
           disabled={disabled}
           onClick={onRemove}

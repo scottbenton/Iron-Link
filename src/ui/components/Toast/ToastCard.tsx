@@ -6,6 +6,7 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { css, cva, cx } from "styled-system/css";
 
@@ -116,6 +117,7 @@ export interface ToastCardProps {
  * a Dismiss button.
  */
 export function ToastCard(props: ToastCardProps) {
+  const { t } = useTranslation();
   const {
     tone,
     icon,
@@ -123,7 +125,7 @@ export function ToastCard(props: ToastCardProps) {
     description,
     action,
     onDismiss,
-    dismissLabel = "Dismiss",
+    dismissLabel = t("ui.common.dismiss", "Dismiss"),
     elevated,
     className,
     children,

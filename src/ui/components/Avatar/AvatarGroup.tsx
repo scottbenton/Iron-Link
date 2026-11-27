@@ -1,4 +1,5 @@
 import { CSSProperties, Children, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -33,12 +34,14 @@ export interface AvatarGroupProps extends CssProp {
 
 /** Overlapping avatars with a "+N" count for the rest. */
 export function AvatarGroup(props: AvatarGroupProps) {
+  const { t } = useTranslation();
   const {
     children,
     max = 4,
     size = "md",
     label,
-    moreLabel = (count: number) => `${count} more`,
+    moreLabel = (count: number) =>
+      t("ui.avatar-group.more", "{{count}} more", { count }),
     className,
   } = withCssProp(props);
   const items = Children.toArray(children);

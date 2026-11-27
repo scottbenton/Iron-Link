@@ -14,6 +14,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import { focusRing } from "ui/styles/focus";
 
@@ -318,6 +319,7 @@ export interface SidebarProps
  * and open sections when the reader switches away and back.
  */
 export function Sidebar(props: SidebarProps) {
+  const { t } = useTranslation();
   const {
     panels,
     activePanelId: activePanelIdProp,
@@ -341,12 +343,12 @@ export function Sidebar(props: SidebarProps) {
   } = withCssProp(props);
 
   const {
-    collapse: collapseLabel = "Collapse Sidebar",
-    expand: expandLabel = "Expand Sidebar",
-    dock: dockLabel = "Keep Sidebar Open",
-    closeOverlay: closeOverlayLabel = "Close",
-    resize: resizeLabel = "Resize Sidebar",
-    tabs: tabsLabel = "Sidebar Sections",
+    collapse: collapseLabel = t("ui.sidebar.collapse", "Collapse Sidebar"),
+    expand: expandLabel = t("ui.sidebar.expand", "Expand Sidebar"),
+    dock: dockLabel = t("ui.sidebar.dock", "Keep Sidebar Open"),
+    closeOverlay: closeOverlayLabel = t("ui.common.close", "Close"),
+    resize: resizeLabel = t("ui.sidebar.resize", "Resize Sidebar"),
+    tabs: tabsLabel = t("ui.sidebar.sections", "Sidebar Sections"),
   } = labels ?? {};
 
   const generatedId = useId();

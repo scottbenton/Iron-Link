@@ -1,6 +1,7 @@
 import { Popover as BasePopover } from "@base-ui/react/popover";
 import { XIcon } from "@phosphor-icons/react";
 import { ComponentProps, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { css, cx } from "styled-system/css";
 
@@ -52,12 +53,13 @@ export interface PopoverContentProps {
 
 /** The popover's card: an optional title, description and Close, then content. */
 export function PopoverContent(props: PopoverContentProps) {
+  const { t } = useTranslation();
   const {
     title,
     description,
     children,
     showClose = title !== undefined,
-    closeLabel = "Close",
+    closeLabel = t("ui.common.close", "Close"),
     side = "bottom",
     align = "center",
     sideOffset = 8,
