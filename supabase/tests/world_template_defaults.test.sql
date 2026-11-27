@@ -113,7 +113,8 @@ select is(field->'configuration'->'suggestions',expected::jsonb,key||' location 
  ('elegy','[]')) s(key,expected) using(key) where category_key='locations' and field->>'key'='locationType';
 select ok(field->>'type'='select' and field->'configuration'->>'multiple'='false'
  and field->'configuration'->>'allowOther'='true',key||' location type is an open single select') from catalog_fields where field->>'key'='locationType';
-select is(category->'icon'->>'key',case key when 'forge' then 'GiRingedPlanet' when 'isles' then 'GiCompass' else 'GiWorld' end,
+select is(category->'icon'->>'key',case key when 'forge' then 'GiRingedPlanet' when 'isles' then 'GiCompass'
+ when 'classic' then 'GiDirectionSigns' else 'mui:Map' end,
  key||' uses the selected Locations icon') from catalog_categories where category_key='locations';
 select ok(bool_and(category->'icon'=case category_key
  when 'npcs' then '{"key":"mui:Groups2","color":"blue"}'::jsonb
@@ -131,13 +132,13 @@ select is((select field->>'label' from catalog_fields where key='forge' and fiel
  'Outer First Look','Forge names the outer derelict oracle accurately');
 select is((select count(*) from catalog_fields where key='forge' and category_key='locations' and field->>'label'='Description'),
  1::bigint,'Forge has one conditional Description field');
-select ok((select field->>'key'='starDescription' and field->>'type'='text' and field->>'gm_only'='false'
+select ok((select field->>'key'='description' and field->>'type'='text' and field->>'gm_only'='false'
  and field->'binding'='null'::jsonb and field->'configuration'->>'visible'='false'
  from catalog_fields where key='forge' and field->>'label'='Description'),'Forge Description is public, conditional and editable without an oracle');
 select is((select jsonb_agg(rule->'conditions'->0->'value' order by rule->'conditions'->0->>'value')
- from catalog_rules where key='forge' and field->>'key'='starDescription'),'["Planet","Star"]'::jsonb,
+ from catalog_rules where key='forge' and field->>'key'='description'),'["Planet","Star"]'::jsonb,
  'Forge Description is available for Planets and Stars');
-select is((select rule->'binding'->>'oracleId' from catalog_rules where key='forge' and field->>'key'='starDescription'
+select is((select rule->'binding'->>'oracleId' from catalog_rules where key='forge' and field->>'key'='description'
  and rule->'conditions'->0->>'value'='Star'),'oracle_rollable:starforged/space/stellar_object','Star Description targets its stellar oracle');
 select is((select field->>'type'||':'||(field->'configuration'->>'multiple') from catalog_fields where key='forge' and field->>'key'='derelictLocation'),'select:false',
  'Derelict Location stays a single value for its Type conditions');
@@ -254,7 +255,7 @@ select is((select jsonb_agg(field->'key' order by (field->>'sort_order')::int) f
  from catalog_worlds w join (values
   ('blank','["pronouns","location","tags"]'::jsonb),
   ('classic','["pronouns","location","species","descriptor","role","goal"]'::jsonb),
-  ('forge','["pronouns","callsign","difficulty","location","firstLook","role","disposition","goal","revealedAspect"]'::jsonb),
+  ('forge','["pronouns","callsign","location","firstLook","role","disposition","goal","revealedAspect"]'::jsonb),
   ('isles','["pronouns","location","firstLook","role","disposition","goal"]'::jsonb),
   ('elegy','["pronouns","location","tags","traits","occupation","goal","disposition"]'::jsonb)
  ) expected(world_key,fields) on expected.world_key=w.key;

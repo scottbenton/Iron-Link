@@ -1,16 +1,18 @@
 import CategoryOutlined from "@mui/icons-material/CategoryOutlined";
-import Groups2Icon from "@mui/icons-material/Groups2";
-import { Box, SvgIcon } from "@mui/material";
+import { Box } from "@mui/material";
 import { useEffect, useState } from "react";
 
 import { IconDefinition } from "types/Icon.type";
 
+import { GameIconGlyph } from "./GameIconGlyph";
 import {
-  GROUPS_CATEGORY_ICON_KEY,
   getCategoryIconColor,
+  getCategoryIconPaths,
   getLoadedCategoryIcons,
+  isMaterialCategoryIconKey,
   loadCategoryIcons,
 } from "./categoryIcons";
+import { MaterialCategoryIconGlyph } from "./materialCategoryIcons";
 
 export type WorldCategoryIconSize = "small" | "medium" | "large" | "xlarge";
 
@@ -25,7 +27,13 @@ export function WorldCategoryIcon({
 }) {
   const [icons, setIcons] = useState(getLoadedCategoryIcons);
   useEffect(() => {
-    if (icons || !icon?.key || icon.key === GROUPS_CATEGORY_ICON_KEY) return;
+    if (
+      icons ||
+      !icon?.key ||
+      isMaterialCategoryIconKey(icon.key) ||
+      getCategoryIconPaths(undefined, icon.key)
+    )
+      return;
     let active = true;
     loadCategoryIcons()
       .then((loaded) => {
@@ -37,7 +45,7 @@ export function WorldCategoryIcon({
     };
   }, [icons, icon?.key]);
   if (!icon?.key) return null;
-  const Icon = icon?.key ? icons?.[icon.key] : undefined;
+  const paths = getCategoryIconPaths(icons, icon.key);
   const box = { small: 24, medium: 30, large: 48, xlarge: 72 }[size];
   const glyph = { small: 20, medium: 20, large: 32, xlarge: 48 }[size];
   return (
@@ -55,10 +63,13 @@ export function WorldCategoryIcon({
         color: getCategoryIconColor(icon.color, theme.palette.mode),
       })}
     >
-      {icon.key === GROUPS_CATEGORY_ICON_KEY ? (
-        <Groups2Icon sx={{ fontSize: glyph }} />
-      ) : Icon ? (
-        <SvgIcon component={Icon} inheritViewBox sx={{ fontSize: glyph }} />
+      {isMaterialCategoryIconKey(icon.key) ? (
+        <MaterialCategoryIconGlyph
+          iconKey={icon.key}
+          sx={{ fontSize: glyph }}
+        />
+      ) : paths ? (
+        <GameIconGlyph paths={paths} sx={{ fontSize: glyph }} />
       ) : (
         <CategoryOutlined sx={{ fontSize: glyph }} />
       )}
