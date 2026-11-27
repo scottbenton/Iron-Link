@@ -411,8 +411,6 @@ export default function ReferencePage() {
       flex={fillsScreen ? "1 1 0" : "1 0 auto"}
       minHeight={fillsScreen ? "0" : undefined}
       width="100%"
-      maxWidth={referencePageMaxWidth}
-      marginInline="auto"
     >
       <Box as="h1" srOnly>
         {t("reference.title", "Reference")}
@@ -423,6 +421,7 @@ export default function ReferencePage() {
       <PageTabs
         ref={systemTabsRef}
         aria-label={t("reference.tabs.systems", "Rules")}
+        contentWidth={referencePageMaxWidth}
       >
         {referenceTabs.map((referenceTab) => (
           <PageTab
@@ -441,6 +440,7 @@ export default function ReferencePage() {
       <PageTabs
         variant="well"
         aria-label={t("reference.tabs.sections", "Sections")}
+        contentWidth={referencePageMaxWidth}
       >
         {referenceSections.map((referenceSection) => (
           <PageTab
@@ -454,43 +454,56 @@ export default function ReferencePage() {
           </PageTab>
         ))}
       </PageTabs>
-      {note && (
-        <Alert tone="info" css={{ marginInline: "4", marginBlockStart: "4" }}>
-          {t("reference.switch-note", "Opened the {{tab}} tab for this link.", {
-            tab: referenceTabMap[note.toTabId].label,
-          })}{" "}
-          <Link
-            render={
-              <LinkComponent
-                href={getTabHref(note.fromTabId, currentSection)}
-              />
-            }
+      <Stack
+        gap="0"
+        flex={fillsScreen ? "1 1 0" : "1 0 auto"}
+        minHeight={fillsScreen ? "0" : undefined}
+        width="100%"
+        maxWidth={referencePageMaxWidth}
+        marginInline="auto"
+      >
+        {note && (
+          <Alert tone="info" css={{ marginInline: "4", marginBlockStart: "4" }}>
+            {t(
+              "reference.switch-note",
+              "Opened the {{tab}} tab for this link.",
+              {
+                tab: referenceTabMap[note.toTabId].label,
+              },
+            )}{" "}
+            <Link
+              render={
+                <LinkComponent
+                  href={getTabHref(note.fromTabId, currentSection)}
+                />
+              }
+            >
+              {t("reference.switch-note-back", "Back to {{tab}}", {
+                tab: referenceTabMap[note.fromTabId].label,
+              })}
+            </Link>
+          </Alert>
+        )}
+        <DataswornLinkHandlerProvider onOpen={handleOpenLink}>
+          <Stack
+            gap="0"
+            flex={fillsScreen ? "1 1 0" : "1 0 auto"}
+            minHeight={fillsScreen ? "0" : undefined}
+            paddingInline={isBrowseSection ? "0" : "4"}
+            paddingBlockStart={isBrowseSection ? "0" : "4"}
+            paddingBlockEnd={isBrowseSection ? "0" : "8"}
           >
-            {t("reference.switch-note-back", "Back to {{tab}}", {
-              tab: referenceTabMap[note.fromTabId].label,
-            })}
-          </Link>
-        </Alert>
-      )}
-      <DataswornLinkHandlerProvider onOpen={handleOpenLink}>
-        <Stack
-          gap="0"
-          flex={fillsScreen ? "1 1 0" : "1 0 auto"}
-          minHeight={fillsScreen ? "0" : undefined}
-          paddingInline={isBrowseSection ? "0" : "4"}
-          paddingBlockStart={isBrowseSection ? "0" : "4"}
-          paddingBlockEnd={isBrowseSection ? "0" : "8"}
-        >
-          {content}
-        </Stack>
-      </DataswornLinkHandlerProvider>
-      <ReferenceBanner
-        onDismiss={() =>
-          systemTabsRef.current
-            ?.querySelector<HTMLElement>('[aria-current="page"]')
-            ?.focus()
-        }
-      />
+            {content}
+          </Stack>
+        </DataswornLinkHandlerProvider>
+        <ReferenceBanner
+          onDismiss={() =>
+            systemTabsRef.current
+              ?.querySelector<HTMLElement>('[aria-current="page"]')
+              ?.focus()
+          }
+        />
+      </Stack>
     </Stack>
   );
 }

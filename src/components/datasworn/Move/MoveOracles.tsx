@@ -34,7 +34,7 @@ export function MoveOracles(props: MoveOraclesProps) {
   const hideTableNames = entries.length === 1;
 
   return (
-    <Stack gap="3" marginBlockStart="2">
+    <Stack gap="4" marginBlockStart="2">
       <Flex
         role="group"
         aria-label={t("datasworn.move-oracle-rolls", "{{moveName}} rolls", {
