@@ -31,8 +31,6 @@ the file under 150 lines; to add one past that, cut a weaker one.
   in GitHub environments.
 - After changing a world template migration, run
   `npm run generate:world-defaults`, then `generate:bundled-game-icons`.
-- Storybook deploys from `.github/workflows/storybook.yaml` to its own Pages
-  project (`iron-link-storybook`), one preview address per branch.
 
 ## Permissions and data
 
