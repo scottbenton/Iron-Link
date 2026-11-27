@@ -105,11 +105,28 @@ describe("PlaysetDialog", () => {
     expect(character).toHaveAttribute("aria-disabled", "true");
   });
 
-  it("does not offer the cursed die setting", async () => {
-    // Sundered Isles has cursed tables, but the editor looks for a tag no
-    // package uses, so the setting never shows.
+  it("offers the cursed die setting with Sundered Isles, and saves it", async () => {
+    // Fixed in slice 8: the editor used to look for a tag no package
+    // defines, so the setting never showed.
     const user = userEvent.setup();
     renderDialog();
+    await openSection(user, "Assets", "Companion Assets");
+
+    const cursedDie = screen.getByRole("checkbox", {
+      name: "Automatically Roll Cursed Die?",
+    });
+    expect(cursedDie).toBeChecked();
+    await user.click(screen.getByText("Automatically Roll Cursed Die?"));
+    expect(cursedDie).not.toBeChecked();
+
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    const saved = setPlayset.mock.calls[0][0] as PlaysetConfig;
+    expect(saved.disableAutomaticCursedDieRolls).toBe(true);
+  });
+
+  it("does not offer the cursed die setting without Sundered Isles", async () => {
+    const user = userEvent.setup();
+    renderDialog({ expansions: {} });
     await openSection(user, "Assets", "Companion Assets");
 
     expect(

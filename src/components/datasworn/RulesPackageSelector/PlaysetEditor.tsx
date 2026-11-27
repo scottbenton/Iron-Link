@@ -40,12 +40,13 @@ export function PlaysetEditor(props: PlaysetEditorProps) {
 
   const packages = usePlaysetPackages(rulesets, expansions);
 
-  // Kept as found: no package has this tag, so the setting never shows.
-  // Sundered Isles tags its tables `curse` and `cursed_by` (changes.md).
+  // A package that defines the `cursed_by` tag has oracles with cursed
+  // alternatives (Sundered Isles). `cursed_version_of` sits on the oracles
+  // themselves and is never a package-level tag definition.
   const showCursedDieOptions = useMemo(
     () =>
       Object.values(packages.data).some(
-        (rulesPackage) => !!rulesPackage.rules?.tags?.cursed_version_of,
+        (rulesPackage) => !!rulesPackage.rules?.tags?.cursed_by,
       ),
     [packages.data],
   );
