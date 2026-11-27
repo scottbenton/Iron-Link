@@ -11,30 +11,39 @@ interface RootCollections {
   rootCollectionIds: string[];
 }
 
-export interface ReferenceTreeOptions {
-  // Hides items and collections, such as sources turned off.
-  isVisible: (id: string) => boolean;
-  // Package ids in the order their groups should show.
-  packageOrder: string[];
+export interface DataswornTreeOptions {
+  // Hides items and collections, such as sources turned off. Without it,
+  // everything shows.
+  isVisible?: (id: string) => boolean;
+  // Package ids in the order their groups should show. Packages it leaves
+  // out follow, in their stored order.
+  packageOrder?: string[];
   // The item open beside the list; the collections around it start open.
-  selectedId: string | undefined;
+  selectedId?: string;
 }
 
-// The tree the reference lists: filtered by source, its groups in the tab's
-// order, and the collections around the open item noted so they start open.
-export function useReferenceTree<
+const showEverything = () => true;
+const noOrder: string[] = [];
+
+// The tree a list shows: filtered, its groups in order, and the collections
+// around the open item noted so they start open.
+export function useFilteredTree<
   Root extends RootCollections,
   Collection extends DataswornTreeCollection,
 >(
   rootCollections: Record<string, Root>,
   collectionMap: Record<string, Collection>,
-  options: ReferenceTreeOptions,
+  options: DataswornTreeOptions,
 ): {
   rootCollections: Record<string, Root>;
   collectionMap: Record<string, Collection>;
   openCollectionIds: Set<string>;
 } {
-  const { isVisible, packageOrder, selectedId } = options;
+  const {
+    isVisible = showEverything,
+    packageOrder = noOrder,
+    selectedId,
+  } = options;
 
   const filtered = useMemo(() => {
     const order = (id: string) => {

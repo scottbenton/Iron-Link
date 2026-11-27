@@ -1,4 +1,5 @@
 import { Datasworn } from "@datasworn-community/core";
+import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
 
 import { countVisibleItems } from "components/datasworn/_helpers/countVisibleItems";
@@ -9,38 +10,40 @@ import {
   ReferenceCategory,
 } from "ui/game/ReferenceCategory";
 
-import { ReferenceOracleRow } from "./ReferenceOracleRow";
-import { useReferenceTreeContext } from "./referenceTreeContext";
-import { getOracleCountLabel } from "./referenceTreeCopy";
 import {
-  getCollectionVisibility,
-  isItemVisible,
-} from "./referenceTreeVisibility";
+  RenderOracleRow,
+  useDataswornTreeContext,
+} from "./dataswornTreeContext";
+import { getOracleCountLabel } from "./dataswornTreeCopy";
 import { isSharedTextCollection } from "./sharedTextCollections";
+import { getCollectionVisibility, isItemVisible } from "./treeVisibility";
 import { useCategoryOpenState } from "./useCategoryOpenState";
 
-export interface ReferenceOracleCollectionProps {
+export interface DataswornOracleCollectionProps {
   collectionId: string;
   collectionMap: Record<string, Datasworn.OracleCollection>;
+  renderOracle: RenderOracleRow;
   // Under a collection whose name the filter matched, everything shows.
   isParentFullyVisible?: boolean;
   // A top-level collection's heading level; nested ones follow their parent.
   headingLevel?: CategoryHeadingLevel;
 }
 
-// An oracle collection in the reference's list. A shared-text table is one
-// row, listed before the collection's other sub-collections.
-export function ReferenceOracleCollection(
-  props: ReferenceOracleCollectionProps,
+// An oracle collection in a list of oracles, each oracle drawn by
+// `renderOracle`. A shared-text table is one row, listed before the
+// collection's other sub-collections.
+export function DataswornOracleCollection(
+  props: DataswornOracleCollectionProps,
 ) {
   const {
     collectionId,
     collectionMap,
+    renderOracle,
     isParentFullyVisible = false,
     headingLevel,
   } = props;
   const { t } = useTranslation();
-  const { search, visibilitySettings } = useReferenceTreeContext();
+  const { search, selectedId, visibilitySettings } = useDataswornTreeContext();
   const [isOpen, setIsOpen] = useCategoryOpenState(collectionId);
 
   const collection = collectionMap[collectionId];
@@ -55,7 +58,10 @@ export function ReferenceOracleCollection(
   }
 
   if (isSharedTextCollection(collection)) {
-    return <ReferenceOracleRow id={collection._id} name={collection.name} />;
+    return renderOracle(
+      { id: collection._id, name: collection.name, canRoll: false },
+      { current: selectedId === collection._id },
+    );
   }
 
   const isFullyVisible = visibility === CollectionVisibility.All;
@@ -87,18 +93,19 @@ export function ReferenceOracleCollection(
           isItemVisible(oracle._id, visibility, visibilitySettings),
         )
         .map((oracle) => (
-          <ReferenceOracleRow
-            key={oracle._id}
-            id={oracle._id}
-            name={oracle.name}
-            canRoll
-          />
+          <Fragment key={oracle._id}>
+            {renderOracle(
+              { id: oracle._id, name: oracle.name, canRoll: true },
+              { current: selectedId === oracle._id },
+            )}
+          </Fragment>
         ))}
       {subCollections.map((subCollection) => (
-        <ReferenceOracleCollection
+        <DataswornOracleCollection
           key={subCollection._id}
           collectionId={subCollection._id}
           collectionMap={collectionMap}
+          renderOracle={renderOracle}
           isParentFullyVisible={isFullyVisible}
         />
       ))}

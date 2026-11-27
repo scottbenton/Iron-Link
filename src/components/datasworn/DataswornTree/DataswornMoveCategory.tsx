@@ -1,45 +1,42 @@
 import { Datasworn } from "@datasworn-community/core";
+import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
 
-import { LinkComponent } from "components/LinkComponent";
 import { countVisibleItems } from "components/datasworn/_helpers/countVisibleItems";
 import { CollectionVisibility } from "components/datasworn/_helpers/getCollectionVisibility";
 
-import { MoveListItem } from "ui/game/MoveListItem";
 import {
   CategoryHeadingLevel,
   ReferenceCategory,
 } from "ui/game/ReferenceCategory";
 
-import { getReferenceItemHref } from "../../data/referencePaths";
-import { useReferenceTreeContext } from "./referenceTreeContext";
-import { getMoveCountLabel } from "./referenceTreeCopy";
-import {
-  getCollectionVisibility,
-  isItemVisible,
-} from "./referenceTreeVisibility";
+import { RenderMoveRow, useDataswornTreeContext } from "./dataswornTreeContext";
+import { getMoveCountLabel } from "./dataswornTreeCopy";
+import { getCollectionVisibility, isItemVisible } from "./treeVisibility";
 import { useCategoryOpenState } from "./useCategoryOpenState";
 
-export interface ReferenceMoveCategoryProps {
+export interface DataswornMoveCategoryProps {
   categoryId: string;
   categoryMap: Record<string, Datasworn.MoveCategory>;
+  renderMove: RenderMoveRow;
   // Under a category whose name the filter matched, everything shows.
   isParentFullyVisible?: boolean;
   // A top-level category's heading level; nested ones follow their parent.
   headingLevel?: CategoryHeadingLevel;
 }
 
-// A move category in the reference's list: its moves are links to their
-// pages, and its sub-categories nest inside it.
-export function ReferenceMoveCategory(props: ReferenceMoveCategoryProps) {
+// A move category in a list of moves: its moves, each drawn by `renderMove`,
+// then its sub-categories nested inside it.
+export function DataswornMoveCategory(props: DataswornMoveCategoryProps) {
   const {
     categoryId,
     categoryMap,
+    renderMove,
     isParentFullyVisible = false,
     headingLevel,
   } = props;
   const { t } = useTranslation();
-  const { search, selectedId, visibilitySettings } = useReferenceTreeContext();
+  const { search, selectedId, visibilitySettings } = useDataswornTreeContext();
   const [isOpen, setIsOpen] = useCategoryOpenState(categoryId);
 
   const category = categoryMap[categoryId];
@@ -73,20 +70,16 @@ export function ReferenceMoveCategory(props: ReferenceMoveCategoryProps) {
           isItemVisible(move._id, visibility, visibilitySettings),
         )
         .map((move) => (
-          <MoveListItem
-            key={move._id}
-            move={move}
-            render={
-              <LinkComponent href={getReferenceItemHref(move._id) ?? ""} />
-            }
-            current={selectedId === move._id}
-          />
+          <Fragment key={move._id}>
+            {renderMove(move, { current: selectedId === move._id })}
+          </Fragment>
         ))}
       {Object.values(category.collections).map((subCategory) => (
-        <ReferenceMoveCategory
+        <DataswornMoveCategory
           key={subCategory._id}
           categoryId={subCategory._id}
           categoryMap={categoryMap}
+          renderMove={renderMove}
           isParentFullyVisible={isFullyVisible}
         />
       ))}

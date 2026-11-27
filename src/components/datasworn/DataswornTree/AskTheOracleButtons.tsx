@@ -7,12 +7,12 @@ import { HStack, Stack } from "ui/primitives";
 
 import { askTheOracleIds, askTheOracleLabels } from "data/askTheOracle";
 
-export interface ReferenceAskTheOracleProps {
+export interface AskTheOracleButtonsProps {
   rollOracle: (oracleId: string) => void;
 }
 
 // The yes or no oracles, one button per likelihood.
-export function ReferenceAskTheOracle(props: ReferenceAskTheOracleProps) {
+export function AskTheOracleButtons(props: AskTheOracleButtonsProps) {
   const { rollOracle } = props;
   const { t } = useTranslation();
   const labelId = useId();

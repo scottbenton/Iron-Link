@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { useReferenceTreeContext } from "./referenceTreeContext";
+import { useDataswornTreeContext } from "./dataswornTreeContext";
 
 // Whether a category is open. It starts open when it holds the open item,
 // and opens again when another item inside it is opened. While the filter
@@ -9,7 +9,7 @@ import { useReferenceTreeContext } from "./referenceTreeContext";
 export function useCategoryOpenState(
   collectionId: string,
 ): [boolean, (open: boolean) => void] {
-  const { openCollectionIds, selectedId, search } = useReferenceTreeContext();
+  const { openCollectionIds, selectedId, search } = useDataswornTreeContext();
   const containsSelectedItem = openCollectionIds.has(collectionId);
 
   const [isOpen, setIsOpen] = useState(containsSelectedItem);

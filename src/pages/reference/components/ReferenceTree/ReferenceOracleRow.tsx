@@ -1,35 +1,36 @@
 import { useTranslation } from "react-i18next";
 
 import { LinkComponent } from "components/LinkComponent";
+import {
+  DataswornOracleRowItem,
+  DataswornTreeRowState,
+} from "components/datasworn/DataswornTree";
 
 import { IconButton } from "ui/components/IconButton";
 import { OracleListItem } from "ui/game/OracleListItem";
 import { DiceFiveIcon } from "ui/icons";
 
 import { getReferenceItemHref } from "../../data/referencePaths";
-import { useReferenceTreeContext } from "./referenceTreeContext";
 
-export interface ReferenceOracleRowProps {
-  id: string;
-  name: string;
-  // A single table rolls from its row; a shared-text table opens to roll.
-  canRoll?: boolean;
+export interface ReferenceOracleRowProps
+  extends DataswornOracleRowItem,
+    DataswornTreeRowState {
+  rollOracle: (oracleId: string) => void;
 }
 
 // An oracle in the reference's list: a link to its page, with a quick roll
 // beside it.
 export function ReferenceOracleRow(props: ReferenceOracleRowProps) {
-  const { id, name, canRoll = false } = props;
+  const { id, name, canRoll, current, rollOracle } = props;
   const { t } = useTranslation();
-  const { selectedId, rollOracle } = useReferenceTreeContext();
 
   return (
     <OracleListItem
       name={name}
       render={<LinkComponent href={getReferenceItemHref(id) ?? ""} />}
-      current={selectedId === id}
+      current={current}
       secondaryAction={
-        canRoll && rollOracle ? (
+        canRoll ? (
           <IconButton
             size="sm"
             label={t("reference.oracles.roll-named", "Roll {{name}}", {
