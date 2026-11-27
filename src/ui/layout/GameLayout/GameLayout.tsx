@@ -19,7 +19,7 @@ import { Sidebar, SidebarProps } from "../Sidebar";
 import { PageWidth, contentRailStyles } from "../shared/contentRail";
 import { LayoutPanel } from "../shared/layoutPanel";
 import { srOnlyStyles } from "../shared/sectionTabs";
-import { gameRailMarginStyles } from "./gameRailMargins";
+import { gameRailFrameStyles, gameRailMarginStyles } from "./gameRailMargins";
 
 const rootStyles = css({
   boxSizing: "border-box",
@@ -177,7 +177,8 @@ export interface GameLayoutProps {
   /**
    * The widest the tabs and columns get, centred beyond it: the page rail's
    * xl (1440px) by default, so the notes don't stretch across a wide
-   * monitor. Past it the margins are the nav rail's dark gray.
+   * monitor. Past it the page is bordered, with the nav rail's dark gray
+   * beyond.
    * `none` fills the window.
    */
   maxWidth?: PageWidth | "none";
@@ -210,6 +211,7 @@ export function GameLayout(props: GameLayoutProps) {
   } = props;
   const rail =
     maxWidth === "none" ? undefined : contentRailStyles({ maxWidth });
+  const frame = maxWidth === "none" ? undefined : gameRailFrameStyles[maxWidth];
 
   const idPrefix = `game${useId().replace(/:/g, "")}`;
   const mainHeadingId = main.headingId ?? `${idPrefix}-main-heading`;
@@ -459,9 +461,9 @@ export function GameLayout(props: GameLayoutProps) {
       )}
     >
       {bannerSlot}
-      {tabs && <div className={cx(tabsRowStyles, rail)}>{tabs}</div>}
+      {tabs && <div className={cx(tabsRowStyles, rail, frame)}>{tabs}</div>}
       <div
-        className={cx(bodyStyles, rail)}
+        className={cx(bodyStyles, rail, frame)}
         style={
           {
             "--game-main-min-width": `${mainMinWidth}px`,
