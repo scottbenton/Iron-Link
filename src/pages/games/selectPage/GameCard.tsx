@@ -5,6 +5,7 @@ import { LinkComponent } from "components/LinkComponent";
 
 import { Card, CardHeader, CardLinkOverlay } from "ui/components/Card";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
+import { GlobeHemisphereWestIcon } from "ui/icons";
 import { Box } from "ui/primitives";
 
 import { pathConfig } from "pages/pathConfig";
@@ -31,6 +32,12 @@ export function GameCard(props: GameCardProps) {
   const hasCharacters =
     !!gameCharacters && Object.keys(gameCharacters).length > 0;
 
+  const worldName = useUsersGames((store) =>
+    game.worldId ? store.worldNames[game.worldId] : undefined,
+  );
+
+  // Rules packages don't say which setting a game is played in (a Sundered
+  // Isles game may be in the Forge), so a linked world names it instead.
   const rulesPackageString = useMemo(
     () => getGameRulesPackageNames(game.rulesets, game.expansions).join(", "),
     [game.rulesets, game.expansions],
@@ -72,11 +79,24 @@ export function GameCard(props: GameCardProps) {
         subtitle={
           <Box
             as="span"
+            display="inline-flex"
+            alignItems="center"
+            gap="1"
             fontFamily="heading"
             textTransform="uppercase"
             letterSpacing="label"
           >
-            {rulesPackageString}
+            {worldName ? (
+              <>
+                <GlobeHemisphereWestIcon aria-hidden />
+                <VisuallyHidden>
+                  {t("game.list.world-label", "World:")}{" "}
+                </VisuallyHidden>
+                {worldName}
+              </>
+            ) : (
+              rulesPackageString
+            )}
           </Box>
         }
       />

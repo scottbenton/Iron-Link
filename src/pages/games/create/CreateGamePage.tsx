@@ -80,10 +80,10 @@ export default function CreateGamePage() {
 
   return (
     <>
-      <PageHeader title={title} />
-      <PageContent>
+      <PageHeader title={title} maxWidth="md" />
+      <PageContent maxWidth="md">
         <SyncRulesPackages />
-        <Form onSubmit={handleSubmit} gap="6" css={{ maxWidth: "900px" }}>
+        <Form onSubmit={handleSubmit} gap="6">
           <Stepper
             aria-label={t("game.create.steps-label", "Steps")}
             steps={steps.map((stepConfig) => ({ label: stepConfig.label }))}

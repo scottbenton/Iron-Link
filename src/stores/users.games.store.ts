@@ -5,11 +5,13 @@ import { createWithEqualityFn } from "zustand/traditional";
 
 import { CharacterService, ICharacter } from "services/character.service";
 import { GameService, IGame } from "services/game.service";
+import { WorldsService } from "services/worlds.service";
 
 import { useUID } from "./auth.store";
 
 export interface GameCharacterDisplayDetails {
   name: string;
+  colorScheme: ICharacter["colorScheme"];
   profileImageSettings: ICharacter["profileImage"];
   profileImageURL: string | null;
   uid: string;
@@ -21,6 +23,8 @@ interface UsersGamesState {
     string,
     Record<string, GameCharacterDisplayDetails>
   >;
+  /** World id to name, for the worlds the games are linked to. */
+  worldNames: Record<string, string>;
   loading: boolean;
   error?: Error;
 }
@@ -32,6 +36,7 @@ interface UsersGamesActions {
 const defaultValues: UsersGamesState = {
   games: {},
   characterDisplayDetails: {},
+  worldNames: {},
   loading: true,
 };
 
@@ -49,6 +54,22 @@ export const useUsersGames = createWithEqualityFn<
           state.games = games;
           state.error = undefined;
         });
+
+        const worldIds = [
+          ...new Set(
+            Object.values(games)
+              .map((game) => game.worldId)
+              .filter((worldId): worldId is string => !!worldId),
+          ),
+        ];
+        // The world names are extra: a failed read leaves the cards on
+        // their rules instead of failing the list.
+        const worldNamesPromise = WorldsService.getWorldNames(worldIds).catch(
+          (e) => {
+            console.error(e);
+            return {};
+          },
+        );
 
         const characterMap = await CharacterService.getCharactersInGames(
           Object.keys(games),
@@ -78,6 +99,7 @@ export const useUsersGames = createWithEqualityFn<
               }
               characterDisplayDetails[character.gameId][characterId] = {
                 name: character.name,
+                colorScheme: character.colorScheme,
                 profileImageSettings: character.profileImage,
                 profileImageURL: portraitURLs[characterId] ?? null,
                 uid: character.uid,
@@ -85,6 +107,11 @@ export const useUsersGames = createWithEqualityFn<
             }
           });
           state.characterDisplayDetails = characterDisplayDetails;
+        });
+
+        const worldNames = await worldNamesPromise;
+        set((state) => {
+          state.worldNames = worldNames;
         });
       } catch (e) {
         console.error(e);

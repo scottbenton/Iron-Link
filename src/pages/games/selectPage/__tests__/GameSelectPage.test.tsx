@@ -19,6 +19,7 @@ interface MockGamesState {
     string,
     Record<string, GameCharacterDisplayDetails>
   >;
+  worldNames: Record<string, string>;
   loading: boolean;
   error?: Error;
 }
@@ -27,6 +28,7 @@ const mocks = vi.hoisted(() => ({
   state: {
     games: {},
     characterDisplayDetails: {},
+    worldNames: {},
     loading: false,
   } as MockGamesState,
   loadUsersGames: vi.fn(),
@@ -65,7 +67,13 @@ function game(overrides: Partial<IGame>): IGame {
 }
 
 function character(name: string, uid = "someone"): GameCharacterDisplayDetails {
-  return { name, uid, profileImageSettings: null, profileImageURL: null };
+  return {
+    name,
+    uid,
+    colorScheme: null,
+    profileImageSettings: null,
+    profileImageURL: null,
+  };
 }
 
 /** A game's card: the list item holding its h2. */
@@ -86,7 +94,12 @@ function renderPage() {
 }
 
 beforeEach(() => {
-  mocks.state = { games: {}, characterDisplayDetails: {}, loading: false };
+  mocks.state = {
+    games: {},
+    characterDisplayDetails: {},
+    worldNames: {},
+    loading: false,
+  };
   mocks.loadUsersGames.mockClear();
 });
 
@@ -202,5 +215,31 @@ describe("GameSelectPage", () => {
     expect(
       within(card).getByText("Characters: Ada, Bryn, Cass, Dax, Eir, Fen"),
     ).toBeInTheDocument();
+  });
+
+  it("names a linked world in place of the rules", () => {
+    mocks.state.games = {
+      linked: game({
+        id: "linked",
+        name: "Linked",
+        worldId: "w1",
+        rulesets: { starforged: true },
+      }),
+      // A world the reader cannot see, or still loading: the rules stay.
+      unread: game({
+        id: "unread",
+        name: "Unread",
+        worldId: "w2",
+        rulesets: { starforged: true },
+      }),
+    };
+    mocks.state.worldNames = { w1: "The Forge" };
+    renderPage();
+
+    const linked = getCard("Linked");
+    expect(within(linked).getByText("The Forge")).toBeVisible();
+    expect(within(linked).getByText("World:")).toBeInTheDocument();
+    expect(within(linked).queryByText("Starforged")).not.toBeInTheDocument();
+    expect(within(getCard("Unread")).getByText("Starforged")).toBeVisible();
   });
 });

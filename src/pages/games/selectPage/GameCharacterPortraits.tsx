@@ -1,4 +1,7 @@
+import { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
+
+import { uiSchemeNames } from "providers/ThemeProvider/uiSchemeNames";
 
 import { CharacterPortrait, PortraitSize } from "ui/game/CharacterPortrait";
 import { Box } from "ui/primitives";
@@ -10,10 +13,19 @@ export interface GameCharacterPortraitsProps {
   gameCharacterDetails: Record<string, GameCharacterDisplayDetails>;
 }
 
+// Four to a square: 42px tiles with a 4px gap and a thinner ring, so the
+// rings of neighbouring tiles read as four edges, not a heavy grid. The +N
+// tile below draws the same size and ring.
+const tileStyle = {
+  "--portrait-size": "42px",
+  "--portrait-ring-width": "1.5px",
+} as CSSProperties;
+
 /**
  * A game's characters in one 88px square: one large portrait, two
- * overlapping, or up to four small ones (three and a count past four).
- * Pictures only: GameCard names the characters in text.
+ * overlapping, or up to four small ones (three and a count past four), each
+ * ringed in its character's colour scheme. Pictures only: GameCard names the
+ * characters in text.
  */
 export function GameCharacterPortraits(props: GameCharacterPortraitsProps) {
   const { gameCharacterDetails } = props;
@@ -36,10 +48,15 @@ export function GameCharacterPortraits(props: GameCharacterPortraitsProps) {
   const portrait = (
     [characterId, details]: (typeof characters)[number],
     size: PortraitSize,
+    style?: CSSProperties,
   ) => (
     <CharacterPortrait
       key={characterId}
       name={details.name}
+      colorScheme={
+        details.colorScheme ? uiSchemeNames[details.colorScheme] : undefined
+      }
+      style={style}
       portraitUrl={details.profileImageURL ?? undefined}
       crop={details.profileImageSettings ?? undefined}
       size={size}
@@ -85,24 +102,22 @@ export function GameCharacterPortraits(props: GameCharacterPortraitsProps) {
       flexWrap="wrap"
       alignContent="center"
       justifyContent="center"
+      gap="4px"
       flex="none"
       width="88px"
       height="88px"
     >
-      {shown.map((character) => portrait(character, "md"))}
+      {shown.map((character) => portrait(character, "md", tileStyle))}
       {characters.length > 4 && (
         <Box
           as="span"
           aria-hidden
           display="grid"
           placeItems="center"
-          width="44px"
-          height="44px"
-          boxSizing="border-box"
+          width="42px"
+          height="42px"
           borderRadius="md"
-          borderWidth="1px"
-          borderStyle="solid"
-          borderColor="border.default"
+          boxShadow="inset 0 0 0 1.5px token(colors.border.control)"
           bg="bg.muted"
           color="fg.muted"
           fontFamily="heading"
