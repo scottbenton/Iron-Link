@@ -10,10 +10,12 @@ export const contentRailStyles = cva({
   variants: {
     maxWidth: {
       sm: { maxWidth: "640px" },
+      md: { maxWidth: "960px" },
       xl: { maxWidth: "1440px" },
     },
   },
   defaultVariants: { maxWidth: "xl" },
 });
 
-export type PageWidth = "sm" | "xl";
+/** sm 640px for forms, md 960px for reading, xl 1440px for everything else. */
+export type PageWidth = "sm" | "md" | "xl";

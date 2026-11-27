@@ -1,9 +1,13 @@
-import { Alert, AlertTitle, Button, Divider, Stack } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DiscordIcon } from "assets/DiscordIcon";
 import { GoogleIcon } from "assets/GoogleIcon";
+
+import { Alert } from "ui/components/Alert";
+import { Button } from "ui/components/Button";
+import { Divider } from "ui/components/Divider";
+import { Stack } from "ui/primitives";
 
 import { useAuthStore } from "stores/auth.store";
 
@@ -70,19 +74,19 @@ export function SocialLoginOptions() {
   }
 
   return (
-    <Stack spacing={2}>
+    <Stack gap="4">
       {errorMessage && (
-        <Alert severity={"error"}>
-          <AlertTitle>
-            {t("auth.oauth-error-title", "Could Not Sign In")}
-          </AlertTitle>
+        <Alert
+          tone="danger"
+          role="alert"
+          title={t("auth.oauth-error-title", "Could Not Sign In")}
+        >
           {errorMessage}
         </Alert>
       )}
       <Button
-        variant={"outlined"}
-        color={"inherit"}
-        size={"large"}
+        variant="outline"
+        fullWidth
         startIcon={<GoogleIcon />}
         onClick={() => handleSignIn("google")}
         disabled={!!loadingProvider}
@@ -90,9 +94,8 @@ export function SocialLoginOptions() {
         {t("auth.continue-with-google", "Continue with Google")}
       </Button>
       <Button
-        variant={"outlined"}
-        color={"inherit"}
-        size={"large"}
+        variant="outline"
+        fullWidth
         startIcon={<DiscordIcon />}
         onClick={() => handleSignIn("discord")}
         disabled={!!loadingProvider}

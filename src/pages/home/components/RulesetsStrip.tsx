@@ -1,5 +1,8 @@
-import { Box, Chip, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
+
+import { Chip } from "ui/components/Chip";
+import { Text } from "ui/components/Text";
+import { Flex } from "ui/primitives";
 
 export function RulesetsStrip() {
   const { t } = useTranslation();
@@ -11,26 +14,13 @@ export function RulesetsStrip() {
   ];
 
   return (
-    <Box
-      display="flex"
-      flexWrap="wrap"
-      alignItems="center"
-      justifyContent="center"
-      gap={1}
-    >
-      <Typography
-        variant="overline"
-        component="p"
-        color="primary"
-        fontFamily={(theme) => theme.typography.fontFamilyTitle}
-        letterSpacing={2}
-        mr={1}
-      >
+    <Flex flexWrap="wrap" alignItems="center" justifyContent="center" gap="2">
+      <Text variant="eyebrow" css={{ marginInlineEnd: "2" }}>
         {t("home.rulesets.eyebrow", "Supports")}
-      </Typography>
+      </Text>
       {rulesets.map((ruleset) => (
-        <Chip key={ruleset} label={ruleset} variant="outlined" />
+        <Chip key={ruleset}>{ruleset}</Chip>
       ))}
-    </Box>
+    </Flex>
   );
 }

@@ -5,7 +5,7 @@ import { css, cx } from "styled-system/css";
 import { Text } from "../../components/Text";
 import { CssProp, withCssProp } from "../../styles/cssProp";
 import { Subtitle } from "../Subtitle";
-import { contentRailStyles } from "../shared/contentRail";
+import { PageWidth, contentRailStyles } from "../shared/contentRail";
 import { pageInset } from "../shared/shell";
 
 const rootStyles = css({
@@ -118,6 +118,8 @@ const actionsStyles = css({
 });
 
 export interface PageHeaderProps extends CssProp {
+  /** The rail's width; match the PageContent under it. */
+  maxWidth?: PageWidth;
   /** The page's title. */
   title: ReactNode;
   /**
@@ -165,6 +167,7 @@ export function PageHeader(props: PageHeaderProps) {
     actions,
     heroImage,
     divider,
+    maxWidth,
     children,
     className,
   } = withCssProp(props);
@@ -179,7 +182,7 @@ export function PageHeader(props: PageHeaderProps) {
     <div
       className={cx(rootStyles, pageInset, divider && dividerStyles, className)}
     >
-      <div className={cx(contentRailStyles(), railStyles)}>
+      <div className={cx(contentRailStyles({ maxWidth }), railStyles)}>
         {heroImage && (
           <div className={heroStyles}>
             <img

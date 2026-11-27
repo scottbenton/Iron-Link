@@ -27,7 +27,7 @@ export interface PageContentProps
   extends Omit<ComponentProps<"div">, "children">,
     Omit<CssProp, "maxWidth"> {
   children?: ReactNode;
-  /** The rail's width: xl 1440px (default), or sm 640px for forms. */
+  /** The rail's width: xl 1440px (default), md 960px for reading, sm 640px for forms. */
   maxWidth?: PageWidth;
   /** The element; a section of `<main>` by default. */
   as?: ElementType;

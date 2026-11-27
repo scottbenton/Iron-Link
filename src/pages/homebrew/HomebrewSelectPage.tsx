@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { PageContent, PageHeader } from "components/Layout";
-import { EmptyState } from "components/Layout/EmptyState";
+import { EmptyState, PageContent, PageHeader } from "ui/layout";
 
 import { useDocumentTitle } from "hooks/useDocumentTitle";
 import {
@@ -16,7 +15,7 @@ export default function HomebrewSelectPage() {
 
   return (
     <>
-      <PageHeader label={t("homebrew.title", "Homebrew")} />
+      <PageHeader title={t("homebrew.title", "Homebrew")} />
       <PageContent>
         <EmptyState
           title={t("homebrew.emptyState.title", "Coming Soon!")}

@@ -62,6 +62,11 @@ export default tseslint.config(
       "src/components/ErrorMessage.tsx",
       "src/pages/404Page/**/*.{ts,tsx}",
       "src/pages/ErrorRoute.tsx",
+      "src/pages/home/**/*.{ts,tsx}",
+      "src/pages/auth/**/*.{ts,tsx}",
+      "src/pages/privacy/**/*.{ts,tsx}",
+      "src/pages/gameJoin/**/*.{ts,tsx}",
+      "src/pages/homebrew/**/*.{ts,tsx}",
     ],
     ignores: [
       "src/ui/**/__stories__/**",

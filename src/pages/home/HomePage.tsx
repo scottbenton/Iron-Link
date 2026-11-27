@@ -1,6 +1,5 @@
-import { Box } from "@mui/material";
-
-import { PageContent } from "components/Layout";
+import { PageContent } from "ui/layout";
+import { Stack } from "ui/primitives";
 
 import {
   PageCategory,
@@ -22,8 +21,8 @@ export default function HomePage() {
     useLandingDemo();
 
   return (
-    <PageContent maxWidth="lg">
-      <Box display="flex" flexDirection="column" gap={8} pt={6}>
+    <PageContent>
+      <Stack gap="16" paddingBlockStart="12">
         <HeroSection onRoll={handlePlayerRoll} />
         <GroupPlaySection
           logEntries={logEntries}
@@ -34,7 +33,7 @@ export default function HomePage() {
         <ScreenshotShowcase />
         <RulesetsStrip />
         <LicensingFooter />
-      </Box>
+      </Stack>
     </PageContent>
   );
 }

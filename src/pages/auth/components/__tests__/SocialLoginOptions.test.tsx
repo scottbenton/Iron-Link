@@ -36,7 +36,7 @@ describe("SocialLoginOptions", () => {
     actions.signInWithOAuth.mockReturnValue(new Promise(() => {}));
     renderOptions();
 
-    expect(screen.getByRole("separator")).toHaveTextContent("or");
+    expect(screen.getByText("or")).toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Continue with Google" }),
     );

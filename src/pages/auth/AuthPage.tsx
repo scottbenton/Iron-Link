@@ -1,18 +1,16 @@
-import AccountIcon from "@mui/icons-material/Person";
-import {
-  Alert,
-  AlertTitle,
-  Box,
-  Button,
-  Link,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
 import { FormEvent, useCallback, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 
-import { PageContent } from "components/Layout";
+import { LinkComponent } from "components/LinkComponent";
+
+import { Alert } from "ui/components/Alert";
+import { Button } from "ui/components/Button";
+import { Form, FormActions } from "ui/components/Form";
+import { Link } from "ui/components/Link";
+import { Text } from "ui/components/Text";
+import { TextField } from "ui/components/TextField";
+import { PageContent, PageHeader } from "ui/layout";
+import { Stack } from "ui/primitives";
 
 import { pathConfig } from "pages/pathConfig";
 
@@ -26,6 +24,9 @@ import {
 import { useAuthStore } from "stores/auth.store";
 
 import { SocialLoginOptions } from "./components/SocialLoginOptions";
+
+// The local Supabase stack's mail catcher.
+const LOCAL_INBOX_URL = "http://localhost:54324";
 
 export default function AuthPage() {
   const { t } = useTranslation();
@@ -45,20 +46,24 @@ export default function AuthPage() {
 
   const isLocalEnvironment = useIsLocalEnvironment();
 
+  const validateEmail = useCallback(
+    (value: unknown) => {
+      if (!value) {
+        return t("auth.email-required-error", "Email is required");
+      }
+      if (String(value).split("@").length < 2) {
+        return t("auth.email-invalid-error", "Please enter a valid email");
+      }
+      return null;
+    },
+    [t],
+  );
+
   const handleOTPSend = useCallback(
     (evt?: FormEvent) => {
       evt?.preventDefault();
+      // The form calls this only once validateEmail passes.
       if (otpSendLoading) return;
-      if (!email) {
-        setErrorMessage(t("auth.email-required-error", "Email is required"));
-        return;
-      }
-      if (email.split("@").length < 2) {
-        setErrorMessage(
-          t("auth.email-invalid-error", "Please enter a valid email"),
-        );
-        return;
-      }
 
       setOtpSendLoading(true);
       sendOtp(email)
@@ -109,133 +114,102 @@ export default function AuthPage() {
 
   return (
     <>
-      <PageContent maxWidth={"sm"}>
-        <Stack spacing={4}>
-          <Box>
-            <Box pt={2} display={"flex"} alignItems={"center"}>
-              <Box
-                sx={(theme) => ({
-                  display: "inline-flex",
-                  borderRadius: 999,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  p: 0.5,
-                  bgcolor: theme.palette.primary.main,
-                  color: theme.palette.common.white,
-                })}
-              >
-                <AccountIcon />
-              </Box>
-              <Typography
-                ml={1}
-                variant={"h4"}
-                component={"h1"}
-                textTransform={"uppercase"}
-                fontFamily={(theme) => theme.typography.fontFamilyTitle}
-                color={"textSecondary"}
-              >
-                {t("auth.login-or-signup", "Login or Create an Account")}
-              </Typography>
-            </Box>
-          </Box>
+      <PageHeader
+        maxWidth="sm"
+        title={t("auth.login-or-signup", "Login or Create an Account")}
+      />
+      <PageContent maxWidth="sm">
+        <Stack gap="8">
           {!otpSent ? (
             <>
               <SocialLoginOptions />
-              <Stack
-                spacing={2}
-                component={"form"}
-                noValidate
-                onSubmit={handleOTPSend}
-              >
-                <Typography variant={"h6"} component={"h2"}>
+              <Form gap="4" onSubmit={handleOTPSend}>
+                <Text variant="h3" as="h2">
                   {t("auth.passwordless-sign-in", "Sign in with Email")}
-                </Typography>
-                <Alert severity={"info"}>
+                </Text>
+                <Alert tone="info">
                   {t(
                     "auth.sign-in-link-info",
                     "Get a one time password sent to your email.",
                   )}
                 </Alert>
                 {errorMessage && (
-                  <Alert severity={"error"}>
-                    <AlertTitle>
-                      {t(
-                        "auth.one-time-password-error",
-                        "Error Sending One Time Password",
-                      )}
-                    </AlertTitle>
+                  <Alert
+                    tone="danger"
+                    role="alert"
+                    title={t(
+                      "auth.one-time-password-error",
+                      "Error Sending One Time Password",
+                    )}
+                  >
                     {errorMessage}
                   </Alert>
                 )}
                 <TextField
                   label={t("auth.email-label", "Email Address")}
-                  type={"email"}
-                  autoComplete={"email"}
+                  type="email"
+                  autoComplete="email"
                   value={email}
-                  onChange={(evt) => setEmail(evt.currentTarget.value)}
+                  onValueChange={setEmail}
+                  validate={validateEmail}
                 />
-                <Box display={"flex"} justifyContent={"flex-end"}>
+                <FormActions>
                   <Button
-                    type={"submit"}
-                    variant={"contained"}
-                    disabled={otpSendLoading}
+                    type="submit"
+                    variant="primary"
+                    loading={otpSendLoading}
                   >
                     {t("auth.send-otp", "Send One Time Password")}
                   </Button>
-                </Box>
-              </Stack>
+                </FormActions>
+              </Form>
             </>
           ) : (
-            <Stack
-              spacing={4}
-              component={"form"}
-              noValidate
-              onSubmit={handleVerifyOTP}
-            >
+            <Form gap="6" onSubmit={handleVerifyOTP}>
               {isLocalEnvironment && (
-                <Alert severity="warning">
-                  <Typography>
-                    In a local environment, emails are sent to fake inboxes. You
-                    can check the inbox for {email} to get the OTP{" "}
-                    <a target="_blank" href={`http://localhost:54324`}>
-                      here
-                    </a>
-                    .
-                  </Typography>
+                <Alert tone="warning">
+                  <Trans
+                    i18nKey="auth.local-inbox-note"
+                    defaults="In a local environment, emails are sent to fake inboxes. You can check the inbox for {{emailAddress}} to get the OTP <inboxLink>here</inboxLink>."
+                    values={{ emailAddress: email }}
+                    components={{
+                      inboxLink: <Link href={LOCAL_INBOX_URL} external />,
+                    }}
+                  />
                 </Alert>
               )}
-              <Typography>
+              <Text>
                 {t(
                   "auth.otp-sent",
                   "A one time password has been sent to {{emailAddress}}. Please enter it here to complete your login.",
                   { emailAddress: email },
                 )}
-              </Typography>
+              </Text>
               <TextField
                 label={t("auth.otp-label", "One Time Password")}
                 value={otp}
                 placeholder="123456"
                 autoFocus
-                autoComplete={"one-time-code"}
-                slotProps={{ htmlInput: { inputMode: "numeric" } }}
-                onChange={(evt) => setOtp(evt.currentTarget.value)}
+                autoComplete="one-time-code"
+                inputMode="numeric"
+                onValueChange={setOtp}
               />
-              <Box display={"flex"} justifyContent={"flex-end"}>
+              <FormActions>
                 <Button
-                  type={"submit"}
-                  variant={"contained"}
-                  disabled={verifyOtpLoading}
+                  type="submit"
+                  variant="primary"
+                  loading={verifyOtpLoading}
                 >
                   {t("auth.complete-otp-signin", "Sign In")}
                 </Button>
-              </Box>
-            </Stack>
+              </FormActions>
+            </Form>
           )}
-          <Typography variant={"body2"} color={"textSecondary"}>
-            <Link href={pathConfig.privacy}>
+          <Text variant="bodySm" color="muted">
+            <Link render={<LinkComponent href={pathConfig.privacy} />}>
               {t("auth.privacy-policy-link", "Privacy Policy")}
             </Link>
-          </Typography>
+          </Text>
         </Stack>
       </PageContent>
     </>

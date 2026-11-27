@@ -83,7 +83,7 @@ describe("AuthPage", () => {
     await user.type(email, "scott@example.com{Enter}{Enter}");
     expect(
       screen.getByRole("button", { name: "Send One Time Password" }),
-    ).toBeDisabled();
+    ).toHaveAttribute("aria-disabled", "true");
     expect(actions.sendOTPCodeToEmail).toHaveBeenCalledTimes(1);
   });
 
@@ -131,10 +131,11 @@ describe("AuthPage", () => {
     await user.click(
       screen.getByRole("button", { name: "Send One Time Password" }),
     );
+    // The error shows on the field and describes it.
     expect(await screen.findByText("Email is required")).toBeInTheDocument();
     expect(
-      screen.getByText("Error Sending One Time Password"),
-    ).toBeInTheDocument();
+      screen.getByRole("textbox", { name: "Email Address" }),
+    ).toHaveAccessibleDescription("Email is required");
     expect(actions.sendOTPCodeToEmail).not.toHaveBeenCalled();
   });
 
@@ -175,7 +176,7 @@ describe("AuthPage", () => {
       screen.getByRole("textbox", { name: "One Time Password" }),
     ).toHaveAttribute("inputmode", "numeric");
     expect(
-      screen.queryByRole("link", { name: "here" }),
+      screen.queryByRole("link", { name: /^here/ }),
     ).not.toBeInTheDocument();
   });
 
@@ -185,7 +186,7 @@ describe("AuthPage", () => {
     renderPage();
 
     await sendCode(user);
-    expect(screen.getByRole("link", { name: "here" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /^here/ })).toHaveAttribute(
       "href",
       "http://localhost:54324",
     );
@@ -198,7 +199,10 @@ describe("AuthPage", () => {
 
     await sendCode(user);
     await user.keyboard("123456{Enter}{Enter}");
-    expect(screen.getByRole("button", { name: "Sign In" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Sign In" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
     expect(actions.verifyOTPCode).toHaveBeenCalledTimes(1);
   });
 
