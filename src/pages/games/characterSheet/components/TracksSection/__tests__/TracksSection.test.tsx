@@ -4,6 +4,7 @@
  * edit the sheet, and a viewer.
  */
 import {
+  act,
   cleanup,
   render,
   screen,
@@ -36,6 +37,7 @@ import { ICharacter } from "services/character.service";
 import { ITrack } from "services/tracks.service";
 
 import { TracksSection } from "../TracksSection";
+import { PENDING_TRACK_SAVE_DELAY_MS } from "../usePendingTrackValues";
 
 const session = vi.hoisted(() => ({ uid: "me", secondScreen: false }));
 const rollOracle = vi.hoisted(() => vi.fn());
@@ -154,6 +156,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   cleanup();
   vi.clearAllMocks();
   useTracksStore.setState(initialTracks, true);
@@ -161,6 +164,21 @@ afterEach(() => {
   useGameCharactersStore.setState(initialCharacters, true);
   useSecondScreenStore.setState(initialSecondScreen, true);
 });
+
+/**
+ * Clicks on a track or clock show at once and save once they stop, so these
+ * tests run the clock by hand.
+ */
+function withFakeTimers() {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  return userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+}
+
+function waitOutSaveDelay() {
+  act(() => {
+    vi.advanceTimersByTime(PENDING_TRACK_SAVE_DELAY_MS);
+  });
+}
 
 function renderTracks() {
   return render(
@@ -214,7 +232,7 @@ describe("the track list", () => {
 
 describe("progress tracks", () => {
   it("marks progress by the rank's ticks", async () => {
-    const user = userEvent.setup();
+    const user = withFakeTimers();
     renderTracks();
 
     await user.click(
@@ -222,7 +240,28 @@ describe("progress tracks", () => {
         name: "Mark progress on Find the Hollow Crown",
       }),
     );
+    waitOutSaveDelay();
     expect(actions.updateTrackValue).toHaveBeenCalledWith("vow", 16);
+  });
+
+  it("stacks quick clicks on screen and saves the last once they stop", async () => {
+    const user = withFakeTimers();
+    renderTracks();
+    const mark = screen.getByRole("button", {
+      name: "Mark progress on Find the Hollow Crown",
+    });
+
+    await user.click(mark);
+    await user.click(mark);
+    await user.click(mark);
+    expect(actions.updateTrackValue).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("progressbar", { name: /Find the Hollow Crown/ }),
+    ).toHaveAttribute("aria-valuenow", "32");
+
+    waitOutSaveDelay();
+    expect(actions.updateTrackValue).toHaveBeenCalledTimes(1);
+    expect(actions.updateTrackValue).toHaveBeenCalledWith("vow", 32);
   });
 
   it("completes an active track", async () => {
@@ -327,13 +366,18 @@ describe("progress tracks", () => {
 });
 
 describe("clocks", () => {
-  it("fills a segment when the clock is pressed", async () => {
-    const user = userEvent.setup();
+  it("fills a segment when the clock is pressed, stacking quick presses", async () => {
+    const user = withFakeTimers();
     setTracks([clock]);
     renderTracks();
 
     await user.click(screen.getByRole("button", { name: "Advance Doom" }));
-    expect(actions.updateClockFilledSegments).toHaveBeenCalledWith("doom", 3);
+    await user.click(screen.getByRole("button", { name: "Advance Doom" }));
+    expect(actions.updateClockFilledSegments).not.toHaveBeenCalled();
+
+    waitOutSaveDelay();
+    expect(actions.updateClockFilledSegments).toHaveBeenCalledTimes(1);
+    expect(actions.updateClockFilledSegments).toHaveBeenCalledWith("doom", 4);
   });
 
   it("rolls progress on the oracle and adds a segment on a yes", async () => {

@@ -18,19 +18,22 @@ import { getClockOracle } from "./trackMappings";
  * Roll Progress on a clock: asks the oracle at the clock's odds and, on a
  * yes, fills one segment (two on a match). One announcement carries both the
  * oracle's answer and what it did, since a second would replace the first.
+ * It starts from the clock's value on screen, which may not have saved yet,
+ * and hands the new value to `advance` to show and save.
  */
-export function useRollClockProgress() {
+export function useRollClockProgress(
+  shownValue: (clockId: string, saved: number) => number,
+  advance: (clockId: string, value: number) => void,
+) {
   const { t } = useTranslation();
   const announce = useSetAnnouncement();
   const rollOracle = useRollOracleAndAddToLog();
-  const updateClockValue = useTracksStore(
-    (store) => store.updateClockFilledSegments,
-  );
 
   return useCallback(
     (clockId: string) => {
-      const clock = useTracksStore.getState().tracks[clockId];
-      if (!clock || clock.type !== TrackTypes.Clock) return;
+      const saved = useTracksStore.getState().tracks[clockId];
+      if (!saved || saved.type !== TrackTypes.Clock) return;
+      const clock = { ...saved, value: shownValue(clockId, saved.value) };
 
       const oracleId = askTheOracleEnumMap[getClockOracle(clock.oracleKey)]._id;
       const { result } = rollOracle(oracleId, false, { announce: false });
@@ -38,7 +41,7 @@ export function useRollClockProgress() {
 
       if (result?.result === "Yes") {
         const add = result.match ? 2 : 1;
-        updateClockValue(clockId, clock.value + add).catch(() => {});
+        advance(clockId, Math.min(clock.value + add, clock.segments));
         announce(
           rolled +
             t(
@@ -63,6 +66,6 @@ export function useRollClockProgress() {
         );
       }
     },
-    [announce, rollOracle, t, updateClockValue],
+    [announce, rollOracle, t, shownValue, advance],
   );
 }

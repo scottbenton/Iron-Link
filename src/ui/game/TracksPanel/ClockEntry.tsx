@@ -15,14 +15,21 @@ import {
 } from "./tracksPanelTypes";
 
 /**
- * The odds and Roll Progress sit side by side at their own widths, so the
- * button stays lighter than the clock above it.
+ * The odds take a line of their own, so Roll Progress and Complete stay put
+ * under them whichever odds are picked, and the buttons stay lighter than
+ * the clock above them.
  */
 const clockActionsStyles = css({
   display: "flex",
   flexWrap: "wrap",
   gap: "2",
   width: "100%",
+});
+
+const clockOddsRowStyles = css({
+  flex: "1 0 100%",
+  display: "flex",
+  minWidth: 0,
 });
 
 /**
@@ -51,8 +58,8 @@ export interface ClockEntryProps {
 
 /**
  * A clock: the clock card, its dial the control, and beside the dial its
- * odds, Roll Progress (which asks the oracle whether the clock advances)
- * and Complete.
+ * odds on their own line, then Roll Progress (which asks the oracle whether
+ * the clock advances) and Complete.
  */
 export function ClockEntry(props: ClockEntryProps) {
   const { t } = useTranslation();
@@ -88,23 +95,25 @@ export function ClockEntry(props: ClockEntryProps) {
         (onRoll || onOddsChange || onComplete) && (
           <div className={clockActionsStyles}>
             {onOddsChange && (
-              <Select<OracleOdds>
-                className={clockOddsStyles}
-                size="sm"
-                aria-label={strings.oddsLabel(clock.label)}
-                value={odds}
-                onValueChange={(value) => value && onOddsChange(value)}
-                options={oracleOddsOrder.map((value) => ({
-                  value,
-                  label: strings.oddsLabels[value],
-                }))}
-                renderValue={(value) =>
-                  t("ui.common.label-value", "{{label}}: {{value}}", {
-                    label: strings.odds,
-                    value: strings.oddsLabels[value as OracleOdds],
-                  })
-                }
-              />
+              <div className={clockOddsRowStyles}>
+                <Select<OracleOdds>
+                  className={clockOddsStyles}
+                  size="sm"
+                  aria-label={strings.oddsLabel(clock.label)}
+                  value={odds}
+                  onValueChange={(value) => value && onOddsChange(value)}
+                  options={oracleOddsOrder.map((value) => ({
+                    value,
+                    label: strings.oddsLabels[value],
+                  }))}
+                  renderValue={(value) =>
+                    t("ui.common.label-value", "{{label}}: {{value}}", {
+                      label: strings.odds,
+                      value: strings.oddsLabels[value as OracleOdds],
+                    })
+                  }
+                />
+              </div>
             )}
             {onRoll && (
               <RollButton

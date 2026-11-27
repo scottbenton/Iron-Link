@@ -21,14 +21,31 @@ import { useTracksStore } from "stores/tracks.store";
 
 import { TrackStatus, TrackTypes } from "repositories/tracks.repository";
 
+import { ITrack } from "services/tracks.service";
+
 import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { CharacterConnections } from "./CharacterConnections";
 import { CharacterWorldBonds } from "./CharacterWorldBonds";
 import { TrackEditDialog } from "./TrackEditDialog";
 import { getTrackTypeLabel } from "./common";
 import { oracleByOdds, toTrackItem, toTrackItems } from "./trackMappings";
+import {
+  PendingTrackField,
+  usePendingTrackValues,
+} from "./usePendingTrackValues";
 import { useRollClockProgress } from "./useRollClockProgress";
 import { useTrackCompletionMoves } from "./useTrackCompletionMoves";
+
+/** A track's saved boxes, or a clock's or tension clock's saved segments. */
+function savedValue(track: ITrack | undefined, field: PendingTrackField) {
+  if (!track) return undefined;
+  if (field === "ticks") {
+    return track.type === TrackTypes.Clock ? undefined : track.value;
+  }
+  if (track.type === TrackTypes.Clock) return track.value;
+  if (track.type === TrackTypes.SceneChallenge) return track.segmentsFilled;
+  return undefined;
+}
 
 interface DialogState {
   open: boolean;
@@ -65,9 +82,35 @@ export function TracksSection() {
   const canEdit = useGamePermissions().gamePermission !== GamePermission.Viewer;
   const canEditCharacter = useCanEditCharacter();
 
+  // Clicks show at once and save once they stop, as the MUI tracks did.
+  const pending = usePendingTrackValues(
+    (id, field, value) =>
+      field === "ticks"
+        ? updateTrackValue(id, value)
+        : updateClockValue(id, value),
+    (id, field) => savedValue(tracks[id], field),
+  );
+  const { valueOf, change, changeNow } = pending;
+  const items = toTrackItems(tracks).map((item) => {
+    if (item.kind === "clock") {
+      return { ...item, value: valueOf(item.id, "segments", item.value) };
+    }
+    return {
+      ...item,
+      ticks: valueOf(item.id, "ticks", item.ticks),
+      tension:
+        item.tension === undefined
+          ? undefined
+          : valueOf(item.id, "segments", item.tension),
+    };
+  });
+
   const completionMoves = useTrackCompletionMoves();
   const rollCompletion = useRollCompleteProgressTrack();
-  const rollClockProgress = useRollClockProgress();
+  const rollClockProgress = useRollClockProgress(
+    (id, saved) => valueOf(id, "segments", saved),
+    (id, value) => changeNow(id, "segments", value),
+  );
 
   const secondScreenEnabled = useSecondScreenFeature();
   const secondScreenTrackId = useSecondScreenStore((store) =>
@@ -111,21 +154,26 @@ export function TracksSection() {
         />
       ) : (
         <TracksPanel
-          tracks={toTrackItems(tracks)}
+          tracks={items}
           readOnly={!canEdit}
           showCompleted={showCompleted}
           onShowCompletedChange={setShowCompleted}
           addKinds={["vow", "combat", "journey", "sceneChallenge", "clock"]}
           onAdd={(kind) => openDialog(kind)}
-          onTicksChange={(id, ticks) => swallow(updateTrackValue(id, ticks))}
-          onClockChange={(id, value) => swallow(updateClockValue(id, value))}
+          onTicksChange={(id, ticks) => change(id, "ticks", ticks)}
+          onClockChange={(id, value) => change(id, "segments", value)}
           completionMoves={completionMoves}
           onRollMove={
             canEditCharacter
               ? (id, moveId) => {
                   const track = tracks[id];
                   if (!track) return;
-                  rollCompletion(track.type, track.label, track.value, moveId);
+                  rollCompletion(
+                    track.type,
+                    track.label,
+                    valueOf(id, "ticks", track.value),
+                    moveId,
+                  );
                 }
               : undefined
           }
