@@ -38,10 +38,11 @@ that are easy to miss. When you learn a new one, add a line here.
 
 ## Accessibility
 
-- Screen reader announcements go through `useSetAnnouncement`. Live regions
-  read `useLiveRegionText`, which clears and rewrites the text so a repeated
-  message is read again. A modal dialog hides the page's region, so
-  `DialogTitleWithCloseButton` renders its own `LiveRegion`. Only its
+- Screen reader announcements go through `useSetAnnouncement`. There is one
+  live region component, the library's `LiveRegion` (`ui/components/Announcer`),
+  which reads that store through `AppUIProvider` and clears and rewrites the
+  text so a repeated message is read again. A modal dialog hides the page's
+  region, so `DialogTitleWithCloseButton` renders its own `LiveRegion`. Only its
   heading is the `DialogTitle` (whose id names the dialog); its buttons sit
   beside it, so the dialog's name is the title alone.
 - One h1 per page, and headings nest by section: Typography's `variant` sets

@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { LiveRegion } from "components/Layout/LiveRegion";
+import { LiveRegion } from "ui/components/Announcer";
 
 import { toast } from "ui/components/Toast";
 
