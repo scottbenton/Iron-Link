@@ -101,6 +101,7 @@ export {
   UserSquareIcon,
   UsersIcon,
   UsersThreeIcon,
+  WarningCircleIcon,
   XIcon,
 } from "@phosphor-icons/react";
 
