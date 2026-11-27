@@ -23,7 +23,7 @@ export function OracleVariant(props: OracleVariantProps) {
   const summary = (oracle as { summary?: string }).summary;
 
   return (
-    <Stack gap="4">
+    <Stack gap="3">
       {summary && <RulesText markdown={summary} size="sm" />}
       <Box>
         <RollButton size="sm" onRoll={() => void rollOracle(oracle._id)}>

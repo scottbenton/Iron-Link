@@ -34,7 +34,7 @@ export function MoveOracles(props: MoveOraclesProps) {
   const hideTableNames = entries.length === 1;
 
   return (
-    <Stack gap="4" marginBlockStart="2">
+    <Stack gap="3" marginBlockStart="2">
       <Flex
         role="group"
         aria-label={t("datasworn.move-oracle-rolls", "{{moveName}} rolls", {
@@ -55,14 +55,17 @@ export function MoveOracles(props: MoveOraclesProps) {
           </RollButton>
         ))}
       </Flex>
-      {entries.map(([key, oracle]) => (
-        <OracleTable
-          key={key}
-          oracle={oracle}
-          hideHeader={hideTableNames}
-          titleAs="p"
-        />
-      ))}
+      {/* More space between tables than inside one, so each reads as its own group. */}
+      <Stack gap="5">
+        {entries.map(([key, oracle]) => (
+          <OracleTable
+            key={key}
+            oracle={oracle}
+            hideHeader={hideTableNames}
+            titleAs="p"
+          />
+        ))}
+      </Stack>
     </Stack>
   );
 }
