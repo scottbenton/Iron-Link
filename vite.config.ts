@@ -25,5 +25,10 @@ export default defineConfig({
     // The tree view imports @mui/system by directory, which Node's ESM
     // resolver refuses; inlining lets Vite resolve it.
     server: { deps: { inline: ["@mui/x-tree-view"] } },
+    // Without pre-bundling, every test file loads Phosphor's thousands of
+    // icon modules one by one, which was about a fifth of the suite's time.
+    deps: {
+      optimizer: { web: { enabled: true, include: ["@phosphor-icons/react"] } },
+    },
   },
 });
