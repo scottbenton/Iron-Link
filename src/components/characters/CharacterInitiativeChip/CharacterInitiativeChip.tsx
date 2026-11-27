@@ -1,5 +1,7 @@
 import { InitiativeChip, InitiativeOption } from "ui/game/InitiativeChip";
 
+import { useOptimisticValue } from "hooks/useOptimisticValue";
+
 import { InitiativeStatus } from "repositories/character.repository";
 
 import { useInitiativeStatusText } from "./useInitiativeStatusText";
@@ -12,14 +14,21 @@ const order = [
 
 export interface CharacterInitiativeChipProps {
   status: InitiativeStatus | undefined;
-  /** Lets the chip change the status. Without it the chip only shows it. */
-  onStatusChange?: (status: InitiativeStatus) => void;
+  /**
+   * Saves a new status, which the chip shows at once. Without it the chip
+   * only shows the status.
+   */
+  onStatusChange?: (status: InitiativeStatus) => Promise<unknown>;
 }
 
 // A character's initiative in the active rules' words (In Control in
 // Starforged, Has Initiative in Ironsworn).
 export function CharacterInitiativeChip(props: CharacterInitiativeChipProps) {
-  const { status, onStatusChange } = props;
+  const { status: savedStatus, onStatusChange } = props;
+  const [status, changeStatus] = useOptimisticValue(
+    savedStatus ?? InitiativeStatus.OutOfCombat,
+    onStatusChange,
+  );
   const labels = useInitiativeStatusText(true);
 
   const options: InitiativeOption<InitiativeStatus>[] = order.map((value) => ({
@@ -30,9 +39,9 @@ export function CharacterInitiativeChip(props: CharacterInitiativeChipProps) {
 
   return (
     <InitiativeChip
-      status={status ?? InitiativeStatus.OutOfCombat}
+      status={status}
       options={options}
-      onStatusChange={onStatusChange}
+      onStatusChange={changeStatus}
     />
   );
 }

@@ -52,9 +52,7 @@ export function CharacterDetails() {
             status={initiativeStatus}
             onStatusChange={
               canEditCharacter && characterId
-                ? (status) => {
-                    updateInitiativeStatus(characterId, status).catch(() => {});
-                  }
+                ? (status) => updateInitiativeStatus(characterId, status)
                 : undefined
             }
           />
