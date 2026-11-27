@@ -1,4 +1,5 @@
 import js from "@eslint/js";
+import i18next from "eslint-plugin-i18next";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import globals from "globals";
@@ -45,6 +46,48 @@ export default tseslint.config(
               message: "Import icons from ui/icons.",
             },
           ],
+        },
+      ],
+    },
+  },
+  {
+    // The UI library's text goes through t() with ui. keys, so it can be
+    // translated before the app uses it (src/ui/README.md, Translation).
+    // JSX text, label-like attributes and literals inside JSX expressions
+    // are checked. Default prop values are not, so write those with t() too.
+    files: ["src/ui/**/*.{ts,tsx}"],
+    ignores: [
+      "src/ui/**/__stories__/**",
+      "src/ui/**/__tests__/**",
+      "src/ui/docs/**",
+      "src/ui/layout/Examples/**",
+    ],
+    plugins: { i18next },
+    rules: {
+      "i18next/no-literal-string": [
+        "error",
+        {
+          mode: "jsx-only",
+          "should-validate-template": true,
+          // Lowercase words without spaces are ids and states
+          // ("current", "img"), not text.
+          words: { exclude: ["^[^\\sA-Z]*$"] },
+          "jsx-attributes": {
+            include: [
+              "label",
+              "aria-label",
+              "aria-valuetext",
+              "aria-description",
+              "title",
+              "placeholder",
+              "alt",
+              "description",
+              "caption",
+              "helperText",
+              "emptyText",
+              "tooltip",
+            ],
+          },
         },
       ],
     },
