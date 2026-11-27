@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Outlet } from "react-router";
 
 import { ErrorBoundary } from "components/ErrorBoundary";
+import { RecentRollsDock } from "components/characters/rolls/RecentRollsDock";
 
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { BookOpenIcon, FileTextIcon, UserIcon, UsersThreeIcon } from "ui/icons";
@@ -113,11 +114,10 @@ export function PhoneGamePage(props: PhoneGamePageProps) {
           <ErrorBoundary>{item.content}</ErrorBoundary>
         </Box>
       ))}
-      <MobileNav
-        css={{ flex: "none" }}
-        label={t("game.sections", "Game Sections")}
-        items={items}
-      />
+      <Box position="relative" flex="none">
+        <RecentRollsDock />
+        <MobileNav label={t("game.sections", "Game Sections")} items={items} />
+      </Box>
     </Flex>
   );
 }

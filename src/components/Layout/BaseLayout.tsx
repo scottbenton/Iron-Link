@@ -3,7 +3,8 @@ import { Outlet } from "react-router";
 
 import { ErrorBoundary } from "components/ErrorBoundary";
 import { LinkComponent } from "components/LinkComponent";
-import { RollSnackbarSection } from "components/characters/rolls/RollSnackbarSection";
+import { RecentRolls } from "components/characters/rolls/RecentRolls";
+import { RecentRollsInDialog } from "components/characters/rolls/RecentRollsInDialog";
 import { DataswornDialog } from "components/datasworn/DataswornDialog";
 
 import { LiveRegion } from "ui/components/Announcer";
@@ -34,19 +35,20 @@ export function BaseLayout() {
   }
 
   return (
-    <DialogExtrasContext.Provider value={RollSnackbarSection}>
+    <DialogExtrasContext.Provider value={RecentRollsInDialog}>
       <LinkComponentProvider linkComponent={LinkComponent}>
-        <LiveRegion id={"live-region"} />
-        <LayoutPathListener />
-        <ShellFillContext.Provider value={requestFill}>
-          <AppShell rail={<AppNavRail />} fill={fillRequests > 0}>
-            <ErrorBoundary>
-              <Outlet />
-            </ErrorBoundary>
-          </AppShell>
-        </ShellFillContext.Provider>
-        <RollSnackbarSection isPage />
-        <DataswornDialog />
+        <RecentRolls>
+          <LiveRegion id={"live-region"} />
+          <LayoutPathListener />
+          <ShellFillContext.Provider value={requestFill}>
+            <AppShell rail={<AppNavRail />} fill={fillRequests > 0}>
+              <ErrorBoundary>
+                <Outlet />
+              </ErrorBoundary>
+            </AppShell>
+          </ShellFillContext.Provider>
+          <DataswornDialog />
+        </RecentRolls>
       </LinkComponentProvider>
     </DialogExtrasContext.Provider>
   );
