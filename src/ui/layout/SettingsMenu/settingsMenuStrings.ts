@@ -12,6 +12,8 @@ export interface SettingsMenuStrings {
   triggerLabel: string;
   /** The character column's button. */
   characterTriggerLabel: string;
+  /** The game overview's button, beside the game's name. */
+  gameTriggerLabel: string;
   characterHeading: (characterName: string) => string;
   gameHeading: string;
   appHeading: string;
@@ -63,6 +65,7 @@ export function getDefaultSettingsMenuStrings(
       "ui.settings-menu.character-trigger",
       "Character Settings",
     ),
+    gameTriggerLabel: t("ui.settings-menu.game-trigger", "Game Settings"),
     characterHeading: (characterName) =>
       t("ui.settings-menu.character-heading", "{{characterName}} Settings", {
         characterName,

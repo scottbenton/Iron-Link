@@ -157,3 +157,20 @@ export function getCharacterMenuItems(
   items.splice(deleteIndex === -1 ? items.length : deleteIndex, 0, "theme");
   return items;
 }
+
+/**
+ * The game overview's shortcut menu: only the game's items, with Theme
+ * before Delete Game where the person can change the game's theme. Empty
+ * when nothing applies (a player in a solo game).
+ */
+export function getGameMenuItems(
+  game: SettingsMenuGame,
+  options: { theme?: boolean } = {},
+): SettingsMenuItemId[] {
+  const items = getGameItems(game);
+  if (options.theme) {
+    const deleteIndex = items.indexOf("deleteGame");
+    items.splice(deleteIndex === -1 ? items.length : deleteIndex, 0, "theme");
+  }
+  return items;
+}

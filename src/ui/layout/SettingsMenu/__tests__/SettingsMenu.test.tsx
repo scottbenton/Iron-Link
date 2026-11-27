@@ -3,9 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { ColorModeToggle } from "../ColorModeToggle";
+import { GameSettingsMenu } from "../GameSettingsMenu";
 import { SettingsMenu, SettingsMenuProps } from "../SettingsMenu";
 import {
   getCharacterMenuItems,
+  getGameMenuItems,
   getSettingsMenuSections,
 } from "../settingsMenuSections";
 
@@ -107,6 +109,22 @@ describe("getSettingsMenuSections", () => {
       "deleteCharacter",
     ]);
   });
+
+  it("puts Theme before Delete in the game overview's menu", () => {
+    expect(getGameMenuItems(archive, { theme: true })).toEqual([
+      "gameName",
+      "gameRulesets",
+      "logSound",
+      "theme",
+      "deleteGame",
+    ]);
+    expect(getGameMenuItems({ ...archive, isGuide: false })).toEqual([
+      "logSound",
+    ]);
+    expect(
+      getGameMenuItems({ ...archive, isGuide: false, solo: true }),
+    ).toEqual([]);
+  });
 });
 
 const baseProps: SettingsMenuProps = {
@@ -185,6 +203,36 @@ describe("SettingsMenu", () => {
     expect(
       screen.getByRole("menuitem", { name: /Change Theme/ }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("GameSettingsMenu", () => {
+  it("shows only the game's settings under its heading", async () => {
+    render(
+      <GameSettingsMenu
+        game={archive}
+        showTheme
+        onSelect={() => {}}
+        defaultOpen
+      />,
+    );
+    expect(await screen.findByText("Game Settings")).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: /Change Theme/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("App Settings")).not.toBeInTheDocument();
+  });
+
+  it("renders nothing when no game setting applies", () => {
+    render(
+      <GameSettingsMenu
+        game={{ ...archive, isGuide: false, solo: true }}
+        onSelect={() => {}}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Game Settings" }),
+    ).not.toBeInTheDocument();
   });
 });
 

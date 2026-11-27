@@ -73,6 +73,9 @@ const bodyStyles = css({
 });
 
 const mainStyles = css({
+  // Whatever the main column stacks inside it (a sticky toolbar's z-index)
+  // stays inside it, so a sidebar's flyout always shows over it.
+  isolation: "isolate",
   display: "flex",
   flexDirection: "column",
   flex: "1 1 auto",

@@ -1,6 +1,9 @@
 import { useContributeAppSettings } from "components/Layout/AppSettingsMenu/useContributeAppSettings";
 
+import { useMenuState } from "stores/menuState";
+
 import { CharacterMenuDialogs } from "../../characterSheet/components/CharacterSettingsMenu/CharacterMenuDialogs";
+import { SecondScreenDialog } from "../../characterSheet/components/SecondScreenSection";
 import { GameSettingsMenuDialogs } from "../../overviewSheet/gameSettings/GameSettingsMenuDialogs";
 import { useGameSettingsContribution } from "./useGameSettingsContribution";
 
@@ -10,11 +13,21 @@ import { useGameSettingsContribution } from "./useGameSettingsContribution";
  */
 export function GameSettings() {
   useContributeAppSettings(useGameSettingsContribution());
+  const secondScreenOpen = useMenuState(
+    (state) => state.isSecondScreenDialogOpen,
+  );
+  const setSecondScreenOpen = useMenuState(
+    (state) => state.setIsSecondScreenDialogOpen,
+  );
 
   return (
     <>
       <GameSettingsMenuDialogs />
       <CharacterMenuDialogs />
+      <SecondScreenDialog
+        open={secondScreenOpen}
+        onClose={() => setSecondScreenOpen(false)}
+      />
     </>
   );
 }
