@@ -8,7 +8,8 @@ import {
 import { PropsWithChildren, ReactNode, useContext } from "react";
 import { useTranslation } from "react-i18next";
 
-import { LiveRegion } from "./Layout/LiveRegion";
+import { LiveRegion } from "ui/components/Announcer";
+
 import { DialogExtrasContext } from "./Layout/dialogExtrasContext";
 
 export interface DialogTitleWithCloseButtonProps extends PropsWithChildren {

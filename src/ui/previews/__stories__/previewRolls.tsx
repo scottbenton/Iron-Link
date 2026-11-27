@@ -3,6 +3,7 @@
  * cards in the toast stack.
  */
 import type { Datasworn } from "@datasworn-community/core";
+import i18next from "i18next";
 import { useCallback, useState } from "react";
 
 import { toast } from "../../components/Toast";
@@ -20,7 +21,7 @@ export function showRollToast(roll: RollData) {
     ({ dismiss }) => (
       <RollCard roll={roll} onDismiss={dismiss} elevated animateIn />
     ),
-    { announcement: getRollSummary(roll) },
+    { announcement: getRollSummary(roll, i18next.t) },
   );
 }
 
@@ -56,7 +57,7 @@ export function usePreviewRolls() {
 
   const moveRollOptions = useCallback(
     (move: Datasworn.AnyMove): MoveRollOption[] =>
-      getMoveRollOptions(move).map((option) => ({
+      getMoveRollOptions(move, i18next.t).map((option) => ({
         ...option,
         value: statValue(option.id),
       })),

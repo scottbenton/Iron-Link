@@ -5,10 +5,11 @@ import { ErrorBoundary } from "components/ErrorBoundary";
 import { RollSnackbarSection } from "components/characters/rolls/RollSnackbarSection";
 import { DataswornDialog } from "components/datasworn/DataswornDialog";
 
+import { LiveRegion } from "ui/components/Announcer";
+
 import { AuthStatus, useAuthStatus } from "stores/auth.store";
 
 import { LayoutPathListener } from "./LayoutPathListener";
-import { LiveRegion } from "./LiveRegion";
 import { NavRail } from "./NavRail";
 import { MAIN_CONTENT_ID, SkipToContentButton } from "./SkipToContentButton";
 import { DialogExtrasContext } from "./dialogExtrasContext";
