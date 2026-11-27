@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { css, cx } from "styled-system/css";
 
 import { Button } from "../../components/Button";
+import { toastViewportAttribute } from "../../components/Toast/toastViewport";
 import { CssProp, withCssProp } from "../../styles/cssProp";
 import { ActivitySheet } from "./ActivitySheet";
 import { DockedCard } from "./DockedCard";
@@ -25,6 +26,8 @@ const dockStyles = css({
   // The page under the gaps stays usable; the cards and buttons take taps.
   pointerEvents: "none",
   "& > *": { pointerEvents: "auto" },
+  // Over a modal, like the toasts; the caller's position must be fixed.
+  "&[data-above-modals]": { zIndex: "toast" },
 });
 
 const handleStyles = css({
@@ -87,6 +90,13 @@ export interface ActivityDockProps extends CssProp {
   showLessLabel?: string;
   clearAllLabel?: string;
   emptyLabel?: string;
+  /**
+   * Keeps the dock over a modal that opens on top of the page, as the
+   * toasts are: pressing it does not close the modal, and screen readers
+   * still reach it. Its own sheet still covers it. The caller renders the
+   * dock outside the page (a portal) with a fixed position for this.
+   */
+  aboveModals?: boolean;
   className?: string;
 }
 
@@ -116,6 +126,7 @@ export function ActivityDock(props: ActivityDockProps) {
     showLessLabel = t("ui.activity-dock.show-less", "Show less"),
     clearAllLabel = t("ui.activity-dock.clear-all", "Clear all"),
     emptyLabel = t("ui.activity-dock.empty", "No notifications"),
+    aboveModals = false,
     className,
   } = withCssProp(props);
 
@@ -141,10 +152,23 @@ export function ActivityDock(props: ActivityDockProps) {
 
   if (items.length === 0) return null;
 
+  // An empty `aria-live` keeps the dock readable while a modal hides the
+  // rest of the page from screen readers, and the toast attribute tells the
+  // modal a press here is not a press outside it.
+  const overModal = aboveModals && !sheetOpen;
+  const overModalProps = overModal
+    ? {
+        "data-above-modals": "",
+        [toastViewportAttribute]: "",
+        "aria-live": "off" as const,
+      }
+    : {};
+
   return (
     <>
       <section
         aria-label={label}
+        {...overModalProps}
         className={cx(dockStyles, className)}
         style={
           {

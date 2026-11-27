@@ -1,6 +1,10 @@
+import { useRef } from "react";
+import { createPortal } from "react-dom";
+
 import { useIsModalOpen } from "ui/hooks/useIsModalOpen";
 
 import { DockedRecentRolls } from "./DockedRecentRolls";
+import { useDockAnchor } from "./useDockAnchor";
 
 /**
  * The recent roll cards on a phone's game page, docked above the bottom
@@ -9,10 +13,26 @@ import { DockedRecentRolls } from "./DockedRecentRolls";
  * a positioned box at the page's foot (the bottom nav's): it sits just above
  * that box, 16px in from each side.
  *
- * A library modal covers the page, dock included, so while one is open the
- * cards go back to the toasts, which sit above modals.
+ * The dock renders outside the page, fixed over that spot, so a modal that
+ * opens over the page leaves it where it is, above the modal, as the toasts
+ * stay on wider screens. In the page, the shell's container query would
+ * keep it under any modal.
  */
 export function RecentRollsDock() {
+  const anchorRef = useRef<HTMLSpanElement>(null);
+  const position = useDockAnchor(anchorRef);
   const isModalOpen = useIsModalOpen();
-  return isModalOpen ? null : <DockedRecentRolls />;
+
+  return (
+    <>
+      <span ref={anchorRef} hidden />
+      {position &&
+        createPortal(
+          <div className="ui-root" style={{ display: "contents", ...position }}>
+            <DockedRecentRolls aboveModals={isModalOpen} />
+          </div>,
+          document.body,
+        )}
+    </>
+  );
 }

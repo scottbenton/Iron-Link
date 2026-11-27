@@ -11,8 +11,17 @@ import {
 import { clearRecentRoll } from "./clearRecentRoll";
 import { useRecentRollCards } from "./useRecentRollCards";
 
-/** The docked cards themselves; `RecentRollsDock` decides when they show. */
-export function DockedRecentRolls() {
+export interface DockedRecentRollsProps {
+  /** Whether a modal is open over the page; the dock stays above it. */
+  aboveModals: boolean;
+}
+
+/**
+ * The docked cards themselves, fixed where `RecentRollsDock` measured
+ * (its `--dock-*` properties).
+ */
+export function DockedRecentRolls(props: DockedRecentRollsProps) {
+  const { aboveModals } = props;
   const { t } = useTranslation();
   const isActive = useIsActiveRollCardHost();
   const cards = useRecentRollCards();
@@ -24,9 +33,12 @@ export function DockedRecentRolls() {
   return (
     <ActivityDock
       css={{
-        position: "absolute",
-        insetInline: "4",
-        bottom: "calc(100% + token(spacing.3))",
+        position: "fixed",
+        left: "var(--dock-left)",
+        right: "var(--dock-right)",
+        bottom: "var(--dock-bottom)",
+        // Under the page's popovers and drawers, its own sheet among them.
+        zIndex: "sticky",
         width: "auto",
         maxWidth: "calc(40rem - 2 * token(spacing.4))",
         marginInline: "auto",
@@ -37,6 +49,7 @@ export function DockedRecentRolls() {
         actions: card.actions,
         dismissLabel: card.dismissLabel,
       }))}
+      aboveModals={aboveModals}
       onDismiss={clearRecentRoll}
       onClearAll={() => {
         clearAll();
