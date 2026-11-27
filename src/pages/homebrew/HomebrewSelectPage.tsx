@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 
+import { FlaskIcon } from "ui/icons";
 import { EmptyState, PageContent, PageHeader } from "ui/layout";
 
 import { useDocumentTitle } from "hooks/useDocumentTitle";
@@ -18,6 +19,7 @@ export default function HomebrewSelectPage() {
       <PageHeader title={t("homebrew.title", "Homebrew")} />
       <PageContent>
         <EmptyState
+          icon={<FlaskIcon />}
           title={t("homebrew.emptyState.title", "Coming Soon!")}
           message={t(
             "homebrew.emptyState.description",

@@ -115,10 +115,10 @@ export default function AuthPage() {
   return (
     <>
       <PageHeader
-        maxWidth="sm"
+        maxWidth="xs"
         title={t("auth.login-or-signup", "Login or Create an Account")}
       />
-      <PageContent maxWidth="sm">
+      <PageContent maxWidth="xs">
         <Stack gap="8">
           {!otpSent ? (
             <>

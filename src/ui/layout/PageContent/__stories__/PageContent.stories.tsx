@@ -11,7 +11,7 @@ const meta: Meta<typeof PageContent> = {
   parameters: { layout: "fullscreen" },
   args: { maxWidth: "xl" },
   argTypes: {
-    maxWidth: { control: "inline-radio", options: ["sm", "md", "xl"] },
+    maxWidth: { control: "inline-radio", options: ["xs", "sm", "md", "xl"] },
   },
 };
 

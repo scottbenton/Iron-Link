@@ -3,6 +3,7 @@ import { useParams } from "react-router";
 
 import { Button } from "ui/components/Button";
 import { Progress } from "ui/components/Progress";
+import { LinkBreakIcon } from "ui/icons";
 import { EmptyState, PageContent, PageHeader } from "ui/layout";
 
 import { useDocumentTitle } from "hooks/useDocumentTitle";
@@ -30,7 +31,7 @@ export default function GameJoinPage() {
   if (error) {
     return (
       <PageContent maxWidth="md">
-        <EmptyState message={error} />
+        <EmptyState icon={<LinkBreakIcon />} message={error} />
       </PageContent>
     );
   }

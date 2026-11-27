@@ -32,6 +32,7 @@ export {
   FilePlusIcon,
   FileTextIcon,
   FireIcon,
+  FlaskIcon,
   FolderIcon,
   FolderOpenIcon,
   FolderPlusIcon,
