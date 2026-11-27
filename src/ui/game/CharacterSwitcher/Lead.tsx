@@ -6,7 +6,6 @@ import { css } from "styled-system/css";
 const leadStyles = css({
   display: "inline-flex",
   alignItems: "center",
-  // 12px: the spacing scale has no 2.5, and an unknown step drops the gap.
   gap: "3",
   minWidth: 0,
   "& > [data-part=lead]": {
