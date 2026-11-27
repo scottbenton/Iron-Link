@@ -2,6 +2,7 @@ import { ElementType } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Text } from "ui/components/Text";
+import { WarningCircleIcon } from "ui/icons";
 import { EmptyState, PageContent } from "ui/layout";
 import { Stack } from "ui/primitives";
 
@@ -25,6 +26,7 @@ export function ErrorMessage(props: ErrorMessageProps) {
   return (
     <PageContent maxWidth="sm">
       <EmptyState
+        icon={<WarningCircleIcon />}
         title={t("layout.error.title", "Iron Link Crashed")}
         titleAs={titleAs}
         message={
