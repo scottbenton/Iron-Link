@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useNavigate } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ReferenceTabs, useAppState } from "stores/appState.store";
 import { useAuthStore } from "stores/auth.store";
 import { useDataswornTreeStore } from "stores/dataswornTree.store";
 import { useGameStore } from "stores/game.store";
@@ -44,6 +45,18 @@ vi.mock("../../characterSheet/components/NotesSection", () => ({
 }));
 vi.mock("../../characterSheet/components/ReferenceSidebarContents", () => ({
   ReferenceSidebarContents: () => <p>Reference column</p>,
+}));
+// Phones show the reference's parts as sections of their own.
+vi.mock("components/datasworn/MoveTree", () => ({
+  MoveTree: () => <p>Moves list</p>,
+}));
+vi.mock("components/datasworn/OracleTree", () => ({
+  OracleTree: () => <p>Oracles list</p>,
+}));
+vi.mock("../../characterSheet/components/GameLog", () => ({
+  GameLog: (props: { open: boolean }) => (
+    <p>{props.open ? "Game log, open" : "Game log, closed"}</p>
+  ),
 }));
 
 const banner = vi.hoisted(() => ({ show: false }));
@@ -113,7 +126,7 @@ function sectionButtons() {
     screen.getByRole("navigation", { name: "Game Sections" }),
   ).getAllByRole("button");
 }
-function sectionButton(name: string) {
+function sectionButton(name: string | RegExp) {
   return within(
     screen.getByRole("navigation", { name: "Game Sections" }),
   ).getByRole("button", { name });
@@ -128,6 +141,7 @@ beforeEach(() => {
   // jsdom has no scrollBy; the page tabs scroll the current one into view.
   Element.prototype.scrollBy ??= () => {};
   banner.show = false;
+  useAppState.getState().resetReference();
   useAuthStore.setState({ uid: "me" });
   useDataswornTreeStore.setState({ rulesError: null });
   setGame("Ashen Reach");
@@ -323,7 +337,9 @@ describe("GameLayout at 375px", () => {
     expect(sectionButtons().map((button) => button.textContent)).toEqual([
       "Character",
       "Notes",
-      "Reference",
+      "Moves",
+      "Oracles",
+      "Log",
     ]);
     expect(sectionButton("Character")).toHaveAttribute("aria-current");
     expect(screen.getByText("Character page")).toBeVisible();
@@ -333,8 +349,45 @@ describe("GameLayout at 375px", () => {
     expect(screen.getByText("Notes column")).toBeVisible();
     expect(screen.queryByText("Character page")).not.toBeVisible();
 
-    await userEvent.click(sectionButton("Reference"));
-    expect(screen.getByText("Reference column")).toBeVisible();
+    await userEvent.click(sectionButton("Moves"));
+    expect(screen.getByText("Moves list")).toBeVisible();
+    await userEvent.click(sectionButton("Oracles"));
+    expect(screen.getByText("Oracles list")).toBeVisible();
+    await userEvent.click(sectionButton("Log"));
+    expect(screen.getByText("Game log, open")).toBeVisible();
+  });
+
+  it("keeps the reference tab with the section on screen", async () => {
+    useAppState.setState({ currentReferenceTab: ReferenceTabs.GameLog });
+    renderGamePage(`/games/${GAME_ID}/c/c-ash`);
+    // The log isn't on screen, so it can't count as read.
+    expect(useAppState.getState().currentReferenceTab).toBe(
+      ReferenceTabs.Moves,
+    );
+    expect(screen.getByText("Game log, closed")).not.toBeVisible();
+
+    await userEvent.click(sectionButton("Oracles"));
+    expect(useAppState.getState().currentReferenceTab).toBe(
+      ReferenceTabs.Oracles,
+    );
+    await userEvent.click(sectionButton("Log"));
+    expect(useAppState.getState().currentReferenceTab).toBe(
+      ReferenceTabs.GameLog,
+    );
+    await userEvent.click(sectionButton("Notes"));
+    expect(useAppState.getState().currentReferenceTab).toBe(
+      ReferenceTabs.Moves,
+    );
+  });
+
+  it("counts unread log entries on the Log item", () => {
+    // Solo games have no one else writing to the log.
+    useGameStore.setState({
+      game: { name: "Ashen Reach", worldId: null, gameType: "co-op" } as never,
+    });
+    useAppState.setState({ gameLogNotificationCount: 3 });
+    renderGamePage(`/games/${GAME_ID}/c/c-ash`);
+    expect(sectionButton(/^Log/)).toHaveAccessibleName(/^Log ?, 3 unread$/);
   });
 
   it("names the first section Overview on the overview", () => {
