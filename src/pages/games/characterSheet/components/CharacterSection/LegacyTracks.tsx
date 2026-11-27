@@ -1,7 +1,8 @@
-import { Box, Typography } from "@mui/material";
 import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
-import { DebouncedProgressTrack } from "components/datasworn/ProgressTrack";
+import { SectionHeading } from "ui/layout";
+import { Grid, Stack } from "ui/primitives";
 
 import { useSpecialTrackRules } from "stores/dataswornTree.store";
 import {
@@ -11,12 +12,16 @@ import {
 
 import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterId } from "../../hooks/useCharacterId";
+import { SpecialTrack } from "./SpecialTrack";
 
+// Starforged's legacy tracks, Ironsworn's bonds, Elegy's elegies: the
+// character's special tracks.
 export function LegacyTracks() {
+  const { t } = useTranslation();
   const characterId = useCharacterId();
   const canEditCharacter = useCanEditCharacter();
 
-  const legacyTracks = useGameCharacter(
+  const values = useGameCharacter(
     (character) => character?.specialTracks ?? {},
   );
   const specialTrackRules = useSpecialTrackRules();
@@ -24,7 +29,7 @@ export function LegacyTracks() {
     (store) => store.updateSpecialTrackValue,
   );
 
-  const handleProgressTrackChange = useCallback(
+  const handleChange = useCallback(
     (key: string, value: number) => {
       if (characterId) {
         updateSpecialTrackValue(characterId, key, value).catch(() => {});
@@ -33,30 +38,34 @@ export function LegacyTracks() {
     [characterId, updateSpecialTrackValue],
   );
 
+  const tracks = Object.entries(specialTrackRules);
+  if (tracks.length === 0) return null;
+
+  const isLegacy = (key: string) => key.endsWith("_legacy");
+  const allLegacies = tracks.every(([key]) => isLegacy(key));
+
   return (
-    <Box>
-      <Typography
-        variant="h6"
-        component="h3"
-        textTransform="uppercase"
-        fontFamily="fontFamilyTitle"
-      >
-        Legacy Tracks
-      </Typography>
-      <Box display="flex" flexWrap="wrap" gap={2}>
-        {Object.entries(specialTrackRules).map(([key, specialTrack]) => (
-          <Box key={key} display="flex" alignItems="center">
-            <DebouncedProgressTrack
-              progressTrackKey={key}
-              label={specialTrack.label}
-              value={legacyTracks[key]?.value ?? 0}
-              onChange={
-                canEditCharacter ? handleProgressTrackChange : undefined
-              }
-            />
-          </Box>
+    <Stack gap="2" as="section">
+      <SectionHeading
+        title={
+          allLegacies
+            ? t("character.character-sidebar.legacy-tracks", "Legacy Tracks")
+            : t("character.character-sidebar.special-tracks", "Special Tracks")
+        }
+        as="h3"
+      />
+      <Grid gap="2" gridTemplateColumns="repeat(auto-fill, minmax(260px, 1fr))">
+        {tracks.map(([key, rule]) => (
+          <SpecialTrack
+            key={key}
+            trackKey={key}
+            label={rule.label}
+            legacy={isLegacy(key)}
+            ticks={values[key]?.value ?? 0}
+            onChange={canEditCharacter ? handleChange : undefined}
+          />
         ))}
-      </Box>
-    </Box>
+      </Grid>
+    </Stack>
   );
 }

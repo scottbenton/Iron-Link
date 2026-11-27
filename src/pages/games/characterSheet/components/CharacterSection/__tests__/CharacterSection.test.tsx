@@ -21,7 +21,10 @@ import { useGameCharactersStore } from "stores/gameCharacters.store";
 import { useMenuState } from "stores/menuState";
 import { useUsersStore } from "stores/users.store";
 
-import { elegyRulesetConfig } from "data/package.config";
+import {
+  elegyRulesetConfig,
+  ironswornRulesetConfig,
+} from "data/package.config";
 
 import { TestWrapper } from "tests/TestWrapper";
 
@@ -41,7 +44,7 @@ import { LegacyTracks } from "../LegacyTracks";
 import { Stats } from "../Stats";
 
 const session = vi.hoisted(() => ({ uid: "me" }));
-const rollStat = vi.hoisted(() => vi.fn());
+const rollStat = vi.hoisted(() => vi.fn(() => ({ action: 3 })));
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("stores/auth.store", () => ({ useUID: () => session.uid }));
@@ -94,7 +97,7 @@ function setCharacter(changes: Partial<ICharacter> = {}) {
         momentum: 3,
         adds: 0,
         debilities: {},
-        specialTracks: { quests: { value: 4, completed: false } },
+        specialTracks: { quests_legacy: { value: 4, completed: false } },
         unspentExperience: 2,
         initiativeStatus: InitiativeStatus.OutOfCombat,
         editPermissions: CharacterEditPermissions.OnlyOwner,
@@ -134,8 +137,8 @@ beforeEach(() => {
       },
     };
     state.specialTrackRules = {
-      quests: { label: "quests", optional: false },
-      bonds: { label: "bonds", optional: false },
+      quests_legacy: { label: "quests", optional: false },
+      bonds_legacy: { label: "bonds", optional: false },
     } as unknown as Record<string, Datasworn.SpecialTrackRule>;
   });
   useGameStore.setState({
@@ -181,7 +184,7 @@ describe("the character's header", () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /out of combat/i }));
     await user.click(
-      await screen.findByRole("menuitem", { name: /has initiative/i }),
+      await screen.findByRole("menuitemradio", { name: /has initiative/i }),
     );
     expect(updates.updateCharacterInitiativeStatus).toHaveBeenCalledWith(
       "kira",
@@ -260,13 +263,13 @@ describe("stats", () => {
     asViewer();
     renderSection(<Stats />);
 
-    expect(screen.getByText("edge")).toBeInTheDocument();
+    expect(screen.getByText("Edge")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /roll edge/i }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /add 1 to adds/i }),
-    ).not.toBeEnabled();
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -311,11 +314,14 @@ describe("meters", () => {
     });
   });
 
-  it("resets momentum to its reset value", async () => {
+  it("resets momentum to its reset value from its menu", async () => {
     const user = userEvent.setup();
     const { unmount } = renderSection(<ConditionMeters />);
 
-    await user.click(screen.getByRole("button", { name: /reset momentum/i }));
+    await user.click(
+      screen.getByRole("button", { name: /^momentum \+3, reset/i }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: /reset/i }));
     unmount();
     expect(updates.updateCharacterMomentum).toHaveBeenCalledWith("kira", 2);
   });
@@ -328,10 +334,34 @@ describe("meters", () => {
     const increase = screen.getByRole("button", {
       name: /add 1 to momentum/i,
     });
-    expect(increase).toBeDisabled();
-    await user.click(screen.getByRole("button", { name: /reset momentum/i }));
+    expect(increase).toHaveAttribute("data-disabled");
+    await user.click(
+      screen.getByRole("button", { name: /^momentum \+9, reset/i }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: /reset/i }));
     unmount();
     expect(updates.updateCharacterMomentum).toHaveBeenCalledWith("kira", 1);
+  });
+
+  // The old sheet stopped counting at the first unmarked impact, so marks
+  // after it lowered neither the max nor the reset.
+  it("counts every marked impact, not just the first ones", async () => {
+    const user = userEvent.setup();
+    setCharacter({
+      momentum: 7,
+      debilities: { wounded: false, shaken: true, cursed: true },
+    });
+    const { unmount } = renderSection(<ConditionMeters />);
+
+    expect(
+      screen.getByRole("button", { name: /add 1 to momentum/i }),
+    ).not.toHaveAttribute("data-disabled");
+    await user.click(
+      screen.getByRole("button", { name: /^momentum \+7, reset/i }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: /reset/i }));
+    unmount();
+    expect(updates.updateCharacterMomentum).toHaveBeenCalledWith("kira", 0);
   });
 
   it("calls momentum Focus in Elegy", () => {
@@ -345,7 +375,7 @@ describe("meters", () => {
     expect(screen.getByRole("group", { name: "Focus" })).toBeInTheDocument();
   });
 
-  it("offers a viewer no rolls and disabled steppers", () => {
+  it("offers a viewer no rolls and no steppers", () => {
     asViewer();
     renderSection(<ConditionMeters />);
 
@@ -354,7 +384,7 @@ describe("meters", () => {
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /subtract 1 from health/i }),
-    ).not.toBeEnabled();
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -393,6 +423,22 @@ describe("impacts", () => {
     );
   });
 
+  it("says Debilities in Ironsworn", () => {
+    useDataswornTreeStore.setState((state) => {
+      state.activeRules = {
+        [ironswornRulesetConfig.id]: {} as Datasworn.RulesPackage,
+      };
+    });
+    renderSection(<ImpactsSection />);
+
+    expect(
+      screen.getByRole("heading", { level: 3, name: "Debilities" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Edit Debilities" }),
+    ).toBeInTheDocument();
+  });
+
   it("offers a viewer no Edit button", () => {
     asViewer();
     renderSection(<ImpactsSection />);
@@ -412,13 +458,29 @@ describe("legacy tracks", () => {
       screen.getByRole("heading", { level: 3, name: "Legacy Tracks" }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole("progressbar")).toHaveLength(2);
-    await user.click(screen.getByRole("button", { name: /increment quests/i }));
+    await user.click(
+      screen.getByRole("button", { name: /mark progress on quests/i }),
+    );
     unmount();
     expect(updates.updateSpecialTrackValue).toHaveBeenCalledWith(
       "kira",
-      "quests",
+      "quests_legacy",
       5,
     );
+  });
+
+  it("calls them Special Tracks when any is not a legacy", () => {
+    useDataswornTreeStore.setState((state) => {
+      state.specialTrackRules = {
+        quests_legacy: { label: "quests", optional: false },
+        notoriety: { label: "notoriety", optional: false },
+      } as unknown as Record<string, Datasworn.SpecialTrackRule>;
+    });
+    renderSection(<LegacyTracks />);
+
+    expect(
+      screen.getByRole("heading", { level: 3, name: "Special Tracks" }),
+    ).toBeInTheDocument();
   });
 
   it("offers a viewer no steppers", () => {
@@ -427,7 +489,7 @@ describe("legacy tracks", () => {
 
     expect(screen.getAllByRole("progressbar")).toHaveLength(2);
     expect(
-      screen.queryByRole("button", { name: /increment quests/i }),
+      screen.queryByRole("button", { name: /mark progress on quests/i }),
     ).not.toBeInTheDocument();
   });
 });

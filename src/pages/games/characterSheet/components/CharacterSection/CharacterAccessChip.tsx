@@ -1,7 +1,7 @@
-import EditIcon from "@mui/icons-material/Edit";
-import SharedIcon from "@mui/icons-material/Group";
-import { Chip, Tooltip } from "@mui/material";
 import { useTranslation } from "react-i18next";
+
+import { Chip } from "ui/components/Chip";
+import { PencilSimpleIcon, UsersThreeIcon } from "ui/icons";
 
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
@@ -42,23 +42,14 @@ export function CharacterAccessChip() {
   }
 
   if (!isOwner) {
+    // Plain text: a tooltip on a chip that can't take focus would be
+    // hover-only.
     return (
-      <Tooltip
-        title={t(
-          "character.edit-access.shared-tooltip",
-          "{{name}} has let you edit this sheet",
-          { name: ownerName },
-        )}
-      >
-        <Chip
-          variant="outlined"
-          size="small"
-          icon={<EditIcon />}
-          label={t("character.edit-access.shared-by", "Shared by {{name}}", {
-            name: ownerName,
-          })}
-        />
-      </Tooltip>
+      <Chip size="sm" icon={<PencilSimpleIcon />}>
+        {t("character.edit-access.shared-by", "Shared by {{name}}", {
+          name: ownerName,
+        })}
+      </Chip>
     );
   }
 
@@ -72,19 +63,17 @@ export function CharacterAccessChip() {
 
   return (
     <Chip
-      variant="outlined"
-      size="small"
-      icon={<SharedIcon />}
-      label={
-        getDisplayedEditPermissions(editPermissions, gameType) ===
-        CharacterEditPermissions.AllPlayers
-          ? t(
-              "character.edit-access.all-players-can-edit",
-              "All Players Can Edit",
-            )
-          : t("character.edit-access.guides-can-edit", "Guides Can Edit")
-      }
+      size="sm"
+      icon={<UsersThreeIcon />}
       onClick={() => setIsEditAccessDialogOpen(true)}
-    />
+    >
+      {getDisplayedEditPermissions(editPermissions, gameType) ===
+      CharacterEditPermissions.AllPlayers
+        ? t(
+            "character.edit-access.all-players-can-edit",
+            "All Players Can Edit",
+          )
+        : t("character.edit-access.guides-can-edit", "Guides Can Edit")}
+    </Chip>
   );
 }

@@ -129,17 +129,25 @@ export function MomentumMeter(props: MomentumMeterProps) {
       t("ui.momentum-meter.reset-description", "Set to {{reset}}", {
         reset: r,
       }),
+    // Names only the actions the menu holds ("Momentum +3, Reset" on a
+    // sheet without Burn).
     menuLabel = (l, v) =>
-      t(
-        "ui.momentum-meter.menu",
-        "{{label}} {{value}}, {{burn}} or {{reset}}",
-        {
-          label: l,
-          value: v,
-          burn: burnLabel,
-          reset: resetLabel,
-        },
-      ),
+      onBurn && onChange
+        ? t(
+            "ui.momentum-meter.menu",
+            "{{label}} {{value}}, {{burn}} or {{reset}}",
+            {
+              label: l,
+              value: v,
+              burn: burnLabel,
+              reset: resetLabel,
+            },
+          )
+        : t("ui.momentum-meter.menu-one", "{{label}} {{value}}, {{action}}", {
+            label: l,
+            value: v,
+            action: onBurn ? burnLabel : resetLabel,
+          }),
     limitsText = (m, r) =>
       t("ui.momentum-meter.limits", "Max {{max}}, reset {{reset}}", {
         max: m,

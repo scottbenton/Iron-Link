@@ -1,32 +1,26 @@
-import ResetIcon from "@mui/icons-material/RestartAlt";
-import { Box, Typography } from "@mui/material";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DebouncedConditionMeter } from "components/datasworn/ConditonMeter";
+import { SectionHeading } from "ui/layout";
+import { Grid, Stack } from "ui/primitives";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId.ts";
 
-import {
-  useConditionMeterRules,
-  useDataswornTreeStore,
-} from "stores/dataswornTree.store.ts";
+import { useConditionMeterRules } from "stores/dataswornTree.store.ts";
 import { useGameStore } from "stores/game.store.ts";
 import {
   useGameCharacter,
   useGameCharactersStore,
 } from "stores/gameCharacters.store.ts";
 
-import { momentumTrack } from "data/defaultTracks";
-import { elegyRulesetConfig } from "data/package.config.ts";
-
 import { DEFAULT_MOMENTUM } from "../../../../../data/constants.ts";
 import { useCanEditCharacter } from "../../hooks/useCanEditCharacter.ts";
 import { useCharacterId } from "../../hooks/useCharacterId.ts";
-import { useMomentumParameters } from "../../hooks/useMomentumResetValue.ts";
+import { MomentumMeterSection } from "./MomentumMeterSection.tsx";
 import { SingleConditionMeter } from "./SingleConditionMeter.tsx";
 
 export function ConditionMeters() {
+  const { t } = useTranslation();
   const gameId = useGameId();
   const characterId = useCharacterId();
   const canEditCharacter = useCanEditCharacter();
@@ -45,30 +39,19 @@ export function ConditionMeters() {
     (store) => store.updateCharacterConditionMeterValue,
   );
 
-  const momentum = useGameCharacter((character) => {
-    return character?.momentum ?? DEFAULT_MOMENTUM;
-  });
-  const updateCharacterMomentum = useGameCharactersStore(
-    (store) => store.updateCharacterMomentum,
+  const momentum = useGameCharacter(
+    (character) => character?.momentum ?? DEFAULT_MOMENTUM,
   );
-
   const adds = useGameCharacter((character) => character?.adds ?? 0);
 
-  const { resetValue, max } = useMomentumParameters();
-
   const conditionMeterRules = useConditionMeterRules();
-  const isElegyActive = useDataswornTreeStore(
-    (store) => !!store.activeRules[elegyRulesetConfig.id],
-  );
 
-  const { t } = useTranslation();
-
+  // Shared meters (Starforged's supply) belong to the game.
   const handleConditionMeterChange = useCallback(
     (key: string, value: number, isShared: boolean) => {
       if (isShared) {
         updateGameConditionMeter(gameId, key, value).catch(() => {});
-      }
-      if (characterId && !isShared) {
+      } else if (characterId) {
         updateCharacterConditionMeter(characterId, key, value).catch(() => {});
       }
     },
@@ -80,26 +63,14 @@ export function ConditionMeters() {
     ],
   );
 
-  const handleMomentumChange = useCallback(
-    (value: number) => {
-      if (characterId) {
-        updateCharacterMomentum(characterId, value).catch(() => {});
-      }
-    },
-    [characterId, updateCharacterMomentum],
-  );
-
   return (
-    <Box>
-      <Typography
-        variant="h6"
-        component="h3"
-        textTransform="uppercase"
-        fontFamily="fontFamilyTitle"
-      >
-        {t("character.character-sidebar.meters", "Meters")}
-      </Typography>
-      <Box display="flex" flexWrap="wrap" gap={1}>
+    <Stack gap="2" as="section">
+      <SectionHeading
+        title={t("character.character-sidebar.meters", "Meters")}
+        as="h3"
+      />
+      {/* As many meters to a row as fit, each at least a meter's width. */}
+      <Grid gap="2" gridTemplateColumns="repeat(auto-fill, minmax(112px, 1fr))">
         {Object.entries(conditionMeterRules).map(([key, rule]) => (
           <SingleConditionMeter
             key={key}
@@ -110,36 +81,13 @@ export function ConditionMeters() {
                 ? gameConditionMeterValues[key]
                 : conditionMeterValues[key]
             }
-            onChange={handleConditionMeterChange}
-            disabled={!canEditCharacter}
+            onChange={canEditCharacter ? handleConditionMeterChange : undefined}
             momentum={momentum}
             adds={adds}
           />
         ))}
-        <DebouncedConditionMeter
-          label={
-            isElegyActive
-              ? t("character.character-sidebar.elegy-focus-track", "Focus")
-              : t("character.character-sidebar.momentum-track", "Momentum")
-          }
-          min={momentumTrack.min}
-          max={max}
-          defaultValue={resetValue}
-          value={momentum}
-          onChange={handleMomentumChange}
-          onActionClick={(setValue) => {
-            setValue(resetValue);
-          }}
-          action={{
-            actionLabel: t(
-              "character.character-sidebar.momentum-track-reset",
-              "Reset",
-            ),
-            ActionIcon: ResetIcon,
-          }}
-          disabled={!canEditCharacter}
-        />
-      </Box>
-    </Box>
+        <MomentumMeterSection />
+      </Grid>
+    </Stack>
   );
 }

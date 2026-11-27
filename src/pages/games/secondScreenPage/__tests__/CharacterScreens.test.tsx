@@ -71,6 +71,17 @@ describe("the characters column", () => {
     expect(screen.getByText("2")).toBeInTheDocument();
   });
 
+  it("heads the list and names each meter for screen readers", () => {
+    render(<CharacterSidebar />, { wrapper: TestWrapper });
+
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Characters" }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("term").map((term) => term.textContent)).toEqual(
+      ["Health", "Spirit", "Health", "Spirit"],
+    );
+  });
+
   it("shows full health and spirit for a character who has none saved", () => {
     render(<CharacterSidebar />, { wrapper: TestWrapper });
 
