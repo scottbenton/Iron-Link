@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LinkComponent } from "components/LinkComponent";
@@ -61,6 +61,13 @@ export function ReferenceBrowseSection(props: ReferenceBrowseSectionProps) {
     },
     [tab, section, overrides, openPackageId],
   );
+
+  // The open item starts at its top, as a page would. The list keeps its
+  // place.
+  const detailRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    detailRef.current?.scrollTo?.({ top: 0 });
+  }, [selectedId]);
 
   const rollOracleAndAddToLog = useRollOracleAndAddToLog();
   const rollOracle = useCallback(
@@ -144,20 +151,28 @@ export function ReferenceBrowseSection(props: ReferenceBrowseSectionProps) {
   }
 
   // Like a game's sheet: the list in a column of its own, the open item on
-  // the page.
+  // the page. The page fills the screen here (see ReferencePage), so each
+  // column scrolls on its own.
   return (
     <Grid
       gridTemplateColumns={`${referenceListWidth}px minmax(0, 1fr)`}
+      gridTemplateRows="minmax(0, 1fr)"
       gap="0"
       alignItems="stretch"
-      flexGrow={1}
+      flex="1 1 0"
+      minHeight="0"
     >
-      <Box bg="bg.surface" borderInlineWidth="1px" borderColor="border.default">
-        <Box position="sticky" top="0" maxHeight="100vh" overflowY="auto">
-          {tree}
-        </Box>
+      <Box
+        bg="bg.surface"
+        borderInlineWidth="1px"
+        borderColor="border.default"
+        overflowY="auto"
+      >
+        {tree}
       </Box>
       <Box
+        ref={detailRef}
+        overflowY="auto"
         minWidth="0"
         paddingInline="6"
         paddingBlockStart="4"

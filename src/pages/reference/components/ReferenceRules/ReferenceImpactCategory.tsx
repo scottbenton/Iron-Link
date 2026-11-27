@@ -20,7 +20,7 @@ export function ReferenceImpactCategory(props: ReferenceImpactCategoryProps) {
   const { t } = useTranslation();
 
   return (
-    <Card padding="none" css={{ marginBlockEnd: "4", overflow: "hidden" }}>
+    <Card css={{ marginBlockEnd: "4" }}>
       <CardHeader
         titleAs="h3"
         title={

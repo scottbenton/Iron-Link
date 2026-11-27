@@ -9,6 +9,7 @@ import {
   useSearchParams,
 } from "react-router";
 
+import { useFillShell } from "components/Layout/useFillShell";
 import { LinkComponent } from "components/LinkComponent";
 import { getDataswornItem } from "components/datasworn/DataswornDialog/useGetDataswornItem";
 import { DataswornLinkHandlerProvider } from "components/datasworn/DataswornLinkHandler";
@@ -21,6 +22,7 @@ import { PageTab, PageTabs } from "ui/components/Tabs";
 import { EmptyState } from "ui/layout";
 import { Box, Stack } from "ui/primitives";
 
+import { useIsMobile } from "hooks/useIsMobile";
 import {
   PageCategory,
   useSendPageViewEvent,
@@ -216,6 +218,16 @@ export default function ReferencePage() {
 
   const systemTabsRef = useRef<HTMLElement>(null);
 
+  // Moves and oracles run edge to edge, with the list on the side panel
+  // colour. The rest of the sections keep the page's padding. Beside the
+  // list (wider than a phone) the page fills the screen, and the list and
+  // the open item scroll on their own.
+  const isMobile = useIsMobile();
+  const isBrowseSection =
+    (section === "moves" || section === "oracles") && isLoaded && !shouldReject;
+  const fillsScreen = isBrowseSection && !isMobile;
+  useFillShell(fillsScreen);
+
   const openDialog = useOpenDataswornDialog();
   const handleOpenLink = useCallback(
     (id: string) => {
@@ -393,15 +405,11 @@ export default function ReferencePage() {
     }
   }
 
-  // Moves and oracles run edge to edge, with the list on the side panel
-  // colour. The rest of the sections keep the page's padding.
-  const isBrowseSection =
-    (section === "moves" || section === "oracles") && isLoaded && !shouldReject;
-
   return (
     <Stack
       gap="0"
-      flex="1 0 auto"
+      flex={fillsScreen ? "1 1 0" : "1 0 auto"}
+      minHeight={fillsScreen ? "0" : undefined}
       width="100%"
       maxWidth={referencePageMaxWidth}
       marginInline="auto"
@@ -430,7 +438,10 @@ export default function ReferencePage() {
           </PageTab>
         ))}
       </PageTabs>
-      <PageTabs aria-label={t("reference.tabs.sections", "Sections")}>
+      <PageTabs
+        variant="well"
+        aria-label={t("reference.tabs.sections", "Sections")}
+      >
         {referenceSections.map((referenceSection) => (
           <PageTab
             key={referenceSection}
@@ -464,7 +475,8 @@ export default function ReferencePage() {
       <DataswornLinkHandlerProvider onOpen={handleOpenLink}>
         <Stack
           gap="0"
-          flex="1 0 auto"
+          flex={fillsScreen ? "1 1 0" : "1 0 auto"}
+          minHeight={fillsScreen ? "0" : undefined}
           paddingInline={isBrowseSection ? "0" : "4"}
           paddingBlockStart={isBrowseSection ? "0" : "4"}
           paddingBlockEnd={isBrowseSection ? "0" : "8"}
