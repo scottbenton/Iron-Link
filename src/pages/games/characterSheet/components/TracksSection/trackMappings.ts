@@ -59,7 +59,7 @@ export const oracleByOdds: Record<OracleOdds, AskTheOracle> = {
 
 /**
  * The odds a clock rolls on. Likely when none was chosen, which is what its
- * picker has always shown.
+ * picker shows.
  */
 export function getClockOracle(oracleKey: AskTheOracle | undefined) {
   return oracleKey ?? AskTheOracle.Likely;

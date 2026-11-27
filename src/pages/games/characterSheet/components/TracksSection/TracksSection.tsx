@@ -82,7 +82,7 @@ export function TracksSection() {
   const canEdit = useGamePermissions().gamePermission !== GamePermission.Viewer;
   const canEditCharacter = useCanEditCharacter();
 
-  // Clicks show at once and save once they stop, as the MUI tracks did.
+  // Clicks show at once and save once they stop.
   const pending = usePendingTrackValues(
     (id, field, value) =>
       field === "ticks"

@@ -1,6 +1,6 @@
 /**
- * The character's settings menu and the game page's Theme dialog (migration
- * slice 12), for the sheet's owner, a player it is shared with and a viewer.
+ * The character's settings menu and the game page's Theme dialog,
+ * for the sheet's owner, a player it is shared with and a viewer.
  */
 import {
   cleanup,

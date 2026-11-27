@@ -10,8 +10,8 @@ export const appThemeLocalStorageKey = "iron-link-app-theme";
 interface AppThemeState {
   /**
    * The person's Everywhere theme, used where neither the character nor the
-   * game sets one. Null is Default (the seasonal theme). Kept on this device
-   * for now.
+   * game sets one. Null is Default (the seasonal theme). Kept on this
+   * device.
    */
   appTheme: ColorScheme | null;
   setAppTheme: (appTheme: ColorScheme | null) => void;

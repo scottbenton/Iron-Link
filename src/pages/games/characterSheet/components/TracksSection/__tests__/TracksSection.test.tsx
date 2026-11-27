@@ -1,5 +1,5 @@
 /**
- * The Tracks tab of the character column (migration slice 12): progress
+ * The Tracks tab of the character column: progress
  * tracks and clocks, for a player whose sheet this is, a player who can't
  * edit the sheet, and a viewer.
  */
@@ -356,7 +356,6 @@ describe("progress tracks", () => {
         "game",
         TrackTypes.Vow,
         "Avenge Kai",
-        // An empty description, where the MUI dialog sent undefined.
         "",
         Difficulty.Dangerous,
       ),
@@ -387,8 +386,7 @@ describe("clocks", () => {
     renderTracks();
 
     await user.click(screen.getByRole("button", { name: /roll progress/i }));
-    // With no odds saved, the roll asks Likely, the odds the picker shows
-    // (the MUI roll asked Almost Certain).
+    // With no odds saved, the roll asks Likely, the odds the picker shows.
     expect(rollOracle).toHaveBeenCalledWith(
       askTheOracleEnumMap[AskTheOracle.Likely]._id,
       false,
