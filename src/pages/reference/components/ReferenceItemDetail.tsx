@@ -3,13 +3,14 @@ import { List, ListItemButton, ListItemText, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { LinkComponent } from "components/LinkComponent";
-import { MarkdownRenderer } from "components/MarkdownRenderer";
 import { AssetCard } from "components/datasworn/AssetCard";
 import { getDataswornItem } from "components/datasworn/DataswornDialog/useGetDataswornItem";
 import { Move } from "components/datasworn/Move";
 import { Oracle } from "components/datasworn/Oracle";
 import { OracleTableSharedText } from "components/datasworn/Oracle/OracleTableSharedText";
 import { isLeafCollection } from "components/datasworn/_helpers/dataswornTreeFilter";
+
+import { RulesText } from "ui/game/RulesText";
 
 import { getReferenceItemHref } from "../data/referencePaths";
 import { ReferenceSection, ReferenceTab } from "../data/referenceTabs";
@@ -101,7 +102,7 @@ export function ReferenceItemDetail(props: ReferenceItemDetailProps) {
           {isLeafCollection(collection) ? (
             <>
               {collection.description && (
-                <MarkdownRenderer markdown={collection.description} />
+                <RulesText markdown={collection.description} size="sm" />
               )}
               <OracleTableSharedText
                 oracle={
@@ -142,7 +143,7 @@ function ReferenceCollectionContents(props: {
 
   return (
     <>
-      {description && <MarkdownRenderer markdown={description} />}
+      {description && <RulesText markdown={description} size="sm" />}
       <Typography variant="overline" component="h3" color="text.secondary">
         {t("reference.collection-contents", "In this collection")}
       </Typography>

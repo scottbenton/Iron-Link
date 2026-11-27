@@ -4,7 +4,7 @@ import { Box, Button, Card, Typography } from "@mui/material";
 import type { ElementType, Ref } from "react";
 import { useTranslation } from "react-i18next";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { RulesText } from "ui/game/RulesText";
 
 import {
   type ResolvedWorldTruth,
@@ -89,20 +89,18 @@ export function WorldTruthSummaryCard({
       {resolved?.kind === "option" ? (
         <>
           {resolved.option.summary && (
-            <MarkdownRenderer
-              markdown={resolved.option.summary}
-              typographyVariant="body1"
-              sx={{ fontWeight: 600 }}
-            />
+            <Box sx={{ fontWeight: 600, mb: 1 }}>
+              <RulesText markdown={resolved.option.summary} size="md" />
+            </Box>
           )}
-          <MarkdownRenderer
+          <RulesText
             markdown={withoutTableEmbeds(
               // With no row chosen, a lead-in to the sub-table leads nowhere.
               subTable && !resolved.subRow
                 ? withoutTableLeadIns(resolved.option.description)
                 : resolved.option.description,
             )}
-            typographyVariant="body2"
+            size="sm"
           />
           {subTable && resolved.subRow && (
             <Typography variant="body2" sx={{ mt: 1 }}>
@@ -114,10 +112,7 @@ export function WorldTruthSummaryCard({
           )}
         </>
       ) : resolved?.kind === "custom" ? (
-        <MarkdownRenderer
-          markdown={resolved.description}
-          typographyVariant="body2"
-        />
+        <RulesText markdown={resolved.description} size="sm" />
       ) : (
         <Typography variant="body2" color="text.secondary">
           {t("worlds.truths.not-chosen", "Not chosen yet.")}

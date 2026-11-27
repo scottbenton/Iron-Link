@@ -81,6 +81,16 @@ that are easy to miss. When you learn a new one, add a line here.
   a confirm opened over one keeps focus; drop it with MUI.
 - Filters announce their result count with `useAnnounceSearchResults`.
 
+## Rules text
+
+- Datasworn markdown renders through the library's `RulesText` (MarkdownRenderer
+  is gone). `DataswornRulesTextProvider`, mounted in `AppUIProvider` and inside
+  every `DataswornLinkHandlerProvider`, gives it the app's link rules; the
+  pre-0.1 id map loads lazily, so keep it out of the entry chunk. The app passes
+  no `resolveOracle`: a move's tables come only from `MoveOracles`, and move
+  outcome text (roll results, the log) repeats table macros that must draw
+  nothing there.
+
 ## Deploys
 
 - Cloudflare Pages deploys come from the `deploy` job in

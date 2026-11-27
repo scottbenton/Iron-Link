@@ -71,7 +71,7 @@ describe("AssetAbilities", () => {
     expect(onAbilityToggle).toHaveBeenCalledWith(1, false);
   });
 
-  it("renders MarkdownRenderer with correct markdown text", () => {
+  it("renders each ability's text", () => {
     render(<AssetAbilities abilities={mockAbilities} />);
     expect(screen.getByText("Description 1")).toBeInTheDocument();
     expect(screen.getByText("Description 2")).toBeInTheDocument();

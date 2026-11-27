@@ -1,6 +1,6 @@
 import { Datasworn } from "@datasworn-community/core";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { RulesText } from "ui/game/RulesText";
 
 import { SimpleTable, SimpleTableColumnDefinition } from "./SimpleTable";
 
@@ -50,7 +50,7 @@ export function OracleTableSharedText(props: OracleTableSharedTextProps) {
 
   columns.push({
     label: oracle.column_labels.text,
-    renderer: (row) => <MarkdownRenderer markdown={row.text} />,
+    renderer: (row) => <RulesText markdown={row.text} size="sm" />,
   });
 
   if (
@@ -60,7 +60,7 @@ export function OracleTableSharedText(props: OracleTableSharedTextProps) {
     columns.push({
       label: (oracle as Datasworn.OracleTableSharedText2).column_labels.text2,
       renderer: (row) =>
-        row.text2 ? <MarkdownRenderer markdown={row.text2 ?? ""} /> : null,
+        row.text2 ? <RulesText markdown={row.text2 ?? ""} size="sm" /> : null,
     });
   }
 

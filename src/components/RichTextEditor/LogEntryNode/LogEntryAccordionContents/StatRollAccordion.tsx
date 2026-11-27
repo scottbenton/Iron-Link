@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { RulesText } from "ui/game/RulesText";
 
 import { useMove } from "hooks/datasworn/useMove";
 
@@ -102,7 +102,7 @@ export function StatRollAccordion(props: StatRollAccordionProps) {
         />
         {moveOutcome && (
           <Box bgcolor="background.default" px={1} borderRadius={1}>
-            <MarkdownRenderer markdown={moveOutcome.text} inheritColor />
+            <RulesText markdown={moveOutcome.text} size="sm" color="inherit" />
           </Box>
         )}
       </AccordionDetails>

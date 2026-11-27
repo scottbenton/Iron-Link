@@ -1,7 +1,7 @@
 import GroupIcon from "@mui/icons-material/Group";
 import { Box, Tooltip, Typography } from "@mui/material";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { RulesText } from "ui/game/RulesText";
 
 export interface AssetNameAndDescriptionProps {
   name: string;
@@ -35,7 +35,7 @@ export function AssetNameAndDescription(props: AssetNameAndDescriptionProps) {
       </Box>
       {description && (
         <Box color={(theme) => theme.palette.text.secondary}>
-          <MarkdownRenderer inheritColor markdown={description} />
+          <RulesText markdown={description} size="sm" color="inherit" />
         </Box>
       )}
     </>

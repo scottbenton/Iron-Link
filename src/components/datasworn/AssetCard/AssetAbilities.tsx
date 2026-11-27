@@ -1,8 +1,8 @@
 import { Datasworn } from "@datasworn-community/core";
-import { Box, Checkbox, Stack, Typography } from "@mui/material";
+import { Box, Checkbox, Stack } from "@mui/material";
 import { useId } from "react";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { RulesText } from "ui/game/RulesText";
 
 import { IAsset } from "services/asset.service";
 
@@ -60,12 +60,16 @@ export function AssetAbilities(props: AssetAbilitiesProps) {
             }}
           />
           <Box key={ability.index} id={`${idPrefix}-ability-${ability.index}`}>
-            {ability.name && (
-              <Typography display={"inline"} variant={"body2"}>
-                <b>{ability.name}: </b>
-              </Typography>
-            )}
-            <MarkdownRenderer markdown={ability.text} inlineParagraph />
+            {/* The name leads the text in bold, as on the library's asset card. */}
+            <RulesText
+              markdown={
+                ability.name
+                  ? `__${ability.name}:__ ${ability.text}`
+                  : ability.text
+              }
+              size="sm"
+              color="muted"
+            />
           </Box>
         </Box>
       ))}

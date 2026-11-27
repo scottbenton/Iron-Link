@@ -15,7 +15,7 @@ import {
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
 
-import { MarkdownRenderer } from "components/MarkdownRenderer";
+import { RulesText } from "ui/game/RulesText";
 
 import { getTruthOptionSubTable } from "lib/worldTruths.lib";
 
@@ -72,15 +72,13 @@ export function WorldTruthOptionCard(props: WorldTruthOptionCardProps) {
         )}
       </Box>
       {option.summary && (
-        <MarkdownRenderer
-          markdown={option.summary}
-          typographyVariant="body1"
-          sx={{ fontWeight: 600 }}
-        />
+        <Box sx={{ fontWeight: 600, mb: 1 }}>
+          <RulesText markdown={option.summary} size="md" />
+        </Box>
       )}
-      <MarkdownRenderer
+      <RulesText
         markdown={withoutTableEmbeds(option.description)}
-        typographyVariant="body2"
+        size="sm"
         disableLinks={canEdit && !selected}
       />
     </>
