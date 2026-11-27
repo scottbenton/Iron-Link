@@ -16,10 +16,11 @@ import { useGamePageLayoutStore } from "stores/gamePageLayout.store";
 import { AssetsSection } from "../characterSheet/components/AssetsSection";
 import { TracksSection } from "../characterSheet/components/TracksSection";
 import { CharactersAndUsersTab } from "./CharactersAndUsersTab";
+import { GameOverviewHeader } from "./GameOverviewHeader";
 
 // The game overview column, in the character sheet's place on the game's
-// Overview page. Its heading is the game page's, and its settings are in
-// the app's settings menu.
+// Overview page. Its heading is the game page's; the game's name and
+// settings head its Characters section, as the character's head the sheet.
 export default function GameOverviewSheet() {
   const { t } = useTranslation();
   useSendPageViewEvent(PageCategory.GameOverview);
@@ -38,6 +39,7 @@ export default function GameOverviewSheet() {
       onValueChange={setSection}
     >
       <ColumnTabPanel value="characters">
+        <GameOverviewHeader />
         <CharactersAndUsersTab />
       </ColumnTabPanel>
       <ColumnTabPanel value="assets">

@@ -14,6 +14,7 @@ import { useGameCharacter } from "stores/gameCharacters.store";
 import { useGameId } from "../hooks/useGameId";
 import { useIsOnCharacterCreatePage } from "../hooks/useIsOnCharacterCreatePage";
 import { useSortedGameCharacters } from "../hooks/useSortedGameCharacters";
+import { SwitcherPortrait } from "./SwitcherPortrait";
 
 export interface GamePageNavBarProps {
   /** The phone layout: a back button and the character switcher. */
@@ -46,6 +47,7 @@ export function GamePageNavBar(props: GamePageNavBarProps) {
             characters={characters.map((character) => ({
               ...character,
               href: pathConfig.gameCharacter(gameId, character.id),
+              portrait: <SwitcherPortrait characterId={character.id} />,
             }))}
             current={characterId ?? (isOnCreatePage ? "add" : "overview")}
             gameName={gameName ?? loading}

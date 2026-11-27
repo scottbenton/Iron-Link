@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
+
 import { ContributedSettingsAction } from "stores/appSettingsMenu.store";
 import { GamePermission, useGameStore } from "stores/game.store";
 import {
@@ -22,8 +24,8 @@ import { useGamePermissions } from "../hooks/usePermissions";
 
 /**
  * The game page's part of the app's settings menu: the open character's
- * settings when the person can edit it, the game's, Change Theme and the
- * log sound. Null until the game has loaded.
+ * settings when the person can edit it, the game's (with Second Screen when
+ * it is turned on), Change Theme and the log sound. Null until the game has loaded.
  */
 export function useGameSettingsContribution() {
   const { t } = useTranslation();
@@ -40,6 +42,7 @@ export function useGameSettingsContribution() {
   const canEditCharacter = useCanEditCharacter();
   const isCharacterOwner = useIsOwnerOfCharacter();
 
+  const secondScreen = useSecondScreenFeature();
   const logSound = useGameLogStore((store) => store.playSoundOnLog);
   const setLogSound = useGameLogStore((store) => store.setPlaySoundOnLog);
 
@@ -55,6 +58,7 @@ export function useGameSettingsContribution() {
     setIsGameNameDialogOpen,
     setIsRulesetDialogOpen,
     setIsGameThemeDialogOpen,
+    setIsSecondScreenDialogOpen,
   } = menuState;
 
   return useMemo(() => {
@@ -85,6 +89,9 @@ export function useGameSettingsContribution() {
         case "gameRulesets":
           setIsRulesetDialogOpen(true);
           break;
+        case "secondScreen":
+          setIsSecondScreenDialogOpen(true);
+          break;
         case "theme":
           if (themeTarget === "character") setIsColorSchemeDialogOpen(true);
           else if (themeTarget === "game") setIsGameThemeDialogOpen(true);
@@ -98,6 +105,7 @@ export function useGameSettingsContribution() {
         isGuide,
         solo: gameType === GameType.Solo,
         characterCount,
+        secondScreen,
       },
       character: editsCharacter
         ? {
@@ -119,6 +127,7 @@ export function useGameSettingsContribution() {
     gamePermission,
     gameType,
     characterCount,
+    secondScreen,
     characterId,
     characterName,
     canEditCharacter,
@@ -134,5 +143,6 @@ export function useGameSettingsContribution() {
     setIsGameNameDialogOpen,
     setIsRulesetDialogOpen,
     setIsGameThemeDialogOpen,
+    setIsSecondScreenDialogOpen,
   ]);
 }
