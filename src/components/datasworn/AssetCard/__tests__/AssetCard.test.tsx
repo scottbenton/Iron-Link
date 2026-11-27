@@ -79,6 +79,8 @@ function isLocked(element: HTMLElement) {
 describe("AssetCard", () => {
   beforeAll(() => {
     loadRules(RULESETS.starforged.slice(0, 1));
+    // jsdom has no PointerEvent, which Base UI's checkbox dispatches.
+    globalThis.PointerEvent ??= class extends MouseEvent {} as never;
   });
 
   beforeEach(() => {

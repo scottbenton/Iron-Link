@@ -104,20 +104,20 @@ async function addFromPicker(
   await user.click(screen.getByRole("button", { name: /^add assets?$/i }));
   const dialog = await screen.findByRole("dialog");
   await user.click(
-    within(dialog).getByRole("button", { name: collectionName }),
+    within(dialog).getByRole("button", {
+      name: new RegExp(`^${collectionName}`),
+    }),
   );
-  const heading = await within(dialog).findByRole("heading", {
-    name: assetName,
-  });
-  const card = heading.closest("article, .MuiCard-root") as HTMLElement;
   await user.click(
-    within(card).getByRole("button", { name: /^select asset$/i }),
+    await within(dialog).findByRole("button", { name: `Add ${assetName}` }),
   );
 }
 
 describe("AssetsSection", () => {
   beforeAll(() => {
     loadRules(RULESETS.starforged.slice(0, 1));
+    // jsdom has no PointerEvent, which Base UI's checkbox dispatches.
+    globalThis.PointerEvent ??= class extends MouseEvent {} as never;
     globalThis.ResizeObserver ??= class {
       observe() {}
       unobserve() {}
@@ -233,12 +233,15 @@ describe("AssetsSection", () => {
     expect(deleteAsset).not.toHaveBeenCalled();
   });
 
-  it("offers no Add Assets button to a reader without edit rights", async () => {
+  it("offers no Add Assets or Delete to a reader without edit rights", async () => {
     mockCanEdit.mockReturnValue(false);
     await renderSection();
     expect(
       screen.queryByRole("button", { name: /^add assets?$/i }),
     ).not.toBeInTheDocument();
     expect(screen.getByText("Show all abilities")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Delete Protocol Bot" }),
+    ).not.toBeInTheDocument();
   });
 });

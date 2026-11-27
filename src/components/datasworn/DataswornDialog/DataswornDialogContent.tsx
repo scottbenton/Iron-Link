@@ -1,15 +1,22 @@
+import { Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogBody } from "ui/components/Dialog";
+import { Progress } from "ui/components/Progress";
 import { EmptyState } from "ui/layout";
 import { Box } from "ui/primitives";
 
-import { AssetCard } from "../AssetCard";
 import { Move } from "../Move";
 import { Oracle } from "../Oracle";
 import { OracleTableSharedText } from "../Oracle/OracleTableSharedText";
 import { DataswornDialogTitle } from "./DataswornDialogTitle";
 import { useGetDataswornItem } from "./useGetDataswornItem";
+
+// The dialog is mounted on every page, so the asset card loads only when an
+// asset is opened, keeping it out of the entry chunk.
+const AssetCard = lazy(() =>
+  import("../AssetCard").then((module) => ({ default: module.AssetCard })),
+);
 
 export interface DataswornDialogContentProps {
   id: string;
@@ -51,7 +58,9 @@ export function DataswornDialogContent(props: DataswornDialogContentProps) {
         <DataswornDialogTitle>{item.asset.name}</DataswornDialogTitle>
         <DialogBody>
           <Box width="100%" maxWidth="350px" marginInline="auto">
-            <AssetCard assetId={item.asset._id} />
+            <Suspense fallback={<Progress />}>
+              <AssetCard assetId={item.asset._id} />
+            </Suspense>
           </Box>
         </DialogBody>
       </>
