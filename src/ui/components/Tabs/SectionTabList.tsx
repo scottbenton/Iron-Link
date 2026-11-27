@@ -1,16 +1,25 @@
 import { Tabs as BaseTabs } from "@base-ui/react/tabs";
-import { ComponentProps, ReactNode, forwardRef } from "react";
+import {
+  ComponentProps,
+  ReactNode,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+} from "react";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 import { ledgeLayers } from "ui/styles/ledge";
 
 import { cva, cx } from "styled-system/css";
 
+import { useScrollFade } from "../../hooks/useScrollFade";
+import { scrollStripStyles } from "./scrollStrip";
 import {
   SectionTabsAlign,
   SectionTabsSize,
   SectionTabsVariant,
 } from "./sectionTabsTypes";
+import { useKeepSelectedTabInView } from "./useKeepSelectedTabInView";
 import { VariantContext } from "./variantContext";
 
 const listStyles = cva({
@@ -134,7 +143,8 @@ export interface SectionTabListProps
 /**
  * The tabs that switch the main parts of a section, such as a character
  * sheet's Overview, Assets and Tracks. Arrow keys, Home and End move between
- * tabs.
+ * tabs. Tabs that don't fit scroll sideways, their edges fading, rather than
+ * running under whatever sits beside the list.
  */
 export const SectionTabList = forwardRef<HTMLDivElement, SectionTabListProps>(
   function SectionTabList(props, ref) {
@@ -147,12 +157,16 @@ export const SectionTabList = forwardRef<HTMLDivElement, SectionTabListProps>(
       children,
       ...rest
     } = withCssProp(props);
+    const listRef = useRef<HTMLDivElement>(null);
+    useImperativeHandle(ref, () => listRef.current as HTMLDivElement);
+    useScrollFade(listRef);
+    useKeepSelectedTabInView(listRef);
     return (
       <VariantContext.Provider value={{ variant, size }}>
         <BaseTabs.List
-          ref={ref}
+          ref={listRef}
           activateOnFocus={activateOnFocus}
-          className={cx(listStyles({ variant }), className)}
+          className={cx(scrollStripStyles, listStyles({ variant }), className)}
           data-align={align}
           {...rest}
         >
