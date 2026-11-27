@@ -81,7 +81,10 @@ export const menuItemIconStyles = css({
   color: "var(--menu-item-icon)",
 });
 
-/** Holds a checkbox or radio indicator so labels line up checked or not. */
+/**
+ * Holds a checkbox or radio indicator at the end of the row, so the row
+ * keeps its width checked or not.
+ */
 export const menuItemIndicatorSlotStyles = css({
   display: "inline-flex",
   alignItems: "center",
