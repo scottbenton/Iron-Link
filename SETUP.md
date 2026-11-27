@@ -2,11 +2,11 @@
 
 ## Steps
 
-1. Clone this project `git clone https://github.com/scottbenton/Iron-Link-React.git`
-2. Install node v18 and npm v10
+1. Clone this project `git clone https://github.com/scottbenton/Iron-Link.git`
+2. Install node v22 and npm v10
 
-  1. Follow [these instructions](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and- ) to install nvm
-  2. Switch to project dir and `nvm install` to install and configure the correct node version
+   1. Follow [these instructions](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating) to install nvm (macOS, Linux or WSL). On Windows outside WSL, install [fnm](https://github.com/Schniz/fnm?tab=readme-ov-file#installation) instead, which reads the same `.nvmrc`, and set up your shell as its README says
+   2. Switch to project dir and `nvm install` (or `fnm install`, then `fnm use`) to install and configure the correct node version
 
 3. Follow these instructions to [Install docker](https://www.docker.com/get-started/)
 
@@ -32,13 +32,9 @@ As you start up supabase locally, you will get values to fill these config value
 
 Supabase provides authentication, database, and image storage to this application.
 
-The first step is to start the local version of supabase. Make sure you have docker installed and running on your machine, then run `npm run supabase:start` in order to launch your docker containers. Once your local development setup has started, it should output a bunch of URLs and keys into the console. You need to copy the value of the `API URL:` and the `anon key:` into your `.env.local` file in order for the UI to be able to communicate with Supabase.
+The first step is to start the local version of supabase. Make sure you have docker installed and running on your machine, then run `npm run supabase:start` in order to launch your docker containers. Once your local development setup has started, it should output a bunch of URLs and keys into the console. You need to copy the `Project URL` into `VITE_SUPABASE_URL` and the `Publishable` key (under Authentication Keys) into `VITE_SUPABASE_ANON_KEY` in your `.env.local` file in order for the UI to be able to communicate with Supabase.
 
-Once supabase has launched, we need to make a couple more configuration changes - unfortunately supabase does not allow these to be as easily configured, so we need to set them up manually.
-
-1. Launch Supabase Studio - it should be running at `localhost:54323`. You can use the studio to check the values in the database and storage buckets, easily manage tables, and to check the supabase logs.
-2. Navigate to `storage` on the lefthand side, and create a new storage bucket called `characters`, using the following settings. ![Character Storage Settings](./readme_assets/StorageBucketSettings.png)
-3. Add a policy to your storage bucket - this policy is not secure for a production environment, but works fine for development ![Storage Policy](./readme_assets/TemporaryStoragePolicy.png)
+Supabase Studio should be running at `localhost:54323`. You can use the studio to check the values in the database and storage buckets, easily manage tables, and to check the supabase logs.
 
 ### Google and Discord Sign In (Optional)
 

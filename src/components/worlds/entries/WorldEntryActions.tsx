@@ -87,9 +87,10 @@ export function WorldEntryActions({
   const definitions = useWorldCategoriesStore(
     (store) => store.fieldDefinitions,
   );
-  const categoryIcon = useWorldCategoriesStore(
-    (store) => store.categories[entry.categoryId]?.icon ?? null,
+  const category = useWorldCategoriesStore(
+    (store) => store.categories[entry.categoryId],
   );
+  const categoryIcon = category?.icon ?? null;
   const deleteEntry = useWorldEntriesStore((store) => store.deleteEntry);
   const image = useWorldEntryImage(entry, onError);
   const secondScreen = useWorldEntrySecondScreen(entry);
@@ -415,6 +416,7 @@ export function WorldEntryActions({
         <WorldIconPickerDialog
           value={entry.icon}
           inherited={categoryIcon}
+          category={category}
           title={t("worlds.entries.choose-icon-title", "Choose entry icon")}
           onSave={(icon) => {
             updateEntry(entry.id, { icon }).catch(onError);

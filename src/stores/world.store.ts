@@ -272,3 +272,13 @@ export function useWorldPermission(): WorldPermission | null {
 export function useWorldIsGuided(): boolean {
   return useWorldStore((state) => state.isGuided === true);
 }
+
+// The loaded world's setting key, or undefined while that world is not the
+// one loaded (some icons differ by setting, and fall back to shared ones).
+export function useWorldSettingKey(
+  worldId: string | undefined,
+): string | null | undefined {
+  return useWorldStore((state) =>
+    worldId && state.world?.id === worldId ? state.world.settingKey : undefined,
+  );
+}

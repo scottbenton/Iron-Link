@@ -6,19 +6,26 @@ import { EmptyState } from "components/Layout/EmptyState";
 
 import { useWorldIsGuided } from "stores/world.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
+import { useWorldEntryLayout } from "stores/worldEntryLayout.store";
 
-import { getWorldEntryPath, isTopLevelWorldEntry } from "lib/worldEntryParents";
+import {
+  getWorldEntryPath,
+  getWorldEntryTree,
+  isTopLevelWorldEntry,
+} from "lib/worldEntryParents";
 
 import { IWorldCategory } from "services/worldCategories.service";
 
 import type { WorldNavigation } from "../worldNavigation";
 import { WorldEntryCardRow, WorldEntryCards } from "./WorldEntryCards";
+import { WorldEntryList } from "./WorldEntryList";
 import { getEditorErrorMessage } from "./categoryEditor.utils";
 import { useWorldEntryRows } from "./useWorldEntryRows";
 
-// A category opened like a Notes folder: its entries as note cards, by name.
-// With nesting, only its top level shows, and entries holding others are
-// folder cards that open into their Places.
+// A category opened like a Notes folder: its entries by name, as note cards
+// or as a list (see WorldEntryLayoutToggle). With nesting, the cards show only
+// the top level, entries holding others being folder cards that open into
+// their Places; the list is a tree that opens them in place.
 // Entries are listened to by the surrounding manager, which keeps them loaded
 // while moving between this list and an entry.
 export function WorldCategoryContents({
@@ -37,6 +44,7 @@ export function WorldCategoryContents({
   const error = useWorldEntriesStore((store) => !!store.entryState.error);
   const { entries, subtitleOf, rowOf } = useWorldEntryRows(category);
   const nesting = category.supportsHierarchy;
+  const layout = useWorldEntryLayout(category);
   const inCategory = Object.values(entries)
     .filter((entry) => entry.categoryId === category.id)
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -60,9 +68,21 @@ export function WorldCategoryContents({
           },
         ];
       })
-    : inCategory
-        .filter((entry) => !nesting || isTopLevelWorldEntry(entries, entry))
-        .map(rowOf);
+    : layout === "list"
+      ? []
+      : inCategory
+          .filter((entry) => !nesting || isTopLevelWorldEntry(entries, entry))
+          .map(rowOf);
+  // The list without a filter is the category's tree, or one flat list.
+  const tree =
+    layout === "list" && !query
+      ? nesting
+        ? getWorldEntryTree(entries, category.id)
+        : { roots: inCategory, children: {} }
+      : undefined;
+  const listRows =
+    tree?.roots.map((entry) => ({ entry, subtitle: subtitleOf(entry) })) ??
+    rows;
   return (
     <Box
       component="section"
@@ -90,7 +110,7 @@ export function WorldCategoryContents({
         <LinearProgress
           aria-label={t("worlds.categories.loading-entries", "Loading entries")}
         />
-      ) : rows.length === 0 ? (
+      ) : listRows.length === 0 ? (
         <EmptyState
           title={
             inCategory.length === 0
@@ -129,14 +149,27 @@ export function WorldCategoryContents({
               )}
             </Typography>
           )}
-          <WorldEntryCards
-            rows={rows}
-            category={category}
-            guided={guided}
-            navigation={navigation}
-            onDeleted={() => setActionError(undefined)}
-            onError={(cause) => setActionError(getEditorErrorMessage(cause))}
-          />
+          {layout === "list" ? (
+            <WorldEntryList
+              rows={listRows}
+              tree={tree?.children}
+              subtitleOf={subtitleOf}
+              category={category}
+              guided={guided}
+              navigation={navigation}
+              onDeleted={() => setActionError(undefined)}
+              onError={(cause) => setActionError(getEditorErrorMessage(cause))}
+            />
+          ) : (
+            <WorldEntryCards
+              rows={rows}
+              category={category}
+              guided={guided}
+              navigation={navigation}
+              onDeleted={() => setActionError(undefined)}
+              onError={(cause) => setActionError(getEditorErrorMessage(cause))}
+            />
+          )}
         </>
       )}
     </Box>
