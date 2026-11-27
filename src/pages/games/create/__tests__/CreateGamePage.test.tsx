@@ -1,15 +1,19 @@
-import { ThemeProvider } from "@mui/material";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-import { getTheme } from "providers/ThemeProvider/themes/themeConfig";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import { useCreateGameStore } from "stores/createGame.store";
 
 import { GameType } from "repositories/game.repository";
-import { ColorScheme } from "repositories/shared.types";
 
 import CreateGamePage from "../CreateGamePage";
 
@@ -44,15 +48,13 @@ function LocationDisplay() {
 
 function renderPage() {
   return render(
-    <ThemeProvider theme={getTheme(ColorScheme.Default)}>
-      <MemoryRouter initialEntries={["/games/create"]}>
-        <Routes>
-          <Route path="/games/create" element={<CreateGamePage />} />
-          <Route path="*" element={null} />
-        </Routes>
-        <LocationDisplay />
-      </MemoryRouter>
-    </ThemeProvider>,
+    <MemoryRouter initialEntries={["/games/create"]}>
+      <Routes>
+        <Route path="/games/create" element={<CreateGamePage />} />
+        <Route path="*" element={null} />
+      </Routes>
+      <LocationDisplay />
+    </MemoryRouter>,
   );
 }
 
@@ -61,6 +63,11 @@ function getStepLabels() {
     (label) => screen.queryAllByText(label).length > 0,
   );
 }
+
+beforeAll(() => {
+  // Base UI's radio cards replay a click as a PointerEvent, which jsdom lacks.
+  window.PointerEvent ??= MouseEvent as unknown as typeof PointerEvent;
+});
 
 beforeEach(() => {
   mocks.createGame.mockReset();
@@ -110,17 +117,33 @@ describe("CreateGamePage", () => {
     expect(screen.getByRole("radio", { name: /Solo/ })).toBeChecked();
   });
 
-  it("goes past the rules step with no ruleset chosen", async () => {
-    // Today the step's check that a ruleset is chosen is never run.
+  it("stays on the rules step until a ruleset is chosen", async () => {
+    // Before the swap, Next skipped this check and moved on with no ruleset.
     const user = userEvent.setup();
     renderPage();
 
     await user.click(screen.getByRole("button", { name: "Next" }));
     await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Please select at least one ruleset",
+    );
+    expect(screen.queryByText("Character step")).not.toBeInTheDocument();
+
+    await user.click(screen.getByText("Starforged"));
+    await user.click(screen.getByRole("button", { name: "Next" }));
     expect(screen.getByText("Character step")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Create Character" }),
     ).toBeInTheDocument();
+  });
+
+  it("goes back to a finished step from its step label", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await user.click(screen.getByRole("button", { name: /^Choose Game Type/ }));
+    expect(screen.getByRole("radio", { name: /Solo/ })).toBeChecked();
   });
 
   it("creates a co-op game and opens it", async () => {

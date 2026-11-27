@@ -1,4 +1,3 @@
-import { Box, Button, SxProps, Theme } from "@mui/material";
 import {
   Dispatch,
   SetStateAction,
@@ -8,9 +7,10 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "ui/components/Button";
+import { Stack } from "ui/primitives";
+
 import {
-  IExpansionConfig,
-  IRulesetConfig,
   getExpansionDependencies,
   getExpansionDependents,
   includedExpansions,
@@ -20,7 +20,8 @@ import {
 import { PlaysetConfig } from "repositories/game.repository";
 
 import { PlaysetDialog } from "./PlaysetDialog";
-import { RulesetCheckboxListRenderer } from "./RulesetCheckboxListRenderer";
+import { RulesetCheckboxList } from "./RulesetCheckboxList";
+import { getActivePackages } from "./getActivePackages";
 
 export interface RulesPackageSelectorProps {
   activeRulesetConfig: Record<string, boolean>;
@@ -33,9 +34,12 @@ export interface RulesPackageSelectorProps {
   ) => void;
   activePlaysetConfig: PlaysetConfig;
   onPlaysetChange: Dispatch<SetStateAction<PlaysetConfig>>;
-  sx?: SxProps<Theme>;
 }
 
+/**
+ * Choose a game's rulesets and expansions, then optionally its playset: the
+ * assets, moves and oracles it includes.
+ */
 export function RulesPackageSelector(props: RulesPackageSelectorProps) {
   const {
     activeRulesetConfig,
@@ -44,92 +48,56 @@ export function RulesPackageSelector(props: RulesPackageSelectorProps) {
     onExpansionChange,
     activePlaysetConfig,
     onPlaysetChange,
-    sx,
   } = props;
 
   const { t } = useTranslation();
 
-  const rulesets = includedRulesets;
-  const expansions = includedExpansions;
-
-  const { activeRulesets, activeExpansions } = useMemo(() => {
-    const activeRulesets: Record<string, IRulesetConfig> = {};
-    const activeExpansions: Record<string, IExpansionConfig> = {};
-
-    Object.entries(activeRulesetConfig).forEach(([rulesetId, isActive]) => {
-      if (isActive) {
-        activeRulesets[rulesetId] = rulesets[rulesetId];
-        Object.entries(activeExpansionConfig[rulesetId] ?? {}).forEach(
-          ([expansionId, isActive]) => {
-            if (isActive) {
-              activeExpansions[expansionId] =
-                expansions[rulesetId][expansionId];
-            }
-          },
-        );
-      }
-    });
-
-    return { activeRulesets, activeExpansions };
-  }, [rulesets, activeRulesetConfig, expansions, activeExpansionConfig]);
-
-  const [isPlaysetDialogOpen, setIsPlaysetDialogOpen] = useState(false);
-  const hasActiveRulesets = Object.values(activeRulesetConfig).some(
-    (val) => val,
+  const { activeRulesets, activeExpansions } = useMemo(
+    () =>
+      getActivePackages(
+        includedRulesets,
+        includedExpansions,
+        activeRulesetConfig,
+        activeExpansionConfig,
+      ),
+    [activeRulesetConfig, activeExpansionConfig],
   );
 
+  const [isPlaysetDialogOpen, setIsPlaysetDialogOpen] = useState(false);
+  const hasActiveRulesets = Object.keys(activeRulesets).length > 0;
+
+  // Turning an expansion on turns on what it needs; turning it off turns off
+  // what needs it.
   const handleExpansionChange = useCallback(
     (rulesetKey: string, expansionKey: string, isActive: boolean) => {
-      if (isActive) {
-        getExpansionDependencies(rulesetKey, expansionKey).forEach(
-          (dependencyKey) => {
-            onExpansionChange(rulesetKey, dependencyKey, true);
-          },
-        );
-      } else {
-        getExpansionDependents(rulesetKey, expansionKey).forEach(
-          (dependentKey) => {
-            onExpansionChange(rulesetKey, dependentKey, false);
-          },
-        );
-      }
-
+      const linked = isActive
+        ? getExpansionDependencies(rulesetKey, expansionKey)
+        : getExpansionDependents(rulesetKey, expansionKey);
+      linked.forEach((linkedKey) => {
+        onExpansionChange(rulesetKey, linkedKey, isActive);
+      });
       onExpansionChange(rulesetKey, expansionKey, isActive);
     },
     [onExpansionChange],
   );
 
+  const listProps = {
+    rulesets: includedRulesets,
+    activeRulesetConfig,
+    onRulesetChange,
+    expansions: includedExpansions,
+    activeExpansionConfig,
+    onExpansionChange: handleExpansionChange,
+    activePlaysetConfig,
+    onPlaysetChange,
+  };
+
   return (
-    <Box sx={sx}>
-      <RulesetCheckboxListRenderer
-        renderMode="official"
-        rulesets={rulesets}
-        activeRulesetConfig={activeRulesetConfig}
-        onRulesetChange={onRulesetChange}
-        expansions={expansions}
-        activeExpansionConfig={activeExpansionConfig}
-        onExpansionChange={handleExpansionChange}
-        activePlaysetConfig={activePlaysetConfig}
-        onPlaysetChange={onPlaysetChange}
-      />
-      <RulesetCheckboxListRenderer
-        renderMode="homebrew"
-        rulesets={rulesets}
-        activeRulesetConfig={activeRulesetConfig}
-        onRulesetChange={onRulesetChange}
-        expansions={expansions}
-        activeExpansionConfig={activeExpansionConfig}
-        onExpansionChange={handleExpansionChange}
-        activePlaysetConfig={activePlaysetConfig}
-        onPlaysetChange={onPlaysetChange}
-      />
+    <Stack gap="5" alignItems="flex-start">
+      <RulesetCheckboxList renderMode="official" {...listProps} />
+      <RulesetCheckboxList renderMode="homebrew" {...listProps} />
       {hasActiveRulesets && (
-        <Button
-          sx={{ mt: 2 }}
-          variant="outlined"
-          color="inherit"
-          onClick={() => setIsPlaysetDialogOpen(true)}
-        >
+        <Button variant="outline" onClick={() => setIsPlaysetDialogOpen(true)}>
           {t("game.playset.edit", "Edit Playset")}
         </Button>
       )}
@@ -141,6 +109,6 @@ export function RulesPackageSelector(props: RulesPackageSelectorProps) {
         rulesets={activeRulesets}
         expansions={activeExpansions}
       />
-    </Box>
+    </Stack>
   );
 }

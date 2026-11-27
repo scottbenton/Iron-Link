@@ -1,8 +1,12 @@
 import { useTranslation } from "react-i18next";
 
-import { GradientButton } from "components/GradientButton";
-import { PageContent, PageHeader } from "components/Layout";
-import { GridLayout } from "components/Layout/GridLayout";
+import { LinkComponent } from "components/LinkComponent";
+
+import { Button } from "ui/components/Button";
+import { Progress } from "ui/components/Progress";
+import { PlusIcon } from "ui/icons";
+import { EmptyState, PageContent, PageHeader } from "ui/layout";
+import { Grid } from "ui/primitives";
 
 import { pathConfig } from "pages/pathConfig";
 
@@ -18,45 +22,63 @@ import { GameCard } from "./GameCard";
 
 export default function GameSelectPage() {
   const { t } = useTranslation();
-  useDocumentTitle(t("game.list.header", "Your Games"));
+  const title = t("game.list.header", "Your Games");
+  useDocumentTitle(title);
   useSendPageViewEvent(PageCategory.GameSelect);
 
   useLoadUsersGames();
   const gameState = useUsersGames();
+  const games = Object.entries(gameState.games);
+
+  const createGameButton = (
+    <Button
+      variant="gradient"
+      startIcon={<PlusIcon />}
+      nativeButton={false}
+      render={<LinkComponent href={pathConfig.gameCreate} />}
+    >
+      {t("game.list.create", "Create Game")}
+    </Button>
+  );
 
   return (
     <>
-      <PageHeader
-        label={t("game.list.header", "Your Games")}
-        actions={
-          <GradientButton href={pathConfig.gameCreate}>
-            {t("game.list.create", "Create Game")}
-          </GradientButton>
-        }
-      />
+      {/* The page's one heading; the cards' game names are its h2s. */}
+      <PageHeader title={title} actions={createGameButton} />
       <PageContent>
-        <GridLayout
-          items={Object.entries(gameState.games)}
-          renderItem={([gameId, game]) => (
-            <GameCard gameId={gameId} game={game} />
-          )}
-          loading={gameState.loading}
-          error={
-            gameState.error
-              ? t(
-                  "game.list.error-loading-games",
-                  "Failed to load your games. Please try again later.",
-                )
-              : undefined
-          }
-          emptyStateMessage={t("game.list.no-games-found", "No games found")}
-          emptyStateAction={
-            <GradientButton href={pathConfig.gameCreate}>
-              {t("game.list.create", "Create Game")}
-            </GradientButton>
-          }
-          minWidth={300}
-        />
+        {gameState.loading ? (
+          <Progress label={t("game.list.loading", "Loading your games")} />
+        ) : gameState.error ? (
+          <EmptyState
+            title={t(
+              "game.list.error-loading-games",
+              "Failed to load your games. Please try again later.",
+            )}
+          />
+        ) : games.length === 0 ? (
+          <EmptyState
+            icon={<PlusIcon />}
+            title={t("game.list.no-games-found", "No games found")}
+            message={t(
+              "game.list.no-games-message",
+              "Start a game to track characters, vows and progress with your group or on your own.",
+            )}
+            action={createGameButton}
+          />
+        ) : (
+          <Grid
+            as="ul"
+            listStyle="none"
+            margin="0"
+            padding="0"
+            gridTemplateColumns="repeat(auto-fill, minmax(min(300px, 100%), 1fr))"
+            gap="3"
+          >
+            {games.map(([gameId, game]) => (
+              <GameCard key={gameId} gameId={gameId} game={game} />
+            ))}
+          </Grid>
+        )}
       </PageContent>
     </>
   );

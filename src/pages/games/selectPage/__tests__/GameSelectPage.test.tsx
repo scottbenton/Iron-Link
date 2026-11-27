@@ -1,14 +1,10 @@
-import { ThemeProvider } from "@mui/material";
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getTheme } from "providers/ThemeProvider/themes/themeConfig";
-
 import type { GameCharacterDisplayDetails } from "stores/users.games.store";
 
 import { GameType } from "repositories/game.repository";
-import { ColorScheme } from "repositories/shared.types";
 
 import type { IGame } from "services/game.service";
 
@@ -72,13 +68,20 @@ function character(name: string, uid = "someone"): GameCharacterDisplayDetails {
   return { name, uid, profileImageSettings: null, profileImageURL: null };
 }
 
+/** A game's card: the list item holding its h2. */
+function getCard(name: string) {
+  const card = screen
+    .getAllByRole("listitem")
+    .find((item) => within(item).queryByRole("heading", { name }));
+  if (!card) throw new Error(`No card for ${name}`);
+  return card;
+}
+
 function renderPage() {
   return render(
-    <ThemeProvider theme={getTheme(ColorScheme.Default)}>
-      <MemoryRouter>
-        <GameSelectPage />
-      </MemoryRouter>
-    </ThemeProvider>,
+    <MemoryRouter>
+      <GameSelectPage />
+    </MemoryRouter>,
   );
 }
 
@@ -156,14 +159,15 @@ describe("GameSelectPage", () => {
     };
     renderPage();
 
-    const expanse = screen.getByRole("link", { name: /The Iron Expanse/ });
-    expect(expanse).toHaveAttribute("href", "/games/expanse");
+    const expanse = getCard("The Iron Expanse");
+    // The game's name is the card's h2 and its link.
+    const expanseHeading = within(expanse).getByRole("heading", {
+      level: 2,
+      name: "The Iron Expanse",
+    });
     expect(
-      within(expanse).getByRole("heading", {
-        level: 2,
-        name: "The Iron Expanse",
-      }),
-    ).toBeInTheDocument();
+      within(expanseHeading).getByRole("link", { name: "The Iron Expanse" }),
+    ).toHaveAttribute("href", "/games/expanse");
     // Inactive rulesets and expansions are left out.
     expect(
       within(expanse).getByText("Starforged, Sundered Isles"),
@@ -172,8 +176,10 @@ describe("GameSelectPage", () => {
       within(expanse).getByText("Characters: Kira Vale, Orrin Thale"),
     ).toBeInTheDocument();
 
-    const ashes = screen.getByRole("link", { name: /Ashes of the Forge/ });
-    expect(ashes).toHaveAttribute("href", "/games/ashes");
+    const ashes = getCard("Ashes of the Forge");
+    expect(
+      within(ashes).getByRole("link", { name: "Ashes of the Forge" }),
+    ).toHaveAttribute("href", "/games/ashes");
     expect(within(ashes).getByText("Ironsworn, Delve")).toBeVisible();
     expect(within(ashes).queryByText(/^Characters:/)).not.toBeInTheDocument();
   });
@@ -190,7 +196,7 @@ describe("GameSelectPage", () => {
     };
     renderPage();
 
-    const card = screen.getByRole("link", { name: /Crowd/ });
+    const card = getCard("Crowd");
     // A picture only: the names are read in the card's text.
     expect(within(card).getByText("+3")).toBeInTheDocument();
     expect(

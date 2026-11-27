@@ -1,372 +1,138 @@
-import { Datasworn, IdParser, StringId } from "@datasworn-community/core";
-import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  DialogActions,
-  DialogContent,
-  FormControlLabel,
-  Typography,
-} from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+
+import { Accordion } from "ui/components/Accordion";
+import { Alert } from "ui/components/Alert";
+import { Checkbox } from "ui/components/Checkbox";
+import { Progress } from "ui/components/Progress";
+import { Stack } from "ui/primitives";
 
 import { IExpansionConfig, IRulesetConfig } from "data/package.config";
 
-import { PlaysetConfig } from "repositories/game.repository";
-
 import { PlaysetSection } from "./PlaysetSection";
+import {
+  PlaysetCollectionKey,
+  getReplacedCollectionsAndItems,
+} from "./getReplacedCollectionsAndItems";
+import { PlaysetDraft } from "./usePlaysetDraft";
+import { usePlaysetPackages } from "./usePlaysetPackages";
 
 export interface PlaysetEditorProps {
-  playset: PlaysetConfig;
-  setPlayset: (playset: PlaysetConfig) => void;
   rulesets: Record<string, IRulesetConfig>;
   expansions: Record<string, IExpansionConfig>;
-  onClose: () => void;
+  draft: PlaysetDraft;
+  setExcluded: (
+    level: "collections" | "items",
+    kind: PlaysetCollectionKey,
+    id: string,
+    isExcluded: boolean,
+  ) => void;
+  setAutoRollCursedDie: (autoRoll: boolean) => void;
 }
 
-export function PlaysetEditor(props: PlaysetEditorProps) {
-  const { playset, setPlayset, rulesets, expansions, onClose } = props;
+const collectionKinds: PlaysetCollectionKey[] = ["assets", "moves", "oracles"];
 
+/** The playset dialog's body: the cursed die setting and a section per kind. */
+export function PlaysetEditor(props: PlaysetEditorProps) {
+  const { rulesets, expansions, draft, setExcluded, setAutoRollCursedDie } =
+    props;
   const { t } = useTranslation();
 
-  const [tree, setTree] = useState<{
-    loading: boolean;
-    error: string | null;
-    data: Record<string, Datasworn.RulesPackage>;
-  }>({
-    loading: true,
-    error: null,
-    data: {},
-  });
+  const packages = usePlaysetPackages(rulesets, expansions);
 
-  useEffect(() => {
-    // Load all
-    const promises: Promise<Datasworn.RulesPackage>[] = [];
+  // Kept as found: no package has this tag, so the setting never shows.
+  // Sundered Isles tags its tables `curse` and `cursed_by` (changes.md).
+  const showCursedDieOptions = useMemo(
+    () =>
+      Object.values(packages.data).some(
+        (rulesPackage) => !!rulesPackage.rules?.tags?.cursed_version_of,
+      ),
+    [packages.data],
+  );
 
-    Object.values(rulesets).forEach((ruleset) => {
-      promises.push(ruleset.load());
-    });
-    Object.values(expansions).forEach((expansion) => {
-      promises.push(expansion.load());
-    });
-    Promise.all(promises)
-      .then((loadedPackages) => {
-        const tree: Record<string, Datasworn.RulesPackage> = {};
-        loadedPackages.forEach((pkg) => {
-          tree[pkg._id] = pkg;
-        });
-        setTree({ loading: false, error: null, data: tree });
-      })
-      .catch((error) => {
-        console.error(error);
-        setTree({
-          loading: false,
-          error: t("rules-package-load-failure", "Failed to load rulesets"),
-          data: {},
-        });
-      });
-  }, [rulesets, expansions, t]);
+  const replaced = useMemo(
+    () =>
+      Object.fromEntries(
+        collectionKinds.map((kind) => [
+          kind,
+          getReplacedCollectionsAndItems(
+            packages.data,
+            kind,
+            draft.collections[kind],
+            draft.items[kind],
+          ),
+        ]),
+      ) as Record<
+        PlaysetCollectionKey,
+        ReturnType<typeof getReplacedCollectionsAndItems>
+      >,
+    [packages.data, draft.collections, draft.items],
+  );
 
-  const showCursedDieOptions = useMemo(() => {
-    return Object.values(tree.data).some((rulesPackage) => {
-      return !!rulesPackage.rules?.tags?.cursed_version_of;
-    });
-  }, [tree]);
-  const [disableAutomaticCursedDieRolls, setDisableAutomaticCursedDieRolls] =
-    useState(playset.disableAutomaticCursedDieRolls ?? false);
-
-  const [excludedAssetCollections, setExcludedAssetCollections] = useState(
-    playset.excludes?.assetCategories ?? {},
-  );
-  const [excludedAssets, setExcludedAssets] = useState(
-    playset.excludes?.assets ?? {},
-  );
-  const { replacedAssetCollections, replacedAssets } = useMemo(() => {
-    const { replacedCollections, replacedItems } =
-      getReplacedCollectionsAndItemsFromExpansions(
-        tree.data,
-        "assets",
-        excludedAssetCollections,
-        excludedAssets,
-      );
-    return {
-      replacedAssetCollections: replacedCollections,
-      replacedAssets: replacedItems,
-    };
-  }, [tree, excludedAssetCollections, excludedAssets]);
-
-  const [excludedMoveCollections, setExcludedMoveCollections] = useState(
-    playset.excludes?.moveCategories ?? {},
-  );
-  const [excludedMoves, setExcludedMoves] = useState(
-    playset.excludes?.moves ?? {},
-  );
-  const { replacedMoveCollections, replacedMoves } = useMemo(() => {
-    const { replacedCollections, replacedItems } =
-      getReplacedCollectionsAndItemsFromExpansions(
-        tree.data,
-        "moves",
-        excludedMoveCollections,
-        excludedMoves,
-      );
-    return {
-      replacedMoveCollections: replacedCollections,
-      replacedMoves: replacedItems,
-    };
-  }, [tree, excludedMoveCollections, excludedMoves]);
-
-  const [excludedOracleCollections, setExcludedOracleCollections] = useState(
-    playset.excludes?.oracleCategories ?? {},
-  );
-  const [excludedOracles, setExcludedOracles] = useState(
-    playset.excludes?.oracles ?? {},
-  );
-  const { replacedOracleCollections, replacedOracles } = useMemo(() => {
-    const { replacedCollections, replacedItems } =
-      getReplacedCollectionsAndItemsFromExpansions(
-        tree.data,
-        "oracles",
-        excludedOracleCollections,
-        excludedOracles,
-      );
-    return {
-      replacedOracleCollections: replacedCollections,
-      replacedOracles: replacedItems,
-    };
-  }, [tree, excludedOracleCollections, excludedOracles]);
+  const sectionLabels: Record<PlaysetCollectionKey, string> = {
+    assets: t("playset-editor.assets", "Assets"),
+    moves: t("playset-editor.moves", "Moves"),
+    oracles: t("playset-editor.oracles", "Oracles"),
+  };
 
   return (
-    <>
-      <DialogContent>
-        <Alert severity="info">
-          {t(
-            "playset-editor.exclusions-info",
-            "Checked assets, moves, and oracles will be included in your game.",
-          )}
-        </Alert>
-
-        {showCursedDieOptions && (
-          <Box mt={1}>
-            <FormControlLabel
-              disableTypography
-              label={
-                <Box>
-                  <Typography>
-                    {t(
-                      "playset-editor.cursed-die",
-                      "Automatically Roll Cursed Die?",
-                    )}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {t(
-                      "playset-editor.cursed-die-info",
-                      "If checked, the a cursed die will be rolled for oracles with a cursed alternative automatically.",
-                    )}
-                  </Typography>
-                </Box>
-              }
-              onChange={(_, checked) =>
-                setDisableAutomaticCursedDieRolls(!checked)
-              }
-              control={<Checkbox checked={!disableAutomaticCursedDieRolls} />}
-            />
-          </Box>
+    <Stack gap="4">
+      <Alert tone="info">
+        {t(
+          "playset-editor.exclusions-info",
+          "Checked assets, moves, and oracles will be included in your game.",
         )}
+      </Alert>
 
-        <Box mt={1}>
-          <PlaysetSection
-            label={t("playset-editor.assets", "Assets")}
-            rulesPackages={tree.data}
-            collectionKey="assets"
-            excludedCollections={excludedAssetCollections}
-            toggleExcludedCollection={(collectionId, isExcluded) => {
-              setExcludedAssetCollections((prev) => ({
-                ...prev,
-                [collectionId]: isExcluded,
-              }));
-            }}
-            excludedItems={excludedAssets}
-            toggleExcludedItem={(itemId, isExcluded) => {
-              setExcludedAssets((prev) => ({
-                ...prev,
-                [itemId]: isExcluded,
-              }));
-            }}
-            replacedCollections={replacedAssetCollections}
-            replacedItems={replacedAssets}
-          />
-          <PlaysetSection
-            label={t("playset-editor.moves", "Moves")}
-            rulesPackages={tree.data}
-            collectionKey="moves"
-            excludedCollections={excludedMoveCollections}
-            toggleExcludedCollection={(collectionId, isExcluded) => {
-              setExcludedMoveCollections((prev) => ({
-                ...prev,
-                [collectionId]: isExcluded,
-              }));
-            }}
-            excludedItems={excludedMoves}
-            toggleExcludedItem={(itemId, isExcluded) => {
-              setExcludedMoves((prev) => ({
-                ...prev,
-                [itemId]: isExcluded,
-              }));
-            }}
-            replacedCollections={replacedMoveCollections}
-            replacedItems={replacedMoves}
-          />
-          <PlaysetSection
-            label={t("playset-editor.oracles", "Oracles")}
-            rulesPackages={tree.data}
-            collectionKey="oracles"
-            excludedCollections={excludedOracleCollections}
-            toggleExcludedCollection={(collectionId, isExcluded) => {
-              setExcludedOracleCollections((prev) => ({
-                ...prev,
-                [collectionId]: isExcluded,
-              }));
-            }}
-            excludedItems={excludedOracles}
-            toggleExcludedItem={(itemId, isExcluded) => {
-              setExcludedOracles((prev) => ({
-                ...prev,
-                [itemId]: isExcluded,
-              }));
-            }}
-            replacedCollections={replacedOracleCollections}
-            replacedItems={replacedOracles}
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button color="inherit" onClick={onClose}>
-          {t("common.cancel", "Cancel")}
-        </Button>
-        <Button
-          color="primary"
-          variant="contained"
-          onClick={() => {
-            setPlayset({
-              ...playset,
-              disableAutomaticCursedDieRolls,
-              excludes: {
-                assetCategories: excludedAssetCollections,
-                assets: excludedAssets,
-                moveCategories: excludedMoveCollections,
-                moves: excludedMoves,
-                oracleCategories: excludedOracleCollections,
-                oracles: excludedOracles,
-              },
-            });
-            onClose();
-          }}
-        >
-          {t("common.save", "Save")}
-        </Button>
-      </DialogActions>
-    </>
-  );
-}
+      {packages.loading && (
+        <Progress
+          label={t("playset-editor.loading", "Loading rules packages")}
+        />
+      )}
+      {packages.error && (
+        <Alert tone="danger" role="alert">
+          {t("rules-package-load-failure", "Failed to load rulesets")}
+        </Alert>
+      )}
 
-function getReplacedCollectionsAndItemsFromExpansions(
-  tree: Record<string, Datasworn.RulesPackage>,
-  type: "assets" | "moves" | "oracles",
-  excludedCollections: Record<string, boolean>,
-  excludedItems: Record<string, boolean>,
-): {
-  replacedCollections: Record<string, boolean>;
-  replacedItems: Record<string, boolean>;
-} {
-  const replacedCollections: Record<string, boolean> = {};
-  const replacedItems: Record<string, boolean> = {};
+      {showCursedDieOptions && (
+        <Checkbox
+          label={t(
+            "playset-editor.cursed-die",
+            "Automatically Roll Cursed Die?",
+          )}
+          description={t(
+            "playset-editor.cursed-die-info",
+            "If checked, the cursed die will be rolled for oracles with a cursed alternative automatically.",
+          )}
+          checked={!draft.disableAutomaticCursedDieRolls}
+          onCheckedChange={setAutoRollCursedDie}
+        />
+      )}
 
-  Object.values(tree).forEach((rulesPackage) => {
-    if (rulesPackage.type === "expansion") {
-      getReplacedCollectionsAndItemsFromCollection(
-        tree,
-        rulesPackage[type],
-        excludedCollections,
-        excludedItems,
-        replacedCollections,
-        replacedItems,
-      );
-    }
-  });
-
-  return {
-    replacedCollections,
-    replacedItems,
-  };
-}
-
-function getReplacedCollectionsAndItemsFromCollection(
-  tree: Record<string, Datasworn.RulesPackage>,
-  collections: Record<
-    string,
-    | Datasworn.AssetCollection
-    | Datasworn.MoveCategory
-    | Datasworn.OracleCollection
-  >,
-  excludedCollections: Record<string, boolean>,
-  excludedItems: Record<string, boolean>,
-  replacedCollections: Record<string, boolean>,
-  replacedItems: Record<string, boolean>,
-) {
-  Object.values(collections).forEach((collection) => {
-    if (excludedCollections[collection._id]) return;
-
-    if (collection.replaces) {
-      collection.replaces.forEach((replacesKey) => {
-        const collectionsToReplace = IdParser.getMatches(
-          replacesKey as StringId.Primary,
-          tree,
-        );
-        collectionsToReplace.forEach((collectionToReplace) => {
-          if (
-            collectionToReplace.type === collection.type &&
-            !excludedCollections[collectionToReplace._id]
-          ) {
-            replacedCollections[collectionToReplace._id] = true;
-          }
-        });
-      });
-    } else {
-      if ("collections" in collection) {
-        getReplacedCollectionsAndItemsFromCollection(
-          tree,
-          collection.collections,
-          excludedCollections,
-          excludedItems,
-          replacedCollections,
-          replacedItems,
-        );
-      }
-      Object.values(
-        collection.contents as Record<
-          string,
-          Datasworn.Move | Datasworn.OracleRollable | Datasworn.Asset
-        >,
-      ).forEach((item) => {
-        if (item.replaces && !excludedItems[item._id]) {
-          item.replaces.forEach((replacesKey) => {
-            const itemsToReplace = IdParser.getMatches(
-              replacesKey as StringId.Primary,
-              tree,
-            );
-            itemsToReplace.forEach((itemToReplace) => {
-              if (
-                !excludedItems[itemToReplace._id] &&
-                itemToReplace.type === item.type
-              ) {
-                replacedItems[itemToReplace._id] = true;
+      {!packages.loading && !packages.error && (
+        <Accordion multiple>
+          {collectionKinds.map((kind) => (
+            <PlaysetSection
+              key={kind}
+              value={kind}
+              label={sectionLabels[kind]}
+              rulesPackages={packages.data}
+              collectionKey={kind}
+              excludedCollections={draft.collections[kind]}
+              toggleExcludedCollection={(id, isExcluded) =>
+                setExcluded("collections", kind, id, isExcluded)
               }
-            });
-          });
-        }
-      });
-    }
-  });
+              excludedItems={draft.items[kind]}
+              toggleExcludedItem={(id, isExcluded) =>
+                setExcluded("items", kind, id, isExcluded)
+              }
+              replacedCollections={replaced[kind].replacedCollections}
+              replacedItems={replaced[kind].replacedItems}
+            />
+          ))}
+        </Accordion>
+      )}
+    </Stack>
+  );
 }

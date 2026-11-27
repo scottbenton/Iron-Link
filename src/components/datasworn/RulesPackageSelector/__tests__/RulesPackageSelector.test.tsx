@@ -1,10 +1,7 @@
-import { ThemeProvider } from "@mui/material";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { describe, expect, it, vi } from "vitest";
-
-import { getTheme } from "providers/ThemeProvider/themes/themeConfig";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { defaultPlaysets } from "data/playset.config";
 
@@ -13,7 +10,6 @@ import {
   PlaysetConfig,
   RulesetConfig,
 } from "repositories/game.repository";
-import { ColorScheme } from "repositories/shared.types";
 
 import { RulesPackageSelector } from "../RulesPackageSelector";
 
@@ -67,22 +63,32 @@ function renderSelector(initial?: Partial<HarnessState>) {
     current: { rulesets: {}, expansions: {}, playset: {} },
   };
   render(
-    <ThemeProvider theme={getTheme(ColorScheme.Default)}>
-      <Harness
-        initial={initial}
-        onState={(next) => {
-          state.current = next;
-        }}
-      />
-    </ThemeProvider>,
+    <Harness
+      initial={initial}
+      onState={(next) => {
+        state.current = next;
+      }}
+    />,
   );
   return state;
 }
 
-// Expansion checkboxes may carry an info hint after their name.
 function getCheckbox(name: string) {
-  return screen.getByRole("checkbox", { name: new RegExp(`^${name}`) });
+  return screen.getByRole("checkbox", { name });
 }
+
+// The library's checkbox is a span, so it says so with aria-disabled.
+function expectDisabled(checkbox: HTMLElement, disabled = true) {
+  if (disabled) {
+    expect(checkbox).toHaveAttribute("aria-disabled", "true");
+  } else {
+    expect(checkbox).not.toHaveAttribute("aria-disabled", "true");
+  }
+}
+
+beforeAll(() => {
+  window.PointerEvent ??= MouseEvent as unknown as typeof PointerEvent;
+});
 
 describe("RulesPackageSelector", () => {
   it("lists the official and third-party rulesets with their expansions", () => {
@@ -96,20 +102,20 @@ describe("RulesPackageSelector", () => {
       expect(getCheckbox(name)).not.toBeChecked();
     }
     for (const name of ["Delve", "Lodestar", "Sundered Isles", "Starsmith"]) {
-      expect(getCheckbox(name)).toBeDisabled();
+      expectDisabled(getCheckbox(name));
     }
     // Ironsworn and Starforged each have their own giveaways.
     expect(
-      screen.getAllByRole("checkbox", { name: /^Giveaway Assets/ }),
+      screen.getAllByRole("checkbox", { name: "Giveaway Assets" }),
     ).toHaveLength(2);
 
     // Third-party packages credit their author and license.
-    expect(screen.getByRole("link", { name: "Eric Bright" })).toHaveAttribute(
-      "href",
-      "https://playeveryrole.com/starsmith-products/",
-    );
+    // Both links open in a new tab and say so.
     expect(
-      screen.getByRole("link", { name: "Moro de Oliveira" }),
+      screen.getByRole("link", { name: "Eric Bright (opens in a new tab)" }),
+    ).toHaveAttribute("href", "https://playeveryrole.com/starsmith-products/");
+    expect(
+      screen.getByRole("link", { name: /^Moro de Oliveira/ }),
     ).toHaveAttribute("href", "https://miraclem.itch.io/elegy");
     expect(screen.getAllByRole("link", { name: /CC BY 4.0/ })).toHaveLength(2);
   });
@@ -126,8 +132,8 @@ describe("RulesPackageSelector", () => {
     await user.click(screen.getByText("Starforged"));
     expect(state.current.rulesets).toEqual({ starforged: true });
     expect(getCheckbox("Starforged")).toBeChecked();
-    expect(getCheckbox("Sundered Isles")).toBeEnabled();
-    expect(getCheckbox("Delve")).toBeDisabled();
+    expectDisabled(getCheckbox("Sundered Isles"), false);
+    expectDisabled(getCheckbox("Delve"));
     expect(
       screen.getByRole("button", { name: "Edit Playset" }),
     ).toBeInTheDocument();
@@ -144,7 +150,7 @@ describe("RulesPackageSelector", () => {
       expansions: { classic: { delve: true } },
     });
     expect(getCheckbox("Delve")).not.toBeChecked();
-    expect(getCheckbox("Delve")).toBeDisabled();
+    expectDisabled(getCheckbox("Delve"));
   });
 
   it("ticks an expansion's dependencies and unticks its dependents", async () => {
@@ -184,6 +190,10 @@ describe("RulesPackageSelector", () => {
       screen.getByRole("button", { name: starforgedPlayset.label }),
     );
     expect(state.current.playset).toEqual(starforgedPlayset.playset);
+    // The chosen playset reads as pressed, compared by value.
+    expect(
+      screen.getByRole("button", { name: starforgedPlayset.label }),
+    ).toHaveAttribute("aria-pressed", "true");
 
     await user.click(
       screen.getByRole("button", { name: sunderedIslesPlayset.label }),
@@ -198,9 +208,18 @@ describe("RulesPackageSelector", () => {
     await user.click(screen.getByRole("button", { name: "Edit Playset" }));
     const dialog = await screen.findByRole("dialog", { name: "Edit Playset" });
     expect(
+      within(dialog).getByRole("heading", { name: "Edit Playset" }),
+    ).toBeInTheDocument();
+    expect(
       within(dialog).getByText(
         "Checked assets, moves, and oracles will be included in your game.",
       ),
     ).toBeInTheDocument();
+  });
+
+  it("says what ticking Lodestar also ticks", () => {
+    renderSelector({ rulesets: { classic: true } });
+    // Was a tooltip on an icon that could not be focused.
+    expect(getCheckbox("Lodestar")).toHaveAccessibleDescription(/Delve/);
   });
 });

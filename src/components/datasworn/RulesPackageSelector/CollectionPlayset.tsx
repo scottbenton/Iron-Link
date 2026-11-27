@@ -1,16 +1,12 @@
 import { Datasworn } from "@datasworn-community/core";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import {
-  Box,
-  Checkbox,
-  Collapse,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-} from "@mui/material";
-import { useEffect, useState } from "react";
+import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { Checkbox } from "ui/components/Checkbox";
+import { Collapse } from "ui/components/Collapsible";
+import { IconButton } from "ui/components/IconButton";
+import { CaretRightIcon, Icon } from "ui/icons";
+import { Box, HStack, Stack } from "ui/primitives";
 
 export interface CollectionPlaysetProps {
   collection:
@@ -25,6 +21,10 @@ export interface CollectionPlaysetProps {
   replacedItems: Record<string, boolean>;
 }
 
+/**
+ * A collection's checkbox, with a button that shows its subcollections and
+ * items while it is included.
+ */
 export function CollectionPlayset(props: CollectionPlaysetProps) {
   const {
     collection,
@@ -32,114 +32,105 @@ export function CollectionPlayset(props: CollectionPlaysetProps) {
     toggleExcludedCollection,
     excludedItems,
     toggleExcludedItem,
-    replacedCollections,
     replacedItems,
   } = props;
 
   const { t } = useTranslation();
+  const panelId = useId();
 
   const isExcluded = !!excludedCollections[collection._id];
-  const isReplaced = !!replacedCollections[collection._id];
+  const isReplaced = !!props.replacedCollections[collection._id];
+  const isIncluded = !isExcluded && !isReplaced;
 
   const [isExpanded, setIsExpanded] = useState(false);
+  // Excluding or replacing a collection closes it, as before.
+  if (isExpanded && !isIncluded) {
+    setIsExpanded(false);
+  }
+  const isOpen = isExpanded && isIncluded;
 
-  useEffect(() => {
-    if (isExcluded || isReplaced) {
-      setIsExpanded(false);
-    }
-  }, [isExcluded, isReplaced]);
+  const status = isReplaced
+    ? t("playset-editor.replaced", "This collection is replaced by another")
+    : isExcluded
+      ? t("playset-editor.excluded", "This collection is excluded")
+      : undefined;
 
   return (
-    <>
-      <ListItem
-        disablePadding
-        secondaryAction={
-          <Checkbox
-            inputProps={{
-              "aria-labelledby": collection._id,
-            }}
-            edge="end"
-            checked={!isExcluded && !isReplaced}
-            disabled={isReplaced}
-            onChange={() => {
-              toggleExcludedCollection(collection._id, !isExcluded);
-            }}
-          />
-        }
-      >
-        <ListItemButton
-          disabled={isExcluded || isReplaced}
+    <Box as="li">
+      <HStack gap="1" alignItems="flex-start">
+        <IconButton
+          size="sm"
+          label={
+            isOpen
+              ? t("playset-editor.hide-contents", "Hide {{name}}", {
+                  name: collection.name,
+                })
+              : t("playset-editor.show-contents", "Show {{name}}", {
+                  name: collection.name,
+                })
+          }
+          aria-expanded={isOpen}
+          aria-controls={panelId}
+          disabled={!isIncluded}
           onClick={() => setIsExpanded((prev) => !prev)}
+          css={{
+            flex: "none",
+            "& svg": {
+              transitionProperty: "rotate",
+              transitionDuration: "fast",
+              transitionTimingFunction: "out",
+            },
+            "&[aria-expanded=true] svg": { rotate: "90deg" },
+          }}
         >
-          <ListItemIcon>
-            <ChevronRightIcon
-              sx={(theme) => ({
-                transform:
-                  isExpanded && !(isExcluded || isReplaced)
-                    ? "rotate(90deg)"
-                    : "",
-                transitionProperty: "transform",
-                duration: theme.transitions.duration.shorter,
-                transitionTimingFunction: theme.transitions.easing.easeInOut,
-              })}
-            />
-          </ListItemIcon>
-          <ListItemText
-            id={collection._id}
-            primary={collection.name}
-            secondary={
-              isReplaced
-                ? t(
-                    "playset-editor.replaced",
-                    "This collection is replaced by another",
-                  )
-                : isExcluded
-                  ? t("playset-editor.excluded", "This collection is excluded")
-                  : undefined
-            }
-          />
-        </ListItemButton>
-      </ListItem>
-      <Collapse in={isExpanded && !(isExcluded || isReplaced)} unmountOnExit>
-        <Box ml={3.5} borderColor={"divider"} borderLeft={`1px dotted`}>
-          {"collections" in collection && (
-            <>
-              {Object.values(collection.collections).map((subCollection) => (
-                <CollectionPlayset
-                  key={subCollection._id}
-                  collection={subCollection}
-                  excludedCollections={excludedCollections}
-                  toggleExcludedCollection={toggleExcludedCollection}
-                  excludedItems={excludedItems}
-                  toggleExcludedItem={toggleExcludedItem}
-                  replacedCollections={replacedCollections}
-                  replacedItems={replacedItems}
-                />
-              ))}
-            </>
-          )}
+          <Icon icon={CaretRightIcon} />
+        </IconButton>
+        <Checkbox
+          label={collection.name}
+          description={status}
+          checked={isIncluded}
+          disabled={isReplaced}
+          onCheckedChange={(checked) =>
+            toggleExcludedCollection(collection._id, !checked)
+          }
+          css={{ flex: "1 1 auto", minWidth: 0, paddingBlock: "1" }}
+        />
+      </HStack>
+      <Collapse open={isOpen} id={panelId}>
+        <Stack
+          as="ul"
+          gap="1"
+          listStyle="none"
+          margin="0"
+          marginInlineStart="4"
+          paddingBlock="1"
+          paddingInlineStart="4"
+          borderInlineStartWidth="1px"
+          borderInlineStartStyle="dotted"
+          borderColor="border.default"
+        >
+          {"collections" in collection &&
+            Object.values(collection.collections).map((subCollection) => (
+              <CollectionPlayset
+                key={subCollection._id}
+                {...props}
+                collection={subCollection}
+              />
+            ))}
           {Object.values(collection.contents).map((item) => (
-            <ListItem key={item._id} disablePadding>
-              <ListItemButton
-                role={undefined}
-                onClick={() => {
-                  toggleExcludedItem(item._id, !excludedItems[item._id]);
-                }}
-              >
-                <ListItemText id={item._id}>{item.name}</ListItemText>
-
-                <Checkbox
-                  edge="end"
-                  disableRipple
-                  checked={!excludedItems[item._id] && !replacedItems[item._id]}
-                  disabled={replacedItems[item._id]}
-                  inputProps={{ "aria-labelledby": item._id }}
-                />
-              </ListItemButton>
-            </ListItem>
+            <Box as="li" key={item._id}>
+              <Checkbox
+                label={item.name}
+                checked={!excludedItems[item._id] && !replacedItems[item._id]}
+                disabled={!!replacedItems[item._id]}
+                onCheckedChange={(checked) =>
+                  toggleExcludedItem(item._id, !checked)
+                }
+              />
+            </Box>
           ))}
-        </Box>
+        </Stack>
       </Collapse>
-    </>
+    </Box>
   );
 }

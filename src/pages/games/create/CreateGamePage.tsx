@@ -1,8 +1,10 @@
-import { Alert, Step, StepLabel, Stepper } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { PageContent, PageHeader } from "components/Layout";
+import { Alert } from "ui/components/Alert";
+import { Form } from "ui/components/Form";
+import { Stepper } from "ui/components/Stepper";
+import { PageContent, PageHeader } from "ui/layout";
 
 import { useDocumentTitle } from "hooks/useDocumentTitle";
 import {
@@ -17,11 +19,13 @@ import { useDataswornTreeStore } from "stores/dataswornTree.store";
 
 import { StepButtons } from "./components/StepButtons";
 import { SyncRulesPackages } from "./components/SyncRulesPackages";
+import { useCreateGameSubmit } from "./hooks/useCreateGameSubmit";
 import { getSteps } from "./steps";
 
 export default function CreateGamePage() {
   const { t } = useTranslation();
-  useDocumentTitle(t("game.create.new-game", "New Game"));
+  const title = t("game.create.new-game", "New Game");
+  useDocumentTitle(title);
   useSendPageViewEvent(PageCategory.GameCreate);
 
   const uid = useUID();
@@ -37,43 +41,70 @@ export default function CreateGamePage() {
     };
   }, [resetGame, resetCharacter]);
 
-  const steps = useMemo(() => {
-    return getSteps(t, gameType);
-  }, [t, gameType]);
+  const steps = useMemo(() => getSteps(t, gameType), [t, gameType]);
 
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | undefined>();
   const rulePackageError = useDataswornTreeStore((store) => store.rulesError);
+  const { create, creating } = useCreateGameSubmit(setError);
+
+  const isLastStep = step === steps.length - 1;
+
+  const goToStep = useCallback((index: number) => {
+    setError(undefined);
+    setStep(index);
+  }, []);
+
+  // Enter in a field moves on, or creates the game on the last step.
+  const handleSubmit = useCallback(() => {
+    if (creating) return;
+    if (isLastStep) {
+      create();
+      return;
+    }
+    const stepError = steps[step]?.checkStepForErrors?.(
+      useCreateGameStore.getState(),
+    );
+    if (stepError) {
+      setError(stepError);
+      return;
+    }
+    goToStep(step + 1);
+  }, [creating, isLastStep, create, steps, step, goToStep]);
 
   if (!uid) {
     return null;
   }
 
+  const shownError = error || rulePackageError;
+
   return (
     <>
-      <PageHeader label={t("game.create.new-game", "New Game")} maxWidth="md" />
-      <PageContent maxWidth="md">
-        {/* TODO - see if we can make this imperitive (on the next click)  */}
+      <PageHeader title={title} />
+      <PageContent>
         <SyncRulesPackages />
-        <Stepper activeStep={step} alternativeLabel sx={{ mb: 3 }}>
-          {steps.map((stepConfig) => (
-            <Step key={stepConfig.label}>
-              <StepLabel>{stepConfig.label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-        {(error || rulePackageError) && (
-          <Alert severity="error" variant="filled" sx={{ mb: 2 }}>
-            {error || rulePackageError}
-          </Alert>
-        )}
-        {steps[step]?.component}
-        <StepButtons
-          step={step}
-          steps={steps}
-          setError={setError}
-          setStep={setStep}
-        />
+        <Form onSubmit={handleSubmit} gap="6" css={{ maxWidth: "900px" }}>
+          <Stepper
+            aria-label={t("game.create.steps-label", "Steps")}
+            steps={steps.map((stepConfig) => ({ label: stepConfig.label }))}
+            activeStep={step}
+            onStepSelect={creating ? undefined : goToStep}
+          />
+          {shownError && (
+            <Alert tone="danger" role="alert">
+              {shownError}
+            </Alert>
+          )}
+          {steps[step]?.component}
+          <StepButtons
+            canGoBack={step > 0 && !creating}
+            onBack={() => goToStep(step - 1)}
+            isLastStep={isLastStep}
+            actionLabel={steps[step]?.actionLabel}
+            loadingLabel={steps[step]?.loadingLabel}
+            creating={creating}
+          />
+        </Form>
       </PageContent>
     </>
   );

@@ -1,9 +1,6 @@
-import { ThemeProvider } from "@mui/material";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { getTheme } from "providers/ThemeProvider/themes/themeConfig";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   IExpansionConfig,
@@ -13,7 +10,6 @@ import {
 } from "data/package.config";
 
 import { PlaysetConfig } from "repositories/game.repository";
-import { ColorScheme } from "repositories/shared.types";
 
 import { PlaysetDialog } from "../PlaysetDialog";
 
@@ -39,32 +35,34 @@ function renderDialog(
     expansions = { sundered_isles: sunderedIslesConfig },
   } = options;
   return render(
-    <ThemeProvider theme={getTheme(ColorScheme.Default)}>
-      <PlaysetDialog
-        open
-        onClose={onClose}
-        playset={playset}
-        setPlayset={setPlayset}
-        rulesets={rulesets}
-        expansions={expansions}
-      />
-    </ThemeProvider>,
+    <PlaysetDialog
+      open
+      onClose={onClose}
+      playset={playset}
+      setPlayset={setPlayset}
+      rulesets={rulesets}
+      expansions={expansions}
+    />,
   );
 }
 
 type User = ReturnType<typeof userEvent.setup>;
 
-// Opens a section and waits for the packages to load into it.
-async function openSection(user: User, section: string, waitFor: RegExp) {
-  await user.click(screen.getByRole("button", { name: section }));
-  return (
-    await screen.findAllByRole("checkbox", { name: waitFor }, { timeout: 5000 })
-  )[0];
+// Waits for the packages to load, opens a section and finds a collection.
+async function openSection(user: User, section: string, collection: string) {
+  await user.click(
+    await screen.findByRole("button", { name: section }, { timeout: 5000 }),
+  );
+  return screen.getAllByRole("checkbox", { name: collection })[0];
 }
 
 beforeEach(() => {
   onClose.mockClear();
   setPlayset.mockClear();
+});
+
+beforeAll(() => {
+  window.PointerEvent ??= MouseEvent as unknown as typeof PointerEvent;
 });
 
 describe("PlaysetDialog", () => {
@@ -80,13 +78,15 @@ describe("PlaysetDialog", () => {
     ).toBeInTheDocument();
     for (const section of ["Assets", "Moves", "Oracles"]) {
       expect(
-        within(dialog).getByRole("button", { name: section }),
+        await within(dialog).findByRole(
+          "button",
+          { name: section },
+          { timeout: 5000 },
+        ),
       ).toBeInTheDocument();
     }
 
-    expect(
-      await openSection(user, "Assets", /^Companion Assets/),
-    ).toBeChecked();
+    expect(await openSection(user, "Assets", "Companion Assets")).toBeChecked();
     expect(screen.getAllByText("Starforged").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Sundered Isles").length).toBeGreaterThan(0);
   });
@@ -96,13 +96,13 @@ describe("PlaysetDialog", () => {
     renderDialog();
 
     // Sundered Isles replaces Starforged's Character oracles.
-    const character = await openSection(
-      user,
-      "Oracles",
-      /^Character Oracles\s*This collection is replaced by another/,
+    const character = await openSection(user, "Oracles", "Character Oracles");
+    expect(character).toHaveAccessibleDescription(
+      "This collection is replaced by another",
     );
     expect(character).not.toBeChecked();
-    expect(character).toBeDisabled();
+    // The library's checkbox is a span, so it says so with aria-disabled.
+    expect(character).toHaveAttribute("aria-disabled", "true");
   });
 
   it("does not offer the cursed die setting", async () => {
@@ -110,7 +110,7 @@ describe("PlaysetDialog", () => {
     // package uses, so the setting never shows.
     const user = userEvent.setup();
     renderDialog();
-    await openSection(user, "Assets", /^Companion Assets/);
+    await openSection(user, "Assets", "Companion Assets");
 
     expect(
       screen.queryByText("Automatically Roll Cursed Die?"),
@@ -121,19 +121,26 @@ describe("PlaysetDialog", () => {
     const user = userEvent.setup();
     renderDialog({ playset: { disableAutomaticCursedDieRolls: false } });
 
-    const companions = await openSection(user, "Assets", /^Companion Assets/);
-    await user.click(companions);
+    const companions = await openSection(user, "Assets", "Companion Assets");
+    // The label: jsdom has no PointerEvent for a press on the box itself.
+    await user.click(screen.getAllByText("Companion Assets")[0]);
     expect(companions).not.toBeChecked();
+    expect(companions).toHaveAccessibleDescription(
+      "This collection is excluded",
+    );
+    // An excluded collection can't be opened.
     expect(
-      screen.getAllByRole("checkbox", {
-        name: /^Companion Assets\s*This collection is excluded/,
-      }).length,
-    ).toBeGreaterThan(0);
+      screen.getAllByRole("button", { name: "Show Companion Assets" })[0],
+    ).toBeDisabled();
+    expect(companions).toHaveAttribute("aria-checked", "false");
 
     // Opening a collection lists its items.
-    await user.click(
-      screen.getAllByRole("button", { name: /^Path Assets/ })[0],
-    );
+    const showPaths = screen.getAllByRole("button", {
+      name: "Show Path Assets",
+    })[0];
+    await user.click(showPaths);
+    expect(showPaths).toHaveAttribute("aria-expanded", "true");
+    expect(showPaths).toHaveAccessibleName("Hide Path Assets");
     await user.click(screen.getByText("Ace"));
     expect(screen.getByRole("checkbox", { name: "Ace" })).not.toBeChecked();
 
@@ -142,7 +149,7 @@ describe("PlaysetDialog", () => {
     const saved = setPlayset.mock.calls[0][0] as PlaysetConfig;
     expect(saved.disableAutomaticCursedDieRolls).toBe(false);
     expect(saved.excludes?.assetCategories).toMatchObject({
-      [companions.getAttribute("aria-labelledby") ?? ""]: true,
+      "asset_collection:starforged/companion": true,
     });
     expect(saved.excludes?.assets).toEqual({
       "asset:starforged/path/ace": true,
@@ -165,16 +172,40 @@ describe("PlaysetDialog", () => {
       },
     });
 
-    expect(
-      await openSection(
-        user,
-        "Assets",
-        /^Companion Assets\s*This collection is excluded/,
-      ),
-    ).not.toBeChecked();
+    const companions = await openSection(user, "Assets", "Companion Assets");
+    expect(companions).toHaveAccessibleDescription(
+      "This collection is excluded",
+    );
+    expect(companions).not.toBeChecked();
 
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(onClose).toHaveBeenCalled();
     expect(setPlayset).not.toHaveBeenCalled();
+  });
+});
+
+describe("PlaysetDialog, beyond the old editor", () => {
+  it("keeps exclusions the editor does not show when it saves", async () => {
+    const user = userEvent.setup();
+    renderDialog({
+      playset: {
+        excludes: {
+          assetCategories: {},
+          assets: {},
+          moveCategories: {},
+          moves: {},
+          oracleCategories: {},
+          oracles: {},
+          truths: { "truth:starforged/cataclysm": true },
+        },
+      },
+    });
+    await screen.findByRole("button", { name: "Assets" }, { timeout: 5000 });
+
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    const saved = setPlayset.mock.calls[0][0] as PlaysetConfig;
+    expect(saved.excludes?.truths).toEqual({
+      "truth:starforged/cataclysm": true,
+    });
   });
 });

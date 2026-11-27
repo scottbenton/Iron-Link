@@ -13,7 +13,11 @@ import { RulesetExpansionSection } from "./components/RulesetExpansionSection";
 export interface StepConfig {
   label: string;
   component: ReactElement;
+  /** The last step's submit label. */
   actionLabel?: string;
+  /** The last step's submit label while it is creating. */
+  loadingLabel?: string;
+  /** Run on Next: a message that stops the step, or nothing. */
   checkStepForErrors?: (state: CreateGameState) => string | undefined;
 }
 
@@ -39,12 +43,14 @@ const createCharacterStep = (t: TFunction): StepConfig => ({
   label: t("game.create.create-character-step", "Create Character"),
   component: <CreateCharacter />,
   actionLabel: t("game.create.create-character-submit", "Create Character"),
+  loadingLabel: t("game.create.creating-character", "Creating Character"),
 });
 
 const gameSettingsStep = (t: TFunction): StepConfig => ({
   label: t("game.create.game-details-step", "Game Details"),
   component: <GameDetails />,
   actionLabel: t("game.create.create-game-submit", "Create Game"),
+  loadingLabel: t("game.create.creating-game", "Creating Game"),
 });
 
 export function getSteps(t: TFunction, gameType: GameType): StepConfig[] {
@@ -54,9 +60,6 @@ export function getSteps(t: TFunction, gameType: GameType): StepConfig[] {
       chooseRulesetStep(t),
       createCharacterStep(t),
     ];
-  } else if (gameType === GameType.Coop) {
-    return [chooseGameTypeStep(t), chooseRulesetStep(t), gameSettingsStep(t)];
-  } else {
-    return [chooseGameTypeStep(t), chooseRulesetStep(t), gameSettingsStep(t)];
   }
+  return [chooseGameTypeStep(t), chooseRulesetStep(t), gameSettingsStep(t)];
 }
