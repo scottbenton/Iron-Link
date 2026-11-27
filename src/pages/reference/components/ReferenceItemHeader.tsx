@@ -1,7 +1,12 @@
-import { Alert, Box, Breadcrumbs, Chip, Link, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { LinkComponent } from "components/LinkComponent";
+
+import { Alert } from "ui/components/Alert";
+import { BreadcrumbItem, Breadcrumbs } from "ui/components/Breadcrumbs";
+import { Chip } from "ui/components/Chip";
+import { Text } from "ui/components/Text";
+import { Flex, HStack, Stack } from "ui/primitives";
 
 import { allDefaultPackages } from "data/package.config";
 
@@ -55,47 +60,31 @@ export function ReferenceItemHeader(props: ReferenceItemHeaderProps) {
   const href = getReferenceItemHref(id);
 
   return (
-    <Box mb={2}>
+    <Stack gap="2" marginBlockEnd="4">
       {parentName && parentHref && (
         <Breadcrumbs aria-label={t("reference.breadcrumbs", "Breadcrumbs")}>
-          <Link
-            component={LinkComponent}
-            href={parentHref}
-            color="text.secondary"
-            underline="hover"
-          >
+          <BreadcrumbItem render={<LinkComponent href={parentHref} />}>
             {parentName}
-          </Link>
-          <Typography color="text.primary" aria-current="page">
-            {name}
-          </Typography>
+          </BreadcrumbItem>
+          <BreadcrumbItem current>{name}</BreadcrumbItem>
         </Breadcrumbs>
       )}
-      <Box
-        display="flex"
+      <Flex
         alignItems="center"
         justifyContent="space-between"
-        gap={1}
+        gap="2"
         flexWrap="wrap"
-        mt={0.5}
       >
-        <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
-          <Typography
-            variant="h5"
-            component="h2"
-            fontFamily={(theme) => theme.typography.fontFamilyTitle}
-            textTransform="uppercase"
-          >
+        <HStack gap="2" flexWrap="wrap">
+          <Text variant="h2" as="h2">
             {name}
-          </Typography>
-          {isFromOtherSource && (
-            <Chip size="small" variant="outlined" label={packageName} />
-          )}
-        </Box>
+          </Text>
+          {isFromOtherSource && <Chip size="sm">{packageName}</Chip>}
+        </HStack>
         {href && <ReferenceShareButton path={href} name={name} />}
-      </Box>
+      </Flex>
       {isHidden && (
-        <Alert severity="info" variant="outlined" sx={{ mt: 1 }}>
+        <Alert tone="info">
           {t(
             "reference.hidden-in-list",
             "Hidden in your list. {{source}} is turned off in Sources, but links to it still open.",
@@ -103,6 +92,6 @@ export function ReferenceItemHeader(props: ReferenceItemHeaderProps) {
           )}
         </Alert>
       )}
-    </Box>
+    </Stack>
   );
 }

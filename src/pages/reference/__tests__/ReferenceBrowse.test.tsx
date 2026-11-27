@@ -34,6 +34,8 @@ const LOAD = { timeout: 10000 };
 
 describe("Reference lists and pages", () => {
   beforeAll(() => {
+    // jsdom has no layout, so the page tabs can't scroll the current one into view.
+    Element.prototype.scrollBy ??= () => {};
     globalThis.ResizeObserver ??= class {
       observe() {}
       unobserve() {}
@@ -63,9 +65,11 @@ describe("Reference lists and pages", () => {
     expect(
       screen.getByRole("heading", { name: "Moves", level: 2 }),
     ).toBeInTheDocument();
-    // Systems are tabs that are links; the open one is the current page.
-    const starforged = screen.getByRole("tab", { name: "Starforged" });
-    expect(starforged).toHaveAttribute("aria-selected", "true");
+    // Systems are links; the open one is the current page.
+    const starforged = within(
+      screen.getByRole("navigation", { name: "Rules" }),
+    ).getByRole("link", { name: "Starforged" });
+    expect(starforged).toHaveAttribute("aria-current", "page");
     expect(starforged).toHaveAttribute("href", "/reference/starforged/moves");
   });
 
@@ -75,7 +79,10 @@ describe("Reference lists and pages", () => {
     const list = within(
       await screen.findByRole("navigation", { name: "Moves" }, LOAD),
     );
-    await user.type(list.getByRole("textbox"), "face");
+    await user.type(
+      list.getByRole("searchbox", { name: "Filter Moves" }),
+      "face",
+    );
 
     // A filter opens every category that still has a match.
     expect(
@@ -93,8 +100,11 @@ describe("Reference lists and pages", () => {
       { timeout: 3000 },
     );
 
-    await user.clear(list.getByRole("textbox"));
-    await user.type(list.getByRole("textbox"), "zzzz");
+    await user.clear(list.getByRole("searchbox", { name: "Filter Moves" }));
+    await user.type(
+      list.getByRole("searchbox", { name: "Filter Moves" }),
+      "zzzz",
+    );
     await waitFor(
       () => expect(useAppState.getState().announcement).toBe("No moves found"),
       { timeout: 3000 },
@@ -107,7 +117,10 @@ describe("Reference lists and pages", () => {
     const list = within(
       await screen.findByRole("navigation", { name: "Oracles" }, LOAD),
     );
-    await user.type(list.getByRole("textbox"), "theme");
+    await user.type(
+      list.getByRole("searchbox", { name: "Filter Oracles" }),
+      "theme",
+    );
     expect(await list.findByRole("link", { name: "Theme" })).toHaveAttribute(
       "href",
       "/reference/starforged/oracles/core/theme",

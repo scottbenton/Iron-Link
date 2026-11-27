@@ -1,8 +1,18 @@
 import { Datasworn } from "@datasworn-community/core";
+import { useTranslation } from "react-i18next";
 
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "ui/components/Table";
+import { VisuallyHidden } from "ui/components/VisuallyHidden";
+import { formatRollRange } from "ui/game/OracleTable";
 import { RulesText } from "ui/game/RulesText";
-
-import { SimpleTable, SimpleTableColumnDefinition } from "./SimpleTable";
 
 export interface OracleTableSharedTextProps {
   oracle:
@@ -11,58 +21,71 @@ export interface OracleTableSharedTextProps {
     | Datasworn.OracleTableSharedText3;
 }
 
+// A collection whose oracles share one set of results, such as Starforged's
+// Planet Peril: a roll column per oracle, then the shared text. Whatever shows
+// it names the collection already, so the caption is for screen readers.
 export function OracleTableSharedText(props: OracleTableSharedTextProps) {
   const { oracle } = props;
+  const { t } = useTranslation();
 
-  const contentArr = Object.values(oracle.contents ?? {});
-  const rows = contentArr.length > 0 ? contentArr[0].rows : undefined;
+  const subOracles = Object.values(oracle.contents ?? {});
+  const rows = subOracles[0]?.rows as
+    | Datasworn.OracleRollableRowText3[]
+    | undefined;
 
   if (!rows) {
     return null;
   }
 
-  const columns: SimpleTableColumnDefinition<Datasworn.OracleRollableRowText3>[] =
-    [];
-
-  const contentValues:
-    | (
-        | Datasworn.OracleColumnText
-        | Datasworn.OracleColumnText2
-        | Datasworn.OracleColumnText3
-      )[]
-    | undefined = oracle.contents ? Object.values(oracle.contents) : undefined;
-
-  contentValues?.forEach((subOracle) => {
-    columns.push({
-      label: subOracle.name,
-      renderer: (_, index) => {
-        const row = subOracle.rows[index];
-
-        return row.roll
-          ? row.roll.max - row.roll.min === 0
-            ? row.roll.min
-            : `${row.roll.min} - ${row.roll.max}`
-          : null;
-      },
-      textColor: "text.secondary",
-    });
-  });
-
-  columns.push({
-    label: oracle.column_labels.text,
-    renderer: (row) => <RulesText markdown={row.text} size="sm" />,
-  });
-
-  if (
+  const hasText2 =
     oracle.oracle_type === "table_shared_text2" ||
-    oracle.oracle_type === "table_shared_text3"
-  ) {
-    columns.push({
-      label: (oracle as Datasworn.OracleTableSharedText2).column_labels.text2,
-      renderer: (row) =>
-        row.text2 ? <RulesText markdown={row.text2 ?? ""} size="sm" /> : null,
-    });
-  }
+    oracle.oracle_type === "table_shared_text3";
 
-  return <SimpleTable columns={columns} rows={rows} />;
+  return (
+    <Table density="compact">
+      <TableCaption>
+        <VisuallyHidden>{oracle.name}</VisuallyHidden>
+      </TableCaption>
+      <TableHead>
+        <TableRow>
+          {subOracles.map((subOracle) => (
+            <TableHeaderCell key={subOracle._id} numeric>
+              {subOracle.name}
+            </TableHeaderCell>
+          ))}
+          <TableHeaderCell>
+            {oracle.column_labels.text ||
+              t("datasworn.oracle-table.result", "Result")}
+          </TableHeaderCell>
+          {hasText2 && (
+            <TableHeaderCell>
+              {(oracle as Datasworn.OracleTableSharedText2).column_labels
+                .text2 || t("datasworn.oracle-table.details", "Details")}
+            </TableHeaderCell>
+          )}
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {rows.map((row, index) => (
+          <TableRow key={row._id ?? index}>
+            {subOracles.map((subOracle) => (
+              <TableCell key={subOracle._id} numeric>
+                {formatRollRange(subOracle.rows[index]?.roll ?? null)}
+              </TableCell>
+            ))}
+            <TableCell>
+              <RulesText markdown={row.text} size="sm" />
+            </TableCell>
+            {hasText2 && (
+              <TableCell>
+                {row.text2 ? (
+                  <RulesText markdown={row.text2} size="sm" />
+                ) : null}
+              </TableCell>
+            )}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
 }

@@ -1,39 +1,41 @@
-import PreviousIcon from "@mui/icons-material/ChevronLeft";
-import { IconButton } from "@mui/material";
-import { PropsWithChildren } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
+import { DialogHeader } from "ui/components/Dialog";
+import { IconButton } from "ui/components/IconButton";
+import { CaretLeftIcon } from "ui/icons";
 
 import { useAppState } from "stores/appState.store";
 
-export function DataswornDialogTitle(props: PropsWithChildren) {
+export interface DataswornDialogTitleProps {
+  children: string;
+}
+
+// The dialog's title, with a way back to the item this one was opened from.
+export function DataswornDialogTitle(props: DataswornDialogTitleProps) {
   const { children } = props;
   const { t } = useTranslation();
 
   const previousIds = useAppState(
     (state) => state.dataswornDialogState.previousIds,
   );
-  const handleClose = useAppState((state) => state.closeDataswornDialog);
   const handleGoToPreviousItem = useAppState(
     (state) => state.prevDataswornDialog,
   );
 
   return (
-    <DialogTitleWithCloseButton
+    <DialogHeader
+      title={children}
       actions={
         previousIds.length > 0 ? (
           <IconButton
-            aria-label={t("datasworn.dialog.previous", "Back to previous item")}
+            label={t("datasworn.dialog.previous", "Back to previous item")}
+            tooltipSide="bottom"
             onClick={handleGoToPreviousItem}
           >
-            <PreviousIcon />
+            <CaretLeftIcon />
           </IconButton>
         ) : undefined
       }
-      onClose={handleClose}
-    >
-      {children}
-    </DialogTitleWithCloseButton>
+    />
   );
 }

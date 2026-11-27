@@ -1,8 +1,5 @@
 import { Datasworn } from "@datasworn-community/core";
-import { List, ListItemButton, ListItemText, Typography } from "@mui/material";
-import { useTranslation } from "react-i18next";
 
-import { LinkComponent } from "components/LinkComponent";
 import { AssetCard } from "components/datasworn/AssetCard";
 import { getDataswornItem } from "components/datasworn/DataswornDialog/useGetDataswornItem";
 import { Move } from "components/datasworn/Move";
@@ -11,9 +8,10 @@ import { OracleTableSharedText } from "components/datasworn/Oracle/OracleTableSh
 import { isLeafCollection } from "components/datasworn/_helpers/dataswornTreeFilter";
 
 import { RulesText } from "ui/game/RulesText";
+import { Stack } from "ui/primitives";
 
-import { getReferenceItemHref } from "../data/referencePaths";
 import { ReferenceSection, ReferenceTab } from "../data/referenceTabs";
+import { ReferenceCollectionContents } from "./ReferenceCollectionContents";
 import { ReferenceItemHeader } from "./ReferenceItemHeader";
 import { ReferenceMoveRolls } from "./ReferenceMoveRolls";
 
@@ -51,7 +49,7 @@ export function ReferenceItemDetail(props: ReferenceItemDetailProps) {
             {...headerProps}
           />
           <ReferenceMoveRolls key={item.move._id} move={item.move} />
-          <Move moveId={item.move._id} hideMoveName hideRollOptions />
+          <Move moveId={item.move._id} hideRollOptions />
         </>
       );
     case "oracle_rollable":
@@ -62,7 +60,7 @@ export function ReferenceItemDetail(props: ReferenceItemDetailProps) {
             name={item.oracle.name}
             {...headerProps}
           />
-          <Oracle oracleId={item.oracle._id} hideOracleName />
+          <Oracle oracleId={item.oracle._id} />
         </>
       );
     case "asset":
@@ -100,7 +98,7 @@ export function ReferenceItemDetail(props: ReferenceItemDetailProps) {
             {...headerProps}
           />
           {isLeafCollection(collection) ? (
-            <>
+            <Stack gap="3">
               {collection.description && (
                 <RulesText markdown={collection.description} size="sm" />
               )}
@@ -112,7 +110,7 @@ export function ReferenceItemDetail(props: ReferenceItemDetailProps) {
                     | Datasworn.OracleTableSharedText3
                 }
               />
-            </>
+            </Stack>
           ) : (
             <ReferenceCollectionContents
               description={collection.description}
@@ -132,36 +130,4 @@ export function ReferenceItemDetail(props: ReferenceItemDetailProps) {
     default:
       return null;
   }
-}
-
-function ReferenceCollectionContents(props: {
-  description?: string;
-  items: { _id: string; name: string }[];
-}) {
-  const { description, items } = props;
-  const { t } = useTranslation();
-
-  return (
-    <>
-      {description && <RulesText markdown={description} size="sm" />}
-      <Typography variant="overline" component="h3" color="text.secondary">
-        {t("reference.collection-contents", "In this collection")}
-      </Typography>
-      <List dense disablePadding>
-        {items.map((child) => {
-          const href = getReferenceItemHref(child._id);
-          if (!href) return null;
-          return (
-            <ListItemButton
-              key={child._id}
-              component={LinkComponent}
-              href={href}
-            >
-              <ListItemText primary={child.name} />
-            </ListItemButton>
-          );
-        })}
-      </List>
-    </>
-  );
 }

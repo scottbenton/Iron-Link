@@ -62,6 +62,10 @@ export default tseslint.config(
       "src/components/ErrorMessage.tsx",
       "src/pages/404Page/**/*.{ts,tsx}",
       "src/pages/ErrorRoute.tsx",
+      "src/pages/reference/**/*.{ts,tsx}",
+      "src/components/datasworn/DataswornDialog/**/*.{ts,tsx}",
+      "src/components/datasworn/Move/**/*.{ts,tsx}",
+      "src/components/datasworn/Oracle/**/*.{ts,tsx}",
     ],
     ignores: [
       "src/ui/**/__stories__/**",

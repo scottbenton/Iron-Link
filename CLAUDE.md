@@ -317,9 +317,10 @@ that are easy to miss. When you learn a new one, add a line here.
 - Reference URLs are Datasworn ids (`getReferenceItemHref`), so a renamed id
   breaks old links. Rules text links go through `DataswornLinkHandlerProvider`,
   which opens reference pages there and the Datasworn dialog everywhere else.
-- The reference lists are the game's `MoveTree`/`OracleTree` in link mode
-  (`linkMode`, `_helpers/treeLinkMode.ts`): items are links, the open item's
-  collections start open. Without `linkMode` they behave as in a game.
+- The reference lists are their own trees (`pages/reference/components/ReferenceTree`):
+  items are links, the open item's collections start open. They share the
+  game's filter (`_helpers/dataswornTreeFilter`); the game's MUI `MoveTree`
+  and `OracleTree` no longer have a link mode.
 - A hidden whole-package source is not loaded (`getLoadedPackageIds`), because
   Starsmith merges into Starforged's oracle collections once loaded. The open
   item's package always loads, so a link to a hidden item still opens.

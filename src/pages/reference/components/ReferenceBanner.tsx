@@ -1,11 +1,15 @@
-import CloseIcon from "@mui/icons-material/Close";
-import { Box, Button, IconButton, Typography } from "@mui/material";
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
 
-import { GradientBox } from "components/GradientBox";
-import { IronLinkLogo } from "components/Layout/IronLinkLogo";
 import { LinkComponent } from "components/LinkComponent";
+
+import { Button } from "ui/components/Button";
+import { GradientBox } from "ui/components/GradientBox";
+import { IconButton } from "ui/components/IconButton";
+import { Text } from "ui/components/Text";
+import { XIcon } from "ui/icons";
+import { Logo } from "ui/layout";
+import { Box, Grid } from "ui/primitives";
 
 import { pathConfig } from "pages/pathConfig";
 
@@ -42,98 +46,85 @@ export function ReferenceBanner(props: ReferenceBannerProps) {
 
   return (
     <GradientBox
-      component="section"
+      as="section"
       aria-labelledby={titleId}
-      sx={(theme) => ({
+      css={{
         position: "fixed",
-        bottom: theme.spacing(2),
+        bottom: "4",
         left: "50%",
         transform: "translateX(-50%)",
-        width: `min(600px, calc(100% - ${theme.spacing(4)}))`,
-        zIndex: theme.zIndex.snackbar - 1,
-        p: 0.25,
-        borderRadius: 2,
-        boxShadow: theme.shadows[8],
-      })}
+        width: "min(600px, calc(100% - token(spacing.8)))",
+        zIndex: "sticky",
+        boxShadow: "lg",
+      }}
     >
-      <Box
-        sx={(theme) => ({
-          // On a phone the button gets its own row under the text.
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "minmax(0, 1fr) auto",
-            sm: "auto minmax(0, 1fr) auto auto",
-          },
-          gridTemplateAreas: {
-            xs: '"text close" "cta cta"',
-            sm: '"logo text cta close"',
-          },
-          alignItems: "center",
-          columnGap: 1.5,
-          rowGap: 1,
-          pl: 1.5,
-          pr: 0.5,
-          py: 1,
-          borderRadius: 1.75,
-          // A dark bar in both modes, so it stands apart from the page.
-          bgcolor: "grey.900",
-          color: "common.white",
-          ...theme.applyStyles("dark", { bgcolor: "grey.800" }),
-        })}
+      {/* On a phone the button gets its own row under the text. */}
+      <Grid
+        gridTemplateColumns={{
+          base: "minmax(0, 1fr) auto",
+          sm: "auto minmax(0, 1fr) auto auto",
+        }}
+        gridTemplateAreas={{
+          base: '"text close" "cta cta"',
+          sm: '"logo text cta close"',
+        }}
+        alignItems="center"
+        columnGap="3"
+        rowGap="2"
+        paddingInlineStart="3"
+        paddingInlineEnd="1"
+        paddingBlock="2"
       >
-        <Box aria-hidden display={{ xs: "none", sm: "flex" }} gridArea="logo">
-          <IronLinkLogo sx={{ width: 32, height: 32 }} />
+        <Box gridArea="logo" display={{ base: "none", sm: "flex" }}>
+          <Logo size={32} />
         </Box>
-        <Box gridArea="text" minWidth={0}>
-          <Typography
-            id={titleId}
-            variant="body1"
-            component="h2"
-            fontWeight={600}
-          >
+        <Box gridArea="text" minWidth="0">
+          <Text id={titleId} as="h2" weight="semibold">
             {t("reference.banner.title", "Ready to play?")}
-          </Typography>
-          <Typography variant="body2" color="grey.300">
+          </Text>
+          <Text variant="bodySm" color="muted">
             {t(
               "reference.banner.description",
               "Keep your character, rolls and notes in one place, solo or with friends.",
             )}
-          </Typography>
+          </Text>
         </Box>
-        <Button
-          variant="contained"
-          size="small"
-          LinkComponent={LinkComponent}
-          href={referenceBannerCreateCharacterHref}
-          onClick={() =>
-            logEvent(
-              LoggerCategory.App,
-              "reference_banner_start_playing",
-              LoggerVerb.Click,
-            )
-          }
-          sx={{ gridArea: "cta", mr: { xs: 1, sm: 0 } }}
-        >
-          {t("reference.banner.start-playing", "Start playing")}
-        </Button>
-        <IconButton
-          size="small"
-          color="inherit"
-          sx={{ gridArea: "close", alignSelf: { xs: "start", sm: "center" } }}
-          aria-label={t("reference.banner.dismiss", "Dismiss")}
-          onClick={() => {
-            logEvent(
-              LoggerCategory.App,
-              "reference_banner_dismiss",
-              LoggerVerb.Click,
-            );
-            dismiss();
-            onDismiss();
-          }}
-        >
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </Box>
+        <Box gridArea="cta" marginInlineEnd={{ base: "2", sm: "0" }}>
+          <Button
+            variant="primary"
+            size="sm"
+            nativeButton={false}
+            render={<LinkComponent href={referenceBannerCreateCharacterHref} />}
+            onClick={() =>
+              logEvent(
+                LoggerCategory.App,
+                "reference_banner_start_playing",
+                LoggerVerb.Click,
+              )
+            }
+            css={{ width: { base: "100%", sm: "auto" } }}
+          >
+            {t("reference.banner.start-playing", "Start playing")}
+          </Button>
+        </Box>
+        <Box gridArea="close" alignSelf={{ base: "start", sm: "center" }}>
+          <IconButton
+            size="sm"
+            label={t("reference.banner.dismiss", "Dismiss")}
+            onClick={() => {
+              logEvent(
+                LoggerCategory.App,
+                "reference_banner_dismiss",
+                LoggerVerb.Click,
+              );
+              dismiss();
+              onDismiss();
+            }}
+          >
+            <XIcon />
+          </IconButton>
+        </Box>
+      </Grid>
     </GradientBox>
   );
 }

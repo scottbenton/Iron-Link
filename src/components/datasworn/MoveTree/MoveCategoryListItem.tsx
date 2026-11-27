@@ -7,7 +7,7 @@ import {
   ListItemText,
 } from "@mui/material";
 import { ListItemIcon } from "@mui/material";
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 
 import { MoveCategoryMap, MoveMap } from "stores/dataswornTree.store";
 
@@ -15,7 +15,6 @@ import {
   CollectionVisibility,
   VisibilitySettings,
 } from "../_helpers/getCollectionVisibility";
-import { useTreeLinkMode } from "../_helpers/treeLinkMode";
 import { MoveListItem } from "./MoveListItem";
 
 export interface MoveCategoryListItemProps {
@@ -41,15 +40,7 @@ export function MoveCategoryListItem(props: MoveCategoryListItemProps) {
 
   const moveCategory = moveCategoryMap[moveCategoryId];
 
-  // In link mode, the collections around the open item start open, and open
-  // again when another item inside them is opened.
-  const linkMode = useTreeLinkMode();
-  const containsSelectedItem =
-    !!linkMode?.openCollectionIds.has(moveCategoryId);
-  const [isExpanded, setIsExpanded] = useState(containsSelectedItem);
-  useEffect(() => {
-    if (containsSelectedItem) setIsExpanded(true);
-  }, [containsSelectedItem, linkMode?.selectedId]);
+  const [isExpanded, setIsExpanded] = useState(false);
   const contentsId = useId();
 
   let categoryVisibilityState = CollectionVisibility.All;

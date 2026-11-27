@@ -81,6 +81,7 @@ export {
   ShareNetworkIcon,
   ShieldIcon,
   SignOutIcon,
+  SkullIcon,
   SunIcon,
   TargetIcon,
   TextAaIcon,

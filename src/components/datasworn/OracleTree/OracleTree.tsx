@@ -23,11 +23,6 @@ import {
   VisibilitySettings,
   getCollectionVisibilities,
 } from "../_helpers/getCollectionVisibility";
-import {
-  TreeLinkMode,
-  TreeLinkModeContext,
-  useLinkModeTree,
-} from "../_helpers/treeLinkMode";
 import { AskTheOracleButtons } from "./AskTheOracleButtons";
 import { OracleCollectionListItem } from "./OracleCollectionListItem";
 import { OracleListItem } from "./OracleListItem";
@@ -47,8 +42,6 @@ export interface OracleTreeFeaturedOracle {
 }
 
 export interface OracleTreeProps {
-  // Oracles become links to their own pages instead of rolling on a click.
-  linkMode?: TreeLinkMode;
   // Oracles listed first under their own heading, above the rules packages.
   // The filter narrows them by name; ones not in the rules are left out.
   featured?: {
@@ -58,23 +51,15 @@ export interface OracleTreeProps {
 }
 
 export function OracleTree(props: OracleTreeProps) {
-  const { linkMode, featured } = props;
+  const { featured } = props;
   const { t } = useTranslation();
 
   const [searchValue, setSearchValue] = useState("");
   const deferredSearchValue = useDeferredValue(searchValue);
 
   const oracles = useOracles();
-  const { oracleRollableMap } = oracles;
-  const {
-    rootCollections: rootOracleCollections,
-    collectionMap: oracleCollectionMap,
-    contextValue,
-  } = useLinkModeTree(
-    linkMode,
-    oracles.rootOracleCollections,
-    oracles.oracleCollectionMap,
-  );
+  const { oracleRollableMap, rootOracleCollections, oracleCollectionMap } =
+    oracles;
 
   const visibilitySettings = useMemo(() => {
     const collectionVisibility: Record<string, CollectionVisibility> = {};
@@ -149,75 +134,71 @@ export function OracleTree(props: OracleTreeProps) {
   const featuredHeadingId = useId();
 
   return (
-    <TreeLinkModeContext.Provider value={contextValue}>
-      <Box bgcolor={"background.paper"}>
-        <AskTheOracleButtons />
-        <Input
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          fullWidth
-          startAdornment={
-            <InputAdornment position={"start"}>
-              <SearchIcon
-                sx={(theme) => ({ color: theme.palette.grey[300] })}
-              />
-            </InputAdornment>
-          }
-          aria-label={t("datasworn.filter-oracles", "Filter Oracles")}
-          placeholder={t("datasworn.filter-oracles", "Filter Oracles")}
-          color={"primary"}
-          sx={{
-            bgcolor: "background.paper",
-            color: "text.primary",
-            px: 2,
-            py: 1,
-          }}
-        />
-        {featured && featuredOracles.length > 0 && (
-          <List
-            disablePadding
-            aria-labelledby={featuredHeadingId}
-            sx={(theme) => ({
-              borderBottom: `1px solid ${theme.palette.divider}`,
-            })}
-          >
-            <ListSubheader id={featuredHeadingId} sx={subheaderSx}>
-              {featured.title}
-            </ListSubheader>
-            {featuredOracles.map(({ oracle, description }) => (
-              <OracleListItem
-                key={oracle._id}
-                oracle={oracle}
-                description={description}
+    <Box bgcolor={"background.paper"}>
+      <AskTheOracleButtons />
+      <Input
+        value={searchValue}
+        onChange={(e) => setSearchValue(e.target.value)}
+        fullWidth
+        startAdornment={
+          <InputAdornment position={"start"}>
+            <SearchIcon sx={(theme) => ({ color: theme.palette.grey[300] })} />
+          </InputAdornment>
+        }
+        aria-label={t("datasworn.filter-oracles", "Filter Oracles")}
+        placeholder={t("datasworn.filter-oracles", "Filter Oracles")}
+        color={"primary"}
+        sx={{
+          bgcolor: "background.paper",
+          color: "text.primary",
+          px: 2,
+          py: 1,
+        }}
+      />
+      {featured && featuredOracles.length > 0 && (
+        <List
+          disablePadding
+          aria-labelledby={featuredHeadingId}
+          sx={(theme) => ({
+            borderBottom: `1px solid ${theme.palette.divider}`,
+          })}
+        >
+          <ListSubheader id={featuredHeadingId} sx={subheaderSx}>
+            {featured.title}
+          </ListSubheader>
+          {featuredOracles.map(({ oracle, description }) => (
+            <OracleListItem
+              key={oracle._id}
+              oracle={oracle}
+              description={description}
+              visibilitySettings={visibilitySettings}
+              isSearchActive={false}
+              isFullCollectionVisible
+            />
+          ))}
+        </List>
+      )}
+      {Object.entries(rootOracleCollections).map(
+        ([rulesetKey, ruleset], _, arr) => (
+          <List key={rulesetKey} disablePadding>
+            {(arr.length > 1 || featuredOracles.length > 0) && (
+              <ListSubheader sx={subheaderSx} key={rulesetKey}>
+                {ruleset.title}
+              </ListSubheader>
+            )}
+            {ruleset.rootCollectionIds.map((collectionKey) => (
+              <OracleCollectionListItem
+                key={collectionKey}
+                oracleCollectionId={collectionKey}
+                oracleCollectionMap={oracleCollectionMap}
+                oracleRollableMap={oracleRollableMap}
                 visibilitySettings={visibilitySettings}
-                isSearchActive={false}
-                isFullCollectionVisible
+                isSearchActive={!!deferredSearchValue.trim()}
               />
             ))}
           </List>
-        )}
-        {Object.entries(rootOracleCollections).map(
-          ([rulesetKey, ruleset], _, arr) => (
-            <List key={rulesetKey} disablePadding>
-              {(arr.length > 1 || featuredOracles.length > 0) && (
-                <ListSubheader sx={subheaderSx} key={rulesetKey}>
-                  {ruleset.title}
-                </ListSubheader>
-              )}
-              {ruleset.rootCollectionIds.map((collectionKey) => (
-                <OracleCollectionListItem
-                  key={collectionKey}
-                  oracleCollectionId={collectionKey}
-                  oracleCollectionMap={oracleCollectionMap}
-                  oracleRollableMap={oracleRollableMap}
-                  visibilitySettings={visibilitySettings}
-                  isSearchActive={!!deferredSearchValue.trim()}
-                />
-              ))}
-            </List>
-          ),
-        )}
-      </Box>
-    </TreeLinkModeContext.Provider>
+        ),
+      )}
+    </Box>
   );
 }

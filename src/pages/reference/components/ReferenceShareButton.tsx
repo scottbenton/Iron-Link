@@ -1,9 +1,11 @@
-import ShareIcon from "@mui/icons-material/IosShare";
-import LinkIcon from "@mui/icons-material/Link";
-import { Button } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { useSnackbar } from "providers/SnackbarProvider";
+
+import { Button } from "ui/components/Button";
+import { LinkIcon, ShareNetworkIcon } from "ui/icons";
+
+import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 
 export interface ReferenceShareButtonProps {
   // An app path, such as /reference/starforged/moves/adventure/face_danger.
@@ -11,12 +13,9 @@ export interface ReferenceShareButtonProps {
   name: string;
 }
 
-function canUseShareSheet(): boolean {
+function hasShareSheet(): boolean {
   return (
-    typeof navigator !== "undefined" &&
-    typeof navigator.share === "function" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(pointer: coarse)").matches
+    typeof navigator !== "undefined" && typeof navigator.share === "function"
   );
 }
 
@@ -27,7 +26,8 @@ export function ReferenceShareButton(props: ReferenceShareButtonProps) {
   const { t } = useTranslation();
   const { success, error } = useSnackbar();
 
-  const useShareSheet = canUseShareSheet();
+  const isTouchDevice = useIsTouchDevice();
+  const useShareSheet = isTouchDevice && hasShareSheet();
   const url = window.location.origin + path;
 
   const copy = () => {
@@ -61,12 +61,10 @@ export function ReferenceShareButton(props: ReferenceShareButtonProps) {
 
   return (
     <Button
-      color="inherit"
-      variant="outlined"
-      size="small"
-      startIcon={useShareSheet ? <ShareIcon /> : <LinkIcon />}
+      variant="outline"
+      size="sm"
+      startIcon={useShareSheet ? <ShareNetworkIcon /> : <LinkIcon />}
       onClick={handleClick}
-      sx={{ flexShrink: 0 }}
     >
       {useShareSheet
         ? t("reference.share.share", "Share")

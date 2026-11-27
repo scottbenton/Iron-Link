@@ -31,7 +31,6 @@ describe("Oracle", () => {
     // Rolls the oracle that replaces it in the loaded rules, if any.
     expect(rollOracle).toHaveBeenCalledWith(
       expect.stringMatching(/\/core\/action$/),
-      undefined,
     );
   });
 

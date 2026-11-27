@@ -102,6 +102,10 @@ describe("DataswornDialog", () => {
         "The linked item with id move:starforged/adventure/not_a_move could not be found.",
       ),
     ).toBeInTheDocument();
+    // The header's Close is the only one.
+    expect(
+      within(dialog).getAllByRole("button", { name: "Close" }),
+    ).toHaveLength(1);
     await user.click(within(dialog).getByRole("button", { name: "Close" }));
     expect(useAppState.getState().dataswornDialogState.isOpen).toBe(false);
   });

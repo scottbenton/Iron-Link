@@ -1,26 +1,24 @@
-import { Box, SxProps, Tab, Tabs, Theme, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { SkullIcon } from "assets/SkullIcon";
-
-import { EmptyState } from "components/Layout/EmptyState";
-
-import { RulesText } from "ui/game/RulesText";
+import { SectionTab, SectionTabList, TabPanel, Tabs } from "ui/components/Tabs";
+import { VisuallyHidden } from "ui/components/VisuallyHidden";
+import { SkullIcon } from "ui/icons";
+import { EmptyState } from "ui/layout";
 
 import { useOracleRollable } from "hooks/datasworn/useOracleRollable";
 
-import { OracleButton } from "./OracleButton";
-import { OracleTable } from "./OracleTable";
+import { OracleVariant } from "./OracleVariant";
 
 export interface OracleProps {
   oracleId: string;
-  hideOracleName?: boolean;
-  sx?: SxProps<Theme>;
 }
 
+// An oracle's table and roll button. A Sundered Isles oracle with a cursed
+// variant shows both, as two tabs.
 export function Oracle(props: OracleProps) {
-  const { oracleId, hideOracleName, sx } = props;
+  const { oracleId } = props;
+  const { t } = useTranslation();
   const oracle = useOracleRollable(oracleId);
 
   const cursedOracleAlternative = oracle?.tags?.sundered_isles?.cursed_by;
@@ -36,8 +34,6 @@ export function Oracle(props: OracleProps) {
     setCurrentOracle(activeOracleId);
   }, [activeOracleId]);
 
-  const { t } = useTranslation();
-
   if (!oracle) {
     return (
       <EmptyState
@@ -50,98 +46,34 @@ export function Oracle(props: OracleProps) {
     );
   }
 
+  if (!cursedOracle) {
+    return <OracleVariant oracle={oracle} />;
+  }
+
   return (
-    <Box sx={sx} bgcolor="background.paper">
-      {!hideOracleName && <Typography variant={"h6"}>{oracle.name}</Typography>}
-      {cursedOracle && (
-        <Tabs
-          value={currentOracle}
-          onChange={(_, newValue) => setCurrentOracle(newValue)}
-          aria-label={t("datasworn.oracle-tabs", "Oracle Variant Tabs")}
-          sx={{ mb: 1 }}
-        >
-          <Tab
-            label={oracle.name}
-            value={oracle._id}
-            id={`${oracle._id}-tab`}
-            aria-controls={`${oracle._id}-tabpanel`}
-          />
-          <Tab
-            label={
-              <Box
-                component="span"
-                sx={{ display: "flex", alignItems: "center" }}
-              >
-                <SkullIcon
-                  aria-label={t("datasworn.oracle-tabs.cursed", "Cursed")}
-                  sx={{ display: "inline", mr: 0.5 }}
-                  color="action"
-                />
-                {cursedOracle.name}
-              </Box>
-            }
-            value={cursedOracle._id}
-            id={`${cursedOracle._id}-tab`}
-            aria-controls={`${oracle._id}-tabpanel`}
-          />
-        </Tabs>
-      )}
-      <Box
-        role={cursedOracle ? "tabpanel" : undefined}
-        id={`${oracle._id}-tabpanel`}
-        aria-labelledby={cursedOracle ? `${oracle._id}-tab` : undefined}
+    <Tabs
+      value={currentOracle}
+      onValueChange={(value) => setCurrentOracle(value as string)}
+    >
+      <SectionTabList
+        variant="underline"
+        aria-label={t("datasworn.oracle-tabs", "Oracle variants")}
+        css={{ marginBlockEnd: "3" }}
       >
-        {currentOracle === oracle._id && (
-          <>
-            {(oracle as unknown as { summary?: string }).summary && (
-              <RulesText
-                markdown={(oracle as unknown as { summary: string }).summary}
-                size="sm"
-              />
-            )}
-            <OracleButton
-              oracleId={oracle._id}
-              color="inherit"
-              variant="outlined"
-            >
-              {t("datasworn.roll-oracle-button", "Roll {{oracleName}}", {
-                oracleName: oracle.name,
-              })}
-            </OracleButton>
-            <OracleTable oracle={oracle} />
-          </>
-        )}
-      </Box>
-      {cursedOracle && (
-        <Box
-          role={cursedOracle ? "tabpanel" : undefined}
-          id={`${cursedOracle._id}-tabpanel`}
-          aria-labelledby={cursedOracle ? `${cursedOracle._id}-tab` : undefined}
-        >
-          {currentOracle === cursedOracle._id && (
-            <>
-              {(cursedOracle as unknown as { summary?: string }).summary && (
-                <RulesText
-                  markdown={
-                    (cursedOracle as unknown as { summary: string }).summary
-                  }
-                  size="sm"
-                />
-              )}
-              <OracleButton
-                oracleId={cursedOracle._id}
-                color="inherit"
-                variant="outlined"
-              >
-                {t("datasworn.roll-oracle-button", "Roll {{oracleName}}", {
-                  oracleName: cursedOracle.name,
-                })}
-              </OracleButton>
-              <OracleTable oracle={cursedOracle} />
-            </>
-          )}
-        </Box>
-      )}
-    </Box>
+        <SectionTab value={oracle._id}>{oracle.name}</SectionTab>
+        <SectionTab value={cursedOracle._id} icon={<SkullIcon aria-hidden />}>
+          <VisuallyHidden>
+            {t("datasworn.oracle-tabs.cursed", "Cursed")}{" "}
+          </VisuallyHidden>
+          {cursedOracle.name}
+        </SectionTab>
+      </SectionTabList>
+      <TabPanel value={oracle._id}>
+        <OracleVariant oracle={oracle} />
+      </TabPanel>
+      <TabPanel value={cursedOracle._id}>
+        <OracleVariant oracle={cursedOracle} />
+      </TabPanel>
+    </Tabs>
   );
 }

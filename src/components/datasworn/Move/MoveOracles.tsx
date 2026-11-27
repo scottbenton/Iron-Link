@@ -1,10 +1,11 @@
 import { Datasworn } from "@datasworn-community/core";
-import { Box, Button } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";
+import { OracleTable } from "ui/game/OracleTable";
+import { RollButton } from "ui/game/RollButton";
+import { Flex, Stack } from "ui/primitives";
 
-import { OracleTable } from "../Oracle/OracleTable";
+import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";
 
 export interface MoveOraclesProps {
   move: Datasworn.AnyMove;
@@ -28,43 +29,40 @@ export function MoveOracles(props: MoveOraclesProps) {
     return null;
   }
 
-  // With one table, the roll button right above it already names it.
-  const hideTableLabels = entries.length === 1;
+  // With one table, the roll button right above it already names it, so
+  // its name is read by screen readers only.
+  const hideTableNames = entries.length === 1;
 
   return (
-    <Box>
-      <Box
-        role={"group"}
+    <Stack gap="3" marginBlockStart="2">
+      <Flex
+        role="group"
         aria-label={t("datasworn.move-oracle-rolls", "{{moveName}} rolls", {
           moveName: move.name,
         })}
-        display={"flex"}
-        flexWrap={"wrap"}
-        gap={1}
-        mt={1}
+        flexWrap="wrap"
+        gap="2"
       >
         {entries.map(([key, oracle]) => (
-          <Button
+          <RollButton
             key={key}
-            color="inherit"
-            variant="outlined"
-            onClick={() => rollOracle(oracle._id, false)}
+            size="sm"
+            onRoll={() => void rollOracle(oracle._id, false)}
           >
             {t("datasworn.roll-oracle", "Roll {{oracleName}}", {
               oracleName: oracle.name,
             })}
-          </Button>
+          </RollButton>
         ))}
-      </Box>
+      </Flex>
       {entries.map(([key, oracle]) => (
-        <Box mt={1} key={key}>
-          <OracleTable
-            oracle={oracle}
-            label={oracle.name}
-            hideLabel={hideTableLabels}
-          />
-        </Box>
+        <OracleTable
+          key={key}
+          oracle={oracle}
+          hideHeader={hideTableNames}
+          titleAs="p"
+        />
       ))}
-    </Box>
+    </Stack>
   );
 }
