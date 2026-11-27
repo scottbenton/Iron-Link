@@ -141,7 +141,6 @@ export function ReferenceAssets(props: ReferenceAssetsProps) {
         <Grid
           gridTemplateColumns="repeat(auto-fill, minmax(min(100%, 300px), 1fr))"
           gap="3"
-          alignItems="start"
         >
           {assetIds.map((assetId) => (
             <AssetCard

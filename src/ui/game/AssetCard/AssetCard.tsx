@@ -58,12 +58,19 @@ export const assetCardStyles = css({
     flex: "none",
   },
   "& [data-asset-body]": {
-    display: "grid",
+    display: "flex",
+    flexDirection: "column",
     gap: "3",
     paddingInline: "4",
     paddingBlock: "3",
     flex: "1",
-    alignContent: "start",
+  },
+  // A card stretched to its grid row keeps the extra height above the
+  // meters, so meters and actions line up along the bottom of a row.
+  "& [data-asset-controls]": {
+    display: "grid",
+    gap: "3",
+    marginBlockStart: "auto",
   },
   "& [data-asset-title]": {
     display: "flex",
@@ -369,20 +376,19 @@ export function AssetCard(props: AssetCardProps) {
           </ul>
         )}
 
-        {meters.map(([key, control]) => (
-          <AssetControlField
-            key={key}
-            controlKey={key}
-            control={control}
-            state={state}
-            onChange={changeControl}
-            onRoll={rollControl}
-            rollLabel={strings.rollLabel}
-          />
-        ))}
-
-        {otherControls.length > 0 && (
-          <div className={fieldsStyles}>
+        {(meters.length > 0 || otherControls.length > 0) && (
+          <div data-asset-controls="">
+            {meters.map(([key, control]) => (
+              <AssetControlField
+                key={key}
+                controlKey={key}
+                control={control}
+                state={state}
+                onChange={changeControl}
+                onRoll={rollControl}
+                rollLabel={strings.rollLabel}
+              />
+            ))}
             {otherControls.map(([key, control]) => (
               <AssetControlField
                 key={key}

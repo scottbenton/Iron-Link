@@ -71,7 +71,6 @@ export function AssetsSection() {
       <Grid
         gridTemplateColumns="repeat(auto-fill, minmax(min(100%, 300px), 1fr))"
         gap="3"
-        alignItems="start"
       >
         {[...sortedSharedAssets, ...sortedCharacterAssets].map(
           ([assetId, assetDocument]) => (
