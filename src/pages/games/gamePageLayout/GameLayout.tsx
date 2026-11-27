@@ -9,6 +9,7 @@ import { EmptyState } from "components/Layout/EmptyState";
 
 import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
 import { GameNavBar } from "pages/games/gamePageLayout/GameNavBar";
+import { GameSettings } from "pages/games/gamePageLayout/GameSettings";
 import { MobileTabs } from "pages/games/gamePageLayout/MobileTabs";
 import { SidebarLayout } from "pages/games/gamePageLayout/SidebarLayout";
 import { GameTabs } from "pages/games/gamePageLayout/components/GameTabs";
@@ -112,6 +113,7 @@ export default function GameLayout() {
           isOnCreatePage
           isOnOverviewPage={false}
         />
+        <GameSettings />
         {worldsBetaBanner}
 
         {!isMobile && (
@@ -142,6 +144,7 @@ export default function GameLayout() {
         isOnOverviewPage={isOnOverviewPage}
         isOnCreatePage={isOnCharacterCreatePage}
       />
+      <GameSettings />
       {worldsBetaBanner}
       {!isMobile && (
         <PageHeader

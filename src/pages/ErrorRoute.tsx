@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useRouteError } from "react-router";
 
 import { ErrorMessage } from "components/ErrorMessage";
+
+import { useDocumentTitle } from "hooks/useDocumentTitle";
 
 import { isStaleChunkReloadPending } from "lib/staleChunkReload.lib";
 
@@ -9,6 +12,8 @@ import { AnalyticsService } from "services/analytics.service";
 
 export function ErrorRoute() {
   const error = useRouteError();
+  const { t } = useTranslation();
+  useDocumentTitle(t("layout.error.title", "Iron Link Crashed"));
   const [errorMessage, setErrorMessage] = useState<string>();
 
   useEffect(() => {
@@ -36,5 +41,10 @@ export function ErrorRoute() {
 
   if (isStaleChunkReloadPending()) return null;
 
-  return <ErrorMessage message={errorMessage} />;
+  // The router shows this in place of the whole app, so it is the page.
+  return (
+    <main>
+      <ErrorMessage message={errorMessage} titleAs="h1" />
+    </main>
+  );
 }

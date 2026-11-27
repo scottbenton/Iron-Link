@@ -55,10 +55,19 @@ export default tseslint.config(
     // translated before the app uses it (src/ui/README.md, Translation).
     // JSX text, label-like attributes and literals inside JSX expressions
     // are checked. Default prop values are not, so write those with t() too.
-    files: ["src/ui/**/*.{ts,tsx}"],
+    // App screens join the list as their slice moves them over.
+    files: [
+      "src/ui/**/*.{ts,tsx}",
+      "src/components/Layout/**/*.{ts,tsx}",
+      "src/components/ErrorMessage.tsx",
+      "src/pages/404Page/**/*.{ts,tsx}",
+      "src/pages/ErrorRoute.tsx",
+    ],
     ignores: [
       "src/ui/**/__stories__/**",
-      "src/ui/**/__tests__/**",
+      "src/**/__tests__/**",
+      // The game page's MUI bar and menu until slice 9.
+      "src/components/Layout/legacy/**",
       "src/ui/docs/**",
       "src/ui/layout/Examples/**",
     ],

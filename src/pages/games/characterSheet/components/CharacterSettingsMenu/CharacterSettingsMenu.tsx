@@ -4,9 +4,9 @@ import { useCallback, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
-import { CharacterMenuDialogs } from "./CharacterMenuDialogs";
 import { CharacterMenuItems } from "./CharacterMenuItems";
 
+// Its dialogs are mounted once for the game page, by `GameSettings`.
 export function CharacterSettingsMenu() {
   const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
   const closeMenu = useCallback(() => setIsSettingsMenuOpen(false), []);
@@ -41,7 +41,6 @@ export function CharacterSettingsMenu() {
       >
         <CharacterMenuItems closeMenu={closeMenu} />
       </Menu>
-      <CharacterMenuDialogs />
     </>
   );
 }

@@ -1,9 +1,10 @@
-import { LinearProgress } from "@mui/material";
 import { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router";
 
 import { BaseLayout } from "components/Layout/BaseLayout";
 import { DefaultLayout } from "components/Layout/DefaultLayout";
+
+import { Progress } from "ui/components/Progress";
 
 import { Page404 } from "pages/404Page/404Page";
 import { ErrorRoute } from "pages/ErrorRoute";
@@ -56,7 +57,7 @@ export function App() {
 
   return (
     <>
-      <Suspense fallback={<LinearProgress />}>
+      <Suspense fallback={<Progress />}>
         <Routes>
           <Route ErrorBoundary={ErrorRoute}>
             <Route Component={BaseLayout}>

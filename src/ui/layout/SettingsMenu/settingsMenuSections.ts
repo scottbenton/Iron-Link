@@ -44,6 +44,11 @@ export interface SettingsMenuContext {
    * `ColorModeToggle` sits above the gear. Phones keep the item.
    */
   hideColorMode?: boolean;
+  /**
+   * Leaves Change Theme out, where nothing it would open applies: outside a
+   * game the app has no theme of its own yet.
+   */
+  hideTheme?: boolean;
 }
 
 export type SettingsMenuItemId =
@@ -108,7 +113,14 @@ export function getGameItems(game: SettingsMenuGame): SettingsMenuItemId[] {
 export function getSettingsMenuSections(
   context: SettingsMenuContext,
 ): SettingsMenuSection[] {
-  const { character, game, isAdmin, signedIn = true, hideColorMode } = context;
+  const {
+    character,
+    game,
+    isAdmin,
+    signedIn = true,
+    hideColorMode,
+    hideTheme,
+  } = context;
   const sections: SettingsMenuSection[] = [];
 
   if (character) {
@@ -121,7 +133,7 @@ export function getSettingsMenuSections(
     const items = getGameItems(game);
     if (items.length > 0) sections.push({ id: "game", items });
   }
-  sections.push({ id: "theme", items: ["theme"] });
+  if (!hideTheme) sections.push({ id: "theme", items: ["theme"] });
 
   const app: SettingsMenuItemId[] = hideColorMode ? [] : ["colorMode"];
   app.push("accessibility", "advancedFeatures");

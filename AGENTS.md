@@ -102,6 +102,11 @@ the file under 150 lines; to add one past that, cut a weaker one.
 - Files hold one component or hook each, with contexts and generic hooks in
   their own files. Text goes through `t()` with a `ui.` key and its English
   default (lint flags JSX text). Details are in `src/ui/README.md`.
+- Every library dialog ends with the `DialogActions` strip, buttons
+  right-aligned and the main one last; a third that stands apart (Delete,
+  Reset) goes in its `start` slot, which floats it left. Beside a main action
+  that saves and closes, the other button is Cancel; where leaving loses
+  nothing, it is `DialogDoneButton` (Done).
 - Two `useIsMobile` hooks exist: `src/ui/hooks`' switches below 600px, the
   app's own below 900px. Use the one from the layer you're working in.
 

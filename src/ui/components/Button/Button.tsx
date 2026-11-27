@@ -1,5 +1,11 @@
 import { Button as BaseButton } from "@base-ui/react/button";
-import { ComponentProps, ReactElement, ReactNode, forwardRef } from "react";
+import {
+  ComponentProps,
+  ReactElement,
+  ReactNode,
+  forwardRef,
+  isValidElement,
+} from "react";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -57,7 +63,9 @@ export interface ButtonProps
   className?: string;
   /**
    * Render as another element, such as a router link:
-   * `render={<Link to="/" />}` with `nativeButton={false}`.
+   * `render={<Link to="/" />}` with `nativeButton={false}`. An element with
+   * an `href` stays a link to screen readers (Base UI would call it a
+   * button), since it goes somewhere rather than doing something.
    */
   render?: ReactElement;
 }
@@ -86,6 +94,10 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(
       onClick,
       ...rest
     } = withCssProp(props);
+
+    const rendersLink =
+      isValidElement<{ href?: unknown }>(rest.render) &&
+      rest.render.props.href != null;
 
     // A busy button, or a disabled one asked to stay focusable, says so to a
     // screen reader. Base UI's own aria-disabled would be overwritten here.
@@ -133,6 +145,7 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(
         focusableWhenDisabled={focusable}
         aria-disabled={ariaDisabled || undefined}
         data-busy={loading || undefined}
+        {...(rendersLink ? { role: undefined } : {})}
         onClick={(event) => {
           if (loading) {
             event.preventDefault();

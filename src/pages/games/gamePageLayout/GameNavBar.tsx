@@ -2,19 +2,14 @@ import { Tab, Tabs } from "@mui/material";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { MenuAdditionComponent } from "components/Layout/AppSettingsMenu";
-import { NavBar } from "components/Layout/NavBar";
+import { LegacyNavBar } from "components/Layout/legacy/LegacyNavBar";
 
 import { pathConfig } from "pages/pathConfig";
 
 import { useGameStore } from "stores/game.store";
 import { useGameCharacter } from "stores/gameCharacters.store";
 
-import { CharacterMenuDialogs } from "../characterSheet/components/CharacterSettingsMenu/CharacterMenuDialogs";
-import { CharacterMenuItems } from "../characterSheet/components/CharacterSettingsMenu/CharacterMenuItems";
 import { useCharacterIdOptional } from "../characterSheet/hooks/useCharacterId";
-import { GameSettingsMenuDialogs } from "../overviewSheet/gameSettings/GameSettingsMenuDialogs";
-import { GameSettingsMenuItems } from "../overviewSheet/gameSettings/GameSettingsMenuItems";
 import { MobileTabs } from "./MobileTabs";
 import { useGameId } from "./hooks/useGameId";
 
@@ -24,15 +19,6 @@ export interface GameNavBarProps {
   isOnOverviewPage: boolean;
   isOnCreatePage: boolean;
 }
-
-const menuItems: MenuAdditionComponent[] = [
-  GameSettingsMenuItems,
-  CharacterMenuItems,
-];
-const menuDialogs: MenuAdditionComponent[] = [
-  GameSettingsMenuDialogs,
-  CharacterMenuDialogs,
-];
 
 export function GameNavBar(props: GameNavBarProps) {
   const { tab, setTab, isOnOverviewPage, isOnCreatePage } = props;
@@ -53,7 +39,7 @@ export function GameNavBar(props: GameNavBarProps) {
   }, [t, gameName, hasCharacterId, characterName]);
 
   return (
-    <NavBar
+    <LegacyNavBar
       goBackTo={
         hasCharacterId || isOnCreatePage
           ? pathConfig.game(gameId)
@@ -90,10 +76,6 @@ export function GameNavBar(props: GameNavBarProps) {
           </Tabs>
         )
       }
-      menuAdditions={{
-        menuItems: menuItems,
-        menuDialogs: menuDialogs,
-      }}
     />
   );
 }

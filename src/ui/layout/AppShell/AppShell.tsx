@@ -27,6 +27,10 @@ const frameStyles = css({
   display: "grid",
   gridTemplateColumns: "minmax(0, 1fr)",
   minHeight: "inherit",
+});
+
+/** Without a rail the page keeps the one column, or it would shrink to fit. */
+const frameWithRailStyles = css({
   "@container shell (min-width: 600px)": {
     gridTemplateColumns: "auto minmax(0, 1fr)",
   },
@@ -115,7 +119,10 @@ export function AppShell(props: AppShellProps) {
   return (
     <div className={cx("ui-root", shellStyles, fill && fillStyles, className)}>
       <SkipLink targetId={mainId} label={skipLinkLabel} />
-      <div className={frameStyles} data-part="frame">
+      <div
+        className={cx(frameStyles, rail ? frameWithRailStyles : undefined)}
+        data-part="frame"
+      >
         {rail && <div className={railSlotStyles}>{rail}</div>}
         <div className={columnStyles} data-part="column">
           <main

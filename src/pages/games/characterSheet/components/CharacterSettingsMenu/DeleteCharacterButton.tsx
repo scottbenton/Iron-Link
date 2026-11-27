@@ -2,17 +2,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { ListItemIcon, ListItemText, MenuItem } from "@mui/material";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
 
 import { useConfirm } from "ui/components/ConfirmDialog";
 
-import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
-import { pathConfig } from "pages/pathConfig";
-
-import { useGameStore } from "stores/game.store";
-import { useGameCharactersStore } from "stores/gameCharacters.store";
-
 import { useCharacterIdOptional } from "../../hooks/useCharacterId";
+import { useDeleteCharacter } from "./useDeleteCharacter";
 
 export interface DeleteCharacterButtonProps {
   closeMenu: () => void;
@@ -22,18 +16,9 @@ export function DeleteCharacterButton(props: DeleteCharacterButtonProps) {
   const { closeMenu } = props;
 
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
-  const gameId = useGameId();
   const characterId = useCharacterIdOptional();
-  const hasMoreThanOneCharacter = useGameCharactersStore(
-    (store) => Object.keys(store.characters).length > 1,
-  );
-
-  const deleteCharacter = useGameCharactersStore(
-    (state) => state.deleteCharacter,
-  );
-  const deleteGame = useGameStore((state) => state.deleteGame);
+  const deleteCharacter = useDeleteCharacter();
 
   const confirm = useConfirm();
   const handleDeleteCharacter = useCallback(() => {
@@ -51,32 +36,13 @@ export function DeleteCharacterButton(props: DeleteCharacterButtonProps) {
       })
         .then(({ confirmed }) => {
           closeMenu();
-          if (!confirmed) return;
-          navigate(
-            hasMoreThanOneCharacter
-              ? pathConfig.game(gameId)
-              : pathConfig.gameSelect,
-          );
-          deleteCharacter(characterId);
-          if (!hasMoreThanOneCharacter) {
-            deleteGame(gameId).catch(() => {});
-          }
+          if (confirmed) deleteCharacter();
         })
         .catch(() => {
           closeMenu();
         });
     }
-  }, [
-    confirm,
-    t,
-    gameId,
-    characterId,
-    navigate,
-    closeMenu,
-    deleteCharacter,
-    deleteGame,
-    hasMoreThanOneCharacter,
-  ]);
+  }, [confirm, t, characterId, closeMenu, deleteCharacter]);
 
   return (
     <MenuItem

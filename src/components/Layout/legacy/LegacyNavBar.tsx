@@ -1,16 +1,13 @@
 import BackIcon from "@mui/icons-material/ChevronLeft";
-import HamburgerMenuIcon from "@mui/icons-material/Menu";
 import {
   AppBar,
   Box,
-  Drawer,
   IconButton,
-  List,
   Toolbar,
   Tooltip,
   Typography,
 } from "@mui/material";
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { HideOnScroll } from "components/HideOnScroll";
@@ -19,28 +16,24 @@ import { ScreenReaderOnly } from "components/ScreenReaderOnly";
 
 import { useIsMobile } from "hooks/useIsMobile";
 
-import { AppSettingsMenu, MenuAdditionComponent } from "./AppSettingsMenu";
-import { IronLinkLogo } from "./IronLinkLogo";
-import { NavBarListItem } from "./NavBarListItem";
-import { NavRouteConfig } from "./navRoutes";
+import { AppSettingsMenu } from "../AppSettingsMenu";
+import { IronLinkLogo } from "../IronLinkLogo";
 
-export interface NavBarProps {
-  topLevelRoutes?: NavRouteConfig[] | undefined;
+/**
+ * The game page's phone bar until slice 9 moves the game page to the
+ * library's NavBar. Every other page uses `AppNavBar`. Its gear is the app's
+ * one settings menu, into which the game page adds its own sections.
+ */
+export interface LegacyNavBarProps {
   goBackTo?: string;
   pageTitle?: string;
   secondLevel?: ReactNode;
-  menuAdditions?: {
-    menuItems?: MenuAdditionComponent[];
-    menuDialogs?: MenuAdditionComponent[];
-  };
 }
 
-export function NavBar(props: NavBarProps) {
-  const { topLevelRoutes, goBackTo, pageTitle, secondLevel, menuAdditions } =
-    props;
+export function LegacyNavBar(props: LegacyNavBarProps) {
+  const { goBackTo, pageTitle, secondLevel } = props;
 
   const { t } = useTranslation();
-  const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
 
   const isMobile = useIsMobile();
 
@@ -75,18 +68,6 @@ export function NavBar(props: NavBarProps) {
             }}
           >
             <Box display={"flex"} alignItems={"center"}>
-              {topLevelRoutes && (
-                <Tooltip
-                  title={t("nav.open-menu-mobile", "Open Navigation Menu")}
-                >
-                  <IconButton
-                    color={"inherit"}
-                    onClick={() => setIsNavMenuOpen(true)}
-                  >
-                    <HamburgerMenuIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
               {goBackTo && (
                 <Tooltip title={t("nav.go-back-mobile", "Go Back")}>
                   <div>
@@ -109,27 +90,11 @@ export function NavBar(props: NavBarProps) {
                 <IronLinkLogo sx={{ width: 40, height: 40, ml: 2 }} />
               )}
             </Box>
-            <AppSettingsMenu
-              menuItems={menuAdditions?.menuItems}
-              menuDialogs={menuAdditions?.menuDialogs}
-            />
+            <AppSettingsMenu />
           </Toolbar>
           {secondLevel && <Toolbar>{secondLevel}</Toolbar>}
         </AppBar>
       </HideOnScroll>
-      <Drawer
-        open={topLevelRoutes && isNavMenuOpen}
-        onClose={() => setIsNavMenuOpen(false)}
-      >
-        <Box component={"nav"} aria-label={t("nav.main-navigation", "Main")}>
-          <List>
-            {topLevelRoutes?.map((route, index) => (
-              <NavBarListItem key={index} {...route} />
-            ))}
-          </List>
-        </Box>
-      </Drawer>
-
       {/* These are here for spacing purposes */}
       <Toolbar />
       {secondLevel && <Toolbar />}

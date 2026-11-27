@@ -1,25 +1,30 @@
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import { Alert } from "ui/components/Alert";
+import { Button } from "ui/components/Button";
 import {
-  Button,
   Dialog,
   DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { FormEvent, useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+  DialogBody,
+  DialogDescription,
+  DialogHeader,
+} from "ui/components/Dialog";
+import { TextField } from "ui/components/TextField";
+import { Stack } from "ui/primitives";
 
 import { useUID } from "stores/auth.store";
 import { useUsersStore } from "stores/users.store";
-
-import { getDialogFormSlotProps } from "lib/dialogForm.lib";
 
 export interface UserNameDialogProps {
   open: boolean;
   initialName?: string;
 }
 
+/**
+ * Asks a signed in person with no name for one. It can't be closed without
+ * saving, since games show this name to other players.
+ */
 export function UserNameDialog(props: UserNameDialogProps) {
   const { open, initialName = "" } = props;
   const uid = useUID();
@@ -31,40 +36,59 @@ export function UserNameDialog(props: UserNameDialogProps) {
     setName(initialName);
   }, [initialName]);
 
-  const handleNameChange = useUsersStore((store) => store.setUserName);
-  const handleSave = useCallback(
-    (evt: FormEvent) => {
-      evt.preventDefault();
-      if (uid && name.trim()) {
-        handleNameChange(uid, name.trim())
-          .then(() => {})
-          .catch(() => {});
-      }
-    },
-    [name, handleNameChange, uid],
-  );
+  const [saving, setSaving] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  const setUserName = useUsersStore((store) => store.setUserName);
+  const trimmedName = name.trim();
+
+  const handleSave = () => {
+    if (!uid || !trimmedName || saving) return;
+    setSaving(true);
+    setFailed(false);
+    setUserName(uid, trimmedName)
+      .catch(() => setFailed(true))
+      .finally(() => setSaving(false));
+  };
 
   return (
-    <Dialog open={!!uid && open} slotProps={getDialogFormSlotProps(handleSave)}>
-      <DialogTitle>
-        {t("layout.userNameDialog.title", "Set your name")}
-      </DialogTitle>
-      <DialogContent>
-        <Typography>
-          {t(
-            "layout.userNameDialog.content",
-            "Your name will be visible to other players in games.",
+    <Dialog open={!!uid && open} onClose={() => {}} onSubmit={handleSave}>
+      <DialogHeader
+        title={t("layout.userNameDialog.title", "Set your name")}
+        hideClose
+      />
+      <DialogBody>
+        <Stack gap="4">
+          <DialogDescription>
+            {t(
+              "layout.userNameDialog.content",
+              "Your name will be visible to other players in games.",
+            )}
+          </DialogDescription>
+          {failed && (
+            <Alert tone="danger">
+              {t(
+                "layout.userNameDialog.error",
+                "Your name could not be saved. Try again.",
+              )}
+            </Alert>
           )}
-        </Typography>
-        <TextField
-          label={t("layout.userNameDialog.nameLabel", "Name")}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          sx={{ mt: 2 }}
-        />
-      </DialogContent>
+          <TextField
+            label={t("layout.userNameDialog.nameLabel", "Name")}
+            value={name}
+            onValueChange={setName}
+            required
+          />
+        </Stack>
+      </DialogBody>
       <DialogActions>
-        <Button type={"submit"} variant={"contained"} disabled={!name.trim()}>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={!trimmedName}
+          loading={saving}
+          loadingLabel={t("common.saving", "Saving")}
+        >
           {t("common.save", "Save")}
         </Button>
       </DialogActions>

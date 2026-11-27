@@ -19,13 +19,16 @@ export interface ItemContentProps {
   children?: ReactNode;
 }
 
+/**
+ * A row's parts in order: icon, label, shortcut, then a checkbox or radio
+ * indicator at the end, so checkable rows line up with plain ones.
+ */
 export function ItemContent(
   props: ItemContentProps & { indicator?: ReactNode },
 ) {
   const { icon, description, shortcut, children, indicator } = props;
   return (
     <>
-      {indicator}
       {icon && (
         <span className={menuItemIconStyles} aria-hidden>
           {icon}
@@ -38,6 +41,7 @@ export function ItemContent(
         )}
       </span>
       {shortcut && <span className={menuItemShortcutStyles}>{shortcut}</span>}
+      {indicator}
     </>
   );
 }
