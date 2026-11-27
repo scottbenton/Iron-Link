@@ -75,9 +75,7 @@ export function ReferenceSidebarContents() {
       </ColumnTabPanel>
       {secondScreenToggleIsActive && (
         <ColumnTabPanel value={ReferenceTabs.SecondScreen} fill flush>
-          <SecondScreenSectionSettings
-            open={currentTab === ReferenceTabs.SecondScreen}
-          />
+          <SecondScreenSectionSettings />
         </ColumnTabPanel>
       )}
     </ColumnTabs>

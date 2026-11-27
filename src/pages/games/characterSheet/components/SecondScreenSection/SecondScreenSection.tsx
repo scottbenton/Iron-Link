@@ -16,8 +16,10 @@ import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 
 import { useSecondScreenStore } from "stores/secondScreen.store";
 
+const DISPLAY_WIDTH = 1920;
+const DISPLAY_HEIGHT = 1080;
+
 interface SecondScreenSectionSettingsProps {
-  open: boolean;
   /** Leave out the h3, where a dialog's title already says it. */
   hideTitle?: boolean;
 }
@@ -25,7 +27,7 @@ interface SecondScreenSectionSettingsProps {
 export function SecondScreenSectionSettings(
   props: SecondScreenSectionSettingsProps,
 ) {
-  const { open, hideTitle } = props;
+  const { hideTitle } = props;
   const { t } = useTranslation();
 
   const gameId = useGameId();
@@ -47,37 +49,24 @@ export function SecondScreenSectionSettings(
     }
   }, [gameId, areAllCharactersVisible, setAreAllCharactersVisible]);
 
+  // The preview is the 1920 by 1080 display, scaled to the container's
+  // width whenever that changes: the dialog opening, the column resizing, or
+  // the tab coming back into view.
   useLayoutEffect(() => {
-    function scaleIFrame() {
-      if (!container.current || !iframeWindow.current) {
-        console.error("Container or iframeWindow is not defined");
-        return;
-      }
-      // 1. Get the current width of the *container* (the target size)
-      const containerWidth = container.current?.offsetWidth;
-
-      // 2. Get the original width of the *iframe* (the fixed source size)
-      const iframeOriginalWidth = 1920; // Must match the CSS #dynamicIframe width
-
-      // 3. Calculate the scale factor
-      const scaleFactor = containerWidth / iframeOriginalWidth;
-
-      // 4. Apply the scale transform
-      iframeWindow.current.style.transform = `scale(${scaleFactor})`;
-
-      // 5. Adjust the container height to match the scaled height
-      const iframeOriginalHeight = 1080; // Must match the CSS #dynamicIframe height
-      container.current.style.height = `${iframeOriginalHeight * scaleFactor}px`;
-    }
-
-    window.addEventListener("resize", scaleIFrame);
-    if (open) {
-      scaleIFrame();
-    }
-    return () => {
-      window.removeEventListener("resize", scaleIFrame);
+    const box = container.current;
+    const frame = iframeWindow.current;
+    if (!box || !frame) return;
+    const scale = () => {
+      const factor = box.offsetWidth / DISPLAY_WIDTH;
+      frame.style.transform = `scale(${factor})`;
+      box.style.height = `${DISPLAY_HEIGHT * factor}px`;
     };
-  }, [open]);
+    scale();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(scale);
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <Box
@@ -128,8 +117,8 @@ export function SecondScreenSectionSettings(
             ref={iframeWindow}
             title={t("game.second-screen.preview", "Second screen preview")}
             src={link}
-            width={1920}
-            height={1080}
+            width={DISPLAY_WIDTH}
+            height={DISPLAY_HEIGHT}
             border="none"
             sx={{
               transformOrigin: "0 0",

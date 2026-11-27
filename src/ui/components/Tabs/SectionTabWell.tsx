@@ -7,7 +7,7 @@ import { SectionTabsAlign } from "./sectionTabsTypes";
 const tabWellStyles = css({
   display: "grid",
   // The end column never squeezes its controls; when it outgrows its half
-  // the tabs give way rather than overlap it.
+  // the tab list narrows and scrolls.
   gridTemplateColumns:
     "minmax(0, 1fr) minmax(0, auto) minmax(max-content, 1fr)",
   alignItems: "center",
