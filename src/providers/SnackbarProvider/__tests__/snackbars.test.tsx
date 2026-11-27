@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { LiveRegion } from "ui/components/Announcer";
-
 import { toast } from "ui/components/Toast";
 
 import { Providers } from "../../Providers";
