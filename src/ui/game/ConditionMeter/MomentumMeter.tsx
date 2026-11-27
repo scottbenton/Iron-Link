@@ -21,6 +21,7 @@ import {
   meterValueTextStyles,
 } from "./ConditionMeter";
 import { MeterNumber } from "./MeterNumber";
+import { getMeterStrings } from "./meterStrings";
 
 /**
  * The value opens Burn and Reset, so it is an outline Button (its border,
@@ -148,11 +149,7 @@ export function MomentumMeter(props: MomentumMeterProps) {
       t("ui.momentum-meter.negative", "Cancels an action die of {{value}}", {
         value: n,
       }),
-    changeAnnouncement = (l, v) =>
-      t("ui.meter.changed", "{{label}} is now {{value}}", {
-        label: l,
-        value: v,
-      }),
+    changeAnnouncement = getMeterStrings(t).changed,
     className,
   } = withCssProp<MomentumMeterProps>(props);
 

@@ -17,7 +17,7 @@ export interface RollText {
   oracleWithCategory: (name: string, category: string) => string;
   /** "Face Danger, Edge: Strong Hit" */
   heading: (name: string, result: string) => string;
-  /** "Burned 6 momentum in place of the action score." */
+  /** "Burned 6 momentum in place of the action die." */
   momentumBurned: (momentum: number) => string;
   /** "Action die 4" */
   actionDie: (value: number) => string;
@@ -41,7 +41,10 @@ export interface RollText {
   cursedDieAdds: (result: string) => string;
   /** "Cursed", for a result from the cursed table. */
   cursed: string;
-  /** "Clock" */
+  /**
+   * "Clock". Unused while clock summaries read "Name: Yes", as the app's do
+   * (changes.md row 30 proposes "Clock, Name (Likely): Yes").
+   */
   clock: string;
 }
 
@@ -65,7 +68,7 @@ export function getDefaultRollText(t: TFunction): RollText {
     momentumBurned: (momentum) =>
       t(
         "ui.roll.momentum-burned",
-        "Burned {{momentum}} momentum in place of the action score.",
+        "Burned {{momentum}} momentum in place of the action die.",
         { momentum },
       ),
     actionDie: (value) =>
@@ -165,6 +168,11 @@ function endSentence(text: string): string {
  * the result, the dice and a match. Screen readers read it in place of the
  * card, and it is what a roll announces. `prefix` goes first, such as who
  * rolled it and when.
+ *
+ * This is the one roll summary: the app maps its game log rolls onto
+ * `RollData` (`lib/rollSummary.lib.ts`) and reads them through here. It
+ * keeps the wording players hear today; changes.md rows 27 to 31 propose
+ * the library's earlier forms.
  */
 export function getRollSummary(
   roll: RollData,
@@ -189,7 +197,6 @@ export function getRollSummary(
         let action = words.actionDie(roll.actionDie);
         if (roll.negativeMomentumCancelled) {
           action += words.actionDieCancelled;
-          if (roll.statValue || roll.adds) action += ",";
         }
         if (roll.statValue) action += words.plus(roll.statValue);
         if (roll.adds) action += words.plus(roll.adds);
@@ -200,9 +207,8 @@ export function getRollSummary(
       }
       sentences.push(words.challengeDice(...roll.challengeDice));
       if (isChallengeMatch(roll)) sentences.push(endSentence(words.match));
-      if (roll.actionDie === 1 && !roll.momentumBurned) {
-        sentences.push(words.oneOnActionDie);
-      }
+      // Read even when momentum was burned: an asset can still turn on it.
+      if (roll.actionDie === 1) sentences.push(words.oneOnActionDie);
       break;
     }
     case "progress": {
@@ -237,11 +243,7 @@ export function getRollSummary(
       break;
     }
     case "clock": {
-      const name = words.oracleWithCategory(
-        words.moveAndLabel(words.clock, roll.clockName),
-        roll.oddsName,
-      );
-      sentences.push(endSentence(words.heading(name, roll.result)));
+      sentences.push(endSentence(words.heading(roll.clockName, roll.result)));
       sentences.push(words.oracleRoll(`${roll.roll}`));
       if (roll.match) sentences.push(endSentence(words.match));
       break;

@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import { getMeterStrings } from "ui/game/ConditionMeter/meterStrings";
+
 import { useSetAnnouncement } from "stores/appState.store";
 
 import { formatSignedValue } from "lib/formatSignedValue";
@@ -12,12 +14,7 @@ export function useAnnounceMeterValue() {
 
   return useCallback(
     (label: string, value: number) => {
-      announce(
-        t("datasworn.meter-value-announcement", "{{label}} is now {{value}}", {
-          label,
-          value: formatSignedValue(value),
-        }),
-      );
+      announce(getMeterStrings(t).changed(label, formatSignedValue(value)));
     },
     [announce, t],
   );

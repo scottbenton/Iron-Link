@@ -4,6 +4,9 @@ import { useTranslation } from "react-i18next";
 import { ScreenReaderOnly } from "components/ScreenReaderOnly";
 import { RollSnackbar } from "components/characters/rolls/RollSnackbar";
 
+import { getGameLogHeading } from "ui/game/GameLog/gameLogHeading";
+import { getDefaultGameLogStrings } from "ui/game/GameLog/gameLogStrings";
+
 import { useUID } from "stores/auth.store";
 import { useGameCharactersStore } from "stores/gameCharacters.store";
 import { useUserName } from "stores/users.store";
@@ -12,6 +15,7 @@ import { IGameLog, LogType } from "services/gameLog.service";
 
 import { GameLogMessage } from "./GameLogMessage";
 import { NormalRollActions } from "./NormalRollActions";
+import { getGameLogAuthor } from "./gameLogAuthor";
 
 export interface GameLogEntryProps {
   logId: string;
@@ -33,20 +37,17 @@ export function GameLogEntry(props: GameLogEntryProps) {
   );
   const logCreatorName = useUserName(log.uid);
 
-  const isYourEntry = log.uid === uid;
-
-  // Someone other than the character's owner wrote this entry from its sheet.
-  const wasWrittenForOwner =
-    !!logCharacterOwnerId && log.uid !== logCharacterOwnerId;
-
-  let rollerName = "";
-  if (logCharacterName === undefined) {
-    rollerName = logCreatorName;
-  } else if (logCharacterName === null) {
-    rollerName = logCharacterName ?? t("common.loading", "Loading");
-  } else {
-    rollerName = logCharacterName;
-  }
+  const gameLogStrings = getDefaultGameLogStrings(t);
+  const author = getGameLogAuthor({
+    log,
+    uid,
+    characterName: logCharacterName,
+    characterOwnerId: logCharacterOwnerId,
+    creatorName: logCreatorName,
+    loadingName: t("common.loading", "Loading"),
+    strings: gameLogStrings,
+  });
+  const { name: rollerName, writtenBy, isYou: isYourEntry } = author;
 
   const getLogTimeString = (d: Date) => {
     return d.toLocaleString(undefined, {
@@ -59,23 +60,12 @@ export function GameLogEntry(props: GameLogEntryProps) {
     });
   };
 
-  const writtenBy = wasWrittenForOwner
-    ? log.logType === LogType.MESSAGE
-      ? t("game.log.sent-by", "sent by {{name}}", {
-          name: logCreatorName,
-        })
-      : t("game.log.rolled-by", "rolled by {{name}}", {
-          name: logCreatorName,
-        })
-    : undefined;
   const timeString = getLogTimeString(log.timestamp);
 
   // Who wrote the entry and when, read with it as one piece of text; the
   // name and time shown around it are hidden from screen readers.
-  const heading = t("game.log.entry-heading", "{{author}}, {{time}}.", {
-    author: writtenBy ? `${rollerName}, ${writtenBy}` : rollerName,
-    time: timeString,
-  });
+  // The app's log shows no Guide only mark yet (changes.md row 39).
+  const heading = `${getGameLogHeading({ author }, timeString, gameLogStrings)}.`;
 
   return (
     <Box

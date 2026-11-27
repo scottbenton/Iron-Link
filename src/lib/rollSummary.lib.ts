@@ -1,5 +1,11 @@
 import { TFunction } from "i18next";
 
+import {
+  getRollSummary as getLibraryRollSummary,
+  getRollTitle as getLibraryRollTitle,
+} from "ui/game/RollCard/getRollSummary";
+import { RollData, RollOutcome } from "ui/game/RollCard/rollTypes";
+
 import { RollResult, RollType } from "repositories/shared.types";
 
 import { IGameLogRoll } from "services/gameLog.service";
@@ -34,14 +40,73 @@ export function isOracleRollMatch(roll: number | number[]): boolean {
   return roll % 10 === Math.floor(roll / 10) % 10;
 }
 
-export function getRollResultText(result: RollResult, t: TFunction): string {
-  if (result === RollResult.StrongHit) {
-    return t("datasworn.strong-hit", "Strong Hit");
+const rollOutcomes: Record<RollResult, RollOutcome> = {
+  [RollResult.StrongHit]: "strongHit",
+  [RollResult.WeakHit]: "weakHit",
+  [RollResult.Miss]: "miss",
+};
+
+/**
+ * A game log roll as the library's roll data, which the summary, the title
+ * and the new roll cards read. `names` carries what the log does not store
+ * (the move's and oracle's current names, whether to show a match).
+ */
+export function toRollData(
+  roll: IGameLogRoll,
+  names: RollSummaryNames,
+): RollData {
+  switch (roll.type) {
+    case RollType.Stat:
+      return {
+        kind: "action",
+        ...(names.moveName ? { moveName: names.moveName } : {}),
+        statName: roll.rollLabel,
+        statValue: roll.modifier,
+        adds: roll.adds,
+        actionDie: roll.action,
+        // The log stores the total already capped at 10.
+        actionScore: roll.actionTotal,
+        challengeDice: [roll.challenge1, roll.challenge2],
+        outcome: rollOutcomes[roll.result],
+        momentumBurned: roll.momentumBurned,
+        negativeMomentumCancelled: roll.matchedNegativeMomentum,
+      };
+    case RollType.TrackProgress:
+    case RollType.SpecialTrackProgress:
+      return {
+        kind: "progress",
+        ...(names.moveName ? { moveName: names.moveName } : {}),
+        trackName: roll.rollLabel,
+        progressScore: roll.trackProgress,
+        challengeDice: [roll.challenge1, roll.challenge2],
+        outcome: rollOutcomes[roll.result],
+      };
+    case RollType.OracleTable:
+      return {
+        kind: "oracle",
+        oracleName: names.oracleName ?? roll.rollLabel,
+        ...(roll.oracleCategoryName
+          ? { category: roll.oracleCategoryName }
+          : {}),
+        roll: roll.roll,
+        result: getPlainRollText(roll.result),
+        match: !!names.showOracleMatch,
+        cursedDie: roll.cursedDieRoll,
+        cursedResult: roll.cursedDieAdditiveResult
+          ? getPlainRollText(roll.cursedDieAdditiveResult)
+          : null,
+        // `wasCursed` is not read yet: changes.md row 31 proposes "Cursed."
+      };
+    case RollType.ClockProgression:
+      return {
+        kind: "clock",
+        clockName: roll.rollLabel,
+        oddsName: roll.oracleTitle,
+        roll: roll.roll,
+        result: getPlainRollText(roll.result),
+        match: roll.match,
+      };
   }
-  if (result === RollResult.Miss) {
-    return t("datasworn.miss", "Miss");
-  }
-  return t("datasworn.weak-hit", "Weak Hit");
 }
 
 // The name a roll card shows as its title.
@@ -49,188 +114,19 @@ export function getRollTitle(
   roll: IGameLogRoll,
   names: RollSummaryNames,
 ): string {
-  if (roll.type === RollType.OracleTable) {
-    return names.oracleName ?? roll.rollLabel;
-  }
-  if (
-    roll.type === RollType.Stat ||
-    roll.type === RollType.TrackProgress ||
-    roll.type === RollType.SpecialTrackProgress
-  ) {
-    return names.moveName ?? roll.rollLabel;
-  }
-  return roll.rollLabel;
+  return getLibraryRollTitle(toRollData(roll, names));
 }
 
 /**
  * One piece of text that says everything a roll card shows: what was rolled,
  * the result, the dice, and a match. Screen readers read it in place of the
- * card, and it is what a roll announces.
+ * card, and it is what a roll announces. The library's summary reads it, so
+ * the roll cards and announcements share one wording.
  */
 export function getRollSummary(
   roll: IGameLogRoll,
   names: RollSummaryNames,
   t: TFunction,
 ): string {
-  const sentences: string[] = [];
-  const heading = (name: string, result: string) =>
-    endSentence(
-      t("datasworn.roll-summary.heading", "{{name}}: {{result}}", {
-        name,
-        result,
-      }),
-    );
-  const moveAndLabel = () =>
-    names.moveName
-      ? t("datasworn.roll-summary.move-and-label", "{{moveName}}, {{label}}", {
-          moveName: names.moveName,
-          label: roll.rollLabel,
-        })
-      : roll.rollLabel;
-  const match = () =>
-    sentences.push(t("datasworn.roll-summary.match", "Match."));
-
-  switch (roll.type) {
-    case RollType.Stat: {
-      sentences.push(
-        heading(moveAndLabel(), getRollResultText(roll.result, t)),
-      );
-      if (roll.momentumBurned) {
-        sentences.push(
-          t(
-            "datasworn.roll-summary.momentum-burned",
-            "Burned {{momentum}} momentum in place of the action die.",
-            { momentum: roll.momentumBurned },
-          ),
-        );
-      } else {
-        let action = t(
-          "datasworn.roll-summary.action-die",
-          "Action die {{action}}",
-          {
-            action: roll.action,
-          },
-        );
-        if (roll.matchedNegativeMomentum) {
-          action += t(
-            "datasworn.roll-summary.action-die-cancelled",
-            ", cancelled by negative momentum",
-          );
-        }
-        if (roll.modifier) {
-          action += t("datasworn.roll-summary.plus", " plus {{value}}", {
-            value: roll.modifier,
-          });
-        }
-        if (roll.adds) {
-          action += t("datasworn.roll-summary.plus", " plus {{value}}", {
-            value: roll.adds,
-          });
-        }
-        if (roll.modifier || roll.adds) {
-          action += t("datasworn.roll-summary.total", ", total {{total}}", {
-            total: roll.actionTotal,
-          });
-        }
-        sentences.push(endSentence(action));
-      }
-      sentences.push(
-        t(
-          "datasworn.roll-summary.challenge-dice",
-          "Challenge dice {{challenge1}} and {{challenge2}}.",
-          { challenge1: roll.challenge1, challenge2: roll.challenge2 },
-        ),
-      );
-      if (roll.challenge1 === roll.challenge2) {
-        match();
-      }
-      if (roll.action === 1) {
-        sentences.push(
-          t(
-            "datasworn.roll-summary.one-on-the-action-die",
-            "One on the action die.",
-          ),
-        );
-      }
-      break;
-    }
-    case RollType.TrackProgress:
-    case RollType.SpecialTrackProgress: {
-      sentences.push(
-        heading(moveAndLabel(), getRollResultText(roll.result, t)),
-      );
-      sentences.push(
-        t(
-          "datasworn.roll-summary.progress",
-          "Progress {{progress}} against challenge dice {{challenge1}} and {{challenge2}}.",
-          {
-            progress: roll.trackProgress,
-            challenge1: roll.challenge1,
-            challenge2: roll.challenge2,
-          },
-        ),
-      );
-      if (roll.challenge1 === roll.challenge2) {
-        match();
-      }
-      break;
-    }
-    case RollType.OracleTable: {
-      const oracleName = names.oracleName ?? roll.rollLabel;
-      const name = roll.oracleCategoryName
-        ? t(
-            "datasworn.roll-summary.oracle-with-category",
-            "{{name}} ({{category}})",
-            { name: oracleName, category: roll.oracleCategoryName },
-          )
-        : oracleName;
-      sentences.push(heading(name, getPlainRollText(roll.result)));
-      if (roll.cursedDieAdditiveResult) {
-        sentences.push(
-          endSentence(
-            t(
-              "datasworn.roll-summary.cursed-die-adds",
-              "The cursed die adds: {{result}}",
-              { result: getPlainRollText(roll.cursedDieAdditiveResult) },
-            ),
-          ),
-        );
-      }
-      sentences.push(
-        t("datasworn.roll-summary.oracle-roll", "Roll {{roll}}.", {
-          roll: Array.isArray(roll.roll) ? roll.roll.join(", ") : roll.roll,
-        }),
-      );
-      if (roll.cursedDieRoll) {
-        sentences.push(
-          t("datasworn.roll-summary.cursed-die", "Cursed die {{roll}}.", {
-            roll: roll.cursedDieRoll,
-          }),
-        );
-      }
-      if (names.showOracleMatch) {
-        match();
-      }
-      break;
-    }
-    case RollType.ClockProgression: {
-      sentences.push(heading(roll.rollLabel, getPlainRollText(roll.result)));
-      sentences.push(
-        t("datasworn.roll-summary.oracle-roll", "Roll {{roll}}.", {
-          roll: roll.roll,
-        }),
-      );
-      if (roll.match) {
-        match();
-      }
-      break;
-    }
-  }
-
-  return sentences.join(" ");
-}
-
-function endSentence(text: string): string {
-  const trimmed = text.trim();
-  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+  return getLibraryRollSummary(toRollData(roll, names), t);
 }

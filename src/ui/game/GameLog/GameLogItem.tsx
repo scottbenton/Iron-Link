@@ -7,6 +7,7 @@ import { RollTextOverrides } from "../RollCard/getRollSummary";
 import { SecretCard } from "../SecretCard";
 import type { GameLogEntry } from "./GameLog";
 import { GameLogGroupPosition } from "./gameLogGroups";
+import { getGameLogHeading } from "./gameLogHeading";
 import { GameLogStrings } from "./gameLogStrings";
 import { formatGameLogRelativeTime } from "./gameLogTime";
 
@@ -162,13 +163,7 @@ export function GameLogItem(props: GameLogItemProps) {
 
   // Who wrote it and when, read with the entry as one piece of text; the
   // name and time shown around it are hidden from screen readers.
-  const heading = [
-    author.writtenBy ? `${author.name}, ${author.writtenBy}` : author.name,
-    time,
-    entry.guideOnly ? strings.guideOnly : undefined,
-  ]
-    .filter(Boolean)
-    .join(", ");
+  const heading = getGameLogHeading(entry, time, strings);
 
   const portrait = author.portrait ?? initials(author.name);
   const content =

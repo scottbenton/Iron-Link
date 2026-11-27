@@ -16,11 +16,9 @@ import { useSetAnnouncement } from "stores/appState.store";
 import { useSecondScreenStore } from "stores/secondScreen.store";
 import { useTracksStore } from "stores/tracks.store";
 
-import {
-  Difficulty,
-  TrackStatus,
-  TrackTypes,
-} from "repositories/tracks.repository";
+import { getTicksPerMark } from "lib/progressTrack.lib";
+
+import { TrackStatus, TrackTypes } from "repositories/tracks.repository";
 
 import { IProgressTrack, ISceneChallenge } from "services/tracks.service";
 
@@ -34,14 +32,6 @@ export interface TrackProgressTrackProps {
   track: IProgressTrack | ISceneChallenge;
   canEdit: boolean;
 }
-
-const difficultySteps: Record<Difficulty, number> = {
-  [Difficulty.Troublesome]: 12,
-  [Difficulty.Dangerous]: 8,
-  [Difficulty.Formidable]: 4,
-  [Difficulty.Extreme]: 2,
-  [Difficulty.Epic]: 1,
-};
 
 export function TrackProgressTrack(props: TrackProgressTrackProps) {
   const { trackId, track, canEdit } = props;
@@ -155,7 +145,7 @@ export function TrackProgressTrack(props: TrackProgressTrackProps) {
         <ProgressTrack
           trackType={getTrackTypeLabel(track.type, t)}
           difficulty={track.difficulty}
-          step={difficultySteps[track.difficulty]}
+          step={getTicksPerMark(track.difficulty)}
           label={track.label}
           value={track.value}
           description={track.description}

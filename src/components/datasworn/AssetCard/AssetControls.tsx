@@ -1,6 +1,8 @@
 import { Datasworn } from "@datasworn-community/core";
 import { Stack } from "@mui/material";
 
+import { sortByLabel } from "ui/game/AssetCard/assetData";
+
 import { IAsset } from "services/asset.service";
 
 import { AssetControl } from "./AssetControl";
@@ -28,23 +30,16 @@ export function AssetControls(props: AssetControlsProps) {
 
   return (
     <Stack direction="column" spacing={spacing} mt={spacing}>
-      {Object.keys(controls)
-        .sort((c1, c2) => {
-          const control1 = controls[c1];
-          const control2 = controls[c2];
-
-          return control1.label.localeCompare(control2.label);
-        })
-        .map((controlId) => (
-          <AssetControl
-            key={controlId}
-            value={assetDocument?.controlValues?.[controlId]}
-            controlId={controlId}
-            control={controls[controlId]}
-            assetDocument={assetDocument}
-            onControlChange={onControlChange}
-          />
-        ))}
+      {sortByLabel(controls).map(([controlId, control]) => (
+        <AssetControl
+          key={controlId}
+          value={assetDocument?.controlValues?.[controlId]}
+          controlId={controlId}
+          control={control}
+          assetDocument={assetDocument}
+          onControlChange={onControlChange}
+        />
+      ))}
     </Stack>
   );
 }

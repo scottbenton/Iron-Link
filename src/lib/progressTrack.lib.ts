@@ -1,8 +1,23 @@
-import { RollResult } from "repositories/shared.types";
+import {
+  MAX_TICKS,
+  PROGRESS_BOXES,
+  ProgressRank,
+  getProgressScore as getLibraryProgressScore,
+  ticksPerMark,
+} from "ui/game/ProgressTrack/progress";
+import { getRollOutcome } from "ui/game/RollCard/rollTypes";
 
-export const TICKS_PER_BOX = 4;
-export const MAX_TICKS = 40;
-export const MAX_PROGRESS_SCORE = MAX_TICKS / TICKS_PER_BOX;
+import { RollResult } from "repositories/shared.types";
+import { Difficulty } from "repositories/tracks.repository";
+
+// The library owns progress maths; the app reads it from there.
+export {
+  MAX_TICKS,
+  TICKS_PER_BOX,
+  getProgressBoxes,
+} from "ui/game/ProgressTrack/progress";
+
+export const MAX_PROGRESS_SCORE = PROGRESS_BOXES;
 
 /**
  * Converts a track's tick count (0-40) to its progress score: the number of
@@ -10,7 +25,9 @@ export const MAX_PROGRESS_SCORE = MAX_TICKS / TICKS_PER_BOX;
  * dice. Partially-filled boxes do not count.
  *
  * Throws if ticks is not an integer in [0, MAX_TICKS] — that always indicates
- * a caller bug (e.g. passing a pre-divided score instead of raw ticks).
+ * a caller bug (e.g. passing a pre-divided score instead of raw ticks). The
+ * library's version clamps instead, for drawing; a roll should never be
+ * scored from a value it had to clamp.
  */
 export function getProgressScore(ticks: number): number {
   if (!Number.isInteger(ticks) || ticks < 0 || ticks > MAX_TICKS) {
@@ -18,8 +35,14 @@ export function getProgressScore(ticks: number): number {
       `getProgressScore expects an integer tick count between 0 and ${MAX_TICKS}, got ${ticks}`,
     );
   }
-  return Math.floor(ticks / TICKS_PER_BOX);
+  return getLibraryProgressScore(ticks);
 }
+
+const rollResults = {
+  strongHit: RollResult.StrongHit,
+  weakHit: RollResult.WeakHit,
+  miss: RollResult.Miss,
+} as const;
 
 /**
  * Scores a progress roll: the progress score must beat (not tie) each
@@ -30,27 +53,18 @@ export function getProgressRollResult(
   challenge1: number,
   challenge2: number,
 ): RollResult {
-  if (progressScore > challenge1 && progressScore > challenge2) {
-    return RollResult.StrongHit;
-  }
-  if (progressScore <= challenge1 && progressScore <= challenge2) {
-    return RollResult.Miss;
-  }
-  return RollResult.WeakHit;
+  return rollResults[getRollOutcome(progressScore, [challenge1, challenge2])];
 }
 
-/**
- * Splits a track's tick count into full boxes and the ticks in the next,
- * partly filled box, for text that reads the track out ("3 of 10 boxes
- * filled, and 2 of 4 ticks").
- */
-export function getProgressBoxes(ticks: number): {
-  boxes: number;
-  ticks: number;
-} {
-  const clamped = Math.min(Math.max(Math.floor(ticks), 0), MAX_TICKS);
-  return {
-    boxes: Math.floor(clamped / TICKS_PER_BOX),
-    ticks: clamped % TICKS_PER_BOX,
-  };
+const difficultyRanks: Record<Difficulty, ProgressRank> = {
+  [Difficulty.Troublesome]: "troublesome",
+  [Difficulty.Dangerous]: "dangerous",
+  [Difficulty.Formidable]: "formidable",
+  [Difficulty.Extreme]: "extreme",
+  [Difficulty.Epic]: "epic",
+};
+
+/** Ticks one Mark Progress adds to a track of this difficulty. */
+export function getTicksPerMark(difficulty: Difficulty): number {
+  return ticksPerMark[difficultyRanks[difficulty]];
 }

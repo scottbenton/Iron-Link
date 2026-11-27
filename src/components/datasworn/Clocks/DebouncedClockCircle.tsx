@@ -1,6 +1,9 @@
 import { SxProps, Theme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { getDefaultClockStrings } from "ui/game/Clock/clockStrings";
+import { advanceClock } from "ui/game/Clock/clockValue";
+
 import { useDebouncedSync } from "hooks/useDebouncedSync";
 
 import { useSetAnnouncement } from "stores/appState.store";
@@ -28,23 +31,23 @@ export function DebouncedClockCircle(props: DebouncedClockCircleProps) {
   const { t } = useTranslation();
   const announce = useSetAnnouncement();
 
-  // Announced outside the state updater, which Strict Mode runs twice.
+  // Announced outside the state updater, which Strict Mode runs twice. A
+  // full clock clears (changes.md row 35 proposes the library's stop).
   const handleIncrement = () => {
-    const newValue =
-      localFilledSegments >= segments ? 0 : localFilledSegments + 1;
+    const newValue = advanceClock(localFilledSegments, segments) ?? 0;
     setLocalFilledSegments(newValue);
+    const strings = getDefaultClockStrings(t);
     announce(
       newValue === 0
         ? t(
             "datasworn.clock.cleared-announcement",
-            "Cleared {{label}}, 0 of {{segments}} segments filled",
-            { label: voiceLabel, segments },
+            "Cleared {{label}}, {{valueText}}",
+            {
+              label: voiceLabel,
+              valueText: strings.valueText(0, segments),
+            },
           )
-        : t(
-            "datasworn.clock.filled-announcement",
-            "{{label}}, {{value}} of {{segments}} segments filled",
-            { label: voiceLabel, value: newValue, segments },
-          ),
+        : strings.changed(voiceLabel, strings.valueText(newValue, segments)),
     );
   };
 

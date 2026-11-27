@@ -23,7 +23,7 @@ export interface ActionRollData {
   /** The two d10s. */
   challengeDice: [number, number];
   outcome: RollOutcome;
-  /** Momentum burned in place of the action score, if any. */
+  /** Momentum burned in place of the action die, if any. */
   momentumBurned?: number | null;
   /** Negative momentum matched the action die, so it counted as zero. */
   negativeMomentumCancelled?: boolean;
