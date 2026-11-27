@@ -130,8 +130,10 @@ rest of the app). Import as `ui/components/Button`.
   pass `onSubmit` to `Dialog` and give the main button `type="submit"`.
 - Every dialog ends with the `DialogActions` strip: buttons right-aligned,
   the main one last. A dialog with nothing to submit ends with
-  `DialogDoneButton`; one with a main action puts Done (`variant="ghost"`)
-  or Cancel before it. A third button that stands apart (Delete, Reset)
+  `DialogDoneButton`. Beside a main action that saves and closes, the
+  other button is Cancel, since leaving discards edits; where leaving loses
+  nothing (Get Magic Link keeps the dialog open), it is Done
+  (`variant="ghost"`). A third button that stands apart (Delete, Reset)
   goes in `start`, which floats it left. Main actions never sit in the body.
 - Table cells align on the baseline, so a row's text lines up with the
   text of a button in it.

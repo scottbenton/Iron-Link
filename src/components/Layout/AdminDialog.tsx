@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { Alert } from "ui/components/Alert";
 import { Button } from "ui/components/Button";
+import { CopyButton } from "ui/components/CopyButton";
 import {
   Dialog,
   DialogActions,
@@ -10,6 +11,7 @@ import {
   DialogDoneButton,
   DialogHeader,
 } from "ui/components/Dialog";
+import { Link } from "ui/components/Link";
 import { Text } from "ui/components/Text";
 import { TextField } from "ui/components/TextField";
 import { Stack } from "ui/primitives";
@@ -45,12 +47,9 @@ export function AdminDialog(props: AdminDialogProps) {
 
   return (
     <Dialog open={open} onClose={onClose} onSubmit={handleGetLink}>
-      <DialogHeader title={t("admin.title", "Admin Actions")} />
+      <DialogHeader title={t("admin.get-magic-link", "Get Magic Link")} />
       <DialogBody>
         <Stack gap="4">
-          <Text variant="h3" as="h3">
-            {t("admin.get-magic-link", "Get Magic Link")}
-          </Text>
           {error && <Alert tone="danger">{error}</Alert>}
           <TextField
             label={t("admin.uid", "UID")}
@@ -63,11 +62,21 @@ export function AdminDialog(props: AdminDialogProps) {
             onValueChange={setEmail}
           />
           {magicLink && (
-            <Text css={{ wordBreak: "break-all" }}>
-              {t("admin.magic-link", "Magic Link: {{link}}", {
-                link: magicLink,
-              })}
-            </Text>
+            <Stack gap="2" alignItems="flex-start">
+              <Text variant="label" as="p">
+                {t("admin.magic-link-label", "Magic Link")}
+              </Text>
+              <Text css={{ wordBreak: "break-all" }}>
+                <Link href={magicLink} external>
+                  {magicLink}
+                </Link>
+              </Text>
+              <CopyButton
+                text={magicLink}
+                label={t("admin.copy-magic-link", "Copy Link")}
+                size="sm"
+              />
+            </Stack>
           )}
         </Stack>
       </DialogBody>
