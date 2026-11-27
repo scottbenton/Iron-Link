@@ -1,16 +1,17 @@
-import { Badge, Box, Typography } from "@mui/material";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { ScreenReaderOnly } from "components/ScreenReaderOnly";
-import { StyledTab, StyledTabs } from "components/StyledTabs";
 import { MoveTree } from "components/datasworn/MoveTree";
 import { OracleTree } from "components/datasworn/OracleTree";
 
+import {
+  ColumnTabPanel,
+  ColumnTabs,
+  useReferenceSections,
+} from "pages/games/gamePageLayout/columns";
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
 import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
-import { useIsMobile } from "hooks/useIsMobile";
 
 import { ReferenceTabs, useAppState } from "stores/appState.store";
 
@@ -19,40 +20,10 @@ import { GameType } from "repositories/game.repository";
 import { GameLog } from "./GameLog";
 import { SecondScreenSectionSettings } from "./SecondScreenSection";
 
-function tabProps(tab: ReferenceTabs) {
-  return {
-    value: tab,
-    id: `tab-${tab}`,
-    "aria-controls": `tabpanel-${tab}`,
-  };
-}
-
-function tabPanelProps(
-  tab: ReferenceTabs,
-  value: ReferenceTabs,
-  reversed?: boolean,
-) {
-  return {
-    hidden: tab !== value,
-    role: "tabpanel",
-    id: `tabpanel-${tab}`,
-    "aria-labelledby": `tab-${tab}`,
-    pb: reversed ? 0 : 2,
-    sx: {
-      display: tab !== value ? "none" : "flex",
-      flexDirection: reversed ? "column-reverse" : "column",
-      overflow: "auto",
-      maxHeight: "100%",
-      flexGrow: 1,
-      position: "relative",
-    },
-  };
-}
-
+// The reference column: Moves, Oracles, the Game Log and, with the second
+// screen on, its settings.
 export function ReferenceSidebarContents() {
   const { t } = useTranslation();
-
-  const isMobile = useIsMobile();
 
   const currentTab = useAppState((state) => state.currentReferenceTab);
   const setCurrentTab = useAppState((state) => state.setCurrentReferenceTab);
@@ -62,6 +33,13 @@ export function ReferenceSidebarContents() {
   );
 
   const secondScreenToggleIsActive = useSecondScreenFeature();
+  const sections = useReferenceSections().map((section) =>
+    section.id === ReferenceTabs.GameLog &&
+    gameLogNotificationCount > 0 &&
+    gameType !== GameType.Solo
+      ? { ...section, unread: gameLogNotificationCount }
+      : section,
+  );
 
   useEffect(() => {
     if (
@@ -72,81 +50,34 @@ export function ReferenceSidebarContents() {
     }
   }, [secondScreenToggleIsActive, currentTab, setCurrentTab]);
 
-  // On phones the column is a tab panel with no visible heading, so its
-  // heading is read by screen readers only.
-  const heading = (
-    <Typography
-      component={"h2"}
-      fontFamily={"fontFamilyTitle"}
-      textTransform={"uppercase"}
-    >
-      {t("character.reference-sidebar-title", "Reference")}
-    </Typography>
-  );
-
   return (
-    <>
-      {isMobile ? (
-        <ScreenReaderOnly>{heading}</ScreenReaderOnly>
-      ) : (
-        <Box display="flex" justifyContent="space-between" px={2} pt={2}>
-          {heading}
-        </Box>
-      )}
-      <StyledTabs
-        centered
-        value={currentTab}
-        onChange={(_, value) =>
-          setCurrentTab(value as unknown as ReferenceTabs)
-        }
-      >
-        <StyledTab
-          label={t("character.reference-sidebar-moves", "Moves")}
-          {...tabProps(ReferenceTabs.Moves)}
-        />
-        <StyledTab
-          label={t("character.reference-sidebar-oracles", "Oracles")}
-          {...tabProps(ReferenceTabs.Oracles)}
-        />
-        <StyledTab
-          label={t("character.reference-sidebar-game-log", "Game Log")}
-          icon={
-            gameLogNotificationCount > 0 && gameType !== GameType.Solo ? (
-              <Badge badgeContent={gameLogNotificationCount} color="primary">
-                <Box ml={1} />
-              </Badge>
-            ) : undefined
-          }
-          iconPosition="end"
-          {...tabProps(ReferenceTabs.GameLog)}
-        />
-        {secondScreenToggleIsActive && (
-          <StyledTab
-            label={t("character.reference-sidebar-second-screen-tab", "Screen")}
-            {...tabProps(ReferenceTabs.SecondScreen)}
-          />
-        )}
-      </StyledTabs>
-      {/* <Box flexGrow={1}> */}
-      <Box {...tabPanelProps(ReferenceTabs.Moves, currentTab)}>
+    <ColumnTabs
+      label={t("character.reference-sidebar-sections", "Reference Sections")}
+      sections={sections}
+      value={currentTab}
+      onValueChange={setCurrentTab}
+      fill
+    >
+      <ColumnTabPanel value={ReferenceTabs.Moves} fill flush>
         <MoveTree />
-      </Box>
-      <Box {...tabPanelProps(ReferenceTabs.Oracles, currentTab)}>
+      </ColumnTabPanel>
+      <ColumnTabPanel value={ReferenceTabs.Oracles} fill flush>
         <OracleTree />
-      </Box>
-      <Box
-        {...tabPanelProps(ReferenceTabs.GameLog, currentTab, true)}
-        style={{ overflowAnchor: "none" }}
+      </ColumnTabPanel>
+      <ColumnTabPanel
+        value={ReferenceTabs.GameLog}
+        id="tabpanel-game-log"
+        fill
+        flush
+        reversed
       >
         <GameLog open={currentTab === ReferenceTabs.GameLog} />
-      </Box>
+      </ColumnTabPanel>
       {secondScreenToggleIsActive && (
-        <Box {...tabPanelProps(ReferenceTabs.SecondScreen, currentTab)}>
-          <SecondScreenSectionSettings
-            open={currentTab === ReferenceTabs.SecondScreen}
-          />
-        </Box>
+        <ColumnTabPanel value={ReferenceTabs.SecondScreen} fill flush>
+          <SecondScreenSectionSettings />
+        </ColumnTabPanel>
       )}
-    </>
+    </ColumnTabs>
   );
 }

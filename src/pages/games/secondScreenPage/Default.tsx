@@ -1,24 +1,22 @@
-import { Box, Typography } from "@mui/material";
-
-import { IronLinkLogo } from "components/Layout/IronLinkLogo";
+import { Text } from "ui/components/Text";
+import { Logo } from "ui/layout/Logo";
+import { VStack } from "ui/primitives";
 
 import { useGameStore } from "stores/game.store";
 
+/** What the second screen shows when nothing is on it: the game's name. */
 export function Default() {
   const gameName = useGameStore((store) => store.game?.name);
 
   return (
-    <Box
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      flexDirection="column"
-      flexGrow={1}
-    >
-      <IronLinkLogo sx={{ width: 120, mt: -8 }} />
-      <Typography variant="h1" component="h1" fontFamily="fontFamilyTitle">
+    <VStack flex="1 1 auto" justifyContent="center" gap="4" paddingBottom="16">
+      <Logo size={120} />
+      <Text
+        variant="display"
+        css={{ fontSize: "clamp(3rem, 8vw, 6rem)", textAlign: "center" }}
+      >
         {gameName}
-      </Typography>
-    </Box>
+      </Text>
+    </VStack>
   );
 }

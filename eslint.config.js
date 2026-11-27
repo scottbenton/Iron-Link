@@ -81,12 +81,15 @@ export default tseslint.config(
       "src/pages/games/create/components/RulesetExpansionSection.tsx",
       "src/pages/games/create/components/StepButtons.tsx",
       "src/components/datasworn/RulesPackageSelector/**/*.{ts,tsx}",
+      "src/pages/games/gamePageLayout/**/*.{ts,tsx}",
+      "src/pages/games/secondScreenPage/**/*.{ts,tsx}",
+      "src/pages/games/overviewSheet/GameOverviewSheet.tsx",
+      "src/pages/games/characterSheet/components/CharacterSidebarContents.tsx",
+      "src/pages/games/characterSheet/components/ReferenceSidebarContents.tsx",
     ],
     ignores: [
       "src/ui/**/__stories__/**",
       "src/**/__tests__/**",
-      // The game page's MUI bar and menu until slice 9.
-      "src/components/Layout/legacy/**",
       "src/ui/docs/**",
       "src/ui/layout/Examples/**",
     ],

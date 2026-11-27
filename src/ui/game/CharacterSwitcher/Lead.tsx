@@ -6,7 +6,7 @@ import { css } from "styled-system/css";
 const leadStyles = css({
   display: "inline-flex",
   alignItems: "center",
-  gap: "2.5",
+  gap: "3",
   minWidth: 0,
   "& > [data-part=lead]": {
     display: "inline-flex",

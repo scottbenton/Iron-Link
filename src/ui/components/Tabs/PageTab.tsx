@@ -16,7 +16,7 @@ import { ledgeLayers } from "ui/styles/ledge";
 import { cva, cx } from "styled-system/css";
 
 import { useIsTruncated } from "../../hooks/useIsTruncated";
-import { tooltipPopupStyles } from "../Tooltip";
+import { tooltipPopupStyles, tooltipPositionerStyles } from "../Tooltip";
 import { PageTabsVariantContext } from "./pageTabsVariantContext";
 
 const pageTabStyles = cva({
@@ -166,7 +166,11 @@ export const PageTab = forwardRef<HTMLAnchorElement, PageTabProps>(
       <BaseTooltip.Root disabled={!truncated}>
         <BaseTooltip.Trigger render={element} />
         <BaseTooltip.Portal>
-          <BaseTooltip.Positioner side="bottom" sideOffset={6}>
+          <BaseTooltip.Positioner
+            className={tooltipPositionerStyles}
+            side="bottom"
+            sideOffset={6}
+          >
             <BaseTooltip.Popup className={tooltipPopupStyles}>
               {children}
             </BaseTooltip.Popup>

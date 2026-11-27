@@ -1,10 +1,8 @@
 import { LinearProgress } from "@mui/material";
 import { useCallback } from "react";
-import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 
 import { WorldEntryMentionLinksContext } from "components/RichTextEditor/NoteMentionExtension/worldEntryMentionLinks";
-import { ScreenReaderOnly } from "components/ScreenReaderOnly";
 import type { WorldView } from "components/worlds/worldNavigation";
 
 import { getNotesItemLinkProps } from "pages/games/gamePageLayout/hooks/notesDestination";
@@ -19,7 +17,6 @@ export function NotesSection() {
   // Single owner of the linked world's subscription for everything below.
   useListenToGameWorld();
 
-  const { t } = useTranslation();
   const worldId = useGameWorldId();
   const location = useLocation();
   const openItemTab = useNotesStore((store) => store.openItemTab);
@@ -55,11 +52,6 @@ export function NotesSection() {
     <WorldEntryMentionLinksContext.Provider
       value={worldId ? getEntryMentionLinkProps : null}
     >
-      {/* The column has no visible heading; on phones it is the Notes tab's
-          panel. */}
-      <ScreenReaderOnly>
-        <h2>{t("game.notes", "Notes")}</h2>
-      </ScreenReaderOnly>
       <DefaultNoteChooser />
       <NoteTabs />
     </WorldEntryMentionLinksContext.Provider>

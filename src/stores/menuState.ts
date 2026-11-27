@@ -11,8 +11,7 @@ interface MenuStateState {
   isGameNameDialogOpen: boolean;
   isRulesetDialogOpen: boolean;
   isGameThemeDialogOpen: boolean;
-
-  isNotificationSettingsDialogOpen: boolean;
+  isSecondScreenDialogOpen: boolean;
 }
 
 interface MenuStateActions {
@@ -24,8 +23,7 @@ interface MenuStateActions {
   setIsGameNameDialogOpen: (open: boolean) => void;
   setIsRulesetDialogOpen: (open: boolean) => void;
   setIsGameThemeDialogOpen: (open: boolean) => void;
-
-  setIsNotificationSettingsDialogOpen: (open: boolean) => void;
+  setIsSecondScreenDialogOpen: (open: boolean) => void;
 }
 
 export const useMenuState = createWithEqualityFn<
@@ -36,8 +34,6 @@ export const useMenuState = createWithEqualityFn<
     isCharacterStatsDialogOpen: false,
     isColorSchemeDialogOpen: false,
     isCharacterEditAccessDialogOpen: false,
-
-    isNotificationSettingsDialogOpen: false,
 
     setIsCharacterDetailsDialogOpen: (open) => {
       set((state) => {
@@ -63,6 +59,7 @@ export const useMenuState = createWithEqualityFn<
     isGameNameDialogOpen: false,
     isRulesetDialogOpen: false,
     isGameThemeDialogOpen: false,
+    isSecondScreenDialogOpen: false,
 
     setIsGameNameDialogOpen: (open) => {
       set((state) => {
@@ -79,10 +76,9 @@ export const useMenuState = createWithEqualityFn<
         state.isGameThemeDialogOpen = open;
       });
     },
-
-    setIsNotificationSettingsDialogOpen: (open) => {
+    setIsSecondScreenDialogOpen: (open) => {
       set((state) => {
-        state.isNotificationSettingsDialogOpen = open;
+        state.isSecondScreenDialogOpen = open;
       });
     },
   })),

@@ -16,8 +16,10 @@ import { css, cx } from "styled-system/css";
 import { IconButton } from "../../components/IconButton";
 import { useControllableState } from "../../hooks/useControllableState";
 import { Sidebar, SidebarProps } from "../Sidebar";
+import { PageWidth, contentRailStyles } from "../shared/contentRail";
 import { LayoutPanel } from "../shared/layoutPanel";
 import { srOnlyStyles } from "../shared/sectionTabs";
+import { gameRailFrameStyles, gameRailMarginStyles } from "./gameRailMargins";
 
 const rootStyles = css({
   boxSizing: "border-box",
@@ -70,9 +72,13 @@ const bodyStyles = css({
   _touch: { "--game-rail-width": "61px" },
   "--sidebar-cap":
     "calc((100cqi - var(--game-main-min-width, 360px) - var(--game-rail-count, 0) * var(--game-rail-width)) / var(--game-sidebar-count, 1))",
+  background: "bg.surface",
 });
 
 const mainStyles = css({
+  // Whatever the main column stacks inside it (a sticky toolbar's z-index)
+  // stays inside it, so a sidebar's flyout always shows over it.
+  isolation: "isolate",
   display: "flex",
   flexDirection: "column",
   flex: "1 1 auto",
@@ -168,6 +174,14 @@ export interface GameLayoutProps {
   stackSidebars?: boolean;
   /** The narrowest the main column gets before sidebars stop growing. */
   mainMinWidth?: number;
+  /**
+   * The widest the tabs and columns get, centred beyond it: the page rail's
+   * xl (1440px) by default, so the notes don't stretch across a wide
+   * monitor. Past it the page is bordered, with the nav rail's dark gray
+   * beyond.
+   * `none` fills the window.
+   */
+  maxWidth?: PageWidth | "none";
   className?: string;
 }
 
@@ -192,8 +206,12 @@ export function GameLayout(props: GameLayoutProps) {
     endSidebar,
     stackSidebars = false,
     mainMinWidth = 360,
+    maxWidth = "xl",
     className,
   } = props;
+  const rail =
+    maxWidth === "none" ? undefined : contentRailStyles({ maxWidth });
+  const frame = maxWidth === "none" ? undefined : gameRailFrameStyles[maxWidth];
 
   const idPrefix = `game${useId().replace(/:/g, "")}`;
   const mainHeadingId = main.headingId ?? `${idPrefix}-main-heading`;
@@ -435,11 +453,17 @@ export function GameLayout(props: GameLayoutProps) {
       : [startSidebarColumn, mainSlot, endSidebarColumn];
 
   return (
-    <div className={cx(rootStyles, className)}>
+    <div
+      className={cx(
+        rootStyles,
+        maxWidth !== "none" && gameRailMarginStyles[maxWidth],
+        className,
+      )}
+    >
       {bannerSlot}
-      {tabs && <div className={tabsRowStyles}>{tabs}</div>}
+      {tabs && <div className={cx(tabsRowStyles, rail, frame)}>{tabs}</div>}
       <div
-        className={bodyStyles}
+        className={cx(bodyStyles, rail, frame)}
         style={
           {
             "--game-main-min-width": `${mainMinWidth}px`,

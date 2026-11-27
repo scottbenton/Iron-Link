@@ -2,6 +2,7 @@ import { renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { TestWrapper } from "tests/TestWrapper";
+import { mockWindowWidth } from "tests/mockWindowWidth";
 
 import { useIsBreakpoint } from "../useIsBreakpoint";
 import { useIsMobile } from "../useIsMobile";
@@ -10,48 +11,11 @@ import { useIsMobile } from "../useIsMobile";
 // sm 600, md 900, lg 1200, xl 1536, in CSS pixels), so moving them onto
 // the library's breakpoint table keeps every switch at the same pixel.
 
-const PIXELS_PER_REM = 16;
-
-// Evaluates the width conditions MUI and the library write:
-// "(min-width:900px)", "(max-width:899.95px)", "(width >= 56.25rem)",
-// "(width < 37.5rem)", joined with "and". Anything else (the theme's
-// prefers-color-scheme) does not match.
-function matchesWidth(query: string, width: number) {
-  if (!/width/.test(query)) return false;
-  const conditions = query.replace(/^@media\s*/, "").split(/\s+and\s+/);
-  return conditions.every((condition) => {
-    const match = condition.match(
-      /\(\s*(min-width|max-width|width)\s*(:|>=|<=|<|>)\s*([\d.]+)(px|rem|em)\s*\)/,
-    );
-    if (!match) throw new Error(`Unsupported media query: ${condition}`);
-    const [, feature, operator, value, unit] = match;
-    const pixels = Number(value) * (unit === "px" ? 1 : PIXELS_PER_REM);
-    if (feature === "min-width") return width >= pixels;
-    if (feature === "max-width") return width <= pixels;
-    if (operator === ">=") return width >= pixels;
-    if (operator === ">") return width > pixels;
-    if (operator === "<=") return width <= pixels;
-    return width < pixels;
-  });
-}
-
+let restoreWidth = () => {};
 function setWidth(width: number) {
-  window.matchMedia = ((query: string) => ({
-    matches: matchesWidth(query, width),
-    media: query,
-    onchange: null,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    addListener: () => {},
-    removeListener: () => {},
-    dispatchEvent: () => false,
-  })) as unknown as typeof window.matchMedia;
+  restoreWidth = mockWindowWidth(width);
 }
-
-const originalMatchMedia = window.matchMedia;
-afterEach(() => {
-  window.matchMedia = originalMatchMedia;
-});
+afterEach(() => restoreWidth());
 
 function isBreakpoint(
   width: number,

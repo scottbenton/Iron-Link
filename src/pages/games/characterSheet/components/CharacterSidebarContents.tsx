@@ -1,100 +1,42 @@
-import { Box, Typography } from "@mui/material";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { ScreenReaderOnly } from "components/ScreenReaderOnly";
-import { StyledTab, StyledTabs } from "components/StyledTabs";
+import {
+  ColumnTabPanel,
+  ColumnTabs,
+  useCharacterSheetSections,
+} from "pages/games/gamePageLayout/columns";
 
-import { OVERVIEW_ID } from "pages/games/gamePageLayout/hooks/useGameKeybinds";
-
-import { useIsMobile } from "hooks/useIsMobile";
+import { useGamePageLayoutStore } from "stores/gamePageLayout.store";
 
 import { AssetsSection } from "./AssetsSection";
 import { CharacterSection } from "./CharacterSection";
-import { CharacterSettingsMenu } from "./CharacterSettingsMenu";
 import { TracksSection } from "./TracksSection";
 
-enum Tabs {
-  Overview = "overview",
-  Assets = "assets",
-  Tracks = "tracks",
-}
-
-function tabProps(tab: Tabs) {
-  return {
-    value: tab,
-    id: `tab-${tab}`,
-    "aria-controls": `tabpanel-${tab}`,
-  };
-}
-
-function tabPanelProps(tab: Tabs, value: Tabs) {
-  return {
-    hidden: tab !== value,
-    role: "tabpanel",
-    id: `tabpanel-${tab}`,
-    "aria-labelledby": `tab-${tab}`,
-  };
-}
-
+// The character sheet column.
 export function CharacterSidebarContents() {
   const { t } = useTranslation();
-
-  const [currentTab, setCurrentTab] = useState<Tabs>(Tabs.Overview);
-  const isMobile = useIsMobile();
-
-  // The column's heading; on phones the column is a tab panel with no
-  // visible heading, so it is read by screen readers only.
-  const heading = (
-    <Typography
-      component={"h2"}
-      id={OVERVIEW_ID}
-      tabIndex={-1}
-      fontFamily={"fontFamilyTitle"}
-      textTransform={"uppercase"}
-    >
-      {t("character.character-sidebar.header", "Character")}
-    </Typography>
+  const sections = useCharacterSheetSections();
+  const section = useGamePageLayoutStore((state) => state.characterSection);
+  const setSection = useGamePageLayoutStore(
+    (state) => state.setCharacterSection,
   );
 
   return (
-    <>
-      {isMobile ? (
-        <ScreenReaderOnly>{heading}</ScreenReaderOnly>
-      ) : (
-        <Box display="flex" justifyContent="space-between">
-          {heading}
-          <CharacterSettingsMenu />
-        </Box>
-      )}
-      <StyledTabs
-        sx={{ mx: -2, mb: 2 }}
-        centered
-        value={currentTab}
-        onChange={(_, value) => setCurrentTab(value as unknown as Tabs)}
-      >
-        <StyledTab
-          label={t("character.character-sidebar.overview", "Overview")}
-          {...tabProps(Tabs.Overview)}
-        />
-        <StyledTab
-          label={t("character.character-sidebar.assets", "Assets")}
-          {...tabProps(Tabs.Assets)}
-        />
-        <StyledTab
-          label={t("character.character-sidebar.tracks", "Tracks")}
-          {...tabProps(Tabs.Tracks)}
-        />
-      </StyledTabs>
-      <div {...tabPanelProps(Tabs.Overview, currentTab)}>
+    <ColumnTabs
+      label={t("character.character-sidebar.sections", "Character Sections")}
+      sections={sections}
+      value={section}
+      onValueChange={setSection}
+    >
+      <ColumnTabPanel value="overview">
         <CharacterSection />
-      </div>
-      <div {...tabPanelProps(Tabs.Assets, currentTab)}>
+      </ColumnTabPanel>
+      <ColumnTabPanel value="assets">
         <AssetsSection />
-      </div>
-      <div {...tabPanelProps(Tabs.Tracks, currentTab)}>
+      </ColumnTabPanel>
+      <ColumnTabPanel value="tracks">
         <TracksSection />
-      </div>
-    </>
+      </ColumnTabPanel>
+    </ColumnTabs>
   );
 }

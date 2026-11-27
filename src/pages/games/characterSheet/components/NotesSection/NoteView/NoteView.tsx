@@ -8,10 +8,10 @@ import {
   RtcRichTextEditor,
 } from "components/RichTextEditor";
 
+import { useIsMobile } from "ui/hooks/useIsMobile";
+
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
-
-import { useIsMobile } from "hooks/useIsMobile";
 
 import { useNotesStore } from "stores/notes.store";
 

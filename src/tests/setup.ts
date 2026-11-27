@@ -4,6 +4,9 @@ import { afterEach, beforeEach, vi } from "vitest";
 
 import "i18n/config";
 
+// jsdom has no scrollBy, which tab strips use to keep the current tab in view.
+if (typeof Element !== "undefined") Element.prototype.scrollBy ??= () => {};
+
 beforeEach(() => {
   vi.mock(
     "../components/pages/games/characterSheet/hooks/useCharacterId",
