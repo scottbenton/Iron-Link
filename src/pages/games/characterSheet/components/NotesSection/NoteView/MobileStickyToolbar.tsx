@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { SecretsToolbarState } from "components/RichTextEditor";
 
-import { useIsMobile } from "hooks/useIsMobile";
+import { useIsMobile } from "ui/hooks/useIsMobile";
 
 import { useNotesStore } from "stores/notes.store";
 

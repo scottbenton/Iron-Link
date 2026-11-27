@@ -1,6 +1,7 @@
-import CloseIcon from "@mui/icons-material/Close";
-import { Alert, AlertTitle, Box, Button, IconButton } from "@mui/material";
 import { useTranslation } from "react-i18next";
+
+import { Alert } from "ui/components/Alert";
+import { Button } from "ui/components/Button";
 
 import { useAdvancedFeatureToggles } from "hooks/advancedFeatures/advancedFeatures";
 import { useWorldsBetaBannerDismissals } from "hooks/advancedFeatures/worldsBetaBanner";
@@ -21,32 +22,20 @@ export function WorldsBetaBanner(props: WorldsBetaBannerProps) {
 
   return (
     <Alert
-      severity="info"
-      sx={{ borderRadius: 0, alignItems: "center" }}
-      // An Alert's action replaces its onClose button, so both live here.
+      tone="info"
+      title={t("worlds.beta-banner.title", "This game has a world")}
       action={
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Button
-            color="inherit"
-            size="small"
-            onClick={() => updateToggle("worlds", true)}
-          >
-            {t("worlds.beta-banner.turn-on", "Turn on the beta")}
-          </Button>
-          <IconButton
-            color="inherit"
-            size="small"
-            aria-label={t("worlds.beta-banner.dismiss", "Dismiss")}
-            onClick={() => dismiss(gameId)}
-          >
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </Box>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => updateToggle("worlds", true)}
+        >
+          {t("worlds.beta-banner.turn-on", "Turn on the beta")}
+        </Button>
       }
+      onClose={() => dismiss(gameId)}
+      closeLabel={t("worlds.beta-banner.dismiss", "Dismiss")}
     >
-      <AlertTitle>
-        {t("worlds.beta-banner.title", "This game has a world")}
-      </AlertTitle>
       {t(
         "worlds.beta-banner.description",
         "Turn on the Worlds beta to see it in your notes. You can turn it off again in Advanced Features.",

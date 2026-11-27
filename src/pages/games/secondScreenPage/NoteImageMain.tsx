@@ -1,55 +1,53 @@
-import { Box, Card, Typography } from "@mui/material";
+import { Card } from "ui/components/Card";
+import { Text } from "ui/components/Text";
+import { Box } from "ui/primitives";
 
 interface NoteImageMainProps {
   url: string;
   label: string;
 }
 
+/** An image from a note, with its label as the screen's heading. */
 export function NoteImageMain(props: NoteImageMainProps) {
   const { url, label } = props;
 
   return (
-    <>
-      <Box
-        flexGrow={1}
-        position="relative"
-        overflow="hidden"
-        bgcolor="grey.950"
-      >
-        <Box
-          component="img"
-          sx={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            objectPosition: "top",
+    <Box
+      flex="1 1 auto"
+      position="relative"
+      overflow="hidden"
+      css={{
+        "& > img": {
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          objectPosition: "top",
+        },
+      }}
+    >
+      <img
+        src={url}
+        // The label is shown as the page heading below, so the image
+        // doesn't repeat it.
+        alt=""
+      />
+      {label.trim() && (
+        <Card
+          padding="sm"
+          raised
+          css={{
+            position: "absolute",
+            bottom: "4",
+            left: "50%",
+            transform: "translateX(-50%)",
+            paddingX: "4",
           }}
-          src={url}
-          // The label is shown as the page heading below, so the image
-          // doesn't repeat it.
-          alt=""
-        />
-        {label.trim() && (
-          <Card
-            sx={{
-              px: 2,
-              position: "absolute",
-              bottom: 8,
-              left: "50%",
-              transform: "translate(-50%, 0)",
-            }}
-          >
-            <Typography
-              variant="h2"
-              component="h1"
-              fontFamily="fontFamilyTitle"
-              whiteSpace={"nowrap"}
-            >
-              {label}
-            </Typography>
-          </Card>
-        )}
-      </Box>
-    </>
+        >
+          <Text variant="h1" css={{ whiteSpace: "nowrap" }}>
+            {label}
+          </Text>
+        </Card>
+      )}
+    </Box>
   );
 }

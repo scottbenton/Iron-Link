@@ -100,10 +100,23 @@ function setCharacters(
 
 // The game's page tabs, in order, with each one's destination.
 function gameTabs() {
-  return screen.getAllByRole("tab").filter((tab) => tab.tagName === "A");
+  const nav = screen.queryByRole("navigation", { name: "Game Pages" });
+  return nav ? within(nav).getAllByRole("link") : [];
 }
 function currentGameTab() {
-  return gameTabs().find((tab) => tab.getAttribute("aria-selected") === "true");
+  return gameTabs().find((tab) => tab.getAttribute("aria-current") === "page");
+}
+
+// The phone's bottom bar of sections.
+function sectionButtons() {
+  return within(
+    screen.getByRole("navigation", { name: "Game Sections" }),
+  ).getAllByRole("button");
+}
+function sectionButton(name: string) {
+  return within(
+    screen.getByRole("navigation", { name: "Game Sections" }),
+  ).getByRole("button", { name });
 }
 
 let restoreWidth = () => {};
@@ -112,6 +125,8 @@ function atWidth(width: number) {
 }
 
 beforeEach(() => {
+  // jsdom has no scrollBy; the page tabs scroll the current one into view.
+  Element.prototype.scrollBy ??= () => {};
   banner.show = false;
   useAuthStore.setState({ uid: "me" });
   useDataswornTreeStore.setState({ rulesError: null });
@@ -173,7 +188,8 @@ describe("GameLayout document title", () => {
   });
 });
 
-describe.each([1280, 1000])("GameLayout at %spx", (width) => {
+// From 600px: wide (1200px and up), medium (from 900px) and compact.
+describe.each([1280, 1000, 700])("GameLayout at %spx", (width) => {
   beforeEach(() => atWidth(width));
 
   it("lists the overview, your characters first, then Add Character", () => {
@@ -202,7 +218,7 @@ describe.each([1280, 1000])("GameLayout at %spx", (width) => {
   it("hides the tabs while the characters load", () => {
     useGameCharactersStore.setState({ loading: true });
     renderGamePage(`/games/${GAME_ID}`);
-    expect(screen.queryByRole("tab", { name: "Overview" })).toBeNull();
+    expect(gameTabs()).toHaveLength(0);
   });
 
   it("names the page after the game or the character", () => {
@@ -216,12 +232,14 @@ describe.each([1280, 1000])("GameLayout at %spx", (width) => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Ash");
   });
 
-  it("shows the page, the notes and the reference side by side", () => {
+  it("shows the notes, with the page and the reference beside them", () => {
     renderGamePage(`/games/${GAME_ID}/c/c-ash`);
-    expect(screen.getByText("Character page")).toBeVisible();
     expect(screen.getByText("Notes column")).toBeVisible();
-    expect(screen.getByText("Reference column")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Notes" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Go Back" })).toBeNull();
+    expect(
+      screen.queryByRole("navigation", { name: "Game Sections" }),
+    ).toBeNull();
   });
 
   it("shows character creation alone under the tabs", () => {
@@ -233,8 +251,46 @@ describe.each([1280, 1000])("GameLayout at %spx", (width) => {
   });
 });
 
-// Today's phone layout runs up to 900px.
-describe.each([375, 700])("GameLayout at %spx", (width) => {
+describe.each([1280, 1000])("GameLayout at %spx", (width) => {
+  beforeEach(() => atWidth(width));
+
+  it("keeps the page and the reference open beside the notes", () => {
+    renderGamePage(`/games/${GAME_ID}/c/c-ash`);
+    expect(screen.getByText("Character page")).toBeVisible();
+    expect(screen.getByText("Reference column")).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "Character" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Reference" }),
+    ).toBeInTheDocument();
+  });
+
+  it("titles the start column Game Overview on the overview", () => {
+    renderGamePage(`/games/${GAME_ID}`);
+    expect(
+      screen.getByRole("heading", { name: "Game Overview" }),
+    ).toBeInTheDocument();
+  });
+});
+
+// 600 to 900px: the page and the reference wait on one rail and open over
+// the notes.
+describe("GameLayout at 700px", () => {
+  beforeEach(() => atWidth(700));
+
+  it("puts the page and the reference on a rail", () => {
+    renderGamePage(`/games/${GAME_ID}/c/c-ash`);
+    // The flyouts stay mounted, so each keeps its place while closed.
+    expect(screen.queryByText("Character page")).not.toBeVisible();
+    expect(screen.queryByText("Reference column")).not.toBeVisible();
+    expect(screen.getByText("Notes column")).toBeVisible();
+  });
+});
+
+// Phones, below 600px, show one section at a time.
+describe("GameLayout at 375px", () => {
+  const width = 375;
   beforeEach(() => atWidth(width));
 
   it("goes back to the game list from the overview", () => {
@@ -264,31 +320,31 @@ describe.each([375, 700])("GameLayout at %spx", (width) => {
 
   it("shows one section at a time, starting with the page", async () => {
     renderGamePage(`/games/${GAME_ID}/c/c-ash`);
-    const sections = screen.getAllByRole("tab");
-    expect(sections.map((tab) => tab.textContent)).toEqual([
+    expect(sectionButtons().map((button) => button.textContent)).toEqual([
       "Character",
       "Notes",
       "Reference",
     ]);
+    expect(sectionButton("Character")).toHaveAttribute("aria-current");
     expect(screen.getByText("Character page")).toBeVisible();
     expect(screen.getByText("Notes column")).not.toBeVisible();
 
-    await userEvent.click(screen.getByRole("tab", { name: "Notes" }));
+    await userEvent.click(sectionButton("Notes"));
     expect(screen.getByText("Notes column")).toBeVisible();
     expect(screen.queryByText("Character page")).not.toBeVisible();
 
-    await userEvent.click(screen.getByRole("tab", { name: "Reference" }));
+    await userEvent.click(sectionButton("Reference"));
     expect(screen.getByText("Reference column")).toBeVisible();
   });
 
   it("names the first section Overview on the overview", () => {
     renderGamePage(`/games/${GAME_ID}`);
-    expect(screen.getAllByRole("tab")[0]).toHaveTextContent("Overview");
+    expect(sectionButtons()[0]).toHaveTextContent("Overview");
   });
 
   it("goes back to the page section on moving to another page", async () => {
     renderGamePage(`/games/${GAME_ID}/c/c-ash`);
-    await userEvent.click(screen.getByRole("tab", { name: "Notes" }));
+    await userEvent.click(sectionButton("Notes"));
     act(() => navigateTo(`/games/${GAME_ID}/c/c-zed`));
     expect(screen.getByText("Character page")).toBeVisible();
     expect(screen.getByText("Notes column")).not.toBeVisible();
@@ -300,7 +356,9 @@ describe.each([375, 700])("GameLayout at %spx", (width) => {
       "href",
       `/games/${GAME_ID}`,
     );
-    expect(screen.queryAllByRole("tab")).toHaveLength(0);
+    expect(
+      screen.queryByRole("navigation", { name: "Game Sections" }),
+    ).toBeNull();
     expect(screen.getByText("Create page")).toBeVisible();
   });
 });
@@ -310,8 +368,10 @@ describe("GameLayout worlds beta banner", () => {
     atWidth(1280);
     banner.show = true;
     renderGamePage(`/games/${GAME_ID}`);
-    const alert = screen.getByRole("alert");
-    expect(within(alert).getByText("This game has a world")).toBeVisible();
+    expect(screen.getByText("This game has a world")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Turn on the beta" }),
+    ).toBeVisible();
   });
 
   it("is absent otherwise", () => {

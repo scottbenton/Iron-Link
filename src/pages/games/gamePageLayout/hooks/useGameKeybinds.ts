@@ -6,12 +6,11 @@ import {
 } from "stores/accessibility.store";
 
 export const GAME_TAB_ID = "game-tabs";
-// The heading of the character or game overview column (desktop only).
+// The headings of the character (or game overview) and reference columns,
+// from 600px. Phones show one section at a time and keep neither.
 export const OVERVIEW_ID = "game-overview-heading";
-// The phone layout's tab for that column.
-export const OVERVIEW_MOBILE_TAB_ID = "tab-Outlet";
 export const NOTES_ID = "game-notes";
-export const REFERENCE_ID = "tab-moves";
+export const REFERENCE_ID = "game-reference-heading";
 
 // Focuses the first of the ids that is in the page and not in a hidden
 // panel.
@@ -51,7 +50,7 @@ export function useGameKeybinds() {
         if (eventKey === "game-bar") {
           focusFirstElement([GAME_TAB_ID]);
         } else if (eventKey === "overview-section") {
-          focusFirstElement([OVERVIEW_ID, OVERVIEW_MOBILE_TAB_ID]);
+          focusFirstElement([OVERVIEW_ID]);
         } else if (eventKey === "notes-section") {
           focusFirstElement([NOTES_ID]);
         } else if (eventKey === "reference-section") {

@@ -1,84 +1,60 @@
-import { Tab, Tabs } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router";
 
 import { LinkComponent } from "components/LinkComponent";
+
+import { PageTab, PageTabs } from "ui/components/Tabs";
 
 import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
 import { pathConfig } from "pages/pathConfig";
 
-import { useUID } from "stores/auth.store";
 import { useGameCharactersStore } from "stores/gameCharacters.store";
 
 import { useGameId } from "../hooks/useGameId";
 import { GAME_TAB_ID } from "../hooks/useGameKeybinds";
+import { useIsOnCharacterCreatePage } from "../hooks/useIsOnCharacterCreatePage";
+import { useSortedGameCharacters } from "../hooks/useSortedGameCharacters";
 
+/** The game's pages: Overview, each character, then Add Character. */
 export function GameTabs() {
+  const { t } = useTranslation();
   const gameId = useGameId();
   const characterId = useCharacterIdOptional();
-  const uid = useUID();
-
-  const { t } = useTranslation();
-  const { pathname } = useLocation();
-  const isOnCharacterCreatePage = pathname.match(
-    /\/games\/[^/]*\/create[/]?$/i,
-  );
-
+  const isOnCreatePage = useIsOnCharacterCreatePage();
   const areCharactersLoading = useGameCharactersStore((store) => store.loading);
-
-  const sortedGameCharacters = useGameCharactersStore((store) => {
-    return Object.entries(store.characters)
-      .map(([key, value]) => {
-        return {
-          id: key,
-          name: value.name,
-          uid: value.uid,
-        };
-      })
-      .sort((a, b) => {
-        if (a.uid !== b.uid) {
-          if (a.uid === uid) return -1;
-          if (b.uid === uid) return 1;
-        }
-        return a.name.localeCompare(b.name);
-      });
-  });
+  const characters = useSortedGameCharacters();
 
   if (areCharactersLoading) {
     return null;
   }
 
   return (
-    <Tabs
-      value={
-        characterId ??
-        (isOnCharacterCreatePage ? "create-character" : "overview")
-      }
-      variant="scrollable"
-      scrollButtons="auto"
-    >
-      <Tab
+    <PageTabs aria-label={t("game.layout.tabs", "Game Pages")}>
+      <PageTab
         id={GAME_TAB_ID}
-        LinkComponent={LinkComponent}
-        href={pathConfig.game(gameId)}
-        value={"overview"}
-        label={t("game.layout.overview", "Overview")}
-      />
-      {sortedGameCharacters.map((character) => (
-        <Tab
-          LinkComponent={LinkComponent}
-          href={pathConfig.gameCharacter(gameId, character.id)}
+        current={!characterId && !isOnCreatePage}
+        render={<LinkComponent href={pathConfig.game(gameId)} />}
+      >
+        {t("game.layout.overview", "Overview")}
+      </PageTab>
+      {characters.map((character) => (
+        <PageTab
           key={character.id}
-          value={character.id}
-          label={character.name ?? t("common.loading", "Loading")}
-        />
+          current={character.id === characterId}
+          render={
+            <LinkComponent
+              href={pathConfig.gameCharacter(gameId, character.id)}
+            />
+          }
+        >
+          {character.name}
+        </PageTab>
       ))}
-      <Tab
-        LinkComponent={LinkComponent}
-        href={pathConfig.gameCharacterCreate(gameId)}
-        value={"create-character"}
-        label={t("game.layout.add-character", "Add Character")}
-      />
-    </Tabs>
+      <PageTab
+        current={isOnCreatePage}
+        render={<LinkComponent href={pathConfig.gameCharacterCreate(gameId)} />}
+      >
+        {t("game.layout.add-character", "Add Character")}
+      </PageTab>
+    </PageTabs>
   );
 }

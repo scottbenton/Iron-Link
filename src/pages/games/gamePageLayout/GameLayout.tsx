@@ -1,25 +1,24 @@
-import { LinearProgress } from "@mui/material";
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Outlet, useLocation } from "react-router";
+import { Outlet } from "react-router";
 
 import { ErrorBoundary } from "components/ErrorBoundary";
-import { PageContent, PageHeader } from "components/Layout";
-import { EmptyState } from "components/Layout/EmptyState";
+import { useFillShell } from "components/Layout/useFillShell";
+
+import { Progress } from "ui/components/Progress";
+import { EmptyState, PageContent } from "ui/layout";
 
 import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
-import { GameNavBar } from "pages/games/gamePageLayout/GameNavBar";
 import { GameSettings } from "pages/games/gamePageLayout/GameSettings";
-import { MobileTabs } from "pages/games/gamePageLayout/MobileTabs";
-import { SidebarLayout } from "pages/games/gamePageLayout/SidebarLayout";
+import { GameColumns } from "pages/games/gamePageLayout/components/GameColumns";
+import { GamePageNavBar } from "pages/games/gamePageLayout/components/GamePageNavBar";
 import { GameTabs } from "pages/games/gamePageLayout/components/GameTabs";
+import { PhoneGamePage } from "pages/games/gamePageLayout/components/PhoneGamePage";
 import { WorldsBetaBanner } from "pages/games/gamePageLayout/components/WorldsBetaBanner";
 import { useSyncGame } from "pages/games/gamePageLayout/hooks/useSyncGame";
 import { useSyncColorScheme } from "pages/games/hooks/useSyncColorScheme";
 
 import { useShowWorldsBetaBanner } from "hooks/advancedFeatures/worldsBetaBanner";
 import { useDocumentTitle } from "hooks/useDocumentTitle";
-import { useIsMobile } from "hooks/useIsMobile";
 
 import { useDataswornTreeStore } from "stores/dataswornTree.store";
 import { useGameStore } from "stores/game.store";
@@ -28,6 +27,8 @@ import { useSyncSecondScreenSettingsIfActive } from "stores/secondScreen.store";
 
 import { useGameId } from "./hooks/useGameId";
 import { useGameKeybinds } from "./hooks/useGameKeybinds";
+import { useGamePageTier } from "./hooks/useGamePageTier";
+import { useIsOnCharacterCreatePage } from "./hooks/useIsOnCharacterCreatePage";
 import { useSyncOpenNoteItem } from "./hooks/useSyncOpenNoteItem";
 
 export default function GameLayout() {
@@ -41,10 +42,14 @@ export default function GameLayout() {
 
   const characterId = useCharacterIdOptional();
   const gameId = useGameId();
+  const isOnCreatePage = useIsOnCharacterCreatePage();
+  const tier = useGamePageTier();
+  const phone = tier === "phone";
+
   const showWorldsBetaBanner = useShowWorldsBetaBanner(gameId);
-  const worldsBetaBanner = showWorldsBetaBanner && (
+  const banner = showWorldsBetaBanner ? (
     <WorldsBetaBanner gameId={gameId} />
-  );
+  ) : undefined;
 
   const hasGame = useGameStore((state) => !!state.game);
   const error = useGameStore((state) => state.error);
@@ -52,17 +57,10 @@ export default function GameLayout() {
     (store) => store.rulesError,
   );
 
-  const { pathname } = useLocation();
-
-  const isOnCharacterCreatePage =
-    pathname.match(/\/games\/[^/]*\/create[/]?$/i) !== null;
-
-  const isOnOverviewPage = !isOnCharacterCreatePage && !characterId;
-
   const gameName = useGameStore((state) => state.game?.name);
   const characterName = useGameCharacter((character) => character?.name);
   let documentTitle: string | undefined = gameName;
-  if (gameName && isOnCharacterCreatePage) {
+  if (gameName && isOnCreatePage) {
     documentTitle = t(
       "game.document-title.add-character",
       "Add Character | {{gameName}}",
@@ -78,56 +76,41 @@ export default function GameLayout() {
   }
   useDocumentTitle(documentTitle);
 
-  const isMobile = useIsMobile();
-
-  const [openMobileTab, setOpenMobileTab] = useState(MobileTabs.Outlet);
-
-  useEffect(() => {
-    setOpenMobileTab(MobileTabs.Outlet);
-  }, [isOnOverviewPage, characterId]);
+  const ready = hasGame && !error && !rulesPackageLoadError;
+  // Character creation is a page that scrolls; the rest keeps its columns
+  // (or a phone's sections) in view, each scrolling on its own.
+  useFillShell(ready && !isOnCreatePage);
 
   if (!hasGame && !error && !rulesPackageLoadError) {
-    return <LinearProgress />;
+    return <Progress />;
   }
 
   if (error) {
     return (
-      <EmptyState message={t("game.load-failure", "Failed to load game.")} />
+      <EmptyState
+        title={t("game.load-failure", "Failed to load game.")}
+        titleAs="h1"
+      />
     );
   }
 
   if (rulesPackageLoadError) {
     return (
       <EmptyState
-        message={t("game.rules-load-failure", "Failed to load rules package.")}
+        title={t("game.rules-load-failure", "Failed to load rules package.")}
+        titleAs="h1"
       />
     );
   }
 
-  if (isOnCharacterCreatePage) {
+  if (isOnCreatePage) {
     return (
       <>
-        <GameNavBar
-          tab={openMobileTab}
-          setTab={setOpenMobileTab}
-          isOnCreatePage
-          isOnOverviewPage={false}
-        />
+        <GamePageNavBar phone={phone} />
         <GameSettings />
-        {worldsBetaBanner}
-
-        {!isMobile && (
-          <PageHeader
-            maxWidth={"md"}
-            disablePadding
-            sx={(theme) => ({
-              borderBottom: `1px solid ${theme.palette.divider}`,
-            })}
-          >
-            <GameTabs />
-          </PageHeader>
-        )}
-        <PageContent viewHeight={"min-full"} maxWidth={"md"}>
+        {banner}
+        {!phone && <GameTabs />}
+        <PageContent maxWidth="md">
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>
@@ -138,34 +121,22 @@ export default function GameLayout() {
 
   return (
     <>
-      <GameNavBar
-        tab={openMobileTab}
-        setTab={setOpenMobileTab}
-        isOnOverviewPage={isOnOverviewPage}
-        isOnCreatePage={isOnCharacterCreatePage}
-      />
+      <GamePageNavBar phone={phone} />
       <GameSettings />
-      {worldsBetaBanner}
-      {!isMobile && (
-        <PageHeader
-          maxWidth={isOnCharacterCreatePage ? "md" : undefined}
-          disablePadding
-          sx={(theme) => ({
-            borderBottom: `1px solid ${theme.palette.divider}`,
-          })}
-        >
-          <GameTabs />
-        </PageHeader>
+      {phone ? (
+        <PhoneGamePage
+          onCharacter={!!characterId}
+          pageKey={characterId ?? "overview"}
+          banner={banner}
+        />
+      ) : (
+        <GameColumns
+          tier={tier}
+          onCharacter={!!characterId}
+          tabs={<GameTabs />}
+          banner={banner}
+        />
       )}
-      <PageContent
-        disablePadding={!isOnCharacterCreatePage || isMobile}
-        viewHeight={isOnCharacterCreatePage ? "min-full" : "max-full"}
-        maxWidth={isOnCharacterCreatePage ? "md" : undefined}
-      >
-        <ErrorBoundary>
-          <SidebarLayout currentOpenTab={openMobileTab} />
-        </ErrorBoundary>
-      </PageContent>
     </>
   );
 }
