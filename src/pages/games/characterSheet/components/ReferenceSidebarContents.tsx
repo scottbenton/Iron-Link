@@ -21,7 +21,7 @@ import { GameLog } from "./GameLog";
 import { SecondScreenSectionSettings } from "./SecondScreenSection";
 
 // The reference column: Moves, Oracles, the Game Log and, with the second
-// screen on, its settings. Its heading is the game page's.
+// screen on, its settings.
 export function ReferenceSidebarContents() {
   const { t } = useTranslation();
 

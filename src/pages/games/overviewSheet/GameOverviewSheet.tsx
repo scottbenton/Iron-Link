@@ -19,8 +19,7 @@ import { CharactersAndUsersTab } from "./CharactersAndUsersTab";
 import { GameOverviewHeader } from "./GameOverviewHeader";
 
 // The game overview column, in the character sheet's place on the game's
-// Overview page. Its heading is the game page's; the game's name and
-// settings head its Characters section, as the character's head the sheet.
+// Overview page.
 export default function GameOverviewSheet() {
   const { t } = useTranslation();
   useSendPageViewEvent(PageCategory.GameOverview);
