@@ -1,11 +1,11 @@
 import { useCallback, useId } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "ui/components/Button";
 import {
   Dialog,
   DialogActions,
   DialogBody,
+  DialogDoneButton,
   DialogHeader,
 } from "ui/components/Dialog";
 import { Radio, RadioGroup } from "ui/components/RadioGroup";
@@ -100,9 +100,7 @@ export function A11ySettingsDialog(props: A11ySettingsDialogProps) {
         </Stack>
       </DialogBody>
       <DialogActions>
-        <Button variant="primary" onClick={onClose}>
-          {t("common.done", "Done")}
-        </Button>
+        <DialogDoneButton />
       </DialogActions>
     </Dialog>
   );

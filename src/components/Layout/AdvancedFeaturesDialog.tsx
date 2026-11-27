@@ -1,7 +1,13 @@
 import { useTranslation } from "react-i18next";
 
 import { Checkbox } from "ui/components/Checkbox";
-import { Dialog, DialogBody, DialogHeader } from "ui/components/Dialog";
+import {
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogDoneButton,
+  DialogHeader,
+} from "ui/components/Dialog";
 import { Stack } from "ui/primitives";
 
 import {
@@ -47,6 +53,9 @@ export function AdvancedFeaturesDialog(props: AdvancedFeaturesDialogProps) {
           ))}
         </Stack>
       </DialogBody>
+      <DialogActions>
+        <DialogDoneButton />
+      </DialogActions>
     </Dialog>
   );
 }

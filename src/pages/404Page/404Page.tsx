@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { LinkComponent } from "components/LinkComponent";
 
 import { Button } from "ui/components/Button";
+import { CompassIcon } from "ui/icons";
 import { EmptyState, PageContent } from "ui/layout";
 
 import { pathConfig } from "pages/pathConfig";
@@ -17,6 +18,7 @@ export function Page404() {
   return (
     <PageContent>
       <EmptyState
+        icon={<CompassIcon />}
         title={title}
         titleAs="h1"
         message={t(

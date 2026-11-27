@@ -97,7 +97,7 @@ describe("AppSettingsMenu", () => {
       within(menu).getByRole("menuitem", { name: "Admin Settings" }),
     );
     expect(
-      await screen.findByRole("dialog", { name: "Admin Actions" }),
+      await screen.findByRole("dialog", { name: "Get Magic Link" }),
     ).toBeInTheDocument();
   });
 

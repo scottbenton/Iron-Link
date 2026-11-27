@@ -66,6 +66,11 @@ export default tseslint.config(
       "src/components/datasworn/DataswornDialog/**/*.{ts,tsx}",
       "src/components/datasworn/Move/**/*.{ts,tsx}",
       "src/components/datasworn/Oracle/**/*.{ts,tsx}",
+      "src/pages/home/**/*.{ts,tsx}",
+      "src/pages/auth/**/*.{ts,tsx}",
+      "src/pages/privacy/**/*.{ts,tsx}",
+      "src/pages/gameJoin/**/*.{ts,tsx}",
+      "src/pages/homebrew/**/*.{ts,tsx}",
     ],
     ignores: [
       "src/ui/**/__stories__/**",

@@ -17,10 +17,10 @@ vi.mock("stores/admin.store", () => ({
     selector(admin),
 }));
 
-function renderDialog() {
+function renderDialog(onClose: () => void = () => {}) {
   return render(
     <ThemeProvider theme={getTheme(ColorScheme.Default)}>
-      <AdminDialog open onClose={() => {}} />
+      <AdminDialog open onClose={onClose} />
     </ThemeProvider>,
   );
 }
@@ -34,7 +34,7 @@ describe("AdminDialog", () => {
     const user = userEvent.setup();
     admin.getMagicLink.mockResolvedValue("https://example.com/magic");
     renderDialog();
-    const dialog = screen.getByRole("dialog", { name: "Admin Actions" });
+    const dialog = screen.getByRole("dialog", { name: "Get Magic Link" });
 
     await user.type(
       within(dialog).getByRole("textbox", { name: "Email" }),
@@ -44,8 +44,13 @@ describe("AdminDialog", () => {
       undefined,
       "kai@example.com",
     );
+    const link = await within(dialog).findByRole("link", {
+      name: /https:\/\/example\.com\/magic/,
+    });
+    expect(link).toHaveAttribute("href", "https://example.com/magic");
+    expect(link).toHaveAttribute("target", "_blank");
     expect(
-      await within(dialog).findByText(/https:\/\/example\.com\/magic/),
+      within(dialog).getByRole("button", { name: "Copy Link" }),
     ).toBeInTheDocument();
   });
 
@@ -53,7 +58,7 @@ describe("AdminDialog", () => {
     const user = userEvent.setup();
     admin.getMagicLink.mockResolvedValue("https://example.com/magic");
     renderDialog();
-    const dialog = screen.getByRole("dialog", { name: "Admin Actions" });
+    const dialog = screen.getByRole("dialog", { name: "Get Magic Link" });
 
     await user.type(within(dialog).getByRole("textbox", { name: "UID" }), "u1");
     await user.click(
@@ -66,11 +71,23 @@ describe("AdminDialog", () => {
     const user = userEvent.setup();
     admin.getMagicLink.mockRejectedValue(new Error("No such user"));
     renderDialog();
-    const dialog = screen.getByRole("dialog", { name: "Admin Actions" });
+    const dialog = screen.getByRole("dialog", { name: "Get Magic Link" });
 
     await user.click(
       within(dialog).getByRole("button", { name: "Get Magic Link" }),
     );
     expect(await within(dialog).findByText("No such user")).toBeInTheDocument();
+  });
+
+  it("closes from Done without getting a link", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    renderDialog(onClose);
+    const dialog = screen.getByRole("dialog", { name: "Get Magic Link" });
+
+    await user.type(within(dialog).getByRole("textbox", { name: "UID" }), "u1");
+    await user.click(within(dialog).getByRole("button", { name: "Done" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(admin.getMagicLink).not.toHaveBeenCalled();
   });
 });

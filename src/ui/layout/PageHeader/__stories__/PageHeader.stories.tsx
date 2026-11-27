@@ -19,6 +19,7 @@ const meta: Meta<typeof PageHeader> = {
   },
   argTypes: {
     titleAs: { control: "inline-radio", options: ["h1", "h2"] },
+    maxWidth: { control: "inline-radio", options: ["sm", "md", "xl"] },
   },
 };
 
@@ -82,6 +83,17 @@ export const SectionLevel: Story = {
     eyebrow: undefined,
     title: "Characters",
     subtitle: undefined,
+    divider: true,
+  },
+};
+
+/** A narrower rail, for a page whose content uses the same width. */
+export const Reading: Story = {
+  args: {
+    maxWidth: "md",
+    eyebrow: undefined,
+    title: "Privacy Policy",
+    subtitle: "Last updated October 4, 2026",
     divider: true,
   },
 };

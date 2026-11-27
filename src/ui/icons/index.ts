@@ -32,6 +32,7 @@ export {
   FilePlusIcon,
   FileTextIcon,
   FireIcon,
+  FlaskIcon,
   FolderIcon,
   FolderOpenIcon,
   FolderPlusIcon,
@@ -101,6 +102,7 @@ export {
   UserSquareIcon,
   UsersIcon,
   UsersThreeIcon,
+  WarningCircleIcon,
   XIcon,
 } from "@phosphor-icons/react";
 

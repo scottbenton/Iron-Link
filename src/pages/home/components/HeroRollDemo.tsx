@@ -1,10 +1,14 @@
 import RollIcon from "@mui/icons-material/Casino";
-import { Box, Card, Typography } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { RollSnackbar } from "components/characters/rolls/RollSnackbar";
 import { Stat } from "components/datasworn/Stat";
+
+import { Card } from "ui/components/Card";
+import { Text } from "ui/components/Text";
+import { DiceFiveIcon, Icon } from "ui/icons";
+import { Box, HStack } from "ui/primitives";
 
 import { useRollStatAndAddToLog } from "pages/games/hooks/useRollStatAndAddToLog";
 
@@ -48,17 +52,11 @@ export function HeroRollDemo(props: HeroRollDemoProps) {
 
   return (
     <Box>
-      <Typography
-        variant="overline"
-        component="p"
-        color="text.secondary"
-        fontFamily={(theme) => theme.typography.fontFamilyTitle}
-        lineHeight={1.2}
-        mb={1}
-      >
+      <Text variant="label" as="p" color="muted" css={{ marginBlockEnd: "2" }}>
         {t("home.hero.demo-caption", "Click a stat to roll it")}
-      </Typography>
-      <Box display="flex" flexWrap="wrap" gap={1}>
+      </Text>
+      {/* The stat cards are the app's own until the character sheet slice. */}
+      <HStack flexWrap="wrap" gap="2">
         {demoStats.map((stat) => (
           <Stat
             key={stat.key}
@@ -71,29 +69,21 @@ export function HeroRollDemo(props: HeroRollDemoProps) {
             onActionClick={() => handleStatClick(stat)}
           />
         ))}
-      </Box>
-      <Box mt={2}>
+      </HStack>
+      <Box marginBlockStart="4">
         {latestRoll ? (
           <RollSnackbar rollId={undefined} roll={latestRoll} isExpanded />
         ) : (
-          <Card
-            sx={{
-              bgcolor: "grey.800",
-              color: "grey.300",
-              px: 2,
-              py: 2,
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
-            <RollIcon fontSize="small" />
-            <Typography variant="body2">
-              {t(
-                "home.hero.demo-placeholder",
-                "Your roll will appear here. Beat both challenge dice for a strong hit.",
-              )}
-            </Typography>
+          <Card padding="sm">
+            <HStack gap="2">
+              <Icon icon={DiceFiveIcon} size="md" color="muted" />
+              <Text variant="bodySm" color="muted">
+                {t(
+                  "home.hero.demo-placeholder",
+                  "Your roll will appear here. Beat both challenge dice for a strong hit.",
+                )}
+              </Text>
+            </HStack>
           </Card>
         )}
       </Box>

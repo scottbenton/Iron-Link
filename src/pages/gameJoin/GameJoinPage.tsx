@@ -1,13 +1,10 @@
-import { LinearProgress } from "@mui/material";
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
 
-import { GradientButton } from "components/GradientButton";
-import { PageContent, PageHeader } from "components/Layout";
-import { EmptyState } from "components/Layout/EmptyState";
-
-import { pathConfig } from "pages/pathConfig";
+import { Button } from "ui/components/Button";
+import { Progress } from "ui/components/Progress";
+import { LinkBreakIcon } from "ui/icons";
+import { EmptyState, PageContent, PageHeader } from "ui/layout";
 
 import { useDocumentTitle } from "hooks/useDocumentTitle";
 import {
@@ -17,9 +14,7 @@ import {
 
 import { useUID } from "stores/auth.store";
 
-import { GameType } from "repositories/game.repository";
-
-import { GameService } from "services/game.service";
+import { useGameInvite } from "./hooks/useGameInvite";
 
 export default function GameJoinPage() {
   const inviteKey = useParams<{ inviteKey: string }>().inviteKey;
@@ -27,78 +22,34 @@ export default function GameJoinPage() {
   useSendPageViewEvent(PageCategory.GameJoin);
 
   const uid = useUID();
+  const { gameName, loading, error, join } = useGameInvite(inviteKey, uid);
 
-  const navigate = useNavigate();
-
-  const [gameName, setGameName] = useState<string | null>(null);
-  const [gameType, setGameType] = useState<GameType | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>();
   useDocumentTitle(
     gameName ? t("game.join-name", "Join {{gameName}}", { gameName }) : null,
   );
 
-  useEffect(() => {
-    if (inviteKey && uid) {
-      GameService.getGameInviteInfo(inviteKey)
-        .then((gameInfo) => {
-          if ("gameId" in gameInfo) {
-            navigate(pathConfig.game(gameInfo.gameId));
-            return;
-          }
-          setLoading(false);
-          setError(undefined);
-          setGameName(gameInfo.name);
-          setGameType(gameInfo.gameType);
-        })
-        .catch((err) => {
-          console.error(err);
-          setLoading(false);
-          setError(t("game.load-failure", "Failed to load game"));
-        });
-    } else {
-      setLoading(false);
-      setError(t("game.find-failure", "Could not find game"));
-    }
-  }, [inviteKey, uid, t, navigate]);
-
-  const addUser = () => {
-    if (inviteKey && uid && gameType) {
-      // Add user to campaign
-      GameService.addPlayer(inviteKey, uid)
-        .then((gameId) => {
-          navigate(pathConfig.game(gameId));
-        })
-        .catch(() => {
-          setError(t("game.join-failure", "Failed to join game"));
-        });
-    }
-  };
-
   if (error) {
     return (
       <PageContent maxWidth="md">
-        <EmptyState message={error} />
+        <EmptyState icon={<LinkBreakIcon />} message={error} />
       </PageContent>
     );
   }
   if (loading || !gameName) {
-    return <LinearProgress />;
+    return <Progress label={t("game.join-loading", "Loading invite")} />;
   }
 
   return (
     <>
       <PageHeader
-        label={t("game.join-name", "Join {{gameName}}", {
-          gameName,
-        })}
         maxWidth="md"
+        title={t("game.join-name", "Join {{gameName}}", { gameName })}
       />
       <PageContent maxWidth="md">
         <div>
-          <GradientButton onClick={addUser}>
+          <Button variant="gradient" onClick={join}>
             {t("game.join", "Join")}
-          </GradientButton>
+          </Button>
         </div>
       </PageContent>
     </>

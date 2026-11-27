@@ -15,10 +15,10 @@ import { AdvancedFeaturesDialog } from "../AdvancedFeaturesDialog";
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 
-function renderDialog() {
+function renderDialog(onClose: () => void = () => {}) {
   return render(
     <ThemeProvider theme={getTheme(ColorScheme.Default)}>
-      <AdvancedFeaturesDialog open onClose={() => {}} />
+      <AdvancedFeaturesDialog open onClose={onClose} />
     </ThemeProvider>,
   );
 }
@@ -54,5 +54,15 @@ describe("AdvancedFeaturesDialog", () => {
     );
     await user.click(within(dialog).getByText("Worlds (Beta)"));
     expect(useAdvancedFeatureToggles.getState().toggles.worlds).toBe(false);
+  });
+
+  it("closes from Done in the footer", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    renderDialog(onClose);
+    const dialog = screen.getByRole("dialog", { name: "Advanced Features" });
+
+    await user.click(within(dialog).getByRole("button", { name: "Done" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
