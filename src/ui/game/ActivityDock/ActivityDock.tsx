@@ -6,9 +6,9 @@ import { css, cx } from "styled-system/css";
 
 import { Button } from "../../components/Button";
 import { CssProp, withCssProp } from "../../styles/cssProp";
+import { ActivitySheet } from "./ActivitySheet";
 import { DockedCard } from "./DockedCard";
 import type { DockedItem } from "./DockedCard";
-import { RecentRollsSheet } from "./RecentRollsSheet";
 
 /** How far each older card's edge shows above the one in front of it. */
 const PEEK_OFFSET = 6;
@@ -69,7 +69,7 @@ const showAllRowStyles = css({
   marginBlockStart: "-1",
 });
 
-export interface RollDockProps extends CssProp {
+export interface ActivityDockProps extends CssProp {
   /**
    * Recent rolls and notifications, oldest first; the newest shows in full.
    */
@@ -99,23 +99,23 @@ export interface RollDockProps extends CssProp {
  * Place it over the page's foot, above the MobileNav, at the page's full
  * width less 16px each side.
  */
-export function RollDock(props: RollDockProps) {
+export function ActivityDock(props: ActivityDockProps) {
   const { t } = useTranslation();
   const {
     items,
     onDismiss,
     onClearAll,
     clampHeight = 240,
-    label = t("ui.roll-dock.notifications", "Notifications"),
+    label = t("ui.activity-dock.notifications", "Notifications"),
     countLabel = (count: number) =>
-      t("ui.roll-dock.count", "{{count}} notifications", {
+      t("ui.activity-dock.count", "{{count}} notifications", {
         count,
         defaultValue_one: "{{count}} notification",
       }),
-    showAllLabel = t("ui.roll-dock.show-all", "Show all"),
-    showLessLabel = t("ui.roll-dock.show-less", "Show less"),
-    clearAllLabel = t("ui.roll-dock.clear-all", "Clear all"),
-    emptyLabel = t("ui.roll-dock.empty", "No notifications"),
+    showAllLabel = t("ui.activity-dock.show-all", "Show all"),
+    showLessLabel = t("ui.activity-dock.show-less", "Show less"),
+    clearAllLabel = t("ui.activity-dock.clear-all", "Clear all"),
+    emptyLabel = t("ui.activity-dock.empty", "No notifications"),
     className,
   } = withCssProp(props);
 
@@ -204,7 +204,7 @@ export function RollDock(props: RollDockProps) {
           </div>
         )}
       </section>
-      <RecentRollsSheet
+      <ActivitySheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
         items={items}

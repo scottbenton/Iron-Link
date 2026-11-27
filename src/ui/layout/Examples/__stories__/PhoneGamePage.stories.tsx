@@ -46,7 +46,7 @@ const threeRolls = [
  * The Sheet: Overview, Assets and Tracks as 48px tabs; initiative as a
  * segmented control; stats as roll buttons; meters two to a row with 44px
  * steppers; impacts as a card that opens a dialog. Roll a stat to see the
- * roll dock.
+ * activity dock.
  */
 export const Sheet: Story = { args: { section: "sheet" } };
 
@@ -106,7 +106,7 @@ export const OpenNotesSheet: Story = {
 /** Moves by category. */
 export const Moves: Story = { args: { section: "moves" } };
 
-/** Oracles by collection. Roll one to see the roll dock. */
+/** Oracles by collection. Roll one to see the activity dock. */
 export const Oracles: Story = { args: { section: "oracles" } };
 
 /** The game log, filling the screen above the nav. */
