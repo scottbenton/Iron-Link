@@ -52,7 +52,6 @@ export function NotesSection() {
     <WorldEntryMentionLinksContext.Provider
       value={worldId ? getEntryMentionLinkProps : null}
     >
-      {/* The page gives the column its h2. */}
       <DefaultNoteChooser />
       <NoteTabs />
     </WorldEntryMentionLinksContext.Provider>

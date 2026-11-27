@@ -18,6 +18,12 @@ test, type), and put a rule that matters to one file in a comment there. If
 your change makes a line here wrong, fix or delete it in the same PR. Keep
 the file under 150 lines; to add one past that, cut a weaker one.
 
+## Code comments
+
+- A comment explains the code as it stands, to a reader who never saw the
+  change that wrote it. What moved, what it replaced, or where something
+  used to live belongs in the commit or PR, not the code.
+
 ## Checks
 
 - Type-check `npx tsc -b`, lint `npx eslint .`, format

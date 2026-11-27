@@ -31,10 +31,9 @@ export interface GamePageFrameProps {
 }
 
 /**
- * A game page that scrolls as a whole, such as adding a character: the game's
- * tabs and the page on one sheet of GameLayout's width, with its borders and dark
- * margins beyond it, so the page reads as part of the game. The content inside keeps
- * its own width.
+ * A game page that scrolls as a whole, such as adding a character: the
+ * game's tabs and the page on one sheet of GameLayout's width, bordered,
+ * with its dark margins beyond. The content inside keeps its own width.
  */
 export function GamePageFrame(props: GamePageFrameProps) {
   const { tabs, children, maxWidth = "xl", className } = props;

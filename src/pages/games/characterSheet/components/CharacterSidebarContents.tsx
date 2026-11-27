@@ -12,7 +12,7 @@ import { AssetsSection } from "./AssetsSection";
 import { CharacterSection } from "./CharacterSection";
 import { TracksSection } from "./TracksSection";
 
-// The character sheet column. Its heading and menu are the game page's.
+// The character sheet column.
 export function CharacterSidebarContents() {
   const { t } = useTranslation();
   const sections = useCharacterSheetSections();
