@@ -2,15 +2,12 @@ import { Outlet } from "react-router";
 
 import { ErrorBoundary } from "components/ErrorBoundary";
 
-import { NavBar } from "./NavBar";
-import { useNavRoutes } from "./useNavRoutes";
+import { AppNavBar } from "./AppNavBar";
 
 export function DefaultLayout() {
-  const navRoutes = useNavRoutes();
-
   return (
     <>
-      <NavBar topLevelRoutes={navRoutes} />
+      <AppNavBar />
       <ErrorBoundary>
         <Outlet />
       </ErrorBoundary>

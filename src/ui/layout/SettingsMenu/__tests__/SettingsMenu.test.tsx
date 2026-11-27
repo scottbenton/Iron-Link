@@ -94,6 +94,10 @@ describe("getSettingsMenuSections", () => {
     ]);
   });
 
+  it("leaves Change Theme out with hideTheme", () => {
+    expect(sectionIds({ hideTheme: true })).toEqual(["app"]);
+  });
+
   it("puts Theme before Delete in the character column's menu", () => {
     expect(getCharacterMenuItems(kira, archive)).toEqual([
       "characterDetails",

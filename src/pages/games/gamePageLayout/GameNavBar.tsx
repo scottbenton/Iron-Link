@@ -2,8 +2,8 @@ import { Tab, Tabs } from "@mui/material";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { MenuAdditionComponent } from "components/Layout/AppSettingsMenu";
-import { NavBar } from "components/Layout/NavBar";
+import { MenuAdditionComponent } from "components/Layout/legacy/LegacyAppSettingsMenu";
+import { LegacyNavBar } from "components/Layout/legacy/LegacyNavBar";
 
 import { pathConfig } from "pages/pathConfig";
 
@@ -53,7 +53,7 @@ export function GameNavBar(props: GameNavBarProps) {
   }, [t, gameName, hasCharacterId, characterName]);
 
   return (
-    <NavBar
+    <LegacyNavBar
       goBackTo={
         hasCharacterId || isOnCreatePage
           ? pathConfig.game(gameId)

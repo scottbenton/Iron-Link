@@ -22,18 +22,19 @@ import { useSnackbar } from "providers/SnackbarProvider";
 import { useAdminStore } from "stores/admin.store";
 import { AuthStatus, useAuthStatus, useAuthStore } from "stores/auth.store";
 
-import { A11ySettingsDialog } from "./A11ySettingsDialog";
-import { AdminDialog } from "./AdminDialog";
-import { AdvancedFeaturesDialog } from "./AdvancedFeaturesDialog";
+import { A11ySettingsDialog } from "../A11ySettingsDialog";
+import { AdminDialog } from "../AdminDialog";
+import { AdvancedFeaturesDialog } from "../AdvancedFeaturesDialog";
 
 export type MenuAdditionComponent = ComponentType<{ closeMenu: () => void }>;
 
-export interface AppSettingsMenuProps {
+export interface LegacyAppSettingsMenuProps {
   menuItems?: MenuAdditionComponent[];
   menuDialogs?: MenuAdditionComponent[];
 }
 
-export function AppSettingsMenu(props: AppSettingsMenuProps) {
+/** The game page's phone menu until slice 9; see `LegacyNavBar`. */
+export function LegacyAppSettingsMenu(props: LegacyAppSettingsMenuProps) {
   const { menuItems, menuDialogs } = props;
   const { t } = useTranslation();
   const status = useAuthStatus();

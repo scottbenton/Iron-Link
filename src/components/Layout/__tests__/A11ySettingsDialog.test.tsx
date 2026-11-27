@@ -40,10 +40,11 @@ describe("A11ySettingsDialog", () => {
       within(group).getByRole("radio", { name: "Disabled" }),
     ).toBeChecked();
 
-    await user.click(within(group).getByRole("radio", { name: "Alt/Option" }));
+    // The labels: jsdom has no PointerEvent for a press on the radio itself.
+    await user.click(within(group).getByText("Alt/Option"));
     expect(useAccessibilityState.getState().modifierKey).toBe("Alt");
 
-    await user.click(within(group).getByRole("radio", { name: "Disabled" }));
+    await user.click(within(group).getByText("Disabled"));
     expect(useAccessibilityState.getState().modifierKey).toBeUndefined();
   });
 
@@ -64,5 +65,34 @@ describe("A11ySettingsDialog", () => {
     expect(
       within(row).getByRole("button", { name: "Set" }),
     ).toBeInTheDocument();
+  });
+
+  it("stops listening on Escape without setting a key or closing", async () => {
+    const user = userEvent.setup();
+    useAccessibilityState.setState({ keybinds: { "notes-section": "n" } });
+    renderDialog();
+    const row = screen.getByRole("row", { name: /Notes Section/ });
+    await user.click(within(row).getByRole("button", { name: "Set" }));
+
+    await user.keyboard("{Escape}");
+    expect(useAccessibilityState.getState().keybinds["notes-section"]).toBe(
+      "n",
+    );
+    expect(
+      within(row).getByRole("button", { name: "Set" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: "Accessibility Settings" }),
+    ).toBeInTheDocument();
+  });
+
+  it("labels the shortcut table's columns", () => {
+    renderDialog();
+    const table = screen.getByRole("table", { name: "Keybindings" });
+    expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((cell) => cell.textContent),
+    ).toEqual(["Action", "Key", "Change"]);
   });
 });

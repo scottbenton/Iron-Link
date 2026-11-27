@@ -1,8 +1,9 @@
 import { useTranslation } from "react-i18next";
 
-import { GradientButton } from "components/GradientButton";
-import { PageContent } from "components/Layout";
-import { EmptyState } from "components/Layout/EmptyState";
+import { LinkComponent } from "components/LinkComponent";
+
+import { Button } from "ui/components/Button";
+import { EmptyState, PageContent } from "ui/layout";
 
 import { pathConfig } from "pages/pathConfig";
 
@@ -10,21 +11,26 @@ import { useDocumentTitle } from "hooks/useDocumentTitle";
 
 export function Page404() {
   const { t } = useTranslation();
-  useDocumentTitle(t("404.title", "Page Not Found"));
+  const title = t("404.title", "Page Not Found");
+  useDocumentTitle(title);
 
   return (
-    <PageContent sx={{ pt: 4 }}>
+    <PageContent>
       <EmptyState
-        title={t("404.title", "Page Not Found")}
-        titleComponent={"h1"}
+        title={title}
+        titleAs="h1"
         message={t(
           "404.description",
           "Sorry, the page you are looking for does not exist.",
         )}
         action={
-          <GradientButton href={pathConfig.gameSelect}>
+          <Button
+            variant="gradient"
+            nativeButton={false}
+            render={<LinkComponent href={pathConfig.gameSelect} />}
+          >
             {t("404.back-to-games", "Back to Games")}
-          </GradientButton>
+          </Button>
         }
       />
     </PageContent>

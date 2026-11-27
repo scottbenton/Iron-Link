@@ -1,69 +1,57 @@
-import { Box, LinearProgress } from "@mui/material";
-import { Outlet } from "react-router";
+import { Outlet, useMatch } from "react-router";
 
 import { ErrorBoundary } from "components/ErrorBoundary";
+import { LinkComponent } from "components/LinkComponent";
 import { RollSnackbarSection } from "components/characters/rolls/RollSnackbarSection";
 import { DataswornDialog } from "components/datasworn/DataswornDialog";
 
 import { LiveRegion } from "ui/components/Announcer";
+import { Progress } from "ui/components/Progress";
+import { AppShell, LinkComponentProvider, MAIN_CONTENT_ID } from "ui/layout";
+
+import { useIsMobile } from "hooks/useIsMobile";
 
 import { AuthStatus, useAuthStatus } from "stores/auth.store";
 
+import { AppNavRail } from "./AppNavRail";
 import { LayoutPathListener } from "./LayoutPathListener";
-import { NavRail } from "./NavRail";
-import { MAIN_CONTENT_ID, SkipToContentButton } from "./SkipToContentButton";
 import { DialogExtrasContext } from "./dialogExtrasContext";
 import { useFocusPageOnNavigate } from "./useFocusPageOnNavigate";
-import { useNavRoutes } from "./useNavRoutes";
+
+/**
+ * Until slice 9 moves the game page over, it keeps its own phone bar and
+ * layout below the app's 900px breakpoint, so the rail (which the library
+ * shows from 600px) stays off there.
+ */
+function useShowRail() {
+  const gameMatch = useMatch("/games/:gameId/*");
+  const isOnGamePage = !!gameMatch && gameMatch.params.gameId !== "create";
+  const isAppMobile = useIsMobile();
+  return !(isOnGamePage && isAppMobile);
+}
 
 export function BaseLayout() {
   const authStatus = useAuthStatus();
-  const routes = useNavRoutes();
+  const showRail = useShowRail();
   useFocusPageOnNavigate(MAIN_CONTENT_ID);
 
   if (authStatus === AuthStatus.Loading) {
-    return <LinearProgress />;
+    return <Progress />;
   }
 
   return (
     <DialogExtrasContext.Provider value={RollSnackbarSection}>
-      <Box
-        minHeight={"100vh"}
-        display={"flex"}
-        flexDirection={"column"}
-        bgcolor="grey.950"
-      >
-        <Box
-          display={"flex"}
-          flexDirection={{ xs: "column", md: "row" }}
-          flexGrow={1}
-          position="relative"
-        >
-          <LiveRegion id={"live-region"} />
-          <SkipToContentButton />
-          <LayoutPathListener />
-          <NavRail routes={routes} />
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              flexGrow: 1,
-              minWidth: 0,
-              "&:focus": { outline: "none" },
-            }}
-            component={"main"}
-            id={MAIN_CONTENT_ID}
-            // Lets Skip to Content move focus here, not just scroll, in Safari.
-            tabIndex={-1}
-          >
-            <ErrorBoundary>
-              <Outlet />
-            </ErrorBoundary>
-          </Box>
-        </Box>
+      <LinkComponentProvider linkComponent={LinkComponent}>
+        <LiveRegion id={"live-region"} />
+        <LayoutPathListener />
+        <AppShell rail={showRail ? <AppNavRail /> : undefined}>
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
+        </AppShell>
         <RollSnackbarSection isPage />
         <DataswornDialog />
-      </Box>
+      </LinkComponentProvider>
     </DialogExtrasContext.Provider>
   );
 }

@@ -47,11 +47,12 @@ describe("AdvancedFeaturesDialog", () => {
       within(dialog).getByText(/Adds toggles for guide-level players/),
     ).toBeInTheDocument();
 
-    await user.click(secondScreen);
+    // The labels: jsdom has no PointerEvent for a press on the box itself.
+    await user.click(within(dialog).getByText("Second Screen Options"));
     expect(useAdvancedFeatureToggles.getState().toggles.secondScreen).toBe(
       true,
     );
-    await user.click(worlds);
+    await user.click(within(dialog).getByText("Worlds (Beta)"));
     expect(useAdvancedFeatureToggles.getState().toggles.worlds).toBe(false);
   });
 });

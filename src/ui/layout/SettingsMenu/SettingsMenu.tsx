@@ -82,6 +82,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
     isAdmin,
     signedIn,
     hideColorMode,
+    hideTheme,
     colorMode,
     onColorModeChange,
     logSound,
@@ -106,6 +107,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
     isAdmin,
     signedIn,
     hideColorMode,
+    hideTheme,
   });
 
   return (

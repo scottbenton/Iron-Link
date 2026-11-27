@@ -1,15 +1,8 @@
-import {
-  Box,
-  Dialog,
-  DialogContent,
-  FormControlLabel,
-  Stack,
-  Switch,
-  Typography,
-} from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
+import { Checkbox } from "ui/components/Checkbox";
+import { Dialog, DialogBody, DialogHeader } from "ui/components/Dialog";
+import { Stack } from "ui/primitives";
 
 import {
   advancedFeatures,
@@ -20,6 +13,8 @@ export interface AdvancedFeaturesDialogProps {
   open: boolean;
   onClose: () => void;
 }
+
+type AdvancedFeatureKey = keyof typeof advancedFeatures;
 
 export function AdvancedFeaturesDialog(props: AdvancedFeaturesDialogProps) {
   const { open, onClose } = props;
@@ -33,39 +28,25 @@ export function AdvancedFeaturesDialog(props: AdvancedFeaturesDialogProps) {
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitleWithCloseButton onClose={onClose}>
-        {t("advanced-features.title", "Advanced Features")}
-      </DialogTitleWithCloseButton>
-      <DialogContent>
-        <Stack direction={"column"} spacing={2}>
-          {Object.entries(advancedFeatures).map(
-            ([key, { name, description }]) => (
-              <Box key={key}>
-                <FormControlLabel
-                  label={name}
-                  control={
-                    <Switch
-                      checked={
-                        featureStates[key as keyof typeof advancedFeatures] ??
-                        false
-                      }
-                      onChange={(event) =>
-                        updateFeature(
-                          key as keyof typeof advancedFeatures,
-                          event.target.checked,
-                        )
-                      }
-                    />
-                  }
-                />
-                <Typography color="textSecondary" variant={"body2"} ml={6}>
-                  {description}
-                </Typography>
-              </Box>
-            ),
-          )}
+      <DialogHeader title={t("advanced-features.title", "Advanced Features")} />
+      <DialogBody>
+        <Stack gap="4">
+          {(
+            Object.entries(advancedFeatures) as [
+              AdvancedFeatureKey,
+              (typeof advancedFeatures)[AdvancedFeatureKey],
+            ][]
+          ).map(([key, { name, description }]) => (
+            <Checkbox
+              key={key}
+              label={name}
+              description={description}
+              checked={featureStates[key] ?? false}
+              onCheckedChange={(checked) => updateFeature(key, checked)}
+            />
+          ))}
         </Stack>
-      </DialogContent>
+      </DialogBody>
     </Dialog>
   );
 }
