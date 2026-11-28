@@ -1,86 +1,117 @@
 import { Datasworn } from "@datasworn-community/core";
-import { Box, SxProps, Theme } from "@mui/material";
-import React, { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { ConditionMeter } from "components/datasworn/ConditonMeter";
+import { AddsControl } from "ui/game/ConditionMeter";
+import { MoveRollGroup } from "ui/game/MoveCard";
 
+import { useRollStatAndAddToLog } from "pages/games/hooks/useRollStatAndAddToLog";
+
+import {
+  useConditionMeterRules,
+  useDataswornTree,
+  useStatRules,
+} from "stores/dataswornTree.store";
 import { useGameCharactersStore } from "stores/gameCharacters.store";
 
 import { IAsset } from "services/asset.service";
 
-import { MoveActionRollButton } from "./MoveActionRollButton";
-import { MoveActionRollChip } from "./MoveActionRollChip";
 import { CharacterRollOptionState } from "./common.types";
+import { ActionRollOption, getActionRollOptions } from "./getActionRollOptions";
 
 export interface ActionRollsProps {
   moveId: string;
+  moveName: string;
   actionRolls: Datasworn.RollableValue[];
-  character?: {
+  character: {
     id: string;
     data: CharacterRollOptionState;
     assets: Record<string, IAsset>;
   };
   gameAssets: Record<string, IAsset>;
   gameConditionMeters: Record<string, number>;
-  sx?: SxProps<Theme>;
-  includeAdds?: boolean;
 }
 
+// A character's action rolls for a move, with the Adds the next one takes.
 export function ActionRolls(props: ActionRollsProps) {
   const {
     moveId,
+    moveName,
     actionRolls,
     character,
     gameAssets,
     gameConditionMeters,
-    sx,
-    includeAdds,
   } = props;
   const { t } = useTranslation();
-  const characterId = character?.id;
+  const rollStat = useRollStatAndAddToLog();
+  const stats = useStatRules();
+  const conditionMeters = useConditionMeterRules();
+  const tree = useDataswornTree();
 
+  const options = useMemo(
+    () =>
+      getActionRollOptions(
+        actionRolls,
+        {
+          character: character.data,
+          assets: { ...character.assets, ...gameAssets },
+          gameConditionMeters,
+          stats,
+          conditionMeters,
+          tree,
+        },
+        t,
+      ),
+    [
+      actionRolls,
+      character,
+      gameAssets,
+      gameConditionMeters,
+      stats,
+      conditionMeters,
+      tree,
+      t,
+    ],
+  );
+
+  const characterId = character.id;
   const updateAdds = useGameCharactersStore(
     (store) => store.updateCharacterAdds,
   );
   const handleAddsChange = useCallback(
-    (newAdds: number) => {
-      if (characterId) {
-        updateAdds(characterId, newAdds).catch(() => {});
-      }
+    (adds: number) => {
+      updateAdds(characterId, adds).catch(() => {});
     },
     [characterId, updateAdds],
   );
+
+  const adds = character.data.adds ?? 0;
+  const roll = (option: ActionRollOption) =>
+    rollStat({
+      statId: option.statId,
+      statLabel: option.rollLabel,
+      statModifier: option.value,
+      moveId,
+      adds,
+      momentum: character.data.momentum,
+      characterId,
+    });
+
+  if (options.length === 0) return null;
+
   return (
-    <Box display="flex" flexWrap="wrap" gap={1} sx={sx}>
-      {actionRolls.map((roll, index) => (
-        <React.Fragment key={index}>
-          {character ? (
-            <MoveActionRollButton
-              rollOption={roll}
-              key={index}
-              characterId={character.id}
-              characterData={character.data}
-              characterAssets={character.assets}
-              gameAssets={gameAssets}
-              gameConditionMeters={gameConditionMeters}
-              moveId={moveId}
-            />
-          ) : (
-            <MoveActionRollChip key={index} rollOption={roll} />
-          )}
-        </React.Fragment>
-      ))}
-      {character && includeAdds && (
-        <ConditionMeter
-          label={t("character.character-sidebar.adds", "Adds")}
-          min={-9}
-          max={9}
-          defaultValue={0}
-          value={character.data.adds}
-          onChange={handleAddsChange}
-        />
-      )}
-    </Box>
+    <MoveRollGroup
+      moveName={moveName}
+      label={t("datasworn.move.roll-with", "Roll with")}
+      options={options}
+      adds={adds}
+      onRoll={roll}
+    >
+      <AddsControl
+        label={t("character.character-sidebar.adds", "Adds")}
+        value={adds}
+        onChange={handleAddsChange}
+      />
+    </MoveRollGroup>
   );
 }

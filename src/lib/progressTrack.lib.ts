@@ -68,3 +68,8 @@ const difficultyRanks: Record<Difficulty, ProgressRank> = {
 export function getTicksPerMark(difficulty: Difficulty): number {
   return ticksPerMark[difficultyRanks[difficulty]];
 }
+
+/** The library's name for a track's difficulty, which sets its rank label. */
+export function getProgressRank(difficulty: Difficulty): ProgressRank {
+  return difficultyRanks[difficulty];
+}

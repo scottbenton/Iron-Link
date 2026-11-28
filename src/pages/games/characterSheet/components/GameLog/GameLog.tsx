@@ -1,8 +1,8 @@
-import { Box, LinearProgress } from "@mui/material";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { EmptyState } from "components/Layout/EmptyState";
+import { Alert } from "ui/components/Alert";
+import { GameLog as GameLogView } from "ui/game/GameLog";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
@@ -11,35 +11,41 @@ import { useUID } from "stores/auth.store";
 import { GamePermission } from "stores/game.store";
 import { useGameLogStore } from "stores/gameLog.store";
 
-import { GameLogEntry } from "./GameLogEntry";
-import { GameLogMessageInput } from "./GameLogMessageInput";
+import { createId } from "lib/id.lib";
+
+import { IMessage, LogType } from "services/gameLog.service";
+
+import { useCharacterIdOptional } from "../../hooks/useCharacterId";
+import { plainTextToMessageHtml } from "./plainTextToMessageHtml";
+import { useGameLogEntries } from "./useGameLogEntries";
 
 interface GameLogProps {
+  /** The log is on screen: it counts as seen from opening to closing. */
   open: boolean;
 }
 
+/**
+ * The game's log of rolls and messages, newest at the bottom, with a
+ * message field for players (not viewers) and earlier entries a button
+ * press away.
+ */
 export function GameLog(props: GameLogProps) {
   const { open } = props;
+  const { t } = useTranslation();
 
   const loading = useGameLogStore((state) => state.loading);
   const error = useGameLogStore((state) => state.error);
-  const logs = useGameLogStore((state) => state.logs);
-
+  const hasHitEndOfList = useGameLogStore((state) => state.hasHitEndOfList);
   const loadMoreLogs = useGameLogStore((state) => state.loadMoreLogsIfPresent);
-
-  const { t } = useTranslation();
-
-  const orderedLogs = useMemo(() => {
-    return Object.entries(logs).sort(
-      ([, l1], [, l2]) => l2.timestamp.getTime() - l1.timestamp.getTime(),
-    );
-  }, [logs]);
-
+  const createLog = useGameLogStore((state) => state.createLog);
   const updateLastSeenLogDate = useGameLogStore(
     (state) => state.updateLastSeenLogDate,
   );
+
   const gameId = useGameId();
   const uid = useUID();
+  const characterId = useCharacterIdOptional();
+  const entries = useGameLogEntries();
 
   useEffect(() => {
     if (!uid) return;
@@ -60,60 +66,39 @@ export function GameLog(props: GameLogProps) {
     }
   }, [open, updateLastSeenLogDate, uid, gameId]);
 
-  useEffect(() => {
-    const tabPanel = document.getElementById("tabpanel-game-log");
-    const loadMoreLogsElement = document.getElementById("load-more-logs");
-
-    // use intersection observer to load more logs
-    if (tabPanel && loadMoreLogsElement) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              loadMoreLogs();
-            }
-          });
-        },
-        { threshold: 0.5 },
-      );
-
-      observer.observe(loadMoreLogsElement);
-
-      return () => {
-        observer.disconnect();
-      };
-    }
-  }, [loadMoreLogs]);
-
   const isPlayer =
     useGamePermissions().gamePermission !== GamePermission.Viewer;
+
+  const sendMessage = async (text: string) => {
+    if (!uid) return;
+    const message: IMessage = {
+      id: createId(),
+      logType: LogType.MESSAGE,
+      guidesOnly: false,
+      uid,
+      gameId,
+      characterId: characterId || null,
+      contents: plainTextToMessageHtml(text),
+      timestamp: new Date(),
+    };
+    await createLog(message.id, message);
+  };
+
+  if (error && entries.length === 0) {
+    return (
+      <Alert tone="danger" css={{ margin: "3" }}>
+        {t("game.log.load-error", "Error loading logs")}
+      </Alert>
+    );
+  }
+
   return (
-    <>
-      {isPlayer && <GameLogMessageInput />}
-      <Box flexShrink={0} height={"1px"} style={{ overflowAnchor: "auto" }} />
-      {orderedLogs.length > 0 && (
-        // Newest first, like the panel, which reverses its column so the
-        // newest entry sits at the bottom by the message input.
-        <Box
-          component={"ul"}
-          display={"flex"}
-          flexDirection={"column-reverse"}
-          flexShrink={0}
-          sx={{ listStyle: "none", m: 0, p: 0 }}
-        >
-          {orderedLogs.map(([logId, log]) => (
-            <GameLogEntry key={logId} logId={logId} log={log} />
-          ))}
-        </Box>
-      )}
-      <div id={"load-more-logs"} />
-      {loading && <LinearProgress sx={{ flexShrink: 0 }} />}
-      {error && !orderedLogs.length && (
-        <EmptyState message={t("game.log.load-error", "Error loading logs")} />
-      )}
-      {orderedLogs.length === 0 && !loading && !error && (
-        <EmptyState message={t("game.log.no-logs", "No logs yet")} />
-      )}
-    </>
+    <GameLogView
+      entries={entries}
+      loading={loading}
+      hasMore={!hasHitEndOfList}
+      onLoadMore={loadMoreLogs}
+      onSend={isPlayer ? sendMessage : undefined}
+    />
   );
 }

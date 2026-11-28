@@ -18,6 +18,8 @@ import { useGameCharacter } from "stores/gameCharacters.store";
 
 import { DEFAULT_MOMENTUM } from "data/constants";
 
+import { getAssetControlRollLabel } from "lib/assetControlRollLabel";
+
 import { IAsset } from "services/asset.service";
 
 import { useDebouncedClockChanges } from "./useDebouncedClockChanges";
@@ -42,7 +44,8 @@ export interface AssetCardProps extends CssProp {
 /**
  * The library's asset card for an asset in the loaded rules, with a
  * character's ticks and values from Iron Link. Rolling a meter (a
- * companion's Health) rolls it with the character's momentum and logs it.
+ * companion's Health) rolls it with the character's momentum and Adds and
+ * logs it.
  */
 export function AssetCard(props: AssetCardProps) {
   const {
@@ -65,6 +68,7 @@ export function AssetCard(props: AssetCardProps) {
   const momentum = useGameCharacter(
     (character) => character?.momentum ?? DEFAULT_MOMENTUM,
   );
+  const adds = useGameCharacter((character) => character?.adds ?? 0);
   const rollStat = useRollStatAndAddToLog();
 
   const controls = asset ? getAssetFields(asset, assetDocument).controls : {};
@@ -94,8 +98,13 @@ export function AssetCard(props: AssetCardProps) {
   const handleRoll = (key: string, control: AssetControl, value: number) => {
     rollStat({
       statId: key,
-      statLabel: control.label,
+      statLabel: getAssetControlRollLabel(
+        t,
+        assetDocument?.optionValues?.["name"] ?? asset.name,
+        control.label,
+      ),
       statModifier: value,
+      adds,
       momentum,
     });
   };

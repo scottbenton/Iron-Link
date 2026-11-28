@@ -12,13 +12,24 @@ import { ListRow, ListRowButton } from "ui/components/List";
 import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
+import { css } from "styled-system/css";
+
 import { DieFace, useDieFace } from "../DieFace";
+
+const descriptionStyles = css({
+  display: "block",
+  fontSize: "xs",
+  fontWeight: "normal",
+  color: "fg.muted",
+});
 
 export interface OracleListItemProps
   extends CssProp,
     Omit<ComponentPropsWithoutRef<"div">, "children"> {
   /** The oracle's name. */
   name: string;
+  /** A line under the name, such as what the oracle is used for. */
+  description?: ReactNode;
   /** Rolls the oracle. The whole row is the button. */
   onRoll?: () => void;
   /** Read before the name, "Roll" by default ("Roll Action"). */
@@ -53,6 +64,7 @@ export function OracleListItem(props: OracleListItemProps) {
   const { t } = useTranslation();
   const {
     name,
+    description,
     onRoll,
     actionLabel = t("ui.common.roll", "Roll"),
     icon,
@@ -107,6 +119,9 @@ export function OracleListItem(props: OracleListItemProps) {
         <span data-row-name="">
           {!isLink && <VisuallyHidden>{actionLabel} </VisuallyHidden>}
           {name}
+          {description && (
+            <span className={descriptionStyles}>{description}</span>
+          )}
         </span>
         {glyph && (
           <span data-row-glyph="" aria-hidden>

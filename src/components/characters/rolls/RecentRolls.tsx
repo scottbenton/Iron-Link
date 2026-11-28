@@ -1,11 +1,10 @@
 import { PropsWithChildren, useCallback, useState } from "react";
 
-import { DieRerollDialog } from "pages/games/characterSheet/components/GameLog/DieRerollDialog";
-
 import { RollType } from "repositories/shared.types";
 
 import { IGameLogRoll, IStatRoll } from "services/gameLog.service";
 
+import { DieRerollDialog } from "./DieRerollDialog";
 import { RecentRollToasts } from "./RecentRollToasts";
 import { RollRerollContext } from "./rollRerollContext";
 

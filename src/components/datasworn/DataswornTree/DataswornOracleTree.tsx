@@ -1,4 +1,5 @@
-import { useDeferredValue, useMemo, useState } from "react";
+import { Datasworn } from "@datasworn-community/core";
+import { useDeferredValue, useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { countVisibleItems } from "components/datasworn/_helpers/countVisibleItems";
@@ -9,6 +10,7 @@ import {
   getCollectionVisibilities,
 } from "components/datasworn/_helpers/getCollectionVisibility";
 
+import { useHeadingComponent } from "ui/components/HeadingOffset";
 import { SearchField } from "ui/components/SearchField";
 import { Text } from "ui/components/Text";
 import { Stack } from "ui/primitives";
@@ -27,7 +29,19 @@ import {
 } from "./dataswornTreeContext";
 import { DataswornTreeOptions, useFilteredTree } from "./useFilteredTree";
 
+export interface DataswornFeaturedOracle {
+  oracleId: string;
+  // Read under the oracle's name, such as the fields that roll it.
+  description?: string;
+}
+
 export interface DataswornOracleTreeProps extends DataswornTreeOptions {
+  // Oracles listed first under their own heading, above the rules packages.
+  // The filter narrows them by name; ones not in the rules are left out.
+  featured?: {
+    title: string;
+    oracles: DataswornFeaturedOracle[];
+  };
   // Draws one oracle's row, such as a link to its page with a quick roll.
   renderOracle: RenderOracleRow;
   // Rolls an oracle from the Ask the Oracle buttons, which show only with it.
@@ -38,7 +52,7 @@ export interface DataswornOracleTreeProps extends DataswornTreeOptions {
 // collections, with their counts, open state and filter matches. The caller
 // draws the rows.
 export function DataswornOracleTree(props: DataswornOracleTreeProps) {
-  const { selectedId, renderOracle, rollOracle } = props;
+  const { selectedId, renderOracle, rollOracle, featured } = props;
   const { t } = useTranslation();
 
   const [searchValue, setSearchValue] = useState("");
@@ -102,13 +116,40 @@ export function DataswornOracleTree(props: DataswornOracleTreeProps) {
         }),
   );
 
+  const featuredOracles = useMemo(() => {
+    const term = search.toLowerCase();
+    return (featured?.oracles ?? []).flatMap(({ oracleId, description }) => {
+      // Only an oracle in the rules can roll; one the rules leave out is not
+      // offered here.
+      const oracle = oracleRollableMap[oracleId] as
+        | Datasworn.OracleRollable
+        | undefined;
+      if (!oracle) return [];
+      if (term && !oracle.name.toLowerCase().includes(term)) return [];
+      return [
+        {
+          id: oracle._id,
+          name: oracle.name,
+          canRoll: true,
+          // A description that only repeats the name is left out.
+          description:
+            description?.toLowerCase() === oracle.name.toLowerCase()
+              ? undefined
+              : description,
+        },
+      ];
+    });
+  }, [featured, oracleRollableMap, search]);
+  const featuredHeadingId = useId();
+  const FeaturedHeading = useHeadingComponent(3);
+
   const contextValue = useMemo<DataswornTreeContextValue>(
     () => ({ selectedId, openCollectionIds, visibilitySettings, search }),
     [selectedId, openCollectionIds, visibilitySettings, search],
   );
 
   const groups = Object.entries(rootOracleCollections);
-  const showGroupTitles = groups.length > 1;
+  const showGroupTitles = groups.length > 1 || featuredOracles.length > 0;
 
   return (
     <DataswornTreeContext.Provider value={contextValue}>
@@ -120,6 +161,33 @@ export function DataswornOracleTree(props: DataswornOracleTreeProps) {
           value={searchValue}
           onValueChange={setSearchValue}
         />
+        {featured && featuredOracles.length > 0 && (
+          <Stack gap="1">
+            <Text
+              id={featuredHeadingId}
+              variant="eyebrow"
+              color="muted"
+              as={FeaturedHeading}
+              css={{ paddingInline: "3", paddingBlockStart: "2" }}
+            >
+              {featured.title}
+            </Text>
+            <Stack
+              as="ul"
+              gap="0"
+              aria-labelledby={featuredHeadingId}
+              listStyle="none"
+              margin="0"
+              padding="0"
+            >
+              {featuredOracles.map((oracle) => (
+                <li key={oracle.id}>
+                  {renderOracle(oracle, { current: selectedId === oracle.id })}
+                </li>
+              ))}
+            </Stack>
+          </Stack>
+        )}
         {groups.map(([packageId, ruleset]) => (
           <DataswornTreeGroup
             key={packageId}

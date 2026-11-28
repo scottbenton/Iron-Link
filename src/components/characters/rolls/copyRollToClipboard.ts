@@ -1,6 +1,6 @@
-import { convertRollToClipboard } from "pages/games/characterSheet/components/GameLog/clipboardFormatter";
-
 import { IGameLogRoll } from "services/gameLog.service";
+
+import { convertRollToClipboard } from "./clipboardFormatter";
 
 async function pasteRich(rich: string, plain: string) {
   if (typeof ClipboardItem !== "undefined") {

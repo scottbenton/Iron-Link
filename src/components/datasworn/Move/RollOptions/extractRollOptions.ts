@@ -15,7 +15,7 @@ interface ActionRollGroups {
   assetControls: Record<string, Datasworn.RollableValue>;
 }
 
-interface RollOptionGroup {
+export interface RollOptionGroup {
   actionRolls: Datasworn.RollableValue[];
   specialTracks: string[] | undefined;
   assetEnhancements: AssetEnhancements;

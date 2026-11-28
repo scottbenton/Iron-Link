@@ -61,6 +61,11 @@ export interface MoveListItemProps
   /** Props for the move shown when the row opens: roll options, handlers. */
   moveCardProps?: Omit<MoveCardProps, "move">;
   /**
+   * What the row shows when it opens, in place of the move card, such as
+   * an app's own move with its rolls.
+   */
+  children?: ReactNode;
+  /**
    * Render the row as a link instead, such as a reference page:
    * `render={<Link to={href} />}`. It no longer opens in place.
    */
@@ -89,6 +94,7 @@ export function MoveListItem(props: MoveListItemProps) {
     defaultExpanded = false,
     onExpandedChange,
     moveCardProps,
+    children,
     render,
     current,
     secondaryAction,
@@ -138,13 +144,15 @@ export function MoveListItem(props: MoveListItemProps) {
       </ListRow>
       <Collapsible.Panel className={collapsiblePanelStyles}>
         <div className={bodyStyles}>
-          <MoveCard
-            move={move}
-            category=""
-            hideName
-            variant="plain"
-            {...moveCardProps}
-          />
+          {children ?? (
+            <MoveCard
+              move={move}
+              category=""
+              hideName
+              variant="plain"
+              {...moveCardProps}
+            />
+          )}
         </div>
       </Collapsible.Panel>
     </Collapsible.Root>

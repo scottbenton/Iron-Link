@@ -121,7 +121,7 @@ describe("WorldReferenceSidebar", () => {
     });
     const bound = screen.getByRole("list", { name: "Bound to this category" });
     expect(
-      within(bound).getByRole("button", { name: /^Family Name/ }),
+      within(bound).getByRole("button", { name: /^(roll )?family name/i }),
     ).toHaveTextContent("Surname");
     expect(
       within(bound).queryByRole("button", { name: /^Given Name/ }),
@@ -147,7 +147,7 @@ describe("WorldReferenceSidebar", () => {
     });
     const bound = screen.getByRole("list", { name: "Bound to this category" });
     await user.click(
-      within(bound).getByRole("button", { name: /^Family Name/ }),
+      within(bound).getByRole("button", { name: /^(roll )?family name/i }),
     );
     expect(useAppState.getState().visibleRolls).toEqual([
       expect.objectContaining({

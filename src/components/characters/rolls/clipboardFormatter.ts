@@ -1,4 +1,4 @@
-import { capitalize } from "@mui/material";
+import { capitalize } from "ui/game/shared";
 
 import { getMove } from "hooks/datasworn/useMove";
 
