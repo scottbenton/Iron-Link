@@ -165,7 +165,12 @@ describe("AssetCard", () => {
     await user.click(screen.getByRole("button", { name: /^roll health/i }));
     expect(mockRoll).toHaveBeenCalledTimes(1);
     expect(mockRoll).toHaveBeenCalledWith(
-      expect.objectContaining({ statId: "health", statModifier: 2 }),
+      expect.objectContaining({
+        statId: "health",
+        statModifier: 2,
+        // Named as a move's roll of the same control names it.
+        statLabel: expect.stringMatching(/'s Health$/),
+      }),
     );
   });
 

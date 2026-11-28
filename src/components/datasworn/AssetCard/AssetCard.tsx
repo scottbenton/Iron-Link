@@ -18,6 +18,8 @@ import { useGameCharacter } from "stores/gameCharacters.store";
 
 import { DEFAULT_MOMENTUM } from "data/constants";
 
+import { getAssetControlRollLabel } from "lib/assetControlRollLabel";
+
 import { IAsset } from "services/asset.service";
 
 import { useDebouncedClockChanges } from "./useDebouncedClockChanges";
@@ -94,7 +96,11 @@ export function AssetCard(props: AssetCardProps) {
   const handleRoll = (key: string, control: AssetControl, value: number) => {
     rollStat({
       statId: key,
-      statLabel: control.label,
+      statLabel: getAssetControlRollLabel(
+        t,
+        assetDocument?.optionValues?.["name"] ?? asset.name,
+        control.label,
+      ),
       statModifier: value,
       momentum,
     });

@@ -4,13 +4,16 @@ import type { TFunction } from "i18next";
 import { MoveRollOption } from "ui/game/MoveCard";
 import { capitalize } from "ui/game/shared";
 
+import { getAssetControlRollLabel } from "lib/assetControlRollLabel";
+
 import { IAsset } from "services/asset.service";
 
 import { CharacterRollOptionState } from "./common.types";
 
 // One roll a character can make a move with: the button it shows and the
 // stat it rolls. Datasworn names stats in lower case ("edge"), so the button
-// capitalizes them and the roll keeps the rules' own label.
+// capitalizes them and the roll keeps the rules' own label. An asset control
+// is named as the asset card names its roll.
 export interface ActionRollOption extends MoveRollOption {
   value: number;
   statId: string;
@@ -102,20 +105,16 @@ function getAssetControlOptions(
           if (document.dataswornAssetId !== asset._id) return;
           const value = document.controlValues?.[roll.control];
           const key = `${index}-${asset._id}-${documentId}-${roll.control}`;
-          const assetName = document.optionValues?.["name"] ?? asset.name;
-          const labelKey = "datasworn.move.asset-control-roll-label";
-          const labelDefault = "{{assetName}}'s {{controlLabel}}";
+          const label = getAssetControlRollLabel(
+            t,
+            document.optionValues?.["name"] ?? asset.name,
+            control.label,
+          );
           options[key] = {
             id: key,
             statId: roll.control,
-            label: t(labelKey, labelDefault, {
-              assetName,
-              controlLabel: capitalize(control.label),
-            }),
-            rollLabel: t(labelKey, labelDefault, {
-              assetName,
-              controlLabel: control.label,
-            }),
+            label,
+            rollLabel: label,
             value:
               typeof value === "number"
                 ? value

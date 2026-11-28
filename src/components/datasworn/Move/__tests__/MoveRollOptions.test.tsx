@@ -235,6 +235,7 @@ describe("MoveRollOptions", () => {
     expect(rollStat).toHaveBeenCalledWith(
       expect.objectContaining({
         statId: "integrity",
+        statLabel: "Starship's Integrity",
         statModifier: 5,
         characterId: "kai",
       }),
