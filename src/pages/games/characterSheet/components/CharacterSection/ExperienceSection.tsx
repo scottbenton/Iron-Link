@@ -1,8 +1,11 @@
-import { Box, Typography } from "@mui/material";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DebouncedConditionMeter } from "components/datasworn/ConditonMeter";
+import { XPMeter } from "ui/game/ConditionMeter";
+import { SectionHeading } from "ui/layout";
+import { Flex, Stack } from "ui/primitives";
+
+import { useDebouncedSync } from "hooks/useDebouncedSync";
 
 import {
   useGameCharacter,
@@ -13,6 +16,7 @@ import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterId } from "../../hooks/useCharacterId";
 
 export function ExperienceSection() {
+  const { t } = useTranslation();
   const characterId = useCharacterId();
   const canEditCharacter = useCanEditCharacter();
 
@@ -23,37 +27,31 @@ export function ExperienceSection() {
     (store) => store.updateExperience,
   );
 
-  const { t } = useTranslation();
-
-  const handleExperienceChange = useCallback(
+  const persist = useCallback(
     (value: number) => {
       updateExperience(characterId, value).catch(() => {});
     },
     [characterId, updateExperience],
   );
+  const [value, setValue] = useDebouncedSync(persist, unspentExperience);
 
   return (
-    <Box>
-      <Typography
-        variant="h6"
-        component="h3"
-        textTransform="uppercase"
-        fontFamily="fontFamilyTitle"
-      >
-        {t("character.character-sidebar.experience", "Experience")}
-      </Typography>
-      <DebouncedConditionMeter
-        label={t(
-          "character.character-sidebar.unspent-experience",
-          "Unspent Experience",
-        )}
-        min={0}
-        max={100}
-        defaultValue={0}
-        value={unspentExperience}
-        onChange={handleExperienceChange}
-        disabled={!canEditCharacter}
+    <Stack gap="2" as="section">
+      <SectionHeading
+        title={t("character.character-sidebar.experience", "Experience")}
+        as="h3"
       />
-    </Box>
+      {/* At its own width, like the meters, not across the column. */}
+      <Flex>
+        <XPMeter
+          label={t(
+            "character.character-sidebar.unspent-experience",
+            "Unspent Experience",
+          )}
+          value={value}
+          onChange={canEditCharacter ? setValue : undefined}
+        />
+      </Flex>
+    </Stack>
   );
 }

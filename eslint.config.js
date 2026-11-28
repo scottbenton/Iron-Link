@@ -86,6 +86,11 @@ export default tseslint.config(
       "src/pages/games/overviewSheet/GameOverviewSheet.tsx",
       "src/pages/games/characterSheet/components/CharacterSidebarContents.tsx",
       "src/pages/games/characterSheet/components/ReferenceSidebarContents.tsx",
+      "src/pages/games/characterSheet/components/CharacterSection/**/*.{ts,tsx}",
+      "src/pages/games/characterSheet/hooks/useImpactsWording.ts",
+      "src/components/characters/CharacterInitiativeChip/**/*.{ts,tsx}",
+      "src/components/characters/CharacterPortraitAvatar/**/*.{ts,tsx}",
+      "src/components/characters/rolls/{Recent,recent,use,roll,copy,clear}*.{ts,tsx}",
     ],
     ignores: [
       "src/ui/**/__stories__/**",

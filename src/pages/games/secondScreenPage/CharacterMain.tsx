@@ -1,4 +1,6 @@
-import { Box, Card, Typography } from "@mui/material";
+import { Card } from "ui/components/Card";
+import { Text } from "ui/components/Text";
+import { Box, Center } from "ui/primitives";
 
 import {
   useCharacterPortrait,
@@ -10,6 +12,7 @@ interface CharacterMainProps {
   characterId: string;
 }
 
+/** A character on the second screen's main area: the portrait and the name. */
 export function CharacterMain(props: CharacterMainProps) {
   const { characterId } = props;
 
@@ -23,54 +26,50 @@ export function CharacterMain(props: CharacterMainProps) {
   useLoadCharacterPortrait(characterId, filename);
   const portraitUrl = useCharacterPortrait(characterId).url;
 
+  if (!filename) {
+    return (
+      <Center flex="1 1 auto" padding="6">
+        <Text variant="display" as="h1" align="center">
+          {characterName}
+        </Text>
+      </Center>
+    );
+  }
+
   return (
-    <>
-      <Box
-        flexGrow={1}
-        position="relative"
-        overflow="hidden"
-        bgcolor="grey.950"
+    <Box
+      flex="1 1 auto"
+      position="relative"
+      overflow="hidden"
+      css={{
+        "& > img": {
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          objectPosition: "top",
+        },
+      }}
+    >
+      <img
+        src={portraitUrl}
+        // The name is the heading below, so the portrait doesn't repeat it.
+        alt=""
+      />
+      <Card
+        padding="sm"
+        raised
+        css={{
+          position: "absolute",
+          bottom: "4",
+          left: "50%",
+          transform: "translateX(-50%)",
+          paddingX: "4",
+        }}
       >
-        {filename ? (
-          <>
-            <Box
-              component="img"
-              sx={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                objectPosition: "top",
-              }}
-              src={portraitUrl}
-              // The name is the heading below, so the portrait doesn't
-              // repeat it.
-              alt=""
-            />
-            <Card
-              sx={{
-                px: 2,
-                position: "absolute",
-                bottom: 8,
-                left: "50%",
-                transform: "translate(-50%, 0)",
-              }}
-            >
-              <Typography
-                variant="h2"
-                component="h1"
-                fontFamily="fontFamilyTitle"
-                whiteSpace={"nowrap"}
-              >
-                {characterName}
-              </Typography>
-            </Card>
-          </>
-        ) : (
-          <Typography variant="h1" component="h1" fontFamily="fontFamilyTitle">
-            {characterName}
-          </Typography>
-        )}
-      </Box>
-    </>
+        <Text variant="h1" as="h1" css={{ whiteSpace: "nowrap" }}>
+          {characterName}
+        </Text>
+      </Card>
+    </Box>
   );
 }

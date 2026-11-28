@@ -1,14 +1,13 @@
-import { Box, Typography } from "@mui/material";
+import { CharacterInitiativeChip } from "components/characters/CharacterInitiativeChip";
+import { CharacterPortraitAvatar } from "components/characters/CharacterPortraitAvatar";
 
-import { PortraitAvatar } from "components/characters/PortraitAvatar";
-import { InitiativeStatusChip } from "components/datasworn/InitiativeStatusChip";
+import { Text } from "ui/components/Text";
+import { Flex, HStack, Stack } from "ui/primitives";
 
 import {
   useGameCharacter,
   useGameCharactersStore,
 } from "stores/gameCharacters.store";
-
-import { InitiativeStatus } from "repositories/character.repository";
 
 import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
 import { useCharacterId } from "../../hooks/useCharacterId";
@@ -25,44 +24,41 @@ export function CharacterDetails() {
   const portraitSettings = useGameCharacter(
     (character) => character?.profileImage,
   );
+  const colorScheme = useGameCharacter((character) => character?.colorScheme);
 
   const updateInitiativeStatus = useGameCharactersStore(
     (store) => store.updateCharacterInitiativeStatus,
   );
 
   return (
-    <Box display="flex" gap={2}>
-      {portraitSettings && (
-        <PortraitAvatar
-          characterId={characterId ?? ""}
+    <HStack gap="3" alignItems="center">
+      {portraitSettings && characterId && (
+        <CharacterPortraitAvatar
+          characterId={characterId}
           name={name}
+          portraitSettings={portraitSettings}
+          colorScheme={colorScheme}
+          size="lg"
+          shape="rounded"
           decorative
-          size={"large"}
-          portraitSettings={portraitSettings ?? undefined}
         />
       )}
-      <Box>
-        <Typography variant="h4" component="h3" fontFamily={"fontFamilyTitle"}>
+      <Stack gap="1" minWidth="0" alignItems="start">
+        <Text variant="h3" as="h3">
           {name}
-        </Typography>
-        <Box display="flex" flexWrap="wrap" alignItems="center" gap={1}>
-          <InitiativeStatusChip
-            status={initiativeStatus ?? InitiativeStatus.OutOfCombat}
-            handleStatusChange={
-              canEditCharacter
-                ? (status) => {
-                    if (characterId) {
-                      updateInitiativeStatus(characterId, status).catch(
-                        () => {},
-                      );
-                    }
-                  }
+        </Text>
+        <Flex gap="2" flexWrap="wrap" alignItems="center">
+          <CharacterInitiativeChip
+            status={initiativeStatus}
+            onStatusChange={
+              canEditCharacter && characterId
+                ? (status) => updateInitiativeStatus(characterId, status)
                 : undefined
             }
           />
           <CharacterAccessChip />
-        </Box>
-      </Box>
-    </Box>
+        </Flex>
+      </Stack>
+    </HStack>
   );
 }

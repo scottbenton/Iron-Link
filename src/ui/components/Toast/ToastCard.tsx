@@ -104,7 +104,7 @@ export interface ToastCardProps {
   /** The named close button. Every toast has one. */
   onDismiss: () => void;
   dismissLabel?: string;
-  /** Floating, with the shadow: in the toast stack or the roll dock. */
+  /** Floating, with the shadow: in the toast stack or the activity dock. */
   elevated?: boolean;
   className?: string;
   /** Anything else, laid out after the text and before the buttons. */

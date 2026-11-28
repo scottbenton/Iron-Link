@@ -205,16 +205,26 @@ export const useGameCharactersStore = createWithEqualityFn<
       });
     },
     updateCharacterImpactValue: (characterId, impactKey, checked) => {
-      return new Promise((resolve, reject) => {
+      const impacts = getState().characters[characterId]?.debilities;
+      if (!impacts) return Promise.resolve();
+      const previous = impacts[impactKey];
+
+      set((store) => {
+        store.characters[characterId].debilities[impactKey] = checked;
+      });
+
+      return CharacterService.updateImpacts(characterId, {
+        ...impacts,
+        [impactKey]: checked,
+      }).catch((error) => {
+        // Puts back only this impact, and only if nothing changed it since.
         set((store) => {
-          store.characters[characterId].debilities[impactKey] = checked;
-          CharacterService.updateImpacts(
-            characterId,
-            store.characters[characterId].debilities,
-          )
-            .then(resolve)
-            .catch(reject);
+          const current = store.characters[characterId]?.debilities;
+          if (current?.[impactKey] !== checked) return;
+          if (previous === undefined) delete current[impactKey];
+          else current[impactKey] = previous;
         });
+        throw error;
       });
     },
     updateSpecialTrackValue: (characterId, specialTrackKey, value) => {

@@ -5,10 +5,11 @@ import { useTranslation } from "react-i18next";
 import { css, cx } from "styled-system/css";
 
 import { Button } from "../../components/Button";
+import { toastViewportAttribute } from "../../components/Toast/toastViewport";
 import { CssProp, withCssProp } from "../../styles/cssProp";
+import { ActivitySheet } from "./ActivitySheet";
 import { DockedCard } from "./DockedCard";
 import type { DockedItem } from "./DockedCard";
-import { RecentRollsSheet } from "./RecentRollsSheet";
 
 /** How far each older card's edge shows above the one in front of it. */
 const PEEK_OFFSET = 6;
@@ -25,6 +26,8 @@ const dockStyles = css({
   // The page under the gaps stays usable; the cards and buttons take taps.
   pointerEvents: "none",
   "& > *": { pointerEvents: "auto" },
+  // Over a modal, like the toasts; the caller's position must be fixed.
+  "&[data-above-modals]": { zIndex: "toast" },
 });
 
 const handleStyles = css({
@@ -69,7 +72,7 @@ const showAllRowStyles = css({
   marginBlockStart: "-1",
 });
 
-export interface RollDockProps extends CssProp {
+export interface ActivityDockProps extends CssProp {
   /**
    * Recent rolls and notifications, oldest first; the newest shows in full.
    */
@@ -87,6 +90,13 @@ export interface RollDockProps extends CssProp {
   showLessLabel?: string;
   clearAllLabel?: string;
   emptyLabel?: string;
+  /**
+   * Keeps the dock over a modal that opens on top of the page, as the
+   * toasts are: pressing it does not close the modal, and screen readers
+   * still reach it. Its own sheet still covers it. The caller renders the
+   * dock outside the page (a portal) with a fixed position for this.
+   */
+  aboveModals?: boolean;
   className?: string;
 }
 
@@ -99,23 +109,24 @@ export interface RollDockProps extends CssProp {
  * Place it over the page's foot, above the MobileNav, at the page's full
  * width less 16px each side.
  */
-export function RollDock(props: RollDockProps) {
+export function ActivityDock(props: ActivityDockProps) {
   const { t } = useTranslation();
   const {
     items,
     onDismiss,
     onClearAll,
     clampHeight = 240,
-    label = t("ui.roll-dock.notifications", "Notifications"),
+    label = t("ui.activity-dock.notifications", "Notifications"),
     countLabel = (count: number) =>
-      t("ui.roll-dock.count", "{{count}} notifications", {
+      t("ui.activity-dock.count", "{{count}} notifications", {
         count,
         defaultValue_one: "{{count}} notification",
       }),
-    showAllLabel = t("ui.roll-dock.show-all", "Show all"),
-    showLessLabel = t("ui.roll-dock.show-less", "Show less"),
-    clearAllLabel = t("ui.roll-dock.clear-all", "Clear all"),
-    emptyLabel = t("ui.roll-dock.empty", "No notifications"),
+    showAllLabel = t("ui.activity-dock.show-all", "Show all"),
+    showLessLabel = t("ui.activity-dock.show-less", "Show less"),
+    clearAllLabel = t("ui.activity-dock.clear-all", "Clear all"),
+    emptyLabel = t("ui.activity-dock.empty", "No notifications"),
+    aboveModals = false,
     className,
   } = withCssProp(props);
 
@@ -141,10 +152,23 @@ export function RollDock(props: RollDockProps) {
 
   if (items.length === 0) return null;
 
+  // An empty `aria-live` keeps the dock readable while a modal hides the
+  // rest of the page from screen readers, and the toast attribute tells the
+  // modal a press here is not a press outside it.
+  const overModal = aboveModals && !sheetOpen;
+  const overModalProps = overModal
+    ? {
+        "data-above-modals": "",
+        [toastViewportAttribute]: "",
+        "aria-live": "off" as const,
+      }
+    : {};
+
   return (
     <>
       <section
         aria-label={label}
+        {...overModalProps}
         className={cx(dockStyles, className)}
         style={
           {
@@ -204,7 +228,7 @@ export function RollDock(props: RollDockProps) {
           </div>
         )}
       </section>
-      <RecentRollsSheet
+      <ActivitySheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
         items={items}

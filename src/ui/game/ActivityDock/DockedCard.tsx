@@ -1,7 +1,7 @@
 import { ToastCard } from "../../components/Toast";
 import type { ToastCardProps } from "../../components/Toast";
 import { RollCard } from "../RollCard";
-import type { RollData } from "../RollCard";
+import type { RollCardAction, RollData } from "../RollCard";
 
 /**
  * One card in the dock: a roll, or a notification (a toast's message, such
@@ -9,7 +9,15 @@ import type { RollData } from "../RollCard";
  * Toaster stacks them on wider screens.
  */
 export type DockedItem =
-  | { id: string; roll: RollData; toast?: undefined }
+  | {
+      id: string;
+      roll: RollData;
+      /** The roll's buttons, such as Reroll and Burn Momentum. */
+      actions?: RollCardAction[];
+      /** Names the card's Dismiss, "Dismiss Face Danger". */
+      dismissLabel?: string;
+      toast?: undefined;
+    }
   | {
       id: string;
       toast: Omit<ToastCardProps, "onDismiss" | "className">;
@@ -28,6 +36,8 @@ export function DockedCard(props: {
   return item.roll ? (
     <RollCard
       roll={item.roll}
+      actions={item.actions}
+      dismissLabel={item.dismissLabel}
       elevated={docked}
       animateIn={docked}
       onDismiss={onDismiss}

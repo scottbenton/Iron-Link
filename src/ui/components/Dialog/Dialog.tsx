@@ -3,6 +3,7 @@ import { CSSProperties, ComponentProps, FormEvent, ReactNode } from "react";
 
 import { css, cva, cx } from "styled-system/css";
 
+import { useRegisterOpenModal } from "../../hooks/useIsModalOpen";
 import { LiveRegion } from "../Announcer";
 import { HeadingOffset } from "../HeadingOffset";
 import { isPressOnToasts } from "../Toast/toastViewport";
@@ -125,6 +126,8 @@ export function Dialog(props: DialogProps) {
     className,
     initialFocus,
   } = props;
+
+  useRegisterOpenModal(open);
 
   return (
     <BaseDialog.Root

@@ -19,6 +19,7 @@ import { Sidebar, SidebarProps } from "../Sidebar";
 import { PageWidth, contentRailStyles } from "../shared/contentRail";
 import { LayoutPanel } from "../shared/layoutPanel";
 import { srOnlyStyles } from "../shared/sectionTabs";
+import { GameBanner } from "./GameBanner";
 import { gameRailFrameStyles, gameRailMarginStyles } from "./gameRailMargins";
 
 const rootStyles = css({
@@ -40,23 +41,6 @@ const tabsRowStyles = css({
   flex: "none",
   minWidth: 0,
   background: "bg.surface",
-});
-
-/**
- * The banner runs edge to edge under the bar: no radius and no side or top
- * border, so it reads as part of the page rather than a card on it. The
- * attribute raises these over the Alert's own recipe.
- */
-const bannerStyles = css({
-  flex: "none",
-  "&[data-part=banner] > *": {
-    width: "100%",
-    maxWidth: "none",
-    marginInline: 0,
-    borderRadius: 0,
-    borderInlineWidth: 0,
-    borderTopWidth: 0,
-  },
 });
 
 const bodyStyles = css({
@@ -284,11 +268,7 @@ export function GameLayout(props: GameLayoutProps) {
     setEndCollapsed(collapsed);
   };
 
-  const bannerSlot = banner && (
-    <div className={bannerStyles} data-part="banner">
-      {banner}
-    </div>
-  );
+  const bannerSlot = banner && <GameBanner>{banner}</GameBanner>;
 
   // Open columns share the room the main column leaves; rails come out of
   // the main column's share.

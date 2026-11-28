@@ -24,7 +24,7 @@ const emptyStyles = css({
   textAlign: "center",
 });
 
-export interface RecentRollsSheetProps {
+export interface ActivitySheetProps {
   open: boolean;
   onClose: () => void;
   /** Oldest first, as the dock holds them; the sheet lists newest first. */
@@ -41,9 +41,9 @@ export interface RecentRollsSheetProps {
 /**
  * Every recent roll and notification, newest first, in a sheet from the
  * bottom: each card with its own Dismiss, and Clear all, which closes the
- * sheet too. The roll dock's "N notifications" handle opens it.
+ * sheet too. The activity dock's "N notifications" handle opens it.
  */
-export function RecentRollsSheet(props: RecentRollsSheetProps) {
+export function ActivitySheet(props: ActivitySheetProps) {
   const { t } = useTranslation();
   const {
     open,
@@ -51,9 +51,9 @@ export function RecentRollsSheet(props: RecentRollsSheetProps) {
     items,
     onDismiss,
     onClearAll,
-    title = t("ui.roll-dock.notifications", "Notifications"),
-    clearAllLabel = t("ui.roll-dock.clear-all", "Clear all"),
-    emptyLabel = t("ui.roll-dock.empty", "No notifications"),
+    title = t("ui.activity-dock.notifications", "Notifications"),
+    clearAllLabel = t("ui.activity-dock.clear-all", "Clear all"),
+    emptyLabel = t("ui.activity-dock.empty", "No notifications"),
     closeLabel = t("ui.common.close", "Close"),
   } = props;
   const newestFirst = [...items].reverse();

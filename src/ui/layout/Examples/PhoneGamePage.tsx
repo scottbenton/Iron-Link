@@ -37,10 +37,10 @@ import { css } from "styled-system/css";
 
 import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { sampleCharacters } from "../../docs/fixtures/characters";
+import { ActivityDock, DockedItem } from "../../game/ActivityDock";
 import { CharacterPortrait } from "../../game/CharacterPortrait";
 import { CharacterSwitcher } from "../../game/CharacterSwitcher";
 import type { RollData } from "../../game/RollCard";
-import { DockedItem, RollDock } from "../../game/RollDock";
 import { AppShell } from "../AppShell";
 import { MobileNav } from "../MobileNav";
 import type { MobileNavItem } from "../MobileNav";
@@ -89,7 +89,7 @@ const sectionStyles = css({
   flexDirection: "column",
   flex: "1 1 auto",
   minHeight: 0,
-  // Room under the content for the roll dock, so the last row can scroll
+  // Room under the content for the activity dock, so the last row can scroll
   // clear of it.
   "&[data-has-rolls]": { "--phone-page-foot": "240px" },
   // A phone layout on a wider screen (a tablet, or a window up to 900px)
@@ -103,7 +103,7 @@ const sectionStyles = css({
   },
 });
 
-/** The bottom bar's slot: the roll dock floats above the nav. */
+/** The bottom bar's slot: the activity dock floats above the nav. */
 const footStyles = css({ position: "relative" });
 
 const dockStyles = css({
@@ -138,7 +138,7 @@ export interface PhoneGamePageProps {
 
 /**
  * The game page on a phone, opening on Kira Vale. Rolling a stat, meter or
- * oracle adds a card to the roll dock.
+ * oracle adds a card to the activity dock.
  */
 export function PhoneGamePage(props: PhoneGamePageProps) {
   const {
@@ -254,7 +254,7 @@ export function PhoneGamePage(props: PhoneGamePageProps) {
         }
         bottomNav={
           <div className={footStyles}>
-            <RollDock
+            <ActivityDock
               className={dockStyles}
               items={rolls}
               onDismiss={(id) =>

@@ -15,6 +15,8 @@ import { useCollapseAfterRemoval } from "./useCollapseAfterRemoval";
 
 const BASE_OFFSET = "calc(20px + env(safe-area-inset-bottom, 0px))";
 const FOOTER_SPACE = 48;
+const TOAST_WIDTH = 400;
+const SIDE_OFFSET = 24;
 
 const toasterStyles = css({
   // Above dialogs and drawers, below popovers and tooltips (see the token).
@@ -76,6 +78,14 @@ const toastItemStyles = css({
     },
   "&[data-expanded=false][data-front=false] > [data-content] > [data-title] > * > *":
     { opacity: 0 },
+  // Sonner fades a new toast in over its whole 400ms slide, so for most of
+  // the slide it is see-through over the toast it is covering (plain in dark
+  // mode). It turns solid in the first 150ms here and keeps the slide; the
+  // exit keeps Sonner's own timing.
+  "&[data-removed=false]": {
+    transition:
+      "transform 400ms, opacity 150ms, height 400ms, box-shadow 200ms",
+  },
   // Toasts past the visible cap fade out; hide them from Tab too.
   "&[data-visible=false]": {
     visibility: "hidden",
@@ -93,9 +103,18 @@ const toastItemStyles = css({
 const footerStyles = css({
   position: "fixed",
   zIndex: "toast",
-  left: "50%",
+  // Centred under the stack: in the bottom right corner, or across the
+  // bottom on a phone, where Sonner spreads the stack full width (its own
+  // 600px breakpoint).
+  // SIDE_OFFSET plus half of TOAST_WIDTH. Panda needs the value written out.
+  right: "224px",
   bottom: BASE_OFFSET,
-  translate: "-50% 0",
+  translate: "50% 0",
+  "@media (max-width: 600px)": {
+    right: "auto",
+    left: "50%",
+    translate: "-50% 0",
+  },
   display: "flex",
   alignItems: "center",
   gap: "2",
@@ -195,15 +214,15 @@ export function Toaster(props: ToasterProps) {
     <div {...viewport}>
       <SonnerToaster
         ref={regionRef}
-        position="bottom-center"
+        position="bottom-right"
         duration={Infinity}
         expand={focusWithin}
         visibleToasts={visibleToasts}
         gap={14}
         customAriaLabel={label}
         className={toasterStyles}
-        style={{ "--width": "400px" } as CSSProperties}
-        offset={{ bottom }}
+        style={{ "--width": `${TOAST_WIDTH}px` } as CSSProperties}
+        offset={{ bottom, right: SIDE_OFFSET }}
         mobileOffset={{ bottom, left: 16, right: 16 }}
         toastOptions={{ unstyled: true, className: toastItemStyles }}
       />

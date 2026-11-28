@@ -3,6 +3,7 @@ import { ComponentProps, ReactNode } from "react";
 
 import { css, cva, cx } from "styled-system/css";
 
+import { useRegisterOpenModal } from "../../hooks/useIsModalOpen";
 import { LiveRegion } from "../Announcer";
 import { HeadingOffset } from "../HeadingOffset";
 import { isPressOnToasts } from "../Toast/toastViewport";
@@ -163,6 +164,8 @@ export function Drawer(props: DrawerProps) {
     initialFocus,
     finalFocus,
   } = props;
+
+  useRegisterOpenModal(open && modal);
 
   return (
     <BaseDrawer.Root

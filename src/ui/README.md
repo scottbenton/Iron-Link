@@ -160,7 +160,7 @@ rest of the app). Import as `ui/components/Button`.
   - Pure helpers take `t: TFunction` from `i18next`; stories and tests pass
     `i18next.t`.
   - Counts use i18next plurals, never string building:
-    `t("ui.roll-dock.count", "{{count}} notifications", { count, defaultValue_one: "{{count}} notification" })`.
+    `t("ui.activity-dock.count", "{{count}} notifications", { count, defaultValue_one: "{{count}} notification" })`.
   - Word order belongs to the language, so a phrase built from parts is one
     template (`"Roll {{oracle}}"`), not a sentence glued together in code.
   - Rules text and names from Datasworn, fixtures, samples and stories are not

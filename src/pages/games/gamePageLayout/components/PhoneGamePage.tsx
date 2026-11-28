@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Outlet } from "react-router";
 
 import { ErrorBoundary } from "components/ErrorBoundary";
+import { RecentRollsDock } from "components/characters/rolls/RecentRollsDock";
 import { MoveTree } from "components/datasworn/MoveTree";
 import { OracleTree } from "components/datasworn/OracleTree";
 
@@ -182,11 +183,10 @@ export function PhoneGamePage(props: PhoneGamePageProps) {
           </Box>
         );
       })}
-      <MobileNav
-        css={{ flex: "none" }}
-        label={t("game.sections", "Game Sections")}
-        items={items}
-      />
+      <Box position="relative" flex="none">
+        <RecentRollsDock />
+        <MobileNav label={t("game.sections", "Game Sections")} items={items} />
+      </Box>
     </Flex>
   );
 }

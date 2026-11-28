@@ -14,7 +14,7 @@ export const screenTabsStyles = css({
 export const screenPanelStyles = css({
   paddingInline: "4",
   paddingBlockStart: "4",
-  // Clear of the roll dock when rolls are showing.
+  // Clear of the activity dock when rolls are showing.
   paddingBlockEnd: "var(--phone-page-foot, token(spacing.8))",
 });
 

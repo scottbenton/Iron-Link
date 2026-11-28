@@ -102,6 +102,11 @@ the file under 150 lines; to add one past that, cut a weaker one.
 - Rules wording follows the game: Ironsworn says Debilities, the others
   Impacts; tracks are Legacy Tracks when every track is a legacy.
 - World entry field editors save through `useWorldFieldDraft`.
+- Edits are optimistic: a control shows the new value at once, never
+  waiting on the save. A one-off choice saves at once through
+  `useOptimisticValue` (`src/hooks`), which drops the value if the save
+  fails; repeated clicks or typing save 2s after the last change and flush
+  on leaving the page (`useDebouncedSync`).
 
 ## UI library (`src/ui`)
 

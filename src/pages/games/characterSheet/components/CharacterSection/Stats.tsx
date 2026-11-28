@@ -1,10 +1,10 @@
-import RollIcon from "@mui/icons-material/Casino";
-import { Box, Typography } from "@mui/material";
-import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import { ConditionMeter } from "components/datasworn/ConditonMeter";
-import { Stat } from "components/datasworn/Stat";
+import { AddsControl } from "ui/game/ConditionMeter";
+import { StatGrid } from "ui/game/StatCard";
+import { capitalize } from "ui/game/shared";
+import { SectionHeading } from "ui/layout";
+import { Stack } from "ui/primitives";
 
 import { useRollStatAndAddToLog } from "pages/games/hooks/useRollStatAndAddToLog.ts";
 
@@ -18,83 +18,64 @@ import { DEFAULT_MOMENTUM } from "../../../../../data/constants.ts";
 import { useCanEditCharacter } from "../../hooks/useCanEditCharacter.ts";
 import { useCharacterId } from "../../hooks/useCharacterId.ts";
 
+// Adds sit above the stats: they change whichever stat or meter the next
+// roll uses.
 export function Stats() {
+  const { t } = useTranslation();
   const characterId = useCharacterId();
+  const canEditCharacter = useCanEditCharacter();
 
   const stats = useGameCharacter((character) => character?.stats ?? {});
   const adds = useGameCharacter((character) => character?.adds ?? 0);
   const momentum = useGameCharacter(
     (character) => character?.momentum ?? DEFAULT_MOMENTUM,
   );
-
   const updateAdds = useGameCharactersStore(
     (store) => store.updateCharacterAdds,
   );
-  const canEditCharacter = useCanEditCharacter();
-
-  const { t } = useTranslation();
 
   const statRules = useStatRules();
-
-  const handleAddsChange = useCallback(
-    (value: number) => {
-      if (characterId) {
-        updateAdds(characterId, value).catch(() => {});
-      }
-    },
-    [characterId, updateAdds],
-  );
-
   const rollStat = useRollStatAndAddToLog();
 
+  const title = t("character.character-sidebar.stats", "Stats");
+
   return (
-    <Box>
-      <Typography
-        variant="h6"
-        component="h3"
-        textTransform={"uppercase"}
-        fontFamily="fontFamilyTitle"
-      >
-        {t("character.character-sidebar.stats", "Stats")}
-      </Typography>
-      <Box display="flex" flexWrap="wrap" gap={1}>
-        {Object.entries(statRules).map(([key, statRule]) => (
-          <Stat
-            key={key}
-            label={statRule.label}
-            value={stats[key] ?? 0}
-            action={
-              canEditCharacter
-                ? {
-                    actionLabel: t("common.roll", "Roll"),
-                    ActionIcon: RollIcon,
-                  }
-                : undefined
-            }
-            onActionClick={
-              canEditCharacter
-                ? () =>
-                    rollStat({
-                      statId: key,
-                      statLabel: statRule.label,
-                      statModifier: stats[key] ?? 0,
-                      adds,
-                      momentum,
-                    })
-                : undefined
-            }
-          />
-        ))}
-        <ConditionMeter
-          label={t("character.character-sidebar.adds", "Adds")}
-          min={-9}
-          max={9}
-          defaultValue={0}
-          disabled={!canEditCharacter}
-          value={adds}
-          onChange={handleAddsChange}
+    <Stack gap="3">
+      <AddsControl
+        label={t("character.character-sidebar.adds", "Adds")}
+        value={adds}
+        onChange={
+          canEditCharacter && characterId
+            ? (value) => {
+                updateAdds(characterId, value).catch(() => {});
+              }
+            : undefined
+        }
+      />
+      <Stack gap="2" as="section">
+        <SectionHeading title={title} as="h3" />
+        <StatGrid
+          label={title}
+          stats={Object.entries(statRules).map(([key, rule]) => ({
+            key,
+            name: capitalize(rule.label),
+            value: stats[key] ?? 0,
+          }))}
+          adds={adds}
+          onRoll={
+            canEditCharacter
+              ? (stat) =>
+                  rollStat({
+                    statId: stat.key,
+                    statLabel: statRules[stat.key].label,
+                    statModifier: stats[stat.key] ?? 0,
+                    adds,
+                    momentum,
+                  }).action
+              : undefined
+          }
         />
-      </Box>
-    </Box>
+      </Stack>
+    </Stack>
   );
 }
