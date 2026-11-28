@@ -1,10 +1,17 @@
-import { ButtonBase } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import { PortraitUploaderDialog } from "components/PortraitUploaderDialog";
-import { PortraitAvatarDisplay } from "components/characters/PortraitAvatar";
+import { Button } from "ui/components/Button";
+import {
+  CharacterPortrait,
+  PortraitPlaceholder,
+} from "ui/game/CharacterPortrait";
+import { CameraIcon } from "ui/icons";
+import { Stack } from "ui/primitives";
 
 import { CharacterPortraitSettings } from "stores/createCharacter.store";
+
+import { PortraitUploaderDialog } from "./PortraitUploaderDialog";
 
 export interface ImageInputProps {
   characterName: string;
@@ -12,70 +19,78 @@ export interface ImageInputProps {
   onChange: (value: CharacterPortraitSettings) => void;
 }
 
+// The new character's portrait: an empty portrait to press for adding one,
+// or the chosen portrait with a button to change it.
 export function ImageInput(props: ImageInputProps) {
   const { characterName, value, onChange } = props;
+  const { t } = useTranslation();
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  // Each opening starts the dialog from the current portrait.
+  const [dialogKey, setDialogKey] = useState(0);
+  const openDialog = () => {
+    setDialogKey((key) => key + 1);
+    setDialogOpen(true);
+  };
 
+  const file = value.image ?? undefined;
   const [imageUrl, setImageUrl] = useState<string>();
-
-  const file = value?.image;
   useEffect(() => {
-    if (file && typeof file !== "string") {
-      const reader = new FileReader();
-
-      // Set up a function to run when the file is loaded
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        // Set the src attribute of the img element to the loaded image data
-        const src = e.target?.result;
-        if (typeof src === "string") {
-          setImageUrl(src);
-        }
-      };
-
-      // Read the selected file as a data URL
-      reader.readAsDataURL(file);
+    if (!file) {
+      setImageUrl(undefined);
+      return;
     }
+    const url = URL.createObjectURL(file);
+    setImageUrl(url);
+    return () => URL.revokeObjectURL(url);
   }, [file]);
 
+  const crop =
+    value.position && value.scale !== undefined
+      ? { position: value.position, scale: value.scale }
+      : undefined;
+
   return (
-    <div>
-      <ButtonBase
-        aria-label={"Upload a Character Portrait"}
-        sx={(theme) => ({
-          borderRadius: `${theme.shape.borderRadius}px`,
-        })}
-        onClick={() => setDialogOpen(true)}
-      >
-        <PortraitAvatarDisplay
-          size={"large"}
-          name={characterName}
-          decorative
-          portraitUrl={imageUrl}
-          portraitSettings={
-            value?.position && value?.scale !== undefined
-              ? {
-                  position: value.position,
-                  scale: value.scale,
-                }
-              : undefined
-          }
+    <>
+      {imageUrl ? (
+        <Stack alignItems="center" gap="1">
+          <CharacterPortrait
+            name={characterName}
+            portraitUrl={imageUrl}
+            crop={crop}
+            size="xl"
+            decorative
+          />
+          <Button
+            size="sm"
+            variant="ghost"
+            startIcon={<CameraIcon />}
+            onClick={openDialog}
+          >
+            {t("character.create.change-portrait", "Change Portrait")}
+          </Button>
+        </Stack>
+      ) : (
+        <PortraitPlaceholder
+          size="xl"
+          label={t("character.create.add-portrait", "Add Portrait")}
+          onClick={openDialog}
         />
-      </ButtonBase>
+      )}
       <PortraitUploaderDialog
+        key={dialogKey}
         open={dialogOpen}
-        handleClose={() => setDialogOpen(false)}
-        handleUpload={(image, scale, position) => {
+        onClose={() => setDialogOpen(false)}
+        onUpload={(image, nextCrop) =>
           onChange({
-            image: typeof image === "string" ? null : image,
-            scale,
-            position,
-          });
-          return new Promise<void>((res) => res());
-        }}
-        existingPortraitFile={undefined}
-        existingPortraitSettings={undefined}
+            image,
+            scale: nextCrop.scale,
+            position: nextCrop.position,
+          })
+        }
+        initialImage={file}
+        initialCrop={crop}
       />
-    </div>
+    </>
   );
 }

@@ -1,19 +1,19 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-} from "@mui/material";
 import deepEqual from "fast-deep-equal";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useSnackbar } from "providers/SnackbarProvider";
-
-import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 import { RulesPackageSelector } from "components/datasworn/RulesPackageSelector";
 import { WorldOracleChangeWarning } from "components/worlds/WorldOracleChangeWarning";
+
+import { Button } from "ui/components/Button";
+import {
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogHeader,
+} from "ui/components/Dialog";
+import { toast } from "ui/components/Toast";
+import { Stack } from "ui/primitives";
 
 import { useGameStore } from "stores/game.store";
 
@@ -30,12 +30,12 @@ export interface GameRulesetChooserDialogProps {
   onClose: () => void;
 }
 
+/** Changes the game's rulesets, expansions and playset. */
 export function GameRulesetChooserDialog(props: GameRulesetChooserDialogProps) {
   const { open, onClose } = props;
   const { t } = useTranslation();
 
   const gameId = useGameIdOptional();
-  const { error } = useSnackbar();
 
   const initialRulesets = useGameStore((store) => store.game?.rulesets);
   const initialExpansions = useGameStore((store) => store.game?.expansions);
@@ -69,68 +69,68 @@ export function GameRulesetChooserDialog(props: GameRulesetChooserDialogProps) {
     !deepEqual(expansions, initialExpansions ?? {}) ||
     !deepEqual(playset, initialPlayset ?? {});
 
-  const handleSave = useCallback(() => {
-    if (gameId) {
-      if (Object.values(rulesets).some((isActive) => isActive)) {
-        updateRulesPackages(gameId, rulesets, expansions, playset)
-          .then(() => {
-            onClose();
-          })
-          .catch(() => {});
-      } else {
-        error(
-          t("game.overview-sidebar.no-ruleset-selected", "No ruleset selected"),
-        );
-      }
+  const [saving, setSaving] = useState(false);
+  const handleSave = () => {
+    if (!gameId || saving) return;
+    if (!Object.values(rulesets).some((isActive) => isActive)) {
+      toast.error(
+        t("game.overview-sidebar.no-ruleset-selected", "No ruleset selected"),
+      );
+      return;
     }
-  }, [
-    rulesets,
-    expansions,
-    playset,
-    onClose,
-    error,
-    t,
-    gameId,
-    updateRulesPackages,
-  ]);
+    setSaving(true);
+    updateRulesPackages(gameId, rulesets, expansions, playset)
+      .then(() => onClose())
+      .catch(() => {})
+      .finally(() => setSaving(false));
+  };
 
   return (
-    <Dialog open={open && !!gameId} onClose={onClose}>
-      <DialogTitleWithCloseButton onClose={onClose}>
-        {t("game.overview-sidebar.change-ruleset", "Change Game Ruleset")}
-      </DialogTitleWithCloseButton>
-      <DialogContent>
-        <RulesPackageSelector
-          activeRulesetConfig={rulesets}
-          activeExpansionConfig={expansions}
-          onRulesetChange={(rulesetKey, isActive) =>
-            setRulesets((prev) => ({ ...prev, [rulesetKey]: isActive }))
-          }
-          onExpansionChange={(rulesetKey, expansionKey, isActive) =>
-            setExpansions((prev) => ({
-              ...prev,
-              [rulesetKey]: {
-                ...prev[rulesetKey],
-                [expansionKey]: isActive,
-              },
-            }))
-          }
-          activePlaysetConfig={playset}
-          onPlaysetChange={setPlayset}
-        />
-        {/* World fields follow the rules in play, so this can change which
-            oracles they roll. */}
-        {linkedToWorld && changed && (
-          <Box sx={{ mt: 2 }}>
-            <WorldOracleChangeWarning />
-          </Box>
-        )}
-      </DialogContent>
+    <Dialog
+      open={open && !!gameId}
+      onClose={onClose}
+      size="md"
+      fullScreenOnMobile
+      onSubmit={handleSave}
+    >
+      <DialogHeader
+        title={t("game.overview-sidebar.change-ruleset", "Change Game Ruleset")}
+      />
+      <DialogBody>
+        <Stack gap="4">
+          <RulesPackageSelector
+            activeRulesetConfig={rulesets}
+            activeExpansionConfig={expansions}
+            onRulesetChange={(rulesetKey, isActive) =>
+              setRulesets((prev) => ({ ...prev, [rulesetKey]: isActive }))
+            }
+            onExpansionChange={(rulesetKey, expansionKey, isActive) =>
+              setExpansions((prev) => ({
+                ...prev,
+                [rulesetKey]: {
+                  ...prev[rulesetKey],
+                  [expansionKey]: isActive,
+                },
+              }))
+            }
+            activePlaysetConfig={playset}
+            onPlaysetChange={setPlayset}
+          />
+          {/* World fields follow the rules in play, so this can change which
+              oracles they roll. */}
+          {linkedToWorld && changed && <WorldOracleChangeWarning />}
+        </Stack>
+      </DialogBody>
       <DialogActions>
-        <Button color="inherit" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose}>
           {t("common.cancel", "Cancel")}
         </Button>
-        <Button color="primary" onClick={handleSave}>
+        <Button
+          variant="primary"
+          type="submit"
+          loading={saving}
+          loadingLabel={t("common.saving", "Saving")}
+        >
           {t("common.save", "Save")}
         </Button>
       </DialogActions>

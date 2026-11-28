@@ -1,18 +1,16 @@
-import RemoveAssetIcon from "@mui/icons-material/Close";
-import { Button, IconButton } from "@mui/material";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { GridLayout } from "components/Layout";
-import { AssetCard } from "components/datasworn/AssetCard";
 import { AssetCardDialog } from "components/datasworn/AssetCardDialog/AssetCardDialog";
 
-import { useAsset } from "hooks/datasworn/useAsset";
+import { Button } from "ui/components/Button";
+import { CardsIcon, PlusIcon } from "ui/icons";
+import { EmptyState } from "ui/layout";
+import { Grid, HStack, Stack } from "ui/primitives";
 
-import {
-  IAssetWithoutAdditives,
-  useCreateCharacterStore,
-} from "stores/createCharacter.store";
+import { useCreateCharacterStore } from "stores/createCharacter.store";
+
+import { AssetGridCard } from "./AssetGridCard";
 
 export function Assets() {
   const characterAssets = useCreateCharacterStore(
@@ -26,47 +24,64 @@ export function Assets() {
 
   const [isAddAssetDialogOpen, setIsAddAssetDialogOpen] = useState(false);
 
-  const combinedAssets = [...gameAssets, ...characterAssets];
+  const addAssetLabel = t("character.create.add-asset", "Add Asset");
+  const hasAssets = gameAssets.length + characterAssets.length > 0;
 
   return (
     <>
-      <GridLayout
-        items={combinedAssets}
-        renderItem={(assetDocument, index) => (
-          <AssetGridCard
-            index={
-              index >= gameAssets.length ? index - gameAssets.length : index
-            }
-            shared={index < gameAssets.length}
-            assetDocument={assetDocument}
-          />
-        )}
-        minWidth={300}
-        emptyStateMessage={t(
-          "character.create.add-asset-empty-state",
-          "Add an asset now, or add one later from the character sheet.",
-        )}
-        emptyStateAction={
-          <Button
-            variant="outlined"
-            color="inherit"
-            onClick={() => setIsAddAssetDialogOpen(true)}
+      {hasAssets ? (
+        <Stack gap="4">
+          {/* Cards in a row stretch to the tallest; each card puts the
+              spare height above its controls. */}
+          <Grid
+            gridTemplateColumns="repeat(auto-fill, minmax(min(100%, 300px), 1fr))"
+            gap="3"
           >
-            {t("character.create.add-asset", "Add Asset")}
-          </Button>
-        }
-      />
-      {combinedAssets.length > 0 && (
-        <div>
-          <Button
-            variant="outlined"
-            color="inherit"
-            onClick={() => setIsAddAssetDialogOpen(true)}
-            sx={{ mt: 2 }}
-          >
-            {t("character.create.add-asset", "Add Asset")}
-          </Button>
-        </div>
+            {gameAssets.map((asset, index) => (
+              <AssetGridCard
+                key={`game-${index}`}
+                index={index}
+                shared
+                assetDocument={asset}
+              />
+            ))}
+            {characterAssets.map((asset, index) => (
+              <AssetGridCard
+                key={`character-${index}`}
+                index={index}
+                shared={false}
+                assetDocument={asset}
+              />
+            ))}
+          </Grid>
+          <HStack>
+            <Button
+              variant="outline"
+              startIcon={<PlusIcon />}
+              onClick={() => setIsAddAssetDialogOpen(true)}
+            >
+              {addAssetLabel}
+            </Button>
+          </HStack>
+        </Stack>
+      ) : (
+        <EmptyState
+          size="sm"
+          icon={<CardsIcon />}
+          message={t(
+            "character.create.add-asset-empty-state",
+            "Add an asset now, or add one later from the character sheet.",
+          )}
+          action={
+            <Button
+              variant="outline"
+              startIcon={<PlusIcon />}
+              onClick={() => setIsAddAssetDialogOpen(true)}
+            >
+              {addAssetLabel}
+            </Button>
+          }
+        />
       )}
       <AssetCardDialog
         open={isAddAssetDialogOpen}
@@ -77,84 +92,5 @@ export function Assets() {
         }}
       />
     </>
-  );
-}
-
-interface AssetGridCardProps {
-  index: number;
-  assetDocument: IAssetWithoutAdditives;
-  shared: boolean;
-}
-
-function AssetGridCard(props: AssetGridCardProps) {
-  const { index, assetDocument, shared } = props;
-  const { t } = useTranslation();
-  const assetName = useAsset(assetDocument.dataswornAssetId)?.name;
-
-  const toggleAssetAbility = useCreateCharacterStore(
-    (store) => store.toggleAssetAbility,
-  );
-  const updateAssetControl = useCreateCharacterStore(
-    (store) => store.updateAssetControl,
-  );
-  const updateAssetOption = useCreateCharacterStore(
-    (store) => store.updateAssetOption,
-  );
-  const removeAsset = useCreateCharacterStore((store) => store.removeAsset);
-
-  const handleAssetAbilityToggle = useCallback(
-    (abilityIndex: number, checked: boolean) => {
-      toggleAssetAbility(index, abilityIndex, checked, shared);
-    },
-    [toggleAssetAbility, index, shared],
-  );
-
-  const handleAssetControlChange = useCallback(
-    (controlKey: string, value: string | boolean | number) => {
-      updateAssetControl(index, controlKey, value, shared);
-    },
-    [updateAssetControl, index, shared],
-  );
-
-  const handleAssetOptionChange = useCallback(
-    (optionKey: string, value: string) => {
-      updateAssetOption(index, optionKey, value, shared);
-    },
-    [updateAssetOption, index, shared],
-  );
-
-  const handleRemoveAsset = useCallback(() => {
-    removeAsset(index, shared);
-  }, [removeAsset, index, shared]);
-
-  return (
-    <AssetCard
-      assetId={assetDocument.dataswornAssetId}
-      assetDocument={{
-        ...assetDocument,
-        id: "",
-        characterId: null,
-        gameId: null,
-      }}
-      headerActions={
-        <IconButton
-          aria-label={
-            assetName
-              ? t("character.assets.remove-named-asset", "Remove {{name}}", {
-                  name: assetName,
-                })
-              : t("character.assets.remove-asset", "Remove Asset")
-          }
-          onClick={handleRemoveAsset}
-          color="inherit"
-        >
-          <RemoveAssetIcon />
-        </IconButton>
-      }
-      onAssetAbilityToggle={handleAssetAbilityToggle}
-      onAssetControlChange={handleAssetControlChange}
-      onAssetOptionChange={handleAssetOptionChange}
-      css={{ height: "full", width: "full" }}
-    />
   );
 }

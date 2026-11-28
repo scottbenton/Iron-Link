@@ -28,6 +28,10 @@ const cardStyles = css({
     gridTemplateColumns: "auto minmax(0, 1fr) auto",
     gridTemplateAreas: '"portrait titles actions"',
     alignItems: "center",
+    // In a grid of cards stretched to the row's tallest, the spare height
+    // goes here, so every card's character list sits on its foot.
+    flex: "1 0 auto",
+    alignContent: "start",
     columnGap: "3",
     rowGap: "2",
   },

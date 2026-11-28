@@ -1,5 +1,6 @@
-import { Alert } from "@mui/material";
 import { useTranslation } from "react-i18next";
+
+import { Alert } from "ui/components/Alert";
 
 // Linking, unlinking or changing a linked game's playset can change which
 // oracles a world's fields roll: bindings follow the rules in play, so the
@@ -8,7 +9,7 @@ import { useTranslation } from "react-i18next";
 export function WorldOracleChangeWarning() {
   const { t } = useTranslation();
   return (
-    <Alert severity="warning" variant="outlined" sx={{ py: 0 }}>
+    <Alert tone="warning">
       {t(
         "worlds.game.oracle-change-warning",
         "Some world fields may roll different oracles.",

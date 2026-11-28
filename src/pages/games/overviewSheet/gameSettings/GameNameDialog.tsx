@@ -1,18 +1,16 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  TextField,
-} from "@mui/material";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
+import { Button } from "ui/components/Button";
+import {
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogHeader,
+} from "ui/components/Dialog";
+import { TextField } from "ui/components/TextField";
 
 import { useGameStore } from "stores/game.store";
-
-import { getDialogFormSlotProps } from "lib/dialogForm.lib";
 
 import { useGameIdOptional } from "../../gamePageLayout/hooks/useGameId";
 
@@ -21,6 +19,7 @@ export interface GameNameDialogProps {
   onClose: () => void;
 }
 
+/** Renames the game. It closes once the new name is saved. */
 export function GameNameDialog(props: GameNameDialogProps) {
   const { open, onClose } = props;
 
@@ -34,45 +33,39 @@ export function GameNameDialog(props: GameNameDialogProps) {
     setNewGameName(gameName ?? "");
   }, [gameName]);
 
+  const [saving, setSaving] = useState(false);
   const changeName = useGameStore((store) => store.updateGameName);
-  const handleSave = useCallback(
-    (evt: FormEvent) => {
-      evt.preventDefault();
-      if (gameId) {
-        changeName(gameId, newGameName)
-          .then(() => {
-            onClose();
-          })
-          .catch(() => {});
-        onClose();
-      }
-    },
-    [newGameName, changeName, onClose, gameId],
-  );
+  const handleSave = () => {
+    if (!gameId || saving) return;
+    setSaving(true);
+    changeName(gameId, newGameName)
+      .then(() => onClose())
+      .catch(() => {})
+      .finally(() => setSaving(false));
+  };
 
   return (
-    <Dialog
-      open={!!gameId && open}
-      onClose={onClose}
-      slotProps={getDialogFormSlotProps(handleSave)}
-    >
-      <DialogTitleWithCloseButton onClose={onClose}>
-        {t("game.overview-sidebar.change-name", "Change Game Name")}
-      </DialogTitleWithCloseButton>
-      <DialogContent>
+    <Dialog open={!!gameId && open} onClose={onClose} onSubmit={handleSave}>
+      <DialogHeader
+        title={t("game.overview-sidebar.change-name", "Change Game Name")}
+      />
+      <DialogBody>
         <TextField
           label={t("game.overview-sidebar.game-name", "Game Name")}
           value={newGameName}
-          onChange={(e) => setNewGameName(e.target.value)}
-          fullWidth
-          sx={{ mt: 2 }}
+          onValueChange={setNewGameName}
         />
-      </DialogContent>
+      </DialogBody>
       <DialogActions>
-        <Button color="inherit" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose}>
           {t("common.cancel", "Cancel")}
         </Button>
-        <Button type="submit" variant="contained">
+        <Button
+          variant="primary"
+          type="submit"
+          loading={saving}
+          loadingLabel={t("common.saving", "Saving")}
+        >
           {t("common.save", "Save")}
         </Button>
       </DialogActions>

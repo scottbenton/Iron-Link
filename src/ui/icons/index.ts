@@ -15,6 +15,7 @@ export {
   BellRingingIcon,
   BookOpenIcon,
   BookOpenTextIcon,
+  CameraIcon,
   CardsIcon,
   CaretDownIcon,
   CaretLeftIcon,

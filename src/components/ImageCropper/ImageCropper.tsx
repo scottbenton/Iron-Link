@@ -1,9 +1,12 @@
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import ZoomOutIcon from "@mui/icons-material/ZoomOut";
-import { Box, Button, ButtonGroup, Typography } from "@mui/material";
 import { KeyboardEvent, useId, useState } from "react";
 import AvatarEditor from "react-avatar-editor";
 import { useTranslation } from "react-i18next";
+
+import { IconButton } from "ui/components/IconButton";
+import { Text } from "ui/components/Text";
+import { MagnifyingGlassMinusIcon, MagnifyingGlassPlusIcon } from "ui/icons";
+import { Box, HStack, Stack } from "ui/primitives";
+import { focusRing } from "ui/styles/focus";
 
 import {
   ImageCrop,
@@ -62,22 +65,20 @@ export function ImageCropper(props: ImageCropperProps) {
   };
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
+    <Stack alignItems="center" gap="2">
       <Box
         tabIndex={0}
         role="group"
         aria-label={t("common.image-cropper.label", "Image position")}
         aria-describedby={hintId}
         onKeyDown={handleKeyDown}
-        sx={(theme) => ({
-          display: "flex",
-          borderRadius: 1,
-          "&:focus-visible": {
-            outline: `2px solid ${theme.palette.primary.main}`,
-            outlineOffset: 2,
-          },
+        display="flex"
+        borderRadius="md"
+        outline="none"
+        css={{
+          _focusVisible: focusRing.outset,
           "& canvas": { cursor: "grab", touchAction: "none" },
-        })}
+        }}
       >
         <AvatarEditor
           width={CROPPER_SIZE}
@@ -97,43 +98,32 @@ export function ImageCropper(props: ImageCropperProps) {
           onPositionChange={(position) => change({ ...crop, position })}
         />
       </Box>
-      <Box
-        display="flex"
-        justifyContent="flex-end"
-        mt={0.5}
-        width={CROPPER_SIZE}
-      >
-        <ButtonGroup variant="outlined">
-          <Button
-            color="inherit"
-            disabled={crop.scale <= MIN_IMAGE_CROP_SCALE}
-            onClick={() => zoom(-1)}
-            aria-label={t("common.image-cropper.zoom-out", "Zoom out")}
-          >
-            <ZoomOutIcon />
-          </Button>
-          <Button
-            color="inherit"
-            disabled={crop.scale >= MAX_IMAGE_CROP_SCALE}
-            onClick={() => zoom(1)}
-            aria-label={t("common.image-cropper.zoom-in", "Zoom in")}
-          >
-            <ZoomInIcon />
-          </Button>
-        </ButtonGroup>
-      </Box>
-      <Typography
-        id={hintId}
-        variant="caption"
-        color="text.secondary"
-        textAlign="center"
-        mt={1}
-      >
+      <HStack justifyContent="flex-end" gap="1" width={`${CROPPER_SIZE}px`}>
+        <IconButton
+          label={t("common.image-cropper.zoom-out", "Zoom out")}
+          variant="outline"
+          size="sm"
+          disabled={crop.scale <= MIN_IMAGE_CROP_SCALE}
+          onClick={() => zoom(-1)}
+        >
+          <MagnifyingGlassMinusIcon />
+        </IconButton>
+        <IconButton
+          label={t("common.image-cropper.zoom-in", "Zoom in")}
+          variant="outline"
+          size="sm"
+          disabled={crop.scale >= MAX_IMAGE_CROP_SCALE}
+          onClick={() => zoom(1)}
+        >
+          <MagnifyingGlassPlusIcon />
+        </IconButton>
+      </HStack>
+      <Text id={hintId} variant="caption" color="muted" align="center">
         {t(
           "common.image-cropper.hint",
           "Drag the image or use the arrow keys to move it.",
         )}
-      </Typography>
-    </Box>
+      </Text>
+    </Stack>
   );
 }

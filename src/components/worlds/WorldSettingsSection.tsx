@@ -10,7 +10,7 @@ export interface WorldSettingsSectionProps extends PropsWithChildren {
   danger?: boolean;
 }
 
-// A settings group with the same banded heading as SectionHeading, sized for
+// A settings group under a banded heading, sized for
 // the narrow Notes column as well as the standalone page.
 export function WorldSettingsSection(props: WorldSettingsSectionProps) {
   const { title, description, action, danger, children } = props;

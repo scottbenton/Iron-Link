@@ -1,20 +1,25 @@
-import OpenIcon from "@mui/icons-material/ChevronRight";
-import { Box, Button, Card, CardActionArea, Typography } from "@mui/material";
-import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import { uiSchemeNames } from "providers/ThemeProvider/uiSchemeNames";
+
 import { LinkComponent } from "components/LinkComponent";
-import { PortraitAvatar } from "components/characters/PortraitAvatar";
+
+import { Button } from "ui/components/Button";
+import { CharacterCard as CharacterCardView } from "ui/game/CharacterCard";
+import { MonitorArrowUpIcon } from "ui/icons";
 
 import { pathConfig } from "pages/pathConfig";
 
 import { useSecondScreenFeature } from "hooks/advancedFeatures/useSecondScreenFeature";
 
+import {
+  useCharacterPortrait,
+  useLoadCharacterPortrait,
+} from "stores/character.store";
 import { useSecondScreenStore } from "stores/secondScreen.store";
 import { useUserName } from "stores/users.store";
 
 import { GameType } from "repositories/game.repository";
-import { ColorScheme } from "repositories/shared.types";
 
 import { ICharacter } from "services/character.service";
 
@@ -25,6 +30,10 @@ export interface CharacterCardProps {
   character: ICharacter;
 }
 
+/**
+ * A character on the game overview: opens its sheet, and puts it on the
+ * second screen where that feature is on.
+ */
 export function CharacterCard(props: CharacterCardProps) {
   const { gameId, character } = props;
   const { t } = useTranslation();
@@ -32,74 +41,62 @@ export function CharacterCard(props: CharacterCardProps) {
   const playerName = useUserName(character.uid);
   const { gameType } = useGamePermissions();
 
+  const portraitSettings = character.profileImage ?? undefined;
+  useLoadCharacterPortrait(character.id, portraitSettings?.filename);
+  const portraitUrl = useCharacterPortrait(character.id).url;
+
   const isSecondScreenActive = useSecondScreenFeature();
-  const isCharacterOpenOnSecondScreen = useSecondScreenStore(
+  const isOnSecondScreen = useSecondScreenStore(
     (store) =>
       store.settings?.type === "character" &&
       store.settings.characterId === character.id,
   );
-  const openOnSecondScreen = useSecondScreenStore(
+  const updateSecondScreen = useSecondScreenStore(
     (store) => store.updateSecondScreenSettings,
   );
-  const id = character.id;
-  const handleOpenOnSecondScreen = useCallback(() => {
-    openOnSecondScreen(
+  const toggleSecondScreen = () => {
+    updateSecondScreen(
       gameId,
-      isCharacterOpenOnSecondScreen
+      isOnSecondScreen
         ? null
-        : {
-            type: "character",
-            characterId: id,
-          },
+        : { type: "character", characterId: character.id },
     ).catch(() => {});
-  }, [isCharacterOpenOnSecondScreen, openOnSecondScreen, gameId, id]);
+  };
 
   return (
-    <Card key={character.id} sx={{ mt: 1 }} variant="outlined">
-      <CardActionArea
-        LinkComponent={LinkComponent}
-        href={pathConfig.gameCharacter(gameId, character.id)}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          p: 1,
-          pr: 2,
-        }}
-      >
-        <Box display={"flex"} alignItems={"center"}>
-          <PortraitAvatar
-            characterId={character.id}
-            name={character.name}
-            decorative
-            portraitSettings={character.profileImage ?? undefined}
-            borderColor={character.colorScheme ?? ColorScheme.Default}
-          />
-          <Box ml={2}>
-            <Typography
-              variant="h5"
-              component="h4"
-              fontFamily="fontFamilyTitle"
-            >
-              {character.name}
-            </Typography>
-            {gameType !== GameType.Solo && (
-              <Typography color="textSecondary" variant="body2">
-                {playerName}
-              </Typography>
-            )}
-          </Box>
-        </Box>
-        <OpenIcon sx={{ ml: 2 }} />
-      </CardActionArea>
-
-      {isSecondScreenActive && (
-        <Button onClick={handleOpenOnSecondScreen}>
-          {isCharacterOpenOnSecondScreen
-            ? t("game.character.currently-open-on-second-screen", "On Screen")
-            : t("game.character.open-on-second-screen", "Open on Screen")}
-        </Button>
-      )}
-    </Card>
+    <CharacterCardView
+      name={character.name}
+      playerName={gameType !== GameType.Solo ? playerName : undefined}
+      portraitUrl={portraitSettings ? portraitUrl : undefined}
+      portraitCrop={
+        portraitSettings
+          ? {
+              position: portraitSettings.position,
+              scale: portraitSettings.scale,
+            }
+          : undefined
+      }
+      colorScheme={
+        character.colorScheme ? uiSchemeNames[character.colorScheme] : undefined
+      }
+      headingAs="h4"
+      render={
+        <LinkComponent href={pathConfig.gameCharacter(gameId, character.id)} />
+      }
+      actions={
+        isSecondScreenActive && (
+          <Button
+            size="sm"
+            variant="ghost"
+            startIcon={<MonitorArrowUpIcon />}
+            onClick={toggleSecondScreen}
+          >
+            {isOnSecondScreen
+              ? t("game.character.currently-open-on-second-screen", "On Screen")
+              : t("game.character.open-on-second-screen", "Open on Screen")}
+          </Button>
+        )
+      }
+    />
   );
 }

@@ -1,8 +1,8 @@
-import { Box, Button, Card, Typography } from "@mui/material";
-import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "ui/components/Button";
 import { useConfirm } from "ui/components/ConfirmDialog";
+import { PlayerCard } from "ui/game/PlayerCard";
 
 import { useUID } from "stores/auth.store";
 import { GamePermission, useGameStore } from "stores/game.store";
@@ -13,6 +13,8 @@ import { GameType } from "repositories/game.repository";
 
 import { GamePlayerRole } from "services/game.service";
 
+import { usePlayerCharacters } from "./usePlayerCharacters";
+
 export interface UserCardProps {
   uid: string;
   role: GamePlayerRole;
@@ -22,39 +24,22 @@ export interface UserCardProps {
   gameId: string;
 }
 
+/**
+ * A person in the game, with what the reader may do about them: a Guide
+ * hands out and gives up the role and removes players; anyone may leave, and
+ * may take the role while the game has no Guide.
+ */
 export function UserCard(props: UserCardProps) {
   const { gameId, uid, role, gameType, gamePermission, areAnyPlayersGuides } =
     props;
   const { t } = useTranslation();
 
   const currentUserId = useUID();
-
   const userName = useUserName(uid);
+  const characters = usePlayerCharacters(uid);
+  // Removing a player deletes their characters, so wait until those load.
+  const charactersLoading = useGameCharactersStore((store) => store.loading);
 
-  const roleName = useMemo(() => {
-    if (role === GamePlayerRole.Guide) {
-      return t("game.overview.guide", "Guide");
-    }
-    if (role === GamePlayerRole.Player) {
-      return t("game.overview.player", "Player");
-    }
-  }, [t, role]);
-
-  const charactersByUser = useGameCharactersStore((store) => {
-    if (store.loading) {
-      return null;
-    } else {
-      const characterIds: Record<string, string[]> = {};
-      Object.entries(store.characters).forEach(([characterId, character]) => {
-        if (character.uid in characterIds) {
-          characterIds[character.uid].push(characterId);
-        } else {
-          characterIds[character.uid] = [characterId];
-        }
-      });
-      return characterIds;
-    }
-  });
   const isUser = currentUserId === uid;
   const isCurrentUserGuide =
     gameType === GameType.Guided && gamePermission === GamePermission.Guide;
@@ -65,69 +50,110 @@ export function UserCard(props: UserCardProps) {
   const removePlayerFromGame = useGameStore(
     (store) => store.removePlayerFromGame,
   );
-
   const confirm = useConfirm();
 
-  const handleMakeGuide = useCallback(() => {
-    updateGamePlayerRole(gameId, uid, GamePlayerRole.Guide).catch(() => {});
-  }, [updateGamePlayerRole, uid, gameId]);
+  const setRole = (newRole: GamePlayerRole) => {
+    updateGamePlayerRole(gameId, uid, newRole).catch(() => {});
+  };
 
-  const handleReturnToPlayer = useCallback(() => {
-    updateGamePlayerRole(gameId, uid, GamePlayerRole.Player).catch(() => {});
-  }, [updateGamePlayerRole, uid, gameId]);
-
-  const handleKick = useCallback(() => {
-    if (charactersByUser) {
-      confirm({
-        title: t(
-          "game.game-overview.remove-user-confirmation-title",
-          "Remove User",
-        ),
-        description: t(
-          "game.game-overview.remove-user-confirmation-text",
-          "Are you sure you want to remove this user?",
-        ),
-        confirmationText: t(
-          "game.game-overview.remove-user-confirmation-button",
-          "Remove User",
-        ),
+  const handleRemove = () => {
+    if (charactersLoading) return;
+    const characterIds = characters.map((character) => character.id);
+    confirm(
+      isUser
+        ? {
+            title: t(
+              "game.overview.leave-game-confirmation-title",
+              "Leave Game",
+            ),
+            description: t(
+              "game.overview.leave-game-confirmation-text",
+              "Leave this game? Your characters in it are deleted too.",
+            ),
+            confirmationText: t(
+              "game.overview.leave-game-confirmation-button",
+              "Leave Game",
+            ),
+          }
+        : {
+            title: t(
+              "game.game-overview.remove-user-confirmation-title",
+              "Remove User",
+            ),
+            description: t(
+              "game.game-overview.remove-user-confirmation-text-characters",
+              "Remove {{name}} from this game? Their characters in it are deleted too.",
+              { name: userName },
+            ),
+            confirmationText: t(
+              "game.game-overview.remove-user-confirmation-button",
+              "Remove User",
+            ),
+          },
+    )
+      .then(({ confirmed }) => {
+        if (!confirmed) return;
+        removePlayerFromGame(gameId, uid, characterIds).catch(() => {});
       })
-        .then(({ confirmed }) => {
-          if (!confirmed) return;
-          removePlayerFromGame(gameId, uid, charactersByUser[uid] ?? []).catch(
-            () => {},
-          );
-        })
-        .catch(() => {});
-    }
-  }, [removePlayerFromGame, gameId, uid, charactersByUser, t, confirm]);
+      .catch(() => {});
+  };
+
+  const canMakeGuide =
+    (isCurrentUserGuide && role !== GamePlayerRole.Guide) ||
+    (isUser && !areAnyPlayersGuides);
+  const canLeaveGuideRole = isCurrentUserGuide && isUser;
+  const canRemove = isCurrentUserGuide || isUser;
 
   return (
-    <Card sx={{ mt: 1 }} variant="outlined">
-      <Box p={2}>
-        <Typography variant="h6" component="h4" fontFamily="fontFamilyTitle">
-          {userName}
-        </Typography>
-        {gameType === GameType.Guided && <Typography>{roleName}</Typography>}
-      </Box>
-      <Box display="flex" justifyContent="flex-end" flexWrap="wrap" gap={1}>
-        {((isCurrentUserGuide && role !== GamePlayerRole.Guide) ||
-          (isUser && !areAnyPlayersGuides)) && (
-          <Button color="inherit" onClick={handleMakeGuide}>
-            {t("game.overview.makeGuide", "Make Guide")}
-          </Button>
-        )}
-        {isCurrentUserGuide && isUser && (
-          <Button color="inherit" onClick={handleReturnToPlayer}>
-            {t("game.overview.makePlayer", "Leave Guide Role")}
-          </Button>
-        )}
-        {(isCurrentUserGuide || isUser) && (
-          <Button color="error" onClick={handleKick}>
-            {isUser ? "Leave Game" : "Kick Player"}
-          </Button>
-        )}
-      </Box>
-    </Card>
+    <PlayerCard
+      name={userName}
+      role={
+        gameType === GameType.Guided
+          ? role === GamePlayerRole.Guide
+            ? "guide"
+            : "player"
+          : undefined
+      }
+      roleLabels={{
+        guide: t("game.overview.guide", "Guide"),
+        player: t("game.overview.player", "Player"),
+        viewer: t("game.overview.viewer", "Viewer"),
+      }}
+      isYou={isUser}
+      youLabel={t("game.overview.you", "(you)")}
+      characters={characters}
+      headingAs="h4"
+      actions={
+        (canMakeGuide || canLeaveGuideRole || canRemove) && (
+          <>
+            {canMakeGuide && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setRole(GamePlayerRole.Guide)}
+              >
+                {t("game.overview.makeGuide", "Make Guide")}
+              </Button>
+            )}
+            {canLeaveGuideRole && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setRole(GamePlayerRole.Player)}
+              >
+                {t("game.overview.makePlayer", "Leave Guide Role")}
+              </Button>
+            )}
+            {canRemove && (
+              <Button size="sm" variant="ghost" onClick={handleRemove}>
+                {isUser
+                  ? t("game.overview.leave-game", "Leave Game")
+                  : t("game.overview.kick-player", "Kick Player")}
+              </Button>
+            )}
+          </>
+        )
+      }
+    />
   );
 }

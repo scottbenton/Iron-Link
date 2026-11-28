@@ -160,6 +160,10 @@ export function Dialog(props: DialogProps) {
                 noValidate
                 onSubmit={(event) => {
                   event.preventDefault();
+                  // A dialog opened from inside this one is portalled out of
+                  // its form in the DOM but not in React, so its submit
+                  // would otherwise bubble on and submit this form too.
+                  event.stopPropagation();
                   onSubmit(event);
                 }}
               />
