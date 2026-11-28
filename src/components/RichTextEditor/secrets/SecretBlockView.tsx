@@ -1,10 +1,12 @@
-import DeleteIcon from "@mui/icons-material/DeleteOutline";
-import LockIcon from "@mui/icons-material/Lock";
-import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { EditorContent } from "@tiptap/react";
 import { MouseEvent, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+
+import { IconButton } from "ui/components/IconButton";
+import { SecretCard } from "ui/game/SecretCard";
+import { TrashIcon } from "ui/icons";
+import { Box } from "ui/primitives";
 
 import { SecretBlockView as SecretBlock } from "./secretsController";
 import type { SecretsAudience } from "./useSecretsCompanion";
@@ -48,77 +50,47 @@ export function SecretBlockView(props: SecretBlockViewProps) {
 
   return createPortal(
     <Box
-      component="section"
-      aria-label={label}
+      marginBlock="3"
+      userSelect="none"
       onMouseDown={handleMouseDown}
-      sx={(theme) => ({
-        my: 1.5,
-        borderWidth: 1,
-        borderStyle: "dashed",
-        borderColor: theme.palette.text.secondary,
-        borderRadius: `${theme.shape.borderRadius}px`,
-        bgcolor: theme.palette.action.hover,
-        userSelect: "none",
-        ".ProseMirror": {
+      css={{
+        "& .ProseMirror": {
           userSelect: "text",
           minHeight: "unset",
-          px: 1.5,
-          py: 1,
-          mx: 0,
+          padding: 0,
+          margin: 0,
         },
-      })}
+      }}
     >
-      <Box
-        display="flex"
-        alignItems="center"
-        gap={0.5}
-        pl={1.5}
-        pr={0.5}
-        pt={0.5}
-        minHeight={34}
-        color="text.secondary"
-      >
-        <LockIcon fontSize="inherit" />
-        <Typography
-          variant="overline"
-          component="span"
-          lineHeight={1.5}
-          whiteSpace="nowrap"
-          flexGrow={1}
-        >
-          {label}
-        </Typography>
-        {onDelete && (
-          <Tooltip title={t("notes.secrets.delete", "Delete secret")}>
+      <SecretCard
+        label={label}
+        action={
+          onDelete && (
             <IconButton
-              size="small"
-              aria-label={t("notes.secrets.delete", "Delete secret")}
+              size="sm"
+              label={t("notes.secrets.delete", "Delete secret")}
               onClick={() => onDelete(block.id)}
             >
-              <DeleteIcon fontSize="small" />
+              <TrashIcon />
             </IconButton>
-          </Tooltip>
-        )}
-      </Box>
-      {sharedOnlyWith && (
-        <Typography
-          variant="caption"
-          component="p"
-          color="text.secondary"
-          px={1.5}
-        >
-          {sharedOnlyWith === "you"
+          )
+        }
+        note={
+          sharedOnlyWith === "you"
             ? t(
                 "notes.secrets.shared-only-with-you",
                 "Shared only with you so far. Players won't see this secret once it's shared.",
               )
-            : t(
-                "notes.secrets.shared-only-with-guides",
-                "Shared only with Guides so far. Players won't see this secret once it's shared.",
-              )}
-        </Typography>
-      )}
-      <EditorContent editor={block.editor} />
+            : sharedOnlyWith === "guides"
+              ? t(
+                  "notes.secrets.shared-only-with-guides",
+                  "Shared only with Guides so far. Players won't see this secret once it's shared.",
+                )
+              : undefined
+        }
+      >
+        <EditorContent editor={block.editor} />
+      </SecretCard>
     </Box>,
     block.dom,
   );

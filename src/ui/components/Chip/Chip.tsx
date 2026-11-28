@@ -1,5 +1,6 @@
+import { useRender } from "@base-ui/react/use-render";
 import { XIcon } from "@phosphor-icons/react";
-import { ReactNode } from "react";
+import { MouseEvent, ReactElement, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
@@ -171,6 +172,7 @@ const mainButtonStyles = css({
   background: "transparent",
   color: "inherit",
   font: "inherit",
+  textDecoration: "none",
   cursor: "pointer",
   outline: "none",
   WebkitTapHighlightColor: "transparent",
@@ -232,7 +234,12 @@ export interface ChipProps extends CssProp {
   /** An icon before the text. */
   icon?: ReactNode;
   /** Makes the chip a button. */
-  onClick?: () => void;
+  onClick?: (event: MouseEvent<HTMLElement>) => void;
+  /**
+   * Makes the chip a link or another control, such as
+   * `render={<RouterLink to={path} />}`. It covers the whole chip.
+   */
+  render?: ReactElement;
   /** For a toggle chip: shows it chosen and sets `aria-pressed`. */
   selected?: boolean;
   disabled?: boolean;
@@ -245,7 +252,8 @@ export interface ChipProps extends CssProp {
 
 /**
  * A compact label: a tag, a filter or a value. Clickable chips are buttons
- * (toggles with `selected`); removable chips add a named remove button.
+ * (toggles with `selected`) or, with `render`, links; removable chips add a
+ * named remove button.
  */
 export function Chip(props: ChipProps) {
   const { t } = useTranslation();
@@ -256,6 +264,7 @@ export function Chip(props: ChipProps) {
     size,
     icon,
     onClick,
+    render,
     selected,
     disabled,
     onRemove,
@@ -278,6 +287,24 @@ export function Chip(props: ChipProps) {
     </>
   );
 
+  const main = useRender({
+    defaultTagName: "button",
+    render,
+    props: {
+      ...(render
+        ? {}
+        : {
+            type: "button" as const,
+            disabled,
+            "aria-pressed": selected === undefined ? undefined : selected,
+          }),
+      className: mainButtonStyles,
+      "data-chip-main": "",
+      onClick,
+      children: content,
+    },
+  });
+
   return (
     <span
       className={cx(
@@ -285,20 +312,7 @@ export function Chip(props: ChipProps) {
         className,
       )}
     >
-      {onClick ? (
-        <button
-          type="button"
-          className={mainButtonStyles}
-          data-chip-main=""
-          aria-pressed={selected === undefined ? undefined : selected}
-          disabled={disabled}
-          onClick={onClick}
-        >
-          {content}
-        </button>
-      ) : (
-        content
-      )}
+      {onClick || render ? main : content}
       {onRemove && (
         <button
           type="button"

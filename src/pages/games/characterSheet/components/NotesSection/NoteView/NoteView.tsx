@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
-import { NOTES_PANE_GUTTER } from "components/Layout/notesPaneGutter";
 import {
   RichTextToolbarProps,
   RtcRichTextEditor,
@@ -146,7 +145,7 @@ export function NoteView(props: NoteViewProps) {
         secrets={secrets}
         Toolbar={Toolbar}
         initialValue={noteContent}
-        contentPx={NOTES_PANE_GUTTER}
+        inset
         uploadImage={uploadImage}
         contentStore={
           loading || !notePermissions.canEdit ? undefined : contentStore

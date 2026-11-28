@@ -44,9 +44,5 @@ export function setTextType(editor: Editor, type: TextType) {
     editor.chain().focus().setParagraph().run();
     return;
   }
-  editor
-    .chain()
-    .focus()
-    .setHeading({ level: HEADING_LEVELS[type] })
-    .run();
+  editor.chain().focus().setHeading({ level: HEADING_LEVELS[type] }).run();
 }

@@ -2,10 +2,10 @@ import type { Editor } from "@tiptap/react";
 import { ChangeEvent, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useSnackbar } from "providers/SnackbarProvider";
+
 import { ToolbarButton } from "ui/components/Toolbar";
 import { ImageSquareIcon } from "ui/icons";
-
-import { useSnackbar } from "providers/SnackbarProvider";
 
 import {
   MAX_FILE_SIZE,
