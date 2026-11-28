@@ -5,6 +5,7 @@ import { useMenuState } from "stores/menuState";
 import { CharacterMenuDialogs } from "../../characterSheet/components/CharacterSettingsMenu/CharacterMenuDialogs";
 import { SecondScreenDialog } from "../../characterSheet/components/SecondScreenSection";
 import { GameSettingsMenuDialogs } from "../../overviewSheet/gameSettings/GameSettingsMenuDialogs";
+import { GameThemeDialog } from "./GameThemeDialog";
 import { useGameSettingsContribution } from "./useGameSettingsContribution";
 
 /**
@@ -24,6 +25,7 @@ export function GameSettings() {
     <>
       <GameSettingsMenuDialogs />
       <CharacterMenuDialogs />
+      <GameThemeDialog />
       <SecondScreenDialog
         open={secondScreenOpen}
         onClose={() => setSecondScreenOpen(false)}

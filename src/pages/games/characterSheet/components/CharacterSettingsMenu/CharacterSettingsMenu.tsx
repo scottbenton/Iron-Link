@@ -1,46 +1,81 @@
-import CharacterSettingsIcon from "@mui/icons-material/ManageAccounts";
-import { IconButton, Menu } from "@mui/material";
-import { useCallback, useId, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
+import {
+  CharacterSettingsMenu as LibraryCharacterSettingsMenu,
+  SettingsMenuAction,
+} from "ui/layout";
 
+import { GamePermission, useGameStore } from "stores/game.store";
+import {
+  useGameCharacter,
+  useGameCharactersStore,
+} from "stores/gameCharacters.store";
+import { useMenuState } from "stores/menuState";
+
+import { GameType } from "repositories/game.repository";
+
+import { useGamePermissions } from "../../../gamePageLayout/hooks/usePermissions";
 import { useCanEditCharacter } from "../../hooks/useCanEditCharacter";
-import { CharacterMenuItems } from "./CharacterMenuItems";
+import { useIsOwnerOfCharacter } from "../../hooks/useIsOwnerOfCharacter";
+import { useDeleteCharacter } from "./useDeleteCharacter";
 
-// Its dialogs are mounted once for the game page, by `GameSettings`.
+/**
+ * The gear beside the character's name: that character's own settings. Its
+ * dialogs, the Theme dialog included, are mounted once for the game page by
+ * `GameSettings`.
+ */
 export function CharacterSettingsMenu() {
-  const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
-  const closeMenu = useCallback(() => setIsSettingsMenuOpen(false), []);
-
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const menuId = useId();
-  const { t } = useTranslation();
   const canEditCharacter = useCanEditCharacter();
+  const isOwner = useIsOwnerOfCharacter();
+  const name = useGameCharacter((character) => character?.name ?? "");
+  const gameName = useGameStore((store) => store.game?.name);
+  const { gamePermission, gameType } = useGamePermissions();
+  const characterCount = useGameCharactersStore(
+    (store) => Object.keys(store.characters).length,
+  );
+  const deleteCharacter = useDeleteCharacter();
+
+  const {
+    setIsCharacterDetailsDialogOpen,
+    setIsCharacterStatsDialogOpen,
+    setIsCharacterEditAccessDialogOpen,
+    setIsThemeDialogOpen,
+  } = useMenuState();
 
   if (!canEditCharacter) {
     return null;
   }
 
+  const handleSelect = (action: SettingsMenuAction) => {
+    switch (action) {
+      case "characterDetails":
+        setIsCharacterDetailsDialogOpen(true);
+        break;
+      case "characterStats":
+        setIsCharacterStatsDialogOpen(true);
+        break;
+      case "characterAccess":
+        setIsCharacterEditAccessDialogOpen(true);
+        break;
+      case "theme":
+        setIsThemeDialogOpen(true);
+        break;
+    }
+  };
+
   return (
-    <>
-      <IconButton
-        ref={buttonRef}
-        aria-label={t("character.settings-menu", "Character Settings")}
-        aria-haspopup="menu"
-        aria-expanded={isSettingsMenuOpen ? "true" : undefined}
-        aria-controls={isSettingsMenuOpen ? menuId : undefined}
-        sx={{ mt: -1, mr: -1 }}
-        onClick={() => setIsSettingsMenuOpen(true)}
-      >
-        <CharacterSettingsIcon />
-      </IconButton>
-      <Menu
-        open={isSettingsMenuOpen}
-        anchorEl={buttonRef.current}
-        onClose={closeMenu}
-        slotProps={{ list: { id: menuId } }}
-      >
-        <CharacterMenuItems closeMenu={closeMenu} />
-      </Menu>
-    </>
+    <LibraryCharacterSettingsMenu
+      character={{ name, isOwner }}
+      game={
+        gameName === undefined
+          ? undefined
+          : {
+              name: gameName,
+              isGuide: gamePermission === GamePermission.Guide,
+              solo: gameType === GameType.Solo,
+              characterCount,
+            }
+      }
+      onSelect={handleSelect}
+      onDeleteCharacter={deleteCharacter}
+    />
   );
 }

@@ -2,18 +2,26 @@ import { Datasworn } from "@datasworn-community/core";
 
 import { useDataswornTreeStore } from "stores/dataswornTree.store";
 
+type MoveTree = ReturnType<typeof useDataswornTreeStore.getState>["moves"];
+
+/** A move by id or by an alias of its id, from the given move tree. */
+export function findMove(
+  moves: Pick<MoveTree, "moveAliases" | "moveMap">,
+  moveId: string,
+): Datasworn.Move | Datasworn.EmbeddedMove | undefined {
+  return (
+    moves.moveMap[moves.moveAliases[moveId] ?? moveId] ?? moves.moveMap[moveId]
+  );
+}
+
 export function getMove(
   moveId: string,
 ): Datasworn.Move | Datasworn.EmbeddedMove | undefined {
-  const { moveAliases, moveMap } = useDataswornTreeStore.getState().moves;
-  return moveMap[moveAliases[moveId] ?? moveId] ?? moveMap[moveId];
+  return findMove(useDataswornTreeStore.getState().moves, moveId);
 }
 
 export function useMove(
   moveId: string,
 ): Datasworn.Move | Datasworn.EmbeddedMove | undefined {
-  return useDataswornTreeStore((store) => {
-    const resolvedMoveId = store.moves.moveAliases[moveId] ?? moveId;
-    return store.moves.moveMap[resolvedMoveId] ?? store.moves.moveMap[moveId];
-  });
+  return useDataswornTreeStore((store) => findMove(store.moves, moveId));
 }

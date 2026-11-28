@@ -15,7 +15,7 @@ export function GameOverviewHeader() {
   const settings = useGameSettingsContribution();
   if (!settings) return null;
 
-  const { game, themeTarget } = settings;
+  const { game } = settings;
   return (
     <Flex alignItems="center" gap="2">
       <Text
@@ -27,7 +27,9 @@ export function GameOverviewHeader() {
       </Text>
       <GameSettingsMenu
         game={game}
-        showTheme={themeTarget === "game"}
+        // Only Guides can change the game's theme, which Change Theme
+        // opens the Theme dialog for.
+        showTheme={game.isGuide}
         logSound={settings.logSound}
         onLogSoundChange={settings.onLogSoundChange}
         // The game's menu offers only the game's own items, never the

@@ -12,7 +12,7 @@ import {
   ColorSchemeFallbackOption,
   ColorSchemePicker,
 } from "../ColorSchemePicker";
-import { SchemeSwatch } from "./SchemeSwatch";
+import { SchemeSwatch } from "../SchemeSwatch";
 import { ResolvedTheme, ThemeChoice, ThemeSource } from "./resolveTheme";
 import { ThemeDialogStrings } from "./themeDialogStrings";
 
@@ -24,6 +24,7 @@ const rowStyles = css({
   columnGap: "3",
   paddingBlock: "3",
   borderBottom: "1px solid token(colors.border.subtle)",
+  _first: { paddingBlockStart: 0 },
   _last: { borderBottom: 0 },
   "& [data-row-icon]": { gridArea: "icon", alignSelf: "start" },
   "& [data-row-text]": {

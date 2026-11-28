@@ -181,10 +181,7 @@ export const useGameStore = createWithEqualityFn<
       return GameService.changeName(gameId, newName);
     },
     updateGameColorScheme: (gameId, colorScheme) => {
-      return GameService.updateColorScheme(
-        gameId,
-        colorScheme ?? ColorScheme.Default,
-      );
+      return GameService.updateColorScheme(gameId, colorScheme);
     },
     updateGameRulesPackages: (gameId, rulesets, expansions, playset) => {
       return GameService.updateRules(gameId, rulesets, expansions, playset);

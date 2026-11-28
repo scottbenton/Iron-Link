@@ -7,7 +7,6 @@ import { ErrorBoundary } from "components/ErrorBoundary";
 import { BookOpenIcon, UserIcon, UsersThreeIcon } from "ui/icons";
 import { GameLayout } from "ui/layout";
 
-import { CharacterSettingsMenu } from "pages/games/characterSheet/components/CharacterSettingsMenu";
 import { NotesSection } from "pages/games/characterSheet/components/NotesSection";
 import { ReferenceSidebarContents } from "pages/games/characterSheet/components/ReferenceSidebarContents";
 
@@ -78,7 +77,6 @@ export function GameColumns(props: GameColumnsProps) {
                 title: t("character.character-sidebar.header", "Character"),
                 icon: <UserIcon />,
                 headingId: OVERVIEW_ID,
-                actions: <CharacterSettingsMenu />,
                 sections: characterSections,
                 activeSectionId: layout.characterSection,
                 onActiveSectionChange: (id) =>
