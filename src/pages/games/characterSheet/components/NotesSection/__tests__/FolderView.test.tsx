@@ -245,7 +245,7 @@ describe("Notes folder view", () => {
 
     await user.click(screen.getByRole("button", { name: "Alpha actions" }));
     expect(
-      screen.getAllByRole("menuitem").map((item) => item.textContent),
+      (await screen.findAllByRole("menuitem")).map((item) => item.textContent),
     ).toEqual([
       "Rename Folder",
       "Share Folder",
@@ -256,7 +256,7 @@ describe("Notes folder view", () => {
 
     await user.click(screen.getByRole("button", { name: "First actions" }));
     expect(
-      screen.getAllByRole("menuitem").map((item) => item.textContent),
+      (await screen.findAllByRole("menuitem")).map((item) => item.textContent),
     ).toEqual(["Rename Note", "Share Note", "Move Note", "Delete Note"]);
     await user.keyboard("{Escape}");
     unmount();
@@ -266,7 +266,7 @@ describe("Notes folder view", () => {
     const solo = renderInRouter(<FolderView folderId="root" />);
     await user.click(screen.getByRole("button", { name: "Alpha actions" }));
     expect(
-      screen.getAllByRole("menuitem").map((item) => item.textContent),
+      (await screen.findAllByRole("menuitem")).map((item) => item.textContent),
     ).toEqual(["Rename Folder"]);
     await user.keyboard("{Escape}");
     solo.unmount();
@@ -287,7 +287,9 @@ describe("Notes folder view", () => {
     renderInRouter(<FolderView folderId="root" />);
 
     await user.click(screen.getByRole("button", { name: "First actions" }));
-    await user.click(screen.getByRole("menuitem", { name: "Delete Note" }));
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Delete Note" }),
+    );
     expect(confirm.mock.calls[0][0].title).toBe("Delete First");
     expect(deleteNote).toHaveBeenCalledWith("first");
   });
@@ -300,8 +302,10 @@ describe("Notes folder view", () => {
     renderInRouter(<FolderView folderId="root" />);
 
     await user.click(screen.getByRole("button", { name: "First actions" }));
-    await user.click(screen.getByRole("menuitem", { name: "Rename Note" }));
-    const dialog = screen.getByRole("dialog", { name: "Note Name" });
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Rename Note" }),
+    );
+    const dialog = await screen.findByRole("dialog", { name: "Note Name" });
     const input = within(dialog).getByRole("textbox", { name: /Name/ });
     expect(input).toHaveValue("First");
     await user.clear(input);
@@ -453,14 +457,18 @@ describe("Note toolbar actions", () => {
     renderInRouter(<NoteActions noteId="first" />);
 
     await user.click(screen.getByRole("button", { name: "Note actions" }));
-    const items = screen.getAllByRole("menuitem").map((i) => i.textContent);
+    const items = (await screen.findAllByRole("menuitem")).map(
+      (i) => i.textContent,
+    );
     expect(items).toEqual([
       "Rename Note",
       "Share Note",
       "Move Note",
       "Delete Note",
     ]);
-    await user.click(screen.getByRole("menuitem", { name: "Delete Note" }));
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Delete Note" }),
+    );
     expect(confirm.mock.calls[0][0].title).toBe("Delete First");
     expect(deleteNote).toHaveBeenCalledWith("first");
     expect(useNotesStore.getState().noteTabItems[tab]).toEqual({
