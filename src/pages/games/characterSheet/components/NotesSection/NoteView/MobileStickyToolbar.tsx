@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { SecretsToolbarState } from "components/RichTextEditor";
 import {
   EditorToolbarControls,
-  MobileKeyboardToolbar,
+  MobileNotesToolbar,
 } from "components/RichTextEditor/toolbar";
 
 import { ToolbarButton, ToolbarSeparator } from "ui/components/Toolbar";
@@ -13,20 +13,18 @@ import { ArrowLeftIcon } from "ui/icons";
 
 import { useNotesStore } from "stores/notes.store";
 
-import { NoteItemAction } from "../NoteItemActions";
-import { NoteActionsMenu } from "./NoteActionsMenu";
-
 export interface MobileStickyNoteToolbarProps {
   openNoteId: string;
   editor: Editor;
-  actions: NoteItemAction[];
+  canEdit: boolean;
   secrets?: SecretsToolbarState;
 }
 
-// A note's toolbar on a phone, riding on the keyboard: back to the note's
-// folder, the editing controls, then the note's own actions.
+// A note's toolbar on a phone, riding on the keyboard while the note is being
+// edited: back to the note's folder, then the editing controls. The note's
+// own actions are at the top of the note, as on larger screens.
 export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
-  const { openNoteId, editor, actions, secrets } = props;
+  const { openNoteId, editor, canEdit, secrets } = props;
 
   const { t } = useTranslation();
 
@@ -42,11 +40,14 @@ export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
 
   const isMobile = useIsMobile();
 
-  if (!isMobile) {
+  if (!isMobile || !canEdit) {
     return null;
   }
   return (
-    <MobileKeyboardToolbar label={t("note.editor-toolbar.label", "Formatting")}>
+    <MobileNotesToolbar
+      editor={editor}
+      label={t("note.editor-toolbar.label", "Formatting")}
+    >
       <ToolbarButton
         label={t("notes.editor-toolbar.mobile.go-back", "Back to Folder")}
         icon={<ArrowLeftIcon />}
@@ -62,7 +63,6 @@ export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
         secrets={secrets}
         compact
       />
-      <NoteActionsMenu actions={actions} />
-    </MobileKeyboardToolbar>
+    </MobileNotesToolbar>
   );
 }

@@ -2,14 +2,15 @@ import { Editor } from "@tiptap/react";
 import { useTranslation } from "react-i18next";
 
 import type { SecretsToolbarState } from "components/RichTextEditor";
-import { EditorToolbarControls } from "components/RichTextEditor/toolbar";
+import {
+  EditorToolbarControls,
+  MobileNotesToolbar,
+} from "components/RichTextEditor/toolbar";
 
 import { ActionToolbar } from "ui/layout/ActionToolbar";
 import { Box } from "ui/primitives";
 
 import { useIsMobile } from "hooks/useIsMobile";
-
-import { MobileNotesToolbar } from "./MobileNotesToolbar";
 
 export interface WorldNotesToolbarProps {
   editor: Editor;

@@ -10,8 +10,8 @@ const barStyles = css({
   position: "fixed",
   insetInline: 0,
   bottom: 0,
-  // Above the page's own sticky chrome; portalled last, so it also sits
-  // over a bottom navigation bar at the same level.
+  // Above the page's own sticky chrome. A MobileNav steps aside while the
+  // bar shows, rather than sitting under it.
   zIndex: "sticky",
   // Scaled for pinch zoom from the corner it is fixed by.
   transformOrigin: "left bottom",
@@ -67,7 +67,8 @@ export interface KeyboardToolbarProps {
  * The bar only draws. Riding on the keyboard is the caller's: it writes a
  * `transform` to the forwarded element as the visible area changes, and sets
  * `data-keyboard-open` there to drop the safe-area padding. Portalled to the
- * body, so nothing on the page becomes its containing block.
+ * body, so nothing on the page becomes its containing block. A MobileNav
+ * hides while the bar shows, so the two never share the bottom edge.
  */
 export const KeyboardToolbar = forwardRef<HTMLDivElement, KeyboardToolbarProps>(
   function KeyboardToolbar(props, ref) {
@@ -81,6 +82,7 @@ export const KeyboardToolbar = forwardRef<HTMLDivElement, KeyboardToolbarProps>(
         className={barStyles}
         onMouseDown={onMouseDown}
         style={hidden ? { visibility: "hidden" } : undefined}
+        data-keyboard-toolbar-shown={hidden ? undefined : ""}
       >
         <Toolbar
           ref={strip}

@@ -134,6 +134,13 @@ describe("MobileNotesToolbar", () => {
     expect(bar()).not.toBeVisible();
   });
 
+  it("marks itself while it shows, so the bottom nav steps aside", () => {
+    const { editor } = renderToolbar();
+    expect(bar()).not.toHaveAttribute("data-keyboard-toolbar-shown");
+    act(() => editor.view.dom.focus());
+    expect(bar()).toHaveAttribute("data-keyboard-toolbar-shown");
+  });
+
   it("stays up while a menu it opened has focus", () => {
     const { editor } = renderToolbar();
     act(() => editor.view.dom.focus());
