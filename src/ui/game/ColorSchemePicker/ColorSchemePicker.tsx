@@ -18,7 +18,7 @@ import { SchemeSwatch } from "../SchemeSwatch";
  */
 const schemeCardStyles = css({
   "& [data-frame]": { width: "32px", height: "32px" },
-  "& span[aria-hidden]:not([data-frame])": {
+  "& [data-part=check]": {
     position: "absolute",
     top: "calc(token(spacing.3) + 1px + 32px - 13px)",
     insetInlineStart: "calc(token(spacing.3) + 1px + 32px - 13px)",
