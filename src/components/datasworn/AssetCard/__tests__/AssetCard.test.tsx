@@ -16,14 +16,26 @@ import {
   vi,
 } from "vitest";
 
+import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
 import { useRollStatAndAddToLog } from "pages/games/hooks/useRollStatAndAddToLog";
+
+import { useGameCharactersStore } from "stores/gameCharacters.store";
 
 import { TestWrapper } from "tests/TestWrapper";
 import { RULESETS, loadRules } from "tests/datasworn/rulesets";
 
 import { IAsset } from "services/asset.service";
+import { ICharacter } from "services/character.service";
 
 import { AssetCard, AssetCardProps } from "../AssetCard";
+
+vi.mock("pages/games/characterSheet/hooks/useCharacterId", () => ({
+  useCharacterIdOptional: vi.fn(),
+  useCharacterId: vi.fn(),
+}));
+const mockCharacterId = useCharacterIdOptional as MockedFunction<
+  typeof useCharacterIdOptional
+>;
 
 vi.mock("pages/games/hooks/useRollStatAndAddToLog", () => ({
   useRollStatAndAddToLog: vi.fn(),
@@ -84,6 +96,7 @@ describe("AssetCard", () => {
 
   beforeEach(() => {
     mockRoll.mockReset();
+    mockCharacterId.mockReturnValue(undefined);
   });
 
   it("names the asset in a heading under its category, with its abilities", () => {
@@ -172,6 +185,22 @@ describe("AssetCard", () => {
         statLabel: expect.stringMatching(/'s Health$/),
       }),
     );
+  });
+
+  it("rolls with the character's momentum and Adds, as a move's roll does", async () => {
+    const user = userEvent.setup();
+    mockCharacterId.mockReturnValue("kai");
+    useGameCharactersStore.setState({
+      characters: {
+        kai: { id: "kai", momentum: 4, adds: 2 } as unknown as ICharacter,
+      },
+    });
+    renderCard(editableProps());
+    await user.click(screen.getByRole("button", { name: /^roll health/i }));
+    expect(mockRoll).toHaveBeenCalledWith(
+      expect.objectContaining({ momentum: 4, adds: 2 }),
+    );
+    useGameCharactersStore.setState({ characters: {} });
   });
 
   it("marks the companion out of action", async () => {

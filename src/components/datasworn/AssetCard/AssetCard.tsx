@@ -44,7 +44,8 @@ export interface AssetCardProps extends CssProp {
 /**
  * The library's asset card for an asset in the loaded rules, with a
  * character's ticks and values from Iron Link. Rolling a meter (a
- * companion's Health) rolls it with the character's momentum and logs it.
+ * companion's Health) rolls it with the character's momentum and Adds and
+ * logs it.
  */
 export function AssetCard(props: AssetCardProps) {
   const {
@@ -67,6 +68,7 @@ export function AssetCard(props: AssetCardProps) {
   const momentum = useGameCharacter(
     (character) => character?.momentum ?? DEFAULT_MOMENTUM,
   );
+  const adds = useGameCharacter((character) => character?.adds ?? 0);
   const rollStat = useRollStatAndAddToLog();
 
   const controls = asset ? getAssetFields(asset, assetDocument).controls : {};
@@ -102,6 +104,7 @@ export function AssetCard(props: AssetCardProps) {
         control.label,
       ),
       statModifier: value,
+      adds,
       momentum,
     });
   };
