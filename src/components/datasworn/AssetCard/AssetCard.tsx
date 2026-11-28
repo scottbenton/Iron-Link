@@ -1,35 +1,49 @@
-import { Box, Card, Stack, SxProps, Theme, Typography } from "@mui/material";
+import { ElementType, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
-import { getAssetFields } from "ui/game/AssetCard/assetData";
+import { Alert } from "ui/components/Alert";
+import {
+  AssetControl,
+  AssetControlValue,
+  AssetCard as LibraryAssetCard,
+  getAssetFields,
+} from "ui/game/AssetCard";
+import { CssProp } from "ui/styles/cssProp";
+
+import { useRollStatAndAddToLog } from "pages/games/hooks/useRollStatAndAddToLog";
 
 import { useAsset } from "hooks/datasworn/useAsset";
 
+import { useGameCharacter } from "stores/gameCharacters.store";
+
+import { DEFAULT_MOMENTUM } from "data/constants";
+
 import { IAsset } from "services/asset.service";
 
-import { AssetAbilities } from "./AssetAbilities";
-import { AssetControls } from "./AssetControls";
-import { AssetHeader } from "./AssetHeader";
-import { AssetNameAndDescription } from "./AssetNameAndDescription";
-import { AssetOptions } from "./AssetOptions";
+import { useDebouncedClockChanges } from "./useDebouncedClockChanges";
 
-export interface AssetCardProps {
+export interface AssetCardProps extends CssProp {
   assetId: string;
   assetDocument?: IAsset;
-  headerActions?: React.ReactNode;
-  actions?: React.ReactNode;
+  headerActions?: ReactNode;
+  actions?: ReactNode;
 
   onAssetAbilityToggle?: (abilityIndex: number, checked: boolean) => void;
   onAssetOptionChange?: (assetOptionKey: string, value: string) => void;
-  onAssetControlChange?: (
-    controlKey: string,
-    value: boolean | string | number,
-  ) => void;
+  onAssetControlChange?: (controlKey: string, value: AssetControlValue) => void;
 
   hideUnavailableAbilities?: boolean;
   showSharedIcon?: boolean;
-  sx?: SxProps<Theme>;
+  /** The element for the asset's name, so headings nest. An h3 by default. */
+  headingAs?: ElementType;
+  className?: string;
 }
 
+/**
+ * The library's asset card for an asset in the loaded rules, with a
+ * character's ticks and values from Iron Link. Rolling a meter (a
+ * companion's Health) rolls it with the character's momentum and logs it.
+ */
 export function AssetCard(props: AssetCardProps) {
   const {
     assetId,
@@ -39,109 +53,69 @@ export function AssetCard(props: AssetCardProps) {
     onAssetAbilityToggle,
     onAssetOptionChange,
     onAssetControlChange,
-    showSharedIcon,
     hideUnavailableAbilities,
-    sx,
+    showSharedIcon,
+    headingAs,
+    className,
+    css,
   } = props;
+  const { t } = useTranslation();
 
   const asset = useAsset(assetId);
+  const momentum = useGameCharacter(
+    (character) => character?.momentum ?? DEFAULT_MOMENTUM,
+  );
+  const rollStat = useRollStatAndAddToLog();
+
+  const controls = asset ? getAssetFields(asset, assetDocument).controls : {};
+  const debounced = useDebouncedClockChanges(
+    assetDocument,
+    controls,
+    onAssetControlChange,
+  );
 
   if (!asset) {
     return (
-      <Card
-        variant={"outlined"}
-        sx={[
-          {
-            width: "100%",
-            height: "100%",
-            borderColor: "error.main",
-          },
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
+      <Alert
+        tone="danger"
+        title={t("datasworn.asset-card.not-found-title", "Error loading asset")}
+        className={className}
+        css={css}
       >
-        <AssetHeader
-          id={assetId}
-          category={"Error Loading Asset"}
-          actions={headerActions}
-        />
-        <Box px={2} pt={1} pb={2}>
-          <Typography>Asset with id "{assetId}" could not be found.</Typography>
-        </Box>
-      </Card>
+        {t(
+          "datasworn.asset-card.not-found",
+          'Asset with id "{{id}}" could not be found.',
+          { id: assetId },
+        )}
+      </Alert>
     );
   }
 
-  // Abilities ticked on add their own controls and options, and can
-  // enhance the asset's (the library counts them for both cards).
-  const { controls: assetControls, options: assetOptions } = getAssetFields(
-    asset,
-    assetDocument,
-  );
+  const handleRoll = (key: string, control: AssetControl, value: number) => {
+    rollStat({
+      statId: key,
+      statLabel: control.label,
+      statModifier: value,
+      momentum,
+    });
+  };
 
   return (
-    <Card
-      variant={"outlined"}
-      sx={[
-        {
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-    >
-      <AssetHeader
-        id={asset._id}
-        category={asset.category}
-        actions={headerActions}
-      />
-      <Box
-        px={2}
-        pt={1}
-        pb={2}
-        display="flex"
-        flexDirection={"column"}
-        flexGrow={1}
-      >
-        <AssetNameAndDescription
-          name={asset.name}
-          description={asset.requirement}
-          shared={asset.shared}
-          showSharedIcon={showSharedIcon}
-        />
-        <AssetOptions
-          assetDocument={assetDocument}
-          options={assetOptions}
-          onAssetOptionChange={onAssetOptionChange}
-        />
-        <AssetAbilities
-          abilities={asset.abilities}
-          assetDocument={assetDocument}
-          onAbilityToggle={onAssetAbilityToggle}
-          hideUnavailableAbilities={hideUnavailableAbilities}
-        />
-        <AssetControls
-          controls={assetControls}
-          assetDocument={assetDocument}
-          onControlChange={onAssetControlChange}
-        />
-      </Box>
-      {actions && (
-        <Stack
-          direction={"row"}
-          spacing={1}
-          mt={2}
-          justifyContent={"flex-end"}
-          bgcolor={(theme) =>
-            theme.palette.mode === "light" ? "grey.200" : "grey.800"
-          }
-          px={1}
-          py={1}
-        >
-          {actions}
-        </Stack>
-      )}
-    </Card>
+    <LibraryAssetCard
+      asset={asset}
+      state={debounced.state}
+      onAbilityToggle={onAssetAbilityToggle}
+      onOptionChange={onAssetOptionChange}
+      onControlChange={debounced.onControlChange}
+      // Only someone who can change the meter can roll it.
+      onRollControl={onAssetControlChange ? handleRoll : undefined}
+      showSharedIcon={showSharedIcon}
+      collapsed={hideUnavailableAbilities}
+      headerActions={headerActions}
+      actions={actions}
+      headingAs={headingAs}
+      className={className}
+      css={css}
+    />
   );
 }

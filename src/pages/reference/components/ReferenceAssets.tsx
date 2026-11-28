@@ -1,18 +1,13 @@
-import SearchIcon from "@mui/icons-material/Search";
-import {
-  Box,
-  Button,
-  Chip,
-  InputAdornment,
-  TextField,
-  Typography,
-} from "@mui/material";
 import { useDeferredValue, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { GridLayout } from "components/Layout";
 import { LinkComponent } from "components/LinkComponent";
 import { AssetCard } from "components/datasworn/AssetCard";
+
+import { Button } from "ui/components/Button";
+import { SearchField } from "ui/components/SearchField";
+import { Text } from "ui/components/Text";
+import { Box, Grid, HStack, Stack } from "ui/primitives";
 
 import { useDataswornTreeStore } from "stores/dataswornTree.store";
 
@@ -91,97 +86,83 @@ export function ReferenceAssets(props: ReferenceAssetsProps) {
   }, [deferredSearch, collections, selectedCollection]);
 
   return (
-    <Box>
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        gap={1}
-        mb={1}
-        flexWrap="wrap"
-      >
-        <Typography
-          variant="h6"
-          component="h2"
-          fontFamily={(theme) => theme.typography.fontFamilyTitle}
-          textTransform="uppercase"
-        >
+    <Stack gap="4">
+      <HStack justifyContent="space-between" gap="2" flexWrap="wrap">
+        <Text variant="h3" as="h2">
           {t("reference.assets.heading", "Assets")}
-        </Typography>
+        </Text>
         <ReferenceSourcesMenu tab={tab} section="assets" />
-      </Box>
-      <TextField
+      </HStack>
+      <SearchField
         value={search}
-        onChange={(event) => setSearch(event.target.value)}
+        onValueChange={setSearch}
         label={t("reference.assets.search", "Search assets")}
-        size="small"
-        fullWidth
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          },
-        }}
-        sx={{ mb: 2, maxWidth: 480 }}
+        css={{ maxWidth: "480px" }}
       />
       {!deferredSearch && (
         <Box
-          component="nav"
+          as="nav"
           aria-label={t("reference.assets.collections", "Asset types")}
           display="flex"
           flexWrap="wrap"
-          gap={1}
-          mb={2}
+          gap="2"
         >
           {collections.map((collection) => {
             const selected = collection._id === selectedCollection?._id;
             return (
-              <Chip
+              <Button
                 key={collection._id}
-                label={collection.name}
-                component={LinkComponent}
-                href={getReferenceItemHref(collection._id) ?? ""}
-                clickable
-                color={selected ? "primary" : "default"}
-                variant={selected ? "filled" : "outlined"}
-                aria-current={selected ? "page" : undefined}
-              />
+                size="sm"
+                variant={selected ? "primary" : "outline"}
+                nativeButton={false}
+                render={
+                  <LinkComponent
+                    href={getReferenceItemHref(collection._id) ?? ""}
+                    aria-current={selected ? "page" : undefined}
+                  />
+                }
+              >
+                {collection.name}
+              </Button>
             );
           })}
         </Box>
       )}
       {!deferredSearch && selectedCollection && (
-        <Typography variant="h6" component="h3" sx={{ mb: 1 }}>
+        <Text variant="h4" as="h3">
           {selectedCollection.name}
-        </Typography>
+        </Text>
       )}
-      <GridLayout
-        items={assetIds}
-        minWidth={300}
-        emptyStateMessage={t(
-          "reference.no-matches",
-          "Nothing matches your search",
-        )}
-        renderItem={(assetId) => (
-          <AssetCard
-            assetId={assetId}
-            sx={{ height: "100%" }}
-            actions={
-              <Button
-                LinkComponent={LinkComponent}
-                href={getReferenceItemHref(assetId) ?? ""}
-                color="inherit"
-                size="small"
-              >
-                {t("reference.assets.open", "Open")}
-              </Button>
-            }
-          />
-        )}
-      />
-    </Box>
+      {assetIds.length === 0 ? (
+        <Text color="muted">
+          {t("reference.no-matches", "Nothing matches your search")}
+        </Text>
+      ) : (
+        <Grid
+          gridTemplateColumns="repeat(auto-fill, minmax(min(100%, 300px), 1fr))"
+          gap="3"
+        >
+          {assetIds.map((assetId) => (
+            <AssetCard
+              key={assetId}
+              assetId={assetId}
+              headingAs={deferredSearch ? "h3" : "h4"}
+              actions={
+                <Button
+                  size="sm"
+                  variant="text"
+                  nativeButton={false}
+                  render={
+                    <LinkComponent href={getReferenceItemHref(assetId) ?? ""} />
+                  }
+                >
+                  {t("reference.assets.open", "Open")}
+                </Button>
+              }
+            />
+          ))}
+        </Grid>
+      )}
+    </Stack>
   );
 }

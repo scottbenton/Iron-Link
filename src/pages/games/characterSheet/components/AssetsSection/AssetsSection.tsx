@@ -1,7 +1,6 @@
-import { Box } from "@mui/material";
 import { useMemo, useState } from "react";
 
-import { GridLayout } from "components/Layout";
+import { Grid, Stack } from "ui/primitives";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 
@@ -58,7 +57,7 @@ export function AssetsSection() {
   const [showAllAbilities, setShowAllAbilities] = useState(false);
 
   return (
-    <Box display="flex" flexDirection="column" gap={2}>
+    <Stack gap="3">
       <AssetSectionHeader
         gameId={gameId}
         characterId={characterId}
@@ -68,19 +67,23 @@ export function AssetsSection() {
         lastSharedAssetOrder={lastSharedAssetOrder}
         canEditCharacter={canEditCharacter}
       />
-      <GridLayout
-        items={[...sortedSharedAssets, ...sortedCharacterAssets]}
-        renderItem={(item, index) => (
-          <AssetsSectionCard
-            key={index}
-            canEditCharacter={canEditCharacter}
-            assetId={item[0]}
-            assetDocument={item[1]}
-            showUnavailableAbilities={showAllAbilities}
-          />
+      {/* As many cards to a row as fit at 300px. */}
+      <Grid
+        gridTemplateColumns="repeat(auto-fill, minmax(min(100%, 300px), 1fr))"
+        gap="3"
+      >
+        {[...sortedSharedAssets, ...sortedCharacterAssets].map(
+          ([assetId, assetDocument]) => (
+            <AssetsSectionCard
+              key={assetId}
+              canEditCharacter={canEditCharacter}
+              assetId={assetId}
+              assetDocument={assetDocument}
+              showUnavailableAbilities={showAllAbilities}
+            />
+          ),
         )}
-        minWidth={300}
-      />
-    </Box>
+      </Grid>
+    </Stack>
   );
 }

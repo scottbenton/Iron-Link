@@ -154,7 +154,7 @@ function AssetGridCard(props: AssetGridCardProps) {
       onAssetAbilityToggle={handleAssetAbilityToggle}
       onAssetControlChange={handleAssetControlChange}
       onAssetOptionChange={handleAssetOptionChange}
-      sx={{ height: "100%", width: "100%" }}
+      css={{ height: "full", width: "full" }}
     />
   );
 }

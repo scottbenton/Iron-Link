@@ -1,11 +1,14 @@
-import { Button, Checkbox, FormControlLabel } from "@mui/material";
-import { Box } from "@mui/material";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useSnackbar } from "providers/SnackbarProvider";
 
 import { AssetCardDialog } from "components/datasworn/AssetCardDialog/AssetCardDialog";
+
+import { Button } from "ui/components/Button";
+import { Checkbox } from "ui/components/Checkbox";
+import { PlusIcon } from "ui/icons";
+import { HStack } from "ui/primitives";
 
 import { useAssetsStore } from "stores/assets.store";
 
@@ -73,35 +76,22 @@ export function AssetSectionHeader(props: AssetsSectionHeaderProps) {
   );
 
   return (
-    <Box
-      mx={-2}
-      mt={-2}
-      px={2}
-      py={1}
-      bgcolor={(theme) =>
-        theme.palette.mode === "light" ? "grey.300" : "grey.700"
-      }
-      display="flex"
-      alignItems="center"
-      justifyContent="space-between"
-    >
-      <FormControlLabel
+    <HStack justifyContent="space-between" flexWrap="wrap" gap="2">
+      <Checkbox
+        size="sm"
         label={t(
           "character.character-sidebar.expand-assets",
           "Show all abilities",
         )}
-        control={
-          <Checkbox
-            checked={showAllAbilities}
-            onChange={(_, checked) => setShowAllAbilities(checked)}
-          />
-        }
+        checked={showAllAbilities}
+        onCheckedChange={setShowAllAbilities}
       />
       {canEditCharacter && (
         <>
           <Button
-            variant="outlined"
-            color="inherit"
+            size="sm"
+            variant="outline"
+            startIcon={<PlusIcon />}
             onClick={() => setIsAssetDialogOpen(true)}
           >
             {t("character.character-sidebar.add-assets", "Add Assets")}
@@ -113,6 +103,6 @@ export function AssetSectionHeader(props: AssetsSectionHeaderProps) {
           />
         </>
       )}
-    </Box>
+    </HStack>
   );
 }

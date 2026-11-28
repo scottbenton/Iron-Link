@@ -1,11 +1,11 @@
-import DeleteIcon from "@mui/icons-material/Delete";
-import { IconButton, Tooltip } from "@mui/material";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import { AssetCard } from "components/datasworn/AssetCard";
 
 import { useConfirm } from "ui/components/ConfirmDialog";
+import { IconButton } from "ui/components/IconButton";
+import { TrashIcon } from "ui/icons";
 
 import { useAsset } from "hooks/datasworn/useAsset";
 
@@ -79,21 +79,15 @@ function AssetsSectionCardUnMemoized(props: AssetsSectionCardProps) {
     <AssetCard
       showSharedIcon
       headerActions={
-        <Tooltip
-          title={t(
-            "character.character-sidebar.delete-asset-dialog-title",
-            "Delete Asset",
-          )}
-        >
+        canEditCharacter && (
           <IconButton
-            aria-label={
+            size="sm"
+            label={
               assetName
                 ? t(
                     "character.character-sidebar.delete-named-asset",
                     "Delete {{name}}",
-                    {
-                      name: assetName,
-                    },
+                    { name: assetName },
                   )
                 : t(
                     "character.character-sidebar.delete-asset-dialog-title",
@@ -101,11 +95,10 @@ function AssetsSectionCardUnMemoized(props: AssetsSectionCardProps) {
                   )
             }
             onClick={handleDeleteAsset}
-            color="inherit"
           >
-            <DeleteIcon />
+            <TrashIcon />
           </IconButton>
-        </Tooltip>
+        )
       }
       assetId={assetDocument.dataswornAssetId}
       assetDocument={assetDocument}

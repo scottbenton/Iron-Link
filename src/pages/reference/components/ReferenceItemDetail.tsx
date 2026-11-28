@@ -71,7 +71,7 @@ export function ReferenceItemDetail(props: ReferenceItemDetailProps) {
             name={item.asset.name}
             {...headerProps}
           />
-          <AssetCard assetId={item.asset._id} sx={{ maxWidth: 420 }} />
+          <AssetCard assetId={item.asset._id} css={{ maxWidth: "420px" }} />
         </>
       );
     case "move_category":

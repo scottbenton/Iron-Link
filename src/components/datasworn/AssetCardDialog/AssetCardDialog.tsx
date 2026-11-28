@@ -1,20 +1,10 @@
-import { Box, Dialog, DialogContent, Skeleton } from "@mui/material";
-import { useEffect, useState, useTransition } from "react";
-import { useTranslation } from "react-i18next";
+import { useMemo } from "react";
 
-import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
-import { GridLayout } from "components/Layout";
-
-import { useIsMobile } from "hooks/useIsMobile";
+import { AssetPickerDialog, AssetPickerGroup } from "ui/game/AssetPickerDialog";
 
 import { useAssets } from "stores/dataswornTree.store";
-import { RootCollections } from "stores/dataswornTreeHelpers/parseCollectionsIntoMaps";
 
 import { IAsset } from "services/asset.service";
-
-import { AssetCollectionSelect } from "./AssetCollectionSelect";
-import { AssetCollectionSidebar } from "./AssetCollectionSidebar";
-import { AssetList } from "./AssetList";
 
 export interface AssetCardDialogProps {
   open: boolean;
@@ -24,105 +14,51 @@ export interface AssetCardDialogProps {
     shared: boolean,
   ) => void;
 }
+
+/**
+ * The library's asset picker over the game's rules: one group per asset
+ * type, headed by ruleset when the game plays more than one.
+ */
 export function AssetCardDialog(props: AssetCardDialogProps) {
   const { open, handleClose, handleAssetSelection } = props;
 
-  const { t } = useTranslation();
+  const { rootAssetCollections, assetCollectionMap } = useAssets();
 
-  const { rootAssetCollections, assetCollectionMap, assetMap } = useAssets();
-  const [selectedAssetCollectionId, setSelectedAssetCollectionId] = useState(
-    getFirstAssetCollection(rootAssetCollections),
-  );
-  const [collection, setCollection] = useState(
-    assetCollectionMap[selectedAssetCollectionId],
-  );
-  const [isPending, startTransition] = useTransition();
-  // const collection = assetCollectionMap[selectedAssetCollectionId.collectionId];
-
-  useEffect(() => {
-    const firstAssetCollection = getFirstAssetCollection(rootAssetCollections);
-    setSelectedAssetCollectionId(firstAssetCollection);
-    startTransition(() => {
-      setCollection(assetCollectionMap[firstAssetCollection]);
+  const groups = useMemo(() => {
+    const result: AssetPickerGroup[] = [];
+    Object.values(rootAssetCollections).forEach((ruleset) => {
+      ruleset.rootCollectionIds.forEach((collectionId) => {
+        const collection = assetCollectionMap[collectionId];
+        if (!collection) return;
+        result.push({
+          id: collectionId,
+          name: collection.name,
+          source: ruleset.title,
+          assets: Object.values(collection.contents ?? {}).sort((a, b) =>
+            a.name.localeCompare(b.name),
+          ),
+        });
+      });
     });
+    return result;
   }, [rootAssetCollections, assetCollectionMap]);
 
-  const isMobile = useIsMobile();
-
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth={"lg"} fullWidth>
-      <DialogTitleWithCloseButton onClose={handleClose}>
-        {t("datasworn.assets", "Assets")}
-      </DialogTitleWithCloseButton>
-      <DialogContent
-        sx={{
-          display: "flex",
-          flexDirection: isMobile ? "column" : "row",
-          alignItems: "flex-start",
-          gap: 2,
-        }}
-        dividers
-      >
-        {isMobile ? (
-          <AssetCollectionSelect
-            rootAssetCollections={rootAssetCollections}
-            collectionMap={assetCollectionMap}
-            selectedCollectionId={selectedAssetCollectionId}
-            setSelectedCollectionId={(collectionId) => {
-              setSelectedAssetCollectionId(collectionId);
-              startTransition(() => {
-                setCollection(assetCollectionMap[collectionId]);
-              });
-            }}
-          />
-        ) : (
-          <Box sx={{ position: "sticky", top: 0, flexShrink: 0 }}>
-            <AssetCollectionSidebar
-              rootAssetCollections={rootAssetCollections}
-              collectionMap={assetCollectionMap}
-              selectedCollectionId={selectedAssetCollectionId}
-              setSelectedCollectionId={(collectionId) => {
-                setSelectedAssetCollectionId(collectionId);
-                startTransition(() => {
-                  setCollection(assetCollectionMap[collectionId]);
-                });
-              }}
-            />
-          </Box>
-        )}
-        <Box sx={{ flexGrow: 1 }}>
-          {isPending ? (
-            <GridLayout
-              items={[1, 2, 3, 4, 5]}
-              renderItem={() => <Skeleton variant="rectangular" height={500} />}
-              emptyStateMessage={""}
-              minWidth={300}
-            />
-          ) : (
-            <>
-              {collection && (
-                <AssetList
-                  assetCollection={collection}
-                  assetMap={assetMap}
-                  selectAsset={handleAssetSelection}
-                />
-              )}
-            </>
-          )}
-        </Box>
-      </DialogContent>
-    </Dialog>
+    <AssetPickerDialog
+      open={open}
+      onClose={handleClose}
+      groups={groups}
+      onAdd={(asset) =>
+        handleAssetSelection(
+          {
+            dataswornAssetId: asset._id,
+            enabledAbilities: {},
+            controlValues: {},
+            optionValues: {},
+          },
+          asset.shared,
+        )
+      }
+    />
   );
-}
-
-function getFirstAssetCollection(assetCollections: RootCollections) {
-  const firstRuleset = Object.keys(assetCollections)[0];
-
-  if (!firstRuleset) return "";
-
-  const firstCollection = assetCollections[firstRuleset].rootCollectionIds[0];
-
-  if (!firstCollection) return "";
-
-  return firstCollection;
 }
