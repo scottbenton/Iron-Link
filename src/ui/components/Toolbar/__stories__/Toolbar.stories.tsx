@@ -9,6 +9,7 @@ import {
   Quotes,
   TextB,
   TextItalic,
+  TextAa,
   TextStrikethrough,
 } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
@@ -21,9 +22,11 @@ import {
   ToolbarButton,
   ToolbarGroup,
   ToolbarLink,
+  ToolbarMenuButton,
   ToolbarSeparator,
   ToolbarStatus,
 } from "..";
+import { Menu, MenuContent, MenuRadioGroup, MenuRadioItem } from "../../Menu";
 import { ToggleGroup, ToggleGroupItem } from "../../ToggleGroup";
 
 const meta: Meta<typeof Toolbar> = {
@@ -137,4 +140,48 @@ export const Plain: Story = {
       <ToolbarLink href="#help">Help</ToolbarLink>
     </Toolbar>
   ),
+};
+
+type TextType = "p" | "h1" | "h2" | "h3";
+const TEXT_TYPES: Record<TextType, string> = {
+  p: "Normal Text",
+  h1: "Heading 1",
+  h2: "Heading 2",
+  h3: "Heading 3",
+};
+
+/**
+ * ToolbarMenuButton opens a menu from the bar and keeps the bar's arrow
+ * keys, like the editor's text type. Its name carries the current choice.
+ */
+export const MenuButton: Story = {
+  render: function Render() {
+    const [type, setType] = useState<TextType>("p");
+    return (
+      <Toolbar aria-label="Formatting">
+        <Menu>
+          <ToolbarMenuButton
+            label={TEXT_TYPES[type]}
+            aria-label={`Text type: ${TEXT_TYPES[type]}`}
+            icon={<TextAa />}
+            showLabel
+          />
+          <MenuContent>
+            <MenuRadioGroup
+              value={type}
+              onValueChange={(value) => setType(value as TextType)}
+            >
+              {(Object.keys(TEXT_TYPES) as TextType[]).map((key) => (
+                <MenuRadioItem key={key} value={key}>
+                  {TEXT_TYPES[key]}
+                </MenuRadioItem>
+              ))}
+            </MenuRadioGroup>
+          </MenuContent>
+        </Menu>
+        <ToolbarSeparator />
+        <ToolbarButton label="Bold" icon={<TextB />} />
+      </Toolbar>
+    );
+  },
 };

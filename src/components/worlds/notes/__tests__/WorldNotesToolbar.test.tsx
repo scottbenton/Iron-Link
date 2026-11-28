@@ -110,12 +110,17 @@ function setup(options: SetupOptions = {}) {
 // Picks a text type the way a person would, whatever the control is.
 async function chooseTextType(name: string) {
   const user = userEvent.setup();
-  await user.click(screen.getByRole("combobox", { name: "Text type" }));
-  await user.click(await screen.findByRole("option", { name }));
+  await user.click(textTypeButton());
+  await user.click(await screen.findByRole("menuitemradio", { name }));
+}
+
+// Named for the line's current type, such as "Text type: Heading 1".
+function textTypeButton() {
+  return screen.getByRole("button", { name: /^Text type: / });
 }
 
 function currentTextType() {
-  return screen.getByRole("combobox", { name: "Text type" }).textContent;
+  return textTypeButton().textContent;
 }
 
 describe("WorldNotesToolbar", () => {
@@ -246,18 +251,18 @@ describe("WorldNotesToolbar", () => {
       const { secrets } = setup({ secrets: { canMakeSecret: true } });
 
       await user.click(screen.getByRole("button", { name: "Make secret" }));
-      let dialog = await screen.findByRole("dialog");
+      let dialog = await screen.findByRole("alertdialog");
       expect(
         within(dialog).getByText(/Players may already have seen this/),
       ).toBeInTheDocument();
       await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
       expect(secrets!.makeSecret).not.toHaveBeenCalled();
       await waitFor(() =>
-        expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+        expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument(),
       );
 
       await user.click(screen.getByRole("button", { name: "Make secret" }));
-      dialog = await screen.findByRole("dialog");
+      dialog = await screen.findByRole("alertdialog");
       await user.click(
         within(dialog).getByRole("button", { name: "Make secret" }),
       );

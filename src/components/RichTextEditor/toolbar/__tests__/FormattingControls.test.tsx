@@ -4,7 +4,11 @@ import { Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { FormattingToolbarItems } from "../FormattingToolbarItems";
+import { Toolbar } from "ui/components/Toolbar";
+
+import { TestWrapper } from "tests/TestWrapper";
+
+import { FormattingControls } from "../FormattingControls";
 
 // jsdom lays nothing out; ProseMirror asks for rects when it scrolls.
 const noRects = Object.assign([], {
@@ -33,26 +37,38 @@ function setup(content: string, at: string) {
       TextSelection.create(current.state.doc, position),
     ),
   );
-  const view = render(<FormattingToolbarItems editor={current} />);
-  return {
-    editor: current,
-    rerender: () => view.rerender(<FormattingToolbarItems editor={current} />),
-  };
+  const ui = () => (
+    <TestWrapper>
+      <Toolbar aria-label="Formatting">
+        <FormattingControls editor={current} />
+      </Toolbar>
+    </TestWrapper>
+  );
+  const view = render(ui());
+  return { editor: current, rerender: () => view.rerender(ui()) };
+}
+
+// A disabled toolbar button stays focusable, so it says so with aria-disabled.
+function isDisabled(name: string) {
+  return (
+    screen.getByRole("button", { name }).getAttribute("aria-disabled") ===
+    "true"
+  );
 }
 
 const LIST = "<ul><li><p>First</p></li><li><p>Second</p></li></ul>";
 
-describe("FormattingToolbarItems indent and outdent", () => {
+describe("FormattingControls indent and outdent", () => {
   it("are disabled outside a list", () => {
     setup("<p>Text</p>", "Text");
-    expect(screen.getByRole("button", { name: "Indent" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Outdent" })).toBeDisabled();
+    expect(isDisabled("Indent")).toBe(true);
+    expect(isDisabled("Outdent")).toBe(true);
   });
 
   it("can't indent the first item, which has nothing to nest under", () => {
     setup(LIST, "First");
-    expect(screen.getByRole("button", { name: "Indent" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Outdent" })).toBeEnabled();
+    expect(isDisabled("Indent")).toBe(true);
+    expect(isDisabled("Outdent")).toBe(false);
   });
 
   it("nests a later item under the one before it, and lifts it back", () => {

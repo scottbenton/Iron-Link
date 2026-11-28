@@ -1,17 +1,19 @@
-import FolderIcon from "@mui/icons-material/ArrowBack";
-import { IconButton, Tooltip } from "@mui/material";
 import { Editor } from "@tiptap/react";
 import { useTranslation } from "react-i18next";
 
 import { SecretsToolbarState } from "components/RichTextEditor";
+import {
+  EditorToolbarControls,
+  MobileKeyboardToolbar,
+} from "components/RichTextEditor/toolbar";
 
+import { ToolbarButton, ToolbarSeparator } from "ui/components/Toolbar";
 import { useIsMobile } from "ui/hooks/useIsMobile";
+import { ArrowLeftIcon } from "ui/icons";
 
 import { useNotesStore } from "stores/notes.store";
 
-import { CommonToolbarItems } from "./CommonToolbarItems";
-import { MobileKeyboardToolbar } from "./MobileKeyboardToolbar";
-import { TextTypeMenu } from "./TextTypeMenu";
+import { NoteToolbarActionsMenu } from "./NoteToolbarActionsMenu";
 import { NotePermissions } from "./useNotePermission";
 
 export interface MobileStickyNoteToolbarProps {
@@ -21,6 +23,8 @@ export interface MobileStickyNoteToolbarProps {
   secrets?: SecretsToolbarState;
 }
 
+// A note's toolbar on a phone, riding on the keyboard: back to the note's
+// folder, the editing controls, then the note's own actions.
 export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
   const { openNoteId, editor, permissions, secrets } = props;
 
@@ -34,6 +38,7 @@ export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
     return store.folderState.folders[currentNote.parentFolderId];
   });
   const setOpenNoteItem = useNotesStore((store) => store.openItemTab);
+  const uploadNoteImage = useNotesStore((store) => store.uploadNoteImage);
 
   const isMobile = useIsMobile();
 
@@ -41,29 +46,26 @@ export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
     return null;
   }
   return (
-    <>
-      <MobileKeyboardToolbar>
-        <Tooltip
-          title={t("notes.editor-toolbar.mobile.go-back", "Back to Folder")}
-        >
-          <IconButton
-            onClick={() =>
-              parentFolder &&
-              setOpenNoteItem({ type: "folder", id: parentFolder.id })
-            }
-          >
-            <FolderIcon />
-          </IconButton>
-        </Tooltip>
-        <TextTypeMenu editor={editor} />
-        <CommonToolbarItems
-          editor={editor}
-          openNoteId={openNoteId}
-          permissions={permissions}
-          secrets={secrets}
-          hideBorders
-        />
-      </MobileKeyboardToolbar>
-    </>
+    <MobileKeyboardToolbar label={t("note.editor-toolbar.label", "Formatting")}>
+      <ToolbarButton
+        label={t("notes.editor-toolbar.mobile.go-back", "Back to Folder")}
+        icon={<ArrowLeftIcon />}
+        onClick={() =>
+          parentFolder &&
+          setOpenNoteItem({ type: "folder", id: parentFolder.id })
+        }
+      />
+      <ToolbarSeparator />
+      <EditorToolbarControls
+        editor={editor}
+        upload={(file) => uploadNoteImage(openNoteId, file)}
+        secrets={secrets}
+        compact
+      />
+      <NoteToolbarActionsMenu
+        openNoteId={openNoteId}
+        permissions={permissions}
+      />
+    </MobileKeyboardToolbar>
   );
 }
