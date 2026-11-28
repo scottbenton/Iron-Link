@@ -12,7 +12,6 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "ui/components/Button";
 import { Text } from "ui/components/Text";
-import { VisuallyHidden } from "ui/components/VisuallyHidden";
 import { RollButton } from "ui/game/RollButton";
 import { CssProp, withCssProp } from "ui/styles/cssProp";
 
@@ -24,6 +23,7 @@ import {
   RulesTextMacro,
   RulesTextOptions,
 } from "../RulesText/RulesTextContext";
+import { MoveRollGroup } from "./MoveRollGroup";
 import {
   collapsiblePanelStyles,
   contentCardStyles,
@@ -31,7 +31,6 @@ import {
 } from "./cardStyles";
 import {
   MoveRollOption,
-  formatRollValue,
   getMoveCategoryFromId,
   getMoveOracles,
 } from "./moveData";
@@ -73,11 +72,6 @@ const rollRowStyles = css({
   display: "flex",
   flexWrap: "wrap",
   gap: "2",
-});
-
-const rollValueStyles = css({
-  opacity: 0.8,
-  fontVariantNumeric: "tabular-nums",
 });
 
 const oracleTablesStyles = css({
@@ -269,37 +263,12 @@ export function MoveCard(props: MoveCardProps) {
       )}
 
       {rollOptions.length > 0 && (
-        <div
-          className={sectionStyles}
-          role="group"
-          aria-label={t("ui.move-card.roll-group", "{{rollWith}}: {{move}}", {
-            rollWith: rollWithLabel,
-            move: move.name,
-          })}
-        >
-          <Text variant="label" color="muted">
-            {rollWithLabel}
-          </Text>
-          <div className={rollRowStyles}>
-            {rollOptions.map((option) => (
-              <RollButton
-                key={option.id}
-                size="sm"
-                disabled={option.disabled}
-                onClick={() => onRoll?.(option)}
-              >
-                <VisuallyHidden>{rollWithLabel} </VisuallyHidden>
-                {option.label}
-                {option.value !== undefined && (
-                  <span className={rollValueStyles}>
-                    {" "}
-                    {formatRollValue(option)}
-                  </span>
-                )}
-              </RollButton>
-            ))}
-          </div>
-        </div>
+        <MoveRollGroup
+          moveName={move.name}
+          label={rollWithLabel}
+          options={rollOptions}
+          onRoll={onRoll}
+        />
       )}
 
       {showNoTracks && (

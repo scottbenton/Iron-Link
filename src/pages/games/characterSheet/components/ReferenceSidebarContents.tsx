@@ -64,13 +64,7 @@ export function ReferenceSidebarContents() {
       <ColumnTabPanel value={ReferenceTabs.Oracles} fill flush>
         <OracleTree />
       </ColumnTabPanel>
-      <ColumnTabPanel
-        value={ReferenceTabs.GameLog}
-        id="tabpanel-game-log"
-        fill
-        flush
-        reversed
-      >
+      <ColumnTabPanel value={ReferenceTabs.GameLog} fill flush>
         <GameLog open={currentTab === ReferenceTabs.GameLog} />
       </ColumnTabPanel>
       {secondScreenToggleIsActive && (

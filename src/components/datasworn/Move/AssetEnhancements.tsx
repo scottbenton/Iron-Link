@@ -1,7 +1,8 @@
-import { Box, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { Text } from "ui/components/Text";
 import { RulesText } from "ui/game/RulesText";
+import { Box, Stack } from "ui/primitives";
 
 import { AssetEnhancements as IAssetEnhancements } from "./RollOptions/extractRollOptions";
 
@@ -9,9 +10,9 @@ export interface AssetEnhancementsProps {
   enhancements: IAssetEnhancements;
 }
 
+// The asset abilities that change how a move rolls, read beside its rolls.
 export function AssetEnhancements(props: AssetEnhancementsProps) {
   const { enhancements } = props;
-
   const { t } = useTranslation();
 
   if (Object.keys(enhancements).length === 0) {
@@ -19,11 +20,11 @@ export function AssetEnhancements(props: AssetEnhancementsProps) {
   }
 
   return (
-    <Box display="flex" flexDirection="column" gap={1}>
+    <Stack gap="2">
       {Object.values(enhancements).map(
         ({ assetName, assetInputName, assetAbilityText }, index) => (
-          <Box key={index} p={1} bgcolor="background.default" borderRadius={1}>
-            <Typography textTransform="uppercase" fontFamily="fontFamilyTitle">
+          <Box key={index} padding="2" background="bg.canvas" borderRadius="md">
+            <Text variant="label" as="p">
               {assetInputName
                 ? t(
                     "datasworn.move.asset-enhancement-asset-input-name",
@@ -35,11 +36,11 @@ export function AssetEnhancements(props: AssetEnhancementsProps) {
                     "{{assetName}} Asset",
                     { assetName },
                   )}
-            </Typography>
+            </Text>
             <RulesText markdown={assetAbilityText} size="sm" disableLinks />
           </Box>
         ),
       )}
-    </Box>
+    </Stack>
   );
 }

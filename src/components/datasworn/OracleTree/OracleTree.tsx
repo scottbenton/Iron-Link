@@ -1,45 +1,22 @@
-import { Datasworn } from "@datasworn-community/core";
-import SearchIcon from "@mui/icons-material/Search";
+import { useCallback } from "react";
+
 import {
-  Box,
-  Input,
-  InputAdornment,
-  List,
-  ListSubheader,
-  SxProps,
-  Theme,
-} from "@mui/material";
-import { useDeferredValue, useId, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+  DataswornFeaturedOracle,
+  DataswornOracleTree,
+  RenderOracleRow,
+} from "components/datasworn/DataswornTree";
 
-import { useAnnounceSearchResults } from "hooks/useAnnounceSearchResults";
+import { Box } from "ui/primitives";
 
-import { useOracles } from "stores/dataswornTree.store";
+import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
+import { useRollOracleAndAddToLog } from "pages/games/hooks/useRollOracleAndAddToLog";
 
-import { countVisibleItems } from "../_helpers/countVisibleItems";
-import {
-  CollectionVisibility,
-  ItemVisibility,
-  VisibilitySettings,
-  getCollectionVisibilities,
-} from "../_helpers/getCollectionVisibility";
-import { AskTheOracleButtons } from "./AskTheOracleButtons";
-import { OracleCollectionListItem } from "./OracleCollectionListItem";
-import { OracleListItem } from "./OracleListItem";
+import { GamePermission } from "stores/game.store";
 
-const subheaderSx: SxProps<Theme> = (theme) => ({
-  bgcolor: theme.palette.mode === "light" ? "grey.300" : "grey.950",
-  mt: 0,
-  borderBottom: `1px solid ${theme.palette.divider}`,
-  px: 2,
-  fontFamily: theme.typography.fontFamilyTitle,
-});
+import { OracleTreeRow } from "./OracleTreeRow";
+import { OracleTreeSharedTextRow } from "./OracleTreeSharedTextRow";
 
-export interface OracleTreeFeaturedOracle {
-  oracleId: string;
-  // Read under the oracle's name, such as the fields that roll it.
-  description?: string;
-}
+export type OracleTreeFeaturedOracle = DataswornFeaturedOracle;
 
 export interface OracleTreeProps {
   // Oracles listed first under their own heading, above the rules packages.
@@ -50,155 +27,44 @@ export interface OracleTreeProps {
   };
 }
 
+// The oracles in a game: every row rolls into the game log, a Guide's rolls
+// staying with the Guide.
 export function OracleTree(props: OracleTreeProps) {
   const { featured } = props;
-  const { t } = useTranslation();
+  const rollOracleAndAddToLog = useRollOracleAndAddToLog();
+  const isGuide = useGamePermissions().gamePermission === GamePermission.Guide;
 
-  const [searchValue, setSearchValue] = useState("");
-  const deferredSearchValue = useDeferredValue(searchValue);
+  const rollOracle = useCallback(
+    (oracleId: string) => rollOracleAndAddToLog(oracleId, isGuide),
+    [rollOracleAndAddToLog, isGuide],
+  );
 
-  const oracles = useOracles();
-  const { oracleRollableMap, rootOracleCollections, oracleCollectionMap } =
-    oracles;
-
-  const visibilitySettings = useMemo(() => {
-    const collectionVisibility: Record<string, CollectionVisibility> = {};
-    const itemVisibility: Record<string, ItemVisibility> = {};
-
-    Object.values(rootOracleCollections).forEach(({ rootCollectionIds }) => {
-      getCollectionVisibilities(
-        deferredSearchValue,
-        rootCollectionIds,
-        oracleCollectionMap,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        oracleRollableMap as unknown as any,
-        collectionVisibility,
-        itemVisibility,
-      );
-    });
-    return {
-      collectionVisibility,
-      itemVisibility,
-    } as VisibilitySettings;
-  }, [
-    rootOracleCollections,
-    oracleCollectionMap,
-    oracleRollableMap,
-    deferredSearchValue,
-  ]);
-
-  const featuredOracles = useMemo(() => {
-    const search = deferredSearchValue.trim().toLowerCase();
-    return (featured?.oracles ?? []).flatMap(({ oracleId, description }) => {
-      // Only an oracle in the rules can roll; a bound one the playset leaves
-      // out is not offered here.
-      const oracle = oracleRollableMap[oracleId] as
-        | Datasworn.OracleRollable
-        | undefined;
-      if (!oracle) return [];
-      if (search && !oracle.name.toLowerCase().includes(search)) return [];
-      // A description that only repeats the name is left out.
-      return [
-        {
-          oracle,
-          description:
-            description?.toLowerCase() === oracle.name.toLowerCase()
-              ? undefined
-              : description,
-        },
-      ];
-    });
-  }, [featured, oracleRollableMap, deferredSearchValue]);
-
-  const resultCount = useMemo(
-    () =>
-      countVisibleItems(
-        Object.values(rootOracleCollections).flatMap(
-          ({ rootCollectionIds }) => rootCollectionIds,
-        ),
-        oracleCollectionMap,
-        visibilitySettings,
+  const renderOracle = useCallback<RenderOracleRow>(
+    (oracle) =>
+      oracle.canRoll ? (
+        <OracleTreeRow
+          id={oracle.id}
+          name={oracle.name}
+          description={oracle.description}
+          rollOracle={rollOracle}
+        />
+      ) : (
+        <OracleTreeSharedTextRow
+          id={oracle.id}
+          name={oracle.name}
+          rollOracle={rollOracle}
+        />
       ),
-    [rootOracleCollections, oracleCollectionMap, visibilitySettings],
+    [rollOracle],
   );
-  useAnnounceSearchResults(
-    deferredSearchValue,
-    resultCount === 0
-      ? t("datasworn.filter-oracles-no-results", "No oracles found")
-      : t("datasworn.filter-oracles-results", "{{count}} oracles found", {
-          count: resultCount,
-          defaultValue_one: "1 oracle found",
-        }),
-  );
-
-  const featuredHeadingId = useId();
 
   return (
-    <Box bgcolor={"background.paper"}>
-      <AskTheOracleButtons />
-      <Input
-        value={searchValue}
-        onChange={(e) => setSearchValue(e.target.value)}
-        fullWidth
-        startAdornment={
-          <InputAdornment position={"start"}>
-            <SearchIcon sx={(theme) => ({ color: theme.palette.grey[300] })} />
-          </InputAdornment>
-        }
-        aria-label={t("datasworn.filter-oracles", "Filter Oracles")}
-        placeholder={t("datasworn.filter-oracles", "Filter Oracles")}
-        color={"primary"}
-        sx={{
-          bgcolor: "background.paper",
-          color: "text.primary",
-          px: 2,
-          py: 1,
-        }}
+    <Box padding="3">
+      <DataswornOracleTree
+        featured={featured}
+        renderOracle={renderOracle}
+        rollOracle={rollOracle}
       />
-      {featured && featuredOracles.length > 0 && (
-        <List
-          disablePadding
-          aria-labelledby={featuredHeadingId}
-          sx={(theme) => ({
-            borderBottom: `1px solid ${theme.palette.divider}`,
-          })}
-        >
-          <ListSubheader id={featuredHeadingId} sx={subheaderSx}>
-            {featured.title}
-          </ListSubheader>
-          {featuredOracles.map(({ oracle, description }) => (
-            <OracleListItem
-              key={oracle._id}
-              oracle={oracle}
-              description={description}
-              visibilitySettings={visibilitySettings}
-              isSearchActive={false}
-              isFullCollectionVisible
-            />
-          ))}
-        </List>
-      )}
-      {Object.entries(rootOracleCollections).map(
-        ([rulesetKey, ruleset], _, arr) => (
-          <List key={rulesetKey} disablePadding>
-            {(arr.length > 1 || featuredOracles.length > 0) && (
-              <ListSubheader sx={subheaderSx} key={rulesetKey}>
-                {ruleset.title}
-              </ListSubheader>
-            )}
-            {ruleset.rootCollectionIds.map((collectionKey) => (
-              <OracleCollectionListItem
-                key={collectionKey}
-                oracleCollectionId={collectionKey}
-                oracleCollectionMap={oracleCollectionMap}
-                oracleRollableMap={oracleRollableMap}
-                visibilitySettings={visibilitySettings}
-                isSearchActive={!!deferredSearchValue.trim()}
-              />
-            ))}
-          </List>
-        ),
-      )}
     </Box>
   );
 }

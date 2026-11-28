@@ -2,15 +2,19 @@ import RollIcon from "@mui/icons-material/Casino";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { RollSnackbar } from "components/characters/rolls/RollSnackbar";
 import { Stat } from "components/datasworn/Stat";
 
 import { Card } from "ui/components/Card";
 import { Text } from "ui/components/Text";
+import { RollCard } from "ui/game/RollCard";
 import { DiceFiveIcon, Icon } from "ui/icons";
 import { Box, HStack } from "ui/primitives";
 
 import { useRollStatAndAddToLog } from "pages/games/hooks/useRollStatAndAddToLog";
+
+import { getRollSummaryNames } from "hooks/useRollSummary";
+
+import { toRollData } from "lib/rollSummary.lib";
 
 import { IStatRoll } from "services/gameLog.service";
 
@@ -72,7 +76,9 @@ export function HeroRollDemo(props: HeroRollDemoProps) {
       </HStack>
       <Box marginBlockStart="4">
         {latestRoll ? (
-          <RollSnackbar rollId={undefined} roll={latestRoll} isExpanded />
+          <RollCard
+            roll={toRollData(latestRoll, getRollSummaryNames(latestRoll))}
+          />
         ) : (
           <Card padding="sm">
             <HStack gap="2">

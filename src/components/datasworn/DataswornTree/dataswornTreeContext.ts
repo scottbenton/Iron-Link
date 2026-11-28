@@ -13,6 +13,8 @@ export interface DataswornOracleRowItem {
   name: string;
   // A single table rolls from its row; a shared-text table opens to roll.
   canRoll: boolean;
+  // Read under the name, such as the fields that roll a featured oracle.
+  description?: string;
 }
 
 export type RenderMoveRow = (

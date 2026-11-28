@@ -90,6 +90,7 @@ export {
   SignOutIcon,
   SkullIcon,
   SunIcon,
+  TableIcon,
   TargetIcon,
   TextAaIcon,
   TextAlignCenterIcon,

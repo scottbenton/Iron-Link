@@ -9,11 +9,6 @@ export interface ColumnTabPanelProps {
   fill?: boolean;
   /** Leave out the padding, for content that sets its own. */
   flush?: boolean;
-  /**
-   * The newest item at the bottom, as the game log's: the panel keeps its
-   * place as older items load above.
-   */
-  reversed?: boolean;
   children: ReactNode;
 }
 
@@ -22,7 +17,7 @@ export interface ColumnTabPanelProps {
  * each keeps its scroll position and open sections.
  */
 export function ColumnTabPanel(props: ColumnTabPanelProps) {
-  const { value, id, fill, flush, reversed, children } = props;
+  const { value, id, fill, flush, children } = props;
   return (
     <TabPanel
       value={value}
@@ -34,9 +29,6 @@ export function ColumnTabPanel(props: ColumnTabPanelProps) {
         flex: fill ? "1 1 auto" : undefined,
         minHeight: fill ? "0" : undefined,
         overflowY: fill ? "auto" : undefined,
-        display: reversed ? "flex" : undefined,
-        flexDirection: reversed ? "column-reverse" : undefined,
-        overflowAnchor: reversed ? "none" : undefined,
         "&[hidden]": { display: "none" },
       }}
     >

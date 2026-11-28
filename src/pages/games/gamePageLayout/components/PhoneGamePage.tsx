@@ -155,34 +155,25 @@ export function PhoneGamePage(props: PhoneGamePageProps) {
   return (
     <Flex direction="column" flex="1 1 auto" minHeight="0">
       {banner}
-      {sections.map((item) => {
-        // The log's newest entry sits at the bottom, and it loads older ones
-        // as its container (found by this id) scrolls up.
-        const reversed = item.id === "log";
-        return (
-          <Box
-            as="section"
-            key={item.id}
-            id={reversed ? "tabpanel-game-log" : undefined}
-            aria-labelledby={`game-phone-${item.id}-heading`}
-            hidden={item.id !== section}
-            display="flex"
-            flex="1 1 auto"
-            minHeight="0"
-            overflowY="auto"
-            css={{
-              flexDirection: reversed ? "column-reverse" : "column",
-              overflowAnchor: reversed ? "none" : undefined,
-              "&[hidden]": { display: "none" },
-            }}
-          >
-            <VisuallyHidden>
-              <h2 id={`game-phone-${item.id}-heading`}>{item.title}</h2>
-            </VisuallyHidden>
-            <ErrorBoundary>{item.content}</ErrorBoundary>
-          </Box>
-        );
-      })}
+      {sections.map((item) => (
+        <Box
+          as="section"
+          key={item.id}
+          aria-labelledby={`game-phone-${item.id}-heading`}
+          hidden={item.id !== section}
+          display="flex"
+          flex="1 1 auto"
+          minHeight="0"
+          overflowY="auto"
+          flexDirection="column"
+          css={{ "&[hidden]": { display: "none" } }}
+        >
+          <VisuallyHidden>
+            <h2 id={`game-phone-${item.id}-heading`}>{item.title}</h2>
+          </VisuallyHidden>
+          <ErrorBoundary>{item.content}</ErrorBoundary>
+        </Box>
+      ))}
       <Box position="relative" flex="none">
         <RecentRollsDock />
         <MobileNav label={t("game.sections", "Game Sections")} items={items} />

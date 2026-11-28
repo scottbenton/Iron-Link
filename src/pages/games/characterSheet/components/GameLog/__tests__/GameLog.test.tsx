@@ -4,6 +4,7 @@
  * is open.
  */
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useAuthStore } from "stores/auth.store";
@@ -21,7 +22,10 @@ import { GameLog } from "../GameLog";
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("stores/users.store", async (importOriginal) => ({
   ...(await importOriginal<object>()),
-  useUserName: (uid: string) => (uid === "me" ? "Scott" : "Robin"),
+  useUserNames: (uids: string[]) =>
+    Object.fromEntries(
+      uids.map((uid) => [uid, uid === "me" ? "Scott" : "Robin"]),
+    ),
 }));
 vi.mock("pages/games/gamePageLayout/hooks/useGameId", () => ({
   useGameId: () => "game",
@@ -108,6 +112,36 @@ describe("GameLog", () => {
     expect(
       await screen.findByLabelText("Message to the game log"),
     ).toBeInTheDocument();
+  });
+
+  it("sends a player's message as a paragraph per line", async () => {
+    const user = userEvent.setup();
+    renderLog();
+
+    const field = screen.getByLabelText("Message to the game log");
+    await user.type(field, "Watch <the> door{Shift>}{Enter}{/Shift}now");
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+
+    expect(createLog).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        logType: LogType.MESSAGE,
+        uid: "me",
+        gameId: "game",
+        contents: "<p>Watch &lt;the&gt; door</p><p>now</p>",
+      }),
+    );
+  });
+
+  it("loads earlier entries on request", async () => {
+    const user = userEvent.setup();
+    seed({ logs: { message }, hasHitEndOfList: false });
+    renderLog();
+
+    await user.click(
+      screen.getByRole("button", { name: "Load Earlier Entries" }),
+    );
+    expect(loadMoreLogsIfPresent).toHaveBeenCalled();
   });
 
   it("gives viewers no composer", () => {

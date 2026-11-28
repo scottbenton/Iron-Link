@@ -1,6 +1,7 @@
 import { Datasworn } from "@datasworn-community/core";
-import { Box, Typography } from "@mui/material";
 import { useMemo } from "react";
+
+import { Stack } from "ui/primitives";
 
 import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
 import { useGameIdOptional } from "pages/games/gamePageLayout/hooks/useGameId";
@@ -17,12 +18,8 @@ import { filterObject } from "lib/filterObject";
 import { IAsset } from "services/asset.service";
 
 import { AssetEnhancements } from "./AssetEnhancements";
-import {
-  ActionRolls,
-  CharacterRollOptionState,
-  ProgressRolls,
-} from "./RollOptions";
-import { SpecialTracks } from "./RollOptions/SpecialTracks";
+import { CharacterRollOptionState, ProgressRolls } from "./RollOptions";
+import { CharacterRollOptions } from "./RollOptions/CharacterRollOptions";
 import { extractRollOptions } from "./RollOptions/extractRollOptions";
 
 export interface MoveRollOptions {
@@ -101,7 +98,7 @@ export function MoveRollOptions(props: MoveRollOptions) {
   );
 
   return (
-    <Box>
+    <Stack gap="4">
       {rollOptions.visibleProgressTrack && (
         <ProgressRolls
           moveId={move._id}
@@ -111,52 +108,21 @@ export function MoveRollOptions(props: MoveRollOptions) {
       )}
       <AssetEnhancements enhancements={rollOptions.sharedEnhancements} />
       {Object.entries(rollOptions.character).map(
-        ([rollOptionCharacterId, characterRollOptions], idx) => (
-          <Box
+        ([rollOptionCharacterId, characterRollOptions]) => (
+          <CharacterRollOptions
             key={rollOptionCharacterId}
-            display="flex"
-            flexDirection="column"
-            mt={
-              Object.keys(rollOptions.sharedEnhancements).length === 0 &&
-              idx === 0
-                ? 0
-                : 1
-            }
-            gap={1}
-          >
-            {!optionalCharacterId && (
-              <Typography variant="overline">
-                {characterData[rollOptionCharacterId].name}
-              </Typography>
-            )}
-            <AssetEnhancements
-              enhancements={characterRollOptions.assetEnhancements}
-            />
-            {characterRollOptions.specialTracks && (
-              <SpecialTracks
-                moveId={move._id}
-                moveName={move.name}
-                tracks={characterRollOptions.specialTracks}
-                characterData={characterData[rollOptionCharacterId]}
-              />
-            )}
-            {characterRollOptions.actionRolls.length > 0 && (
-              <ActionRolls
-                moveId={move._id}
-                actionRolls={characterRollOptions.actionRolls}
-                character={{
-                  id: rollOptionCharacterId,
-                  data: characterData[rollOptionCharacterId],
-                  assets: characterAssets[rollOptionCharacterId] ?? {},
-                }}
-                gameAssets={gameAssets}
-                gameConditionMeters={gameConditionMeters}
-                includeAdds
-              />
-            )}
-          </Box>
+            move={move}
+            // Off a sheet, each character's rolls show under its name.
+            showName={!optionalCharacterId}
+            characterId={rollOptionCharacterId}
+            characterData={characterData[rollOptionCharacterId]}
+            characterAssets={characterAssets[rollOptionCharacterId] ?? {}}
+            rollOptions={characterRollOptions}
+            gameAssets={gameAssets}
+            gameConditionMeters={gameConditionMeters}
+          />
         ),
       )}
-    </Box>
+    </Stack>
   );
 }

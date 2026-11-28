@@ -1,14 +1,14 @@
-import { Box, Button, Stack } from "@mui/material";
-import { useTranslation } from "react-i18next";
-
-import { ProgressTrack } from "components/datasworn/ProgressTrack";
+import { Stack } from "ui/primitives";
 
 import { useRollCompleteProgressTrack } from "pages/games/hooks/useRollCompleteProgressTrack";
 
 import { useTracksStore } from "stores/tracks.store";
 
+import { getProgressRank } from "lib/progressTrack.lib";
+
 import { TrackStatus, TrackTypes } from "repositories/tracks.repository";
 
+import { TrackRoll } from "./TrackRoll";
 import { WorldConnectionRolls } from "./WorldConnectionRolls";
 
 export interface ProgressRollsProps {
@@ -17,11 +17,10 @@ export interface ProgressRollsProps {
   moveName: string;
 }
 
+// The game's active tracks of the move's type, newest first, each with its
+// roll; for a connection move, the character's world connections first.
 export function ProgressRolls(props: ProgressRollsProps) {
   const { trackType, moveId, moveName } = props;
-
-  const { t } = useTranslation();
-
   const rollTrackProgress = useRollCompleteProgressTrack();
 
   const tracks = useTracksStore((store) =>
@@ -36,26 +35,25 @@ export function ProgressRolls(props: ProgressRollsProps) {
   );
 
   return (
-    <Stack spacing={2}>
+    <Stack gap="4">
       {trackType === TrackTypes.BondProgress && (
         <WorldConnectionRolls moveId={moveId} moveName={moveName} />
       )}
       {tracks.map(([trackId, track]) => (
-        <Box key={trackId}>
-          <ProgressTrack label={track.label} value={track.value} />
-          <Button
-            variant={"outlined"}
-            color="inherit"
-            sx={{ mt: 1 }}
-            onClick={() => {
-              rollTrackProgress(track.type, track.label, track.value, moveId);
-            }}
-          >
-            {t("datasworn.move.roll-track-progress", "Roll {{moveName}}", {
-              moveName,
-            })}
-          </Button>
-        </Box>
+        <TrackRoll
+          key={trackId}
+          moveName={moveName}
+          label={track.label}
+          ticks={track.value}
+          rank={
+            "difficulty" in track
+              ? getProgressRank(track.difficulty)
+              : undefined
+          }
+          onRoll={() =>
+            rollTrackProgress(track.type, track.label, track.value, moveId)
+          }
+        />
       ))}
     </Stack>
   );

@@ -1,10 +1,13 @@
 import { useTranslation } from "react-i18next";
 
-import { RollSnackbar } from "components/characters/rolls/RollSnackbar";
-
 import { Card } from "ui/components/Card";
 import { Text } from "ui/components/Text";
+import { RollCard } from "ui/game/RollCard";
 import { Box, Stack } from "ui/primitives";
+
+import { getRollSummaryNames } from "hooks/useRollSummary";
+
+import { toRollData } from "lib/rollSummary.lib";
 
 import { DemoLogEntry } from "./landingDemo";
 
@@ -46,10 +49,13 @@ export function DemoGameLog(props: DemoGameLogProps) {
           >
             <Text variant="bodySm">{entry.authorName}</Text>
             {entry.content.type === "roll" ? (
-              <RollSnackbar
-                rollId={undefined}
-                roll={entry.content.roll}
-                isExpanded
+              <RollCard
+                roll={toRollData(
+                  entry.content.roll,
+                  getRollSummaryNames(entry.content.roll),
+                )}
+                variant="compact"
+                width="content"
               />
             ) : (
               <Card padding="sm">

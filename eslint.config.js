@@ -93,7 +93,10 @@ export default tseslint.config(
       "src/pages/games/characterSheet/hooks/useImpactsWording.ts",
       "src/components/characters/CharacterInitiativeChip/**/*.{ts,tsx}",
       "src/components/characters/CharacterPortraitAvatar/**/*.{ts,tsx}",
-      "src/components/characters/rolls/{Recent,recent,use,roll,copy,clear}*.{ts,tsx}",
+      "src/components/characters/rolls/{Recent,recent,use,roll,copy,clear,clipboard,Die}*.{ts,tsx}",
+      "src/components/datasworn/MoveTree/**/*.{ts,tsx}",
+      "src/components/datasworn/OracleTree/**/*.{ts,tsx}",
+      "src/pages/games/characterSheet/components/GameLog/**/*.{ts,tsx}",
     ],
     ignores: [
       "src/ui/**/__stories__/**",
