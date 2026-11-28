@@ -1,9 +1,10 @@
 -- A person's Everywhere theme is theirs to set: they change their own users
--- row's color_scheme and nobody else's. Every fixture is rolled back.
+-- row's color_scheme, and changing anyone else's is refused. Every fixture
+-- is rolled back.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public,extensions;
-select plan(4);
+select plan(5);
 
 -- 1 the person, 2 someone else. The auth trigger creates their users rows.
 insert into auth.users(id)
@@ -21,8 +22,13 @@ select set_config('request.jwt.claim.sub','c8000000-0000-4000-8000-000000000001'
 
 update public.users set color_scheme='myriad'
   where id='c8000000-0000-4000-8000-000000000001';
-update public.users set color_scheme='myriad'
-  where id='c8000000-0000-4000-8000-000000000002';
+select throws_ok(
+  $$update public.users set color_scheme='myriad'
+    where id='c8000000-0000-4000-8000-000000000002'$$,
+  '42501',
+  null,
+  'a person is refused setting someone else''s theme'
+);
 
 reset role;
 
@@ -36,7 +42,7 @@ select is(
   (select color_scheme from public.users
     where id='c8000000-0000-4000-8000-000000000002'),
   null,
-  'a person cannot set someone else''s theme'
+  'someone else''s theme stays as it was'
 );
 
 set local role authenticated;
