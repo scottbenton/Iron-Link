@@ -114,7 +114,7 @@ export const CharacterSidebar: Story = {
             </ListItemButton>
           </ListItem>
         ))}
-        <ListSubheader>World</ListSubheader>
+        <ListSubheader divided>World</ListSubheader>
         <ListItem>
           <ListItemButton render={<a href="#sectors" />}>
             <ListItemIcon>

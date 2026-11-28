@@ -2,6 +2,7 @@ export * from "./ActionToolbar";
 export * from "./AppShell";
 export * from "./EmptyState";
 export * from "./GameLayout";
+export * from "./KeyboardToolbar";
 export * from "./Logo";
 export * from "./MobileNav";
 export * from "./NavBar";

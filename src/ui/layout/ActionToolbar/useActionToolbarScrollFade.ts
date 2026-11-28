@@ -23,12 +23,14 @@ export function useActionToolbarScrollFade(enabled: boolean) {
 
     update();
     scroller.addEventListener("scroll", update, { passive: true });
-    const observer = new ResizeObserver(update);
-    observer.observe(scroller);
-    observer.observe(row);
+    // Missing where nothing is laid out, as in tests.
+    const observer =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);
+    observer?.observe(scroller);
+    observer?.observe(row);
     return () => {
       scroller.removeEventListener("scroll", update);
-      observer.disconnect();
+      observer?.disconnect();
       scroller.removeAttribute("data-fade-start");
       scroller.removeAttribute("data-fade-end");
     };

@@ -1,11 +1,8 @@
 import { Editor } from "@tiptap/react";
 import { RefObject, useEffect, useRef, useState } from "react";
 
-// A menu the bar opened. MUI portals menus to the body, and the bar's menu
-// buttons don't mark themselves expanded, so an open one is found by where
-// focus is.
-const BAR_MENU_SELECTOR = ".MuiPopover-root, .MuiMenu-root";
-// A button in the bar whose popup is open, for popups that don't take focus.
+// A button in the bar whose menu or popup is open. Menus portal out of the
+// bar, so focus inside one is found through the button that opened it.
 const OPEN_POPUP_TRIGGER_SELECTOR = '[aria-expanded="true"]';
 
 function editorHasFocus(editor: Editor, active: Element | null): boolean {
@@ -21,7 +18,6 @@ function editorHasFocus(editor: Editor, active: Element | null): boolean {
 function isEditing(editor: Editor, bar: HTMLElement | null): boolean {
   const active = document.activeElement;
   if (editorHasFocus(editor, active)) return true;
-  if (active?.closest(BAR_MENU_SELECTOR)) return true;
   if (!bar) return false;
   if (active && bar.contains(active)) return true;
   return bar.querySelector(OPEN_POPUP_TRIGGER_SELECTOR) !== null;

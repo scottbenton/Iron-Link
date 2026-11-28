@@ -2,13 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "components/Layout/EmptyState";
-import { NOTES_PANE_GUTTER } from "components/Layout/notesPaneGutter";
 import {
   RichTextToolbarProps,
   RtcRichTextEditor,
 } from "components/RichTextEditor";
 
 import { useIsMobile } from "ui/hooks/useIsMobile";
+import { Flex } from "ui/primitives";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
@@ -17,6 +17,7 @@ import { useNotesStore } from "stores/notes.store";
 
 import { NoteToolbar } from "../Layout";
 import { MobileStickyNoteToolbar } from "./MobileStickyToolbar";
+import { NoteToolbarActionsMenu } from "./NoteToolbarActionsMenu";
 import { NoteViewToolbar } from "./NoteViewToolbar";
 import { getNoteSecretsConfig } from "./noteSecrets";
 import { useNotePermission } from "./useNotePermission";
@@ -97,17 +98,21 @@ export function NoteView(props: NoteViewProps) {
     ({ editor, secrets }: RichTextToolbarProps) => (
       <>
         <NoteToolbar>
-          {isMobile ? undefined : (
-            <>
-              {notePermissions.canEdit ? (
-                <NoteViewToolbar
-                  editor={editor}
-                  openNoteId={openNoteId}
-                  permissions={notePermissions}
-                  secrets={secrets}
-                />
-              ) : undefined}
-            </>
+          {!notePermissions.canEdit ? undefined : isMobile ? (
+            // The editing controls ride on the keyboard instead.
+            <Flex flexGrow={1} justifyContent="flex-end">
+              <NoteToolbarActionsMenu
+                openNoteId={openNoteId}
+                permissions={notePermissions}
+              />
+            </Flex>
+          ) : (
+            <NoteViewToolbar
+              editor={editor}
+              openNoteId={openNoteId}
+              permissions={notePermissions}
+              secrets={secrets}
+            />
           )}
         </NoteToolbar>
         <MobileStickyNoteToolbar
@@ -146,7 +151,7 @@ export function NoteView(props: NoteViewProps) {
         secrets={secrets}
         Toolbar={Toolbar}
         initialValue={noteContent}
-        contentPx={NOTES_PANE_GUTTER}
+        inset
         uploadImage={uploadImage}
         contentStore={
           loading || !notePermissions.canEdit ? undefined : contentStore

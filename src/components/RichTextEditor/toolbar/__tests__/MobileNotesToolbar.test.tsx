@@ -73,10 +73,11 @@ function renderToolbar() {
   const view = render(
     <ToolbarClearanceContext.Provider value={setClearance}>
       <button type="button">Elsewhere</button>
-      <div className="MuiPopover-root">
+      {/* A menu the bar opened, portalled out of it. */}
+      <div role="menu">
         <button type="button">Menu item</button>
       </div>
-      <MobileNotesToolbar editor={current}>
+      <MobileNotesToolbar editor={current} label="Formatting">
         <button
           type="button"
           onClick={() => current.chain().focus().toggleBold().run()}
@@ -133,9 +134,18 @@ describe("MobileNotesToolbar", () => {
     expect(bar()).not.toBeVisible();
   });
 
+  it("marks itself while it shows, so the bottom nav steps aside", () => {
+    const { editor } = renderToolbar();
+    expect(bar()).not.toHaveAttribute("data-keyboard-toolbar-shown");
+    act(() => editor.view.dom.focus());
+    expect(bar()).toHaveAttribute("data-keyboard-toolbar-shown");
+  });
+
   it("stays up while a menu it opened has focus", () => {
     const { editor } = renderToolbar();
     act(() => editor.view.dom.focus());
+    // The button that opened the menu says so.
+    screen.getByText("Bold").setAttribute("aria-expanded", "true");
     act(() => screen.getByRole("button", { name: "Menu item" }).focus());
     nextFrame();
     expect(bar()).toBeVisible();
