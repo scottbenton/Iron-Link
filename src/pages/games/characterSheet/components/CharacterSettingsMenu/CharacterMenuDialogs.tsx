@@ -3,7 +3,6 @@ import { useMenuState } from "stores/menuState";
 import { CharacterDetailsDialog } from "./CharacterDetailsDialog";
 import { CharacterEditAccessDialog } from "./CharacterEditAccessDialog";
 import { CharacterStatsDialog } from "./CharacterStatsDialog";
-import { ColorSchemeDialog } from "./ColorSchemeDialog";
 
 export function CharacterMenuDialogs() {
   const state = useMenuState();
@@ -17,10 +16,6 @@ export function CharacterMenuDialogs() {
       <CharacterStatsDialog
         open={state.isCharacterStatsDialogOpen}
         onClose={() => state.setIsCharacterStatsDialogOpen(false)}
-      />
-      <ColorSchemeDialog
-        open={state.isColorSchemeDialogOpen}
-        onClose={() => state.setIsColorSchemeDialogOpen(false)}
       />
       <CharacterEditAccessDialog
         open={state.isCharacterEditAccessDialogOpen}
