@@ -14,14 +14,13 @@ export type ContributedSettingsAction = Exclude<
 
 /**
  * What a page adds to the one settings menu: the game page's game and
- * character sections, Change Theme and the log sound.
+ * character sections and the log sound. With a contribution, Change Theme
+ * goes to its `onSelect`, which opens the page's own Theme dialog.
  */
 export interface AppSettingsContribution {
   game?: SettingsMenuGame;
   /** The open character, when the person can edit it. */
   character?: SettingsMenuCharacter;
-  /** Which theme Change Theme opens. Leave out to hide the item. */
-  themeTarget?: "character" | "game";
   logSound?: boolean;
   onLogSoundChange?: (on: boolean) => void;
   onSelect: (action: ContributedSettingsAction) => void;

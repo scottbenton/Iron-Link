@@ -211,6 +211,26 @@ const lightDark = (light: string, dark: string) => ({
   value: { base: light, _dark: dark },
 });
 
+/**
+ * The accent, derived from the scheme colours. A subtree can wear another
+ * scheme through `schemeScopeCss`, which derives these again there.
+ */
+const accentTokens = {
+  fg: lightDark(v("scheme-light-fg"), v("scheme-dark-fg")),
+  solid: lightDark(v("scheme-light-solid"), v("scheme-dark-solid")),
+  onSolid: lightDark(v("scheme-light-on-solid"), v("scheme-dark-on-solid")),
+  soft: lightDark(
+    mix(v("scheme-light-fg"), 6, v("bg-surface")),
+    mix(v("scheme-dark-fg"), 14, v("bg-surface")),
+  ),
+  edge: lightDark(
+    mix(v("scheme-light-solid"), 62, "black"),
+    mix(v("scheme-dark-solid"), 55, "black"),
+  ),
+  solidHover: { value: mix(v("accent-solid"), 90, v("accent-on-solid")) },
+  solidPressed: { value: mix(v("accent-solid"), 85, "black") },
+};
+
 export const semanticTokens = {
   colors: {
     bg: {
@@ -260,21 +280,7 @@ export const semanticTokens = {
       mix(v("gray-950"), 45, "transparent"),
       mix("black", 60, "transparent"),
     ),
-    accent: {
-      fg: lightDark(v("scheme-light-fg"), v("scheme-dark-fg")),
-      solid: lightDark(v("scheme-light-solid"), v("scheme-dark-solid")),
-      onSolid: lightDark(v("scheme-light-on-solid"), v("scheme-dark-on-solid")),
-      soft: lightDark(
-        mix(v("scheme-light-fg"), 6, v("bg-surface")),
-        mix(v("scheme-dark-fg"), 14, v("bg-surface")),
-      ),
-      edge: lightDark(
-        mix(v("scheme-light-solid"), 62, "black"),
-        mix(v("scheme-dark-solid"), 55, "black"),
-      ),
-      solidHover: { value: mix(v("accent-solid"), 90, v("accent-on-solid")) },
-      solidPressed: { value: mix(v("accent-solid"), 85, "black") },
-    },
+    accent: accentTokens,
     focusRing: lightDark(v("scheme-light-fg"), v("scheme-dark-fg")),
     success: {
       fg: lightDark(v("emerald-700"), v("emerald-400")),
@@ -343,4 +349,28 @@ export const semanticTokens = {
     /** Travel on press. Zero under reduced motion. */
     sink: { value: "1px" },
   },
+};
+
+const kebab = (name: string) =>
+  name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+
+function accentDeclarations(mode: "base" | "_dark") {
+  return Object.fromEntries(
+    Object.entries(accentTokens).map(([name, token]) => [
+      `--colors-accent-${kebab(name)}`,
+      typeof token.value === "string" ? token.value : token.value[mode],
+    ]),
+  );
+}
+
+/**
+ * Global rules that let an element wear a colour scheme other than the
+ * page's: give it `data-scheme-scope` and the scheme's colours from
+ * `schemeScopeStyle` (schemes.ts). The accent tokens are declared on
+ * <html>, so without this rule they keep the page's scheme everywhere below
+ * it, whatever scheme colours a descendant sets.
+ */
+export const schemeScopeCss = {
+  "[data-scheme-scope]": accentDeclarations("base"),
+  "[data-theme=dark] [data-scheme-scope]": accentDeclarations("_dark"),
 };

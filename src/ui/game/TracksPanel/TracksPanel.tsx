@@ -61,7 +61,7 @@ const listStyles = css({
   display: "grid",
   gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 22rem), 1fr))",
   gap: "3",
-  alignItems: "start",
+  alignItems: "stretch",
   minWidth: 0,
   outline: "none",
   "& > :only-child": { gridColumn: "1 / -1" },

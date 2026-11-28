@@ -1,7 +1,7 @@
 import { CssBaseline, ThemeProvider as MuiThemeProvider } from "@mui/material";
 import { PropsWithChildren } from "react";
 
-import { useAppState } from "stores/appState.store";
+import { useEffectiveColorScheme } from "stores/appTheme.store";
 
 import { UIThemeBridge } from "./UIThemeBridge";
 import { getTheme } from "./themes/themeConfig";
@@ -9,7 +9,7 @@ import { getTheme } from "./themes/themeConfig";
 export function ThemeProvider(props: PropsWithChildren) {
   const { children } = props;
 
-  const colorScheme = useAppState((state) => state.colorScheme);
+  const colorScheme = useEffectiveColorScheme();
   const theme = getTheme(colorScheme);
 
   return (

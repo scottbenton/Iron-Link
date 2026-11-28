@@ -91,6 +91,8 @@ export default tseslint.config(
       "src/pages/games/characterSheet/components/ReferenceSidebarContents.tsx",
       "src/pages/games/characterSheet/components/CharacterSection/**/*.{ts,tsx}",
       "src/pages/games/characterSheet/hooks/useImpactsWording.ts",
+      "src/pages/games/characterSheet/components/TracksSection/{TracksSection,TrackEditDialog,trackMappings,useRollClockProgress,useTrackCompletionMoves}.{ts,tsx}",
+      "src/pages/games/characterSheet/components/CharacterSettingsMenu/CharacterSettingsMenu.tsx",
       "src/components/characters/CharacterInitiativeChip/**/*.{ts,tsx}",
       "src/components/characters/CharacterPortraitAvatar/**/*.{ts,tsx}",
       "src/components/characters/rolls/{Recent,recent,use,roll,copy,clear}*.{ts,tsx}",

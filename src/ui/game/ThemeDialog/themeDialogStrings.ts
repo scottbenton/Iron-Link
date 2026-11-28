@@ -11,7 +11,8 @@ export interface ThemeDialogStrings {
   soloDescription: string;
   /** Under the title outside a game, with only the app row. */
   appDescription: string;
-  charactersHeading: string;
+  /** Over the character rows, given how many there are. */
+  charactersHeading: (count: number) => string;
   gameHeading: string;
   appHeading: string;
   /** Under the game's name. */
@@ -68,7 +69,11 @@ export function getDefaultThemeDialogStrings(t: TFunction): ThemeDialogStrings {
       "ui.theme-dialog.app-description",
       "Games and characters can have themes of their own, which come first.",
     ),
-    charactersHeading: t("ui.theme-dialog.characters-heading", "Characters"),
+    charactersHeading: (count) =>
+      t("ui.theme-dialog.characters-heading", "Characters", {
+        count,
+        defaultValue_one: "Character",
+      }),
     gameHeading: t("ui.theme-dialog.game-heading", "This game"),
     appHeading: t("ui.theme-dialog.app-heading", "Everywhere"),
     gameHint: t(

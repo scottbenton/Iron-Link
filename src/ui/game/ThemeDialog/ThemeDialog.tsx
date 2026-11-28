@@ -133,7 +133,8 @@ function getSavedDraft(props: ThemeDialogProps): ThemeDraft {
   };
 }
 
-const sectionStyles = css({ display: "grid", gap: "1" });
+/** A heading sits close over its rows; the dialog body spaces sections. */
+const sectionStyles = css({ display: "grid", gap: "2" });
 /** A container, so a row lays out by the dialog's width, not the window's. */
 const listStyles = css({
   listStyle: "none",
@@ -315,7 +316,7 @@ export function ThemeDialog(props: ThemeDialogProps) {
             aria-labelledby={charactersHeadingId}
           >
             <Text variant="eyebrow" as="h3" id={charactersHeadingId}>
-              {strings.charactersHeading}
+              {strings.charactersHeading(orderedCharacters.length)}
             </Text>
             <ul className={listStyles}>
               {orderedCharacters.map((character) => {

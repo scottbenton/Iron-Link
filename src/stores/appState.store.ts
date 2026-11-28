@@ -34,7 +34,12 @@ interface AppStateState {
   // page from screen readers.
   rollCardHosts: string[];
 
-  colorScheme: ColorScheme;
+  /**
+   * The open page's theme (a character's or game's), or null to use the
+   * person's app theme. Read the theme in effect with
+   * `useEffectiveColorScheme`.
+   */
+  colorScheme: ColorScheme | null;
 
   currentReferenceTab: ReferenceTabs;
   gameLogNotificationCount: number;
@@ -47,7 +52,7 @@ interface AppStateActions {
   closeDataswornDialog: () => void;
   prevDataswornDialog: () => void;
 
-  setColorScheme: (colorScheme: ColorScheme) => void;
+  setColorScheme: (colorScheme: ColorScheme | null) => void;
 
   addRoll: (rollId: string | undefined, roll: IGameLogRoll) => void;
   updateRollIfPresent: (rollId: string, roll: IGameLogRoll) => void;
@@ -69,7 +74,7 @@ const defaultAppState: AppStateState = {
   },
   visibleRolls: [],
   rollCardHosts: [],
-  colorScheme: getDefaultColorScheme(),
+  colorScheme: null,
   currentReferenceTab: ReferenceTabs.Moves,
   gameLogNotificationCount: 0,
 };
