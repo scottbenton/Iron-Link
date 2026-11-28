@@ -1,3 +1,5 @@
+import { schemeScopeCss } from "./tokens";
+
 /**
  * Global rules the library needs. Kept small on purpose: preflight is off
  * while MUI renders the rest of the app, so nothing here styles bare elements.
@@ -33,4 +35,5 @@ export const globalCss = {
     inherits: "false",
     initialValue: "0deg",
   },
+  ...schemeScopeCss,
 };

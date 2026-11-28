@@ -8,6 +8,7 @@ import { css } from "styled-system/css";
 
 import { IronLinkMark } from "../../components/IronLinkMark";
 import { RadioCard, RadioCardGroup } from "../../components/RadioCard";
+import { SchemeScope } from "../../components/SchemeScope";
 
 const markStyles = css({ width: "40px", height: "40px" });
 const schemeMarkStyles = css({ width: "32px", height: "32px" });
@@ -80,7 +81,8 @@ export type ColorSchemePickerProps = ColorSchemePickerCommonProps &
 
 /**
  * Iron Link's colour schemes as small RadioCards, each showing the logo in
- * its scheme's colours. With `fallback`, a first option sets no scheme
+ * its scheme's colours; the chosen card's border and check are its scheme's
+ * accent too. With `fallback`, a first option sets no scheme
  * (value null), for a level that can inherit from another (ThemeDialog).
  */
 export function ColorSchemePicker(props: ColorSchemePickerProps) {
@@ -122,36 +124,39 @@ export function ColorSchemePicker(props: ColorSchemePickerProps) {
       className={className}
     >
       {fallback && (
-        <RadioCard
-          value={FALLBACK_VALUE}
-          title={fallback.label}
-          description={fallback.description}
-          size="sm"
-          iconFrame="none"
-          icon={
-            <IronLinkMark
-              colors={schemes[fallback.scheme].icon}
-              className={markStyles}
-            />
-          }
-          css={{ gridColumn: "1 / -1" }}
-        />
+        <SchemeScope scheme={fallback.scheme}>
+          <RadioCard
+            value={FALLBACK_VALUE}
+            title={fallback.label}
+            description={fallback.description}
+            size="sm"
+            iconFrame="none"
+            icon={
+              <IronLinkMark
+                colors={schemes[fallback.scheme].icon}
+                className={markStyles}
+              />
+            }
+            css={{ gridColumn: "1 / -1" }}
+          />
+        </SchemeScope>
       )}
       {options.map((name) => (
-        <RadioCard
-          key={name}
-          value={name}
-          title={labels?.[name] ?? schemeLabels[name]}
-          size="sm"
-          className={schemeCardStyles}
-          iconFrame="none"
-          icon={
-            <IronLinkMark
-              colors={schemes[name].icon}
-              className={schemeMarkStyles}
-            />
-          }
-        />
+        <SchemeScope key={name} scheme={name}>
+          <RadioCard
+            value={name}
+            title={labels?.[name] ?? schemeLabels[name]}
+            size="sm"
+            className={schemeCardStyles}
+            iconFrame="none"
+            icon={
+              <IronLinkMark
+                colors={schemes[name].icon}
+                className={schemeMarkStyles}
+              />
+            }
+          />
+        </SchemeScope>
       ))}
     </RadioCardGroup>
   );

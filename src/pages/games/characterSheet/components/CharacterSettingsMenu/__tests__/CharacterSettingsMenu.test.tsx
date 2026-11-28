@@ -267,6 +267,41 @@ describe("the Theme dialog", () => {
     );
   });
 
+  it("puts a solo game's only character's theme on the game", async () => {
+    setGame(GameType.Solo, GamePermission.Guide);
+    const dialog = await openThemeDialog();
+    expect(
+      within(dialog).queryByRole("button", { name: "Change theme for Kira" }),
+    ).not.toBeInTheDocument();
+
+    const { user } = await pick("Ashfall", /cinder/i);
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(updateGameColorScheme).toHaveBeenCalledWith(
+        "game",
+        ColorScheme.Cinder,
+      ),
+    );
+    expect(updateCharacterColorScheme).not.toHaveBeenCalled();
+  });
+
+  it("clears a theme the solo character kept, so the game's shows", async () => {
+    setGame(GameType.Solo, GamePermission.Guide);
+    setCharacter({ colorScheme: ColorScheme.Gloaming });
+    await openThemeDialog();
+    const { user, dialog } = await pick("Ashfall", /cinder/i);
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(updateCharacterColorScheme).toHaveBeenCalledWith("kira", null),
+    );
+    expect(updateGameColorScheme).toHaveBeenCalledWith(
+      "game",
+      ColorScheme.Cinder,
+    );
+  });
+
   it("shows a player the game's theme without letting them change it", async () => {
     const dialog = await openThemeDialog();
     expect(

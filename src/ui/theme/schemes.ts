@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 /**
  * Iron Link's nine colour schemes, matching `ColorScheme` in
  * repositories/shared.types. Each carries the accent for light mode (the 700
@@ -262,6 +264,22 @@ export function schemeTokens(scheme: SchemeDefinition) {
       icon: { value: iconGradient(scheme) },
     },
   };
+}
+
+/**
+ * A scheme's colours as inline custom properties, for an element marked
+ * `data-scheme-scope` (see `schemeScopeCss` in tokens.ts): its accent then
+ * follows this scheme, whatever the page wears.
+ */
+export function schemeScopeStyle(scheme: SchemeDefinition) {
+  return {
+    "--colors-scheme-light-fg": scheme.light.fg,
+    "--colors-scheme-light-solid": scheme.light.solid,
+    "--colors-scheme-light-on-solid": scheme.light.onSolid,
+    "--colors-scheme-dark-fg": scheme.dark.fg,
+    "--colors-scheme-dark-solid": scheme.dark.solid,
+    "--colors-scheme-dark-on-solid": scheme.dark.onSolid,
+  } as CSSProperties;
 }
 
 export const schemeThemes = Object.fromEntries(

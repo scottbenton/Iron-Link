@@ -14,6 +14,8 @@ import { GamePermission, useGameStore } from "stores/game.store";
 import { useGameCharactersStore } from "stores/gameCharacters.store";
 import { useMenuState } from "stores/menuState";
 
+import { GameType } from "repositories/game.repository";
+
 import { useGameIdOptional } from "../hooks/useGameId";
 import { useThemeDialogCharacters } from "./useThemeDialogCharacters";
 
@@ -47,9 +49,24 @@ export function GameThemeDialog() {
   const currentCharacterId =
     characterId && canEditCharacter ? characterId : undefined;
 
+  const solo = game?.gameType === GameType.Solo;
+  // A solo game with one character shows no character row: the game holds
+  // the theme. A theme that character kept from when the game had two would
+  // hide the game's, so changing the game's clears it.
+  const hiddenCharacterThemes =
+    solo && characters.length === 1
+      ? characters.filter((character) => character.theme !== null)
+      : [];
+
   const handleSave = async (changes: ThemeChange[]) => {
-    await Promise.all(
-      changes.map(({ target, theme }) => {
+    const clearHidden = changes.some(({ target }) => target.kind === "game")
+      ? hiddenCharacterThemes.map((character) =>
+          updateCharacterColorScheme(character.id, null),
+        )
+      : [];
+    await Promise.all([
+      ...clearHidden,
+      ...changes.map(({ target, theme }) => {
         const colorScheme = toColorScheme(theme);
         if (target.kind === "character") {
           return updateCharacterColorScheme(target.id, colorScheme);
@@ -61,7 +78,7 @@ export function GameThemeDialog() {
         }
         return setAppTheme(uid, colorScheme);
       }),
-    );
+    ]);
   };
 
   return (
@@ -76,6 +93,7 @@ export function GameThemeDialog() {
               name: game.name,
               theme: toThemeChoice(game.colorScheme),
               canEdit: isGuide,
+              solo,
             }
           : undefined
       }
