@@ -41,7 +41,7 @@ export const Disabled: Story = {
 
 /**
  * With `fallback`, a first option sets no scheme of its own (value null). Its
- * logo and second line show what it falls back to. ThemeDialog uses it for
+ * swatch and second line show what it falls back to. ThemeDialog uses it for
  * "Use the game's theme".
  */
 export const WithFallback: Story = {

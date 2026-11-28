@@ -2,20 +2,17 @@ import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { CssProp, withCssProp } from "ui/styles/cssProp";
-import { SchemeName, getSchemeLabels, schemeNames, schemes } from "ui/theme";
+import { SchemeName, getSchemeLabels, schemeNames } from "ui/theme";
 
 import { css } from "styled-system/css";
 
-import { IronLinkMark } from "../../components/IronLinkMark";
 import { RadioCard, RadioCardGroup } from "../../components/RadioCard";
 import { SchemeScope } from "../../components/SchemeScope";
-
-const markStyles = css({ width: "40px", height: "40px" });
-const schemeMarkStyles = css({ width: "32px", height: "32px" });
+import { SchemeSwatch } from "../SchemeSwatch";
 
 /**
- * A scheme's card is narrow (two to a row at phone width), so its mark is
- * 32px and the check sits on the mark's corner as a badge instead of
+ * A scheme's card is narrow (two to a row at phone width), so its swatch is
+ * 32px and the check sits on the swatch's corner as a badge instead of
  * keeping a slot after the name. Long names such as Hinterlands keep one
  * line. The card's padding (12px) and border (1px) place the badge.
  */
@@ -38,12 +35,12 @@ const FALLBACK_VALUE = "__fallback";
 
 /**
  * An option before the schemes that sets no scheme of its own, such as
- * "Use the game's theme". Its logo shows the scheme it falls back to.
+ * "Use the game's theme". Its swatch shows the scheme it falls back to.
  */
 export interface ColorSchemeFallbackOption {
   /** What the option says, such as "Use the game's theme". */
   label: ReactNode;
-  /** The scheme in effect when it is chosen, shown as its logo. */
+  /** The scheme in effect when it is chosen, shown as its swatch. */
   scheme: SchemeName;
   /** A second line, such as "Eidolon, from this game". */
   description?: ReactNode;
@@ -80,8 +77,8 @@ export type ColorSchemePickerProps = ColorSchemePickerCommonProps &
   (ColorSchemePickerSchemeOnlyProps | ColorSchemePickerWithFallbackProps);
 
 /**
- * Iron Link's colour schemes as small RadioCards, each showing the logo in
- * its scheme's colours; the chosen card's border and check are its scheme's
+ * Iron Link's colour schemes as small RadioCards, each showing its scheme's
+ * ring gradient as a swatch, like the Theme dialog's rows; the chosen card's border and check are its scheme's
  * accent too. With `fallback`, a first option sets no scheme
  * (value null), for a level that can inherit from another (ThemeDialog).
  */
@@ -131,12 +128,7 @@ export function ColorSchemePicker(props: ColorSchemePickerProps) {
             description={fallback.description}
             size="sm"
             iconFrame="none"
-            icon={
-              <IronLinkMark
-                colors={schemes[fallback.scheme].icon}
-                className={markStyles}
-              />
-            }
+            icon={<SchemeSwatch scheme={fallback.scheme} size="lg" />}
             css={{ gridColumn: "1 / -1" }}
           />
         </SchemeScope>
@@ -149,12 +141,7 @@ export function ColorSchemePicker(props: ColorSchemePickerProps) {
             size="sm"
             className={schemeCardStyles}
             iconFrame="none"
-            icon={
-              <IronLinkMark
-                colors={schemes[name].icon}
-                className={schemeMarkStyles}
-              />
-            }
+            icon={<SchemeSwatch scheme={name} size="md" />}
           />
         </SchemeScope>
       ))}

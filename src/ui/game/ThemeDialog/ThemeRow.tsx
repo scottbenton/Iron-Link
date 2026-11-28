@@ -12,7 +12,7 @@ import {
   ColorSchemeFallbackOption,
   ColorSchemePicker,
 } from "../ColorSchemePicker";
-import { SchemeSwatch } from "./SchemeSwatch";
+import { SchemeSwatch } from "../SchemeSwatch";
 import { ResolvedTheme, ThemeChoice, ThemeSource } from "./resolveTheme";
 import { ThemeDialogStrings } from "./themeDialogStrings";
 
