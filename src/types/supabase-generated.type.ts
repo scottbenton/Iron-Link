@@ -763,16 +763,19 @@ export type Database = {
       };
       users: {
         Row: {
+          color_scheme: string | null;
           created_at: string;
           display_name: string | null;
           id: string;
         };
         Insert: {
+          color_scheme?: string | null;
           created_at?: string;
           display_name?: string | null;
           id: string;
         };
         Update: {
+          color_scheme?: string | null;
           created_at?: string;
           display_name?: string | null;
           id?: string;

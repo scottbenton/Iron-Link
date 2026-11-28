@@ -20,7 +20,7 @@ export class UserRepository {
   public static async getUser(userId: string): Promise<UserDTO> {
     return new Promise<UserDTO>((resolve, reject) => {
       this.users()
-        .select("id, display_name")
+        .select("id, display_name, color_scheme")
         .eq("id", userId)
         .single()
         .then((response) => {

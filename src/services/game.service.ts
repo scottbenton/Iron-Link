@@ -232,9 +232,10 @@ export class GameService {
     });
   }
 
+  /** Null clears it, so each person sees their own app theme. */
   public static async updateColorScheme(
     gameId: string,
-    colorScheme: ColorScheme,
+    colorScheme: ColorScheme | null,
   ) {
     await GameRepository.updateGame(gameId, { color_scheme: colorScheme });
   }

@@ -241,7 +241,7 @@ export function RadioCard<V = string>(props: RadioCardProps<V>) {
                   {title}
                 </span>
               </div>
-              <span className={checkStyles} aria-hidden>
+              <span className={checkStyles} data-part="check" aria-hidden>
                 <CheckCircle weight="fill" />
               </span>
             </div>
