@@ -4,7 +4,10 @@ import { cva, cx } from "styled-system/css";
 
 import { ListContext } from "./listContext";
 
-export type ListSubheaderProps = ComponentProps<"li">;
+export interface ListSubheaderProps extends ComponentProps<"li"> {
+  /** A hairline above it, setting off a group that follows another. */
+  divided?: boolean;
+}
 
 const subheaderStyles = cva({
   base: {
@@ -22,6 +25,14 @@ const subheaderStyles = cva({
   },
   variants: {
     inset: { true: { paddingInline: "3" }, false: {} },
+    divided: {
+      true: {
+        marginTop: "1",
+        paddingTop: "2.5",
+        borderTop: "1px solid token(colors.border.subtle)",
+      },
+      false: {},
+    },
   },
 });
 
@@ -31,12 +42,12 @@ const subheaderStyles = cva({
  */
 export const ListSubheader = forwardRef<HTMLLIElement, ListSubheaderProps>(
   function ListSubheader(props, ref) {
-    const { className, ...rest } = props;
+    const { divided = false, className, ...rest } = props;
     const { inset } = useContext(ListContext);
     return (
       <li
         ref={ref}
-        className={cx(subheaderStyles({ inset }), className)}
+        className={cx(subheaderStyles({ inset, divided }), className)}
         {...rest}
       />
     );

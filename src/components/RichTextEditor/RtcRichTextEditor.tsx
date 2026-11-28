@@ -60,7 +60,7 @@ export interface RtcRichTextEditorProps {
   outlined?: boolean;
   minHeight?: number;
   // Side padding for the text, so the editor can scroll at its column's edge.
-  contentPx?: EditorProps["contentPx"];
+  inset?: EditorProps["inset"];
   fill?: EditorProps["fill"];
   // Stores an image where everyone who reads this text can load it. An
   // image from a secret pasted into the text is copied there; without one
@@ -79,7 +79,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
     Toolbar,
     outlined,
     minHeight,
-    contentPx,
+    inset,
     fill,
     uploadImage,
     secrets,
@@ -281,7 +281,7 @@ export function RtcRichTextEditor(props: RtcRichTextEditorProps) {
         Toolbar={Toolbar}
         outlined={outlined}
         minHeight={minHeight}
-        contentPx={contentPx}
+        inset={inset}
         fill={fill}
         label={noteTextLabel}
       />

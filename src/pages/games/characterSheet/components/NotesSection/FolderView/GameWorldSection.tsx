@@ -1,22 +1,18 @@
-import PublicIcon from "@mui/icons-material/Public";
-import SettingsIcon from "@mui/icons-material/Settings";
-import {
-  Box,
-  IconButton,
-  LinearProgress,
-  Link,
-  Tooltip,
-  Typography,
-} from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 
-import { GridLayout } from "components/Layout";
-import { LinkComponent } from "components/LinkComponent";
-import { WorldCategoryFolder } from "components/worlds/categories/WorldCategoryFolder";
-import { WorldTruthsFolder } from "components/worlds/truths/WorldTruthsFolder";
+import { WorldCategoryIcon } from "components/worlds/categories/WorldCategoryIcon";
 import { useWorldTruthsCard } from "components/worlds/truths/useWorldTruthsCard";
 import type { WorldView } from "components/worlds/worldNavigation";
+
+import { IconButton } from "ui/components/IconButton";
+import { Link } from "ui/components/Link";
+import { Progress } from "ui/components/Progress";
+import { Text } from "ui/components/Text";
+import { NoteCard } from "ui/game/NoteCard";
+import { BookOpenTextIcon, FolderIcon, GearIcon, GlobeIcon } from "ui/icons";
+import { EmptyState } from "ui/layout/EmptyState";
+import { Box, Grid, HStack } from "ui/primitives";
 
 import { getNotesItemLinkProps } from "pages/games/gamePageLayout/hooks/notesDestination";
 
@@ -87,85 +83,87 @@ export function GameWorldSection() {
 
   const settingsLabel = t("worlds.settings.title", "World settings");
 
+  const worldLabel = world?.name ?? t("worlds.tab.world", "World");
+  const cards = truthsCard ? [truthsCard, ...categories] : categories;
+
   return (
-    <Box
-      component="section"
-      aria-label={world?.name ?? t("worlds.tab.world", "World")}
-      sx={{ mb: 2 }}
-    >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 1 }}>
-        <PublicIcon fontSize="small" color="action" />
-        {world ? (
-          <Link
-            component={LinkComponent}
-            {...linkProps({ type: "world" })}
-            variant="overline"
-            color="inherit"
-            underline="hover"
-            sx={{ fontSize: "0.875rem", lineHeight: 2.5 }}
-          >
-            {world.name}
-          </Link>
-        ) : (
-          <Typography variant="overline" sx={{ fontSize: "0.875rem" }}>
-            {t("worlds.tab.world", "World")}
-          </Typography>
-        )}
+    <Box as="section" aria-label={worldLabel}>
+      <HStack gap="2" paddingInline="1" minHeight="10">
+        <Box as="span" display="flex" color="fg.muted" aria-hidden>
+          <GlobeIcon />
+        </Box>
+        <Text variant="label" as="h3">
+          {world ? (
+            <Link {...linkProps({ type: "world" })} color="inherit">
+              {world.name}
+            </Link>
+          ) : (
+            worldLabel
+          )}
+        </Text>
         {world && canManage && (
-          <Tooltip title={settingsLabel}>
-            <IconButton
-              size="small"
-              LinkComponent={LinkComponent}
-              // World settings open beside the root, so the folder stays put.
-              {...linkProps({ type: "settings" }, true)}
-              aria-label={settingsLabel}
-            >
-              <SettingsIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          <IconButton
+            label={settingsLabel}
+            size="sm"
+            // World settings open beside the root, so the folder stays put.
+            render={<a {...linkProps({ type: "settings" }, true)} />}
+            nativeButton={false}
+          >
+            <GearIcon />
+          </IconButton>
         )}
-      </Box>
+      </HStack>
       {!world || categoriesLoading ? (
-        <LinearProgress
-          aria-label={t("worlds.game.loading-world", "Loading world")}
-          sx={{ mx: 1, my: 2 }}
+        <Progress
+          label={t("worlds.game.loading-world", "Loading world")}
+          css={{ marginBlock: "4", marginInline: "1" }}
         />
-      ) : (
-        <GridLayout
-          items={truthsCard ? [truthsCard, ...categories] : categories}
-          minWidth={200}
-          gap={1}
-          renderItem={(category) =>
-            "truths" in category ? (
-              <WorldTruthsFolder
-                key="truths"
-                linkProps={linkProps({ type: "truths" })}
-                subtitle={category.subtitle}
-              />
-            ) : (
-              <WorldCategoryFolder
-                key={category.id}
-                category={category}
-                linkProps={linkProps({
-                  type: "category",
-                  categoryId: category.id,
-                })}
-                subtitle={
-                  entriesLoading
-                    ? undefined
-                    : t("worlds.categories.entry-count", "{{count}} entries", {
-                        count: entryCounts[category.id] ?? 0,
-                        defaultValue_one: "{{count}} entry",
-                      })
-                }
-              />
-            )
-          }
-          emptyStateMessage={t(
+      ) : cards.length === 0 ? (
+        <EmptyState
+          size="sm"
+          message={t(
             "worlds.categories.empty-state",
             "This world has no categories yet.",
           )}
         />
+      ) : (
+        <Grid
+          gap="2"
+          gridTemplateColumns="repeat(auto-fill, minmax(min(100%, 200px), 1fr))"
+        >
+          {cards.map((card) =>
+            "truths" in card ? (
+              <NoteCard
+                key="truths"
+                icon={<BookOpenTextIcon />}
+                title={t("worlds.truths.title", "Truths")}
+                subtitle={card.subtitle}
+                link={linkProps({ type: "truths" })}
+              />
+            ) : (
+              <NoteCard
+                key={card.id}
+                icon={
+                  card.icon?.key ? (
+                    <WorldCategoryIcon icon={card.icon} size="small" />
+                  ) : (
+                    <FolderIcon />
+                  )
+                }
+                title={card.name}
+                subtitle={
+                  entriesLoading
+                    ? undefined
+                    : t("worlds.categories.entry-count", "{{count}} entries", {
+                        count: entryCounts[card.id] ?? 0,
+                        defaultValue_one: "{{count}} entry",
+                      })
+                }
+                link={linkProps({ type: "category", categoryId: card.id })}
+              />
+            ),
+          )}
+        </Grid>
       )}
     </Box>
   );

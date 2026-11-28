@@ -1,33 +1,40 @@
-import { Box } from "@mui/material";
 import { Editor } from "@tiptap/react";
 
 import { SecretsToolbarState } from "components/RichTextEditor";
+import { EditorToolbarControls } from "components/RichTextEditor/toolbar";
 
-import { CommonToolbarItems } from "./CommonToolbarItems";
-import { TextTypeDropdown } from "./TextTypeDropdown";
-import { NotePermissions } from "./useNotePermission";
+import { Box } from "ui/primitives";
 
-export interface NoteToolbarContentProps {
+import { useNotesStore } from "stores/notes.store";
+
+import { NoteItemAction } from "../NoteItemActions";
+import { NoteActionsMenu } from "./NoteActionsMenu";
+
+export interface NoteViewToolbarProps {
   openNoteId: string;
   editor: Editor;
-  permissions: NotePermissions;
+  canEdit: boolean;
+  actions: NoteItemAction[];
   secrets?: SecretsToolbarState;
 }
 
-export function NoteViewToolbar(props: NoteToolbarContentProps) {
-  const { openNoteId, editor, permissions, secrets } = props;
+// A note's editing controls on a larger screen, with the note's own actions
+// at the far end of the strip. Rendered inside the note's ActionToolbar.
+export function NoteViewToolbar(props: NoteViewToolbarProps) {
+  const { openNoteId, editor, canEdit, actions, secrets } = props;
+  const uploadNoteImage = useNotesStore((store) => store.uploadNoteImage);
 
   return (
     <>
-      <Box display={"flex"} alignItems={"center"} flexGrow={1} gap={1}>
-        <TextTypeDropdown editor={editor} />
-        <CommonToolbarItems
+      {canEdit && (
+        <EditorToolbarControls
           editor={editor}
-          openNoteId={openNoteId}
-          permissions={permissions}
+          upload={(file) => uploadNoteImage(openNoteId, file)}
           secrets={secrets}
         />
-      </Box>
+      )}
+      <Box flex="1" aria-hidden />
+      <NoteActionsMenu actions={actions} />
     </>
   );
 }

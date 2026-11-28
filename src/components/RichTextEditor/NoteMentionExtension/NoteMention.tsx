@@ -1,7 +1,8 @@
-import AtIcon from "@mui/icons-material/AlternateEmail";
-import { Chip } from "@mui/material";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { MouseEvent, useCallback } from "react";
+
+import { Chip } from "ui/components/Chip";
+import { AtIcon } from "ui/icons";
 
 import { useNotesStore } from "stores/notes.store";
 
@@ -49,22 +50,38 @@ function NoteMentionChip(props: NodeViewProps) {
     });
   }, [openNote, id]);
 
+  if (!isNoteAvailable) {
+    return (
+      <NodeViewWrapper as="span">
+        <Chip size="sm" variant="soft" tone="danger" icon={<AtIcon />}>
+          {label}
+        </Chip>
+      </NodeViewWrapper>
+    );
+  }
+
   return (
     <NodeViewWrapper as="span">
       <Chip
+        size="sm"
+        variant="soft"
         icon={<AtIcon />}
-        label={label}
-        color={isNoteAvailable ? "default" : "error"}
-        size="small"
-        clickable={isNoteAvailable}
-        onClick={isNoteAvailable ? handleClick : undefined}
-        onAuxClick={isNoteAvailable ? handleAuxClick : undefined}
-        onMouseDown={(evt) => {
-          if (evt.button === 1) {
-            evt.preventDefault();
-          }
-        }}
-      />
+        render={
+          <button
+            type="button"
+            onAuxClick={handleAuxClick}
+            onMouseDown={(evt) => {
+              // A middle press would otherwise start the browser's autoscroll.
+              if (evt.button === 1) {
+                evt.preventDefault();
+              }
+            }}
+          />
+        }
+        onClick={handleClick}
+      >
+        {label}
+      </Chip>
     </NodeViewWrapper>
   );
 }

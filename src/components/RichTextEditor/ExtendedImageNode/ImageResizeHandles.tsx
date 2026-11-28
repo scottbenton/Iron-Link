@@ -1,6 +1,6 @@
-import { Box } from "@mui/material";
 import {
   KeyboardEvent,
+  MouseEvent,
   PointerEvent,
   RefObject,
   useRef,
@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useIsTouchDevice } from "hooks/useIsTouchDevice";
+import { CornerHandle } from "ui/components/CornerHandle";
 
 import {
   MIN_NOTE_IMAGE_WIDTH,
@@ -57,8 +57,6 @@ const CORNERS: Corner[] = [
   { vertical: "bottom", horizontal: "right" },
 ];
 
-const SQUARE_SIZE = 12;
-
 // Square handles on the image's corners; dragging one outward grows the
 // image, keeping its shape. They are buttons, so the editor leaves their
 // pointer and key events alone (Tiptap's node views stop events from
@@ -69,7 +67,6 @@ export function ImageResizeHandles(props: ImageResizeHandlesProps) {
     props;
 
   const { t } = useTranslation();
-  const isTouchDevice = useIsTouchDevice();
   const keyboardEdge = getNoteImageResizeEdge(alignment);
 
   const dragRef = useRef<DragState | null>(null);
@@ -90,10 +87,7 @@ export function ImageResizeHandles(props: ImageResizeHandlesProps) {
     setPercent(getNoteImageWidthPercent(width, columnWidth));
   };
 
-  const startDrag = (
-    event: PointerEvent<HTMLButtonElement>,
-    corner: Corner,
-  ) => {
+  const startDrag = (event: PointerEvent<HTMLElement>, corner: Corner) => {
     if (event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
@@ -112,7 +106,7 @@ export function ImageResizeHandles(props: ImageResizeHandlesProps) {
     setPercent(getNoteImageWidthPercent(width, columnWidth));
   };
 
-  const moveDrag = (event: PointerEvent<HTMLButtonElement>) => {
+  const moveDrag = (event: PointerEvent<HTMLElement>) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     event.preventDefault();
@@ -127,7 +121,7 @@ export function ImageResizeHandles(props: ImageResizeHandlesProps) {
     onPreview(drag.width);
   };
 
-  const endDrag = (event: PointerEvent<HTMLButtonElement>, save: boolean) => {
+  const endDrag = (event: PointerEvent<HTMLElement>, save: boolean) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     dragRef.current = null;
@@ -138,7 +132,7 @@ export function ImageResizeHandles(props: ImageResizeHandlesProps) {
     onPreview(null);
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
     if (event.key === "Escape" && dragRef.current) {
       event.preventDefault();
@@ -162,10 +156,6 @@ export function ImageResizeHandles(props: ImageResizeHandlesProps) {
       ? getNoteImageWidthPercent(MIN_NOTE_IMAGE_WIDTH, columnWidth)
       : 0;
   const shown = visible || dragCorner !== null;
-  // The target is larger than the square it draws, and touch-sized on touch
-  // devices. It reaches into the image from the corner, so nothing is drawn
-  // outside the frame, where the editor's column would clip it.
-  const targetSize = isTouchDevice ? 44 : 24;
 
   return CORNERS.map((corner) => {
     const isKeyboardHandle =
@@ -173,10 +163,6 @@ export function ImageResizeHandles(props: ImageResizeHandlesProps) {
     const isDragging =
       dragCorner?.vertical === corner.vertical &&
       dragCorner.horizontal === corner.horizontal;
-    const cursor =
-      (corner.vertical === "top") === (corner.horizontal === "left")
-        ? "nwse-resize"
-        : "nesw-resize";
 
     const sliderProps = isKeyboardHandle
       ? {
@@ -198,81 +184,25 @@ export function ImageResizeHandles(props: ImageResizeHandlesProps) {
       : { tabIndex: -1, "aria-hidden": true };
 
     return (
-      <Box
+      <CornerHandle
         key={`${corner.vertical}-${corner.horizontal}`}
-        component="button"
-        type="button"
         {...sliderProps}
-        data-dragging={isDragging ? "" : undefined}
-        onPointerDown={(event: PointerEvent<HTMLButtonElement>) =>
+        vertical={corner.vertical}
+        horizontal={corner.horizontal}
+        shown={shown}
+        dragging={isDragging}
+        onPointerDown={(event: PointerEvent<HTMLElement>) =>
           startDrag(event, corner)
         }
         onPointerMove={moveDrag}
-        onPointerUp={(event: PointerEvent<HTMLButtonElement>) =>
-          endDrag(event, true)
-        }
-        onPointerCancel={(event: PointerEvent<HTMLButtonElement>) =>
+        onPointerUp={(event: PointerEvent<HTMLElement>) => endDrag(event, true)}
+        onPointerCancel={(event: PointerEvent<HTMLElement>) =>
           endDrag(event, false)
         }
-        onLostPointerCapture={(event: PointerEvent<HTMLButtonElement>) =>
+        onLostPointerCapture={(event: PointerEvent<HTMLElement>) =>
           endDrag(event, true)
         }
-        onClick={(event) => event.preventDefault()}
-        sx={(theme) => ({
-          position: "absolute",
-          // Over the frame's 2px border, so the square sits on the corner.
-          [corner.vertical]: -2,
-          [corner.horizontal]: -2,
-          zIndex: 1,
-          width: targetSize,
-          height: targetSize,
-          maxWidth: "50%",
-          maxHeight: "50%",
-          p: 0,
-          m: 0,
-          border: "none",
-          background: "none",
-          display: "flex",
-          alignItems: corner.vertical === "top" ? "flex-start" : "flex-end",
-          justifyContent:
-            corner.horizontal === "left" ? "flex-start" : "flex-end",
-          cursor,
-          touchAction: "none",
-          opacity: shown ? 1 : 0,
-          pointerEvents: shown ? "auto" : "none",
-          transition: theme.transitions.create("opacity", {
-            duration: theme.transitions.duration.shortest,
-          }),
-          "@media (hover: hover)": {
-            ".note-image-frame:hover &": {
-              opacity: 1,
-              pointerEvents: "auto",
-            },
-          },
-          "&:focus-visible": {
-            opacity: 1,
-            outline: "none",
-          },
-          "&::after": {
-            content: '""',
-            display: "block",
-            flexShrink: 0,
-            width: SQUARE_SIZE,
-            height: SQUARE_SIZE,
-            boxSizing: "border-box",
-            backgroundColor: theme.palette.primary.main,
-            border: `1px solid ${theme.palette.common.white}`,
-            boxShadow: theme.shadows[1],
-          },
-          "&:hover::after, &[data-dragging]::after": {
-            transform: "scale(1.2)",
-          },
-          // Two rings, so the focus shows on light and dark pictures alike.
-          "&:focus-visible::after": {
-            transform: "scale(1.2)",
-            boxShadow: `0 0 0 2px ${theme.palette.common.white}, 0 0 0 4px ${theme.palette.primary.main}`,
-          },
-        })}
+        onClick={(event: MouseEvent) => event.preventDefault()}
       />
     );
   });

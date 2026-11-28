@@ -1,4 +1,5 @@
 import {
+  AtIcon,
   CompassIcon,
   FireIcon,
   ShieldIcon,
@@ -109,4 +110,21 @@ export const Removable: Story = {
       </HStack>
     );
   },
+};
+
+/**
+ * A chip that leads somewhere, such as a mention, renders a link through
+ * `render` (a router link in the app).
+ */
+export const Links: Story = {
+  render: () => (
+    <HStack gap="2">
+      <Chip size="sm" icon={<AtIcon />} render={<a href="#mentions" />}>
+        The Iron Wardens
+      </Chip>
+      <Chip size="sm" tone="danger" icon={<AtIcon />}>
+        Unavailable entry
+      </Chip>
+    </HStack>
+  ),
 };

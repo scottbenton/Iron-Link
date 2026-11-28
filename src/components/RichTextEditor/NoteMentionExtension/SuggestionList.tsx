@@ -1,10 +1,3 @@
-import {
-  List,
-  ListItem,
-  ListItemButton,
-  ListSubheader,
-  Paper,
-} from "@mui/material";
 import type { MentionNodeAttrs } from "@tiptap/extension-mention";
 import type { SuggestionOptions, SuggestionProps } from "@tiptap/suggestion";
 import {
@@ -15,6 +8,14 @@ import {
   useRef,
   useState,
 } from "react";
+
+import {
+  List,
+  ListItem,
+  ListItemButton,
+  ListSubheader,
+} from "ui/components/List";
+import { Surface } from "ui/components/Surface";
 
 import type { MentionKind, MentionSuggestion } from "./otherNoteOptions";
 
@@ -82,7 +83,7 @@ const SuggestionList = forwardRef<SuggestionListRef, SuggestionListProps>(
     }, [props.items]);
 
     // The menu scrolls past its height cap; keep the arrowed-to row in view.
-    const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const itemRefs = useRef<(HTMLElement | null)[]>([]);
     useEffect(() => {
       itemRefs.current[selectedIndex]?.scrollIntoView({ block: "nearest" });
     }, [selectedIndex]);
@@ -109,39 +110,25 @@ const SuggestionList = forwardRef<SuggestionListRef, SuggestionListProps>(
     }));
 
     return props.items.length > 0 ? (
-      <Paper
-        elevation={5}
-        sx={{
-          maxHeight: 320,
+      <Surface
+        tone="flat"
+        radius="md"
+        css={{
+          borderColor: "border.control",
+          boxShadow: "popover",
+          maxHeight: "320px",
           overflowY: "auto",
           // In case there are contiguous stretches of long text that can't wrap:
           overflowX: "hidden",
         }}
       >
-        <List dense disablePadding sx={{ py: 0.5 }}>
+        <List dense css={{ paddingBlock: "1" }}>
           {props.items.map((item, index) => (
             <Fragment key={`${item.kind}:${item.id}`}>
               {item.group !== props.items[index - 1]?.group && (
-                // Group labels read as labels, not rows: small, grey and
-                // uppercase, with a rule between groups.
-                <ListSubheader
-                  sx={{
-                    lineHeight: "28px",
-                    pt: index > 0 ? 0.5 : 0,
-                    mt: index > 0 ? 0.5 : 0,
-                    borderTop: index > 0 ? 1 : 0,
-                    borderColor: "divider",
-                    fontSize: "0.6875rem",
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "text.secondary",
-                  }}
-                >
-                  {item.group}
-                </ListSubheader>
+                <ListSubheader divided={index > 0}>{item.group}</ListSubheader>
               )}
-              <ListItem disablePadding>
+              <ListItem>
                 <ListItemButton
                   ref={(element) => {
                     itemRefs.current[index] = element;
@@ -157,7 +144,7 @@ const SuggestionList = forwardRef<SuggestionListRef, SuggestionListProps>(
             </Fragment>
           ))}
         </List>
-      </Paper>
+      </Surface>
     ) : null;
   },
 );

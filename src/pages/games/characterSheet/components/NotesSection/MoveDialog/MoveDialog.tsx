@@ -1,32 +1,25 @@
-import {
-  Button,
-  Checkbox,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  FormControlLabel,
-  Typography,
-} from "@mui/material";
-import { SimpleTreeView, TreeItem } from "@mui/x-tree-view";
-import { useCallback, useMemo, useState } from "react";
+import { TFunction } from "i18next";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
+import { Button } from "ui/components/Button";
+import { Checkbox } from "ui/components/Checkbox";
+import {
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogDescription,
+  DialogHeader,
+} from "ui/components/Dialog";
+import { TreeView, TreeViewItem } from "ui/components/TreeView";
+import { Stack } from "ui/primitives";
 
-import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
-import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
-
-import { useUID } from "stores/auth.store";
-import { GamePermission } from "stores/game.store";
-import { useNotesStore } from "stores/notes.store";
-
-import { EditPermissions } from "repositories/shared.types";
+import { Permissions, useNotesStore } from "stores/notes.store";
 
 import { INoteFolder } from "services/noteFolders.service";
 
 import { getItemName } from "../FolderView/getFolderName";
 import { useFolderDescendants } from "../FolderView/useFolderDescendants";
-import { MoveTreeItem } from "./MoveTreeItem";
 
 export interface MoveDialogProps {
   open: boolean;
@@ -44,190 +37,117 @@ export function MoveDialog(props: MoveDialogProps) {
 
   const { t } = useTranslation();
 
-  const [selectedParentFolder, setSelectedParentFolder] = useState<
-    string | null
-  >(parentFolderId);
+  const [selectedParentFolder, setSelectedParentFolder] =
+    useState(parentFolderId);
 
-  const selectedFolderPermissions = useNotesStore((store) => {
-    if (!selectedParentFolder) return null;
+  const selectedFolderPermissions = useNotesStore((store) => ({
+    readPermissions:
+      store.folderState.folders[selectedParentFolder]?.readPermissions,
+    editPermissions:
+      store.folderState.folders[selectedParentFolder]?.editPermissions,
+  }));
+  const currentItemPermissions = useNotesStore((store) => {
+    const current =
+      type === "folder"
+        ? store.folderState.folders[id]
+        : store.noteState.notes[id];
     return {
-      readPermissions:
-        store.folderState.folders[selectedParentFolder]?.readPermissions,
-      editPermissions:
-        store.folderState.folders[selectedParentFolder]?.editPermissions,
+      readPermissions: current?.readPermissions,
+      editPermissions: current?.editPermissions,
     };
   });
-  const currentItemPermissions = useNotesStore((store) => {
-    if (type === "folder") {
-      return {
-        readPermissions: store.folderState.folders[id]?.readPermissions,
-        editPermissions: store.folderState.folders[id]?.editPermissions,
-      };
-    } else {
-      return {
-        readPermissions: store.noteState.notes[id]?.readPermissions,
-        editPermissions: store.noteState.notes[id]?.editPermissions,
-      };
-    }
-  });
+  const doPermissionsMatch =
+    selectedFolderPermissions.readPermissions ===
+      currentItemPermissions.readPermissions &&
+    selectedFolderPermissions.editPermissions ===
+      currentItemPermissions.editPermissions;
 
-  const doPermissionsMatch = useMemo(() => {
-    if (!selectedFolderPermissions) return true;
-
-    if (
-      selectedFolderPermissions.readPermissions !==
-      currentItemPermissions.readPermissions
-    ) {
-      return false;
-    }
-    if (
-      selectedFolderPermissions.editPermissions !==
-      currentItemPermissions.editPermissions
-    ) {
-      return false;
-    }
-    return true;
-  }, [selectedFolderPermissions, currentItemPermissions]);
-
-  const selectedParentFolderOrder = useNotesStore((store) => {
-    let nextOrder = 0;
-    Object.values(store.noteState.notes).forEach((note) => {
-      if (note.parentFolderId === selectedParentFolder) {
-        nextOrder = Math.max(nextOrder, note.order);
-      }
-    });
-    return nextOrder;
-  });
-
-  const uid = useUID();
-  const campaignId = useGameId();
-  const { gamePermission: campaignPermission } = useGamePermissions();
-
+  // A folder can't move into itself or anything inside it.
   const descendants = useFolderDescendants(type === "folder" ? id : undefined);
   const [isMoveLoading, setIsMoveLoading] = useState(false);
   const [shouldUpdatePermissions, setShouldUpdatePermissions] = useState(false);
 
-  const isGuide = campaignPermission === GamePermission.Guide;
+  const folders = useNotesStore((store) => store.folderState.folders);
+  const permissions = useNotesStore((store) => store.folderState.permissions);
 
-  const folders = useNotesStore((notes) => notes.folderState.folders);
-
-  const { rootNodes, tree } = getTreeFromFolders(folders, uid, isGuide);
+  const items = useMemo(
+    () =>
+      getTreeItems(folders, permissions, t, (folderId) =>
+        type === "folder"
+          ? folderId === id || folderId in descendants.folders
+          : false,
+      ),
+    [folders, permissions, t, type, id, descendants],
+  );
 
   const moveNote = useNotesStore((store) => store.moveNote);
   const moveFolder = useNotesStore((store) => store.moveFolder);
 
-  const handleMove = useCallback(
-    (newParentFolderId: string) => {
-      setIsMoveLoading(true);
-
-      let promise: Promise<void>;
-
-      // We can just move the item
-      if (type === "note") {
-        promise = moveNote(
-          id,
-          newParentFolderId,
-          !doPermissionsMatch && shouldUpdatePermissions,
-        );
-      } else {
-        promise = moveFolder(
-          id,
-          newParentFolderId,
-          !doPermissionsMatch && shouldUpdatePermissions,
-        );
-      }
-
-      promise
-        .catch(() => {})
-        .finally(() => {
-          setIsMoveLoading(false);
-          onClose();
-        });
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      type,
-      id,
-      parentFolderId,
-      folders,
-      descendants,
-      campaignId,
-      selectedParentFolderOrder,
-      shouldUpdatePermissions,
-      doPermissionsMatch,
-    ],
-  );
+  const handleMove = () => {
+    if (isMoveLoading) return;
+    setIsMoveLoading(true);
+    const updatePermissions = !doPermissionsMatch && shouldUpdatePermissions;
+    const move = type === "note" ? moveNote : moveFolder;
+    move(id, selectedParentFolder, updatePermissions)
+      .catch(() => {})
+      .finally(() => {
+        setIsMoveLoading(false);
+        onClose();
+      });
+  };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitleWithCloseButton onClose={onClose}>
-        {type === "note"
-          ? t("notes.moveNote", "Move Note")
-          : t("notes.moveFolder", "Move Folder")}
-      </DialogTitleWithCloseButton>
-      <DialogContent>
-        <Typography>
-          {type === "note"
-            ? t(
-                "notes.moveNoteDescription",
-                "Select the folder you want to move this note to. If the permissions of the note do not match the permissions of the folder, you can choose to update the permissions of the note to match the new folder.",
-              )
-            : t(
-                "notes.moveFolderDescription",
-                "Select the folder you want to move this folder to. If the permissions in the new parent folder are different, you can choose to update the permissions of the folder to match the new folder.",
-              )}
-        </Typography>
-        <SimpleTreeView
-          disableSelection={isMoveLoading}
-          sx={{ mt: 2 }}
-          selectedItems={selectedParentFolder}
-          onSelectedItemsChange={(_, itemId) => setSelectedParentFolder(itemId)}
-        >
-          {rootNodes.map((folderId) => (
-            <TreeItem
-              itemId={folderId}
-              key={folderId}
-              label={getItemName({
-                name: folders[folderId].name,
-                isRootPlayerFolder: folders[folderId].isRootPlayerFolder,
-                t,
-              })}
-            >
-              {tree[folderId]?.map((childId) => (
-                <MoveTreeItem
-                  key={childId}
-                  folderId={childId}
-                  folders={folders}
-                  tree={tree}
-                  currentFolderId={type === "folder" ? id : undefined}
-                />
-              ))}
-            </TreeItem>
-          ))}
+    <Dialog open={open} onClose={onClose} onSubmit={handleMove}>
+      <DialogHeader
+        title={
+          type === "note"
+            ? t("notes.moveNote", "Move Note")
+            : t("notes.moveFolder", "Move Folder")
+        }
+      />
+      <DialogBody>
+        <Stack gap="4">
+          <DialogDescription>
+            {type === "note"
+              ? t(
+                  "notes.moveNoteDescription",
+                  "Select the folder you want to move this note to. If the permissions of the note do not match the permissions of the folder, you can choose to update the permissions of the note to match the new folder.",
+                )
+              : t(
+                  "notes.moveFolderDescription",
+                  "Select the folder you want to move this folder to. If the permissions in the new parent folder are different, you can choose to update the permissions of the folder to match the new folder.",
+                )}
+          </DialogDescription>
+          <TreeView
+            aria-label={t("notes.move-destinations", "Folders")}
+            items={items}
+            defaultExpandedIds={items.map((rootItem) => rootItem.id)}
+            selectedId={selectedParentFolder}
+            onSelectedChange={(folderId) => setSelectedParentFolder(folderId)}
+            disabled={isMoveLoading}
+          />
           {!doPermissionsMatch && (
-            <FormControlLabel
+            <Checkbox
               label={t(
                 "notes.updatePermissions",
                 "Update permissions to match the new folder",
               )}
               checked={shouldUpdatePermissions}
-              onChange={(_, checked) => setShouldUpdatePermissions(checked)}
-              control={<Checkbox />}
-              sx={{ mt: 2 }}
+              onCheckedChange={setShouldUpdatePermissions}
+              disabled={isMoveLoading}
             />
           )}
-        </SimpleTreeView>
-      </DialogContent>
+        </Stack>
+      </DialogBody>
       <DialogActions>
-        <Button color="inherit" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose}>
           {t("common.cancel", "Cancel")}
         </Button>
         <Button
-          disabled={isMoveLoading || !selectedParentFolder}
-          variant="contained"
-          onClick={() =>
-            selectedParentFolder && handleMove(selectedParentFolder)
-          }
+          variant="primary"
+          type="submit"
+          loading={isMoveLoading}
+          disabled={selectedParentFolder === parentFolderId}
         >
           {t("common.save", "Save")}
         </Button>
@@ -236,44 +156,40 @@ export function MoveDialog(props: MoveDialogProps) {
   );
 }
 
-function getTreeFromFolders(
+// The folders this person can edit, as a tree. A folder whose parent they
+// can't see starts its own branch; one under a parent they can see but not
+// edit is left out with that parent.
+function getTreeItems(
   folders: Record<string, INoteFolder>,
-  uid: string | undefined,
-  isGuide: boolean,
-) {
-  const rootNodes: string[] = [];
-  const tree: Record<string, string[]> = {};
-  // Check each folder for permissions
+  permissions: Record<string, Permissions>,
+  t: TFunction,
+  isDisabled: (folderId: string) => boolean,
+): TreeViewItem[] {
+  const children: Record<string, string[]> = {};
+  const rootIds: string[] = [];
   Object.entries(folders).forEach(([folderId, folder]) => {
-    if (
-      folder.editPermissions === EditPermissions.GuidesAndAuthor &&
-      (!isGuide || folder.creator !== uid)
-    ) {
-      return;
-    } else if (
-      folder.editPermissions === EditPermissions.OnlyAuthor &&
-      folder.creator !== uid
-    ) {
-      return;
-    } else if (
-      folder.editPermissions === EditPermissions.OnlyGuides &&
-      !isGuide
-    ) {
-      return;
-    }
-
-    if (folder.parentFolderId && folders[folder.parentFolderId]) {
-      if (!tree[folder.parentFolderId]) {
-        tree[folder.parentFolderId] = [];
-      }
-      tree[folder.parentFolderId].push(folderId);
+    if (!permissions[folderId]?.canEdit) return;
+    const parentId = folder.parentFolderId;
+    if (parentId && folders[parentId]) {
+      (children[parentId] ??= []).push(folderId);
     } else {
-      rootNodes.push(folderId);
+      rootIds.push(folderId);
     }
   });
 
-  return {
-    rootNodes,
-    tree,
+  const toItem = (folderId: string): TreeViewItem => {
+    const folder = folders[folderId];
+    const childIds = children[folderId];
+    return {
+      id: folderId,
+      label: getItemName({
+        name: folder.name,
+        isRootPlayerFolder: folder.isRootPlayerFolder,
+        t,
+      }),
+      disabled: isDisabled(folderId),
+      children: childIds?.map(toItem),
+    };
   };
+  return rootIds.map(toItem);
 }

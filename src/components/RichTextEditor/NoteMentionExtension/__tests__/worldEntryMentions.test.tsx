@@ -1,10 +1,11 @@
 import {
   cleanup,
-  fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { Editor } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import { MemoryRouter } from "react-router";
@@ -275,6 +276,18 @@ describe("world entry mentions", () => {
       });
     });
 
+    // The card repeats the entry's name beside its picture.
+    function findCard(name: string) {
+      return waitFor(() => {
+        const card = screen
+          .getAllByText(name)
+          .map((node) => node.closest(".ui-root"))
+          .find((node): node is HTMLElement => node instanceof HTMLElement);
+        if (!card) throw new Error("No preview card");
+        return card;
+      });
+    }
+
     function renderMention() {
       render(
         <MemoryRouter>
@@ -288,6 +301,7 @@ describe("world entry mentions", () => {
     }
 
     it("shows the category and filled-in fields on hover, leaving out Guide-only ones", async () => {
+      const user = userEvent.setup();
       setEntries([entry("b", "Brannoc", "people")]);
       setFields(
         [
@@ -299,9 +313,9 @@ describe("world entry mentions", () => {
         { role: "Smith", secret: "Spy", goal: "Find his sister" },
       );
       renderMention();
-      fireEvent.mouseOver(screen.getByRole("link", { name: "Brannoc" }));
+      await user.hover(screen.getByRole("link", { name: "Brannoc" }));
 
-      const card = await screen.findByRole("tooltip");
+      const card = await findCard("Brannoc");
       expect(within(card).getByText("People")).toBeInTheDocument();
       expect(within(card).getByText("Role")).toBeInTheDocument();
       expect(within(card).getByText("Smith")).toBeInTheDocument();
@@ -311,12 +325,13 @@ describe("world entry mentions", () => {
     });
 
     it("says so when nothing is filled in", async () => {
+      const user = userEvent.setup();
       setEntries([entry("b", "Brannoc", "people")]);
       setFields([textField("role", "Role", 0)], {});
       renderMention();
-      fireEvent.mouseOver(screen.getByRole("link", { name: "Brannoc" }));
+      await user.hover(screen.getByRole("link", { name: "Brannoc" }));
 
-      const card = await screen.findByRole("tooltip");
+      const card = await findCard("Brannoc");
       expect(
         within(card).getByText("No details filled in yet"),
       ).toBeInTheDocument();

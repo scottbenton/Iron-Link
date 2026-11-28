@@ -1,9 +1,11 @@
-import { LinearProgress } from "@mui/material";
 import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 
 import { WorldEntryMentionLinksContext } from "components/RichTextEditor/NoteMentionExtension/worldEntryMentionLinks";
 import type { WorldView } from "components/worlds/worldNavigation";
+
+import { Progress } from "ui/components/Progress";
 
 import { getNotesItemLinkProps } from "pages/games/gamePageLayout/hooks/notesDestination";
 
@@ -14,6 +16,7 @@ import { NoteTabs } from "./NoteTabs/NoteTabs";
 import { useGameWorldId, useListenToGameWorld } from "./hooks/useGameWorld";
 
 export function NotesSection() {
+  const { t } = useTranslation();
   // Single owner of the linked world's subscription for everything below.
   useListenToGameWorld();
 
@@ -45,7 +48,7 @@ export function NotesSection() {
   );
 
   if (areBasicNotesLoading) {
-    return <LinearProgress />;
+    return <Progress label={t("notes.loading", "Loading notes")} />;
   }
 
   return (

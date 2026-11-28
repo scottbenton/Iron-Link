@@ -1,9 +1,10 @@
-import AddIcon from "@mui/icons-material/Add";
-import { Box, IconButton, Tabs } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { ErrorBoundary } from "components/ErrorBoundary";
-import { EmptyState } from "components/Layout/EmptyState";
+
+import { NoteTabPanel, NoteTabs as NoteTabStrip } from "ui/components/Tabs";
+import { EmptyState } from "ui/layout/EmptyState";
+import { Flex } from "ui/primitives";
 
 import { notesDestinationKey } from "pages/games/gamePageLayout/hooks/notesDestination";
 
@@ -13,12 +14,8 @@ import { useWorldStore } from "stores/world.store";
 import { useWorldCategoriesStore } from "stores/worldCategories.store";
 import { useWorldEntriesStore } from "stores/worldEntries.store";
 
-import { FolderView, FolderViewToolbar } from "../FolderView";
 import { getItemName } from "../FolderView/getFolderName";
-import { OpenItemWrapper } from "../Layout";
-import { NoteView } from "../NoteView";
-import { GameWorldView } from "../WorldView/GameWorldView";
-import { NoteTab } from "./NoteTab";
+import { NoteTabContents } from "./NoteTabContents";
 
 export function NoteTabs() {
   const { t } = useTranslation();
@@ -106,88 +103,40 @@ export function NoteTabs() {
   const folders = useNotesStore((store) => store.folderState.folders);
 
   return (
-    <Box height={"100%"} display="flex" flexDirection="column">
-      <Box
-        bgcolor="background.default"
-        borderColor="divider"
-        display="flex"
-        flexShrink={0}
-      >
-        {defaultTab && (
-          <Box pl={1} display="flex" alignItems="center">
-            <IconButton
-              size="small"
-              aria-label={t("notes.tabs.new-tab", "Open new tab")}
-              onClick={() =>
-                openNewTab({
-                  type: "folder",
-                  id: defaultTab.id,
-                  openInBackground: false,
-                  replaceCurrent: false,
-                })
-              }
-              sx={{ mr: 1 }}
-            >
-              <AddIcon />
-            </IconButton>
-          </Box>
-        )}
-        <Tabs
-          value={activeTab ?? null}
-          onChange={(_, newValue) => setActiveTab(newValue)}
-          sx={{ minHeight: 0 }}
-          variant="scrollable"
-          // Do not re-enable the scroller's scrollbar here. MUI hides it by
-          // applying a negative margin-bottom equal to the measured scrollbar
-          // height; making it visible again leaves that margin in place, which
-          // detaches the selection indicator from the tabs by exactly a
-          // scrollbar's height and makes one flash in whenever the strip is
-          // re-measured. Scroll buttons cover overflow instead.
-          scrollButtons="auto"
-        >
-          {tabOrder.map((tabId) => (
-            <NoteTab
-              name={itemNames[tabId] ?? worldTabLabel(tabId)}
-              onClose={() => closeTab(tabId)}
-              value={tabId}
-              key={tabId}
-              id={`note-tab-${tabId}`}
-              aria-controls={`note-tabpanel-${tabId}`}
-              onAuxClick={(event) => {
-                if (event.button === 1) closeTab(tabId);
-              }}
-              onMouseDown={(event) => {
-                if (event.button === 1) {
-                  event.preventDefault();
-                  return false;
-                }
-              }}
-            />
-          ))}
-        </Tabs>
-      </Box>
-      {tabOrder.map((tabId) => {
-        const tabItem = openTabs[tabId];
-        if (activeTab !== tabId) {
-          return null;
-        }
-        return (
-          <Box
-            key={tabId}
-            role="tabpanel"
-            hidden={activeTab !== tabId}
-            id={`note-tabpanel-${tabId}`}
-            aria-labelledby={`note-tab-${tabId}`}
-            flexGrow={1}
-            display="flex"
-            flexDirection={"column"}
-            overflow="auto"
-          >
+    <NoteTabStrip
+      tabs={tabOrder.map((tabId) => ({
+        id: tabId,
+        label: itemNames[tabId] ?? worldTabLabel(tabId),
+      }))}
+      value={activeTab ?? null}
+      onValueChange={setActiveTab}
+      onClose={closeTab}
+      onAdd={
+        defaultTab
+          ? () =>
+              openNewTab({
+                type: "folder",
+                id: defaultTab.id,
+                openInBackground: false,
+                replaceCurrent: false,
+              })
+          : undefined
+      }
+      aria-label={t("notes.tabs.label", "Open notes")}
+      addLabel={t("notes.tabs.new-tab", "Open new tab")}
+      closeLabel={(label) =>
+        t("notes.tabs.close", "Close {{label}}", { label })
+      }
+      css={{ height: "100%" }}
+    >
+      {activeTab && openTabs[activeTab] && (
+        <NoteTabPanel key={activeTab} value={activeTab}>
+          <Flex flexDirection="column" minHeight="100%">
             {/* Keyed by destination so opening something else in the tab
                 clears a crash. A link can name anything, including what
                 this person cannot read. */}
             <ErrorBoundary
-              key={notesDestinationKey(tabItem)}
+              key={notesDestinationKey(openTabs[activeTab])}
               fallback={
                 <EmptyState
                   title={t("notes.tab-error-title", "Something went wrong")}
@@ -195,42 +144,21 @@ export function NoteTabs() {
                     "notes.tab-error",
                     "This tab could not be shown. Close it or open something else.",
                   )}
-                  sx={{ mt: 4 }}
+                  css={{ marginBlockStart: "8" }}
                 />
               }
             >
-              {tabItem.type === "world" ? (
-                <GameWorldView
-                  worldId={tabItem.itemId}
-                  worldView={tabItem.worldView}
-                />
-              ) : tabItem.type === "folder" && !folders[tabItem.itemId] ? (
-                // Unreadable folders are filtered out, like deleted ones.
-                <EmptyState
-                  title={t("notes.folder-missing-title", "Folder unavailable")}
-                  message={t(
-                    "notes.folder-missing",
-                    "This folder was deleted, or you do not have access to it.",
-                  )}
-                  sx={{ mt: 4 }}
-                />
-              ) : tabItem.type === "folder" ? (
-                <>
-                  <FolderViewToolbar folderId={tabItem.itemId} />
-                  <OpenItemWrapper sx={{ flexGrow: 1 }}>
-                    <FolderView folderId={tabItem.itemId} />
-                    {rootPlayerFolder?.id === tabItem.itemId && (
-                      <FolderView folderId={undefined} />
-                    )}
-                  </OpenItemWrapper>
-                </>
-              ) : (
-                <NoteView openNoteId={tabItem.itemId} />
-              )}
+              <NoteTabContents
+                tabItem={openTabs[activeTab]}
+                folderExists={!!folders[openTabs[activeTab].itemId]}
+                isRootPlayerFolder={
+                  rootPlayerFolder?.id === openTabs[activeTab].itemId
+                }
+              />
             </ErrorBoundary>
-          </Box>
-        );
-      })}
-    </Box>
+          </Flex>
+        </NoteTabPanel>
+      )}
+    </NoteTabStrip>
   );
 }

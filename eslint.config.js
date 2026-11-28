@@ -96,6 +96,11 @@ export default tseslint.config(
       "src/components/characters/CharacterInitiativeChip/**/*.{ts,tsx}",
       "src/components/characters/CharacterPortraitAvatar/**/*.{ts,tsx}",
       "src/components/characters/rolls/{Recent,recent,use,roll,copy,clear}*.{ts,tsx}",
+      "src/components/RichTextEditor/*.{ts,tsx}",
+      "src/components/RichTextEditor/{toolbar,secrets,ExtendedImageNode,NoteMentionExtension}/**/*.{ts,tsx}",
+      "src/components/worlds/entries/WorldEntryHoverCard.tsx",
+      "src/pages/games/characterSheet/components/NotesSection/**/*.{ts,tsx}",
+      "src/components/permissions/**/*.{ts,tsx}",
     ],
     ignores: [
       "src/ui/**/__stories__/**",
