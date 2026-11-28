@@ -1,5 +1,6 @@
 -- A person's Everywhere theme is theirs to set: they change their own users
--- row's color_scheme, and changing anyone else's is refused. Every fixture is rolled back.
+-- row's color_scheme, and changing anyone else's is refused. Every fixture
+-- is rolled back.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public,extensions;
