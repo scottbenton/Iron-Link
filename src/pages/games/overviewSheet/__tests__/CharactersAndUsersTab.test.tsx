@@ -163,9 +163,8 @@ describe("overview Characters tab", () => {
     expect(screen.getByRole("heading", { name: "Players" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Scott" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Vex's player" })).toBeVisible();
-    expect(
-      screen.getByRole("link", { name: /Rook.*Vex's player/ }),
-    ).toBeVisible();
+    const rook = screen.getByRole("link", { name: /Rook/ }).closest("article");
+    expect(rook).toHaveTextContent("Vex's player");
     expect(
       screen.getByRole("button", { name: "Copy Invite Link" }),
     ).toBeVisible();

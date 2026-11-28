@@ -1,9 +1,10 @@
-import { Alert, Box } from "@mui/material";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
-import { GradientButton } from "components/GradientButton";
+import { Alert } from "ui/components/Alert";
+import { Button } from "ui/components/Button";
+import { HStack, Stack } from "ui/primitives";
 
 import { pathConfig } from "pages/pathConfig";
 
@@ -15,16 +16,17 @@ import {
 import { useUID } from "stores/auth.store";
 import { useCreateCharacterStore } from "stores/createCharacter.store";
 
-import { CreateCharacter } from "../create/components/CreateCharacter";
+import { CreateCharacterStep } from "../create/components/CreateCharacterStep";
 import { useGameId } from "../gamePageLayout/hooks/useGameId";
 
+/** Adds a character to a game that already exists, then opens its sheet. */
 export default function AddCharacter() {
   const gameId = useGameId();
   const { t } = useTranslation();
   useSendPageViewEvent(PageCategory.GameCharacterCreate);
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | undefined>(undefined);
+  const [failed, setFailed] = useState(false);
 
   const uid = useUID();
 
@@ -34,41 +36,43 @@ export default function AddCharacter() {
   const resetCharacter = useCreateCharacterStore((store) => store.reset);
   const navigate = useNavigate();
 
-  const handleCreate = useCallback(() => {
-    if (!uid) return;
-
+  const handleCreate = () => {
+    if (!uid || loading) return;
     setLoading(true);
-
+    setFailed(false);
     createCharacter(gameId, uid)
       .then((characterId) => {
         resetCharacter();
         navigate(pathConfig.gameCharacter(gameId, characterId));
       })
       .catch(() => {
-        setError(
-          t("character.error-creating-character", "Error creating character"),
-        );
+        setFailed(true);
         setLoading(false);
       });
-  }, [uid, t, navigate, gameId, createCharacter, resetCharacter]);
+  };
 
   if (!uid) {
     return null;
   }
 
   return (
-    <>
-      {error && (
-        <Alert severity="error" variant="filled">
-          {error}
+    <Stack gap="6">
+      {failed && (
+        <Alert tone="danger">
+          {t("character.error-creating-character", "Error creating character")}
         </Alert>
       )}
-      <CreateCharacter />
-      <Box mt={4} display="flex" justifyContent={"flex-end"}>
-        <GradientButton disabled={loading} onClick={handleCreate}>
+      <CreateCharacterStep />
+      <HStack justifyContent="flex-end">
+        <Button
+          variant="gradient"
+          loading={loading}
+          loadingLabel={t("character.adding-character", "Adding Character")}
+          onClick={handleCreate}
+        >
           {t("character.add-character", "Add Character")}
-        </GradientButton>
-      </Box>
-    </>
+        </Button>
+      </HStack>
+    </Stack>
   );
 }

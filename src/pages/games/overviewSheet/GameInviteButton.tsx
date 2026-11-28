@@ -1,70 +1,55 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { CopyButton } from "components/CopyButton";
+import { Alert } from "ui/components/Alert";
+import { CopyButton } from "ui/components/CopyButton";
 
-import { GamePermission, useGameStore } from "stores/game.store";
-
-import { GameType } from "repositories/game.repository";
+import { useGameStore } from "stores/game.store";
 
 import { useGameId } from "../gamePageLayout/hooks/useGameId";
-import { useGamePermissions } from "../gamePageLayout/hooks/usePermissions";
 
+/**
+ * Copies the game's invite link. The tab shows it only to players and
+ * Guides of a game with more than one person.
+ */
 export function GameInviteButton() {
   const { t } = useTranslation();
 
   const gameId = useGameId();
-  const { gameType, gamePermission } = useGamePermissions();
-
   const loadGameInviteKey = useGameStore((state) => state.getGameInviteKey);
 
   const [inviteKey, setInviteKey] = useState<string | null>(null);
-  const [inviteKeyError, setInviteKeyError] = useState<string | null>(null);
-  const isAlreadyLoadingRef = useRef(false);
-
-  const inviteURL = location.origin + "/join/";
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    const handleFetchInviteKey = async () => {
-      if (isAlreadyLoadingRef.current) return;
-      isAlreadyLoadingRef.current = true;
-      loadGameInviteKey(gameId)
-        .then((key) => {
-          setInviteKey(key);
-        })
-        .catch(() => {
-          setInviteKeyError(
-            t("game.invite.error", "Failed to load invite key"),
-          );
-        });
+    let current = true;
+    loadGameInviteKey(gameId)
+      .then((key) => {
+        if (current) setInviteKey(key);
+      })
+      .catch(() => {
+        if (current) setFailed(true);
+      });
+    return () => {
+      current = false;
     };
+  }, [gameId, loadGameInviteKey]);
 
-    handleFetchInviteKey();
-  }, [gameId, t, loadGameInviteKey]);
+  if (failed) {
+    return (
+      <Alert tone="danger">
+        {t("game.invite.error", "Failed to load invite key")}
+      </Alert>
+    );
+  }
 
   return (
-    <>
-      {gamePermission !== GamePermission.Viewer &&
-        gameType !== GameType.Solo && (
-          <CopyButton
-            dialogTitle={t("game.invite.title", "Invite to game")}
-            dialogContent={t(
-              "game.invite.copyUrl",
-              "Copy this URL to invite others to the game",
-            )}
-            link={inviteKey ? `${inviteURL}${inviteKey}` : undefined}
-            error={
-              inviteKeyError
-                ? t("game.invite.error", "Failed to load invite key")
-                : undefined
-            }
-            variant="outlined"
-            color="inherit"
-            sx={{ mt: 1 }}
-          >
-            {t("game.overview.invite", "Copy Invite Link")}
-          </CopyButton>
-        )}
-    </>
+    <CopyButton
+      variant="outline"
+      text={`${location.origin}/join/${inviteKey ?? ""}`}
+      disabled={!inviteKey}
+      label={t("game.overview.invite", "Copy Invite Link")}
+      copiedLabel={t("game.overview.invite-copied", "Invite Link Copied")}
+    />
   );
 }

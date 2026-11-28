@@ -38,6 +38,8 @@ beforeAll(() => {
     unobserve() {}
     disconnect() {}
   };
+  URL.createObjectURL ??= () => "blob:portrait";
+  URL.revokeObjectURL ??= () => {};
 });
 
 afterEach(() => {
@@ -81,6 +83,9 @@ describe("character details", () => {
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
+    expect(
+      screen.getByRole("button", { name: "Change Portrait" }),
+    ).toBeVisible();
   });
 
   it("refuses a portrait over the size limit", async () => {

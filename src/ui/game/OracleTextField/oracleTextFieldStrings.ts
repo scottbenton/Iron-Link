@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 
-/** The words an oracle text field uses, shared with the app's MUI field. */
+/** The words an oracle text field uses. */
 export interface OracleTextFieldStrings {
   /** The roll button's name and tooltip: "Roll Settlement Name". */
   roll: (oracle: string) => string;
