@@ -23,6 +23,9 @@ const barStyles = css({
   paddingInline:
     "env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px)",
   fontFamily: "body",
+  // Steps aside while a KeyboardToolbar shows (it marks itself with this
+  // attribute), since the bar takes the same edge.
+  "body:has(> [data-keyboard-toolbar-shown]) &": { display: "none" },
 });
 
 const listStyles = css({

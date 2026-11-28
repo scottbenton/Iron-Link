@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { SecretsToolbarState } from "components/RichTextEditor";
 import {
   EditorToolbarControls,
-  MobileKeyboardToolbar,
+  MobileNotesToolbar,
 } from "components/RichTextEditor/toolbar";
 
 import { ToolbarButton, ToolbarSeparator } from "ui/components/Toolbar";
@@ -13,7 +13,6 @@ import { ArrowLeftIcon } from "ui/icons";
 
 import { useNotesStore } from "stores/notes.store";
 
-import { NoteToolbarActionsMenu } from "./NoteToolbarActionsMenu";
 import { NotePermissions } from "./useNotePermission";
 
 export interface MobileStickyNoteToolbarProps {
@@ -23,8 +22,9 @@ export interface MobileStickyNoteToolbarProps {
   secrets?: SecretsToolbarState;
 }
 
-// A note's toolbar on a phone, riding on the keyboard: back to the note's
-// folder, the editing controls, then the note's own actions.
+// A note's toolbar on a phone, riding on the keyboard while the note is being
+// edited: back to the note's folder, then the editing controls. The note's
+// own actions are at the top of the note, as on larger screens.
 export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
   const { openNoteId, editor, permissions, secrets } = props;
 
@@ -42,11 +42,14 @@ export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
 
   const isMobile = useIsMobile();
 
-  if (!isMobile) {
+  if (!isMobile || !permissions.canEdit) {
     return null;
   }
   return (
-    <MobileKeyboardToolbar label={t("note.editor-toolbar.label", "Formatting")}>
+    <MobileNotesToolbar
+      editor={editor}
+      label={t("note.editor-toolbar.label", "Formatting")}
+    >
       <ToolbarButton
         label={t("notes.editor-toolbar.mobile.go-back", "Back to Folder")}
         icon={<ArrowLeftIcon />}
@@ -62,10 +65,6 @@ export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
         secrets={secrets}
         compact
       />
-      <NoteToolbarActionsMenu
-        openNoteId={openNoteId}
-        permissions={permissions}
-      />
-    </MobileKeyboardToolbar>
+    </MobileNotesToolbar>
   );
 }
