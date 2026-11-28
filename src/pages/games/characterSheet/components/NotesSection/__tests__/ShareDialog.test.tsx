@@ -57,11 +57,14 @@ function renderDialog(
 }
 
 const group = (name: string) => screen.getByRole("radiogroup", { name });
+const editOptions = ["Only You", "You and the Guide(s)", "All Players"];
+const isDisabled = (element: HTMLElement) =>
+  element.hasAttribute("disabled") ||
+  element.getAttribute("aria-disabled") === "true";
 const disabledEditOptions = () =>
-  within(group("Who can edit?"))
-    .getAllByRole("radio")
-    .filter((radio) => (radio as HTMLInputElement).disabled)
-    .map((radio) => radio.closest("label")?.textContent);
+  editOptions.filter((name) =>
+    isDisabled(within(group("Who can edit?")).getByRole("radio", { name })),
+  );
 
 beforeEach(() => {
   useNotesStore.getState().reset();

@@ -349,6 +349,29 @@ describe("World Notes navigation", () => {
     expect(screen.getByText("Folder unavailable")).toBeInTheDocument();
   });
 
+  it("opens a new tab on the reader's root folder, and closes tabs from beside them", async () => {
+    const user = userEvent.setup();
+    useNotesStore.getState().openItemTab({ type: "world", id: "world-a" });
+    render(
+      <MemoryRouter>
+        <NoteTabs />
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole("button", { name: "Open new tab" }));
+    const notes = screen.getByRole("tab", { name: "Notes" });
+    expect(notes).toHaveAttribute("aria-selected", "true");
+
+    const close = screen.getByRole("button", { name: "Close Ironlands" });
+    expect(screen.getByRole("tab", { name: "Ironlands" })).not.toContainElement(
+      close,
+    );
+    await user.click(close);
+    expect(
+      screen.queryByRole("tab", { name: "Ironlands" }),
+    ).not.toBeInTheDocument();
+    expect(useNotesStore.getState().noteTabOrder).toHaveLength(1);
+  });
+
   it("keeps the tab strip when one tab crashes", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     context.noteViewThrows = true;
