@@ -6,6 +6,7 @@ import {
 import { ThemeDialog } from "ui/game/ThemeDialog";
 
 import { useAppThemeStore } from "stores/appTheme.store";
+import { useUID } from "stores/auth.store";
 
 export interface AppThemeDialogProps {
   open: boolean;
@@ -17,6 +18,7 @@ export function AppThemeDialog(props: AppThemeDialogProps) {
   const { open, onClose } = props;
   const appTheme = useAppThemeStore((store) => store.appTheme);
   const setAppTheme = useAppThemeStore((store) => store.setAppTheme);
+  const uid = useUID();
 
   return (
     <ThemeDialog
@@ -25,9 +27,11 @@ export function AppThemeDialog(props: AppThemeDialogProps) {
       characters={[]}
       appTheme={toThemeChoice(appTheme)}
       initialOpen={{ kind: "app" }}
-      onSave={(changes) => {
+      onSave={async (changes) => {
         for (const { target, theme } of changes) {
-          if (target.kind === "app") setAppTheme(toColorScheme(theme));
+          if (target.kind === "app") {
+            await setAppTheme(uid, toColorScheme(theme));
+          }
         }
       }}
     />

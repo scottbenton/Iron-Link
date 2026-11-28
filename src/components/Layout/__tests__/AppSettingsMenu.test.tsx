@@ -24,6 +24,7 @@ vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("stores/auth.store", () => ({
   AuthStatus: { Loading: 0, Unauthenticated: 1, Authenticated: 2 },
   useAuthStatus: () => auth.status,
+  useUID: () => "me",
   useAuthStore: (selector: (store: typeof auth) => unknown) => selector(auth),
 }));
 vi.mock("stores/admin.store", () => ({

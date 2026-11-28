@@ -9,6 +9,7 @@ import { useCanEditCharacter } from "pages/games/characterSheet/hooks/useCanEdit
 import { useCharacterIdOptional } from "pages/games/characterSheet/hooks/useCharacterId";
 
 import { useAppThemeStore } from "stores/appTheme.store";
+import { useUID } from "stores/auth.store";
 import { GamePermission, useGameStore } from "stores/game.store";
 import { useGameCharactersStore } from "stores/gameCharacters.store";
 import { useMenuState } from "stores/menuState";
@@ -38,6 +39,7 @@ export function GameThemeDialog() {
   );
   const appTheme = useAppThemeStore((store) => store.appTheme);
   const setAppTheme = useAppThemeStore((store) => store.setAppTheme);
+  const uid = useUID();
 
   const characters = useThemeDialogCharacters();
   const characterId = useCharacterIdOptional();
@@ -57,8 +59,7 @@ export function GameThemeDialog() {
             ? updateGameColorScheme(gameId, colorScheme)
             : Promise.resolve();
         }
-        setAppTheme(colorScheme);
-        return Promise.resolve();
+        return setAppTheme(uid, colorScheme);
       }),
     );
   };

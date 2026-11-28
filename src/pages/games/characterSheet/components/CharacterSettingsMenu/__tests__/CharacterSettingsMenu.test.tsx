@@ -32,9 +32,11 @@ import { CharacterSettingsMenu } from "../CharacterSettingsMenu";
 
 const session = vi.hoisted(() => ({ uid: "me" }));
 const deleteCharacter = vi.hoisted(() => vi.fn());
+const setColorScheme = vi.hoisted(() => vi.fn(() => Promise.resolve()));
 
 vi.mock("lib/supabase.lib", () => ({ supabase: {} }));
 vi.mock("stores/auth.store", () => ({ useUID: () => session.uid }));
+vi.mock("services/user.service", () => ({ UserService: { setColorScheme } }));
 vi.mock("pages/games/characterSheet/hooks/useCharacterId", () => ({
   useCharacterId: () => "kira",
   useCharacterIdOptional: () => "kira",
@@ -277,13 +279,14 @@ describe("the Theme dialog", () => {
     );
   });
 
-  it("saves the Everywhere theme on this device", async () => {
+  it("saves the Everywhere theme on the person's account", async () => {
     await openThemeDialog();
     const { user, dialog } = await pick("Your app theme", /sunrise/i);
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
 
     await waitFor(() =>
-      expect(useAppThemeStore.getState().appTheme).toBe(ColorScheme.Default),
+      expect(setColorScheme).toHaveBeenCalledWith("me", ColorScheme.Default),
     );
+    expect(useAppThemeStore.getState().appTheme).toBe(ColorScheme.Default);
   });
 });
