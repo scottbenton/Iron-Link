@@ -89,7 +89,7 @@ export function ActionRolls(props: ActionRollsProps) {
   const roll = (option: ActionRollOption) =>
     rollStat({
       statId: option.statId,
-      statLabel: option.label,
+      statLabel: option.rollLabel,
       statModifier: option.value,
       moveId,
       adds,

@@ -39,7 +39,7 @@ export interface MoveRollGroupProps<O extends MoveRollOption = MoveRollOption>
   onRoll?: (option: O) => void;
   /** Adds on the next roll, shown on each button's corner. */
   adds?: number;
-  /** Controls after the buttons, such as the Adds stepper. */
+  /** Controls on their own line above the buttons, such as Adds. */
   children?: ReactNode;
   className?: string;
 }
@@ -64,6 +64,7 @@ export function MoveRollGroup<O extends MoveRollOption>(
         move: moveName,
       })}
     >
+      {children}
       <Text variant="label" color="muted">
         {label}
       </Text>
@@ -86,7 +87,6 @@ export function MoveRollGroup<O extends MoveRollOption>(
             )}
           </RollButton>
         ))}
-        {children}
       </div>
     </div>
   );

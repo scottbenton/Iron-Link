@@ -2,16 +2,19 @@ import { Datasworn, IdParser, StringId } from "@datasworn-community/core";
 import type { TFunction } from "i18next";
 
 import { MoveRollOption } from "ui/game/MoveCard";
+import { capitalize } from "ui/game/shared";
 
 import { IAsset } from "services/asset.service";
 
 import { CharacterRollOptionState } from "./common.types";
 
 // One roll a character can make a move with: the button it shows and the
-// stat it rolls.
+// stat it rolls. Datasworn names stats in lower case ("edge"), so the button
+// capitalizes them and the roll keeps the rules' own label.
 export interface ActionRollOption extends MoveRollOption {
   value: number;
   statId: string;
+  rollLabel: string;
 }
 
 export interface ActionRollSources {
@@ -39,7 +42,8 @@ export function getActionRollOptions(
         {
           id: `${index}-${roll.stat}`,
           statId: roll.stat,
-          label: stats[roll.stat].label,
+          label: capitalize(stats[roll.stat].label),
+          rollLabel: stats[roll.stat].label,
           value: character.stats[roll.stat] ?? 0,
         },
       ];
@@ -53,7 +57,8 @@ export function getActionRollOptions(
         {
           id: `${index}-${roll.condition_meter}`,
           statId: roll.condition_meter,
-          label: rule.label,
+          label: capitalize(rule.label),
+          rollLabel: rule.label,
           value:
             (rule.shared
               ? gameConditionMeters[roll.condition_meter]
@@ -67,7 +72,8 @@ export function getActionRollOptions(
         {
           id: `${index}-${roll.label}`,
           statId: roll.label,
-          label: roll.label,
+          label: capitalize(roll.label),
+          rollLabel: roll.label,
           value: roll.value,
         },
       ];
@@ -96,17 +102,20 @@ function getAssetControlOptions(
           if (document.dataswornAssetId !== asset._id) return;
           const value = document.controlValues?.[roll.control];
           const key = `${index}-${asset._id}-${documentId}-${roll.control}`;
+          const assetName = document.optionValues?.["name"] ?? asset.name;
+          const labelKey = "datasworn.move.asset-control-roll-label";
+          const labelDefault = "{{assetName}}'s {{controlLabel}}";
           options[key] = {
             id: key,
             statId: roll.control,
-            label: t(
-              "datasworn.move.asset-control-roll-label",
-              "{{assetName}}'s {{controlLabel}}",
-              {
-                assetName: document.optionValues?.["name"] ?? asset.name,
-                controlLabel: control.label,
-              },
-            ),
+            label: t(labelKey, labelDefault, {
+              assetName,
+              controlLabel: capitalize(control.label),
+            }),
+            rollLabel: t(labelKey, labelDefault, {
+              assetName,
+              controlLabel: control.label,
+            }),
             value:
               typeof value === "number"
                 ? value

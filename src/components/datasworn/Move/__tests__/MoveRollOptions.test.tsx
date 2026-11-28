@@ -148,10 +148,13 @@ describe("MoveRollOptions", () => {
     expect(screen.queryByText("Ash")).not.toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /edge/i })).toHaveLength(1);
 
-    await user.click(screen.getByRole("button", { name: /edge/i }));
+    // Buttons capitalize the rules' lower case names; the roll keeps them.
+    const edge = screen.getByRole("button", { name: /Edge/ });
+    await user.click(edge);
     expect(rollStat).toHaveBeenCalledWith(
       expect.objectContaining({
         statId: "edge",
+        statLabel: "edge",
         statModifier: 1,
         moveId: "move:starforged/adventure/face_danger",
         adds: 0,
@@ -186,7 +189,14 @@ describe("MoveRollOptions", () => {
     const user = userEvent.setup();
     renderMove("move:starforged/adventure/face_danger");
 
-    await user.click(screen.getByRole("button", { name: /add 1 to adds/i }));
+    // Adds sits on its own line, before the roll buttons.
+    const addOne = screen.getByRole("button", { name: /add 1 to adds/i });
+    const edge = screen.getByRole("button", { name: /edge/i });
+    expect(
+      addOne.compareDocumentPosition(edge) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    await user.click(addOne);
     expect(updateCharacterAdds).toHaveBeenCalledWith("kai", 1);
   });
 
