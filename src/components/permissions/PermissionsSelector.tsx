@@ -1,14 +1,8 @@
-import {
-  Box,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  Radio,
-  RadioGroup,
-  Typography,
-} from "@mui/material";
-import { ReactNode, useId } from "react";
+import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+
+import { Radio, RadioGroup } from "ui/components/RadioGroup";
+import { Stack } from "ui/primitives";
 
 import { EditPermissions, ReadPermissions } from "repositories/shared.types";
 
@@ -30,9 +24,6 @@ export interface PermissionsSelectorProps {
     readPermissions?: ReadPermissions;
     editPermissions?: EditPermissions;
   }) => void;
-  // Offers only the read choice. The edit permission still follows read
-  // changes, so it never reaches past them.
-  hideEditOptions?: boolean;
   readHelperText?: ReactNode;
   editHelperText?: ReactNode;
   // Which edit permissions fit each read permission. By default, edit access
@@ -49,14 +40,11 @@ export function PermissionsSelector(props: PermissionsSelectorProps) {
     readPermissions,
     editPermissions,
     onChange,
-    hideEditOptions,
     readHelperText,
     editHelperText,
     isEditPermissionAllowed = isEditPermissionWithinReadPermission,
   } = props;
   const { t } = useTranslation();
-  const readLabelId = useId();
-  const editLabelId = useId();
 
   const handleReadChange = (read: ReadPermissions) => {
     onChange({
@@ -73,70 +61,37 @@ export function PermissionsSelector(props: PermissionsSelectorProps) {
   };
 
   return (
-    <>
-      <Box>
-        <FormControl>
-          <FormLabel id={readLabelId}>
-            {t("permissions.view", "Who can view?")}
-          </FormLabel>
-          {readHelperText && (
-            <Typography variant={"body2"} color="text.secondary" mb={1}>
-              {readHelperText}
-            </Typography>
-          )}
-          <RadioGroup
-            aria-labelledby={readLabelId}
-            value={readPermissions ?? null}
-            onChange={(_, value) => handleReadChange(value as ReadPermissions)}
-          >
-            {readOptions.map((option) => (
-              <FormControlLabel
-                key={option.value}
-                value={option.value}
-                control={<Radio />}
-                label={option.label}
-              />
-            ))}
-          </RadioGroup>
-        </FormControl>
-      </Box>
-      {!hideEditOptions && (
-        <Box mt={3}>
-          <FormControl>
-            <FormLabel id={editLabelId}>
-              {t("permissions.edit", "Who can edit?")}
-            </FormLabel>
-            {editHelperText && (
-              <Typography variant={"body2"} color="text.secondary" mb={1}>
-                {editHelperText}
-              </Typography>
-            )}
-            <RadioGroup
-              aria-labelledby={editLabelId}
-              value={editPermissions ?? null}
-              onChange={(_, value) =>
-                onChange({
-                  readPermissions,
-                  editPermissions: value as EditPermissions,
-                })
-              }
-            >
-              {editOptions.map((option) => (
-                <FormControlLabel
-                  key={option.value}
-                  value={option.value}
-                  control={<Radio />}
-                  label={option.label}
-                  disabled={
-                    !!readPermissions &&
-                    !isEditPermissionAllowed(readPermissions, option.value)
-                  }
-                />
-              ))}
-            </RadioGroup>
-          </FormControl>
-        </Box>
-      )}
-    </>
+    <Stack gap="6">
+      <RadioGroup<ReadPermissions>
+        label={t("permissions.view", "Who can view?")}
+        description={readHelperText}
+        value={readPermissions}
+        onValueChange={handleReadChange}
+      >
+        {readOptions.map((option) => (
+          <Radio key={option.value} value={option.value} label={option.label} />
+        ))}
+      </RadioGroup>
+      <RadioGroup<EditPermissions>
+        label={t("permissions.edit", "Who can edit?")}
+        description={editHelperText}
+        value={editPermissions}
+        onValueChange={(value) =>
+          onChange({ readPermissions, editPermissions: value })
+        }
+      >
+        {editOptions.map((option) => (
+          <Radio
+            key={option.value}
+            value={option.value}
+            label={option.label}
+            disabled={
+              !!readPermissions &&
+              !isEditPermissionAllowed(readPermissions, option.value)
+            }
+          />
+        ))}
+      </RadioGroup>
+    </Stack>
   );
 }

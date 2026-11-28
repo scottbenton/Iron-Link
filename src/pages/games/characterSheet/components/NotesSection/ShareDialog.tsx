@@ -1,10 +1,16 @@
-import { Button, Dialog, DialogActions, DialogContent } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DialogTitleWithCloseButton } from "components/DialogTitleWithCloseButton";
 import { PermissionsSelector } from "components/permissions/PermissionsSelector";
 import type { PermissionOption } from "components/permissions/permissionCompatibility";
+
+import { Button } from "ui/components/Button";
+import {
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogHeader,
+} from "ui/components/Dialog";
 
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
@@ -78,12 +84,15 @@ export function ShareDialog(props: ShareDialogProps) {
     currentEditPermissions,
   );
 
-  useEffect(() => {
+  // Each opening starts from the item's permissions as they are now.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) {
       setUpdatedViewPermissions(currentViewPermissions);
       setUpdatedWritePermissions(currentEditPermissions);
     }
-  }, [currentViewPermissions, currentEditPermissions, open]);
+  }
 
   // Notes are shared within a game, so the audiences follow its type. Each
   // audience can be offered for viewing and for editing.
@@ -176,11 +185,9 @@ export function ShareDialog(props: ShareDialogProps) {
       : t("notes.share", "Share Note");
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitleWithCloseButton onClose={onClose}>
-        {title}
-      </DialogTitleWithCloseButton>
-      <DialogContent>
+    <Dialog open={open} onClose={onClose} onSubmit={handleShare}>
+      <DialogHeader title={title} />
+      <DialogBody>
         <PermissionsSelector
           readOptions={readOptions}
           editOptions={writeOptions}
@@ -202,12 +209,12 @@ export function ShareDialog(props: ShareDialogProps) {
               : undefined
           }
         />
-      </DialogContent>
+      </DialogBody>
       <DialogActions>
-        <Button onClick={onClose} color="inherit">
+        <Button variant="ghost" onClick={onClose}>
           {t("common.cancel", "Cancel")}
         </Button>
-        <Button onClick={handleShare} variant="contained">
+        <Button variant="primary" type="submit">
           {t("common.save-changes", "Save Changes")}
         </Button>
       </DialogActions>

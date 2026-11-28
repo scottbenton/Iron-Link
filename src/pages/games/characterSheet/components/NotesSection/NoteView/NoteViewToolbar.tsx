@@ -1,50 +1,40 @@
 import { Editor } from "@tiptap/react";
-import { useTranslation } from "react-i18next";
 
 import { SecretsToolbarState } from "components/RichTextEditor";
 import { EditorToolbarControls } from "components/RichTextEditor/toolbar";
 
-import { Toolbar } from "ui/components/Toolbar";
-import { Flex } from "ui/primitives";
+import { Box } from "ui/primitives";
 
 import { useNotesStore } from "stores/notes.store";
 
-import { NoteToolbarActionsMenu } from "./NoteToolbarActionsMenu";
-import { NotePermissions } from "./useNotePermission";
+import { NoteItemAction } from "../NoteItemActions";
+import { NoteActionsMenu } from "./NoteActionsMenu";
 
-export interface NoteToolbarContentProps {
+export interface NoteViewToolbarProps {
   openNoteId: string;
   editor: Editor;
-  permissions: NotePermissions;
+  canEdit: boolean;
+  actions: NoteItemAction[];
   secrets?: SecretsToolbarState;
 }
 
 // A note's editing controls on a larger screen, with the note's own actions
-// at the far end of the strip.
-export function NoteViewToolbar(props: NoteToolbarContentProps) {
-  const { openNoteId, editor, permissions, secrets } = props;
-  const { t } = useTranslation();
+// at the far end of the strip. Rendered inside the note's ActionToolbar.
+export function NoteViewToolbar(props: NoteViewToolbarProps) {
+  const { openNoteId, editor, canEdit, actions, secrets } = props;
   const uploadNoteImage = useNotesStore((store) => store.uploadNoteImage);
 
   return (
-    <Flex alignItems="center" flexGrow={1} gap="2">
-      <Toolbar
-        variant="plain"
-        aria-label={t("note.editor-toolbar.label", "Formatting")}
-        css={{ flexWrap: "nowrap" }}
-      >
+    <>
+      {canEdit && (
         <EditorToolbarControls
           editor={editor}
           upload={(file) => uploadNoteImage(openNoteId, file)}
           secrets={secrets}
         />
-      </Toolbar>
-      <Flex flexGrow={1} justifyContent="flex-end" alignItems="center">
-        <NoteToolbarActionsMenu
-          openNoteId={openNoteId}
-          permissions={permissions}
-        />
-      </Flex>
-    </Flex>
+      )}
+      <Box flex="1" aria-hidden />
+      <NoteActionsMenu actions={actions} />
+    </>
   );
 }

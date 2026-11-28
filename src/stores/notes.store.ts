@@ -18,7 +18,7 @@ import type { RichTextContentStore } from "services/richTextContent.service";
 import { useAuthStore, useUID } from "./auth.store";
 import { GamePermission } from "./game.store";
 
-interface Permissions {
+export interface Permissions {
   canEdit: boolean;
   canDelete: boolean;
   canChangePermissions: boolean;

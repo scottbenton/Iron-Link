@@ -13,20 +13,20 @@ import { ArrowLeftIcon } from "ui/icons";
 
 import { useNotesStore } from "stores/notes.store";
 
-import { NoteToolbarActionsMenu } from "./NoteToolbarActionsMenu";
-import { NotePermissions } from "./useNotePermission";
+import { NoteItemAction } from "../NoteItemActions";
+import { NoteActionsMenu } from "./NoteActionsMenu";
 
 export interface MobileStickyNoteToolbarProps {
   openNoteId: string;
   editor: Editor;
-  permissions: NotePermissions;
+  actions: NoteItemAction[];
   secrets?: SecretsToolbarState;
 }
 
 // A note's toolbar on a phone, riding on the keyboard: back to the note's
 // folder, the editing controls, then the note's own actions.
 export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
-  const { openNoteId, editor, permissions, secrets } = props;
+  const { openNoteId, editor, actions, secrets } = props;
 
   const { t } = useTranslation();
 
@@ -62,10 +62,7 @@ export function MobileStickyNoteToolbar(props: MobileStickyNoteToolbarProps) {
         secrets={secrets}
         compact
       />
-      <NoteToolbarActionsMenu
-        openNoteId={openNoteId}
-        permissions={permissions}
-      />
+      <NoteActionsMenu actions={actions} />
     </MobileKeyboardToolbar>
   );
 }

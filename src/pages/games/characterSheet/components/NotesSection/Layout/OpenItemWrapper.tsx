@@ -1,31 +1,15 @@
-import { Box, SxProps, Theme } from "@mui/material";
 import { PropsWithChildren } from "react";
 
-import { NOTES_PANE_GUTTER } from "components/Layout/notesPaneGutter";
+import { Box } from "ui/primitives";
 
-export interface OpenItemWrapperProps {
-  sx?: SxProps<Theme>;
-}
+import { NOTES_PANE_INSET } from "./notesPaneInset";
 
-export function OpenItemWrapper(
-  props: PropsWithChildren<OpenItemWrapperProps>,
-) {
-  const { children, sx } = props;
+// A folder's contents, inset like the toolbar above them.
+export function OpenItemWrapper(props: PropsWithChildren) {
+  const { children } = props;
   return (
-    <Box
-      sx={[
-        {
-          display: "flex",
-          flexDirection: "column",
-          // flexGrow: 1,
-          overflow: "auto",
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-    >
-      <Box px={NOTES_PANE_GUTTER} pt={2}>
-        {children}
-      </Box>
+    <Box paddingInline={NOTES_PANE_INSET} paddingBlockStart="4">
+      {children}
     </Box>
   );
 }

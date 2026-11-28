@@ -1,75 +1,61 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import DragOrderIcon from "@mui/icons-material/DragIndicator";
-import { Box, Card } from "@mui/material";
 import { useTranslation } from "react-i18next";
+
+import { IconButton } from "ui/components/IconButton";
+import { NoteCard } from "ui/game/NoteCard";
+import { DotsSixVerticalIcon, FileTextIcon } from "ui/icons";
 
 import { INote } from "services/notes.service";
 
-import { NoteItemContent } from "./NoteItem";
+import { NoteItemCardMenu } from "../NoteItemActions";
+import { useNotesItemLink } from "../hooks/useNotesItemLink";
 
 export interface SortableNoteItemProps {
   id: string;
   note: INote;
 }
 
+/** A note's card with a handle that drags it, or moves it by keyboard. */
 export function SortableNoteItem(props: SortableNoteItemProps) {
   const { id, note } = props;
+  const { t } = useTranslation();
+  const getLink = useNotesItemLink();
 
   const {
     attributes,
     listeners,
     setNodeRef,
+    setActivatorNodeRef,
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: id });
-  const { t } = useTranslation();
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+  } = useSortable({ id });
 
   return (
-    <Card
-      variant={"outlined"}
-      key={id}
-      sx={{
-        mt: 1,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        position: "relative",
+    <NoteCard
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 1 : undefined,
       }}
-      style={style}
-    >
-      <Box
-        ref={setNodeRef}
-        {...listeners}
-        {...attributes}
-        aria-label={t("notes.sort.handle", "Move {{name}}", {
-          name: note.title,
-        })}
-        sx={(theme) => ({
-          pl: 1,
-          pr: 0.5,
-          display: "flex",
-          alignSelf: "stretch",
-          alignItems: "center",
-          cursor: isDragging ? "grabbing" : "grab",
-          "&:hover": {
-            backgroundColor: theme.palette.action.hover,
-          },
-        })}
-      >
-        <DragOrderIcon />
-      </Box>
-      <NoteItemContent
-        id={id}
-        note={note}
-        sx={{ pl: 0.5, borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
-      />
-    </Card>
+      icon={<FileTextIcon />}
+      title={note.title}
+      link={getLink({ type: "note", itemId: id })}
+      start={
+        <IconButton
+          ref={setActivatorNodeRef}
+          label={t("notes.sort.handle", "Move {{name}}", { name: note.title })}
+          size="sm"
+          css={{ cursor: isDragging ? "grabbing" : "grab" }}
+          {...attributes}
+          {...listeners}
+        >
+          <DotsSixVerticalIcon />
+        </IconButton>
+      }
+      action={<NoteItemCardMenu item={{ type: "note", id }} />}
+    />
   );
 }

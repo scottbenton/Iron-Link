@@ -97,6 +97,8 @@ export default tseslint.config(
       "src/components/RichTextEditor/*.{ts,tsx}",
       "src/components/RichTextEditor/{toolbar,secrets,ExtendedImageNode,NoteMentionExtension}/**/*.{ts,tsx}",
       "src/components/worlds/entries/WorldEntryHoverCard.tsx",
+      "src/pages/games/characterSheet/components/NotesSection/**/*.{ts,tsx}",
+      "src/components/permissions/**/*.{ts,tsx}",
     ],
     ignores: [
       "src/ui/**/__stories__/**",

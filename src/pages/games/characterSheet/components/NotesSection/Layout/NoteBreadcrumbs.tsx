@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 
-import { BreadcrumbTrail } from "components/Layout/BreadcrumbTrail";
+import { BreadcrumbItem, Breadcrumbs } from "ui/components/Breadcrumbs";
 
 import { getNotesItemLinkProps } from "pages/games/gamePageLayout/hooks/notesDestination";
 import { NOTES_ID } from "pages/games/gamePageLayout/hooks/useGameKeybinds";
@@ -76,15 +76,17 @@ export function NoteBreadcrumbs() {
   });
 
   if (!breadcrumbItems.length) return null;
+  const lastIndex = breadcrumbItems.length - 1;
   return (
-    <BreadcrumbTrail
-      items={breadcrumbItems.map((item, index) => ({
-        key: `${item.type}:${item.id}`,
-        label: item.name,
-        id: index === 0 ? NOTES_ID : undefined,
-        linkProps:
-          index === breadcrumbItems.length - 1
-            ? undefined
+    <Breadcrumbs>
+      {breadcrumbItems.map((item, index) => (
+        <BreadcrumbItem
+          key={`${item.type}:${item.id}`}
+          // Notes' keyboard shortcut focuses the trail's first step.
+          id={index === 0 ? NOTES_ID : undefined}
+          current={index === lastIndex}
+          {...(index === lastIndex
+            ? {}
             : getNotesItemLinkProps(
                 location.pathname,
                 new URLSearchParams(location.search),
@@ -96,8 +98,11 @@ export function NoteBreadcrumbs() {
                     replaceCurrent: !background,
                     openInBackground: background,
                   }),
-              ),
-      }))}
-    />
+              ))}
+        >
+          {item.name}
+        </BreadcrumbItem>
+      ))}
+    </Breadcrumbs>
   );
 }

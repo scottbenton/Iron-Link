@@ -13,12 +13,13 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Divider, Typography } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { GridLayout } from "components/Layout";
-import { EmptyState } from "components/Layout/EmptyState";
+import { Divider } from "ui/components/Divider";
+import { Text } from "ui/components/Text";
+import { EmptyState } from "ui/layout/EmptyState";
+import { Grid, Stack } from "ui/primitives";
 
 import { useUID } from "stores/auth.store";
 import { getPlayerNotesFolder, useNotesStore } from "stores/notes.store";
@@ -192,32 +193,28 @@ export function FolderView(props: FolderViewProps) {
   ];
 
   return (
-    <>
+    <Stack gap="2" paddingBlockEnd="4">
       {showWorldSection && (
         <>
           <GameWorldSection />
-          <Divider sx={{ mb: 1 }} />
-          <Typography variant="overline" px={1} component="h3">
+          <Divider />
+          <Text variant="label" as="h3">
             {t("notes.your-notes", "Your notes")}
-          </Typography>
+          </Text>
         </>
       )}
       {folderId === undefined &&
         (subFolders.length > 0 || sortedNoteIds.length > 0) && (
           <>
-            <Divider sx={{ mt: 4, mb: 1 }} />
-            <Typography variant="overline" px={1} component="h3">
+            <Divider css={{ marginBlockStart: "6" }} />
+            <Text variant="label" as="h3">
               {t("notes.shared-with-me", "Shared with you")}
-            </Typography>
+            </Text>
           </>
         )}
       {gridItems.length > 0 && (
-        <GridLayout
-          sx={{ mb: 1 }}
-          gap={1}
-          items={gridItems}
-          minWidth={200}
-          renderItem={(item) =>
+        <Grid gap="2" gridTemplateColumns={FOLDER_GRID_COLUMNS}>
+          {gridItems.map((item) =>
             item.kind === "world" ? (
               <WorldItem key="world" />
             ) : (
@@ -226,57 +223,66 @@ export function FolderView(props: FolderViewProps) {
                 folderId={item.folderId}
                 folder={item.folder}
               />
-            )
-          }
-        />
+            ),
+          )}
+        </Grid>
       )}
       {subFolders.length === 0 &&
         sortedNoteIds.length === 0 &&
         folderId &&
         !showLinkWorldItem && (
           <EmptyState
+            size="sm"
             title={t("notes.empty-folder", "Empty Folder")}
             message={t(
               "notes.empty-folder-description",
               "This folder has no contents yet.",
             )}
-            sx={{ py: 2 }}
           />
         )}
-      {folderId && canEdit ? (
-        <DndContext
-          collisionDetection={closestCenter}
-          sensors={sensors}
-          onDragEnd={handleDragEnd}
-          accessibility={getNoteSortAccessibility(
-            t,
-            sortedNoteIds,
-            (noteId) => noteMap[noteId]?.title,
-          )}
-        >
-          <SortableContext
-            items={sortedNoteIds}
-            strategy={verticalListSortingStrategy}
+      {sortedNoteIds.length > 0 &&
+        (folderId && canEdit ? (
+          <DndContext
+            collisionDetection={closestCenter}
+            sensors={sensors}
+            onDragEnd={handleDragEnd}
+            accessibility={getNoteSortAccessibility(
+              t,
+              localSortedNodes,
+              (noteId) => noteMap[noteId]?.title,
+            )}
           >
+            <SortableContext
+              items={localSortedNodes}
+              strategy={verticalListSortingStrategy}
+            >
+              <Stack gap="2">
+                {localSortedNodes.map(
+                  (noteId) =>
+                    noteMap[noteId] && (
+                      <SortableNoteItem
+                        key={noteId}
+                        id={noteId}
+                        note={noteMap[noteId]}
+                      />
+                    ),
+                )}
+              </Stack>
+            </SortableContext>
+          </DndContext>
+        ) : (
+          <Stack gap="2">
             {sortedNoteIds.map((noteId) => (
-              <SortableNoteItem
-                key={noteId}
-                id={noteId}
-                note={noteMap[noteId]}
-              />
+              <NoteItem key={noteId} id={noteId} note={noteMap[noteId]} />
             ))}
-          </SortableContext>
-        </DndContext>
-      ) : (
-        <>
-          {sortedNoteIds.map((noteId) => (
-            <NoteItem key={noteId} id={noteId} note={noteMap[noteId]} />
-          ))}
-        </>
-      )}
-    </>
+          </Stack>
+        ))}
+    </Stack>
   );
 }
+
+// Folder cards fill the row at 200px or more each, one per row on a phone.
+const FOLDER_GRID_COLUMNS = "repeat(auto-fill, minmax(min(100%, 200px), 1fr))";
 
 function sortFolders(aArr: [string, INoteFolder], bArr: [string, INoteFolder]) {
   const a = aArr[1];

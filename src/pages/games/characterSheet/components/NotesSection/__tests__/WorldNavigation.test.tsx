@@ -161,8 +161,8 @@ describe("World Notes navigation", () => {
     expect(links.map((link) => link.textContent)).toEqual([
       "Ironlands",
       "",
-      "NPCs2 entries",
-      "Locations1 entry",
+      "NPCs",
+      "Locations",
     ]);
     expect(screen.getByRole("link", { name: /Locations/ })).toHaveAttribute(
       "href",

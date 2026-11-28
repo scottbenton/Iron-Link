@@ -1,88 +1,27 @@
-import DocIcon from "@mui/icons-material/Description";
-import {
-  Box,
-  Card,
-  CardActionArea,
-  SxProps,
-  Theme,
-  Typography,
-} from "@mui/material";
-
-import { useNotesStore } from "stores/notes.store";
+import { NoteCard } from "ui/game/NoteCard";
+import { FileTextIcon } from "ui/icons";
 
 import { INote } from "services/notes.service";
 
-import { NoteActionMenu } from "./NoteActionMenu";
+import { NoteItemCardMenu } from "../NoteItemActions";
+import { useNotesItemLink } from "../hooks/useNotesItemLink";
 
 export interface NoteItemProps {
   id: string;
   note: INote;
 }
 
+/** A note's card in its folder: opens the note, with its menu. */
 export function NoteItem(props: NoteItemProps) {
   const { id, note } = props;
+  const getLink = useNotesItemLink();
 
   return (
-    <Card variant={"outlined"} key={id} sx={{ mt: 1, position: "relative" }}>
-      <NoteItemContent id={id} note={note} />
-    </Card>
-  );
-}
-
-export function NoteItemContent(
-  props: NoteItemProps & { sx?: SxProps<Theme> },
-) {
-  const { id, note, sx } = props;
-
-  const setOpenItem = useNotesStore((store) => store.openItemTab);
-
-  return (
-    <>
-      <CardActionArea
-        sx={[
-          {
-            py: 1.5,
-            px: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            gap: 1,
-          },
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
-        onClick={(evt) =>
-          setOpenItem({
-            type: "note",
-            id,
-            replaceCurrent: !(evt.ctrlKey || evt.metaKey),
-            openInBackground: evt.ctrlKey || evt.metaKey,
-          })
-        }
-        onAuxClick={() =>
-          setOpenItem({
-            type: "note",
-            id,
-            openInBackground: true,
-            replaceCurrent: false,
-          })
-        }
-        onMouseDown={(evt) => {
-          if (evt.button === 1) {
-            evt.preventDefault();
-          }
-        }}
-      >
-        <DocIcon sx={{ color: "primary.light" }} />
-        <Typography sx={{ flexGrow: 1 }}>{note.title}</Typography>
-        <Box
-          sx={(theme) => ({
-            width: `calc(${theme.spacing(1 - 2)} + 40px)`,
-            justifySelf: "flex-end",
-            ml: 1,
-          })}
-        />
-      </CardActionArea>
-      <NoteActionMenu noteId={id} />
-    </>
+    <NoteCard
+      icon={<FileTextIcon />}
+      title={note.title}
+      link={getLink({ type: "note", itemId: id })}
+      action={<NoteItemCardMenu item={{ type: "note", id }} />}
+    />
   );
 }

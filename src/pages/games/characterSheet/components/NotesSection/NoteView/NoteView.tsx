@@ -1,22 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { EmptyState } from "components/Layout/EmptyState";
 import {
   RichTextToolbarProps,
   RtcRichTextEditor,
 } from "components/RichTextEditor";
 
-import { useIsMobile } from "ui/hooks/useIsMobile";
+import { EmptyState } from "ui/layout/EmptyState";
 
 import { useGameId } from "pages/games/gamePageLayout/hooks/useGameId";
 import { useGamePermissions } from "pages/games/gamePageLayout/hooks/usePermissions";
 
 import { useNotesStore } from "stores/notes.store";
 
-import { NoteToolbar } from "../Layout";
-import { MobileStickyNoteToolbar } from "./MobileStickyToolbar";
-import { NoteViewToolbar } from "./NoteViewToolbar";
+import { NoteToolbars } from "./NoteToolbars";
 import { getNoteSecretsConfig } from "./noteSecrets";
 import { useNotePermission } from "./useNotePermission";
 
@@ -73,8 +70,6 @@ export function NoteView(props: NoteViewProps) {
     [getNoteContentStore, openNoteId],
   );
 
-  const isMobile = useIsMobile();
-
   const { gameType, gamePermission } = useGamePermissions();
   const readPermissions = useNotesStore(
     (store) => store.noteState.notes[openNoteId]?.readPermissions,
@@ -92,32 +87,17 @@ export function NoteView(props: NoteViewProps) {
   );
 
   // Stable, so the toolbar isn't remounted while a click is under way.
+  const canEdit = notePermissions.canEdit;
   const Toolbar = useCallback(
     ({ editor, secrets }: RichTextToolbarProps) => (
-      <>
-        <NoteToolbar>
-          {isMobile ? undefined : (
-            <>
-              {notePermissions.canEdit ? (
-                <NoteViewToolbar
-                  editor={editor}
-                  openNoteId={openNoteId}
-                  permissions={notePermissions}
-                  secrets={secrets}
-                />
-              ) : undefined}
-            </>
-          )}
-        </NoteToolbar>
-        <MobileStickyNoteToolbar
-          editor={editor}
-          openNoteId={openNoteId}
-          permissions={notePermissions}
-          secrets={secrets}
-        />
-      </>
+      <NoteToolbars
+        editor={editor}
+        openNoteId={openNoteId}
+        canEdit={canEdit}
+        secrets={secrets}
+      />
     ),
-    [isMobile, notePermissions, openNoteId],
+    [canEdit, openNoteId],
   );
 
   if (error) {

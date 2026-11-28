@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { translate } from "components/worlds/categories/__tests__/fixtures";
 
+import { Toolbar } from "ui/components/Toolbar";
+
 import { useNotesStore } from "stores/notes.store";
 
 import { GameType } from "repositories/game.repository";
@@ -16,7 +18,8 @@ import type { INote } from "services/notes.service";
 import { FolderView } from "../FolderView/FolderView";
 import { FolderViewToolbar } from "../FolderView/FolderViewToolbar";
 import { MoveDialog } from "../MoveDialog";
-import { NoteToolbarActionsMenu } from "../NoteView/NoteToolbarActionsMenu";
+import { useNoteItemActions } from "../NoteItemActions";
+import { NoteActionsMenu } from "../NoteView/NoteActionsMenu";
 
 const confirm = vi.hoisted(() => vi.fn());
 const game = vi.hoisted(() => ({ gameType: "guided" as string }));
@@ -117,6 +120,22 @@ function seed(
     };
   });
   useNotesStore.getState().openItemTab({ type: "folder", id: "root" });
+}
+
+// The note toolbar's actions, as NoteToolbars wires them.
+function NoteActions(props: { noteId: string }) {
+  const { actions, dialogs } = useNoteItemActions({
+    type: "note",
+    id: props.noteId,
+  });
+  return (
+    <>
+      <Toolbar aria-label="Note">
+        <NoteActionsMenu actions={actions} />
+      </Toolbar>
+      {dialogs}
+    </>
+  );
 }
 
 const renderInRouter = (ui: React.ReactNode) =>
@@ -431,16 +450,14 @@ describe("Note toolbar actions", () => {
     useNotesStore.getState().openItemTab({ type: "note", id: "first" });
     const tab = useNotesStore.getState().openTabId!;
     confirm.mockResolvedValue({ confirmed: true });
-    renderInRouter(
-      <NoteToolbarActionsMenu openNoteId="first" permissions={allowed} />,
-    );
+    renderInRouter(<NoteActions noteId="first" />);
 
     await user.click(screen.getByRole("button", { name: "Note actions" }));
     const items = screen.getAllByRole("menuitem").map((i) => i.textContent);
     expect(items).toEqual([
       "Rename Note",
-      expect.stringMatching(/^Move/),
       "Share Note",
+      "Move Note",
       "Delete Note",
     ]);
     await user.click(screen.getByRole("menuitem", { name: "Delete Note" }));
