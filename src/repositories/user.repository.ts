@@ -10,7 +10,7 @@ import {
 
 export type UserDTO = Omit<
   Tables<"users">,
-  "created_at" | "accessibility_settings"
+  "created_at" | "accessibility_settings" | "color_scheme"
 >;
 type UpdateUserDTO = TablesUpdate<"users">;
 
